@@ -5582,8 +5582,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // These should be ordered from most-likely to
             // least likely to change. I've made an initial
             // guess at that.
-            bool update =
-               (
+            if (
                 (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
                 (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
                 (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
@@ -5596,10 +5595,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
                 (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
                 (x.AgentID != m_lastAgentUpdateArgs.AgentID)
-               );
-
-
-            if (update)
+               )
             {
 //                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
                 TotalSignificantAgentUpdates++;
@@ -5616,9 +5612,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_lastAgentUpdateArgs.HeadRotation = x.HeadRotation;
                 m_lastAgentUpdateArgs.SessionID = x.SessionID;
                 m_lastAgentUpdateArgs.State = x.State;
+
+                return true;
             }
 
-            return update;
+            return false;
         }
 
         private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
