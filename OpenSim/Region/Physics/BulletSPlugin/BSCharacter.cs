@@ -709,10 +709,10 @@ public sealed class BSCharacter : BSPhysObject
     // the world that things have changed.
     public override void UpdateProperties(EntityProperties entprop)
     {
-        // Don't change position if standing on a stationary object.
-        if (!IsStationary)
-            RawPosition = entprop.Position;
+        // Let anyone (like the actors) modify the updated properties before they are pushed into the object and the simulator.
+        TriggerPreUpdatePropertyAction(ref entprop);
 
+        RawPosition = entprop.Position;
         RawOrientation = entprop.Rotation;
 
         // Smooth velocity. OpenSimulator is VERY sensitive to changes in velocity of the avatar
@@ -740,7 +740,7 @@ public sealed class BSCharacter : BSPhysObject
         // Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
 
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
-        // base.RequestPhysicsterseUpdate();
+        // PhysScene.PostUpdate(this);
 
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                 LocalID, RawPosition, RawOrientation, RawVelocity, _acceleration, _rotationalVelocity);
