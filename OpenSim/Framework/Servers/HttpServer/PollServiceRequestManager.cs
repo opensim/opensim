@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BaseHttpServer m_server;
 
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
-        private static Queue<PollServiceHttpRequest> m_longPollRequests = new Queue<PollServiceHttpRequest>();
+        private static List<PollServiceHttpRequest> m_longPollRequests = new List<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll)
                 {
                     lock (m_longPollRequests)
-                        m_longPollRequests.Enqueue(req);
+                        m_longPollRequests.Add(req);
                 }
                 else
                     m_requests.Enqueue(req);
@@ -139,18 +139,21 @@ namespace OpenSim.Framework.Servers.HttpServer
                 List<PollServiceHttpRequest> not_ready = new List<PollServiceHttpRequest>();
                 lock (m_longPollRequests)
                 {
-                    while (m_longPollRequests.Count > 0 && m_running)
+                    if (m_longPollRequests.Count > 0 && m_running)
                     {
-                        PollServiceHttpRequest req = m_longPollRequests.Dequeue();
-                        if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id) || // there are events in this EQ
+                        List<PollServiceHttpRequest> ready = m_longPollRequests.FindAll(req =>
+                            (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id) || // there are events in this EQ
                             (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms) // no events, but timeout
-                            m_requests.Enqueue(req);
-                        else
-                            not_ready.Add(req);
-                    }
+                            );
 
-                    foreach (PollServiceHttpRequest req in not_ready)
-                        m_longPollRequests.Enqueue(req);
+                        ready.ForEach(req =>
+                            {
+                                m_log.DebugFormat("[YYY]: --> Enqueuing");
+                                m_requests.Enqueue(req);
+                                m_longPollRequests.Remove(req);
+                            });
+
+                    }
 
                 }
             }
@@ -169,8 +172,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             lock (m_longPollRequests)
             {
-                while (m_longPollRequests.Count > 0 && m_running)
-                    m_requests.Enqueue(m_longPollRequests.Dequeue());
+                if (m_longPollRequests.Count > 0 && m_running)
+                    m_longPollRequests.ForEach(req => m_requests.Enqueue(req));
             }
 
             while (m_requests.Count() > 0)
@@ -186,6 +189,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
 
+            m_longPollRequests.Clear();
             m_requests.Clear();
         }
 
