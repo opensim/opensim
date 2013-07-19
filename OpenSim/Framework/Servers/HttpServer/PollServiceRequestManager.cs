@@ -96,7 +96,17 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void ReQueueEvent(PollServiceHttpRequest req)
         {
             if (m_running)
-                m_requests.Enqueue(req);
+            {
+                // delay the enqueueing for 100ms. There's no need to have the event
+                // actively on the queue
+                Timer t = new Timer(self => {
+                    ((Timer)self).Dispose();
+                    m_requests.Enqueue(req);
+                });
+
+                t.Change(100, Timeout.Infinite);
+
+            }
         }
 
         public void Enqueue(PollServiceHttpRequest req)
