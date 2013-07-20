@@ -5587,6 +5587,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         public bool CheckAgentUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
+            // Compute these only once, when this function is called from down below
+            qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
+            //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
+            vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
+            vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
+            vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
+            vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+
             return CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
         }
 
@@ -5596,10 +5604,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <remarks>Can only be called by one thread at a time</remarks>
         /// <returns></returns>
         /// <param name='x'></param>
-        public bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
-            qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
             if (
                 (qdelta1 > QDELTA) ||
                 // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
@@ -5626,12 +5632,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <remarks>Can only be called by one thread at a time</remarks>
         /// <returns></returns>
         /// <param name='x'></param>
-        public bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
-            vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
-            vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
-            vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
             if (
                 /* These 4 are the worst offenders! 
                  * With Singularity, there is a bug where sometimes the spam on these doesn't stop */

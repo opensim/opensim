@@ -1735,7 +1735,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// This is the event handler for client cameras. If a client is moving, or moving the camera, this event is triggering.
         /// </summary>
-        public void HandleAgentCamerasUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
+        private void HandleAgentCamerasUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
             //m_log.DebugFormat(
             //    "[SCENE PRESENCE]: In {0} received agent camera update from {1}, flags {2}",
