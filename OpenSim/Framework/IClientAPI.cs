@@ -825,6 +825,8 @@ namespace OpenSim.Framework
         /// </remarks>
         event UpdateAgent OnAgentUpdate;
 
+        event UpdateAgent OnAgentCameraUpdate;
+
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
         event AvatarPickerRequest OnAvatarPickerRequest;

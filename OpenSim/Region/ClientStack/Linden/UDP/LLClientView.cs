@@ -96,6 +96,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
+        public event UpdateAgent OnAgentCameraUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
@@ -357,9 +358,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// This does mean that agent updates must be processed synchronously, at least for each client, and called methods
         /// cannot retain a reference to it outside of that method.
         /// </remarks>
-        private AgentUpdateArgs m_lastAgentUpdateArgs = new AgentUpdateArgs();
-
         private AgentUpdateArgs m_thisAgentUpdateArgs = new AgentUpdateArgs();
+        private float qdelta1;
+        private float qdelta2;
+        private float vdelta1;
+        private float vdelta2;
+        private float vdelta3;
+        private float vdelta4;
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -5571,57 +5576,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Scene/Avatar
 
+        private const float QDELTA = 0.01f;
+        private const float VDELTA = 0.01f;
+
         /// <summary>
         /// This checks the update significance against the last update made.
         /// </summary>
         /// <remarks>Can only be called by one thread at a time</remarks>
-        /// <returns>/returns>
+        /// <returns></returns>
         /// <param name='x'></param>
         public bool CheckAgentUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            // These should be ordered from most-likely to
-            // least likely to change. I've made an initial
-            // guess at that.
+            return CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
+        }
+
+        /// <summary>
+        /// This checks the movement/state update significance against the last update made.
+        /// </summary>
+        /// <remarks>Can only be called by one thread at a time</remarks>
+        /// <returns></returns>
+        /// <param name='x'></param>
+        public bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        {
+            qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
+            qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
             if (
-                /* These 4 are the worst offenders! We should consider ignoring most of them.
+                (qdelta1 > QDELTA) ||
+                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
+                //(qdelta2 > QDELTA * 10) ||
+                (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags) ||
+                (x.Far != m_thisAgentUpdateArgs.Far) ||
+                (x.Flags != m_thisAgentUpdateArgs.Flags) ||
+                (x.State != m_thisAgentUpdateArgs.State) 
+               )
+            {
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
+                //    qdelta1, qdelta2);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3} (Thread {4})",
+                //    x.ControlFlags, x.Flags, x.Far, x.State, Thread.CurrentThread.Name);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This checks the camera update significance against the last update made.
+        /// </summary>
+        /// <remarks>Can only be called by one thread at a time</remarks>
+        /// <returns></returns>
+        /// <param name='x'></param>
+        public bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        {
+            vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
+            vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
+            vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
+            vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+            if (
+                /* These 4 are the worst offenders! 
                  * With Singularity, there is a bug where sometimes the spam on these doesn't stop */
-                (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
-                (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
-                (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
-                (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
-                 /* */
-                (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
-                (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
-                (x.Far != m_lastAgentUpdateArgs.Far) ||
-                (x.Flags != m_lastAgentUpdateArgs.Flags) ||
-                (x.State != m_lastAgentUpdateArgs.State) ||
-                (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
-                (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
-                (x.AgentID != m_lastAgentUpdateArgs.AgentID)
+                (vdelta1 > VDELTA) ||
+                (vdelta2 > VDELTA) ||
+                (vdelta3 > VDELTA) ||
+                (vdelta4 > VDELTA) 
                )
             {
                 //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
                 //    x.CameraAtAxis, x.CameraCenter);
                 //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
                 //    x.CameraLeftAxis, x.CameraUpAxis);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
-                //    x.BodyRotation, x.HeadRotation);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
-                //    x.ControlFlags, x.Flags, x.Far, x.State);
-
-                m_lastAgentUpdateArgs.AgentID = x.AgentID;
-                m_lastAgentUpdateArgs.BodyRotation = x.BodyRotation;
-                m_lastAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
-                m_lastAgentUpdateArgs.CameraCenter = x.CameraCenter;
-                m_lastAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
-                m_lastAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
-                m_lastAgentUpdateArgs.ControlFlags = x.ControlFlags;
-                m_lastAgentUpdateArgs.Far = x.Far;
-                m_lastAgentUpdateArgs.Flags = x.Flags;
-                m_lastAgentUpdateArgs.HeadRotation = x.HeadRotation;
-                m_lastAgentUpdateArgs.SessionID = x.SessionID;
-                m_lastAgentUpdateArgs.State = x.State;
-
                 return true;
             }
 
@@ -5629,75 +5652,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
-        {
-            if (OnAgentUpdate != null)
+        {            
+            // We got here, which means that something in agent update was significant
+
+            AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+            AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
+
+            if (x.AgentID != AgentId || x.SessionID != SessionId)
+                return false;
+
+            // Before we update the current m_thisAgentUpdateArgs, let's check this again
+            // to see what exactly changed
+            bool movement = CheckAgentMovementUpdateSignificance(x);
+            bool camera = CheckAgentCameraUpdateSignificance(x);
+
+            m_thisAgentUpdateArgs.AgentID = x.AgentID;
+            m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;
+            m_thisAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
+            m_thisAgentUpdateArgs.CameraCenter = x.CameraCenter;
+            m_thisAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
+            m_thisAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
+            m_thisAgentUpdateArgs.ControlFlags = x.ControlFlags;
+            m_thisAgentUpdateArgs.Far = x.Far;
+            m_thisAgentUpdateArgs.Flags = x.Flags;
+            m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
+            m_thisAgentUpdateArgs.SessionID = x.SessionID;
+            m_thisAgentUpdateArgs.State = x.State;
+
+            UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+            UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
+            UpdateAgent handlerAgentCameraUpdate = OnAgentCameraUpdate;
+
+            // Was there a significant movement/state change?
+            if (movement)
             {
-                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+                if (handlerPreAgentUpdate != null)
+                    OnPreAgentUpdate(this, m_thisAgentUpdateArgs);
 
-                // Now done earlier
-//                #region Packet Session and User Check
-//                if (agentUpdate.AgentData.SessionID != SessionId || agentUpdate.AgentData.AgentID != AgentId)
-//                {
-//                    PacketPool.Instance.ReturnPacket(packet);
-//                    return false;
-//                }
-//                #endregion
-//
-//                bool update = false;
-                AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
-//
-//                if (m_lastAgentUpdateArgs != null)
-//                {
-//                    // These should be ordered from most-likely to
-//                    // least likely to change. I've made an initial
-//                    // guess at that.
-//                    update =
-//                       (
-//                        (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
-//                        (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
-//                        (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
-//                        (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
-//                        (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
-//                        (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
-//                        (x.Far != m_lastAgentUpdateArgs.Far) ||
-//                        (x.Flags != m_lastAgentUpdateArgs.Flags) ||
-//                        (x.State != m_lastAgentUpdateArgs.State) ||
-//                        (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
-//                        (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
-//                        (x.AgentID != m_lastAgentUpdateArgs.AgentID)
-//                       );
-//                }
-//
-//                if (update)
-//                {
-////                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
-
-                    m_thisAgentUpdateArgs.AgentID = x.AgentID;
-                    m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;
-                    m_thisAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
-                    m_thisAgentUpdateArgs.CameraCenter = x.CameraCenter;
-                    m_thisAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
-                    m_thisAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
-                    m_thisAgentUpdateArgs.ControlFlags = x.ControlFlags;
-                    m_thisAgentUpdateArgs.Far = x.Far;
-                    m_thisAgentUpdateArgs.Flags = x.Flags;
-                    m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
-                    m_thisAgentUpdateArgs.SessionID = x.SessionID;
-                    m_thisAgentUpdateArgs.State = x.State;
-
-                    UpdateAgent handlerAgentUpdate = OnAgentUpdate;
-                    UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
-
-                    if (handlerPreAgentUpdate != null)
-                        OnPreAgentUpdate(this, m_thisAgentUpdateArgs);
-
-                    if (handlerAgentUpdate != null)
-                        OnAgentUpdate(this, m_thisAgentUpdateArgs);
-
-                    handlerAgentUpdate = null;
-                    handlerPreAgentUpdate = null;
-//                }
+                if (handlerAgentUpdate != null)
+                    OnAgentUpdate(this, m_thisAgentUpdateArgs);
             }
+            // Was there a significant camera(s) change?
+            if (camera)
+                if (handlerAgentCameraUpdate != null)
+                    handlerAgentCameraUpdate(this, m_thisAgentUpdateArgs);
+
+            handlerAgentUpdate = null;
+            handlerPreAgentUpdate = null;
+            handlerAgentCameraUpdate = null;
 
             PacketPool.Instance.ReturnPacket(packet);
 
