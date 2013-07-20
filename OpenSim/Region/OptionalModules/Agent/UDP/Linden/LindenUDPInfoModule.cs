@@ -611,7 +611,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             //
             if (showParams.Length <= 4)
             {
-                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", "Region", "Name", "Root", "Time", "Reqs/min", "Sig. AgentUpdates");
+                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", "Region", "Name", "Root", "Time", "Reqs/min", "AgentUpdates");
                 foreach (Scene scene in m_scenes.Values)
                 {
                     scene.ForEachClient(
@@ -630,9 +630,9 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                          (DateTime.Now - cinfo.StartedTime).Minutes,
                                          avg_reqs, 
                                          string.Format(
-                                            "{0}, {1}%", 
-                                            llClient.TotalSignificantAgentUpdates, 
-                                            (float)llClient.TotalSignificantAgentUpdates / cinfo.SyncRequests["AgentUpdate"] * 100));
+                                            "{0} ({1:0.00}%)", 
+                                            llClient.TotalAgentUpdates, 
+                                            (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100));
                             }
                         });
                 }

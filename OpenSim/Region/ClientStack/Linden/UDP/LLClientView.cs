@@ -5567,7 +5567,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Packet Handlers
 
-        public int TotalSignificantAgentUpdates { get; private set; }
+        public int TotalAgentUpdates { get; set; }
 
         #region Scene/Avatar
 
@@ -5583,11 +5583,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // least likely to change. I've made an initial
             // guess at that.
             if (
-                (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
+                /* These 4 are the worst offenders! We should consider ignoring most of them.
+                 * With Singularity, there is a bug where sometimes the spam on these doesn't stop */
                 (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
                 (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
                 (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
                 (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
+                 /* */
+                (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
                 (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
                 (x.Far != m_lastAgentUpdateArgs.Far) ||
                 (x.Flags != m_lastAgentUpdateArgs.Flags) ||
@@ -5597,8 +5600,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 (x.AgentID != m_lastAgentUpdateArgs.AgentID)
                )
             {
-//                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
-                TotalSignificantAgentUpdates++;
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
+                //    x.CameraAtAxis, x.CameraCenter);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
+                //    x.CameraLeftAxis, x.CameraUpAxis);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
+                //    x.BodyRotation, x.HeadRotation);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
+                //    x.ControlFlags, x.Flags, x.Far, x.State);
 
                 m_lastAgentUpdateArgs.AgentID = x.AgentID;
                 m_lastAgentUpdateArgs.BodyRotation = x.BodyRotation;
@@ -5662,7 +5671,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                if (update)
 //                {
 ////                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
-                    TotalSignificantAgentUpdates++;
 
                     m_thisAgentUpdateArgs.AgentID = x.AgentID;
                     m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;

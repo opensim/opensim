@@ -1312,6 +1312,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_discardAgentUpdates)
                     return;
 
+                ((LLClientView)client).TotalAgentUpdates++;
+
                 AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
 
                 if (agentUpdate.AgentData.SessionID != client.SessionId 
