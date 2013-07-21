@@ -495,9 +495,13 @@ namespace OpenSim.Services.HypergridService
 
         private XInventoryFolder GetCurrentOutfitXFolder(UUID userID)
         {
+            XInventoryFolder root = GetRootXFolder(userID);
+            if (root == null)
+                return null;
+
             XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "agentID", "type" },
-                    new string[] { userID.ToString(), ((int)AssetType.CurrentOutfitFolder).ToString() });
+                    new string[] { "agentID", "type", "parentFolderID" },
+                    new string[] { userID.ToString(), ((int)AssetType.CurrentOutfitFolder).ToString(), root.folderID.ToString() });
 
             if (folders.Length == 0)
                 return null;
