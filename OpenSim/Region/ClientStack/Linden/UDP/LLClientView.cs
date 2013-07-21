@@ -5595,7 +5595,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
             vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
 
-            return CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
+            bool significant = CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
+
+            // Emergency debugging
+            //if (significant)
+            //{
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
+                //    x.CameraAtAxis, x.CameraCenter);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
+                //    x.CameraLeftAxis, x.CameraUpAxis);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
+                //    qdelta1, qdelta2);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
+                //    x.ControlFlags, x.Flags, x.Far, x.State);
+            //}
+
+            return significant;
+
         }
 
         /// <summary>
@@ -5606,24 +5622,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            if (
+            return (
                 (qdelta1 > QDELTA) ||
                 // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
                 //(qdelta2 > QDELTA * 10) ||
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags) ||
                 (x.Far != m_thisAgentUpdateArgs.Far) ||
                 (x.Flags != m_thisAgentUpdateArgs.Flags) ||
-                (x.State != m_thisAgentUpdateArgs.State) 
-               )
-            {
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
-                //    qdelta1, qdelta2);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3} (Thread {4})",
-                //    x.ControlFlags, x.Flags, x.Far, x.State, Thread.CurrentThread.Name);
-                return true;
-            }
-
-            return false;
+                (x.State != m_thisAgentUpdateArgs.State)
+               );
         }
 
         /// <summary>
@@ -5634,23 +5641,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            if (
-                /* These 4 are the worst offenders! 
-                 * With Singularity, there is a bug where sometimes the spam on these doesn't stop */
+            return (
                 (vdelta1 > VDELTA) ||
                 (vdelta2 > VDELTA) ||
                 (vdelta3 > VDELTA) ||
-                (vdelta4 > VDELTA) 
-               )
-            {
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
-                //    x.CameraAtAxis, x.CameraCenter);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
-                //    x.CameraLeftAxis, x.CameraUpAxis);
-                return true;
-            }
-
-            return false;
+                (vdelta4 > VDELTA)
+               );
         }
 
         private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
