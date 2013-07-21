@@ -493,6 +493,18 @@ namespace OpenSim.Services.HypergridService
             return null;
         }
 
+        private XInventoryFolder GetCurrentOutfitXFolder(UUID userID)
+        {
+            XInventoryFolder[] folders = m_Database.GetFolders(
+                    new string[] { "agentID", "type" },
+                    new string[] { userID.ToString(), ((int)AssetType.CurrentOutfitFolder).ToString() });
+
+            if (folders.Length == 0)
+                return null;
+
+            return folders[0];
+        }
+
         private XInventoryFolder GetSuitcaseXFolder(UUID principalID)
         {
             // Warp! Root folder for travelers
@@ -531,6 +543,7 @@ namespace OpenSim.Services.HypergridService
             if (m_SuitcaseTrees.TryGetValue(principalID, out t))
                 return t;
 
+            // Get the tree of the suitcase folder
             t = GetFolderTreeRecursive(folder);
             m_SuitcaseTrees.AddOrUpdate(principalID, t, 5*60); // 5minutes
             return t;
@@ -577,6 +590,9 @@ namespace OpenSim.Services.HypergridService
             List<XInventoryFolder> tree = new List<XInventoryFolder>();
             tree.Add(suitcase); // Warp! the tree is the real root folder plus the children of the suitcase folder
             tree.AddRange(GetFolderTree(principalID, suitcase.folderID));
+            // Also add the Current Outfit folder to the list of available folders
+            tree.Add(GetCurrentOutfitXFolder(principalID));
+
             XInventoryFolder f = tree.Find(delegate(XInventoryFolder fl)
             {
                 if (fl.folderID == folderID) return true;
