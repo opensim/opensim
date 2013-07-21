@@ -1728,7 +1728,8 @@ namespace OpenSim.Region.Framework.Scenes
                 SendControlsToScripts(flagsForScripts);
             }
 
-            if ((State & 0x10) != 0)
+            // We need to send this back to the client in order to see the edit beams
+            if ((State & (uint)AgentState.Editing) != 0)
                 ControllingClient.SendAgentTerseUpdate(this);
 
             m_scene.EventManager.TriggerOnClientMovement(this);
