@@ -1229,7 +1229,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
         
-        public void StopFlying(ISceneEntity presence)
+        public void SendAgentTerseUpdate(ISceneEntity presence)
         {
         }
 

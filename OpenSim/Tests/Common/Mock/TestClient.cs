@@ -1256,7 +1256,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void StopFlying(ISceneEntity presence)
+        public void SendAgentTerseUpdate(ISceneEntity presence)
         {
         }
 

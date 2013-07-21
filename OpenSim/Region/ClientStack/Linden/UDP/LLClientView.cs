@@ -5016,7 +5016,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 ScenePresence presence = (ScenePresence)entity;
 
-                attachPoint = 0;
+                attachPoint = presence.State;
                 collisionPlane = presence.CollisionPlane;
                 position = presence.OffsetPosition;
                 velocity = presence.Velocity;
@@ -5040,7 +5040,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SceneObjectPart part = (SceneObjectPart)entity;
 
                 attachPoint = part.ParentGroup.AttachmentPoint;
-
+                attachPoint = ((attachPoint % 16) * 16 + (attachPoint / 16));
 //                m_log.DebugFormat(
 //                    "[LLCLIENTVIEW]: Sending attachPoint {0} for {1} {2} to {3}",
 //                    attachPoint, part.Name, part.LocalId, Name);
@@ -5068,7 +5068,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pos += 4;
 
             // Avatar/CollisionPlane
-            data[pos++] = (byte)((attachPoint % 16) * 16 + (attachPoint / 16)); ;
+            data[pos++] = (byte) attachPoint;
             if (avatar)
             {
                 data[pos++] = 1;
@@ -12550,7 +12550,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(dialog, ThrottleOutPacketType.Task);
         }
 
-        public void StopFlying(ISceneEntity p)
+        public void SendAgentTerseUpdate(ISceneEntity p)
         {
             if (p is ScenePresence)
             {
@@ -12563,25 +12563,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // when the avatar stands up
 
                 Vector3 pos = presence.AbsolutePosition;
-
-                if (presence.Appearance.AvatarHeight != 127.0f)
-                    pos += new Vector3(0f, 0f, (presence.Appearance.AvatarHeight/6f));
-                else
-                    pos += new Vector3(0f, 0f, (1.56f/6f));
-
-                presence.AbsolutePosition = pos;
-
-                // attach a suitable collision plane regardless of the actual situation to force the LLClient to land.
-                // Collision plane below the avatar's position a 6th of the avatar's height is suitable.
-                // Mind you, that this method doesn't get called if the avatar's velocity magnitude is greater then a
-                // certain amount..   because the LLClient wouldn't land in that situation anyway.
-
-                // why are we still testing for this really old height value default???
-                if (presence.Appearance.AvatarHeight != 127.0f)
-                    presence.CollisionPlane = new Vector4(0, 0, 0, pos.Z - presence.Appearance.AvatarHeight/6f);
-                else
-                    presence.CollisionPlane = new Vector4(0, 0, 0, pos.Z - (1.56f/6f));
-
 
                 ImprovedTerseObjectUpdatePacket.ObjectDataBlock block =
                     CreateImprovedTerseBlock(p, false);

@@ -1125,7 +1125,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopFlying()
         {
-            ControllingClient.StopFlying(this);
+            ControllingClient.SendAgentTerseUpdate(this);
         }
 
         /// <summary>
@@ -1727,6 +1727,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SendControlsToScripts(flagsForScripts);
             }
+
+            if ((State & 0x10) != 0)
+                ControllingClient.SendAgentTerseUpdate(this);
 
             m_scene.EventManager.TriggerOnClientMovement(this);
         }
