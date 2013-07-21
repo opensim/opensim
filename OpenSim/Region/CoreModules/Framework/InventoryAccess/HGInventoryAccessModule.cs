@@ -185,8 +185,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
         }
 
-        public void UploadInventoryItem(UUID avatarID, UUID assetID, string name, int userlevel)
+        public void UploadInventoryItem(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel)
         {
+            if (type == AssetType.Link)
+                return;
+
             string userAssetServer = string.Empty;
             if (IsForeignUser(avatarID, out userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
             {
@@ -221,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             UUID newAssetID = base.CapsUpdateInventoryItemAsset(remoteClient, itemID, data);
 
-            UploadInventoryItem(remoteClient.AgentId, newAssetID, "", 0);
+            UploadInventoryItem(remoteClient.AgentId, AssetType.Unknown, newAssetID, "", 0);
 
             return newAssetID;
         }
@@ -232,7 +235,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override void ExportAsset(UUID agentID, UUID assetID)
         {
             if (!assetID.Equals(UUID.Zero))
-                UploadInventoryItem(agentID, assetID, "", 0);
+                UploadInventoryItem(agentID, AssetType.Unknown, assetID, "", 0);
             else
                 m_log.Debug("[HGScene]: Scene.Inventory did not create asset");
         }
