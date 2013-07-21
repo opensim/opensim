@@ -5576,7 +5576,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Scene/Avatar
 
-        private const float QDELTA = 0.01f;
+        private const float QDELTA = 0.000001f;
         private const float VDELTA = 0.01f;
 
         /// <summary>
