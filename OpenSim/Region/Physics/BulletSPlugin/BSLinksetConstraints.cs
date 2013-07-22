@@ -48,22 +48,12 @@ public sealed class BSLinksetConstraints : BSLinkset
     {
         base.Refresh(requestor);
 
-    }
-
-    private void ScheduleRebuild(BSPrimLinkable requestor)
-    {
-        DetailLog("{0},BSLinksetConstraint.ScheduleRebuild,,rebuilding={1},hasChildren={2},actuallyScheduling={3}",
-                            requestor.LocalID, Rebuilding, HasAnyChildren, (!Rebuilding && HasAnyChildren));
-
-        // When rebuilding, it is possible to set properties that would normally require a rebuild.
-        //    If already rebuilding, don't request another rebuild.
-        //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
-        if (!Rebuilding && HasAnyChildren)
+        if (HasAnyChildren && IsRoot(requestor))
         {
             // Queue to happen after all the other taint processing
             m_physicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
                 {
-                    if (HasAnyChildren)
+                    if (HasAnyChildren && IsRoot(requestor))
                         RecomputeLinksetConstraints();
                 });
         }
@@ -77,14 +67,8 @@ public sealed class BSLinksetConstraints : BSLinkset
     // Called at taint-time!
     public override bool MakeDynamic(BSPrimLinkable child)
     {
-        bool ret = false;
-        DetailLog("{0},BSLinksetConstraints.MakeDynamic,call,IsRoot={1}", child.LocalID, IsRoot(child));
-        if (IsRoot(child))
-        {
-            // The root is going dynamic. Rebuild the linkset so parts and mass get computed properly.
-            ScheduleRebuild(LinksetRoot);
-        }
-        return ret;
+        // What is done for each object in BSPrim is what we want.
+        return false;
     }
 
     // The object is going static (non-physical). Do any setup necessary for a static linkset.
@@ -94,16 +78,8 @@ public sealed class BSLinksetConstraints : BSLinkset
     // Called at taint-time!
     public override bool MakeStatic(BSPrimLinkable child)
     {
-        bool ret = false;
-
-        DetailLog("{0},BSLinksetConstraint.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
-        child.ClearDisplacement();
-        if (IsRoot(child))
-        {
-            // Schedule a rebuild to verify that the root shape is set to the real shape.
-            ScheduleRebuild(LinksetRoot);
-        }
-        return ret;
+        // What is done for each object in BSPrim is what we want.
+        return false;
     }
 
     // Called at taint-time!!
@@ -129,7 +105,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             // Just undo all the constraints for this linkset. Rebuild at the end of the step.
             ret = PhysicallyUnlinkAllChildrenFromRoot(LinksetRoot);
             // Cause the constraints, et al to be rebuilt before the next simulation step.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return ret;
     }
@@ -147,7 +123,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             DetailLog("{0},BSLinksetConstraints.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
             // Cause constraints and assorted properties to be recomputed before the next simulation step.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return;
     }
@@ -171,7 +147,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
             // See that the linkset parameters are recomputed at the end of the taint time.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         else
         {
@@ -189,7 +165,6 @@ public sealed class BSLinksetConstraints : BSLinkset
         Refresh(rootPrim);
     }
 
-    // Create a static constraint between the two passed objects
     private BSConstraint BuildConstraint(BSPrimLinkable rootPrim, BSPrimLinkable childPrim)
     {
         // Zero motion for children so they don't interpolate
@@ -306,39 +281,24 @@ public sealed class BSLinksetConstraints : BSLinkset
         DetailLog("{0},BSLinksetConstraint.RecomputeLinksetConstraints,set,rBody={1},linksetMass={2}",
                             LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString, linksetMass);
 
-        try
+        foreach (BSPrimLinkable child in m_children)
         {
-            Rebuilding = true;
+            // A child in the linkset physically shows the mass of the whole linkset.
+            // This allows Bullet to apply enough force on the child to move the whole linkset.
+            // (Also do the mass stuff before recomputing the constraint so mass is not zero.)
+            child.UpdatePhysicalMassProperties(linksetMass, true);
 
-            // There is no reason to build all this physical stuff for a non-physical linkset.
-            if (!LinksetRoot.IsPhysicallyActive)
+            BSConstraint constrain;
+            if (!m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))
             {
-                DetailLog("{0},BSLinksetConstraint.RecomputeLinksetCompound,notPhysical", LinksetRoot.LocalID);
-                return; // Note the 'finally' clause at the botton which will get executed.
+                // If constraint doesn't exist yet, create it.
+                constrain = BuildConstraint(LinksetRoot, child);
             }
+            constrain.RecomputeConstraintVariables(linksetMass);
 
-            foreach (BSPrimLinkable child in m_children)
-            {
-                // A child in the linkset physically shows the mass of the whole linkset.
-                // This allows Bullet to apply enough force on the child to move the whole linkset.
-                // (Also do the mass stuff before recomputing the constraint so mass is not zero.)
-                child.UpdatePhysicalMassProperties(linksetMass, true);
-
-                BSConstraint constrain;
-                if (!m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))
-                {
-                    // If constraint doesn't exist yet, create it.
-                    constrain = BuildConstraint(LinksetRoot, child);
-                }
-                constrain.RecomputeConstraintVariables(linksetMass);
-
-                // PhysicsScene.PE.DumpConstraint(PhysicsScene.World, constrain.Constraint);    // DEBUG DEBUG
-            }
+            // PhysicsScene.PE.DumpConstraint(PhysicsScene.World, constrain.Constraint);    // DEBUG DEBUG
         }
-        finally
-        {
-            Rebuilding = false;
-        }
+
     }
 }
 }

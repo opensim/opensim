@@ -1029,8 +1029,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Add this correction to the velocity to make it faster/slower.
             VehicleVelocity += linearMotorVelocityW;
 
-            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},tgt={3},correctV={4},correctW={5},newVelW={6},fricFact={7}",
-                        ControllingPrim.LocalID, origVelW, currentVelV, m_linearMotor.TargetValue, linearMotorCorrectionV,
+            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6}",
+                        ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV,
                         linearMotorVelocityW, VehicleVelocity, frictionFactorV);
         }
 
