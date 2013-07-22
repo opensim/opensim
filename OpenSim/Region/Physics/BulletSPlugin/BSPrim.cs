@@ -96,7 +96,7 @@ public class BSPrim : BSPhysObject
         _isVolumeDetect = false;
 
         // Add a dynamic vehicle to our set of actors that can move this prim.
-        // PhysicalActors.Add(VehicleActorName, new BSDynamics(PhysScene, this, VehicleActorName));
+        PhysicalActors.Add(VehicleActorName, new BSDynamics(PhysScene, this, VehicleActorName));
 
         _mass = CalculateMass();
 
@@ -497,7 +497,7 @@ public class BSPrim : BSPhysObject
 
     // Find and return a handle to the current vehicle actor.
     // Return 'null' if there is no vehicle actor.
-    public BSDynamics GetVehicleActor(bool createIfNone)
+    public BSDynamics GetVehicleActor()
     {
         BSDynamics ret = null;
         BSActor actor;
@@ -505,21 +505,13 @@ public class BSPrim : BSPhysObject
         {
             ret = actor as BSDynamics;
         }
-        else
-        {
-            if (createIfNone)
-            {
-                ret = new BSDynamics(PhysScene, this, VehicleActorName);
-                PhysicalActors.Add(ret.ActorName, ret);
-            }
-        }
         return ret;
     }
 
     public override int VehicleType {
         get {
             int ret = (int)Vehicle.TYPE_NONE;
-            BSDynamics vehicleActor = GetVehicleActor(false /* createIfNone */);
+            BSDynamics vehicleActor = GetVehicleActor();
             if (vehicleActor != null)
                 ret = (int)vehicleActor.Type;
             return ret;
@@ -533,24 +525,11 @@ public class BSPrim : BSPhysObject
                 //    change all the parameters. Like a plane changing to CAR when on the
                 //    ground. In this case, don't want to zero motion.
                 // ZeroMotion(true /* inTaintTime */);
-                if (type == Vehicle.TYPE_NONE)
+                BSDynamics vehicleActor = GetVehicleActor();
+                if (vehicleActor != null)
                 {
-                    // Vehicle type is 'none' so get rid of any actor that may have been allocated.
-                    BSDynamics vehicleActor = GetVehicleActor(false /* createIfNone */);
-                    if (vehicleActor != null)
-                    {
-                        PhysicalActors.RemoveAndRelease(vehicleActor.ActorName);
-                    }
-                }
-                else
-                {
-                    // Vehicle type is not 'none' so create an actor and set it running.
-                    BSDynamics vehicleActor = GetVehicleActor(true /* createIfNone */);
-                    if (vehicleActor != null)
-                    {
-                        vehicleActor.ProcessTypeChange(type);
-                        ActivateIfPhysical(false);
-                    }
+                    vehicleActor.ProcessTypeChange(type);
+                    ActivateIfPhysical(false);
                 }
             });
         }
@@ -559,7 +538,7 @@ public class BSPrim : BSPhysObject
     {
         PhysScene.TaintedObject("BSPrim.VehicleFloatParam", delegate()
         {
-            BSDynamics vehicleActor = GetVehicleActor(true /* createIfNone */);
+            BSDynamics vehicleActor = GetVehicleActor();
             if (vehicleActor != null)
             {
                 vehicleActor.ProcessFloatVehicleParam((Vehicle)param, value);
@@ -571,7 +550,7 @@ public class BSPrim : BSPhysObject
     {
         PhysScene.TaintedObject("BSPrim.VehicleVectorParam", delegate()
         {
-            BSDynamics vehicleActor = GetVehicleActor(true /* createIfNone */);
+            BSDynamics vehicleActor = GetVehicleActor();
             if (vehicleActor != null)
             {
                 vehicleActor.ProcessVectorVehicleParam((Vehicle)param, value);
@@ -583,7 +562,7 @@ public class BSPrim : BSPhysObject
     {
         PhysScene.TaintedObject("BSPrim.VehicleRotationParam", delegate()
         {
-            BSDynamics vehicleActor = GetVehicleActor(true /* createIfNone */);
+            BSDynamics vehicleActor = GetVehicleActor();
             if (vehicleActor != null)
             {
                 vehicleActor.ProcessRotationVehicleParam((Vehicle)param, rotation);
@@ -595,7 +574,7 @@ public class BSPrim : BSPhysObject
     {
         PhysScene.TaintedObject("BSPrim.VehicleFlags", delegate()
         {
-            BSDynamics vehicleActor = GetVehicleActor(true /* createIfNone */);
+            BSDynamics vehicleActor = GetVehicleActor();
             if (vehicleActor != null)
             {
                 vehicleActor.ProcessVehicleFlags(param, remove);
