@@ -359,12 +359,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// cannot retain a reference to it outside of that method.
         /// </remarks>
         private AgentUpdateArgs m_thisAgentUpdateArgs = new AgentUpdateArgs();
-        private float qdelta1;
-        private float qdelta2;
-        private float vdelta1;
-        private float vdelta2;
-        private float vdelta3;
-        private float vdelta4;
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -5576,7 +5570,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Scene/Avatar
 
+        // Threshold for body rotation to be a significant agent update
         private const float QDELTA = 0.000001f;
+        // Threshold for camera rotation to be a significant agent update
         private const float VDELTA = 0.01f;
 
         /// <summary>
@@ -5587,31 +5583,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         public bool CheckAgentUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            // Compute these only once, when this function is called from down below
-            qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
-            //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
-            vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
-            vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
-            vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
-            vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
-
-            bool significant = CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
-
-            // Emergency debugging
-            //if (significant)
-            //{
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
-                //    x.CameraAtAxis, x.CameraCenter);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
-                //    x.CameraLeftAxis, x.CameraUpAxis);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
-                //    qdelta1, qdelta2);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
-                //    x.ControlFlags, x.Flags, x.Far, x.State);
-            //}
-
-            return significant;
-
+            return CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
         }
 
         /// <summary>
@@ -5622,15 +5594,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            return (
-                (qdelta1 > QDELTA) ||
+            float qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
+            //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
+
+            bool movementSignificant =
+                (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
                 // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
-                //(qdelta2 > QDELTA * 10) ||
-                (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags) ||
-                (x.Far != m_thisAgentUpdateArgs.Far) ||
-                (x.Flags != m_thisAgentUpdateArgs.Flags) ||
-                (x.State != m_thisAgentUpdateArgs.State)
-               );
+                // || (qdelta2 > QDELTA * 10)                               // significant if head rotation above threshold
+                || (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
+                || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
+                || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
+                || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
+                || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
+            ;
+            //if (movementSignificant)
+            //{
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
+                //    qdelta1, qdelta2);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
+                //    x.ControlFlags, x.Flags, x.Far, x.State);
+            //}
+            return movementSignificant;
         }
 
         /// <summary>
@@ -5641,12 +5625,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            return (
+            float vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
+            float vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
+            float vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
+            float vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+
+            bool cameraSignificant =
                 (vdelta1 > VDELTA) ||
                 (vdelta2 > VDELTA) ||
                 (vdelta3 > VDELTA) ||
                 (vdelta4 > VDELTA)
-               );
+            ;
+
+            //if (cameraSignificant)
+            //{
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
+                //    x.CameraAtAxis, x.CameraCenter);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
+                //    x.CameraLeftAxis, x.CameraUpAxis);
+            //}
+
+            return cameraSignificant;
         }
 
         private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
