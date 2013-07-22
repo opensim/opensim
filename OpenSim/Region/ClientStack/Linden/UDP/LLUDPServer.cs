@@ -70,8 +70,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             StatsManager.RegisterStat(
                 new Stat(
                     "IncomingUDPReceivesCount",
-                    "Number of inbound LL protocol packets processed",
-                    "Number of inbound LL protocol packets processed",
+                    "Number of UDP receives performed",
+                    "Number of UDP receives performed",
                     "",
                     "clientstack",
                     scene.Name,
@@ -91,6 +91,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "OutgoingUDPSendsCount",
+                    "Number of UDP sends performed",
+                    "Number of UDP sends performed",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.UdpSends,
                     StatVerbosity.Debug));
 
             StatsManager.RegisterStat(
@@ -856,7 +869,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             PacketPool.Instance.ReturnPacket(packet);
             m_dataPresentEvent.Set();
-
         }
 
         private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);

@@ -83,6 +83,11 @@ namespace OpenMetaverse
         public int UdpReceives { get; private set; }
 
         /// <summary>
+        /// Number of UDP sends
+        /// </summary>
+        public int UdpSends { get; private set; }
+
+        /// <summary>
         /// Number of receives over which to establish a receive time average.
         /// </summary>
         private readonly static int s_receiveTimeSamples = 500;
@@ -381,6 +386,8 @@ namespace OpenMetaverse
             {
 //                UDPPacketBuffer buf = (UDPPacketBuffer)result.AsyncState;
                 m_udpSocket.EndSendTo(result);
+
+                UdpSends++;
             }
             catch (SocketException) { }
             catch (ObjectDisposedException) { }
