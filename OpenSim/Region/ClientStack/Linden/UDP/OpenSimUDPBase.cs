@@ -78,6 +78,11 @@ namespace OpenMetaverse
         public bool IsRunningOutbound { get; private set; }
 
         /// <summary>
+        /// Number of UDP receives.
+        /// </summary>
+        public int UdpReceives { get; private set; }
+
+        /// <summary>
         /// Number of receives over which to establish a receive time average.
         /// </summary>
         private readonly static int s_receiveTimeSamples = 500;
@@ -295,6 +300,8 @@ namespace OpenMetaverse
             // to AsyncBeginReceive
             if (IsRunningInbound)
             {
+                UdpReceives++;
+
                 // Asynchronous mode will start another receive before the
                 // callback for this packet is even fired. Very parallel :-)
                 if (m_asyncPacketHandling)
@@ -345,7 +352,6 @@ namespace OpenMetaverse
                     if (!m_asyncPacketHandling)
                         AsyncBeginReceive();
                 }
-
             }
         }
 

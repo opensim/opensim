@@ -69,6 +69,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "IncomingUDPReceivesCount",
+                    "Number of inbound LL protocol packets processed",
+                    "Number of inbound LL protocol packets processed",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.UdpReceives,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "IncomingPacketsProcessedCount",
                     "Number of inbound LL protocol packets processed",
                     "Number of inbound LL protocol packets processed",
