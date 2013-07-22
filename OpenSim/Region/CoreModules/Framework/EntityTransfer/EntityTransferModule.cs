@@ -810,11 +810,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
-            // where that neighbour simulator could otherwise request a child agent create on the source which then 
-            // closes our existing agent which is still signalled as root.
-            sp.IsChildAgent = true;
-
             // A common teleport failure occurs when we can send CreateAgent to the 
             // destination region but the viewer cannot establish the connection (e.g. due to network issues between
             // the viewer and the destination).  In this case, UpdateAgent timesout after 10 seconds, although then
@@ -840,17 +835,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            // OK, send TPFinish to the client, so that it starts the process of contacting the destination region
-            if (m_eqModule != null)
-            {
-                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
-            }
-            else
-            {
-                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
-                                                            teleportFlags, capsPath);
-            }
-
             if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
             {
                 m_interRegionTeleportCancels.Value++;
@@ -867,6 +851,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
                 capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
+
+            // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
+            // where that neighbour simulator could otherwise request a child agent create on the source which then 
+            // closes our existing agent which is still signalled as root.
+            sp.IsChildAgent = true;
+
+            // OK, send TPFinish to the client, so that it starts the process of contacting the destination region
+            if (m_eqModule != null)
+            {
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+            }
+            else
+            {
+                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                            teleportFlags, capsPath);
+            }
 
             // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
             // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
