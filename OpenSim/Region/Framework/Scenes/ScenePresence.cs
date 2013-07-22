@@ -1350,7 +1350,7 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
-            if (m_teleportFlags != TeleportFlags.ViaLogin)
+            if ((m_teleportFlags & TeleportFlags.ViaLogin) != 0)
                 // Let's wait until UpdateAgent (called by departing region) is done
                 if (!WaitForUpdateAgent(client))
                     // The sending region never sent the UpdateAgent data, we have to refuse
