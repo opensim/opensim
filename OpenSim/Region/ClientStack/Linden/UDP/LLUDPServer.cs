@@ -500,6 +500,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
 
+            StatsManager.RegisterStat(
+                new Stat(
+                    "InboxPacketsCount",
+                    "Number of LL protocol packets waiting for the second stage of processing after initial receive.",
+                    "Number of LL protocol packets waiting for the second stage of processing after initial receive.",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = packetInbox.Count,
+                    StatVerbosity.Debug));
+
             // XXX: These stats are also pool stats but we register them separately since they are currently not
             // turned on and off by EnablePools()/DisablePools()
             StatsManager.RegisterStat(
