@@ -697,6 +697,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ulong destinationHandle = finalDestination.RegionHandle;
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
 
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Using TP V1");
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
@@ -736,7 +737,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
-        
+
+            // OK, it got this agent. Let's close some child agents
+            sp.CloseChildAgents(newRegionX, newRegionY);
+
             IClientIPEndpoint ipepClient;
             string capsPath = String.Empty;
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
@@ -811,17 +815,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // closes our existing agent which is still signalled as root.
             sp.IsChildAgent = true;
 
-            // New protocol: send TP Finish directly, without prior ES or EAC. That's what happens in the Linden grid
-            if (m_eqModule != null)
-            {
-                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
-            }
-            else
-            {
-                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
-                                                            teleportFlags, capsPath);
-            }
-        
             // A common teleport failure occurs when we can send CreateAgent to the 
             // destination region but the viewer cannot establish the connection (e.g. due to network issues between
             // the viewer and the destination).  In this case, UpdateAgent timesout after 10 seconds, although then
@@ -845,6 +838,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
                 return;
+            }
+
+            // OK, send TPFinish to the client, so that it starts the process of contacting the destination region
+            if (m_eqModule != null)
+            {
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+            }
+            else
+            {
+                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                            teleportFlags, capsPath);
             }
 
             if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
@@ -907,9 +911,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
-
-            // OK, it got this agent. Let's close some child agents
-            sp.CloseChildAgents(newRegionX, newRegionY);
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
@@ -1063,6 +1064,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name='finalDestination'></param>
         protected virtual void CleanupFailedInterRegionTeleport(ScenePresence sp, string auth_token, GridRegion finalDestination)
         {
+            m_log.DebugFormat("[ZZZ]: FAIL!");
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
             if (sp.IsChildAgent) // We had set it to child before attempted TP (V1)
