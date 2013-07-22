@@ -45,7 +45,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private static string LogHeader = "[BULLETSIM VEHICLE]";
 
         // the prim this dynamic controller belongs to
-        private BSPrimLinkable ControllingPrim { get; set; }
+        private BSPrim ControllingPrim { get; set; }
 
         private bool m_haveRegisteredForSceneEvents;
 
@@ -128,15 +128,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public BSDynamics(BSScene myScene, BSPrim myPrim, string actorName)
             : base(myScene, myPrim, actorName)
         {
+            ControllingPrim = myPrim;
             Type = Vehicle.TYPE_NONE;
             m_haveRegisteredForSceneEvents = false;
-
-            ControllingPrim = myPrim as BSPrimLinkable;
-            if (ControllingPrim == null)
-            {
-                // THIS CANNOT HAPPEN!!
-            }
-            VDetailLog("{0},Creation", ControllingPrim.LocalID);
         }
 
         // Return 'true' if this vehicle is doing vehicle things
@@ -591,8 +585,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Friction affects are handled by this vehicle code
                 m_physicsScene.PE.SetFriction(ControllingPrim.PhysBody, BSParam.VehicleFriction);
                 m_physicsScene.PE.SetRestitution(ControllingPrim.PhysBody, BSParam.VehicleRestitution);
-                // ControllingPrim.Linkset.SetPhysicalFriction(BSParam.VehicleFriction);
-                // ControllingPrim.Linkset.SetPhysicalRestitution(BSParam.VehicleRestitution);
 
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
@@ -603,20 +595,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // Vehicles report collision events so we know when it's on the ground
                 m_physicsScene.PE.AddToCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
-                // ControllingPrim.Linkset.SetPhysicalCollisionFlags(CollisionFlags.BS_VEHICLE_COLLISIONS);
 
                 Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape.physShapeInfo, m_vehicleMass);
                 ControllingPrim.Inertia = inertia * BSParam.VehicleInertiaFactor;
                 m_physicsScene.PE.SetMassProps(ControllingPrim.PhysBody, m_vehicleMass, ControllingPrim.Inertia);
                 m_physicsScene.PE.UpdateInertiaTensor(ControllingPrim.PhysBody);
-                // ControllingPrim.Linkset.ComputeLocalInertia(BSParam.VehicleInertiaFactor);
 
                 // Set the gravity for the vehicle depending on the buoyancy
                 // TODO: what should be done if prim and vehicle buoyancy differ?
                 m_VehicleGravity = ControllingPrim.ComputeGravity(m_VehicleBuoyancy);
                 // The actual vehicle gravity is set to zero in Bullet so we can do all the application of same.
                 m_physicsScene.PE.SetGravity(ControllingPrim.PhysBody, Vector3.Zero);
-                // ControllingPrim.Linkset.SetPhysicalGravity(Vector3.Zero);
 
                 VDetailLog("{0},BSDynamics.SetPhysicalParameters,mass={1},inert={2},vehGrav={3},aDamp={4},frict={5},rest={6},lFact={7},aFact={8}",
                         ControllingPrim.LocalID, m_vehicleMass, ControllingPrim.Inertia, m_VehicleGravity,
@@ -628,7 +617,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 if (ControllingPrim.PhysBody.HasPhysicalBody)
                     m_physicsScene.PE.RemoveFromCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
-                // ControllingPrim.Linkset.RemoveFromPhysicalCollisionFlags(CollisionFlags.BS_VEHICLE_COLLISIONS);
             }
         }
 
@@ -641,7 +629,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // BSActor.Release()
         public override void Dispose()
         {
-            VDetailLog("{0},Dispose", ControllingPrim.LocalID);
             UnregisterForSceneEvents();
             Type = Vehicle.TYPE_NONE;
             Enabled = false;
