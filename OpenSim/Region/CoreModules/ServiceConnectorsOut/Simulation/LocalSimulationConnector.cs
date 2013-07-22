@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// <summary>
         /// Version of this service
         /// </summary>
-        private const string m_Version = "SIMULATION/0.1";
+        private const string m_Version = "SIMULATION/0.2";
 
         /// <summary>
         /// Map region ID to scene.

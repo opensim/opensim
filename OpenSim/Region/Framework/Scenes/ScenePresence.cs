@@ -29,7 +29,9 @@ using System;
 using System.Xml;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using System.Timers;
+using Timer = System.Timers.Timer;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
@@ -1311,6 +1313,26 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor.Size = new Vector3(0.45f, 0.6f, height);
         }
 
+        private bool WaitForUpdateAgent(IClientAPI client)
+        {
+            // Before UpdateAgent, m_originRegionID is UUID.Zero; after, it's non-Zero
+            int count = 20;
+            while (m_originRegionID.Equals(UUID.Zero) && count-- > 0)
+            {
+                m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.RegionInfo.RegionName);
+                Thread.Sleep(200);
+            }
+
+            if (m_originRegionID.Equals(UUID.Zero))
+            {
+                // Movement into region will fail
+                m_log.WarnFormat("[SCENE PRESENCE]: Update agent {0} never arrived", client.Name);
+                return false;
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Complete Avatar's movement into the region.
         /// </summary>
@@ -1327,6 +1349,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
+
+            if (m_teleportFlags != TeleportFlags.ViaLogin)
+                // Let's wait until UpdateAgent (called by departing region) is done
+                if (!WaitForUpdateAgent(client))
+                    // The sending region never sent the UpdateAgent data, we have to refuse
+                    return;
 
             Vector3 look = Velocity;
 
@@ -1348,10 +1376,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, flying);
+
+            // Tell the client that we're totally ready
             ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+
             // Remember in HandleUseCircuitCode, we delayed this to here
-            // This will also send the initial data to clients when TP to a neighboring region. 
-            // Not ideal, but until we know we're TP-ing from a neighboring region, there's not much we can do
             if (m_teleportFlags > 0)
                 SendInitialDataToMe();
 

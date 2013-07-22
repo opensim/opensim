@@ -287,7 +287,7 @@ namespace OpenSim.Framework
         public Vector3 AtAxis;
         public Vector3 LeftAxis;
         public Vector3 UpAxis;
-        public bool ChangedGrid;
+        public bool SenderWantsToWaitForRoot;
 
         public float Far;
         public float Aspect;
@@ -356,8 +356,9 @@ namespace OpenSim.Framework
             args["left_axis"] = OSD.FromString(LeftAxis.ToString());
             args["up_axis"] = OSD.FromString(UpAxis.ToString());
 
-            
-            args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
+            //backwards compatibility
+            args["changed_grid"] = OSD.FromBoolean(SenderWantsToWaitForRoot);
+            args["wait_for_root"] = OSD.FromBoolean(SenderWantsToWaitForRoot);
             args["far"] = OSD.FromReal(Far);
             args["aspect"] = OSD.FromReal(Aspect);
 
@@ -526,8 +527,8 @@ namespace OpenSim.Framework
             if (args["up_axis"] != null)
                 Vector3.TryParse(args["up_axis"].AsString(), out AtAxis);
 
-            if (args["changed_grid"] != null)
-                ChangedGrid = args["changed_grid"].AsBoolean();
+            if (args.ContainsKey("wait_for_root") && args["wait_for_root"] != null)
+                SenderWantsToWaitForRoot = args["wait_for_root"].AsBoolean();
 
             if (args["far"] != null)
                 Far = (float)(args["far"].AsReal());

@@ -4221,6 +4221,20 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+
+                int ntimes = 20;
+                if (cAgentData.SenderWantsToWaitForRoot)
+                {
+                    while (childAgentUpdate.IsChildAgent && ntimes-- > 0)
+                        Thread.Sleep(500);
+
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Found presence {0} {1} {2} in {3} after {4} waits",
+                        childAgentUpdate.Name, childAgentUpdate.UUID, childAgentUpdate.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 20 - ntimes);
+
+                    if (childAgentUpdate.IsChildAgent)
+                        return false;
+                }
                 return true;
             }
             return false;
@@ -4278,10 +4292,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[SCENE PRESENCE]: Did not find presence with id {0} in {1} before timeout",
                     agentID, RegionInfo.RegionName);
-//            else
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: Found presence {0} {1} {2} in {3} after {4} waits",
-//                    sp.Name, sp.UUID, sp.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 10 - ntimes);
 
             return sp;
         }

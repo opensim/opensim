@@ -1257,11 +1257,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
+                m_log.DebugFormat("[ZZZ]: In the dungeon: UseCircuitCode");
                 // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
                 // buffer.
                 object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
 
                 Util.FireAndForget(HandleUseCircuitCode, array);
+
+                return;
+            }
+            else if (packet.Type == PacketType.CompleteAgentMovement)
+            {
+                // Send ack straight away to let the viewer know that we got it.
+                SendAckImmediate(endPoint, packet.Header.Sequence);
+
+                m_log.DebugFormat("[ZZZ]: In the dungeon: CompleteAgentMovement");
+                // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
+                // buffer.
+                object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
+
+                Util.FireAndForget(HandleCompleteMovementIntoRegion, array);
 
                 return;
             }
@@ -1596,6 +1611,56 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.ErrorFormat(
                     "[LLUDPSERVER]: UseCircuitCode handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
+                    endPoint != null ? endPoint.ToString() : "n/a",
+                    client != null ? client.Name : "unknown",
+                    client != null ? client.AgentId.ToString() : "unknown",
+                    e.Message,
+                    e.StackTrace);
+            }
+        }
+
+        private void HandleCompleteMovementIntoRegion(object o)
+        {
+            IPEndPoint endPoint = null;
+            IClientAPI client = null;
+
+            try
+            {
+                object[] array = (object[])o;
+                endPoint = (IPEndPoint)array[0];
+                CompleteAgentMovementPacket packet = (CompleteAgentMovementPacket)array[1];
+
+                // Determine which agent this packet came from
+                int count = 10;
+                while (!m_scene.TryGetClient(endPoint, out client) && count-- > 0)
+                {
+                    m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
+                    Thread.Sleep(200);
+                }
+
+                if (client == null)
+                    return;
+
+                IncomingPacket incomingPacket1;
+
+                // Inbox insertion
+                if (UsePools)
+                {
+                    incomingPacket1 = m_incomingPacketPool.GetObject();
+                    incomingPacket1.Client = (LLClientView)client;
+                    incomingPacket1.Packet = packet;
+                }
+                else
+                {
+                    incomingPacket1 = new IncomingPacket((LLClientView)client, packet);
+                }
+
+                packetInbox.Enqueue(incomingPacket1);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[LLUDPSERVER]: CompleteMovementIntoRegion handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
                     endPoint != null ? endPoint.ToString() : "n/a",
                     client != null ? client.Name : "unknown",
                     client != null ? client.AgentId.ToString() : "unknown",
@@ -1998,6 +2063,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Packet packet = incomingPacket.Packet;
             LLClientView client = incomingPacket.Client;
+
+            if (packet is CompleteAgentMovementPacket)
+                m_log.DebugFormat("[ZZZ]: Received CompleteAgentMovementPacket");
 
             if (client.IsActive)
             {
