@@ -684,6 +684,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             }
 
+            //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Contacting destination...");
+
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
@@ -724,8 +726,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
-            // OK, it got this agent. Let's close some child agents
-            sp.CloseChildAgents(newRegionX, newRegionY);
+            #region old protocol
 
             IClientIPEndpoint ipepClient;  
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
@@ -775,11 +776,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
             }
 
+            #endregion old protocol
+
             // Let's send a full update of the agent. This is a synchronous call.
             AgentData agent = new AgentData();
             sp.CopyTo(agent);
             agent.Position = position;
-            SetCallbackURL(agent, sp.Scene.RegionInfo);
+            //SetCallbackURL(agent, sp.Scene.RegionInfo);
 
             //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
 
@@ -801,6 +804,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // closes our existing agent which is still signalled as root.
             sp.IsChildAgent = true;
 
+            // New protocol: send TP Finish directly, without prior ES or EAC. That's what happens in the Linden grid
             if (m_eqModule != null)
             {
                 m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
@@ -853,30 +857,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
                 capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
 
-            // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
-            // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
-            // that the client contacted the destination before we close things here.
-            if (!m_entityTransferStateMachine.WaitForAgentArrivedAtDestination(sp.UUID))
-            {
-                if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
-                {
-                    m_interRegionTeleportAborts.Value++;
+            //// TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+            //// trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
+            //// that the client contacted the destination before we close things here.
+            //if (!m_entityTransferStateMachine.WaitForAgentArrivedAtDestination(sp.UUID))
+            //{
+            //    if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
+            //    {
+            //        m_interRegionTeleportAborts.Value++;
 
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after WaitForAgentArrivedAtDestination due to previous client close.",
-                        sp.Name, finalDestination.RegionName, sp.Scene.Name);
+            //        m_log.DebugFormat(
+            //            "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after WaitForAgentArrivedAtDestination due to previous client close.",
+            //            sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
-                    return;
-                }
+            //        return;
+            //    }
 
-                m_log.WarnFormat(
-                    "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
-                    sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
+            //    m_log.WarnFormat(
+            //        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
+            //        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                 
-                Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Destination region did not signal teleport completion.");
+            //    Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Destination region did not signal teleport completion.");
 
-                return;
-            }
+            //    return;
+            //}
 
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
@@ -897,6 +901,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
 
+            // OK, it got this agent. Let's close some child agents
+            sp.CloseChildAgents(newRegionX, newRegionY);
+
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
@@ -907,7 +914,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 //
                 // This sleep can be increased if necessary.  However, whilst it's active,
                 // an agent cannot teleport back to this region if it has teleported away.
-                Thread.Sleep(2000);
+                Thread.Sleep(15000);
 
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
