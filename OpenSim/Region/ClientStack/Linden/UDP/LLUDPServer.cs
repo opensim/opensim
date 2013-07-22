@@ -70,14 +70,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             StatsManager.RegisterStat(
                 new Stat(
                     "IncomingPacketsProcessedCount",
-                    "Number of inbound UDP packets processed",
-                    "Number of inbound UDP packets processed",
+                    "Number of inbound LL protocol packets processed",
+                    "Number of inbound LL protocol packets processed",
                     "",
                     "clientstack",
                     scene.Name,
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "AverageUDPProcessTime",
+                    "Average number of milliseconds taken to process each incoming UDP packet in a sample.",
+                    "This is for initial receive processing which is separate from the later client LL packet processing stage.",
+                    "ms",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond,
+//                    stat => 
+//                        stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond, 7),
                     StatVerbosity.Debug));
         }
 

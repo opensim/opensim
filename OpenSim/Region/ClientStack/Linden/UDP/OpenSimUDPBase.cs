@@ -78,6 +78,26 @@ namespace OpenMetaverse
         public bool IsRunningOutbound { get; private set; }
 
         /// <summary>
+        /// Number of receives over which to establish a receive time average.
+        /// </summary>
+        private readonly static int s_receiveTimeSamples = 500;
+
+        /// <summary>
+        /// Current number of samples taken to establish a receive time average.
+        /// </summary>
+        private int m_currentReceiveTimeSamples;
+
+        /// <summary>
+        /// Cumulative receive time for the sample so far.
+        /// </summary>
+        private int m_receiveTicksInCurrentSamplePeriod;
+
+        /// <summary>
+        /// The average time taken for each require receive in the last sample.
+        /// </summary>
+        public float AverageReceiveTicksForLastSamplePeriod { get; private set; }
+
+        /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="bindAddress">Local IP address to bind the server to</param>
@@ -286,6 +306,8 @@ namespace OpenMetaverse
 
                 try
                 {
+                    int startTick = Util.EnvironmentTickCount();
+
                     // get the length of data actually read from the socket, store it with the
                     // buffer
                     buffer.DataLength = m_udpSocket.EndReceiveFrom(iar, ref buffer.RemoteEndPoint);
@@ -293,6 +315,23 @@ namespace OpenMetaverse
                     // call the abstract method PacketReceived(), passing the buffer that
                     // has just been filled from the socket read.
                     PacketReceived(buffer);
+
+                    // If more than one thread can be calling AsyncEndReceive() at once (e.g. if m_asyncPacketHandler)
+                    // then a particular stat may be inaccurate due to a race condition.  We won't worry about this
+                    // since this should be rare and  won't cause a runtime problem.
+                    if (m_currentReceiveTimeSamples >= s_receiveTimeSamples)
+                    {
+                        AverageReceiveTicksForLastSamplePeriod 
+                            = (float)m_receiveTicksInCurrentSamplePeriod / s_receiveTimeSamples;
+
+                        m_receiveTicksInCurrentSamplePeriod = 0;
+                        m_currentReceiveTimeSamples = 0;
+                    }
+                    else
+                    {
+                        m_receiveTicksInCurrentSamplePeriod += Util.EnvironmentTickCountSubtract(startTick);
+                        m_currentReceiveTimeSamples++;
+                    }
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
