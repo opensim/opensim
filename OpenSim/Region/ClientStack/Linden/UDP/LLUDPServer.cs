@@ -223,6 +223,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         protected bool m_sendPing;
 
+        /// <summary>
+        /// Event used to signal when queued packets are available for sending.
+        /// </summary>
+        /// <remarks>
+        /// This allows the outbound loop to only operate when there is data to send rather than continuously polling.
+        /// Some data is sent immediately and not queued.  That data would not trigger this event.
+        /// </remarks>
+        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
+
         private Pool<IncomingPacket> m_incomingPacketPool;
 
         /// <summary>
@@ -881,10 +890,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             PacketPool.Instance.ReturnPacket(packet);
+
             m_dataPresentEvent.Set();
         }
-
-        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
 
         /// <summary>
         /// Start the process of sending a packet to the client.
@@ -1817,6 +1825,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // token bucket could get more tokens
                     //if (!m_packetSent)
                     //    Thread.Sleep((int)TickCountResolution);
+                    //
+                    // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
+                    // modern mono it reduces CPU base load since there is no more continuous polling.
                     m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
