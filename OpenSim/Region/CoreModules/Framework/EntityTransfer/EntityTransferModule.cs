@@ -744,30 +744,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 #endregion
                 capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
 
-                if (m_eqModule != null)
-                {
-                    // The EnableSimulator message makes the client establish a connection with the destination
-                    // simulator by sending the initial UseCircuitCode UDP packet to the destination containing the
-                    // correct circuit code.
-                    m_eqModule.EnableSimulator(destinationHandle, endPoint, sp.UUID);
+                //if (m_eqModule != null)
+                //{
+                //    // The EnableSimulator message makes the client establish a connection with the destination
+                //    // simulator by sending the initial UseCircuitCode UDP packet to the destination containing the
+                //    // correct circuit code.
+                //    m_eqModule.EnableSimulator(destinationHandle, endPoint, sp.UUID);
 
-                    // XXX: Is this wait necessary?  We will always end up waiting on UpdateAgent for the destination
-                    // simulator to confirm that it has established communication with the viewer.
-                    Thread.Sleep(200);
+                //    // XXX: Is this wait necessary?  We will always end up waiting on UpdateAgent for the destination
+                //    // simulator to confirm that it has established communication with the viewer.
+                //    Thread.Sleep(200);
 
-                    // At least on LL 3.3.4 for teleports between different regions on the same simulator this appears
-                    // unnecessary - teleport will succeed and SEED caps will be requested without it (though possibly
-                    // only on TeleportFinish).  This is untested for region teleport between different simulators
-                    // though this probably also works.
-                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-                }
-                else
-                {
-                    // XXX: This is a little misleading since we're information the client of its avatar destination,
-                    // which may or may not be a neighbour region of the source region.  This path is probably little
-                    // used anyway (with EQ being the one used).  But it is currently being used for test code.
-                    sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
-                }
+                //    // At least on LL 3.3.4 for teleports between different regions on the same simulator this appears
+                //    // unnecessary - teleport will succeed and SEED caps will be requested without it (though possibly
+                //    // only on TeleportFinish).  This is untested for region teleport between different simulators
+                //    // though this probably also works.
+                //    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+                //}
+                //else
+                //{
+                //    // XXX: This is a little misleading since we're information the client of its avatar destination,
+                //    // which may or may not be a neighbour region of the source region.  This path is probably little
+                //    // used anyway (with EQ being the one used).  But it is currently being used for test code.
+                //    sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
+                //}
             }
             else
             {
@@ -794,6 +794,21 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 return;
+            }
+
+            // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
+            // where that neighbour simulator could otherwise request a child agent create on the source which then 
+            // closes our existing agent which is still signalled as root.
+            sp.IsChildAgent = true;
+
+            if (m_eqModule != null)
+            {
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+            }
+            else
+            {
+                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                            teleportFlags, capsPath);
             }
 
             // A common teleport failure occurs when we can send CreateAgent to the 
@@ -837,21 +852,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
                 capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
-
-            // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
-            // where that neighbour simulator could otherwise request a child agent create on the source which then 
-            // closes our existing agent which is still signalled as root.
-            sp.IsChildAgent = true;
-
-            if (m_eqModule != null)
-            {
-                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
-            }
-            else
-            {
-                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
-                                                            teleportFlags, capsPath);
-            }
 
             // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
             // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
