@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             else if (newVelocityLengthSq < 0.001f)
                 VehicleVelocity = Vector3.Zero;
 
-            VDetailLog("{0},  MoveLinear,done,isColl={1},newVel={2}", ControllingPrim.LocalID, ControllingPrim.IsColliding, VehicleVelocity );
+            VDetailLog("{0},  MoveLinear,done,isColl={1},newVel={2}", ControllingPrim.LocalID, ControllingPrim.HasSomeCollision, VehicleVelocity );
 
         } // end MoveLinear()
 
@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 linearDeflectionW = linearDeflectionV * VehicleOrientation;
 
                 // Optionally, if not colliding, don't effect world downward velocity. Let falling things fall.
-                if (BSParam.VehicleLinearDeflectionNotCollidingNoZ && !m_controllingPrim.IsColliding)
+                if (BSParam.VehicleLinearDeflectionNotCollidingNoZ && !m_controllingPrim.HasSomeCollision)
                 {
                     linearDeflectionW.Z = 0f;
                 }
@@ -1222,7 +1222,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 float targetHeight = Type == Vehicle.TYPE_BOAT ? GetWaterLevel(VehiclePosition) : GetTerrainHeight(VehiclePosition);
                 distanceAboveGround = VehiclePosition.Z - targetHeight;
                 // Not colliding if the vehicle is off the ground
-                if (!Prim.IsColliding)
+                if (!Prim.HasSomeCollision)
                 {
                     // downForce = new Vector3(0, 0, -distanceAboveGround / m_bankingTimescale);
                     VehicleVelocity += new Vector3(0, 0, -distanceAboveGround);
@@ -1233,12 +1233,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     be computed with a motor.
                 // TODO: add interaction with banking.
                 VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},colliding={2},ret={3}",
-                                Prim.LocalID, distanceAboveGround, Prim.IsColliding, ret);
+                                Prim.LocalID, distanceAboveGround, Prim.HasSomeCollision, ret);
                  */
 
                 // Another approach is to measure if we're going up. If going up and not colliding,
                 //     the vehicle is in the air.  Fix that by pushing down.
-                if (!ControllingPrim.IsColliding && VehicleVelocity.Z > 0.1)
+                if (!ControllingPrim.HasSomeCollision && VehicleVelocity.Z > 0.1)
                 {
                     // Get rid of any of the velocity vector that is pushing us up.
                     float upVelocity = VehicleVelocity.Z;
@@ -1260,7 +1260,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     }
                         */
                     VDetailLog("{0},  MoveLinear,limitMotorUp,collide={1},upVel={2},newVel={3}",
-                                    ControllingPrim.LocalID, ControllingPrim.IsColliding, upVelocity, VehicleVelocity);
+                                    ControllingPrim.LocalID, ControllingPrim.HasSomeCollision, upVelocity, VehicleVelocity);
                 }
             }
         }
@@ -1270,14 +1270,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 appliedGravity = m_VehicleGravity * m_vehicleMass;
 
             // Hack to reduce downward force if the vehicle is probably sitting on the ground
-            if (ControllingPrim.IsColliding && IsGroundVehicle)
+            if (ControllingPrim.HasSomeCollision && IsGroundVehicle)
                 appliedGravity *= BSParam.VehicleGroundGravityFudge;
 
             VehicleAddForce(appliedGravity);
 
             VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},fudge={3},mass={4},appliedForce={5}",
                             ControllingPrim.LocalID, m_VehicleGravity,
-                            ControllingPrim.IsColliding, BSParam.VehicleGroundGravityFudge, m_vehicleMass, appliedGravity);
+                            ControllingPrim.HasSomeCollision, BSParam.VehicleGroundGravityFudge, m_vehicleMass, appliedGravity);
         }
 
         // =======================================================================

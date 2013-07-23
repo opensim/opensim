@@ -200,20 +200,38 @@ public class BSPrimLinkable : BSPrimDisplaced
     }
 
     // Called after a simulation step to post a collision with this object.
+    // This returns 'true' if the collision has been queued and the SendCollisions call must
+    //     be made at the end of the simulation step.
     public override bool Collide(uint collidingWith, BSPhysObject collidee,
                     OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
-        // prims in the same linkset cannot collide with each other
-        BSPrimLinkable convCollidee = collidee as BSPrimLinkable;
-        if (convCollidee != null && (this.Linkset.LinksetID == convCollidee.Linkset.LinksetID))
+        bool ret = false;
+        // Ask the linkset if it wants to handle the collision
+        if (!Linkset.HandleCollide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth))
         {
-            return false;
+            // The linkset didn't handle it so pass the collision through normal processing
+            ret = base.Collide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth);
         }
+        return ret;
+    }
 
-        // TODO: handle collisions of other objects with with children of linkset.
-        //    This is a problem for LinksetCompound since the children are packed into the root.
+    // A linkset reports any collision on any part of the linkset.
+    public long SomeCollisionSimulationStep = 0;
+    public override bool HasSomeCollision
+    {
+        get
+        {
+            return (SomeCollisionSimulationStep == PhysScene.SimulationStep) || base.IsColliding;
+        }
+        set
+        {
+            if (value)
+                SomeCollisionSimulationStep = PhysScene.SimulationStep;
+            else
+                SomeCollisionSimulationStep = 0;
 
-        return base.Collide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth);
+            base.HasSomeCollision = value;
+        }
     }
 }
 }
