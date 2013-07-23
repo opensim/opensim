@@ -811,7 +811,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handshake.RegionInfo4[0].RegionFlagsExtended = args.regionFlags;
             handshake.RegionInfo4[0].RegionProtocols = 0; // 1 here would indicate that SSB is supported
 
-            OutPacket(handshake, ThrottleOutPacketType.Task);
+            OutPacket(handshake, ThrottleOutPacketType.Unknown);
         }
 
 
