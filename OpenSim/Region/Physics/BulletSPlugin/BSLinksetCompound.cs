@@ -59,6 +59,7 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2},actuallyScheduling={3}",
                             requestor.LocalID, Rebuilding, HasAnyChildren, (!Rebuilding && HasAnyChildren));
+
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
