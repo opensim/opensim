@@ -351,7 +351,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
                     InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
 
-                    inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
+                    List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+
+                    foreach (InventoryFolderBase f in content.Folders)
+                    {
+                        if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
+                            keep.Add(f);
+                    }
+
+                    inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
                 }
             }
         }
