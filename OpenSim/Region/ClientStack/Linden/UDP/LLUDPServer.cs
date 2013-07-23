@@ -1635,9 +1635,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 bool ready = false;
                 while (!ready && count-- > 0)
                 {
-                    if (m_scene.TryGetClient(endPoint, out client) && client.IsActive)
+                    if (m_scene.TryGetClient(endPoint, out client) && client.IsActive && client.SceneAgent != null)
                     {
-                        LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+                        LLClientView llClientView = (LLClientView)client;
+                        LLUDPClient udpClient = llClientView.UDPClient;
                         if (udpClient != null && udpClient.IsConnected)
                             ready = true;
                         else
