@@ -25,10 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using log4net;
 using Nini.Config;
+
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -330,6 +333,12 @@ namespace OpenSim.Region.Physics.Manager
         public virtual bool SupportsRaycastWorldFiltered()
         {
             return false;
+        }
+
+        // Extendable interface for new, physics engine specific operations
+        public virtual object Extension(string pFunct, params object[] pParams)
+        {
+            throw new NotImplementedException();
         }
     }
 }
