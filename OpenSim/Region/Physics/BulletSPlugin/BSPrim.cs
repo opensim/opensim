@@ -440,8 +440,8 @@ public class BSPrim : BSPhysObject
                 Gravity = ComputeGravity(Buoyancy);
                 PhysScene.PE.SetGravity(PhysBody, Gravity);
 
-                OMV.Vector3 currentScale = PhysScene.PE.GetLocalScaling(PhysShape.physShapeInfo);   // DEBUG DEBUG
-                DetailLog("{0},BSPrim.UpdateMassProperties,currentScale{1},shape={2}", LocalID, currentScale, PhysShape.physShapeInfo);   // DEBUG DEBUG
+                // OMV.Vector3 currentScale = PhysScene.PE.GetLocalScaling(PhysShape.physShapeInfo);   // DEBUG DEBUG
+                // DetailLog("{0},BSPrim.UpdateMassProperties,currentScale{1},shape={2}", LocalID, currentScale, PhysShape.physShapeInfo);   // DEBUG DEBUG
 
                 Inertia = PhysScene.PE.CalculateLocalInertia(PhysShape.physShapeInfo, physMass);
                 PhysScene.PE.SetMassProps(PhysBody, physMass, Inertia);

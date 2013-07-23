@@ -461,8 +461,9 @@ public static class BSParam
             (s) => { return MaxAddForceMagnitude; },
             (s,v) => { MaxAddForceMagnitude = v; MaxAddForceMagnitudeSquared = v * v; } ),
         // Density is passed around as 100kg/m3. This scales that to 1kg/m3.
+        // Reduce by power of 100 because Bullet doesn't seem to handle objects with large mass very well
         new ParameterDefn<float>("DensityScaleFactor", "Conversion for simulator/viewer density (100kg/m3) to physical density (1kg/m3)",
-            0.01f ),
+            0.0001f ),
 
         new ParameterDefn<float>("PID_D", "Derivitive factor for motion smoothing",
             2200f ),
@@ -607,8 +608,9 @@ public static class BSParam
             0.0f ),
         new ParameterDefn<float>("VehicleRestitution", "Bouncyness factor for vehicles (0.0 - 1.0)",
             0.0f ),
+        // Turn off fudge with DensityScaleFactor = 0.0001.  Value used to be 0.2f;
         new ParameterDefn<float>("VehicleGroundGravityFudge", "Factor to multiply gravity if a ground vehicle is probably on the ground (0.0 - 1.0)",
-            0.2f ),
+            1.0f ),
         new ParameterDefn<float>("VehicleAngularBankingTimescaleFudge", "Factor to multiple angular banking timescale. Tune to increase realism.",
             60.0f ),
         new ParameterDefn<bool>("VehicleEnableLinearDeflection", "Turn on/off vehicle linear deflection effect",
@@ -701,7 +703,7 @@ public static class BSParam
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound ),
 	    new ParameterDefn<bool>("LinksetOffsetCenterOfMass", "If 'true', compute linkset center-of-mass and offset linkset position to account for same",
-            false ),
+            true ),
 	    new ParameterDefn<bool>("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
             false ),
 	    new ParameterDefn<bool>("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",
