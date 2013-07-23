@@ -389,7 +389,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
 
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN7";
+                names[1] = "UserUMMTGUN8";
 
                 return false;
             }
@@ -601,7 +601,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
                     // disappeared.
                     user.FirstName = "Unknown";
-                    user.LastName = "UserUMMAU3";
+                    user.LastName = "UserUMMAU4";
                 }
 
                 AddUserInternal(user);
