@@ -1013,9 +1013,8 @@ namespace OpenSim.Region.Framework.Scenes
             // recorded, which stops the input from being processed.
             MovementFlag = 0;
 
-            // DIVA NOTE: I moved TriggerOnMakeRootAgent out of here and into the end of
-            // CompleteMovement. We don't want modules doing heavy computation before CompleteMovement
-            // is over.
+            m_scene.EventManager.TriggerOnMakeRootAgent(this);
+
         }
 
         public int GetStateSource()
@@ -1436,10 +1435,6 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
 //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
-
-            // DIVA NOTE: moved this here from MakeRoot. We don't want modules making heavy
-            // computations before CompleteMovement is over
-            m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
         }
 
