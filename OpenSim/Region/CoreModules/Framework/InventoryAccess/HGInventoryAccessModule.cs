@@ -384,7 +384,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                         foreach (InventoryFolderBase f in content.Folders)
                         {
-                            if (f.Name != "My Suitcase")
+                            if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
                             {
                                 f.Name = f.Name + " (Unavailable)";
                                 keep.Add(f);
