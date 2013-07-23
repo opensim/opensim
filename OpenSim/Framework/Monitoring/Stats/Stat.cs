@@ -225,7 +225,13 @@ namespace OpenSim.Framework.Monitoring
         public virtual string ToConsoleString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("{0}.{1}.{2} : {3} {4}", Category, Container, ShortName, Value, UnitName);
+            sb.AppendFormat(
+                "{0}.{1}.{2} : {3}{4}", 
+                Category, 
+                Container, 
+                ShortName, 
+                Value, 
+                UnitName == null || UnitName == "" ? "" : string.Format(" {0}", UnitName));
 
             AppendMeasuresOfInterest(sb);
 
@@ -281,8 +287,11 @@ namespace OpenSim.Framework.Monitoring
                 double averageChangeOverTime = totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
 
                 sb.AppendFormat(
-                    ", {0:0.##} {1}/s, {2:0.##} {3}/s", 
-                    lastChangeOverTime, UnitName, averageChangeOverTime, UnitName);
+                    ", {0:0.##}{1}/s, {2:0.##}{3}/s", 
+                    lastChangeOverTime, 
+                    UnitName == null || UnitName == "" ? "" : string.Format(" {0}", UnitName), 
+                    averageChangeOverTime,
+                    UnitName == null || UnitName == "" ? "" : string.Format(" {0}", UnitName));
             }
         }
     }
