@@ -1125,6 +1125,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopFlying()
         {
+            Vector3 pos = AbsolutePosition; 
+            if (Appearance.AvatarHeight != 127.0f)
+                pos += new Vector3(0f, 0f, (Appearance.AvatarHeight / 6f));
+            else
+                pos += new Vector3(0f, 0f, (1.56f / 6f));
+
+            AbsolutePosition = pos;
+
+            // attach a suitable collision plane regardless of the actual situation to force the LLClient to land.
+            // Collision plane below the avatar's position a 6th of the avatar's height is suitable.
+            // Mind you, that this method doesn't get called if the avatar's velocity magnitude is greater then a
+            // certain amount..   because the LLClient wouldn't land in that situation anyway.
+
+            // why are we still testing for this really old height value default???
+            if (Appearance.AvatarHeight != 127.0f)
+                CollisionPlane = new Vector4(0, 0, 0, pos.Z - Appearance.AvatarHeight / 6f);
+            else
+                CollisionPlane = new Vector4(0, 0, 0, pos.Z - (1.56f / 6f));
+
             ControllingClient.SendAgentTerseUpdate(this);
         }
 
