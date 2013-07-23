@@ -253,6 +253,8 @@ namespace OpenSim.Framework.Monitoring
                 == MeasuresOfInterest.AverageChangeOverTime)
             {
                 double totalChange = 0;
+                double lastChangeOverTime = 0;
+                double? penultimateSample = null;
                 double? lastSample = null;
 
                 lock (m_samples)
@@ -266,13 +268,21 @@ namespace OpenSim.Framework.Monitoring
                         if (lastSample != null)
                             totalChange += s - (double)lastSample;
 
+                        penultimateSample = lastSample;
                         lastSample = s;
                     }
                 }
 
+                if (lastSample != null && penultimateSample != null)
+                    lastChangeOverTime = (double)lastSample - (double)penultimateSample;
+
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
 
-                sb.AppendFormat(", {0:0.##} {1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
+                double averageChangeOverTime = totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+
+                sb.AppendFormat(
+                    ", {0:0.##} {1}/s, {2:0.##} {3}/s", 
+                    lastChangeOverTime, UnitName, averageChangeOverTime, UnitName);
             }
         }
     }
