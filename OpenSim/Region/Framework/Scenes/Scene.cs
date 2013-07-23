@@ -4226,10 +4226,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (cAgentData.SenderWantsToWaitForRoot)
                 {
                     while (childAgentUpdate.IsChildAgent && ntimes-- > 0)
-                        Thread.Sleep(500);
+                        Thread.Sleep(1000);
 
                     m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Found presence {0} {1} {2} in {3} after {4} waits",
+                        "[SCENE]: Found presence {0} {1} {2} in {3} after {4} waits",
                         childAgentUpdate.Name, childAgentUpdate.UUID, childAgentUpdate.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 20 - ntimes);
 
                     if (childAgentUpdate.IsChildAgent)

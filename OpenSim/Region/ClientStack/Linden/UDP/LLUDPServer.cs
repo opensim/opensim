@@ -1631,11 +1631,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 CompleteAgentMovementPacket packet = (CompleteAgentMovementPacket)array[1];
 
                 // Determine which agent this packet came from
-                int count = 10;
-                while (!m_scene.TryGetClient(endPoint, out client) && count-- > 0)
+                int count = 20;
+                bool ready = false;
+                while (!ready && count-- > 0)
                 {
-                    m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
-                    Thread.Sleep(200);
+                    if (m_scene.TryGetClient(endPoint, out client) && client.IsActive)
+                    {
+                        LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+                        if (udpClient != null && udpClient.IsConnected)
+                            ready = true;
+                        else
+                        {
+                            m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
+                            Thread.Sleep(200);
+                        }
+                    }
+                    else
+                    {
+                        m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
+                        Thread.Sleep(200);
+                    }
                 }
 
                 if (client == null)
