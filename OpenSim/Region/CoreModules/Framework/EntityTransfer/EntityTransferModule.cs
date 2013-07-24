@@ -1047,7 +1047,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+            {
+                Thread.Sleep(5000);
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
+            }
             else
                 // now we have a child agent in this region. 
                 sp.Reset();
@@ -1064,7 +1067,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name='finalDestination'></param>
         protected virtual void CleanupFailedInterRegionTeleport(ScenePresence sp, string auth_token, GridRegion finalDestination)
         {
-            m_log.DebugFormat("[ZZZ]: FAIL!");
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
             if (sp.IsChildAgent) // We had set it to child before attempted TP (V1)
