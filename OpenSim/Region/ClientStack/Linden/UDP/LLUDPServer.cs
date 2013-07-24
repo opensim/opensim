@@ -1257,7 +1257,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
-                m_log.DebugFormat("[ZZZ]: In the dungeon: UseCircuitCode");
                 // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
                 // buffer.
                 object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
@@ -1271,7 +1270,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Send ack straight away to let the viewer know that we got it.
                 SendAckImmediate(endPoint, packet.Header.Sequence);
 
-                m_log.DebugFormat("[ZZZ]: In the dungeon: CompleteAgentMovement");
                 // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
                 // buffer.
                 object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
@@ -2079,9 +2077,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Packet packet = incomingPacket.Packet;
             LLClientView client = incomingPacket.Client;
-
-            if (packet is CompleteAgentMovementPacket)
-                m_log.DebugFormat("[ZZZ]: Received CompleteAgentMovementPacket");
 
             if (client.IsActive)
             {

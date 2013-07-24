@@ -1008,7 +1008,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Send the Update. If this returns true, we know the client has contacted the destination
             // via CompleteMovementIntoRegion, so we can let go.
             // If it returns false, something went wrong, and we need to abort.
-            m_log.DebugFormat("[ZZZ]: Sending Update");
             if (!UpdateAgent(reg, finalDestination, agent, sp))
             {
                 if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
