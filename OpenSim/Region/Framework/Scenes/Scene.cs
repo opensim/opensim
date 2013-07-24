@@ -3739,7 +3739,7 @@ namespace OpenSim.Region.Framework.Scenes
     
                     try
                     {
-                        if (!AuthorizeUser(agent, out reason))
+                        if (!AuthorizeUser(agent, SeeIntoRegion, out reason))
                         {
                             m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                             return false;
@@ -3979,7 +3979,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="reason">outputs the reason to this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-        protected virtual bool AuthorizeUser(AgentCircuitData agent, out string reason)
+        protected virtual bool AuthorizeUser(AgentCircuitData agent, bool bypassAccessControl, out string reason)
         {
             reason = String.Empty;
 
@@ -4018,7 +4018,7 @@ namespace OpenSim.Region.Framework.Scenes
             // child agents from being present in the scene for which their root
             // agent isn't allowed. Otherwise, we allow child agents. The test for
             // the root is done elsewhere (QueryAccess)
-            if (!SeeIntoRegion)
+            if (!bypassAccessControl)
             {
                 List<UUID> agentGroups = new List<UUID>();
 
@@ -5588,7 +5588,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                if (!AuthorizeUser(aCircuit, out reason))
+                if (!AuthorizeUser(aCircuit, false, out reason))
                 {
                     // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
                     return false;
