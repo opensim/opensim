@@ -280,7 +280,8 @@ namespace OpenSim.Framework.Monitoring
                 }
 
                 if (lastSample != null && penultimateSample != null)
-                    lastChangeOverTime = (double)lastSample - (double)penultimateSample;
+                    lastChangeOverTime 
+                        = ((double)lastSample - (double)penultimateSample) / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
 
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
 
