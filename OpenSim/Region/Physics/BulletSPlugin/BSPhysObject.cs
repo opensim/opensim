@@ -187,8 +187,21 @@ public abstract class BSPhysObject : PhysicsActor
         MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
         Friction = matAttrib.friction;
         Restitution = matAttrib.restitution;
-        Density = matAttrib.density / BSParam.DensityScaleFactor;
+        Density = matAttrib.density;
         // DetailLog("{0},{1}.SetMaterial,Mat={2},frict={3},rest={4},den={5}", LocalID, TypeName, Material, Friction, Restitution, Density);
+    }
+
+    public override float Density
+    {
+        get
+        {
+            return base.Density;
+        }
+        set
+        {
+            DetailLog("{0},BSPhysObject.Density,set,den={1}", LocalID, value);
+            base.Density = value;
+        }
     }
 
     // Stop all physical motion.

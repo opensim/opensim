@@ -75,7 +75,7 @@ public sealed class BSCharacter : BSPhysObject
         RawVelocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         Friction = BSParam.AvatarStandingFriction;
-        Density = BSParam.AvatarDensity / BSParam.DensityScaleFactor;
+        Density = BSParam.AvatarDensity;
 
         // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
         //     replace with the default values.
