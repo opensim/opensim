@@ -44,6 +44,42 @@ public sealed class BSLinksetCompound : BSLinkset
     {
     }
 
+    // ================================================================
+    // Changing the physical property of the linkset only needs to change the root
+    public override void SetPhysicalFriction(float friction)
+    {
+        if (LinksetRoot.PhysBody.HasPhysicalBody)
+            m_physicsScene.PE.SetFriction(LinksetRoot.PhysBody, friction);
+    }
+    public override void SetPhysicalRestitution(float restitution)
+    {
+        if (LinksetRoot.PhysBody.HasPhysicalBody)
+            m_physicsScene.PE.SetRestitution(LinksetRoot.PhysBody, restitution);
+    }
+    public override void SetPhysicalGravity(OMV.Vector3 gravity)
+    {
+        if (LinksetRoot.PhysBody.HasPhysicalBody)
+            m_physicsScene.PE.SetGravity(LinksetRoot.PhysBody, gravity);
+    }
+    public override void ComputeLocalInertia(OMV.Vector3 inertiaFactor)
+    {
+        OMV.Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(LinksetRoot.PhysShape.physShapeInfo, LinksetRoot.Mass);
+        LinksetRoot.Inertia = inertia * inertiaFactor;
+        m_physicsScene.PE.SetMassProps(LinksetRoot.PhysBody, LinksetRoot.Mass, LinksetRoot.Inertia);
+        m_physicsScene.PE.UpdateInertiaTensor(LinksetRoot.PhysBody);
+    }
+    public override void SetPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        if (LinksetRoot.PhysBody.HasPhysicalBody)
+            m_physicsScene.PE.SetCollisionFlags(LinksetRoot.PhysBody, collFlags);
+    }
+    public override void RemoveFromPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        if (LinksetRoot.PhysBody.HasPhysicalBody)
+            m_physicsScene.PE.RemoveFromCollisionFlags(LinksetRoot.PhysBody, collFlags);
+    }
+    // ================================================================
+
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     public override void Refresh(BSPrimLinkable requestor)
@@ -59,6 +95,7 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2},actuallyScheduling={3}",
                             requestor.LocalID, Rebuilding, HasAnyChildren, (!Rebuilding && HasAnyChildren));
+
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.

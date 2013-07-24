@@ -78,6 +78,36 @@ namespace OpenMetaverse
         public bool IsRunningOutbound { get; private set; }
 
         /// <summary>
+        /// Number of UDP receives.
+        /// </summary>
+        public int UdpReceives { get; private set; }
+
+        /// <summary>
+        /// Number of UDP sends
+        /// </summary>
+        public int UdpSends { get; private set; }
+
+        /// <summary>
+        /// Number of receives over which to establish a receive time average.
+        /// </summary>
+        private readonly static int s_receiveTimeSamples = 500;
+
+        /// <summary>
+        /// Current number of samples taken to establish a receive time average.
+        /// </summary>
+        private int m_currentReceiveTimeSamples;
+
+        /// <summary>
+        /// Cumulative receive time for the sample so far.
+        /// </summary>
+        private int m_receiveTicksInCurrentSamplePeriod;
+
+        /// <summary>
+        /// The average time taken for each require receive in the last sample.
+        /// </summary>
+        public float AverageReceiveTicksForLastSamplePeriod { get; private set; }
+
+        /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="bindAddress">Local IP address to bind the server to</param>
@@ -111,6 +141,8 @@ namespace OpenMetaverse
 
             if (!IsRunningInbound)
             {
+                m_log.DebugFormat("[UDPBASE]: Starting inbound UDP loop");
+
                 const int SIO_UDP_CONNRESET = -1744830452;
 
                 IPEndPoint ipep = new IPEndPoint(m_localBindAddress, m_udpPort);
@@ -151,6 +183,8 @@ namespace OpenMetaverse
         /// </summary>
         public void StartOutbound()
         {
+            m_log.DebugFormat("[UDPBASE]: Starting outbound UDP loop");
+
             IsRunningOutbound = true;
         }
 
@@ -158,10 +192,8 @@ namespace OpenMetaverse
         {
             if (IsRunningInbound)
             {
-                // wait indefinitely for a writer lock.  Once this is called, the .NET runtime
-                // will deny any more reader locks, in effect blocking all other send/receive
-                // threads.  Once we have the lock, we set IsRunningInbound = false to inform the other
-                // threads that the socket is closed.
+                m_log.DebugFormat("[UDPBASE]: Stopping inbound UDP loop");
+
                 IsRunningInbound = false;
                 m_udpSocket.Close();
             }
@@ -169,6 +201,8 @@ namespace OpenMetaverse
 
         public void StopOutbound()
         {
+            m_log.DebugFormat("[UDPBASE]: Stopping outbound UDP loop");
+
             IsRunningOutbound = false;
         }
 
@@ -267,6 +301,8 @@ namespace OpenMetaverse
             // to AsyncBeginReceive
             if (IsRunningInbound)
             {
+                UdpReceives++;
+
                 // Asynchronous mode will start another receive before the
                 // callback for this packet is even fired. Very parallel :-)
                 if (m_asyncPacketHandling)
@@ -278,6 +314,8 @@ namespace OpenMetaverse
 
                 try
                 {
+                    int startTick = Util.EnvironmentTickCount();
+
                     // get the length of data actually read from the socket, store it with the
                     // buffer
                     buffer.DataLength = m_udpSocket.EndReceiveFrom(iar, ref buffer.RemoteEndPoint);
@@ -285,6 +323,23 @@ namespace OpenMetaverse
                     // call the abstract method PacketReceived(), passing the buffer that
                     // has just been filled from the socket read.
                     PacketReceived(buffer);
+
+                    // If more than one thread can be calling AsyncEndReceive() at once (e.g. if m_asyncPacketHandler)
+                    // then a particular stat may be inaccurate due to a race condition.  We won't worry about this
+                    // since this should be rare and  won't cause a runtime problem.
+                    if (m_currentReceiveTimeSamples >= s_receiveTimeSamples)
+                    {
+                        AverageReceiveTicksForLastSamplePeriod 
+                            = (float)m_receiveTicksInCurrentSamplePeriod / s_receiveTimeSamples;
+
+                        m_receiveTicksInCurrentSamplePeriod = 0;
+                        m_currentReceiveTimeSamples = 0;
+                    }
+                    else
+                    {
+                        m_receiveTicksInCurrentSamplePeriod += Util.EnvironmentTickCountSubtract(startTick);
+                        m_currentReceiveTimeSamples++;
+                    }
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
@@ -298,14 +353,13 @@ namespace OpenMetaverse
                     if (!m_asyncPacketHandling)
                         AsyncBeginReceive();
                 }
-
             }
         }
 
         public void AsyncBeginSend(UDPPacketBuffer buf)
         {
-            if (IsRunningOutbound)
-            {
+//            if (IsRunningOutbound)
+//            {
                 try
                 {
                     m_udpSocket.BeginSendTo(
@@ -319,7 +373,7 @@ namespace OpenMetaverse
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
-            }
+//            }
         }
 
         void AsyncEndSend(IAsyncResult result)
@@ -328,6 +382,8 @@ namespace OpenMetaverse
             {
 //                UDPPacketBuffer buf = (UDPPacketBuffer)result.AsyncState;
                 m_udpSocket.EndSendTo(result);
+
+                UdpSends++;
             }
             catch (SocketException) { }
             catch (ObjectDisposedException) { }

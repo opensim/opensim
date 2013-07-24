@@ -69,15 +69,56 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "IncomingUDPReceivesCount",
+                    "Number of UDP receives performed",
+                    "Number of UDP receives performed",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.UdpReceives,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "IncomingPacketsProcessedCount",
-                    "Number of inbound UDP packets processed",
-                    "Number of inbound UDP packets processed",
+                    "Number of inbound LL protocol packets processed",
+                    "Number of inbound LL protocol packets processed",
                     "",
                     "clientstack",
                     scene.Name,
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "OutgoingUDPSendsCount",
+                    "Number of UDP sends performed",
+                    "Number of UDP sends performed",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.UdpSends,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "AverageUDPProcessTime",
+                    "Average number of milliseconds taken to process each incoming UDP packet in a sample.",
+                    "This is for initial receive processing which is separate from the later client LL packet processing stage.",
+                    "ms",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond,
+//                    stat => 
+//                        stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond, 7),
                     StatVerbosity.Debug));
         }
 
@@ -185,6 +226,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected bool m_sendPing;
 
         private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
+
+        /// <summary>
+        /// Event used to signal when queued packets are available for sending.
+        /// </summary>
+        /// <remarks>
+        /// This allows the outbound loop to only operate when there is data to send rather than continuously polling.
+        /// Some data is sent immediately and not queued.  That data would not trigger this event.
+        /// </remarks>
+        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
+
         private Pool<IncomingPacket> m_incomingPacketPool;
 
         /// <summary>
@@ -462,6 +513,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
 
+            StatsManager.RegisterStat(
+                new Stat(
+                    "InboxPacketsCount",
+                    "Number of LL protocol packets waiting for the second stage of processing after initial receive.",
+                    "Number of LL protocol packets waiting for the second stage of processing after initial receive.",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = packetInbox.Count,
+                    StatVerbosity.Debug));
+
             // XXX: These stats are also pool stats but we register them separately since they are currently not
             // turned on and off by EnablePools()/DisablePools()
             StatsManager.RegisterStat(
@@ -575,6 +639,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp status",
                 "Return status of LLUDP packet processing.",
                 HandleStatusCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp toggle agentupdate",
+                "debug lludp toggle agentupdate",
+                "Toggle whether agentupdate packets are processed or simply discarded.",
+                HandleAgentUpdateCommand);
         }
 
         private void HandlePacketCommand(string module, string[] args)
@@ -709,6 +781,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        bool m_discardAgentUpdates;
+
+        private void HandleAgentUpdateCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            m_discardAgentUpdates = !m_discardAgentUpdates;
+
+            MainConsole.Instance.OutputFormat(
+                "Discard AgentUpdates now {0} for {1}", m_discardAgentUpdates, m_scene.Name);
+        }
+
         private void HandleStatusCommand(string module, string[] args)
         {
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
@@ -809,11 +894,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             PacketPool.Instance.ReturnPacket(packet);
+
             m_dataPresentEvent.Set();
-
         }
-
-        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
 
         /// <summary>
         /// Start the process of sending a packet to the client.
@@ -1325,6 +1408,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
 
+            if (packet.Type == PacketType.AgentUpdate)
+            {
+                if (m_discardAgentUpdates)
+                    return;
+
+                ((LLClientView)client).TotalAgentUpdates++;
+
+                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+
+                LLClientView llClient = client as LLClientView;
+                if (agentUpdate.AgentData.SessionID != client.SessionId 
+                    || agentUpdate.AgentData.AgentID != client.AgentId
+                    || !(llClient == null || llClient.CheckAgentUpdateSignificance(agentUpdate.AgentData)) )
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
+                    return;
+                }
+            }
+
             #region Ping Check Handling
 
             if (packet.Type == PacketType.StartPingCheck)
@@ -1734,7 +1836,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Action generic every round
             Action<IClientAPI> clientPacketHandler = ClientOutgoingPacketHandler;
 
-//            while (true)
             while (base.IsRunningOutbound)
             {
                 m_scene.ThreadAlive(2);
@@ -1798,6 +1899,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // token bucket could get more tokens
                     //if (!m_packetSent)
                     //    Thread.Sleep((int)TickCountResolution);
+                    //
+                    // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
+                    // modern mono it reduces CPU base load since there is no more continuous polling.
                     m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();

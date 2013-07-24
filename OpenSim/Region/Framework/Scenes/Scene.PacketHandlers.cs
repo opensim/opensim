@@ -416,6 +416,7 @@ namespace OpenSim.Region.Framework.Scenes
         void ProcessViewerEffect(IClientAPI remoteClient, List<ViewerEffectEventHandlerArg> args)
         {
             // TODO: don't create new blocks if recycling an old packet
+            bool discardableEffects = true;
             ViewerEffectPacket.EffectBlock[] effectBlockArray = new ViewerEffectPacket.EffectBlock[args.Count];
             for (int i = 0; i < args.Count; i++)
             {
@@ -427,17 +428,34 @@ namespace OpenSim.Region.Framework.Scenes
                 effect.Type = args[i].Type;
                 effect.TypeData = args[i].TypeData;
                 effectBlockArray[i] = effect;
+
+                if ((EffectType)effect.Type != EffectType.LookAt && (EffectType)effect.Type != EffectType.Beam)
+                    discardableEffects = false;
+
+                //m_log.DebugFormat("[YYY]: VE {0} {1} {2}", effect.AgentID, effect.Duration, (EffectType)effect.Type);
             }
 
-            ForEachClient(
-                delegate(IClientAPI client)
+            ForEachScenePresence(sp =>
                 {
-                    if (client.AgentId != remoteClient.AgentId)
-                        client.SendViewerEffect(effectBlockArray);
-                }
-            );
+                    if (sp.ControllingClient.AgentId != remoteClient.AgentId)
+                    {
+                        if (!discardableEffects ||
+                            (discardableEffects && ShouldSendDiscardableEffect(remoteClient, sp)))
+                        {
+                            //m_log.DebugFormat("[YYY]: Sending to {0}", sp.UUID);
+                            sp.ControllingClient.SendViewerEffect(effectBlockArray);
+                        }
+                        //else
+                        //    m_log.DebugFormat("[YYY]: Not sending to {0}", sp.UUID);
+                    }
+                });
         }
         
+        private bool ShouldSendDiscardableEffect(IClientAPI thisClient, ScenePresence other)
+        {
+            return Vector3.Distance(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 10;
+        }
+
         private class DescendentsRequestData
         {
             public IClientAPI RemoteClient;

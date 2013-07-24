@@ -45,7 +45,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private static string LogHeader = "[BULLETSIM VEHICLE]";
 
         // the prim this dynamic controller belongs to
-        private BSPrim ControllingPrim { get; set; }
+        private BSPrimLinkable ControllingPrim { get; set; }
 
         private bool m_haveRegisteredForSceneEvents;
 
@@ -128,9 +128,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public BSDynamics(BSScene myScene, BSPrim myPrim, string actorName)
             : base(myScene, myPrim, actorName)
         {
-            ControllingPrim = myPrim;
             Type = Vehicle.TYPE_NONE;
             m_haveRegisteredForSceneEvents = false;
+
+            ControllingPrim = myPrim as BSPrimLinkable;
+            if (ControllingPrim == null)
+            {
+                // THIS CANNOT HAPPEN!!
+            }
+            VDetailLog("{0},Creation", ControllingPrim.LocalID);
         }
 
         // Return 'true' if this vehicle is doing vehicle things
@@ -585,6 +591,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Friction affects are handled by this vehicle code
                 m_physicsScene.PE.SetFriction(ControllingPrim.PhysBody, BSParam.VehicleFriction);
                 m_physicsScene.PE.SetRestitution(ControllingPrim.PhysBody, BSParam.VehicleRestitution);
+                // ControllingPrim.Linkset.SetPhysicalFriction(BSParam.VehicleFriction);
+                // ControllingPrim.Linkset.SetPhysicalRestitution(BSParam.VehicleRestitution);
 
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
@@ -595,17 +603,20 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // Vehicles report collision events so we know when it's on the ground
                 m_physicsScene.PE.AddToCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                // ControllingPrim.Linkset.SetPhysicalCollisionFlags(CollisionFlags.BS_VEHICLE_COLLISIONS);
 
                 Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape.physShapeInfo, m_vehicleMass);
                 ControllingPrim.Inertia = inertia * BSParam.VehicleInertiaFactor;
                 m_physicsScene.PE.SetMassProps(ControllingPrim.PhysBody, m_vehicleMass, ControllingPrim.Inertia);
                 m_physicsScene.PE.UpdateInertiaTensor(ControllingPrim.PhysBody);
+                // ControllingPrim.Linkset.ComputeLocalInertia(BSParam.VehicleInertiaFactor);
 
                 // Set the gravity for the vehicle depending on the buoyancy
                 // TODO: what should be done if prim and vehicle buoyancy differ?
                 m_VehicleGravity = ControllingPrim.ComputeGravity(m_VehicleBuoyancy);
                 // The actual vehicle gravity is set to zero in Bullet so we can do all the application of same.
                 m_physicsScene.PE.SetGravity(ControllingPrim.PhysBody, Vector3.Zero);
+                // ControllingPrim.Linkset.SetPhysicalGravity(Vector3.Zero);
 
                 VDetailLog("{0},BSDynamics.SetPhysicalParameters,mass={1},inert={2},vehGrav={3},aDamp={4},frict={5},rest={6},lFact={7},aFact={8}",
                         ControllingPrim.LocalID, m_vehicleMass, ControllingPrim.Inertia, m_VehicleGravity,
@@ -617,6 +628,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 if (ControllingPrim.PhysBody.HasPhysicalBody)
                     m_physicsScene.PE.RemoveFromCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                // ControllingPrim.Linkset.RemoveFromPhysicalCollisionFlags(CollisionFlags.BS_VEHICLE_COLLISIONS);
             }
         }
 
@@ -629,6 +641,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // BSActor.Release()
         public override void Dispose()
         {
+            VDetailLog("{0},Dispose", ControllingPrim.LocalID);
             UnregisterForSceneEvents();
             Type = Vehicle.TYPE_NONE;
             Enabled = false;
@@ -1001,7 +1014,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             else if (newVelocityLengthSq < 0.001f)
                 VehicleVelocity = Vector3.Zero;
 
-            VDetailLog("{0},  MoveLinear,done,isColl={1},newVel={2}", ControllingPrim.LocalID, ControllingPrim.IsColliding, VehicleVelocity );
+            VDetailLog("{0},  MoveLinear,done,isColl={1},newVel={2}", ControllingPrim.LocalID, ControllingPrim.HasSomeCollision, VehicleVelocity );
 
         } // end MoveLinear()
 
@@ -1029,8 +1042,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Add this correction to the velocity to make it faster/slower.
             VehicleVelocity += linearMotorVelocityW;
 
-            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6}",
-                        ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV,
+            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},tgt={3},correctV={4},correctW={5},newVelW={6},fricFact={7}",
+                        ControllingPrim.LocalID, origVelW, currentVelV, m_linearMotor.TargetValue, linearMotorCorrectionV,
                         linearMotorVelocityW, VehicleVelocity, frictionFactorV);
         }
 
@@ -1062,7 +1075,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 linearDeflectionW = linearDeflectionV * VehicleOrientation;
 
                 // Optionally, if not colliding, don't effect world downward velocity. Let falling things fall.
-                if (BSParam.VehicleLinearDeflectionNotCollidingNoZ && !m_controllingPrim.IsColliding)
+                if (BSParam.VehicleLinearDeflectionNotCollidingNoZ && !m_controllingPrim.HasSomeCollision)
                 {
                     linearDeflectionW.Z = 0f;
                 }
@@ -1222,7 +1235,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 float targetHeight = Type == Vehicle.TYPE_BOAT ? GetWaterLevel(VehiclePosition) : GetTerrainHeight(VehiclePosition);
                 distanceAboveGround = VehiclePosition.Z - targetHeight;
                 // Not colliding if the vehicle is off the ground
-                if (!Prim.IsColliding)
+                if (!Prim.HasSomeCollision)
                 {
                     // downForce = new Vector3(0, 0, -distanceAboveGround / m_bankingTimescale);
                     VehicleVelocity += new Vector3(0, 0, -distanceAboveGround);
@@ -1233,12 +1246,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     be computed with a motor.
                 // TODO: add interaction with banking.
                 VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},colliding={2},ret={3}",
-                                Prim.LocalID, distanceAboveGround, Prim.IsColliding, ret);
+                                Prim.LocalID, distanceAboveGround, Prim.HasSomeCollision, ret);
                  */
 
                 // Another approach is to measure if we're going up. If going up and not colliding,
                 //     the vehicle is in the air.  Fix that by pushing down.
-                if (!ControllingPrim.IsColliding && VehicleVelocity.Z > 0.1)
+                if (!ControllingPrim.HasSomeCollision && VehicleVelocity.Z > 0.1)
                 {
                     // Get rid of any of the velocity vector that is pushing us up.
                     float upVelocity = VehicleVelocity.Z;
@@ -1260,7 +1273,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     }
                         */
                     VDetailLog("{0},  MoveLinear,limitMotorUp,collide={1},upVel={2},newVel={3}",
-                                    ControllingPrim.LocalID, ControllingPrim.IsColliding, upVelocity, VehicleVelocity);
+                                    ControllingPrim.LocalID, ControllingPrim.HasSomeCollision, upVelocity, VehicleVelocity);
                 }
             }
         }
@@ -1270,14 +1283,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 appliedGravity = m_VehicleGravity * m_vehicleMass;
 
             // Hack to reduce downward force if the vehicle is probably sitting on the ground
-            if (ControllingPrim.IsColliding && IsGroundVehicle)
+            if (ControllingPrim.HasSomeCollision && IsGroundVehicle)
                 appliedGravity *= BSParam.VehicleGroundGravityFudge;
 
             VehicleAddForce(appliedGravity);
 
             VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},fudge={3},mass={4},appliedForce={5}",
                             ControllingPrim.LocalID, m_VehicleGravity,
-                            ControllingPrim.IsColliding, BSParam.VehicleGroundGravityFudge, m_vehicleMass, appliedGravity);
+                            ControllingPrim.HasSomeCollision, BSParam.VehicleGroundGravityFudge, m_vehicleMass, appliedGravity);
         }
 
         // =======================================================================

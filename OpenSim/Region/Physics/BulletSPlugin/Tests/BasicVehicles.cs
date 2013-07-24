@@ -116,7 +116,7 @@ public class BasicVehicles : OpenSimTestCase
         //    Instead the appropriate values are set and calls are made just the parts of the
         //    controller we want to exercise. Stepping the physics engine then applies
         //    the actions of that one feature.
-        BSDynamics vehicleActor = TestVehicle.GetVehicleActor();
+        BSDynamics vehicleActor = TestVehicle.GetVehicleActor(true /* createIfNone */);
         if (vehicleActor != null)
         {
             vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, efficiency);

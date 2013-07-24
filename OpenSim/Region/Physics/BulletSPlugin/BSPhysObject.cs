@@ -353,6 +353,16 @@ public abstract class BSPhysObject : PhysicsActor
                 CollidingStep = BSScene.NotASimulationStep;
             }
     }
+    // Complex objects (like linksets) need to know if there is a collision on any part of
+    //    their shape. 'IsColliding' has an existing definition of reporting a collision on
+    //    only this specific prim or component of linksets.
+    // 'HasSomeCollision' is defined as reporting if there is a collision on any part of
+    //    the complex body that this prim is the root of.
+    public virtual bool HasSomeCollision
+    {
+        get { return IsColliding; }
+        set { IsColliding = value; }
+    }
     public override bool CollidingGround {
         get { return (CollidingGroundStep == PhysScene.SimulationStep); }
         set
@@ -386,6 +396,7 @@ public abstract class BSPhysObject : PhysicsActor
     // Return 'true' if a collision was processed and should be sent up.
     // Return 'false' if this object is not enabled/subscribed/appropriate for or has already seen this collision.
     // Called at taint time from within the Step() function
+    public delegate bool CollideCall(uint collidingWith, BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth);
     public virtual bool Collide(uint collidingWith, BSPhysObject collidee,
                     OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {

@@ -611,7 +611,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             //
             if (showParams.Length <= 4)
             {
-                m_log.InfoFormat("[INFO]: {0,-12} {1,20} {2,6} {3,11} {4, 10}", "Region", "Name", "Root", "Time", "Reqs/min");
+                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", "Region", "Name", "Root", "Time", "Reqs/min", "AgentUpdates");
                 foreach (Scene scene in m_scenes.Values)
                 {
                     scene.ForEachClient(
@@ -624,9 +624,15 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 int avg_reqs = cinfo.AsyncRequests.Values.Sum() + cinfo.GenericRequests.Values.Sum() + cinfo.SyncRequests.Values.Sum();
                                 avg_reqs = avg_reqs / ((DateTime.Now - cinfo.StartedTime).Minutes + 1);
 
-                                m_log.InfoFormat("[INFO]: {0,-12} {1,20} {2,4} {3,9}min {4,10}", 
+                                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", 
                                     scene.RegionInfo.RegionName, llClient.Name,
-                                    (llClient.SceneAgent.IsChildAgent ? "N" : "Y"), (DateTime.Now - cinfo.StartedTime).Minutes, avg_reqs);
+                                         llClient.SceneAgent.IsChildAgent ? "N" : "Y", 
+                                         (DateTime.Now - cinfo.StartedTime).Minutes,
+                                         avg_reqs, 
+                                         string.Format(
+                                            "{0} ({1:0.00}%)", 
+                                            llClient.TotalAgentUpdates, 
+                                            (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100));
                             }
                         });
                 }

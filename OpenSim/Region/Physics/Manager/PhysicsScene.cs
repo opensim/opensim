@@ -25,10 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using log4net;
 using Nini.Config;
+
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -385,6 +388,12 @@ namespace OpenSim.Region.Physics.Manager
         public virtual int SitAvatar(PhysicsActor actor, Vector3 AbsolutePosition, Vector3 CameraPosition, Vector3 offset, Vector3 AvatarSize, SitAvatarCallback PhysicsSitResponse)
         {
             return 0;
+        }
+
+        // Extendable interface for new, physics engine specific operations
+        public virtual object Extension(string pFunct, params object[] pParams)
+        {
+            throw new NotImplementedException();
         }
     }
 }

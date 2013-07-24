@@ -96,6 +96,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
+        public event UpdateAgent OnAgentCameraUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
@@ -368,7 +369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// This does mean that agent updates must be processed synchronously, at least for each client, and called methods
         /// cannot retain a reference to it outside of that method.
         /// </remarks>
-        private AgentUpdateArgs m_lastAgentUpdateArgs;
+        private AgentUpdateArgs m_thisAgentUpdateArgs = new AgentUpdateArgs();
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -505,6 +506,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer = udpServer;
             m_udpClient = udpClient;
             m_udpClient.OnQueueEmpty += HandleQueueEmpty;
+            m_udpClient.HasUpdates += HandleHasUpdates;
             m_udpClient.OnPacketStats += PopulateStats;
 
             m_prioritizer = new Prioritizer(m_scene);
@@ -4164,8 +4166,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
+//            if (!m_udpServer.IsRunningOutbound)
+//                return;
+
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
+//                if (!m_udpServer.IsRunningOutbound)
+//                    return;
+
                 if (m_maxUpdates == 0 || m_LastQueueFill == 0)
                 {
                     m_maxUpdates = m_udpServer.PrimUpdatesPerCallback;
@@ -4189,6 +4197,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
                 ImageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
+        }
+
+        internal bool HandleHasUpdates(ThrottleOutPacketTypeFlags categories)
+        {
+            bool hasUpdates = false;
+
+            if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
+            {
+                if (m_entityUpdates.Count > 0)
+                    hasUpdates = true;
+                else if (m_entityProps.Count > 0)
+                    hasUpdates = true;                   
+            }
+
+            if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
+            {
+                if (ImageManager.HasUpdates())
+                    hasUpdates = true;
+            }
+
+            return hasUpdates;
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
@@ -5058,7 +5087,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SceneObjectPart part = (SceneObjectPart)entity;
 
                 attachPoint = part.ParentGroup.AttachmentPoint;
-
+                attachPoint = ((attachPoint % 16) * 16 + (attachPoint / 16));
 //                m_log.DebugFormat(
 //                    "[LLCLIENTVIEW]: Sending attachPoint {0} for {1} {2} to {3}",
 //                    attachPoint, part.Name, part.LocalId, Name);
@@ -5086,7 +5115,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pos += 4;
 
             // Avatar/CollisionPlane
-            data[pos++] = (byte)((attachPoint % 16) * 16 + (attachPoint / 16)); ;
+            data[pos++] = (byte) attachPoint;
             if (avatar)
             {
                 data[pos++] = 1;
@@ -5618,83 +5647,137 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Packet Handlers
 
+        public int TotalAgentUpdates { get; set; }
+
         #region Scene/Avatar
 
-        private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
+        // Threshold for body rotation to be a significant agent update
+        private const float QDELTA = 0.000001f;
+        // Threshold for camera rotation to be a significant agent update
+        private const float VDELTA = 0.01f;
+
+        /// <summary>
+        /// This checks the update significance against the last update made.
+        /// </summary>
+        /// <remarks>Can only be called by one thread at a time</remarks>
+        /// <returns></returns>
+        /// <param name='x'></param>
+        public bool CheckAgentUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            if (OnAgentUpdate != null)
+            return CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
+        }
+
+        /// <summary>
+        /// This checks the movement/state update significance against the last update made.
+        /// </summary>
+        /// <remarks>Can only be called by one thread at a time</remarks>
+        /// <returns></returns>
+        /// <param name='x'></param>
+        private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        {
+            float qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
+            //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
+
+            bool movementSignificant =
+                (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
+                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
+                // || (qdelta2 > QDELTA * 10)                               // significant if head rotation above threshold
+                || (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
+                || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
+                || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
+                || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
+                || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
+            ;
+            //if (movementSignificant)
+            //{
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
+                //    qdelta1, qdelta2);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
+                //    x.ControlFlags, x.Flags, x.Far, x.State);
+            //}
+            return movementSignificant;
+        }
+
+        /// <summary>
+        /// This checks the camera update significance against the last update made.
+        /// </summary>
+        /// <remarks>Can only be called by one thread at a time</remarks>
+        /// <returns></returns>
+        /// <param name='x'></param>
+        private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        {
+            float vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
+            float vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
+            float vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
+            float vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+
+            bool cameraSignificant =
+                (vdelta1 > VDELTA) ||
+                (vdelta2 > VDELTA) ||
+                (vdelta3 > VDELTA) ||
+                (vdelta4 > VDELTA)
+            ;
+
+            //if (cameraSignificant)
+            //{
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
+                //    x.CameraAtAxis, x.CameraCenter);
+                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
+                //    x.CameraLeftAxis, x.CameraUpAxis);
+            //}
+
+            return cameraSignificant;
+        }
+
+        private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
+        {            
+            // We got here, which means that something in agent update was significant
+
+            AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+            AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
+
+            if (x.AgentID != AgentId || x.SessionID != SessionId)
+                return false;
+
+            // Before we update the current m_thisAgentUpdateArgs, let's check this again
+            // to see what exactly changed
+            bool movement = CheckAgentMovementUpdateSignificance(x);
+            bool camera = CheckAgentCameraUpdateSignificance(x);
+
+            m_thisAgentUpdateArgs.AgentID = x.AgentID;
+            m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;
+            m_thisAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
+            m_thisAgentUpdateArgs.CameraCenter = x.CameraCenter;
+            m_thisAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
+            m_thisAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
+            m_thisAgentUpdateArgs.ControlFlags = x.ControlFlags;
+            m_thisAgentUpdateArgs.Far = x.Far;
+            m_thisAgentUpdateArgs.Flags = x.Flags;
+            m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
+            m_thisAgentUpdateArgs.SessionID = x.SessionID;
+            m_thisAgentUpdateArgs.State = x.State;
+
+            UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+            UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
+            UpdateAgent handlerAgentCameraUpdate = OnAgentCameraUpdate;
+
+            // Was there a significant movement/state change?
+            if (movement)
             {
-                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+                if (handlerPreAgentUpdate != null)
+                    OnPreAgentUpdate(this, m_thisAgentUpdateArgs);
 
-                #region Packet Session and User Check
-                if (agentUpdate.AgentData.SessionID != SessionId || agentUpdate.AgentData.AgentID != AgentId)
-                {
-                    PacketPool.Instance.ReturnPacket(packet);
-                    return false;
-                }
-                #endregion
-
-                bool update = false;
-                AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
-
-                if (m_lastAgentUpdateArgs != null)
-                {
-                    // These should be ordered from most-likely to
-                    // least likely to change. I've made an initial
-                    // guess at that.
-                    update =
-                       (
-                        (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
-                        (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
-                        (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
-                        (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
-                        (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
-                        (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
-                        (x.ControlFlags != 0) ||
-                        (x.Far != m_lastAgentUpdateArgs.Far) ||
-                        (x.Flags != m_lastAgentUpdateArgs.Flags) ||
-                        (x.State != m_lastAgentUpdateArgs.State) ||
-                        (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
-                        (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
-                        (x.AgentID != m_lastAgentUpdateArgs.AgentID)
-                       );
-                }
-                else
-                {
-                    m_lastAgentUpdateArgs = new AgentUpdateArgs();
-                    update = true;
-                }
-
-                if (update)
-                {
-//                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
-
-                    m_lastAgentUpdateArgs.AgentID = x.AgentID;
-                    m_lastAgentUpdateArgs.BodyRotation = x.BodyRotation;
-                    m_lastAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
-                    m_lastAgentUpdateArgs.CameraCenter = x.CameraCenter;
-                    m_lastAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
-                    m_lastAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
-                    m_lastAgentUpdateArgs.ControlFlags = x.ControlFlags;
-                    m_lastAgentUpdateArgs.Far = x.Far;
-                    m_lastAgentUpdateArgs.Flags = x.Flags;
-                    m_lastAgentUpdateArgs.HeadRotation = x.HeadRotation;
-                    m_lastAgentUpdateArgs.SessionID = x.SessionID;
-                    m_lastAgentUpdateArgs.State = x.State;
-
-                    UpdateAgent handlerAgentUpdate = OnAgentUpdate;
-                    UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
-
-                    if (handlerPreAgentUpdate != null)
-                        OnPreAgentUpdate(this, m_lastAgentUpdateArgs);
-
-                    if (handlerAgentUpdate != null)
-                        OnAgentUpdate(this, m_lastAgentUpdateArgs);
-
-                    handlerAgentUpdate = null;
-                    handlerPreAgentUpdate = null;
-                }
+                if (handlerAgentUpdate != null)
+                    OnAgentUpdate(this, m_thisAgentUpdateArgs);
             }
+            // Was there a significant camera(s) change?
+            if (camera)
+                if (handlerAgentCameraUpdate != null)
+                    handlerAgentCameraUpdate(this, m_thisAgentUpdateArgs);
+
+            handlerAgentUpdate = null;
+            handlerPreAgentUpdate = null;
+            handlerAgentCameraUpdate = null;
 
             PacketPool.Instance.ReturnPacket(packet);
 
@@ -12813,7 +12896,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(dialog, ThrottleOutPacketType.Task);
         }
 
-        public void StopFlying(ISceneEntity p)
+        public void SendAgentTerseUpdate(ISceneEntity p)
         {
             if (p is ScenePresence)
             {
@@ -12826,25 +12909,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // when the avatar stands up
 
                 Vector3 pos = presence.AbsolutePosition;
-
-                if (presence.Appearance.AvatarHeight != 127.0f)
-                    pos += new Vector3(0f, 0f, (presence.Appearance.AvatarHeight/6f));
-                else
-                    pos += new Vector3(0f, 0f, (1.56f/6f));
-
-                presence.AbsolutePosition = pos;
-
-                // attach a suitable collision plane regardless of the actual situation to force the LLClient to land.
-                // Collision plane below the avatar's position a 6th of the avatar's height is suitable.
-                // Mind you, that this method doesn't get called if the avatar's velocity magnitude is greater then a
-                // certain amount..   because the LLClient wouldn't land in that situation anyway.
-
-                // why are we still testing for this really old height value default???
-                if (presence.Appearance.AvatarHeight != 127.0f)
-                    presence.CollisionPlane = new Vector4(0, 0, 0, pos.Z - presence.Appearance.AvatarHeight/6f);
-                else
-                    presence.CollisionPlane = new Vector4(0, 0, 0, pos.Z - (1.56f/6f));
-
 
                 ImprovedTerseObjectUpdatePacket.ObjectDataBlock block =
                     CreateImprovedTerseBlock(p, false);

@@ -203,6 +203,33 @@ public abstract class BSLinkset
         return ret;
     }
 
+    // Called after a simulation step to post a collision with this object.
+    // Return 'true' if linkset processed the collision. 'false' says the linkset didn't have
+    //     anything to add for the collision and it should be passed through normal processing.
+    // Default processing for a linkset.
+    public virtual bool HandleCollide(uint collidingWith, BSPhysObject collidee,
+                                OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
+    {
+        bool ret = false;
+
+        // prims in the same linkset cannot collide with each other
+        BSPrimLinkable convCollidee = collidee as BSPrimLinkable;
+        if (convCollidee != null && (LinksetID == convCollidee.Linkset.LinksetID))
+        {
+            // By returning 'true', we tell the caller the collision has been 'handled' so it won't
+            //     do anything about this collision and thus, effectivily, ignoring the collision.
+            ret = true;
+        }
+        else
+        {
+            // Not a collision between members of the linkset. Must be a real collision.
+            // So the linkset root can know if there is a collision anywhere in the linkset.
+            LinksetRoot.SomeCollisionSimulationStep = m_physicsScene.SimulationStep;
+        }
+
+        return ret;
+    }
+
     // I am the root of a linkset and a new child is being added
     // Called while LinkActivity is locked.
     protected abstract void AddChildToLinkset(BSPrimLinkable child);
@@ -250,6 +277,73 @@ public abstract class BSLinkset
     // Called at taint-time!!
     public abstract bool RemoveDependencies(BSPrimLinkable child);
 
+    // ================================================================
+    // Some physical setting happen to all members of the linkset
+    public virtual void SetPhysicalFriction(float friction)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.SetFriction(member.PhysBody, friction);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void SetPhysicalRestitution(float restitution)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.SetRestitution(member.PhysBody, restitution);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void SetPhysicalGravity(OMV.Vector3 gravity)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.SetGravity(member.PhysBody, gravity);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void ComputeLocalInertia(OMV.Vector3 inertiaFactor)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                {
+                    OMV.Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(member.PhysShape.physShapeInfo, member.Mass);
+                    member.Inertia = inertia * inertiaFactor;
+                    m_physicsScene.PE.SetMassProps(member.PhysBody, member.Mass, member.Inertia);
+                    m_physicsScene.PE.UpdateInertiaTensor(member.PhysBody);
+                }
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void SetPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.SetCollisionFlags(member.PhysBody, collFlags);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void RemoveFromPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.RemoveFromCollisionFlags(member.PhysBody, collFlags);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
     // ================================================================
     protected virtual float ComputeLinksetMass()
     {
@@ -311,6 +405,5 @@ public abstract class BSLinkset
         if (m_physicsScene.PhysicsLogging.Enabled)
             m_physicsScene.DetailLog(msg, args);
     }
-
 }
 }

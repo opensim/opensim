@@ -1402,19 +1402,18 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             // TODO: All the client update functions need to be reexamined because most do too much and send too much stuff
-            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(remoteClient.Scene.RegionInfo.ScopeID, dataForAgentID);
-            string firstname, lastname;
-            if (account != null)
+            string firstname = "Unknown", lastname = "Unknown";
+            string name = m_UserManagement.GetUserName(dataForAgentID);
+            if (!string.IsNullOrEmpty(name))
             {
-                firstname = account.FirstName;
-                lastname = account.LastName;
+                string[] parts = name.Split(new char[] { ' ' });
+                if (parts.Length >= 2)
+                {
+                    firstname = parts[0];
+                    lastname = parts[1];
+                }
             }
-            else
-            {
-                firstname = "Unknown";
-                lastname = "Unknown";
-            }
-
+            
             remoteClient.SendAgentDataUpdate(dataForAgentID, activeGroupID, firstname,
                     lastname, activeGroupPowers, activeGroupName,
                     activeGroupTitle);

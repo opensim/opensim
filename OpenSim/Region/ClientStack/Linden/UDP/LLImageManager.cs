@@ -206,6 +206,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public bool HasUpdates()
+        {
+            J2KImage image = GetHighestPriorityImage();
+
+            return image != null && image.IsDecoded;
+        }
+
         public bool ProcessImageQueue(int packetsToSend)
         {
             int packetsSent = 0;

@@ -415,6 +415,11 @@ namespace OpenSim.Region.Physics.Manager
         public virtual PhysicsActor ParentActor { get { return this; } }
         
 
+        // Extendable interface for new, physics engine specific operations
+        public virtual object Extension(string pFunct, params object[] pParams)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class NullPhysicsActor : PhysicsActor

@@ -142,6 +142,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastVelocity;
         private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
 
+        private bool m_followCamAuto = false;
+
 
         private Vector3? m_forceToApply;
         private int m_userFlags;
@@ -874,6 +876,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
             ControllingClient.OnAgentUpdate += HandleAgentUpdate;
+            ControllingClient.OnAgentCameraUpdate += HandleAgentCamerasUpdate;
             ControllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             ControllingClient.OnAgentSit += HandleAgentSit;
             ControllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
@@ -1306,7 +1309,26 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopFlying()
         {
-            ControllingClient.StopFlying(this);
+            Vector3 pos = AbsolutePosition; 
+            if (Appearance.AvatarHeight != 127.0f)
+                pos += new Vector3(0f, 0f, (Appearance.AvatarHeight / 6f));
+            else
+                pos += new Vector3(0f, 0f, (1.56f / 6f));
+
+            AbsolutePosition = pos;
+
+            // attach a suitable collision plane regardless of the actual situation to force the LLClient to land.
+            // Collision plane below the avatar's position a 6th of the avatar's height is suitable.
+            // Mind you, that this method doesn't get called if the avatar's velocity magnitude is greater then a
+            // certain amount..   because the LLClient wouldn't land in that situation anyway.
+
+            // why are we still testing for this really old height value default???
+            if (Appearance.AvatarHeight != 127.0f)
+                CollisionPlane = new Vector4(0, 0, 0, pos.Z - Appearance.AvatarHeight / 6f);
+            else
+                CollisionPlane = new Vector4(0, 0, 0, pos.Z - (1.56f / 6f));
+
+            ControllingClient.SendAgentTerseUpdate(this);
         }
 
         /// <summary>
@@ -1662,19 +1684,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
-//                Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+            //m_log.DebugFormat(
+            //    "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+            //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
             {
             //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
                 return;
             }
-
-            ++m_movementUpdateCount;
-            if (m_movementUpdateCount < 1)
-                m_movementUpdateCount = 1;
 
             #region Sanity Checking
 
@@ -1705,21 +1723,6 @@ namespace OpenSim.Region.Framework.Scenes
             #region Inputs
 
             AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
-
-            // Camera location in world.  We'll need to raytrace
-            // from this location from time to time.
-            CameraPosition = agentData.CameraCenter;
-            if (Vector3.Distance(m_lastCameraPosition, CameraPosition) >= Scene.RootReprioritizationDistance)
-            {
-                ReprioritizeUpdates();
-                m_lastCameraPosition = CameraPosition;
-            }
-
-            // Use these three vectors to figure out what the agent is looking at
-            // Convert it to a Matrix and/or Quaternion
-            CameraAtAxis = agentData.CameraAtAxis;
-            CameraLeftAxis = agentData.CameraLeftAxis;
-            CameraUpAxis = agentData.CameraUpAxis;
 
             // The Agent's Draw distance setting
             // When we get to the point of re-computing neighbors everytime this
@@ -2005,10 +2008,79 @@ namespace OpenSim.Region.Framework.Scenes
                 SendControlsToScripts(flagsForScripts);
             }
 
+            // We need to send this back to the client in order to see the edit beams
+            if ((State & (uint)AgentState.Editing) != 0)
+                ControllingClient.SendAgentTerseUpdate(this);
+
             m_scene.EventManager.TriggerOnClientMovement(this);
-            TriggerScenePresenceUpdated();
         }
 
+
+        /// <summary>
+        /// This is the event handler for client cameras. If a client is moving, or moving the camera, this event is triggering.
+        /// </summary>
+        private void HandleAgentCamerasUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
+        {
+            //m_log.DebugFormat(
+            //    "[SCENE PRESENCE]: In {0} received agent camera update from {1}, flags {2}",
+            //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+
+            if (IsChildAgent)
+            {
+                //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
+                return;
+            }
+
+            ++m_movementUpdateCount;
+            if (m_movementUpdateCount < 1)
+                m_movementUpdateCount = 1;
+
+
+            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
+
+            // Camera location in world.  We'll need to raytrace
+            // from this location from time to time.
+            CameraPosition = agentData.CameraCenter;
+            if (Vector3.Distance(m_lastCameraPosition, CameraPosition) >= Scene.RootReprioritizationDistance)
+            {
+                ReprioritizeUpdates();
+                m_lastCameraPosition = CameraPosition;
+            }
+
+            // Use these three vectors to figure out what the agent is looking at
+            // Convert it to a Matrix and/or Quaternion
+            CameraAtAxis = agentData.CameraAtAxis;
+            CameraLeftAxis = agentData.CameraLeftAxis;
+            CameraUpAxis = agentData.CameraUpAxis;
+
+            // The Agent's Draw distance setting
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // DrawDistance = agentData.Far;
+            DrawDistance = Scene.DefaultDrawDistance;
+
+            // Check if Client has camera in 'follow cam' or 'build' mode.
+            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
+
+            m_followCamAuto = ((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.98f)
+               && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
+
+
+            //m_log.DebugFormat("[FollowCam]: {0}", m_followCamAuto);
+            // Raycast from the avatar's head to the camera to see if there's anything blocking the view
+            if ((m_movementUpdateCount % NumMovementsBetweenRayCast) == 0 && m_scene.PhysicsScene.SupportsRayCast())
+            {
+                if (m_followCamAuto)
+                {
+                    Vector3 posAdjusted = m_pos + HEAD_ADJUSTMENT;
+                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(CameraPosition - posAdjusted), Vector3.Distance(CameraPosition, posAdjusted) + 0.3f, RayCastCameraCallback);
+                }
+            }
+
+            TriggerScenePresenceUpdated();
+        }
+        
         /// <summary>
         /// Calculate an update to move the presence to the set target.
         /// </summary>
