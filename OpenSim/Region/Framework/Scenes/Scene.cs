@@ -230,6 +230,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int MaxUndoCount { get; set; }
 
+        public bool SeeIntoRegion { get; set; }
+
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
         public bool LoginLock = false;
 
@@ -838,6 +840,8 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
+
+                SeeIntoRegion = startupConfig.GetBoolean("see_into_region", true);
 
                 MaxUndoCount = startupConfig.GetInt("MaxPrimUndos", 20);
 
@@ -4010,51 +4014,58 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
             }
 
-            List<UUID> agentGroups = new List<UUID>();
-
-            if (m_groupsModule != null)
+            // We only test the things below when we want to cut off
+            // child agents from being present in the scene for which their root
+            // agent isn't allowed. Otherwise, we allow child agents. The test for
+            // the root is done elsewhere (QueryAccess)
+            if (!SeeIntoRegion)
             {
-                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
+                List<UUID> agentGroups = new List<UUID>();
 
-                if (GroupMembership != null)
+                if (m_groupsModule != null)
                 {
-                    for (int i = 0; i < GroupMembership.Length; i++)
-                        agentGroups.Add(GroupMembership[i].GroupID);
+                    GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
+
+                    if (GroupMembership != null)
+                    {
+                        for (int i = 0; i < GroupMembership.Length; i++)
+                            agentGroups.Add(GroupMembership[i].GroupID);
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
+                    }
+                }
+
+                bool groupAccess = false;
+                UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
+
+                if (estateGroups != null)
+                {
+                    foreach (UUID group in estateGroups)
+                    {
+                        if (agentGroups.Contains(group))
+                        {
+                            groupAccess = true;
+                            break;
+                        }
+                    }
                 }
                 else
                 {
-                    m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
                 }
-            }
 
-            bool groupAccess = false;
-            UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
-
-            if (estateGroups != null)
-            {
-                foreach (UUID group in estateGroups)
+                if (!RegionInfo.EstateSettings.PublicAccess &&
+                    !RegionInfo.EstateSettings.HasAccess(agent.AgentID) &&
+                    !groupAccess)
                 {
-                    if (agentGroups.Contains(group))
-                    {
-                        groupAccess = true;
-                        break;
-                    }
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                    reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
+                                           RegionInfo.RegionName);
+                    return false;
                 }
-            }
-            else
-            {
-                m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
-            }
-
-            if (!RegionInfo.EstateSettings.PublicAccess &&
-                !RegionInfo.EstateSettings.HasAccess(agent.AgentID) &&
-                !groupAccess)
-            {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
-                                 agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
-                                       RegionInfo.RegionName);
-                return false;
             }
 
             // TODO: estate/region settings are not properly hooked up
