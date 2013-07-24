@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                while (m_queue.Count < 1 && m_pqueue.Count < 1)
                 {
                     Monitor.Wait(m_queueSync);
                 }
@@ -76,9 +76,10 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                bool success = true;
+                while (m_queue.Count < 1 && m_pqueue.Count < 1 && success)
                 {
-                    Monitor.Wait(m_queueSync, msTimeout);
+                    success = Monitor.Wait(m_queueSync, msTimeout);
                 }
 
                 if (m_pqueue.Count > 0)
@@ -89,8 +90,17 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Indicate whether this queue contains the given item.
+        /// </summary>
+        /// <remarks>
+        /// This method is not thread-safe.  Do not rely on the result without consistent external locking.
+        /// </remarks>
         public bool Contains(T item)
         {
+            if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                return false;
+
             lock (m_queueSync)
             {
                 if (m_pqueue.Contains(item))
@@ -99,16 +109,28 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Return a count of the number of requests on this queue.
+        /// </summary>
+        /// <remarks>
+        /// This method is not thread-safe.  Do not rely on the result without consistent external locking.
+        /// </remarks>
         public int Count()
         {
-            lock (m_queueSync)
-            {
-                return m_queue.Count+m_pqueue.Count;
-            }
+            return m_queue.Count + m_pqueue.Count;
         }
 
+        /// <summary>
+        /// Return the array of items on this queue.
+        /// </summary>
+        /// <remarks>
+        /// This method is not thread-safe.  Do not rely on the result without consistent external locking.
+        /// </remarks>
         public T[] GetQueueArray()
         {
+            if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                return new T[0];
+
             lock (m_queueSync)
             {
                 return m_queue.ToArray();

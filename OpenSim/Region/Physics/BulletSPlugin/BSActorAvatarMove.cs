@@ -130,6 +130,7 @@ public class BSActorAvatarMove : BSActor
             SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
             m_physicsScene.BeforeStep += Mover;
+            m_controllingPrim.OnPreUpdateProperty += Process_OnPreUpdateProperty;
 
             m_walkingUpStairs = 0;
         }
@@ -139,6 +140,7 @@ public class BSActorAvatarMove : BSActor
     {
         if (m_velocityMotor != null)
         {
+            m_controllingPrim.OnPreUpdateProperty -= Process_OnPreUpdateProperty;
             m_physicsScene.BeforeStep -= Mover;
             m_velocityMotor = null;
         }
@@ -197,7 +199,7 @@ public class BSActorAvatarMove : BSActor
             {
                 if (m_controllingPrim.Flying)
                 {
-                    // Flying and not collising and velocity nearly zero.
+                    // Flying and not colliding and velocity nearly zero.
                     m_controllingPrim.ZeroMotion(true /* inTaintTime */);
                 }
             }
@@ -264,6 +266,19 @@ public class BSActorAvatarMove : BSActor
                             m_controllingPrim.LocalID, stepVelocity, m_controllingPrim.RawVelocity, m_controllingPrim.Mass, moveForce);
             m_physicsScene.PE.ApplyCentralImpulse(m_controllingPrim.PhysBody, moveForce);
         }
+    }
+
+    // Called just as the property update is received from the physics engine.
+    // Do any mode necessary for avatar movement.
+    private void Process_OnPreUpdateProperty(ref EntityProperties entprop)
+    {
+        // Don't change position if standing on a stationary object.
+        if (m_controllingPrim.IsStationary)
+        {
+            entprop.Position = m_controllingPrim.RawPosition;
+            m_physicsScene.PE.SetTranslation(m_controllingPrim.PhysBody, entprop.Position, entprop.Rotation);
+        }
+
     }
 
     // Decide if the character is colliding with a low object and compute a force to pop the

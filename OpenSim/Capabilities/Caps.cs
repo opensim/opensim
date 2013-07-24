@@ -64,7 +64,11 @@ namespace OpenSim.Framework.Capabilities
         public string CapsObjectPath { get { return m_capsObjectPath; } }
 
         private CapsHandlers m_capsHandlers;
-        private Dictionary<string, string> m_externalCapsHandlers;
+
+        private Dictionary<string, PollServiceEventArgs> m_pollServiceHandlers 
+            = new Dictionary<string, PollServiceEventArgs>();
+
+        private Dictionary<string, string> m_externalCapsHandlers = new Dictionary<string, string>();
 
         private IHttpServer m_httpListener;
         private UUID m_agentID;
@@ -134,7 +138,6 @@ namespace OpenSim.Framework.Capabilities
 
             m_agentID = agent;
             m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, (httpServer == null) ? false : httpServer.UseSSL);
-            m_externalCapsHandlers = new Dictionary<string, string>();
             m_regionName = regionName;
         }
 
@@ -147,6 +150,27 @@ namespace OpenSim.Framework.Capabilities
         {
             //m_log.DebugFormat("[CAPS]: Registering handler for \"{0}\": path {1}", capName, handler.Path);
             m_capsHandlers[capName] = handler;
+        }
+
+        public void RegisterPollHandler(string capName, PollServiceEventArgs pollServiceHandler)
+        {
+            m_pollServiceHandlers.Add(capName, pollServiceHandler);
+
+            m_httpListener.AddPollServiceHTTPHandler(pollServiceHandler.Url, pollServiceHandler);
+
+//            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+//            string protocol = "http";
+//            string hostName = m_httpListenerHostName;
+//            
+//            if (MainServer.Instance.UseSSL)
+//            {
+//                hostName = MainServer.Instance.SSLCommonName;
+//                port = MainServer.Instance.SSLPort;
+//                protocol = "https";
+//            }
+
+//            RegisterHandler(
+//                capName, String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, pollServiceHandler.Url));
         }
 
         /// <summary>
@@ -165,13 +189,70 @@ namespace OpenSim.Framework.Capabilities
         /// </summary>
         public void DeregisterHandlers()
         {
-            if (m_capsHandlers != null)
+            foreach (string capsName in m_capsHandlers.Caps)
             {
-                foreach (string capsName in m_capsHandlers.Caps)
+                m_capsHandlers.Remove(capsName);
+            }
+
+            foreach (PollServiceEventArgs handler in m_pollServiceHandlers.Values)
+            {
+                m_httpListener.RemovePollServiceHTTPHandler("", handler.Url);
+            }
+        }
+
+        public bool TryGetPollHandler(string name, out PollServiceEventArgs pollHandler)
+        {
+            return m_pollServiceHandlers.TryGetValue(name, out pollHandler);
+        }
+
+        public Dictionary<string, PollServiceEventArgs> GetPollHandlers()
+        {
+            return new Dictionary<string, PollServiceEventArgs>(m_pollServiceHandlers);
+        }
+
+        /// <summary>
+        /// Return an LLSD-serializable Hashtable describing the
+        /// capabilities and their handler details.
+        /// </summary>
+        /// <param name="excludeSeed">If true, then exclude the seed cap.</param>
+        public Hashtable GetCapsDetails(bool excludeSeed, List<string> requestedCaps)
+        {
+            Hashtable caps = CapsHandlers.GetCapsDetails(excludeSeed, requestedCaps);
+
+            lock (m_pollServiceHandlers)
+            {
+                foreach (KeyValuePair <string, PollServiceEventArgs> kvp in m_pollServiceHandlers)
                 {
-                    m_capsHandlers.Remove(capsName);
+                    if (!requestedCaps.Contains(kvp.Key))
+                        continue;
+
+                        string hostName = m_httpListenerHostName;
+                        uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+                        string protocol = "http";
+                        
+                        if (MainServer.Instance.UseSSL)
+                        {
+                            hostName = MainServer.Instance.SSLCommonName;
+                            port = MainServer.Instance.SSLPort;
+                            protocol = "https";
+                        }
+    //
+    //            caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+
+                        caps[kvp.Key] = string.Format("{0}://{1}:{2}{3}", protocol, hostName, port, kvp.Value.Url);
                 }
             }
+
+            // Add the external too
+            foreach (KeyValuePair<string, string> kvp in ExternalCapsHandlers)
+            {
+                if (!requestedCaps.Contains(kvp.Key))
+                    continue;
+
+                caps[kvp.Key] = kvp.Value;
+            }
+
+            return caps;
         }
 
         public void Activate()

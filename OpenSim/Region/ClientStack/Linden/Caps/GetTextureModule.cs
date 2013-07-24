@@ -210,7 +210,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private Scene m_scene;
             private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000,10000);
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
-                    base(null, null, null, null, pId, int.MaxValue)              
+                    base(null, "", null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
                 // x is request id, y is userid

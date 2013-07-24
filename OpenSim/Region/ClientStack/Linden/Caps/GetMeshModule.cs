@@ -246,8 +246,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             private Scene m_scene;
             private MeshCapsDataThrottler m_throttler;
-            public PollServiceMeshEventArgs(UUID pId, Scene scene) :
-                base(null, null, null, null, pId, int.MaxValue)
+            public PollServiceMeshEventArgs(string uri, UUID pId, Scene scene) :
+                base(null, uri, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
                 m_throttler = new MeshCapsDataThrottler(100000, 1400000, 10000, scene, pId);
@@ -361,7 +361,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 string capUrl = "/CAPS/" + UUID.Random() + "/";
 
                 // Register this as a poll service           
-                PollServiceMeshEventArgs args = new PollServiceMeshEventArgs(agentID, m_scene);
+                PollServiceMeshEventArgs args = new PollServiceMeshEventArgs(capUrl, agentID, m_scene);
 
                 args.Type = PollServiceEventArgs.EventType.Mesh;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);

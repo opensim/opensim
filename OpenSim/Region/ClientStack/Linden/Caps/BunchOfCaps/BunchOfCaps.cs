@@ -367,18 +367,7 @@ namespace OpenSim.Region.ClientStack.Linden
             foreach (OSD c in capsRequested)
                 validCaps.Add(c.AsString());
 
-            Hashtable caps = m_HostCapsObj.CapsHandlers.GetCapsDetails(true, validCaps);
-
-            // Add the external too
-            foreach (KeyValuePair<string, string> kvp in m_HostCapsObj.ExternalCapsHandlers)
-            {
-                if (!validCaps.Contains(kvp.Key))
-                    continue;
-
-                caps[kvp.Key] = kvp.Value;
-            }
-
-            string result = LLSDHelpers.SerialiseLLSDReply(caps);
+            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
 
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
 

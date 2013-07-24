@@ -78,7 +78,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static WebFetchInvDescHandler m_webFetchHandler;
 
-        private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
 
         private static DoubleQueue<aPollRequest> m_queue =
@@ -115,7 +114,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
 
             foreach (Thread t in m_workerThreads)
                 Watchdog.AbortThread(t.ManagedThreadId); 
@@ -135,7 +133,6 @@ namespace OpenSim.Region.ClientStack.Linden
             m_webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
 
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
 
             if (m_workerThreads == null)
             {
@@ -178,8 +175,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             private Scene m_scene;
 
-            public PollServiceInventoryEventArgs(Scene scene, UUID pId) :
-                    base(null, null, null, null, pId, int.MaxValue)
+            public PollServiceInventoryEventArgs(Scene scene, string url, UUID pId) :
+                    base(null, url, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
 
@@ -310,40 +307,39 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_fetchInventoryDescendents2Url == "")
                 return;
 
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
             // Register this as a poll service          
-            PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(m_scene, agentID);
-            
+            PollServiceInventoryEventArgs args 
+                = new PollServiceInventoryEventArgs(m_scene, "/CAPS/" + UUID.Random() + "/", agentID);            
             args.Type = PollServiceEventArgs.EventType.Inventory;
-            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
-            string hostName = m_scene.RegionInfo.ExternalHostName;
-            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
-            string protocol = "http";
-            
-            if (MainServer.Instance.UseSSL)
-            {
-                hostName = MainServer.Instance.SSLCommonName;
-                port = MainServer.Instance.SSLPort;
-                protocol = "https";
-            }
+            caps.RegisterPollHandler("FetchInventoryDescendents2", args);
 
-            caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
-
-            m_capsDict[agentID] = capUrl;
+//            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
+//
+//            string hostName = m_scene.RegionInfo.ExternalHostName;
+//            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+//            string protocol = "http";
+//            
+//            if (MainServer.Instance.UseSSL)
+//            {
+//                hostName = MainServer.Instance.SSLCommonName;
+//                port = MainServer.Instance.SSLPort;
+//                protocol = "https";
+//            }
+//
+//            caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
         }
 
-        private void DeregisterCaps(UUID agentID, Caps caps)
-        {
-            string capUrl;
-
-            if (m_capsDict.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemoveHTTPHandler("", capUrl);
-                m_capsDict.Remove(agentID);
-            }
-        }
+//        private void DeregisterCaps(UUID agentID, Caps caps)
+//        {
+//            string capUrl;
+//
+//            if (m_capsDict.TryGetValue(agentID, out capUrl))
+//            {
+//                MainServer.Instance.RemoveHTTPHandler("", capUrl);
+//                m_capsDict.Remove(agentID);
+//            }
+//        }
 
         private void DoInventoryRequests()
         {
@@ -353,7 +349,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 aPollRequest poolreq = m_queue.Dequeue();
 
-                poolreq.thepoll.Process(poolreq);
+                if (poolreq != null && poolreq.thepoll != null)
+                    poolreq.thepoll.Process(poolreq);
             }
         }
     }

@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
             MainConsole.Instance.Commands.AddCommand(
                 "Comms", false, "show caps stats by user",
-                "show caps stats [<first-name> <last-name>]",
+                "show caps stats by user [<first-name> <last-name>]",
                 "Shows statistics on capabilities use by user.",
                 "If a user name is given, then prints a detailed breakdown of caps use ordered by number of requests received.",
                 HandleShowCapsStatsByUserCommand);
@@ -296,27 +296,31 @@ namespace OpenSim.Region.CoreModules.Framework
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
                 return;
 
-            StringBuilder caps = new StringBuilder();
-            caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
+            StringBuilder capsReport = new StringBuilder();
+            capsReport.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
             lock (m_capsObjects)
             {
                 foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
                 {
-                    caps.AppendFormat("** Circuit {0}:\n", kvp.Key);
+                    capsReport.AppendFormat("** Circuit {0}:\n", kvp.Key);
+                    Caps caps = kvp.Value;
 
-                    for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
+                    for (IDictionaryEnumerator kvp2 = caps.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
                     {
                         Uri uri = new Uri(kvp2.Value.ToString());
-                        caps.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
+                        capsReport.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
                     }
 
-                    foreach (KeyValuePair<string, string> kvp3 in kvp.Value.ExternalCapsHandlers)
-                        caps.AppendFormat(m_showCapsCommandFormat, kvp3.Key, kvp3.Value);
+                    foreach (KeyValuePair<string, PollServiceEventArgs> kvp2 in caps.GetPollHandlers())
+                        capsReport.AppendFormat(m_showCapsCommandFormat, kvp2.Key, kvp2.Value.Url);
+
+                    foreach (KeyValuePair<string, string> kvp3 in caps.ExternalCapsHandlers)
+                        capsReport.AppendFormat(m_showCapsCommandFormat, kvp3.Key, kvp3.Value);
                 }
             }
 
-            MainConsole.Instance.Output(caps.ToString());
+            MainConsole.Instance.Output(capsReport.ToString());
         }
 
         private void HandleShowCapsStatsByCapCommand(string module, string[] cmdParams)
@@ -374,7 +378,16 @@ namespace OpenSim.Region.CoreModules.Framework
                     {
                         receivedStats[sp.Name] = reqHandler.RequestsReceived;
                         handledStats[sp.Name] = reqHandler.RequestsHandled;
-                    }                   
+                    }        
+                    else 
+                    {
+                        PollServiceEventArgs pollHandler = null;
+                        if (caps.TryGetPollHandler(capName, out pollHandler))
+                        {
+                            receivedStats[sp.Name] = pollHandler.RequestsReceived;
+                            handledStats[sp.Name] = pollHandler.RequestsHandled;
+                        }
+                    }
                 }
             );
 
@@ -405,11 +418,9 @@ namespace OpenSim.Region.CoreModules.Framework
                     Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
 
                     if (caps == null)
-                        return;
+                        return;            
 
-                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
-
-                    foreach (IRequestHandler reqHandler in capsHandlers.Values)
+                    foreach (IRequestHandler reqHandler in caps.CapsHandlers.GetCapsHandlers().Values)
                     {
                         string reqName = reqHandler.Name ?? "";
 
@@ -422,6 +433,23 @@ namespace OpenSim.Region.CoreModules.Framework
                         {
                             receivedStats[reqName] += reqHandler.RequestsReceived;
                             handledStats[reqName] += reqHandler.RequestsHandled;
+                        }
+                    }
+
+                    foreach (KeyValuePair<string, PollServiceEventArgs> kvp in caps.GetPollHandlers())
+                    {
+                        string name = kvp.Key;
+                        PollServiceEventArgs pollHandler = kvp.Value;
+
+                        if (!receivedStats.ContainsKey(name))
+                        {
+                            receivedStats[name] = pollHandler.RequestsReceived;
+                            handledStats[name] = pollHandler.RequestsHandled;
+                        }
+                            else
+                        {
+                            receivedStats[name] += pollHandler.RequestsReceived;
+                            handledStats[name] += pollHandler.RequestsHandled;
                         }
                     }
                 }
@@ -486,12 +514,16 @@ namespace OpenSim.Region.CoreModules.Framework
             if (caps == null)
                 return;
 
-            Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+            List<CapTableRow> capRows = new List<CapTableRow>();
 
-            foreach (IRequestHandler reqHandler in capsHandlers.Values.OrderByDescending(rh => rh.RequestsReceived))
-            {
-                cdt.AddRow(reqHandler.Name, reqHandler.RequestsReceived, reqHandler.RequestsHandled);
-            }
+            foreach (IRequestHandler reqHandler in caps.CapsHandlers.GetCapsHandlers().Values)
+                capRows.Add(new CapTableRow(reqHandler.Name, reqHandler.RequestsReceived, reqHandler.RequestsHandled));
+
+            foreach (KeyValuePair<string, PollServiceEventArgs> kvp in caps.GetPollHandlers())
+                capRows.Add(new CapTableRow(kvp.Key, kvp.Value.RequestsReceived, kvp.Value.RequestsHandled));
+
+            foreach (CapTableRow ctr in capRows.OrderByDescending(ctr => ctr.RequestsReceived))
+                cdt.AddRow(ctr.Name, ctr.RequestsReceived, ctr.RequestsHandled);            
 
             sb.Append(cdt.ToString());
             */
@@ -525,6 +557,14 @@ namespace OpenSim.Region.CoreModules.Framework
                         totalRequestsReceived += reqHandler.RequestsReceived;
                         totalRequestsHandled += reqHandler.RequestsHandled;
                     }
+
+                    Dictionary<string, PollServiceEventArgs> capsPollHandlers = caps.GetPollHandlers();
+
+                    foreach (PollServiceEventArgs handler in capsPollHandlers.Values)
+                    {
+                        totalRequestsReceived += handler.RequestsReceived;
+                        totalRequestsHandled += handler.RequestsHandled;
+                    }
                     
                     cdt.AddRow(sp.Name, sp.IsChildAgent ? "child" : "root", totalRequestsReceived, totalRequestsHandled);
                 }
@@ -532,6 +572,20 @@ namespace OpenSim.Region.CoreModules.Framework
 
             sb.Append(cdt.ToString());
             */
+        }
+
+        private class CapTableRow
+        {
+            public string Name { get; set; }
+            public int RequestsReceived { get; set; }
+            public int RequestsHandled { get; set; }
+
+            public CapTableRow(string name, int requestsReceived, int requestsHandled)
+            {
+                Name = name;
+                RequestsReceived = requestsReceived;
+                RequestsHandled = requestsHandled;
+            }
         }
     }
 }

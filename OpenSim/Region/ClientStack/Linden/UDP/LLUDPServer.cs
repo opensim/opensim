@@ -809,7 +809,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             PacketPool.Instance.ReturnPacket(packet);
+            m_dataPresentEvent.Set();
+
         }
+
+        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
 
         /// <summary>
         /// Start the process of sending a packet to the client.
@@ -1730,6 +1734,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Action generic every round
             Action<IClientAPI> clientPacketHandler = ClientOutgoingPacketHandler;
 
+//            while (true)
             while (base.IsRunningOutbound)
             {
                 m_scene.ThreadAlive(2);
@@ -1791,8 +1796,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
-                    if (!m_packetSent)
-                        Thread.Sleep((int)TickCountResolution);
+                    //if (!m_packetSent)
+                    //    Thread.Sleep((int)TickCountResolution);
+                    m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
                 }

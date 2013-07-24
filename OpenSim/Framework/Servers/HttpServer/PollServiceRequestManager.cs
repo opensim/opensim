@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             if (m_running)
             {
-                if (req.PollServiceArgs.Type != PollServiceEventArgs.EventType.Normal)
+                if (req.PollServiceArgs.Type != PollServiceEventArgs.EventType.LongPoll)
                 {
                     m_requests.Enqueue(req);
                 }
@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             if (responsedata == null)
                                 continue;
 
-                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal) // This is the event queue
+                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll) // This is the event queue
                             {
                                 try
                                 {

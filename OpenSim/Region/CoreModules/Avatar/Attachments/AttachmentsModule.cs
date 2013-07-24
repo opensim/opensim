@@ -75,10 +75,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
-
             if (Enabled)
             {
+                // Only register module with scene if it is enabled. All callers check for a null attachments module.
+                // Ideally, there should be a null attachments module for when this core attachments module has been 
+                // disabled. Registering only when enabled allows for other attachments module implementations.
+                m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
                 m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
                 m_scene.EventManager.OnStartScript += (localID, itemID) => HandleScriptStateChange(localID, true);
                 m_scene.EventManager.OnStopScript += (localID, itemID) => HandleScriptStateChange(localID, false);

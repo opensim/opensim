@@ -103,9 +103,10 @@ public abstract class BSPhysObject : PhysicsActor
         CollisionsLastTickStep = -1;
 
         SubscribedEventsMs = 0;
-        CollidingStep = 0;
-        CollidingGroundStep = 0;
-        CollisionAccumulation = 0;
+        // Crazy values that will never be true
+        CollidingStep = BSScene.NotASimulationStep;
+        CollidingGroundStep = BSScene.NotASimulationStep;
+        CollisionAccumulation = BSScene.NotASimulationStep;
         ColliderIsMoving = false;
         CollisionScore = 0;
 
@@ -349,7 +350,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (value)
                 CollidingStep = PhysScene.SimulationStep;
             else
-                CollidingStep = 0;
+                CollidingStep = BSScene.NotASimulationStep;
             }
     }
     public override bool CollidingGround {
@@ -359,7 +360,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (value)
                 CollidingGroundStep = PhysScene.SimulationStep;
             else
-                CollidingGroundStep = 0;
+                CollidingGroundStep = BSScene.NotASimulationStep;
         }
     }
     public override bool CollidingObj {
@@ -368,7 +369,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (value)
                 CollidingObjectStep = PhysScene.SimulationStep;
             else
-                CollidingObjectStep = 0;
+                CollidingObjectStep = BSScene.NotASimulationStep;
         }
     }
 
