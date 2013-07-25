@@ -230,6 +230,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_seeIntoBannedRegion = false;
         public int MaxUndoCount = 5;
 
+        public bool SeeIntoRegion { get; set; }
+
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
         public bool LoginLock = false;
 
@@ -861,9 +863,11 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
+
+                MaxUndoCount = startupConfig.GetInt("MaxPrimUndos", 20);
+
                 PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
                 CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
-
                 m_minNonphys = startupConfig.GetFloat("NonPhysicalPrimMin", m_minNonphys);
                 if (RegionInfo.NonphysPrimMin > 0)
                 {
@@ -3910,15 +3914,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     try
                     {
-                        // Always check estate if this is a login. Always
-                        // check if banned regions are to be blacked out.
-                        if (vialogin || (!m_seeIntoBannedRegion))
+                        if (!AuthorizeUser(agent, SeeIntoRegion, out reason))
                         {
-                            if (!AuthorizeUser(agent, out reason))
-                            {
-                                m_authenticateHandler.RemoveCircuit(agent.circuitcode);
-                                return false;
-                            }
+                            m_authenticateHandler.RemoveCircuit(agent.circuitcode);
+                            return false;
                         }
                     }
                     catch (Exception e)
@@ -4158,7 +4157,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="reason">outputs the reason to this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-        protected virtual bool AuthorizeUser(AgentCircuitData agent, out string reason)
+        protected virtual bool AuthorizeUser(AgentCircuitData agent, bool bypassAccessControl, out string reason)
         {
             reason = String.Empty;
 
@@ -4193,51 +4192,58 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
             }
 
-            List<UUID> agentGroups = new List<UUID>();
-
-            if (m_groupsModule != null)
+            // We only test the things below when we want to cut off
+            // child agents from being present in the scene for which their root
+            // agent isn't allowed. Otherwise, we allow child agents. The test for
+            // the root is done elsewhere (QueryAccess)
+            if (!bypassAccessControl)
             {
-                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
+                List<UUID> agentGroups = new List<UUID>();
 
-                if (GroupMembership != null)
+                if (m_groupsModule != null)
                 {
-                    for (int i = 0; i < GroupMembership.Length; i++)
-                        agentGroups.Add(GroupMembership[i].GroupID);
+                    GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
+
+                    if (GroupMembership != null)
+                    {
+                        for (int i = 0; i < GroupMembership.Length; i++)
+                            agentGroups.Add(GroupMembership[i].GroupID);
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
+                    }
+                }
+
+                bool groupAccess = false;
+                UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
+
+                if (estateGroups != null)
+                {
+                    foreach (UUID group in estateGroups)
+                    {
+                        if (agentGroups.Contains(group))
+                        {
+                            groupAccess = true;
+                            break;
+                        }
+                    }
                 }
                 else
                 {
-                    m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
                 }
-            }
 
-            bool groupAccess = false;
-            UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
-
-            if (estateGroups != null)
-            {
-                foreach (UUID group in estateGroups)
+                if (!RegionInfo.EstateSettings.PublicAccess &&
+                    !RegionInfo.EstateSettings.HasAccess(agent.AgentID) &&
+                    !groupAccess)
                 {
-                    if (agentGroups.Contains(group))
-                    {
-                        groupAccess = true;
-                        break;
-                    }
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                    reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
+                                           RegionInfo.RegionName);
+                    return false;
                 }
-            }
-            else
-            {
-                m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
-            }
-
-            if (!RegionInfo.EstateSettings.PublicAccess &&
-                !RegionInfo.EstateSettings.HasAccess(agent.AgentID) &&
-                !groupAccess)
-            {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
-                                 agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
-                                       RegionInfo.RegionName);
-                return false;
             }
 
             // TODO: estate/region settings are not properly hooked up
@@ -4402,6 +4408,20 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+
+                int ntimes = 20;
+                if (cAgentData.SenderWantsToWaitForRoot)
+                {
+                    while (childAgentUpdate.IsChildAgent && ntimes-- > 0)
+                        Thread.Sleep(1000);
+
+                    m_log.DebugFormat(
+                        "[SCENE]: Found presence {0} {1} {2} in {3} after {4} waits",
+                        childAgentUpdate.Name, childAgentUpdate.UUID, childAgentUpdate.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 20 - ntimes);
+
+                    if (childAgentUpdate.IsChildAgent)
+                        return false;
+                }
                 return true;
             }
             return false;
@@ -4459,10 +4479,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[SCENE PRESENCE]: Did not find presence with id {0} in {1} before timeout",
                     agentID, RegionInfo.RegionName);
-//            else
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: Found presence {0} {1} {2} in {3} after {4} waits",
-//                    sp.Name, sp.UUID, sp.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 10 - ntimes);
 
             return sp;
         }
@@ -5873,7 +5889,7 @@ Environment.Exit(1);
 
             try
             {
-                if (!AuthorizeUser(aCircuit, out reason))
+                if (!AuthorizeUser(aCircuit, false, out reason))
                 {
                     // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
                     return false;

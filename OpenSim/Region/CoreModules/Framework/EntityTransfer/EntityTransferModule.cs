@@ -689,6 +689,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             }
 
+            if (version.Equals("SIMULATION/0.2"))
+                TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
+            else
+                TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
+
+        }
+
+        private void TransferAgent_V1(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
+            IPEndPoint endPoint, uint teleportFlags, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, string version, out string reason)
+        {
+            ulong destinationHandle = finalDestination.RegionHandle;
+            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Using TP V1");
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
@@ -710,7 +724,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_interRegionTeleportCancels.Value++;
 
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request", 
+                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 return;
@@ -732,11 +746,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // OK, it got this agent. Let's close some child agents
             sp.CloseChildAgents(newRegionX, newRegionY);
 
-            IClientIPEndpoint ipepClient;  
+            IClientIPEndpoint ipepClient;
+            string capsPath = String.Empty;
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for incoming agent {3} from {4}", 
+                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for incoming agent {3} from {4}",
                     finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
 
                 //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
@@ -783,10 +798,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Let's send a full update of the agent. This is a synchronous call.
             AgentData agent = new AgentData();
             sp.CopyTo(agent);
-            agent.Position = position;
+            agent.Position = agentCircuit.startpos;
             SetCallbackURL(agent, sp.Scene.RegionInfo);
 
-            //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
 
             // We will check for an abort before UpdateAgent since UpdateAgent will require an active viewer to 
             // establish th econnection to the destination which makes it return true.
@@ -821,7 +835,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.WarnFormat(
                     "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Keeping avatar in source region.",
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
-                
+
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
                 return;
             }
@@ -831,7 +845,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_interRegionTeleportCancels.Value++;
 
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after UpdateAgent on client request", 
+                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after UpdateAgent on client request",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 CleanupFailedInterRegionTeleport(sp, currentAgentCircuit.SessionID.ToString(), finalDestination);
@@ -848,6 +862,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // closes our existing agent which is still signalled as root.
             sp.IsChildAgent = true;
 
+            // OK, send TPFinish to the client, so that it starts the process of contacting the destination region
             if (m_eqModule != null)
             {
                 m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
@@ -877,7 +892,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.WarnFormat(
                     "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
-                
+
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Destination region did not signal teleport completion.");
 
                 return;
@@ -906,13 +921,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
-                // they regard the new region as the current region after receiving the AgentMovementComplete
-                // response.  If close is sent before then, it will cause the viewer to quit instead.
-                //
-                // This sleep can be increased if necessary.  However, whilst it's active,
-                // an agent cannot teleport back to this region if it has teleported away.
-                Thread.Sleep(3000);
+                // RED ALERT!!!!
+                // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
+                // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
+                // BEFORE THEY SETTLE IN THE NEW REGION.
+                // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
+                // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
+                Thread.Sleep(5000);
 
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
@@ -921,6 +936,134 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // now we have a child agent in this region. 
                 sp.Reset();
             }
+        }
+
+        private void TransferAgent_V2(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
+            IPEndPoint endPoint, uint teleportFlags, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, string version, out string reason)
+        {
+            ulong destinationHandle = finalDestination.RegionHandle;
+            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+
+            // Let's create an agent there if one doesn't exist yet. 
+            // NOTE: logout will always be false for a non-HG teleport.
+            bool logout = false;
+            if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
+            {
+                m_interRegionTeleportFailures.Value++;
+
+                sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Teleport of {0} from {1} to {2} was refused because {3}",
+                    sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
+
+                return;
+            }
+
+            // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
+            m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
+
+            IClientIPEndpoint ipepClient;
+            string capsPath = String.Empty;
+            if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for agent {3} from {4}",
+                    finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
+
+                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
+                #region IP Translation for NAT
+                // Uses ipepClient above
+                if (sp.ClientView.TryGet(out ipepClient))
+                {
+                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                }
+                #endregion
+                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+            }
+            else
+            {
+                agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
+                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+            }
+
+            // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
+            // where that neighbour simulator could otherwise request a child agent create on the source which then 
+            // closes our existing agent which is still signalled as root.
+            //sp.IsChildAgent = true;
+
+            // New protocol: send TP Finish directly, without prior ES or EAC. That's what happens in the Linden grid
+            if (m_eqModule != null)
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+            else
+                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                            teleportFlags, capsPath);
+
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
+                capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
+
+            // Let's send a full update of the agent. 
+            AgentData agent = new AgentData();
+            sp.CopyTo(agent);
+            agent.Position = agentCircuit.startpos;
+            agent.SenderWantsToWaitForRoot = true;
+            //SetCallbackURL(agent, sp.Scene.RegionInfo);
+
+            // Send the Update. If this returns true, we know the client has contacted the destination
+            // via CompleteMovementIntoRegion, so we can let go.
+            // If it returns false, something went wrong, and we need to abort.
+            if (!UpdateAgent(reg, finalDestination, agent, sp))
+            {
+                if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
+                {
+                    m_interRegionTeleportAborts.Value++;
+
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after UpdateAgent due to previous client close.",
+                        sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                    return;
+                }
+
+                m_log.WarnFormat(
+                    "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Keeping avatar in source region.",
+                    sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
+
+                Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
+                return;
+            }
+            
+            m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
+
+            // May need to logout or other cleanup
+            AgentHasMovedAway(sp, logout);
+
+            // Well, this is it. The agent is over there.
+            KillEntity(sp.Scene, sp.LocalId);
+
+            // Now let's make it officially a child agent
+            sp.MakeChildAgent();
+
+            // OK, it got this agent. Let's close some child agents
+            sp.CloseChildAgents(newRegionX, newRegionY);
+
+            // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+
+            if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+            {
+                // RED ALERT!!!!
+                // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
+                // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
+                // BEFORE THEY SETTLE IN THE NEW REGION.
+                // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
+                // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
+                Thread.Sleep(5000);
+                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+            }
+            else
+                // now we have a child agent in this region. 
+                sp.Reset();
         }
 
         /// <summary>
@@ -936,11 +1079,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-            sp.IsChildAgent = false;
-            ReInstantiateScripts(sp);
+            if (sp.IsChildAgent) // We had set it to child before attempted TP (V1)
+            {
+                sp.IsChildAgent = false;
+                ReInstantiateScripts(sp);
 
-            EnableChildAgents(sp);
-
+                EnableChildAgents(sp);
+            }
             // Finally, kill the agent we just created at the destination.
             // XXX: Possibly this should be done asynchronously.
             Scene.SimulationService.CloseAgent(finalDestination, sp.UUID, auth_token);

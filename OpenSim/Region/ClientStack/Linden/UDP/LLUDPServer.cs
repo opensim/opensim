@@ -1302,6 +1302,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue.Enqueue(buffer);
                     return;
                 }
+                else if (packet.Type == PacketType.CompleteAgentMovement)
+                {
+                    // Send ack straight away to let the viewer know that we got it.
+                    SendAckImmediate(endPoint, packet.Header.Sequence);
+
+                    // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
+                    // buffer.
+                    object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
+
+                    Util.FireAndForget(HandleCompleteMovementIntoRegion, array);
+
+                    return;
+                }
             }
 
             // Determine which agent this packet came from
@@ -1668,6 +1681,72 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.ErrorFormat(
                     "[LLUDPSERVER]: UseCircuitCode handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
+                    endPoint != null ? endPoint.ToString() : "n/a",
+                    client != null ? client.Name : "unknown",
+                    client != null ? client.AgentId.ToString() : "unknown",
+                    e.Message,
+                    e.StackTrace);
+            }
+        }
+
+        private void HandleCompleteMovementIntoRegion(object o)
+        {
+            IPEndPoint endPoint = null;
+            IClientAPI client = null;
+
+            try
+            {
+                object[] array = (object[])o;
+                endPoint = (IPEndPoint)array[0];
+                CompleteAgentMovementPacket packet = (CompleteAgentMovementPacket)array[1];
+
+                // Determine which agent this packet came from
+                int count = 20;
+                bool ready = false;
+                while (!ready && count-- > 0)
+                {
+                    if (m_scene.TryGetClient(endPoint, out client) && client.IsActive && client.SceneAgent != null)
+                    {
+                        LLClientView llClientView = (LLClientView)client;
+                        LLUDPClient udpClient = llClientView.UDPClient;
+                        if (udpClient != null && udpClient.IsConnected)
+                            ready = true;
+                        else
+                        {
+                            m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
+                            Thread.Sleep(200);
+                        }
+                    }
+                    else
+                    {
+                        m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
+                        Thread.Sleep(200);
+                    }
+                }
+
+                if (client == null)
+                    return;
+
+                IncomingPacket incomingPacket1;
+
+                // Inbox insertion
+                if (UsePools)
+                {
+                    incomingPacket1 = m_incomingPacketPool.GetObject();
+                    incomingPacket1.Client = (LLClientView)client;
+                    incomingPacket1.Packet = packet;
+                }
+                else
+                {
+                    incomingPacket1 = new IncomingPacket((LLClientView)client, packet);
+                }
+
+                packetInbox.Enqueue(incomingPacket1);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[LLUDPSERVER]: CompleteMovementIntoRegion handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
                     endPoint != null ? endPoint.ToString() : "n/a",
                     client != null ? client.Name : "unknown",
                     client != null ? client.AgentId.ToString() : "unknown",
