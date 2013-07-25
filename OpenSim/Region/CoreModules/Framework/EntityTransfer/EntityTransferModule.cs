@@ -922,7 +922,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // BEFORE THEY SETTLE IN THE NEW REGION.
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
-                Thread.Sleep(5000);
+                Thread.Sleep(15000);
 
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
@@ -1053,7 +1053,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // BEFORE THEY SETTLE IN THE NEW REGION.
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
-                Thread.Sleep(5000);
+                Thread.Sleep(15000);
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
             else
