@@ -1357,11 +1357,13 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             // Make sure it's not a login agent. We don't want to wait for updates during login
-            if ((m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+            if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+            {
                 // Let's wait until UpdateAgent (called by departing region) is done
                 if (!WaitForUpdateAgent(client))
                     // The sending region never sent the UpdateAgent data, we have to refuse
                     return;
+            }
 
             Vector3 look = Velocity;
 
