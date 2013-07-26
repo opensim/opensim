@@ -3682,19 +3682,26 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ScenePresence sp = GetScenePresence(agent.AgentID);
     
-                if (sp != null && !sp.IsChildAgent)
+                if (sp != null)
                 {
-                    // We have a zombie from a crashed session. 
-                    // Or the same user is trying to be root twice here, won't work.
-                    // Kill it.
-                    m_log.WarnFormat(
-                        "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
-                        sp.Name, sp.UUID, RegionInfo.RegionName);
-    
-                    if (sp.ControllingClient != null)
-                        sp.ControllingClient.Close(true);
+                    if (!sp.IsChildAgent)
+                    {
+                        // We have a zombie from a crashed session. 
+                        // Or the same user is trying to be root twice here, won't work.
+                        // Kill it.
+                        m_log.WarnFormat(
+                            "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
+                            sp.Name, sp.UUID, RegionInfo.RegionName);
+        
+                        if (sp.ControllingClient != null)
+                            sp.ControllingClient.Close(true);
 
-                    sp = null;
+                        sp = null;
+                    }
+                    else
+                    {
+                        sp.DoNotClose = true;
+                    }
                 }
 
                 // Optimistic: add or update the circuit data with the new agent circuit data and teleport flags.

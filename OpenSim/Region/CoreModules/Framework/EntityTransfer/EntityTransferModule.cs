@@ -1054,7 +1054,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
                 Thread.Sleep(15000);
-                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+            
+                if (!sp.DoNotClose)
+                {
+                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                }
+                else
+                {
+                    sp.DoNotClose = false;
+                }
             }
             else
                 // now we have a child agent in this region. 
