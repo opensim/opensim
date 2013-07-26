@@ -63,12 +63,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// </summary>
         private bool m_ModuleEnabled = false;
 
+        public LocalSimulationConnectorModule()
+        {
+            ServiceVersion = "SIMULATION/0.2";
+        }
+
         #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {
-            ServiceVersion = "SIMULATION/0.2";
-
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)
             {
