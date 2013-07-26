@@ -65,6 +65,7 @@ what it is today.
 * A_Biondi
 * alex_carnell
 * Alan Webb (IBM)
+* Aleric
 * Allen Kerensky
 * BigFootAg
 * BlueWall Slade
