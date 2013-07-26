@@ -285,7 +285,12 @@ namespace OpenSim.Framework.Servers
         public static bool RemoveHttpServer(uint port)
         {
             lock (m_Servers)
+            {
+                if (instance != null && instance.Port == port)
+                    instance = null;
+
                 return m_Servers.Remove(port);
+            }
         }
 
         /// <summary>

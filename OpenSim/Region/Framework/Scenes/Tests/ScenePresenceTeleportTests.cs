@@ -136,6 +136,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneHelpers.SetupSceneModules(sceneB, config, etmB);
             SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
 
+            // FIXME: Hack - this is here temporarily to revert back to older entity transfer behaviour
+            lscm.ServiceVersion = "SIMULATION/0.1";
+
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
@@ -453,6 +456,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
             SceneHelpers.SetupSceneModules(sceneA, config, new CapabilitiesModule(), etmA);
             SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), etmB);
+
+            // FIXME: Hack - this is here temporarily to revert back to older entity transfer behaviour
+            lscm.ServiceVersion = "SIMULATION/0.1";
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);

@@ -46,9 +46,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Version of this service
+        /// Version of this service.
         /// </summary>
-        private const string m_Version = "SIMULATION/0.2";
+        /// <remarks>
+        /// Currently valid versions are "SIMULATION/0.1" and "SIMULATION/0.2"
+        /// </remarks>
+        public string ServiceVersion { get; set; }
 
         /// <summary>
         /// Map region ID to scene.
@@ -64,6 +67,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void Initialise(IConfigSource config)
         {
+            ServiceVersion = "SIMULATION/0.2";
+
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)
             {
@@ -253,7 +258,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
-            version = m_Version;
+            version = ServiceVersion;
             if (destination == null)
                 return false;
 
