@@ -246,16 +246,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             //m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
 
-            int count = 0;
-            while (queues.ContainsKey(agentID) && queues[agentID].Count > 0 && count++ < 5)
-            {
-                Thread.Sleep(1000);
-            }
-
             lock (queues)
-            {
                 queues.Remove(agentID);
-            }
 
             List<UUID> removeitems = new List<UUID>();
             lock (m_AvatarQueueUUIDMapping)
