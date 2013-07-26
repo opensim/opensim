@@ -316,7 +316,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2}@{3} - agent is already in transit.",
                     sp.Name, sp.UUID, position, regionHandle);
-                
+
+                sp.ControllingClient.SendTeleportFailed("Slow down!");
                 return;
             }
 
@@ -1040,9 +1041,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
 
-            // OK, it got this agent. Let's close some child agents
-            sp.CloseChildAgents(newRegionX, newRegionY);
-
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
@@ -1059,10 +1057,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
                 if (!sp.DoNotCloseAfterTeleport)
                 {
+                    // OK, it got this agent. Let's close everything
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing in agent {0} in region {1}", sp.Name, Scene.RegionInfo.RegionName);
+                    sp.CloseChildAgents(newRegionX, newRegionY);
                     sp.Scene.IncomingCloseAgent(sp.UUID, false);
+
                 }
                 else
                 {
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {0}", sp.Name, Scene.RegionInfo.RegionName);
                     sp.DoNotCloseAfterTeleport = false;
                 }
             }

@@ -2805,6 +2805,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence sp;
             bool vialogin;
+            bool reallyNew = true;
 
             // Validation occurs in LLUDPServer
             //
@@ -2856,6 +2857,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.WarnFormat(
                         "[SCENE]: Already found {0} scene presence for {1} in {2} when asked to add new scene presence",
                         sp.IsChildAgent ? "child" : "root", sp.Name, RegionInfo.RegionName);
+                    reallyNew = false;
                 }
     
                 // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
@@ -2867,7 +2869,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // places.  However, we still need to do it here for NPCs.
                 CacheUserName(sp, aCircuit);
     
-                EventManager.TriggerOnNewClient(client);
+                if (reallyNew)
+                    EventManager.TriggerOnNewClient(client);
+    
                 if (vialogin)
                     EventManager.TriggerOnClientLogin(client);
             }
@@ -3426,15 +3430,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (closeChildAgents && isChildAgent)
                     {
                         // Tell a single agent to disconnect from the region.
-                        IEventQueue eq = RequestModuleInterface<IEventQueue>();
-                        if (eq != null)
-                        {
-                            eq.DisableSimulator(RegionInfo.RegionHandle, avatar.UUID);
-                        }
-                        else
-                        {
-                            avatar.ControllingClient.SendShutdownConnectionNotice();
-                        }
+                        // Let's do this via UDP
+                        avatar.ControllingClient.SendShutdownConnectionNotice();
                     }
     
                     // Only applies to root agents.
@@ -3686,21 +3683,29 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!sp.IsChildAgent)
                     {
-                        // We have a zombie from a crashed session. 
-                        // Or the same user is trying to be root twice here, won't work.
-                        // Kill it.
-                        m_log.WarnFormat(
-                            "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
-                            sp.Name, sp.UUID, RegionInfo.RegionName);
-        
-                        if (sp.ControllingClient != null)
-                            sp.ControllingClient.Close(true);
+                        // We have a root agent. Is it in transit?
+                        if (!EntityTransferModule.IsInTransit(sp.UUID))
+                        {
+                            // We have a zombie from a crashed session. 
+                            // Or the same user is trying to be root twice here, won't work.
+                            // Kill it.
+                            m_log.WarnFormat(
+                                "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
+                                sp.Name, sp.UUID, RegionInfo.RegionName);
 
-                        sp = null;
+                            if (sp.ControllingClient != null)
+                                sp.ControllingClient.Close(true);
+
+                            sp = null;
+                        }
+                        else
+                            m_log.WarnFormat("[SCENE]: Existing root scene presence for {0} {1} in {2}, but agent is in trasit", sp.Name, sp.UUID, RegionInfo.RegionName);
                     }
                     else
                     {
+                        // We have a child agent here
                         sp.DoNotCloseAfterTeleport = true;
+                        //m_log.WarnFormat("[SCENE]: Existing child scene presence for {0} {1} in {2}", sp.Name, sp.UUID, RegionInfo.RegionName);
                     }
                 }
 
@@ -3785,9 +3790,12 @@ namespace OpenSim.Region.Framework.Scenes
                             agent.AgentID, RegionInfo.RegionName);
     
                         sp.AdjustKnownSeeds();
-                        
+
                         if (CapsModule != null)
+                        {
                             CapsModule.SetAgentCapsSeeds(agent);
+                            CapsModule.CreateCaps(agent.AgentID);
+                        }
                     }
                 }
 
@@ -5544,17 +5552,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
             reason = "You are banned from the region";
-
-            if (EntityTransferModule.IsInTransit(agentID))
-            {
-                reason = "Agent is still in transit from this region";
-
-                m_log.WarnFormat(
-                    "[SCENE]: Denying agent {0} entry into {1} since region still has them registered as in transit",
-                    agentID, RegionInfo.RegionName);
-
-                return false;
-            }
 
             if (Permissions.IsGod(agentID))
             {
