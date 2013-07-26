@@ -155,7 +155,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         public void TestCreateWithAttachments()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
             UserAccountHelpers.CreateUserWithInventory(m_scene, userId);
