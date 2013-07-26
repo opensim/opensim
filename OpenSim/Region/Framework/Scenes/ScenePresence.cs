@@ -722,7 +722,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// teleport is reusing the connection.
         /// </summary>
         /// <remarks>May be refactored or move somewhere else soon.</remarks>
-        public bool DoNotClose { get; set; }
+        public bool DoNotCloseAfterTeleport { get; set; }
 
         private float m_speedModifier = 1.0f;
 

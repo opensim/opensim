@@ -1047,6 +1047,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
+                sp.DoNotCloseAfterTeleport = false;
+
                 // RED ALERT!!!!
                 // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
                 // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
@@ -1055,13 +1057,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
                 Thread.Sleep(15000);
             
-                if (!sp.DoNotClose)
+                if (!sp.DoNotCloseAfterTeleport)
                 {
                     sp.Scene.IncomingCloseAgent(sp.UUID, false);
                 }
                 else
                 {
-                    sp.DoNotClose = false;
+                    sp.DoNotCloseAfterTeleport = false;
                 }
             }
             else

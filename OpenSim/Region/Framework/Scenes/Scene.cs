@@ -3700,7 +3700,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        sp.DoNotClose = true;
+                        sp.DoNotCloseAfterTeleport = true;
                     }
                 }
 
