@@ -3698,8 +3698,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                             sp = null;
                         }
-                        else
-                            m_log.WarnFormat("[SCENE]: Existing root scene presence for {0} {1} in {2}, but agent is in trasit", sp.Name, sp.UUID, RegionInfo.RegionName);
+                        //else
+                        //    m_log.WarnFormat("[SCENE]: Existing root scene presence for {0} {1} in {2}, but agent is in trasit", sp.Name, sp.UUID, RegionInfo.RegionName);
                     }
                     else
                     {
