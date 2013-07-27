@@ -264,30 +264,38 @@ namespace OpenSim.Groups
 
             int requestStartTick = Environment.TickCount;
 
+            // Copy Message
+            GridInstantMessage msg = new GridInstantMessage();
+            msg.imSessionID = groupID.Guid;
+            msg.fromAgentName = im.fromAgentName;
+            msg.message = im.message;
+            msg.dialog = im.dialog;
+            msg.offline = im.offline;
+            msg.ParentEstateID = im.ParentEstateID;
+            msg.Position = im.Position;
+            msg.RegionID = im.RegionID;
+            msg.binaryBucket = im.binaryBucket;
+            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+
+            msg.fromAgentID = im.fromAgentID;
+            msg.fromGroup = true;
+
+            // Send to self first of all
+            msg.toAgentID = msg.fromAgentID; 
+            ProcessMessageFromGroupSession(msg);
+
+            // Then send to everybody else
             foreach (GroupMembersData member in groupMembers)
             {
+                if (member.AgentID.Guid == im.fromAgentID)
+                    continue;
+
                 if (m_groupData.hasAgentDroppedGroupChatSession(member.AgentID.ToString(), groupID))
                 {
                     // Don't deliver messages to people who have dropped this session
                     if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: {0} has dropped session, not delivering to them", member.AgentID);
                     continue;
                 }
-
-                // Copy Message
-                GridInstantMessage msg = new GridInstantMessage();
-                msg.imSessionID = groupID.Guid;
-                msg.fromAgentName = im.fromAgentName;
-                msg.message = im.message;
-                msg.dialog = im.dialog;
-                msg.offline = im.offline;
-                msg.ParentEstateID = im.ParentEstateID;
-                msg.Position = im.Position;
-                msg.RegionID = im.RegionID;
-                msg.binaryBucket = im.binaryBucket;
-                msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-
-                msg.fromAgentID = im.fromAgentID;
-                msg.fromGroup = true;
 
                 msg.toAgentID = member.AgentID.Guid;
 
