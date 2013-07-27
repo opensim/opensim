@@ -133,7 +133,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             // directly back in the "ready-to-serve" queue by the worker thread.
             while (m_running)
             {
-                Thread.Sleep(1000); 
+                Thread.Sleep(500); 
                 Watchdog.UpdateThread();
 
                 List<PollServiceHttpRequest> not_ready = new List<PollServiceHttpRequest>();
