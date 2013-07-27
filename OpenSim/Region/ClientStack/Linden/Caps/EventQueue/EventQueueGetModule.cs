@@ -750,12 +750,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         }
 
-        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID toAgent, bool canVoiceChat, 
+        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
                                                       bool isModerator, bool textMute)
         {
             OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
                                                                           isModerator, textMute);
-            Enqueue(item, toAgent);
+            Enqueue(item, fromAgent);
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 

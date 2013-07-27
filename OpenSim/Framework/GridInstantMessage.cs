@@ -53,6 +53,24 @@ namespace OpenSim.Framework
             binaryBucket = new byte[0];
         }
 
+        public GridInstantMessage(GridInstantMessage im, bool addTimestamp)
+        {
+            fromAgentID = im.fromAgentID;
+            fromAgentName = im.fromAgentName;
+            toAgentID = im.toAgentID;
+            dialog = im.dialog;
+            fromGroup = im.fromGroup;
+            message = im.message;
+            imSessionID = im.imSessionID;
+            offline = im.offline;
+            Position = im.Position;
+            binaryBucket = im.binaryBucket;
+            RegionID = im.RegionID;
+
+            if (addTimestamp)
+                timestamp = (uint)Util.UnixTimeSinceEpoch();
+        }
+
         public GridInstantMessage(IScene scene, UUID _fromAgentID,
                 string _fromAgentName, UUID _toAgentID,
                 byte _dialog, bool _fromGroup, string _message,

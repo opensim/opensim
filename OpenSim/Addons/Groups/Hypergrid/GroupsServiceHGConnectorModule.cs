@@ -590,28 +590,6 @@ namespace OpenSim.Groups
             return m_LocalGroupsConnector.GetGroupNotices(AgentUUI(RequestingAgentID), GroupID);
         }
 
-        public void ResetAgentGroupChatSessions(string agentID)
-        {
-        }
-
-        public bool hasAgentBeenInvitedToGroupChatSession(string agentID, UUID groupID)
-        {
-            return false;
-        }
-
-        public bool hasAgentDroppedGroupChatSession(string agentID, UUID groupID)
-        {
-            return false;
-        }
-
-        public void AgentDroppedFromGroupChatSession(string agentID, UUID groupID)
-        {
-        }
-
-        public void AgentInvitedToGroupChatSession(string agentID, UUID groupID)
-        {
-        }
-
         #endregion
 
         #region hypergrid groups
