@@ -909,23 +909,7 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called for notice {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, groupNoticeID);
 
-            //GroupRecord groupInfo = m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), data.GroupID, null);
-
             GridInstantMessage msg = CreateGroupNoticeIM(remoteClient.AgentId, groupNoticeID, (byte)InstantMessageDialog.GroupNoticeRequested);
-            //GridInstantMessage msg = new GridInstantMessage();
-            //msg.imSessionID = UUID.Zero.Guid;
-            //msg.fromAgentID = data.GroupID.Guid;
-            //msg.toAgentID = GetRequestingAgentID(remoteClient).Guid;
-            //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-            //msg.fromAgentName = "Group Notice : " + groupInfo == null ? "Unknown" : groupInfo.GroupName;
-            //msg.message = data.noticeData.Subject + "|" + data.Message;
-            //msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupNoticeRequested;
-            //msg.fromGroup = true;
-            //msg.offline = (byte)0;
-            //msg.ParentEstateID = 0;
-            //msg.Position = Vector3.Zero;
-            //msg.RegionID = UUID.Zero.Guid;
-            //msg.binaryBucket = data.BinaryBucket;
 
             OutgoingInstantMessage(msg, GetRequestingAgentID(remoteClient));
         }
