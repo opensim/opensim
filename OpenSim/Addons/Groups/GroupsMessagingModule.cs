@@ -52,7 +52,7 @@ namespace OpenSim.Groups
         private IPresenceService m_presenceService;
 
         private IMessageTransferModule m_msgTransferModule = null;
-
+        private IUserManagement m_UserManagement = null;
         private IGroupsServicesConnector m_groupData = null;
 
         // Config Options
@@ -161,6 +161,17 @@ namespace OpenSim.Groups
                 RemoveRegion(scene);
                 return;
             }
+
+            m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
+
+            // No groups module, no groups messaging
+            if (m_UserManagement == null)
+            {
+                m_log.Error("[Groups.Messaging]: Could not get IUserManagement, GroupsMessagingModule is now disabled.");
+                RemoveRegion(scene);
+                return;
+            }
+
 
             if (m_presenceService == null)
                 m_presenceService = scene.PresenceService;
@@ -392,8 +403,15 @@ namespace OpenSim.Groups
                 Scene aScene = m_sceneList[0];
                 GridRegion regionOfOrigin = aScene.GridService.GetRegionByUUID(aScene.RegionInfo.ScopeID, regionID);
 
-                List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(new UUID(msg.fromAgentID).ToString(), GroupID);
+                // Let's find out who sent it
+                string requestingAgent = m_UserManagement.GetUserUUI(new UUID(msg.fromAgentID));
+
+                List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(requestingAgent, GroupID);
                 List<UUID> alreadySeen = new List<UUID>();
+
+                if (m_debugEnabled)
+                    foreach (GroupMembersData m in groupMembers)
+                        m_log.DebugFormat("[Groups.Messaging]: member {0}", m.AgentID);
 
                 foreach (Scene s in m_sceneList)
                 {
