@@ -46,6 +46,8 @@ using log4net;
 using Nini.Config;
 using Mono.Addins;
 
+using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
+
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]
@@ -98,6 +100,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 scene.RegisterModuleInterface<IPeople>(this);
                 scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
                 scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
+                scene.EventManager.OnMakeRootAgent += new Action<ScenePresence>(EventManager_OnMakeRootAgent);
+                scene.EventManager.OnMakeChildAgent += new EventManager.OnMakeChildAgentDelegate(EventManager_OnMakeChildAgent);
             }
         }
 
@@ -151,6 +155,43 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             client.OnNameFromUUIDRequest -= new UUIDNameRequest(HandleUUIDNameRequest);
             client.OnAvatarPickerRequest -= new AvatarPickerRequest(HandleAvatarPickerRequest);
+        }
+
+        void EventManager_OnMakeRootAgent(ScenePresence sp)
+        {
+            sp.ControllingClient.OnDirFindQuery += OnDirFindQuery;
+        }
+
+        void EventManager_OnMakeChildAgent(ScenePresence sp)
+        {
+            sp.ControllingClient.OnDirFindQuery -= OnDirFindQuery;
+        }
+
+        void OnDirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart)
+        {
+            if (((DirFindFlags)queryFlags & DirFindFlags.People) == DirFindFlags.People)
+            {
+                if (string.IsNullOrEmpty(queryText))
+                    remoteClient.SendDirPeopleReply(queryID, new DirPeopleReplyData[0]);
+
+                List<UserAccount> accounts = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, queryText);
+                DirPeopleReplyData[] hits = new DirPeopleReplyData[accounts.Count];
+                int i = 0;
+                foreach (UserAccount acc in accounts)
+                {
+                    DirPeopleReplyData d = new DirPeopleReplyData();
+                    d.agentID = acc.PrincipalID;
+                    d.firstName = acc.FirstName;
+                    d.lastName = acc.LastName;
+                    d.online = false;
+
+                    hits[i++] = d;
+                }
+
+                // TODO: This currently ignores pretty much all the query flags including Mature and sort order
+                remoteClient.SendDirPeopleReply(queryID, hits);
+            }
+
         }
 
         void HandleUUIDNameRequest(UUID uuid, IClientAPI client)
