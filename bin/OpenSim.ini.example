@@ -1010,10 +1010,10 @@
     ;; Enable Group Notices
     ; NoticesEnabled = true
 
-    ;# {MessageOnlineUsersOnly} {Module:GroupsModule Module:Groups Module V2} {Message online users only?} {true false} false
+    ;# {MessageOnlineUsersOnly} {Module:GroupsModule Module} {Message online users only?} {true false} false
     ; Experimental option to only message online users rather than all users
     ; Should make large groups with few online members messaging faster, as the expense of more calls to presence service
-    ; Applies to both Group modules in core
+    ; Applies Flotsam Group only. V2 has this always on, no other option
     ; MessageOnlineUsersOnly = false
 
     ;; This makes the Groups modules very chatty on the console.
