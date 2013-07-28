@@ -132,7 +132,6 @@ namespace OpenSim.Groups
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnClientLogin += OnClientLogin;
         }
-        
         public void RegionLoaded(Scene scene)
         {
             if (!m_groupMessagingEnabled)
@@ -271,7 +270,8 @@ namespace OpenSim.Groups
             }
 
             // Send to self first of all
-            im.toAgentID = im.fromAgentID; 
+            im.toAgentID = im.fromAgentID;
+            im.fromGroup = true;
             ProcessMessageFromGroupSession(im);
 
             List<UUID> regions = new List<UUID>();
@@ -330,8 +330,7 @@ namespace OpenSim.Groups
                 }
             }
 
-            // Temporary for assessing how long it still takes to send messages to large online groups.
-            if (m_messageOnlineAgentsOnly)
+            if (m_debugEnabled)
                 m_log.DebugFormat(
                     "[Groups.Messaging]: SendMessageToGroup for group {0} with {1} visible members, {2} online took {3}ms",
                     groupID, groupMembersCount, groupMembers.Count(), Environment.TickCount - requestStartTick);
@@ -349,6 +348,7 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: OnInstantMessage registered for {0}", client.Name);
 
             client.OnInstantMessage += OnInstantMessage;
+            ResetAgentGroupChatSessions(client.AgentId.ToString());
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)
@@ -432,16 +432,19 @@ namespace OpenSim.Groups
                             UUID AgentID = sp.UUID;
                             msg.toAgentID = AgentID.Guid;
 
-                            if (!hasAgentDroppedGroupChatSession(AgentID.ToString(), GroupID)
-                                && !hasAgentBeenInvitedToGroupChatSession(AgentID.ToString(), GroupID))
+                            if (!hasAgentDroppedGroupChatSession(AgentID.ToString(), GroupID))
                             {
-                                AddAgentToSession(AgentID, GroupID, msg);
+                                if (!hasAgentBeenInvitedToGroupChatSession(AgentID.ToString(), GroupID))
+                                    AddAgentToSession(AgentID, GroupID, msg);
+                                else
+                                {
+                                    if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", sp.Name);
+
+                                    ProcessMessageFromGroupSession(msg);
+                                }
                             }
-
-                            if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", sp.Name);
-
-                            ProcessMessageFromGroupSession(msg);
                         });
+                        
                 }
             }
         }
@@ -664,12 +667,12 @@ namespace OpenSim.Groups
                 {
                     if (!sp.IsChildAgent)
                     {
-                        if (m_debugEnabled) m_log.WarnFormat("[Groups.Messaging]: Found root agent for client : {0}", sp.ControllingClient.Name);
+                        if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Found root agent for client : {0}", sp.ControllingClient.Name);
                         return sp.ControllingClient;
                     }
                     else
                     {
-                        if (m_debugEnabled) m_log.WarnFormat("[Groups.Messaging]: Found child agent for client : {0}", sp.ControllingClient.Name);
+                        if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Found child agent for client : {0}", sp.ControllingClient.Name);
                         child = sp.ControllingClient;
                     }
                 }
@@ -694,9 +697,10 @@ namespace OpenSim.Groups
         public void ResetAgentGroupChatSessions(string agentID)
         {
             foreach (List<string> agentList in m_groupsAgentsDroppedFromChatSession.Values)
-            {
                 agentList.Remove(agentID);
-            }
+
+            foreach (List<string> agentList in m_groupsAgentsInvitedToChatSession.Values)
+                agentList.Remove(agentID);
         }
 
         public bool hasAgentBeenInvitedToGroupChatSession(string agentID, UUID groupID)
