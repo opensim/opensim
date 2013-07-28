@@ -199,7 +199,7 @@ namespace OpenSim.Groups
         public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search)
         {
             // TODO!
-            return new List<DirGroupsReplyData>();
+            return m_GroupsService.FindGroups(RequestingAgentID, search);
         }
 
         public bool AddAgentToGroup(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID, string token, out string reason)

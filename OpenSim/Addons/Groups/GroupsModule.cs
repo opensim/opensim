@@ -313,6 +313,10 @@ namespace OpenSim.Groups
                     m_log.DebugFormat(
                         "[Groups]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", 
                         System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
+                
+                
+                if (string.IsNullOrEmpty(queryText))
+                    remoteClient.SendDirGroupsReply(queryID, new DirGroupsReplyData[0]);
 
                 // TODO: This currently ignores pretty much all the query flags including Mature and sort order
                 remoteClient.SendDirGroupsReply(queryID, m_groupData.FindGroups(GetRequestingAgentIDStr(remoteClient), queryText).ToArray());
