@@ -129,9 +129,12 @@ namespace OpenSim.Groups
             m_sceneList.Add(scene);
 
             scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
+            scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnClientLogin += OnClientLogin;
         }
+
         public void RegionLoaded(Scene scene)
         {
             if (!m_groupMessagingEnabled)
@@ -347,9 +350,19 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: OnInstantMessage registered for {0}", client.Name);
 
-            client.OnInstantMessage += OnInstantMessage;
             ResetAgentGroupChatSessions(client.AgentId.ToString());
         }
+
+        void OnMakeRootAgent(ScenePresence sp)
+        {
+            sp.ControllingClient.OnInstantMessage += OnInstantMessage;
+        }
+
+        void OnMakeChildAgent(ScenePresence sp)
+        {
+            sp.ControllingClient.OnInstantMessage -= OnInstantMessage;
+        }
+
 
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
