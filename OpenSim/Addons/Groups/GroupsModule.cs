@@ -197,6 +197,7 @@ namespace OpenSim.Groups
 
             scene.EventManager.OnNewClient -= OnNewClient;
             scene.EventManager.OnMakeRootAgent -= OnMakeRoot;
+            scene.EventManager.OnMakeChildAgent -= OnMakeChild;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
 
             lock (m_sceneList)
@@ -244,7 +245,6 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             sp.ControllingClient.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
-            sp.ControllingClient.OnDirFindQuery += OnDirFindQuery;
             // Used for Notices and Group Invites/Accept/Reject
             sp.ControllingClient.OnInstantMessage += OnInstantMessage;
 
@@ -257,7 +257,6 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             sp.ControllingClient.OnUUIDGroupNameRequest -= HandleUUIDGroupNameRequest;
-            sp.ControllingClient.OnDirFindQuery -= OnDirFindQuery;
             // Used for Notices and Group Invites/Accept/Reject
             sp.ControllingClient.OnInstantMessage -= OnInstantMessage;
         }
@@ -304,25 +303,6 @@ namespace OpenSim.Groups
             }
         }
         */
-
-        void OnDirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart)
-        {
-            if (((DirFindFlags)queryFlags & DirFindFlags.Groups) == DirFindFlags.Groups)
-            {
-                if (m_debugEnabled) 
-                    m_log.DebugFormat(
-                        "[Groups]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", 
-                        System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
-                
-                
-                if (string.IsNullOrEmpty(queryText))
-                    remoteClient.SendDirGroupsReply(queryID, new DirGroupsReplyData[0]);
-
-                // TODO: This currently ignores pretty much all the query flags including Mature and sort order
-                remoteClient.SendDirGroupsReply(queryID, m_groupData.FindGroups(GetRequestingAgentIDStr(remoteClient), queryText).ToArray());
-            }
-            
-        }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID dataForAgentID, UUID sessionID)
         {
@@ -1209,6 +1189,11 @@ namespace OpenSim.Groups
                     OutgoingInstantMessage(msg, invitedAgentID);
                 }
             }
+        }
+
+        public List<DirGroupsReplyData> FindGroups(IClientAPI remoteClient, string query)
+        {
+            return m_groupData.FindGroups(GetRequestingAgentIDStr(remoteClient), query);
         }
 
         #endregion
