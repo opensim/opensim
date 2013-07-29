@@ -133,13 +133,9 @@ namespace OpenSim.Region.CoreModules.Framework
                 {
                     Caps oldCaps = m_capsObjects[circuitCode];
                     
-                    m_log.DebugFormat(
-                        "[CAPS]: Recreating caps for agent {0}.  Old caps path {1}, new caps path {2}. ", 
-                        agentId, oldCaps.CapsObjectPath, capsObjectPath);
-                    // This should not happen. The caller code is confused. We need to fix that.
-                    // CAPs can never be reregistered, or the client will be confused.
-                    // Hence this return here.
-                    //return;
+                    //m_log.WarnFormat(
+                    //    "[CAPS]: Recreating caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ", 
+                    //    agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
                 }
 
                 caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
@@ -153,6 +149,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public void RemoveCaps(UUID agentId, uint circuitCode)
         {
+            m_log.DebugFormat("[CAPS]: Remove caps for agent {0} in region {1}", agentId, m_scene.RegionInfo.RegionName);
             lock (m_childrenSeeds)
             {
                 if (m_childrenSeeds.ContainsKey(agentId))

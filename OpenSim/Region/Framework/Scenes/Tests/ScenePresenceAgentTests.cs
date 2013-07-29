@@ -119,7 +119,20 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID spUuid = TestHelpers.ParseTail(0x1);
 
+            // The etm is only invoked by this test to check whether an agent is still in transit if there is a dupe
+            EntityTransferModule etm = new EntityTransferModule();
+
+            IConfigSource config = new IniConfigSource();
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etm.Name);
+            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
+
+            // In order to run a single threaded regression test we do not want the entity transfer module waiting
+            // for a callback from the destination scene before removing its avatar data.
+            entityTransferConfig.Set("wait_for_callback", false);
+
             TestScene scene = new SceneHelpers().SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, etm);
             SceneHelpers.AddScenePresence(scene, spUuid);
             SceneHelpers.AddScenePresence(scene, spUuid);
 

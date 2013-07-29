@@ -255,13 +255,20 @@ namespace OpenSim.Groups
                 return members;
             List<RoleData> rolesList = new List<RoleData>(roles);
 
-            // Is the requester a member of the group?
-            bool isInGroup = false;
-            if (m_Database.RetrieveMember(GroupID, RequestingAgentID) != null)
-                isInGroup = true;
+            // Check visibility? 
+            // When we don't want to check visibility, we pass it "all" as the requestingAgentID
+            bool checkVisibility = !RequestingAgentID.Equals("all");
+            m_log.DebugFormat("[ZZZ]: AgentID is {0}. checkVisibility is {1}", RequestingAgentID, checkVisibility);
+            if (checkVisibility)
+            {
+                // Is the requester a member of the group?
+                bool isInGroup = false;
+                if (m_Database.RetrieveMember(GroupID, RequestingAgentID) != null)
+                    isInGroup = true;
 
-            if (!isInGroup) // reduce the roles to the visible ones
-                rolesList = rolesList.FindAll(r => (UInt64.Parse(r.Data["Powers"]) & (ulong)GroupPowers.MemberVisible) != 0);
+                if (!isInGroup) // reduce the roles to the visible ones
+                    rolesList = rolesList.FindAll(r => (UInt64.Parse(r.Data["Powers"]) & (ulong)GroupPowers.MemberVisible) != 0);
+            }
 
             MembershipData[] datas = m_Database.RetrieveMembers(GroupID);
             if (datas == null || (datas != null && datas.Length == 0))

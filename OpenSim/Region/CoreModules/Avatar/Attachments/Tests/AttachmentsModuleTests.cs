@@ -38,6 +38,8 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
@@ -802,6 +804,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
+            BaseHttpServer httpServer = new BaseHttpServer(99999);
+            MainServer.AddHttpServer(httpServer);
+            MainServer.Instance = httpServer;
+
             AttachmentsModule attModA = new AttachmentsModule();
             AttachmentsModule attModB = new AttachmentsModule();
             EntityTransferModule etmA = new EntityTransferModule();
@@ -829,6 +835,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 sceneA, config, new CapabilitiesModule(), etmA, attModA, new BasicInventoryAccessModule());
             SceneHelpers.SetupSceneModules(
                 sceneB, config, new CapabilitiesModule(), etmB, attModB, new BasicInventoryAccessModule());
+
+            // FIXME: Hack - this is here temporarily to revert back to older entity transfer behaviour
+            lscm.ServiceVersion = "SIMULATION/0.1";
 
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
 

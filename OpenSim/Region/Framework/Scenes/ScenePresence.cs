@@ -764,6 +764,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
+        /// teleport is reusing the connection.
+        /// </summary>
+        /// <remarks>May be refactored or move somewhere else soon.</remarks>
+        public bool DoNotCloseAfterTeleport { get; set; }
+
         private float m_speedModifier = 1.0f;
 
         public float SpeedModifier
@@ -1541,11 +1548,13 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             // Make sure it's not a login agent. We don't want to wait for updates during login
-            if ((m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+            if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+            {
                 // Let's wait until UpdateAgent (called by departing region) is done
                 if (!WaitForUpdateAgent(client))
                     // The sending region never sent the UpdateAgent data, we have to refuse
                     return;
+            }
 
             Vector3 look = Velocity;
 

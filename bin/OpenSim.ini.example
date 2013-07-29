@@ -575,9 +575,9 @@
     ;; must be set to allow offline messaging to work.
     ; MuteListURL = http://yourserver/Mute.php
 
-    ;; Control whether group messages are forwarded to offline users.
+    ;; Control whether group invites and notices are stored for offline users.
     ;; Default is true.
-    ;; This applies to the core groups module (Flotsam) only.
+    ;; This applies to both core groups module.
     ; ForwardOfflineGroupMessages = true
 
 
@@ -953,7 +953,7 @@
 
     ;# {LevelGroupCreate} {Enabled:true} {User level for creating groups} {} 0
     ;; Minimum user level required to create groups
-    ;LevelGroupCreate = 0
+    ; LevelGroupCreate = 0
 
     ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam/Simian)} {Default "Groups Module V2"} Default
     ;; The default module can use a PHP XmlRpc server from the Flotsam project at
@@ -1005,6 +1005,12 @@
     ;# {NoticesEnabled} {Module:GroupsModule Module:Groups Module V2} {Enable group notices?} {true false} true
     ;; Enable Group Notices
     ; NoticesEnabled = true
+
+    ;# {MessageOnlineUsersOnly} {Module:GroupsModule Module} {Message online users only?} {true false} false
+    ; Experimental option to only message online users rather than all users
+    ; Should make large groups with few online members messaging faster, as the expense of more calls to presence service
+    ; Applies Flotsam Group only. V2 has this always on, no other option
+    ; MessageOnlineUsersOnly = false
 
     ;; This makes the Groups modules very chatty on the console.
     ; DebugEnabled = false

@@ -92,12 +92,6 @@ namespace OpenSim.Groups
         GroupNoticeInfo GetGroupNotice(string RequestingAgentID, UUID noticeID);
         List<ExtendedGroupNoticeData> GetGroupNotices(string RequestingAgentID, UUID GroupID);
 
-        void ResetAgentGroupChatSessions(string agentID);
-        bool hasAgentBeenInvitedToGroupChatSession(string agentID, UUID groupID);
-        bool hasAgentDroppedGroupChatSession(string agentID, UUID groupID);
-        void AgentDroppedFromGroupChatSession(string agentID, UUID groupID);
-        void AgentInvitedToGroupChatSession(string agentID, UUID groupID);
-
     }
 
     public class GroupInviteInfo

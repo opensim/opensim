@@ -316,7 +316,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2}@{3} - agent is already in transit.",
                     sp.Name, sp.UUID, position, regionHandle);
-                
+
+                sp.ControllingClient.SendTeleportFailed("Slow down!");
                 return;
             }
 
@@ -921,13 +922,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                // RED ALERT!!!!
-                // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
-                // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
-                // BEFORE THEY SETTLE IN THE NEW REGION.
-                // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
-                // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
-                Thread.Sleep(5000);
+                // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
+                // they regard the new region as the current region after receiving the AgentMovementComplete
+                // response.  If close is sent before then, it will cause the viewer to quit instead.
+                //
+                // This sleep can be increased if necessary.  However, whilst it's active,
+                // an agent cannot teleport back to this region if it has teleported away.
+                Thread.Sleep(2000);
 
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
@@ -1045,21 +1046,33 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
 
-            // OK, it got this agent. Let's close some child agents
-            sp.CloseChildAgents(newRegionX, newRegionY);
-
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
+                sp.DoNotCloseAfterTeleport = false;
+
                 // RED ALERT!!!!
                 // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
                 // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
                 // BEFORE THEY SETTLE IN THE NEW REGION.
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
-                Thread.Sleep(5000);
-                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                Thread.Sleep(15000);
+            
+                if (!sp.DoNotCloseAfterTeleport)
+                {
+                    // OK, it got this agent. Let's close everything
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing in agent {0} in region {1}", sp.Name, Scene.RegionInfo.RegionName);
+                    sp.CloseChildAgents(newRegionX, newRegionY);
+                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
+
+                }
+                else
+                {
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {0}", sp.Name, Scene.RegionInfo.RegionName);
+                    sp.DoNotCloseAfterTeleport = false;
+                }
             }
             else
                 // now we have a child agent in this region. 

@@ -141,6 +141,8 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnMakeRootAgent += OnMakeRoot;
+            scene.EventManager.OnMakeChildAgent += OnMakeChild;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             // The InstantMessageModule itself doesn't do this, 
             // so lets see if things explode if we don't do it
@@ -194,6 +196,8 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             scene.EventManager.OnNewClient -= OnNewClient;
+            scene.EventManager.OnMakeRootAgent -= OnMakeRoot;
+            scene.EventManager.OnMakeChildAgent -= OnMakeChild;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
 
             lock (m_sceneList)
@@ -232,16 +236,29 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
-            client.OnDirFindQuery += OnDirFindQuery;
             client.OnRequestAvatarProperties += OnRequestAvatarProperties;
+        }
 
+        private void OnMakeRoot(ScenePresence sp)
+        {
+            if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            sp.ControllingClient.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             // Used for Notices and Group Invites/Accept/Reject
-            client.OnInstantMessage += OnInstantMessage;
+            sp.ControllingClient.OnInstantMessage += OnInstantMessage;
 
             // Send client their groups information.
-            SendAgentGroupDataUpdate(client, client.AgentId);
+            SendAgentGroupDataUpdate(sp.ControllingClient, sp.UUID);
+        }
+
+        private void OnMakeChild(ScenePresence sp)
+        {
+            if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            sp.ControllingClient.OnUUIDGroupNameRequest -= HandleUUIDGroupNameRequest;
+            // Used for Notices and Group Invites/Accept/Reject
+            sp.ControllingClient.OnInstantMessage -= OnInstantMessage;
         }
 
         private void OnRequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
@@ -286,21 +303,6 @@ namespace OpenSim.Groups
             }
         }
         */
-
-        void OnDirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart)
-        {
-            if (((DirFindFlags)queryFlags & DirFindFlags.Groups) == DirFindFlags.Groups)
-            {
-                if (m_debugEnabled) 
-                    m_log.DebugFormat(
-                        "[Groups]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", 
-                        System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
-
-                // TODO: This currently ignores pretty much all the query flags including Mature and sort order
-                remoteClient.SendDirGroupsReply(queryID, m_groupData.FindGroups(GetRequestingAgentIDStr(remoteClient), queryText).ToArray());
-            }
-            
-        }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID dataForAgentID, UUID sessionID)
         {
@@ -907,23 +909,7 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called for notice {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, groupNoticeID);
 
-            //GroupRecord groupInfo = m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), data.GroupID, null);
-
             GridInstantMessage msg = CreateGroupNoticeIM(remoteClient.AgentId, groupNoticeID, (byte)InstantMessageDialog.GroupNoticeRequested);
-            //GridInstantMessage msg = new GridInstantMessage();
-            //msg.imSessionID = UUID.Zero.Guid;
-            //msg.fromAgentID = data.GroupID.Guid;
-            //msg.toAgentID = GetRequestingAgentID(remoteClient).Guid;
-            //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-            //msg.fromAgentName = "Group Notice : " + groupInfo == null ? "Unknown" : groupInfo.GroupName;
-            //msg.message = data.noticeData.Subject + "|" + data.Message;
-            //msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupNoticeRequested;
-            //msg.fromGroup = true;
-            //msg.offline = (byte)0;
-            //msg.ParentEstateID = 0;
-            //msg.Position = Vector3.Zero;
-            //msg.RegionID = UUID.Zero.Guid;
-            //msg.binaryBucket = data.BinaryBucket;
 
             OutgoingInstantMessage(msg, GetRequestingAgentID(remoteClient));
         }
@@ -1187,6 +1173,11 @@ namespace OpenSim.Groups
                     OutgoingInstantMessage(msg, invitedAgentID);
                 }
             }
+        }
+
+        public List<DirGroupsReplyData> FindGroups(IClientAPI remoteClient, string query)
+        {
+            return m_groupData.FindGroups(GetRequestingAgentIDStr(remoteClient), query);
         }
 
         #endregion

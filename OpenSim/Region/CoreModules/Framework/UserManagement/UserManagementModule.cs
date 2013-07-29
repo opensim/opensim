@@ -46,6 +46,8 @@ using log4net;
 using Nini.Config;
 using Mono.Addins;
 
+using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
+
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]

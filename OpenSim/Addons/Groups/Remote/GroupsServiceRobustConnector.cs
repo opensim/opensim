@@ -133,6 +133,8 @@ namespace OpenSim.Groups
                         return HandleAddNotice(request);
                     case "GETNOTICES":
                         return HandleGetNotices(request);
+                    case "FINDGROUPS":
+                        return HandleFindGroups(request);
                 }
                 m_log.DebugFormat("[GROUPS HANDLER]: unknown method request: {0}", method);
             }
@@ -735,6 +737,32 @@ namespace OpenSim.Groups
             }
             else
                 NullResult(result, "Bad OP in request");
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleFindGroups(Dictionary<string, object> request)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("Query"))
+                NullResult(result, "Bad network data");
+
+            List<DirGroupsReplyData> hits = m_GroupsService.FindGroups(request["RequestingAgentID"].ToString(), request["Query"].ToString());
+
+            if (hits == null || (hits != null && hits.Count == 0))
+                NullResult(result, "No hits");
+            else
+            {
+                Dictionary<string, object> dict = new Dictionary<string, object>();
+                int i = 0;
+                foreach (DirGroupsReplyData n in hits)
+                    dict["n-" + i++] = GroupsDataUtils.DirGroupsReplyData(n);
+
+                result["RESULT"] = dict;
+            }
+
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
