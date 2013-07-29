@@ -271,7 +271,7 @@ namespace OpenSim.Framework.Monitoring
                 // Stat name is not unique across category/container/shortname key.
                 // XXX: For now just return false.  This is to avoid problems in regression tests where all tests
                 // in a class are run in the same instance of the VM.
-                if (TryGetStat(stat, out category, out container))
+                if (TryGetStatParents(stat, out category, out container))
                     return false;
 
                 // We take a copy-on-write approach here of replacing dictionaries when keys are added or removed.
@@ -307,7 +307,7 @@ namespace OpenSim.Framework.Monitoring
 
             lock (RegisteredStats)
             {
-                if (!TryGetStat(stat, out category, out container))
+                if (!TryGetStatParents(stat, out category, out container))
                     return false;
 
                 newContainer = new SortedDictionary<string, Stat>(container);
@@ -323,12 +323,67 @@ namespace OpenSim.Framework.Monitoring
             }
         }
 
-        public static bool TryGetStats(string category, out SortedDictionary<string, SortedDictionary<string, Stat>> stats)
+        public static bool TryGetStat(string category, string container, string statShortName, out Stat stat)
         {
-            return RegisteredStats.TryGetValue(category, out stats);
+            stat = null;
+            SortedDictionary<string, SortedDictionary<string, Stat>> categoryStats;
+
+            lock (RegisteredStats)
+            {
+                if (!TryGetStatsForCategory(category, out categoryStats))
+                    return false;
+
+                SortedDictionary<string, Stat> containerStats;
+
+                if (!categoryStats.TryGetValue(container, out containerStats))
+                    return false;
+
+                return containerStats.TryGetValue(statShortName, out stat);
+            }
         }
 
-        public static bool TryGetStat(
+        public static bool TryGetStatsForCategory(
+            string category, out SortedDictionary<string, SortedDictionary<string, Stat>> stats)
+        {
+            lock (RegisteredStats)
+                return RegisteredStats.TryGetValue(category, out stats);
+        }
+
+        /// <summary>
+        /// Get the same stat for each container in a given category.
+        /// </summary>
+        /// <returns>
+        /// The stats if there were any to fetch.  Otherwise null.
+        /// </returns>
+        /// <param name='category'></param>
+        /// <param name='statShortName'></param>
+        public static List<Stat> GetStatsFromEachContainer(string category, string statShortName)
+        {
+            SortedDictionary<string, SortedDictionary<string, Stat>> categoryStats;
+
+            lock (RegisteredStats)
+            {
+                if (!RegisteredStats.TryGetValue(category, out categoryStats))
+                    return null;
+
+                List<Stat> stats = null;
+
+                foreach (SortedDictionary<string, Stat> containerStats in categoryStats.Values)
+                {
+                    if (containerStats.ContainsKey(statShortName))
+                    {
+                        if (stats == null)
+                            stats = new List<Stat>();
+
+                        stats.Add(containerStats[statShortName]);
+                    }
+                }
+
+                return stats;
+            }
+        }
+
+        public static bool TryGetStatParents(
             Stat stat,
             out SortedDictionary<string, SortedDictionary<string, Stat>> category,
             out SortedDictionary<string, Stat> container)

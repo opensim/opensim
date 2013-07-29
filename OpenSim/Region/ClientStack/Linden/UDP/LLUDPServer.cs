@@ -69,9 +69,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "ClientLogoutsDueToNoReceives",
+                    "Number of times a client has been logged out because no packets were received before the timeout.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = m_udpServer.ClientLogoutsDueToNoReceives,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "IncomingUDPReceivesCount",
                     "Number of UDP receives performed",
-                    "Number of UDP receives performed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
@@ -84,7 +97,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 new Stat(
                     "IncomingPacketsProcessedCount",
                     "Number of inbound LL protocol packets processed",
-                    "Number of inbound LL protocol packets processed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
@@ -97,7 +110,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 new Stat(
                     "OutgoingUDPSendsCount",
                     "Number of UDP sends performed",
-                    "Number of UDP sends performed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
@@ -148,6 +161,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
         public const int MTU = 1400;
+
+        /// <summary>Number of forced client logouts due to no receipt of packets before timeout.</summary>
+        public int ClientLogoutsDueToNoReceives { get; private set; }
 
         /// <summary>
         /// Default packet debug level given to new clients
@@ -1037,7 +1053,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 timeoutTicks = m_pausedAckTimeout;
 
             if (client.IsActive &&
-                (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
+                (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > -1)
             {
                 // We must set IsActive synchronously so that we can stop the packet loop reinvoking this method, even
                 // though it's set later on by LLClientView.Close()
@@ -1778,7 +1794,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "[LLUDPSERVER]: Ack timeout, disconnecting {0} agent for {1} in {2}",
                     client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, m_scene.RegionInfo.RegionName);
     
-                StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
+                ClientLogoutsDueToNoReceives++;
     
                 if (!client.SceneAgent.IsChildAgent)
                      client.Kick("Simulator logged you out due to connection timeout");
