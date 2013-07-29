@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Fire this out on a different thread so that we don't hold up outgoing packet processing for
                 // everybody else if this is being called due to an ack timeout.
                 // This is the same as processing as the async process of a logout request.
-                Util.FireAndForget(o => DeactivateClientDueToTimeout(client));
+                Util.FireAndForget(o => DeactivateClientDueToTimeout(client, timeoutTicks));
 
                 return;
             }
@@ -1786,18 +1786,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// regular client pings.
         /// </remarks>
         /// <param name='client'></param>
-        private void DeactivateClientDueToTimeout(LLClientView client)
+        /// <param name='timeoutTicks'></param>
+        private void DeactivateClientDueToTimeout(LLClientView client, int timeoutTicks)
         {
             lock (client.CloseSyncLock)
-            {
-                m_log.WarnFormat(
-                    "[LLUDPSERVER]: Ack timeout, disconnecting {0} agent for {1} in {2}",
-                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, m_scene.RegionInfo.RegionName);
-    
+            {    
                 ClientLogoutsDueToNoReceives++;
+
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: No packets received from {0} agent of {1} for {2}ms in {3}.  Disconnecting.",
+                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, timeoutTicks, m_scene.Name);
     
                 if (!client.SceneAgent.IsChildAgent)
-                     client.Kick("Simulator logged you out due to connection timeout");
+                     client.Kick("Simulator logged you out due to connection timeout.");
     
                 client.CloseWithoutChecks();
             }
