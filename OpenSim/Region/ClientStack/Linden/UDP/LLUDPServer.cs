@@ -1053,7 +1053,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 timeoutTicks = m_pausedAckTimeout;
 
             if (client.IsActive &&
-                (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > -1)
+                (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
             {
                 // We must set IsActive synchronously so that we can stop the packet loop reinvoking this method, even
                 // though it's set later on by LLClientView.Close()
