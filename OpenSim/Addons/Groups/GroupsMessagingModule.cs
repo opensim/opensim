@@ -297,6 +297,10 @@ namespace OpenSim.Groups
                 if (member.AgentID.Guid == im.fromAgentID)
                     continue;
 
+                if (clientsAlreadySent.Contains(member.AgentID))
+                    continue;
+                clientsAlreadySent.Add(member.AgentID);
+
                 if (hasAgentDroppedGroupChatSession(member.AgentID.ToString(), groupID))
                 {
                     // Don't deliver messages to people who have dropped this session
@@ -336,12 +340,9 @@ namespace OpenSim.Groups
                     // Deliver locally, directly
                     if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
 
-                    if (clientsAlreadySent.Contains(member.AgentID))
-                        continue;
-                    clientsAlreadySent.Add(member.AgentID);
-
                     ProcessMessageFromGroupSession(im);
                 }
+
             }
 
             if (m_debugEnabled)
