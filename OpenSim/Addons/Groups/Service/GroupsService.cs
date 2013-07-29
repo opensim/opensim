@@ -258,6 +258,7 @@ namespace OpenSim.Groups
             // Check visibility? 
             // When we don't want to check visibility, we pass it "all" as the requestingAgentID
             bool checkVisibility = !RequestingAgentID.Equals("all");
+            m_log.DebugFormat("[ZZZ]: AgentID is {0}. checkVisibility is {1}", RequestingAgentID, checkVisibility);
             if (checkVisibility)
             {
                 // Is the requester a member of the group?
