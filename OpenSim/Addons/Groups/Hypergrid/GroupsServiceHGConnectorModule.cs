@@ -254,7 +254,10 @@ namespace OpenSim.Groups
         {
             string url = string.Empty, gname = string.Empty;
             if (IsLocal(GroupID, out url, out gname))
-                return m_LocalGroupsConnector.GetGroupMembers(AgentUUI(RequestingAgentID), GroupID);
+            {
+                string agentID = AgentUUI(RequestingAgentID);
+                return m_LocalGroupsConnector.GetGroupMembers(agentID, GroupID);
+            }
             else if (!string.IsNullOrEmpty(url))
             {
                 ExtendedGroupMembershipData membership = m_LocalGroupsConnector.GetAgentGroupMembership(RequestingAgentID, RequestingAgentID, GroupID);

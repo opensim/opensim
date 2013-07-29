@@ -246,7 +246,7 @@ namespace OpenSim.Groups
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
             UUID fromAgentID = new UUID(im.fromAgentID);
-            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers("all", groupID);
+            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), groupID);
             int groupMembersCount = groupMembers.Count;
             PresenceInfo[] onlineAgents = null;
 
@@ -403,7 +403,7 @@ namespace OpenSim.Groups
                 Scene aScene = m_sceneList[0];
                 GridRegion regionOfOrigin = aScene.GridService.GetRegionByUUID(aScene.RegionInfo.ScopeID, regionID);
 
-                List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers("all", GroupID);
+                List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), GroupID);
                 List<UUID> alreadySeen = new List<UUID>();
 
                 //if (m_debugEnabled)
