@@ -405,7 +405,6 @@ namespace OpenSim.Groups
                 GridRegion regionOfOrigin = aScene.GridService.GetRegionByUUID(aScene.RegionInfo.ScopeID, regionID);
 
                 List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), GroupID);
-                List<UUID> alreadySeen = new List<UUID>();
 
                 //if (m_debugEnabled)
                 //    foreach (GroupMembersData m in groupMembers)
@@ -415,15 +414,10 @@ namespace OpenSim.Groups
                 {
                     s.ForEachScenePresence(sp =>
                         {
-                            // We need this, because we are searching through all
-                            // SPs, both root and children
-                            if (alreadySeen.Contains(sp.UUID))
-                            {
-                                if (m_debugEnabled)
-                                    m_log.DebugFormat("[Groups.Messaging]: skipping agent {0} because we've already seen it", sp.UUID);
+                            // If we got this via grid messaging, it's because the caller thinks
+                            // that the root agent is here. We should only send the IM to root agents.
+                            if (sp.IsChildAgent)
                                 return;
-                            }
-                            alreadySeen.Add(sp.UUID);
 
                             GroupMembersData m = groupMembers.Find(gmd =>
                                 {
