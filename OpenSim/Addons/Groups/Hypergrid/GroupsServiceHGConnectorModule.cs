@@ -399,17 +399,21 @@ namespace OpenSim.Groups
 
                     if (success)
                     {
+                        // Here we always return true. The user has been added to the local group,
+                        // independent of whether the remote operation succeeds or not
                         url = m_UserManagement.GetUserServerURL(uid, "GroupsServerURI");
                         if (url == string.Empty)
                         {
-                            reason = "User doesn't have a groups server";
-                            return false;
+                            reason = "You don't have have an accessible groups server in your home world. You membership to this group in only within this grid.";
+                            return true;
                         }
 
                         GroupsServiceHGConnector c = GetConnector(url);
                         if (c != null)
-                            return c.CreateProxy(AgentUUI(RequestingAgentID), AgentID, token, GroupID, m_LocalGroupsServiceLocation, name, out reason);
+                            c.CreateProxy(AgentUUI(RequestingAgentID), AgentID, token, GroupID, m_LocalGroupsServiceLocation, name, out reason);
+                        return true;
                     }
+                    return false;
                 }
             }
             else if (m_UserManagement.IsLocalGridUser(uid)) // local user
