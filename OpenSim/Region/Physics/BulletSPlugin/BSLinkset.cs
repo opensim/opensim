@@ -309,16 +309,18 @@ public abstract class BSLinkset
             }
         );
     }
-    public virtual void ComputeLocalInertia(OMV.Vector3 inertiaFactor)
+    public virtual void ComputeAndSetLocalInertia(OMV.Vector3 inertiaFactor, float linksetMass)
     {
         ForEachMember((member) =>
             {
                 if (member.PhysBody.HasPhysicalBody)
                 {
-                    OMV.Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(member.PhysShape.physShapeInfo, member.Mass);
+                    OMV.Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(member.PhysShape.physShapeInfo, linksetMass);
                     member.Inertia = inertia * inertiaFactor;
-                    m_physicsScene.PE.SetMassProps(member.PhysBody, member.Mass, member.Inertia);
+                    m_physicsScene.PE.SetMassProps(member.PhysBody, linksetMass, member.Inertia);
                     m_physicsScene.PE.UpdateInertiaTensor(member.PhysBody);
+                    DetailLog("{0},BSLinkset.ComputeAndSetLocalInertia,m.mass={1}, inertia={2}", member.LocalID, linksetMass, member.Inertia);
+
                 }
                 return false;   // 'false' says to continue looping
             }
@@ -330,6 +332,16 @@ public abstract class BSLinkset
             {
                 if (member.PhysBody.HasPhysicalBody)
                     m_physicsScene.PE.SetCollisionFlags(member.PhysBody, collFlags);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void AddToPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.AddToCollisionFlags(member.PhysBody, collFlags);
                 return false;   // 'false' says to continue looping
             }
         );
