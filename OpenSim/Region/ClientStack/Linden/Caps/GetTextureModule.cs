@@ -137,7 +137,11 @@ namespace OpenSim.Region.ClientStack.Linden
             else
             {
 //                m_log.DebugFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("GetTexture", m_URL);
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+                if (handler != null)
+                    handler.RegisterExternalUserCapsHandler(agentID,caps,"GetTexture",m_URL);
+                else
+                    caps.RegisterHandler("GetTexture", m_URL);
             }
         }
 
