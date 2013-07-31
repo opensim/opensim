@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -39,8 +40,6 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class SimExtraStatsCollector : BaseStatsCollector
     {
-        private long abnormalClientThreadTerminations;
-
 //        private long assetsInCache;
 //        private long texturesInCache;
 //        private long assetCacheMemoryUsage;
@@ -72,11 +71,6 @@ namespace OpenSim.Framework.Monitoring
         private volatile float pendingUploads;
         private volatile float activeScripts;
         private volatile float scriptLinesPerSecond;
-
-        /// <summary>
-        /// Number of times that a client thread terminated because of an exception
-        /// </summary>
-        public long AbnormalClientThreadTerminations { get { return abnormalClientThreadTerminations; } }
 
 //        /// <summary>
 //        /// These statistics are being collected by push rather than pull.  Pull would be simpler, but I had the
@@ -165,11 +159,6 @@ namespace OpenSim.Framework.Monitoring
         /// </summary>
         private IDictionary<UUID, PacketQueueStatsCollector> packetQueueStatsCollectors
             = new Dictionary<UUID, PacketQueueStatsCollector>();
-
-        public void AddAbnormalClientThreadTermination()
-        {
-            abnormalClientThreadTerminations++;
-        }
 
 //        public void AddAsset(AssetBase asset)
 //        {
@@ -324,10 +313,12 @@ Asset service request failures: {3}" + Environment.NewLine,
             sb.Append(Environment.NewLine);
             sb.Append("CONNECTION STATISTICS");
             sb.Append(Environment.NewLine);
-            sb.Append(
-                string.Format(
-                    "Abnormal client thread terminations: {0}" + Environment.NewLine,
-                    abnormalClientThreadTerminations));
+
+            List<Stat> stats = StatsManager.GetStatsFromEachContainer("clientstack", "ClientLogoutsDueToNoReceives");
+
+            sb.AppendFormat(
+                "Client logouts due to no data receive timeout: {0}\n\n", 
+                stats != null ? stats.Sum(s => s.Value).ToString() : "unknown");
 
 //            sb.Append(Environment.NewLine);
 //            sb.Append("INVENTORY STATISTICS");
@@ -338,7 +329,7 @@ Asset service request failures: {3}" + Environment.NewLine,
 //                    InventoryServiceRetrievalFailures));
 
             sb.Append(Environment.NewLine);
-            sb.Append("FRAME STATISTICS");
+            sb.Append("SAMPLE FRAME STATISTICS");
             sb.Append(Environment.NewLine);
             sb.Append("Dilatn  SimFPS  PhyFPS  AgntUp  RootAg  ChldAg  Prims   AtvPrm  AtvScr  ScrLPS");
             sb.Append(Environment.NewLine);

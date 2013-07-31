@@ -31,10 +31,10 @@ using System.Reflection;
 using System.Text;
 
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules;
 
 using Mono.Addins;
 using Nini.Config;
@@ -48,6 +48,10 @@ public class ExtendedPhysics : INonSharedRegionModule
 {
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static string LogHeader = "[EXTENDED PHYSICS]";
+
+    // Since BulletSim is a plugin, this these values aren't defined easily in one place.
+    // This table must coorespond to an identical table in BSScene.
+    public const string PhysFunctSetLinksetType = "BulletSim.SetLinksetType";
 
     private IConfig Configuration { get; set; }
     private bool Enabled { get; set; }
@@ -143,13 +147,6 @@ public class ExtendedPhysics : INonSharedRegionModule
     [ScriptConstant]
     public static int PHYS_CENTER_OF_MASS =     1 << 0;
 
-    [ScriptConstant]
-    public static int PHYS_LINKSET_TYPE_CONSTRAINT  = 1;
-    [ScriptConstant]
-    public static int PHYS_LINKSET_TYPE_COMPOUND    = 2;
-    [ScriptConstant]
-    public static int PHYS_LINKSET_TYPE_MANUAL      = 3;
-
     [ScriptInvocation]
     public string physGetEngineType(UUID hostID, UUID scriptID)
     {
@@ -163,9 +160,50 @@ public class ExtendedPhysics : INonSharedRegionModule
         return ret;
     }
 
+    [ScriptConstant]
+    public static int PHYS_LINKSET_TYPE_CONSTRAINT  = 0;
+    [ScriptConstant]
+    public static int PHYS_LINKSET_TYPE_COMPOUND    = 1;
+    [ScriptConstant]
+    public static int PHYS_LINKSET_TYPE_MANUAL      = 2;
+
     [ScriptInvocation]
     public void physSetLinksetType(UUID hostID, UUID scriptID, int linksetType)
     {
+        if (!Enabled) return;
+
+        // The part that is requesting the change.
+        SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
+
+        if (requestingPart != null)
+        {
+            // The change is always made to the root of a linkset.
+            SceneObjectGroup containingGroup = requestingPart.ParentGroup;
+            SceneObjectPart rootPart = containingGroup.RootPart;
+
+            if (rootPart != null)
+            {
+                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
+                if (rootPhysActor != null)
+                {
+                    rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                }
+                else
+                {
+                    m_log.WarnFormat("{0} physSetLinksetType: root part does not have a physics actor. rootName={1}, hostID={2}",
+                                        LogHeader, rootPart.Name, hostID);
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("{0} physSetLinksetType: root part does not exist. RequestingPartName={1}, hostID={2}",
+                                    LogHeader, requestingPart.Name, hostID);
+            }
+        }
+        else
+        {
+            m_log.WarnFormat("{0} physSetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
+        }
     }
 }
 }
