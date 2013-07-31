@@ -149,15 +149,16 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["PhysicsShapeTypes"] = typesMap;
     
                 // Extra information for viewers that want to use it
-                OSDMap gridServicesMap = new OSDMap();
+                OSDMap extrasMap = new OSDMap();
                 if (m_MapImageServerURL != string.Empty)
-                    gridServicesMap["map-server-url"] = m_MapImageServerURL;
+                    extrasMap["map-server-url"] = m_MapImageServerURL;
                 if (m_SearchURL != string.Empty)
-                    gridServicesMap["search"] = m_SearchURL;
-                m_features["GridServices"] = gridServicesMap;
-
+                    extrasMap["search-server-url"] = m_SearchURL;
                 if (m_ExportSupported)
-                    m_features["ExportSupported"] = true;
+                    extrasMap["ExportSupported"] = true;
+                if (extrasMap.Count > 0)
+                    m_features["OpenSimExtras"] = extrasMap;
+
             }
         }
 
