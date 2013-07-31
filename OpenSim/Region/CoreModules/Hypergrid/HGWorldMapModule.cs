@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
                 m_MapImageServerURL = Util.GetConfigVarFromSections<string>(source, "MapTileURL", new string[] {"LoginService", "HGWorldMap", "SimulatorFeatures"});
 
-                if (m_MapImageServerURL != string.Empty)
+                if (!string.IsNullOrEmpty(m_MapImageServerURL))
                 {
                     m_MapImageServerURL = m_MapImageServerURL.Trim();
                     if (!m_MapImageServerURL.EndsWith("/"))
