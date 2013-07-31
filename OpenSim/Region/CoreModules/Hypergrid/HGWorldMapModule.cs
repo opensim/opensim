@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
             base.AddRegion(scene);
 
-            scene.EventManager.OnClientClosed += new EventManager.ClientClosed(EventManager_OnClientClosed);
+            scene.EventManager.OnClientClosed += EventManager_OnClientClosed;
         }
 
         public override void RegionLoaded(Scene scene)
@@ -99,6 +99,15 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             m_UserManagement = m_scene.RequestModuleInterface<IUserManagement>();
 
         }
+
+        public override void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            scene.EventManager.OnClientClosed -= EventManager_OnClientClosed;
+        }
+
         public override string Name
         {
             get { return "HGWorldMap"; }
