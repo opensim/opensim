@@ -77,6 +77,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public override void AddRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             base.AddRegion(scene);
 
             scene.EventManager.OnClientClosed += new EventManager.ClientClosed(EventManager_OnClientClosed);
@@ -84,6 +87,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public override void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             base.RegionLoaded(scene);
             ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
 
