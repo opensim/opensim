@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
         {
-            if (m_UserManagement != null && !m_UserManagement.IsLocalGridUser(agentID) && m_MapImageServerURL != string.Empty)
+            if (m_UserManagement != null && !string.IsNullOrEmpty(m_MapImageServerURL) && !m_UserManagement.IsLocalGridUser(agentID))
             {
                 OSD extras = new OSDMap();
                 if (features.ContainsKey("OpenSimExtras"))
