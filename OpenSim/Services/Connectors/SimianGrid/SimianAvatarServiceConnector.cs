@@ -122,7 +122,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDMap map = null;
@@ -168,7 +168,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         { "LLPackedAppearance", OSDParser.SerializeJsonString(map) }
                 };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (! success)
@@ -189,7 +189,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDMap map = null;
@@ -306,7 +306,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     { "LLAttachments", OSDParser.SerializeJsonString(items) }
                 };
 
-                OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+                OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
                 bool success = response["Success"].AsBoolean();
 
                 if (!success)

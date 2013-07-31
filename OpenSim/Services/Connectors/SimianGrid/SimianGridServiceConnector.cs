@@ -129,7 +129,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ExtraData", OSDParser.SerializeJsonString(extraData) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
                 return String.Empty;
             else
@@ -145,7 +145,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Enabled", "0" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -192,7 +192,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request region with uuid {0}",regionID.ToString());
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] uuid request successful {0}",response["Name"].AsString());
@@ -220,7 +220,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request grid at {0}",position.ToString());
             
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] position request successful {0}",response["Name"].AsString());
@@ -261,7 +261,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request regions with name {0}",name);
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] found regions with name {0}",name);
@@ -299,7 +299,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             //m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request regions by range {0} to {1}",minPosition.ToString(),maxPosition.ToString());
             
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDArray array = response["Scenes"] as OSDArray;
@@ -350,7 +350,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Enabled", "1" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] found regions with name {0}",name);
@@ -380,7 +380,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request region flags for {0}",regionID.ToString());
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDMap extraData = response["ExtraData"] as OSDMap;
@@ -410,7 +410,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (onlyEnabled)
                 requestArgs["Enabled"] = "1";
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 return ResponseToGridRegion(response);
