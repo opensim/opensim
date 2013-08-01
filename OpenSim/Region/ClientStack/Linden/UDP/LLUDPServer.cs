@@ -698,7 +698,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         DefaultClientPacketDebugLevel = newDebug;
                         MainConsole.Instance.OutputFormat(
-                            "Debug packet debug for new clients set to {0}", DefaultClientPacketDebugLevel);
+                            "Debug packet debug for new clients set to {0} in {1}", DefaultClientPacketDebugLevel, m_scene.Name);
                     }
                     else
                     {
@@ -1998,7 +1998,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
                     // modern mono it reduces CPU base load since there is no more continuous polling.
-                    m_dataPresentEvent.WaitOne(100);
+                    if (!m_packetSent)
+                        m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
                 }
