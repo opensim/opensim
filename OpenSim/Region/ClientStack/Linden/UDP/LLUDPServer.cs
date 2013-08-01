@@ -694,7 +694,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         DefaultClientPacketDebugLevel = newDebug;
                         MainConsole.Instance.OutputFormat(
-                            "Debug packet debug for new clients set to {0}", DefaultClientPacketDebugLevel);
+                            "Debug packet debug for new clients set to {0} in {1}", DefaultClientPacketDebugLevel, m_scene.Name);
                     }
                     else
                     {
