@@ -33,10 +33,10 @@ namespace OpenSim.Framework
     [Serializable]
     public class Location : ICloneable
     {
-        private readonly int m_x;
-        private readonly int m_y;
+        private readonly uint m_x;
+        private readonly uint m_y;
 
-        public Location(int x, int y)
+        public Location(uint x, uint y)
         {
             m_x = x;
             m_y = y;
@@ -44,21 +44,21 @@ namespace OpenSim.Framework
 
         public Location(ulong regionHandle)
         {
-            m_x = (int) regionHandle;
-            m_y = (int) (regionHandle >> 32);
+            m_x =  (uint)(regionHandle >> 32);
+            m_y = (uint)(regionHandle & (ulong)uint.MaxValue);
         }
 
         public ulong RegionHandle
         {
-            get { return Utils.UIntsToLong((uint)m_x, (uint)m_y); }
+            get { return Utils.UIntsToLong(m_x, m_y); }
         }
 
-        public int X
+        public uint X
         {
             get { return m_x; }
         }
 
-        public int Y
+        public uint Y
         {
             get { return m_y; }
         }
