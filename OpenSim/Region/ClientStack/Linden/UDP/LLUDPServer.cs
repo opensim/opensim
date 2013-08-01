@@ -246,7 +246,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// This allows the outbound loop to only operate when there is data to send rather than continuously polling.
         /// Some data is sent immediately and not queued.  That data would not trigger this event.
         /// </remarks>
-        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
+        //private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
 
         private Pool<IncomingPacket> m_incomingPacketPool;
 
@@ -907,7 +907,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             PacketPool.Instance.ReturnPacket(packet);
 
-            m_dataPresentEvent.Set();
+            //m_dataPresentEvent.Set();
         }
 
         /// <summary>
@@ -1919,12 +1919,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
-                    //if (!m_packetSent)
-                    //    Thread.Sleep((int)TickCountResolution);
+                    if (!m_packetSent)
+                        Thread.Sleep((int)TickCountResolution);
                     //
                     // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
                     // modern mono it reduces CPU base load since there is no more continuous polling.
-                    m_dataPresentEvent.WaitOne(100);
+                    //m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
                 }
