@@ -257,7 +257,7 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         if (!HasChild(child))
         {
-            m_children.Add(child);
+            m_children.Add(child, new BSLinkInfo(child));
 
             DetailLog("{0},BSLinksetCompound.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
@@ -353,7 +353,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
             // Add the shapes of all the components of the linkset
             int memberIndex = 1;
-            ForEachMember(delegate(BSPrimLinkable cPrim)
+            ForEachMember((cPrim) =>
             {
                 if (IsRoot(cPrim))
                 {
