@@ -1924,7 +1924,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
                     // modern mono it reduces CPU base load since there is no more continuous polling.
-                    m_dataPresentEvent.WaitOne(100);
+                    if (!m_packetSent)
+                        m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
                 }
