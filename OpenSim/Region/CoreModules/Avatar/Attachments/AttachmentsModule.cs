@@ -302,7 +302,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
                     RezSingleAttachmentFromInventoryInternal(
-                        sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, p, true, null);
+                        sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, p, true, d);
                 }
                 catch (Exception e)
                 {
