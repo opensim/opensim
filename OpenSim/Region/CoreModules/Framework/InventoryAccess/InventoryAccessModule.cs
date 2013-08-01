@@ -771,7 +771,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
 
                 objlist.Add(g);
-                veclist.Add(new Vector3(0, 0, 0));
+                veclist.Add(Vector3.Zero);
 
                 float offsetHeight = 0;
                 pos = m_Scene.GetNewRezLocation(
