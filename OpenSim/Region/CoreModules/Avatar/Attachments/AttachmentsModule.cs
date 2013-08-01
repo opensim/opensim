@@ -363,7 +363,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // inventory right now.
                     SceneObjectGroup objatt 
                         = RezSingleAttachmentFromInventoryInternal(
-                        sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, attachmentPt, true, null);
+                        sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, attachmentPt, true, d);
 
 
                     if (ThrottlePer100PrimsRezzed > 0)
