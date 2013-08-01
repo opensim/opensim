@@ -256,6 +256,7 @@ namespace OpenSim.Groups
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["GroupID"] = GroupID.ToString();
             sendData["RequestingAgentID"] = RequestingAgentID;
+
             Dictionary<string, object> ret = MakeRequest("GETGROUPMEMBERS", sendData);
 
             if (ret == null)

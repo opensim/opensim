@@ -31,6 +31,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.World.WorldMap;
@@ -48,20 +49,63 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         // Remember the map area that each client has been exposed to in this region
         private Dictionary<UUID, List<MapBlockData>> m_SeenMapBlocks = new Dictionary<UUID, List<MapBlockData>>();
 
+        private string m_MapImageServerURL = string.Empty;
+
+        private IUserManagement m_UserManagement;
+
         #region INonSharedRegionModule Members
 
-        public override void Initialise(IConfigSource config)
+        public override void Initialise(IConfigSource source)
         {
             if (Util.GetConfigVarFromSections<string>(
-                config, "WorldMapModule", new string[] { "Map", "Startup" }, "WorldMap") == "HGWorldMap")
+                source, "WorldMapModule", new string[] { "Map", "Startup" }, "WorldMap") == "HGWorldMap")
+            {
                 m_Enabled = true;
+
+                m_MapImageServerURL = Util.GetConfigVarFromSections<string>(source, "MapTileURL", new string[] {"LoginService", "HGWorldMap", "SimulatorFeatures"});
+
+                if (!string.IsNullOrEmpty(m_MapImageServerURL))
+                {
+                    m_MapImageServerURL = m_MapImageServerURL.Trim();
+                    if (!m_MapImageServerURL.EndsWith("/"))
+                        m_MapImageServerURL = m_MapImageServerURL + "/";
+                }
+
+
+            }
         }
 
         public override void AddRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             base.AddRegion(scene);
 
-            scene.EventManager.OnClientClosed += new EventManager.ClientClosed(EventManager_OnClientClosed);
+            scene.EventManager.OnClientClosed += EventManager_OnClientClosed;
+        }
+
+        public override void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            base.RegionLoaded(scene);
+            ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+
+            if (featuresModule != null)
+                featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
+
+            m_UserManagement = m_scene.RequestModuleInterface<IUserManagement>();
+
+        }
+
+        public override void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            scene.EventManager.OnClientClosed -= EventManager_OnClientClosed;
         }
 
         public override string Name
@@ -115,6 +159,20 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             return mapBlocks;
         }
 
+        private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
+        {
+            if (m_UserManagement != null && !string.IsNullOrEmpty(m_MapImageServerURL) && !m_UserManagement.IsLocalGridUser(agentID))
+            {
+                OSD extras = new OSDMap();
+                if (features.ContainsKey("OpenSimExtras"))
+                    extras = features["OpenSimExtras"];
+                else
+                    features["OpenSimExtras"] = extras;
+
+                ((OSDMap)extras)["map-server-url"] = m_MapImageServerURL;
+
+            }
+        }
     }
 
     class MapArea

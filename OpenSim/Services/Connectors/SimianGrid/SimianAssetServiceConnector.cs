@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -122,7 +123,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 m_Enabled = true;
         }
 
-        #region IAssetService
+#region IAssetService
 
         public AssetBase Get(string id)
         {
@@ -140,8 +141,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     return asset;
             }
 
-            return GetRemote(id);
+            return SimianGetOperation(id);
         }
+        
 
         public AssetBase GetCached(string id)
         {
@@ -164,8 +166,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 throw new InvalidOperationException();
             }
 
-            AssetMetadata metadata = null;
-
             // Cache fetch
             if (m_cache != null)
             {
@@ -174,50 +174,18 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     return asset.Metadata;
             }
 
-            Uri url;
-
-            // Determine if id is an absolute URL or a grid-relative UUID
-            if (!Uri.TryCreate(id, UriKind.Absolute, out url))
-                url = new Uri(m_serverUrl + id);
-
-            try
-            {
-                HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
-                request.Method = "HEAD";
-
-                using (WebResponse response = request.GetResponse())
-                {
-                    using (Stream responseStream = response.GetResponseStream())
-                    {
-                        // Create the metadata object
-                        metadata = new AssetMetadata();
-                        metadata.ContentType = response.ContentType;
-                        metadata.ID = id;
-
-                        UUID uuid;
-                        if (UUID.TryParse(id, out uuid))
-                            metadata.FullID = uuid;
-
-                        string lastModifiedStr = response.Headers.Get("Last-Modified");
-                        if (!String.IsNullOrEmpty(lastModifiedStr))
-                        {
-                            DateTime lastModified;
-                            if (DateTime.TryParse(lastModifiedStr, out lastModified))
-                                metadata.CreationDate = lastModified;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset HEAD from " + url + " failed: " + ex.Message);
-            }
-
-            return metadata;
+            // return GetRemoteMetadata(id);
+            return SimianGetMetadataOperation(id);
         }
-
+        
         public byte[] GetData(string id)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             AssetBase asset = Get(id);
 
             if (asset != null)
@@ -255,7 +223,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             Util.FireAndForget(
                 delegate(object o)
                 {
-                    AssetBase asset = GetRemote(id);
+                    AssetBase asset = SimianGetOperation(id);
                     handler(id, sender, asset);
                 }
             );
@@ -278,7 +246,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
 
             bool storedInCache = false;
-            string errorMessage = null;
 
             // AssetID handling
             if (String.IsNullOrEmpty(asset.ID) || asset.ID == ZeroID)
@@ -307,83 +274,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return asset.ID;
             }
 
-            // Distinguish public and private assets
-            bool isPublic = true;
-            switch ((AssetType)asset.Type)
-            {
-                case AssetType.CallingCard:
-                case AssetType.Gesture:
-                case AssetType.LSLBytecode:
-                case AssetType.LSLText:
-                    isPublic = false;
-                    break;
-            }
-
-            // Make sure ContentType is set
-            if (String.IsNullOrEmpty(asset.Metadata.ContentType))
-                asset.Metadata.ContentType = SLUtil.SLAssetTypeToContentType(asset.Type);
-
-            // Build the remote storage request
-            List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
-            {
-                new MultipartForm.Parameter("AssetID", asset.FullID.ToString()),
-                new MultipartForm.Parameter("CreatorID", asset.Metadata.CreatorID),
-                new MultipartForm.Parameter("Temporary", asset.Temporary ? "1" : "0"),
-                new MultipartForm.Parameter("Public", isPublic ? "1" : "0"),
-                new MultipartForm.File("Asset", asset.Name, asset.Metadata.ContentType, asset.Data)
-            };
-
-            // Make the remote storage request
-            try
-            {
-                // Simian does not require the asset ID to be in the URL because it's in the post data.
-                // By appending it to the URL also, we allow caching proxies (squid) to invalidate asset URLs
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl + asset.FullID.ToString());
-
-                using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
-                {
-                    using (Stream responseStream = response.GetResponseStream())
-                    {
-                        string responseStr = null;
-
-                        try
-                        {
-                            responseStr = responseStream.GetStreamString();
-                            OSD responseOSD = OSDParser.Deserialize(responseStr);
-                            if (responseOSD.Type == OSDType.Map)
-                            {
-                                OSDMap responseMap = (OSDMap)responseOSD;
-                                if (responseMap["Success"].AsBoolean())
-                                    return asset.ID;
-                                else
-                                    errorMessage = "Upload failed: " + responseMap["Message"].AsString();
-                            }
-                            else
-                            {
-                                errorMessage = "Response format was invalid:\n" + responseStr;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!String.IsNullOrEmpty(responseStr))
-                                errorMessage = "Failed to parse the response:\n" + responseStr;
-                            else
-                                errorMessage = "Failed to retrieve the response: " + ex.Message;
-                        }
-                    }
-                }
-            }
-            catch (WebException ex)
-            {
-                errorMessage = ex.Message;
-            }
-
-            m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: Failed to store asset \"{0}\" ({1}, {2}): {3}",
-                asset.Name, asset.ID, asset.Metadata.ContentType, errorMessage);
-
-            return null;
+            return SimianStoreOperation(asset);
         }
-
+        
         /// <summary>
         /// Update an asset's content
         /// </summary>
@@ -393,11 +286,17 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public bool UpdateContent(string id, byte[] data)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             AssetBase asset = Get(id);
 
             if (asset == null)
             {
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Failed to fetch asset " + id + " for updating");
+                m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: Failed to fetch asset {0} for updating", id);
                 return false;
             }
 
@@ -420,83 +319,347 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 throw new InvalidOperationException();
             }
 
-            //string errorMessage = String.Empty;
-            string url = m_serverUrl + id;
-
             if (m_cache != null)
                 m_cache.Expire(id);
 
+            return SimianDeleteOperation(id);
+        }
+        
+#endregion IAssetService
+
+#region SimianOperations
+        /// <summary>
+        /// Invokes the xRemoveAsset operation on the simian server to delete an asset
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private bool SimianDeleteOperation(string id)
+        {
             try
             {
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-                request.Method = "DELETE";
-
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                {
-                    if (response.StatusCode != HttpStatusCode.NoContent)
+                NameValueCollection requestArgs = new NameValueCollection
                     {
-                        m_log.Warn("[SIMIAN ASSET CONNECTOR]: Unexpected response when deleting asset " + url + ": " +
-                            response.StatusCode + " (" + response.StatusDescription + ")");
-                    }
-                }
+                            { "RequestMethod", "xRemoveAsset" },
+                            { "AssetID", id }
+                    };
 
+                OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
+                if (! response["Success"].AsBoolean())
+                {
+                    m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: failed to delete asset; {0}",response["Message"].AsString());
+                    return false;
+                }
+                
                 return true;
+                
             }
             catch (Exception ex)
             {
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Failed to delete asset " + id + " from the asset service: " + ex.Message);
-                return false;
+                m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: failed to delete asset {0}; {1}", id, ex.Message);
             }
+
+            return false;
         }
 
-        #endregion IAssetService
-
-        private AssetBase GetRemote(string id)
+        /// <summary>
+        /// Invokes the xAddAsset operation on the simian server to create or update an asset
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private string SimianStoreOperation(AssetBase asset)
         {
-            AssetBase asset = null;
-            Uri url;
-
-            // Determine if id is an absolute URL or a grid-relative UUID
-            if (!Uri.TryCreate(id, UriKind.Absolute, out url))
-                url = new Uri(m_serverUrl + id);
-
             try
             {
-                HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
-
-                using (WebResponse response = request.GetResponse())
-                {
-                    using (Stream responseStream = response.GetResponseStream())
+                NameValueCollection requestArgs = new NameValueCollection
                     {
-                        string creatorID = response.Headers.GetOne("X-Asset-Creator-Id") ?? String.Empty;
-
-                        // Create the asset object
-                        asset = new AssetBase(id, String.Empty, SLUtil.ContentTypeToSLAssetType(response.ContentType), creatorID);
-
-                        UUID assetID;
-                        if (UUID.TryParse(id, out assetID))
-                            asset.FullID = assetID;
-
-                        // Grab the asset data from the response stream
-                        using (MemoryStream stream = new MemoryStream())
-                        {
-                            responseStream.CopyStream(stream, Int32.MaxValue);
-                            asset.Data = stream.ToArray();
-                        }
-                    }
+                            { "RequestMethod", "xAddAsset" },
+                            { "ContentType", asset.Metadata.ContentType },
+                            { "EncodedData", Convert.ToBase64String(asset.Data) },
+                            { "AssetID", asset.FullID.ToString() },
+                            { "CreatorID", asset.Metadata.CreatorID },
+                            { "Temporary", asset.Temporary ? "1" : "0" },
+                            { "Name", asset.Name }
+                    };
+                
+                OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
+                if (! response["Success"].AsBoolean())
+                {
+                    m_log.WarnFormat("[SIMIAN ASSET CONNECTOR] failed to store asset; {0}",response["Message"].AsString());
+                    return null;
                 }
 
-                // Cache store
-                if (m_cache != null && asset != null)
-                    m_cache.Cache(asset);
+                // asset.ID is always set before calling this function
+                return asset.ID;
+                
+            }
+            catch (Exception ex)
+            {
+                m_log.ErrorFormat("[SIMIAN ASSET CONNECTOR] failed to store asset; {0}",ex.Message);
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// Invokes the xGetAsset operation on the simian server to get data associated with an asset
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private AssetBase SimianGetOperation(string id)
+        {
+            try 
+            {
+                NameValueCollection requestArgs = new NameValueCollection
+                    {
+                            { "RequestMethod", "xGetAsset" },
+                            { "ID", id } 
+                    };
+
+                OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
+                if (! response["Success"].AsBoolean())
+                {
+                    m_log.WarnFormat("[SIMIAN ASSET CONNECTOR] Failed to get asset; {0}",response["Message"].AsString());
+                    return null;
+                }
+            
+                AssetBase asset = new AssetBase();
+
+                asset.ID = id;
+                asset.Name = String.Empty;
+                asset.Metadata.ContentType = response["ContentType"].AsString(); // this will also set the asset Type property
+                asset.CreatorID = response["CreatorID"].AsString();
+                asset.Data = System.Convert.FromBase64String(response["EncodedData"].AsString());
+                asset.Local = false;
+                asset.Temporary = response["Temporary"];
 
                 return asset;
             }
             catch (Exception ex)
             {
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
-                return null;
+                m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: failed to retrieve asset {0}; {1}", id, ex.Message);
             }
+
+            return null;
         }
+
+        /// <summary>
+        /// Invokes the xGetAssetMetadata operation on the simian server to retrieve metadata for an asset
+        /// This operation is generally used to determine if an asset exists in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private AssetMetadata SimianGetMetadataOperation(string id)
+        {
+            try
+            {
+                NameValueCollection requestArgs = new NameValueCollection
+                    {
+                            { "RequestMethod", "xGetAssetMetadata" },
+                            { "ID", id } 
+                    };
+
+                OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
+                if (! response["Success"].AsBoolean())
+                {
+                    // this is not really an error, this call is used to test existence
+                    // m_log.DebugFormat("[SIMIAN ASSET CONNECTOR] Failed to get asset metadata; {0}",response["Message"].AsString());
+                    return null;
+                }
+            
+                AssetMetadata metadata = new AssetMetadata();
+                metadata.ID = id;
+                metadata.ContentType = response["ContentType"].AsString();
+                metadata.CreatorID = response["CreatorID"].AsString();
+                metadata.Local = false;
+                metadata.Temporary = response["Temporary"];
+
+                string lastModifiedStr = response["Last-Modified"].AsString();
+                if (! String.IsNullOrEmpty(lastModifiedStr))
+                {
+                    DateTime lastModified;
+                    if (DateTime.TryParse(lastModifiedStr, out lastModified))
+                        metadata.CreationDate = lastModified;
+                }
+
+                return metadata;
+            }
+            catch (Exception ex)
+            {
+                m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: Failed to get asset metadata; {0}", ex.Message);
+            }
+
+            return null;
+        }
+#endregion
+
+        // private AssetMetadata GetRemoteMetadata(string id)
+        // {
+        //     Uri url;
+        //     AssetMetadata metadata = null;
+
+        //     // Determine if id is an absolute URL or a grid-relative UUID
+        //     if (!Uri.TryCreate(id, UriKind.Absolute, out url))
+        //         url = new Uri(m_serverUrl + id);
+
+        //     try
+        //     {
+        //         HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
+        //         request.Method = "HEAD";
+
+        //         using (WebResponse response = request.GetResponse())
+        //         {
+        //             using (Stream responseStream = response.GetResponseStream())
+        //             {
+        //                 // Create the metadata object
+        //                 metadata = new AssetMetadata();
+        //                 metadata.ContentType = response.ContentType;
+        //                 metadata.ID = id;
+
+        //                 UUID uuid;
+        //                 if (UUID.TryParse(id, out uuid))
+        //                     metadata.FullID = uuid;
+
+        //                 string lastModifiedStr = response.Headers.Get("Last-Modified");
+        //                 if (!String.IsNullOrEmpty(lastModifiedStr))
+        //                 {
+        //                     DateTime lastModified;
+        //                     if (DateTime.TryParse(lastModifiedStr, out lastModified))
+        //                         metadata.CreationDate = lastModified;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset HEAD from " + url + " failed: " + ex.Message);
+        //     }
+
+        //     return metadata;
+        // }
+
+        // private AssetBase GetRemote(string id)
+        // {
+        //     AssetBase asset = null;
+        //     Uri url;
+
+        //     // Determine if id is an absolute URL or a grid-relative UUID
+        //     if (!Uri.TryCreate(id, UriKind.Absolute, out url))
+        //         url = new Uri(m_serverUrl + id);
+
+        //     try
+        //     {
+        //         HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
+
+        //         using (WebResponse response = request.GetResponse())
+        //         {
+        //             using (Stream responseStream = response.GetResponseStream())
+        //             {
+        //                 string creatorID = response.Headers.GetOne("X-Asset-Creator-Id") ?? String.Empty;
+
+        //                 // Create the asset object
+        //                 asset = new AssetBase(id, String.Empty, SLUtil.ContentTypeToSLAssetType(response.ContentType), creatorID);
+
+        //                 UUID assetID;
+        //                 if (UUID.TryParse(id, out assetID))
+        //                     asset.FullID = assetID;
+
+        //                 // Grab the asset data from the response stream
+        //                 using (MemoryStream stream = new MemoryStream())
+        //                 {
+        //                     responseStream.CopyStream(stream, Int32.MaxValue);
+        //                     asset.Data = stream.ToArray();
+        //                 }
+        //             }
+        //         }
+
+        //         // Cache store
+        //         if (m_cache != null && asset != null)
+        //             m_cache.Cache(asset);
+
+        //         return asset;
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
+        //         return null;
+        //     }
+        // }
+
+        // private string StoreRemote(AssetBase asset)
+        // {
+        //     // Distinguish public and private assets
+        //     bool isPublic = true;
+        //     switch ((AssetType)asset.Type)
+        //     {
+        //         case AssetType.CallingCard:
+        //         case AssetType.Gesture:
+        //         case AssetType.LSLBytecode:
+        //         case AssetType.LSLText:
+        //             isPublic = false;
+        //             break;
+        //     }
+
+        //     string errorMessage = null;
+            
+        //     // Build the remote storage request
+        //     List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
+        //     {
+        //         new MultipartForm.Parameter("AssetID", asset.FullID.ToString()),
+        //         new MultipartForm.Parameter("CreatorID", asset.Metadata.CreatorID),
+        //         new MultipartForm.Parameter("Temporary", asset.Temporary ? "1" : "0"),
+        //         new MultipartForm.Parameter("Public", isPublic ? "1" : "0"),
+        //         new MultipartForm.File("Asset", asset.Name, asset.Metadata.ContentType, asset.Data)
+        //     };
+
+        //     // Make the remote storage request
+        //     try
+        //     {
+        //         // Simian does not require the asset ID to be in the URL because it's in the post data.
+        //         // By appending it to the URL also, we allow caching proxies (squid) to invalidate asset URLs
+        //         HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl + asset.FullID.ToString());
+
+        //         using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
+        //         {
+        //             using (Stream responseStream = response.GetResponseStream())
+        //             {
+        //                 string responseStr = null;
+
+        //                 try
+        //                 {
+        //                     responseStr = responseStream.GetStreamString();
+        //                     OSD responseOSD = OSDParser.Deserialize(responseStr);
+        //                     if (responseOSD.Type == OSDType.Map)
+        //                     {
+        //                         OSDMap responseMap = (OSDMap)responseOSD;
+        //                         if (responseMap["Success"].AsBoolean())
+        //                             return asset.ID;
+        //                         else
+        //                             errorMessage = "Upload failed: " + responseMap["Message"].AsString();
+        //                     }
+        //                     else
+        //                     {
+        //                         errorMessage = "Response format was invalid:\n" + responseStr;
+        //                     }
+        //                 }
+        //                 catch (Exception ex)
+        //                 {
+        //                     if (!String.IsNullOrEmpty(responseStr))
+        //                         errorMessage = "Failed to parse the response:\n" + responseStr;
+        //                     else
+        //                         errorMessage = "Failed to retrieve the response: " + ex.Message;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     catch (WebException ex)
+        //     {
+        //         errorMessage = ex.Message;
+        //     }
+
+        //     m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: Failed to store asset \"{0}\" ({1}, {2}): {3}",
+        //         asset.Name, asset.ID, asset.Metadata.ContentType, errorMessage);
+
+        //     return null;
+        // }
     }
 }

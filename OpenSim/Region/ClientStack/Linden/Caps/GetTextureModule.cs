@@ -82,6 +82,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
 
+        private string m_URL;
+
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
@@ -343,13 +345,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
+            m_URL = "/CAPS/" + UUID.Random() + "/";
 
             // Register this as a poll service           
             PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
             
             args.Type = PollServiceEventArgs.EventType.Texture;
-            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
+            MainServer.Instance.AddPollServiceHTTPHandler(m_URL, args);
 
             string hostName = m_scene.RegionInfo.ExternalHostName;
             uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
@@ -361,20 +363,23 @@ namespace OpenSim.Region.ClientStack.Linden
                 port = MainServer.Instance.SSLPort;
                 protocol = "https";
             }
-            caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+
+            IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+            if (handler != null)
+                handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", m_URL);
+            else
+                caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, m_URL));
             m_pollservices[agentID] = args;
-            m_capsDict[agentID] = capUrl;
+            m_capsDict[agentID] = m_URL;
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl;
             PollServiceTextureEventArgs args;
-            if (m_capsDict.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemoveHTTPHandler("", capUrl);
-                m_capsDict.Remove(agentID);
-            }
+
+            MainServer.Instance.RemoveHTTPHandler("", m_URL);
+            m_capsDict.Remove(agentID);
+
             if (m_pollservices.TryGetValue(agentID, out args))
             {
                 m_pollservices.Remove(agentID);

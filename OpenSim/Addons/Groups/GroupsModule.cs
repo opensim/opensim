@@ -991,6 +991,10 @@ namespace OpenSim.Groups
 
                 // Should this send updates to everyone in the group?
                 SendAgentGroupDataUpdate(remoteClient, GetRequestingAgentID(remoteClient));
+
+                if (reason != string.Empty)
+                    // A warning
+                    remoteClient.SendAlertMessage("Warning: " + reason);
             }
             else
                 remoteClient.SendJoinGroupReply(groupID, false);

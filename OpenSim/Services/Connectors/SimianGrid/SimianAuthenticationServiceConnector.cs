@@ -116,7 +116,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", principalID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Identities"] is OSDArray)
             {
                 bool md5hashFound = false;
@@ -159,7 +159,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "SessionID", token }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 return true;
@@ -181,7 +181,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", principalID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 return true;
@@ -204,7 +204,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", principalID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["User"] is OSDMap)
             {
                 OSDMap userMap = (OSDMap)response["User"];
@@ -224,7 +224,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         { "UserID", principalID.ToString() }
                     };
 
-                    response = WebUtil.PostToService(m_serverUrl, requestArgs);
+                    response = SimianGrid.PostToService(m_serverUrl, requestArgs);
                     bool success = response["Success"].AsBoolean();
 
                     if (!success)
@@ -303,7 +303,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
                 return response["SessionID"].AsUUID().ToString();
             else

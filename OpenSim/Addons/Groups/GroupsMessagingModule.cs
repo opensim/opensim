@@ -246,7 +246,7 @@ namespace OpenSim.Groups
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
             UUID fromAgentID = new UUID(im.fromAgentID);
-            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers("all", groupID);
+            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), groupID);
             int groupMembersCount = groupMembers.Count;
             PresenceInfo[] onlineAgents = null;
 
@@ -297,6 +297,10 @@ namespace OpenSim.Groups
                 if (member.AgentID.Guid == im.fromAgentID)
                     continue;
 
+                if (clientsAlreadySent.Contains(member.AgentID))
+                    continue;
+                clientsAlreadySent.Add(member.AgentID);
+
                 if (hasAgentDroppedGroupChatSession(member.AgentID.ToString(), groupID))
                 {
                     // Don't deliver messages to people who have dropped this session
@@ -336,12 +340,9 @@ namespace OpenSim.Groups
                     // Deliver locally, directly
                     if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
 
-                    if (clientsAlreadySent.Contains(member.AgentID))
-                        continue;
-                    clientsAlreadySent.Add(member.AgentID);
-
                     ProcessMessageFromGroupSession(im);
                 }
+
             }
 
             if (m_debugEnabled)
@@ -403,8 +404,7 @@ namespace OpenSim.Groups
                 Scene aScene = m_sceneList[0];
                 GridRegion regionOfOrigin = aScene.GridService.GetRegionByUUID(aScene.RegionInfo.ScopeID, regionID);
 
-                List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers("all", GroupID);
-                List<UUID> alreadySeen = new List<UUID>();
+                List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), GroupID);
 
                 //if (m_debugEnabled)
                 //    foreach (GroupMembersData m in groupMembers)
@@ -414,15 +414,10 @@ namespace OpenSim.Groups
                 {
                     s.ForEachScenePresence(sp =>
                         {
-                            // We need this, because we are searching through all
-                            // SPs, both root and children
-                            if (alreadySeen.Contains(sp.UUID))
-                            {
-                                if (m_debugEnabled)
-                                    m_log.DebugFormat("[Groups.Messaging]: skipping agent {0} because we've already seen it", sp.UUID);
+                            // If we got this via grid messaging, it's because the caller thinks
+                            // that the root agent is here. We should only send the IM to root agents.
+                            if (sp.IsChildAgent)
                                 return;
-                            }
-                            alreadySeen.Add(sp.UUID);
 
                             GroupMembersData m = groupMembers.Find(gmd =>
                                 {

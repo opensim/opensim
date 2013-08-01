@@ -69,9 +69,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "ClientLogoutsDueToNoReceives",
+                    "Number of times a client has been logged out because no packets were received before the timeout.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = m_udpServer.ClientLogoutsDueToNoReceives,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "IncomingUDPReceivesCount",
                     "Number of UDP receives performed",
-                    "Number of UDP receives performed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
@@ -84,7 +97,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 new Stat(
                     "IncomingPacketsProcessedCount",
                     "Number of inbound LL protocol packets processed",
-                    "Number of inbound LL protocol packets processed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
@@ -97,7 +110,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 new Stat(
                     "OutgoingUDPSendsCount",
                     "Number of UDP sends performed",
-                    "Number of UDP sends performed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
@@ -148,6 +161,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
         public const int MTU = 1400;
+
+        /// <summary>Number of forced client logouts due to no receipt of packets before timeout.</summary>
+        public int ClientLogoutsDueToNoReceives { get; private set; }
 
         /// <summary>
         /// Default packet debug level given to new clients
@@ -1058,7 +1074,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Fire this out on a different thread so that we don't hold up outgoing packet processing for
                 // everybody else if this is being called due to an ack timeout.
                 // This is the same as processing as the async process of a logout request.
-                Util.FireAndForget(o => DeactivateClientDueToTimeout(client));
+                Util.FireAndForget(o => DeactivateClientDueToTimeout(client, timeoutTicks));
 
                 return;
             }
@@ -1842,18 +1858,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// regular client pings.
         /// </remarks>
         /// <param name='client'></param>
-        private void DeactivateClientDueToTimeout(LLClientView client)
+        /// <param name='timeoutTicks'></param>
+        private void DeactivateClientDueToTimeout(LLClientView client, int timeoutTicks)
         {
             lock (client.CloseSyncLock)
-            {
+            {    
+                ClientLogoutsDueToNoReceives++;
+
                 m_log.WarnFormat(
-                    "[LLUDPSERVER]: Ack timeout, disconnecting {0} agent for {1} in {2}",
-                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, m_scene.RegionInfo.RegionName);
-    
-                StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
+                    "[LLUDPSERVER]: No packets received from {0} agent of {1} for {2}ms in {3}.  Disconnecting.",
+                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, timeoutTicks, m_scene.Name);
     
                 if (!client.SceneAgent.IsChildAgent)
-                     client.Kick("Simulator logged you out due to connection timeout");
+                     client.Kick("Simulator logged you out due to connection timeout.");
     
                 client.CloseWithoutChecks(true);
             }
