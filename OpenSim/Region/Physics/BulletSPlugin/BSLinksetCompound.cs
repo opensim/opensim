@@ -42,6 +42,7 @@ public sealed class BSLinksetCompound : BSLinkset
     public BSLinksetCompound(BSScene scene, BSPrimLinkable parent)
         : base(scene, parent)
     {
+        LinksetImpl = LinksetImplementation.Compound;
     }
 
     // ================================================================

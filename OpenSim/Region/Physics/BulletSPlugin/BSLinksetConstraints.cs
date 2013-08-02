@@ -107,6 +107,7 @@ public sealed class BSLinksetConstraints : BSLinkset
 
     public BSLinksetConstraints(BSScene scene, BSPrimLinkable parent) : base(scene, parent)
     {
+        LinksetImpl = LinksetImplementation.Constraint;
     }
 
     // When physical properties are changed the linkset needs to recalculate

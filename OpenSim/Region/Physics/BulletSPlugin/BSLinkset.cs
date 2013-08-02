@@ -79,6 +79,8 @@ public abstract class BSLinkset
         }
     }
 
+    public LinksetImplementation LinksetImpl { get; protected set; }
+
     public BSPrimLinkable LinksetRoot { get; protected set; }
 
     protected BSScene m_physicsScene { get; private set; }

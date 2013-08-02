@@ -233,5 +233,35 @@ public class BSPrimLinkable : BSPrimDisplaced
             base.HasSomeCollision = value;
         }
     }
+
+    // Convert the existing linkset of this prim into a new type.
+    public bool ConvertLinkset(BSLinkset.LinksetImplementation newType)
+    {
+        bool ret = false;
+        if (LinksetType != newType)
+        {
+            BSLinkset oldLinkset = Linkset;
+            BSLinkset newLinkset = BSLinkset.Factory(PhysScene, this);
+
+            // Pick up any physical dependencies this linkset might have in the physics engine.
+            oldLinkset.RemoveDependencies(this);
+
+            // Copy the linkset children from the old linkset to the new (will be a new instance from the factory)
+            oldLinkset.ForEachLinkInfo((li) =>
+            {
+                oldLinkset.RemoveMeFromLinkset(li.member);
+                newLinkset.AddMeToLinkset(li.member);
+                li.member.Linkset = newLinkset;
+                return false;
+            });
+
+            this.Linkset = newLinkset;
+
+            // Force the shape and linkset to get reconstructed
+            newLinkset.Refresh(this);
+            this.ForceBodyShapeRebuild(true);
+        }
+        return ret;
+    }
 }
 }
