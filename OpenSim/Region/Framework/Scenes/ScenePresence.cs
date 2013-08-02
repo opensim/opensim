@@ -1568,7 +1568,13 @@ namespace OpenSim.Region.Framework.Scenes
             // Here's where you get them.
             m_AgentControlFlags = flags;
             m_headrotation = agentData.HeadRotation;
+            byte oldState = State;
             State = agentData.State;
+
+            // We need to send this back to the client in order to stop the edit beams
+            if ((oldState & (uint)AgentState.Editing) != 0 && State == (uint)AgentState.None)
+                ControllingClient.SendAgentTerseUpdate(this);
+
 
             PhysicsActor actor = PhysicsActor;
             if (actor == null)

@@ -1541,6 +1541,50 @@ public class BSPrim : BSPhysObject
         PhysicalActors.RemoveDependencies();
     }
 
+    #region Extension
+    public override object Extension(string pFunct, params object[] pParams)
+    {
+        object ret = null;
+        switch (pFunct)
+        {
+            case BSScene.PhysFunctGetLinksetType:
+            {
+                BSPrimLinkable myHandle = this as BSPrimLinkable;
+                if (myHandle != null)
+                {
+                    ret = (object)myHandle.LinksetType;
+                }
+                m_log.DebugFormat("{0} Extension.physGetLinksetType, type={1}", LogHeader, ret);
+                break;
+            }
+            case BSScene.PhysFunctSetLinksetType:
+            {
+                if (pParams.Length > 0)
+                {
+                    BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[0];
+                    BSPrimLinkable myHandle = this as BSPrimLinkable;
+                    if (myHandle != null && myHandle.Linkset.IsRoot(myHandle))
+                    {
+                        PhysScene.TaintedObject("BSPrim.PhysFunctSetLinksetType", delegate()
+                        {
+                            // Cause the linkset type to change
+                            m_log.DebugFormat("{0} Extension.physSetLinksetType, oldType={1}, newType={2}",
+                                                LogHeader, myHandle.Linkset.LinksetImpl, linksetType);
+                            myHandle.ConvertLinkset(linksetType);
+                        });
+                    }
+                    ret = (object)(int)linksetType;
+                }
+                break;
+            }
+            default:
+                ret = base.Extension(pFunct, pParams);
+                break;
+        }
+        return ret;
+    }
+    #endregion  // Extension
+
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
     // NOTE: BSPrim.UpdateProperties is overloaded by BSPrimLinkable which modifies updates from root and children prims.
