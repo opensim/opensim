@@ -240,26 +240,37 @@ public class BSPrimLinkable : BSPrimDisplaced
         bool ret = false;
         if (LinksetType != newType)
         {
-            BSLinkset oldLinkset = Linkset;
+            // Set the implementation type first so the call to BSLinkset.Factory gets the new type.
+            this.LinksetType = newType;
+
+            BSLinkset oldLinkset = this.Linkset;
             BSLinkset newLinkset = BSLinkset.Factory(PhysScene, this);
+
+            this.Linkset = newLinkset;
 
             // Pick up any physical dependencies this linkset might have in the physics engine.
             oldLinkset.RemoveDependencies(this);
 
-            // Copy the linkset children from the old linkset to the new (will be a new instance from the factory)
-            oldLinkset.ForEachLinkInfo((li) =>
+            // Create a list of the children (mainly because can't interate through a list that's changing)
+            List<BSPrimLinkable> children = new List<BSPrimLinkable>();
+            oldLinkset.ForEachMember((child) =>
             {
-                oldLinkset.RemoveMeFromLinkset(li.member);
-                newLinkset.AddMeToLinkset(li.member);
-                li.member.Linkset = newLinkset;
-                return false;
+                if (!oldLinkset.IsRoot(child))
+                    children.Add(child);
+                return false;   // 'false' says to continue to next member
             });
 
-            this.Linkset = newLinkset;
+            // Remove the children from the old linkset and add to the new (will be a new instance from the factory)
+            foreach (BSPrimLinkable child in children)
+            {
+                oldLinkset.RemoveMeFromLinkset(child);
+                newLinkset.AddMeToLinkset(child);
+                child.Linkset = newLinkset;
+            }
 
             // Force the shape and linkset to get reconstructed
             newLinkset.Refresh(this);
-            this.ForceBodyShapeRebuild(true);
+            this.ForceBodyShapeRebuild(true /* inTaintTime */);
         }
         return ret;
     }
