@@ -937,7 +937,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 {
                     string retval = null;
                     if (value is int)
-                        retval = ((int)value).ToString();
+                        retval = String.Format("new LSL_Types.LSLInteger({0})",((int)value).ToString());
                     else if (value is float)
                         retval = String.Format("new LSL_Types.LSLFloat({0})",((float)value).ToString());
                     else if (value is string)

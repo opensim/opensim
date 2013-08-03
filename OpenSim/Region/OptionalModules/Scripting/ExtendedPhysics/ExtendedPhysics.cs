@@ -49,9 +49,19 @@ public class ExtendedPhysics : INonSharedRegionModule
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static string LogHeader = "[EXTENDED PHYSICS]";
 
+    // =============================================================
     // Since BulletSim is a plugin, this these values aren't defined easily in one place.
-    // This table must coorespond to an identical table in BSScene.
+    // This table must correspond to an identical table in BSScene.
+
+    // Per scene functions. See BSScene.
+
+    // Per avatar functions. See BSCharacter.
+
+    // Per prim functions. See BSPrim.
+    public const string PhysFunctGetLinksetType = "BulletSim.GetLinksetType";
     public const string PhysFunctSetLinksetType = "BulletSim.SetLinksetType";
+
+    // =============================================================
 
     private IConfig Configuration { get; set; }
     private bool Enabled { get; set; }
@@ -123,6 +133,7 @@ public class ExtendedPhysics : INonSharedRegionModule
  
         // Register as LSL functions all the [ScriptInvocation] marked methods.
         Comms.RegisterScriptInvocations(this);
+        Comms.RegisterConstants(this);
 
         // When an object is modified, we might need to update its extended physics parameters
         BaseScene.EventManager.OnObjectAddedToScene += EventManager_OnObjectAddedToScene;
@@ -136,7 +147,6 @@ public class ExtendedPhysics : INonSharedRegionModule
 
     private void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
     {
-        throw new NotImplementedException();
     }
 
     // Event generated when some property of a prim changes.
@@ -168,9 +178,11 @@ public class ExtendedPhysics : INonSharedRegionModule
     public static int PHYS_LINKSET_TYPE_MANUAL      = 2;
 
     [ScriptInvocation]
-    public void physSetLinksetType(UUID hostID, UUID scriptID, int linksetType)
+    public int physSetLinksetType(UUID hostID, UUID scriptID, int linksetType)
     {
-        if (!Enabled) return;
+        int ret = -1;
+
+        if (!Enabled) return ret;
 
         // The part that is requesting the change.
         SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
@@ -186,7 +198,7 @@ public class ExtendedPhysics : INonSharedRegionModule
                 Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
                 if (rootPhysActor != null)
                 {
-                    rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                    ret = (int)rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
                 }
                 else
                 {
@@ -204,6 +216,49 @@ public class ExtendedPhysics : INonSharedRegionModule
         {
             m_log.WarnFormat("{0} physSetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
         }
+        return ret;
+    }
+
+    [ScriptInvocation]
+    public int physGetLinksetType(UUID hostID, UUID scriptID)
+    {
+        int ret = -1;
+
+        if (!Enabled) return ret;
+
+        // The part that is requesting the change.
+        SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
+
+        if (requestingPart != null)
+        {
+            // The type is is always on the root of a linkset.
+            SceneObjectGroup containingGroup = requestingPart.ParentGroup;
+            SceneObjectPart rootPart = containingGroup.RootPart;
+
+            if (rootPart != null)
+            {
+                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
+                if (rootPhysActor != null)
+                {
+                    ret = (int)rootPhysActor.Extension(PhysFunctGetLinksetType);
+                }
+                else
+                {
+                    m_log.WarnFormat("{0} physGetLinksetType: root part does not have a physics actor. rootName={1}, hostID={2}",
+                                        LogHeader, rootPart.Name, hostID);
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("{0} physGetLinksetType: root part does not exist. RequestingPartName={1}, hostID={2}",
+                                    LogHeader, requestingPart.Name, hostID);
+            }
+        }
+        else
+        {
+            m_log.WarnFormat("{0} physGetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
+        }
+        return ret;
     }
 }
 }
