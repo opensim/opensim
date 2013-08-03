@@ -145,10 +145,10 @@ namespace OpenSim.Framework
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed)
         {
-            lock (EndPointLock(url))
-            {
+            //lock (EndPointLock(url))
+            //{
                 return ServiceOSDRequestWorker(url,data,method,timeout,compressed);
-            }
+            //}
         }
 
         public static void LogOutgoingDetail(Stream outputStream)
