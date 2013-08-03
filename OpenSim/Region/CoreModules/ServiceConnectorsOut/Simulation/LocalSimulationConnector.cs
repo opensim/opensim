@@ -84,10 +84,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void InitialiseService(IConfigSource configSource)
         {
+            ServiceVersion = "SIMULATION/0.2";
             IConfig config = configSource.Configs["SimulationService"];
             if (config != null)
             {
-                ServiceVersion = config.GetString("ConnectorProtocolVersion", "SIMULATION/0.2");
+                ServiceVersion = config.GetString("ConnectorProtocolVersion", ServiceVersion);
 
                 if (ServiceVersion != "SIMULATION/0.1" && ServiceVersion != "SIMULATION/0.2")
                     throw new Exception(string.Format("Invalid ConnectorProtocolVersion {0}", ServiceVersion));
