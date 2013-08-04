@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // We're fgoing to enforce some stricter permissions if Outbound is false
             scene.Permissions.OnTakeObject += CanTakeObject;
             scene.Permissions.OnTakeCopyObject += CanTakeObject;
-
+            scene.Permissions.OnTransferUserInventory += OnTransferUserInventory;
         }
 
         #endregion
@@ -446,6 +446,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             return true;
         }
+
+        private bool OnTransferUserInventory(UUID itemID, UUID userID, UUID recipientID)
+        {
+            if (m_bypassPermissions) return true;
+
+            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(recipientID))
+                return false;
+
+            return true;
+        }
+
 
         #endregion
     }

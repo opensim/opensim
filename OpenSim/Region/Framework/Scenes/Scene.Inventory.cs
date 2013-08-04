@@ -556,6 +556,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
 
+            if (!Permissions.CanTransferUserInventory(itemId, senderId, recipient))
+                return null;
+
             InventoryItemBase item = new InventoryItemBase(itemId, senderId);
             item = InventoryService.GetItem(item);
 
