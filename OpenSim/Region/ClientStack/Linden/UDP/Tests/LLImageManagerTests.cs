@@ -29,6 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using log4net.Config;
 using Nini.Config;
 using NUnit.Framework;
@@ -105,7 +106,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             args.requestSequence = 1;
 
             llim.EnqueueReq(args);
-            llim.ProcessImageQueue(20);
+
+            // We now have to wait and hit the processing wheel, because the decoding is async
+            int i = 10;
+            while (i-- > 0)
+            {
+                llim.ProcessImageQueue(20);
+                Thread.Sleep(100);
+            }
 
             Assert.That(tc.SentImageDataPackets.Count, Is.EqualTo(1));
         }
