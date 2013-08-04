@@ -2068,7 +2068,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If we don't have permission, stop right here
                 if (!permissionToTakeCopy)
+                {
+                    remoteClient.SendAlertMessage("You don't have permission to take the object");
                     return;
+                }
 
                 permissionToTake = true;
                 // Don't delete
