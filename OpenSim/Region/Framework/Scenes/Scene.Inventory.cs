@@ -2230,6 +2230,13 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
 
+
+            if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
+            {
+                group.RootPart.AttachedPos = group.AbsolutePosition;
+                group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+            }
+                                    
             group.FromPartID = sourcePart.UUID;
             AddNewSceneObject(group, true, pos, rot, vel);
             

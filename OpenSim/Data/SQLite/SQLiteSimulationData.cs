@@ -1236,6 +1236,10 @@ namespace OpenSim.Data.SQLite
 
             createCol(prims, "MediaURL", typeof(String));
             
+            createCol(prims, "AttachedPosX", typeof(Double));
+            createCol(prims, "AttachedPosY", typeof(Double));
+            createCol(prims, "AttachedPosZ", typeof(Double));
+
             createCol(prims, "DynAttrs", typeof(String));
 
             createCol(prims, "PhysicsShapeType", typeof(Byte));
@@ -1724,6 +1728,12 @@ namespace OpenSim.Data.SQLite
                 prim.MediaUrl = (string)row["MediaURL"];
             }
             
+            prim.AttachedPos = new Vector3(
+                Convert.ToSingle(row["AttachedPosX"]),
+                Convert.ToSingle(row["AttachedPosY"]),
+                Convert.ToSingle(row["AttachedPosZ"])
+                );
+
             if (!(row["DynAttrs"] is System.DBNull))
             {
                 //m_log.DebugFormat("[SQLITE]: DynAttrs type [{0}]", row["DynAttrs"].GetType());
@@ -2176,6 +2186,10 @@ namespace OpenSim.Data.SQLite
 
             row["MediaURL"] = prim.MediaUrl;
 
+            row["AttachedPosX"] = prim.AttachedPos.X;
+            row["AttachedPosY"] = prim.AttachedPos.Y;
+            row["AttachedPosZ"] = prim.AttachedPos.Z;
+
             if (prim.DynAttrs.CountNamespaces > 0)
                 row["DynAttrs"] = prim.DynAttrs.ToXml();
             else
@@ -2444,6 +2458,7 @@ namespace OpenSim.Data.SQLite
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
             s.State = Convert.ToByte(row["State"]);
+            s.LastAttachPoint = Convert.ToByte(row["LastAttachPoint"]);
 
             byte[] textureEntry = (byte[])row["Texture"];
             s.TextureEntry = textureEntry;
@@ -2493,6 +2508,7 @@ namespace OpenSim.Data.SQLite
             row["ProfileCurve"] = s.ProfileCurve;
             row["ProfileHollow"] = s.ProfileHollow;
             row["State"] = s.State;
+            row["LastAttachPoint"] = s.LastAttachPoint;
 
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
