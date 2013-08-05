@@ -467,12 +467,12 @@ namespace OpenSim.Groups
                         }
 
                         // Send notice out to everyone that wants notices
-                        // Build notice IIM
-                        GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
                         foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetRequestingAgentIDStr(remoteClient), GroupID))
                         {
                             if (member.AcceptNotices)
                             {
+                                // Build notice IIM, one of reach, because the sending may be async
+                                GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
                                 msg.toAgentID = member.AgentID.Guid;
                                 OutgoingInstantMessage(msg, member.AgentID);
                             }
