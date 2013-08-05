@@ -68,8 +68,18 @@ namespace OpenSim.Tests.Clients.AssetsClient
             m_log.InfoFormat("[ASSET CLIENT]: Connecting to {0} max threads = {1} - {2}", serverURI, max1, max2);
             ThreadPool.GetMinThreads(out max1, out max2);
             m_log.InfoFormat("[ASSET CLIENT]: Connecting to {0} min threads = {1} - {2}", serverURI, max1, max2);
-            ThreadPool.SetMinThreads(1, 1);
-            ThreadPool.SetMaxThreads(10, 3);
+
+            if (!ThreadPool.SetMinThreads(1, 1))
+                m_log.WarnFormat("[ASSET CLIENT]: Failed to set min threads");
+
+            if (!ThreadPool.SetMaxThreads(10, 3))
+                m_log.WarnFormat("[ASSET CLIENT]: Failed to set max threads");
+
+            ThreadPool.GetMaxThreads(out max1, out max2);
+            m_log.InfoFormat("[ASSET CLIENT]: Post set max threads = {1} - {2}", serverURI, max1, max2);
+            ThreadPool.GetMinThreads(out max1, out max2);
+            m_log.InfoFormat("[ASSET CLIENT]: Post set min threads = {1} - {2}", serverURI, max1, max2);
+
             ServicePointManager.DefaultConnectionLimit = 12;
 
             AssetServicesConnector m_Connector = new AssetServicesConnector(serverURI);
