@@ -263,6 +263,12 @@ namespace OpenSim.Framework.Servers
                 HandleDebugCommsSet);
 
             m_console.Commands.AddCommand (
+                "Debug", false, "debug comms status",
+                "debug comms status",
+                "Show current debug comms parameters.",
+                HandleDebugCommsStatus);
+
+            m_console.Commands.AddCommand (
                 "Debug", false, "debug threadpool set",
                 "debug threadpool set worker|iocp min|max <n>",
                 "Set threadpool parameters.  For debug purposes.",
@@ -300,6 +306,11 @@ namespace OpenSim.Framework.Servers
             m_serverStatsCollector = new ServerStatsCollector();
             m_serverStatsCollector.Initialise(configSource);
             m_serverStatsCollector.Start();
+        }
+
+        private void HandleDebugCommsStatus(string module, string[] args)
+        {
+            Notice("serialosdreq is {0}", WebUtil.SerializeOSDRequestsPerEndpoint);
         }
 
         private void HandleDebugCommsSet(string module, string[] args)
