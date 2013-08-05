@@ -74,11 +74,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 {
                     m_simianURL = m_config.GetString("SimianServiceURL");
                     if (String.IsNullOrEmpty(m_simianURL))
-                        m_log.ErrorFormat("[SimianGrid] service URL is not defined");
+                    {
+                        // m_log.DebugFormat("[SimianGrid] service URL is not defined");
+                        m_enabled = false;
+                        return;
+                    }
                     
                     InitialiseSimCap();
                     SimulatorCapability = SimulatorCapability.Trim();
-                    m_log.WarnFormat("[SimianExternalCaps] using {0} as simulator capability",SimulatorCapability);
+                    m_log.InfoFormat("[SimianExternalCaps] using {0} as simulator capability",SimulatorCapability);
                 }
             }
             catch (Exception e)
