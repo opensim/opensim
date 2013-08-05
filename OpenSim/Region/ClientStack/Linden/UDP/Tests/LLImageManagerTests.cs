@@ -54,6 +54,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [TestFixtureSetUp]
         public void FixtureInit()
         {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.None;
+
             using (
                 Stream resource
                     = GetType().Assembly.GetManifestResourceStream(
@@ -71,6 +74,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                     m_testImageAsset.Data = br.ReadBytes(99999999);
                 }
             }
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten not to worry about such things.
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
         [SetUp]
@@ -106,14 +117,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             args.requestSequence = 1;
 
             llim.EnqueueReq(args);
-
-            // We now have to wait and hit the processing wheel, because the decoding is async
-            int i = 10;
-            while (i-- > 0)
-            {
-                llim.ProcessImageQueue(20);
-                Thread.Sleep(100);
-            }
+            llim.ProcessImageQueue(20);
 
             Assert.That(tc.SentImageDataPackets.Count, Is.EqualTo(1));
         }
