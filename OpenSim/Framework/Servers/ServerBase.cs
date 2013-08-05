@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Servers
                 "Show thread status", HandleShow);
 
             m_console.Commands.AddCommand(
-                "General", false, "threads abort",
+                "Debug", false, "threads abort",
                 "threads abort <thread-id>",
                 "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
 
@@ -263,7 +263,7 @@ namespace OpenSim.Framework.Servers
                 HandleDebugThreadpoolSet);
 
             m_console.Commands.AddCommand(
-                "General", false, "force gc",
+                "Debug", false, "force gc",
                 "force gc",
                 "Manually invoke runtime garbage collection.  For debugging purposes",
                 HandleForceGc);
