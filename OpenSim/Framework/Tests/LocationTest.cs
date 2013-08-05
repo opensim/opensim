@@ -55,10 +55,17 @@ namespace OpenSim.Framework.Tests
             Location TestLocation2 = new Location(1095216660736000);
             Assert.That(TestLocation1 == TestLocation2);
 
+            Assert.That(TestLocation1.X == 255000 && TestLocation1.Y == 256000, "Test xy location doesn't match position in the constructor");
             Assert.That(TestLocation2.X == 255000 && TestLocation2.Y == 256000, "Test xy location doesn't match regionhandle provided");
 
             Assert.That(TestLocation2.RegionHandle == 1095216660736000,
                         "Location RegionHandle Property didn't match regionhandle provided in constructor");
+
+            ulong RegionHandle = TestLocation1.RegionHandle;
+            Assert.That(RegionHandle.Equals(1095216660736000), "Equals(regionhandle) failed to match the position in the constructor");
+
+            TestLocation2 = new Location(RegionHandle);
+            Assert.That(TestLocation2.Equals(255000, 256000), "Decoded regionhandle failed to match the original position in the constructor");
 
 
             TestLocation1 = new Location(255001, 256001);
