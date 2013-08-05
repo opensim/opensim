@@ -35,9 +35,9 @@ using OpenMetaverse.StructuredData;
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
-    /// Singleton used to provide access to statistics reporters
+    /// Static class used to register/deregister/fetch statistics
     /// </summary>
-    public class StatsManager
+    public static class StatsManager
     {
         // Subcommand used to list other stats.
         public const string AllSubCommand = "all";
@@ -257,7 +257,7 @@ namespace OpenSim.Framework.Monitoring
 //        }
 
         /// <summary>
-        /// Registers a statistic.
+        /// Register a statistic.
         /// </summary>
         /// <param name='stat'></param>
         /// <returns></returns>

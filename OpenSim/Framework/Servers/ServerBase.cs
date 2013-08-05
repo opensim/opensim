@@ -272,6 +272,7 @@ namespace OpenSim.Framework.Servers
                 "shutdown",
                 "Quit the application", (mod, args) => Shutdown());
 
+            ChecksManager.RegisterConsoleCommands(m_console);
             StatsManager.RegisterConsoleCommands(m_console);
         }
 
