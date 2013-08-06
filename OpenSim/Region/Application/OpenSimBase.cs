@@ -75,6 +75,7 @@ namespace OpenSim
         protected int proxyOffset = 0;
         
         public string userStatsURI = String.Empty;
+        public string managedStatsURI = String.Empty;
 
         protected bool m_autoCreateClientStack = true;
 
@@ -188,6 +189,7 @@ namespace OpenSim
                     CreatePIDFile(pidFile);
                 
                 userStatsURI = startupConfig.GetString("Stats_URI", String.Empty);
+                managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
             }
 
             // Load the simulation data service

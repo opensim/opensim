@@ -172,6 +172,13 @@ namespace OpenSim
             if (userStatsURI != String.Empty)
                 MainServer.Instance.AddStreamHandler(new OpenSim.UXSimStatusHandler(this));
 
+            if (managedStatsURI != String.Empty)
+            {
+                string urlBase = String.Format("/{0}/", managedStatsURI);
+                MainServer.Instance.AddHTTPHandler(urlBase, StatsManager.HandleStatsRequest);
+                m_log.WarnFormat("[OPENSIM] Enabling remote managed stats fetch. URL = {0}", urlBase);
+            }
+
             if (m_console is RemoteConsole)
             {
                 if (m_consolePort == 0)
