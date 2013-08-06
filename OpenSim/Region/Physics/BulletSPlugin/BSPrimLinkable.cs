@@ -66,7 +66,7 @@ public class BSPrimLinkable : BSPrimDisplaced
 
     public override void Destroy()
     {
-        Linkset = Linkset.RemoveMeFromLinkset(this);
+        Linkset = Linkset.RemoveMeFromLinkset(this, false /* inTaintTime */);
         base.Destroy();
     }
 
@@ -94,7 +94,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         BSPhysObject parentBefore = Linkset.LinksetRoot;        // DEBUG
         int childrenBefore = Linkset.NumberOfChildren;          // DEBUG
 
-        Linkset = Linkset.RemoveMeFromLinkset(this);
+        Linkset = Linkset.RemoveMeFromLinkset(this, false /* inTaintTime*/);
 
         DetailLog("{0},BSPrimLinkset.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
             LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
@@ -240,6 +240,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         bool ret = false;
         if (LinksetType != newType)
         {
+            DetailLog("{0},BSPrimLinkset.ConvertLinkset,oldT={1},newT={2}", LocalID, LinksetType, newType);
+
             // Set the implementation type first so the call to BSLinkset.Factory gets the new type.
             this.LinksetType = newType;
 
@@ -263,7 +265,10 @@ public class BSPrimLinkable : BSPrimDisplaced
             // Remove the children from the old linkset and add to the new (will be a new instance from the factory)
             foreach (BSPrimLinkable child in children)
             {
-                oldLinkset.RemoveMeFromLinkset(child);
+                oldLinkset.RemoveMeFromLinkset(child, true /*inTaintTime*/);
+            }
+            foreach (BSPrimLinkable child in children)
+            {
                 newLinkset.AddMeToLinkset(child);
                 child.Linkset = newLinkset;
             }

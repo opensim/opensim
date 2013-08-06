@@ -224,7 +224,7 @@ public sealed class BSLinksetConstraints : BSLinkset
 
     // Remove the specified child from the linkset.
     // Safe to call even if the child is not really in my linkset.
-    protected override void RemoveChildFromLinkset(BSPrimLinkable child)
+    protected override void RemoveChildFromLinkset(BSPrimLinkable child, bool inTaintTime)
     {
         if (m_children.Remove(child))
         {
@@ -236,7 +236,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                             rootx.LocalID, rootx.PhysBody.AddrString,
                             childx.LocalID, childx.PhysBody.AddrString);
 
-            m_physicsScene.TaintedObject("BSLinksetConstraints.RemoveChildFromLinkset", delegate()
+            m_physicsScene.TaintedObject(inTaintTime, "BSLinksetConstraints.RemoveChildFromLinkset", delegate()
             {
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
@@ -382,9 +382,9 @@ public sealed class BSLinksetConstraints : BSLinkset
             Rebuilding = true;
 
             // There is no reason to build all this physical stuff for a non-physical linkset.
-            if (!LinksetRoot.IsPhysicallyActive)
+            if (!LinksetRoot.IsPhysicallyActive || !HasAnyChildren)
             {
-                DetailLog("{0},BSLinksetConstraint.RecomputeLinksetCompound,notPhysical", LinksetRoot.LocalID);
+                DetailLog("{0},BSLinksetConstraint.RecomputeLinksetCompound,notPhysicalOrNoChildren", LinksetRoot.LocalID);
                 return; // Note the 'finally' clause at the botton which will get executed.
             }
 

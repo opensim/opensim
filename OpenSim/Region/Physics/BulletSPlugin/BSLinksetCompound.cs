@@ -242,7 +242,7 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         bool ret = false;
 
-        DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
+        DetailLog("{0},BSLinksetCompound.RemoveDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
                         child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody, IsRoot(child));
 
         ScheduleRebuild(child);
@@ -270,7 +270,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
     // Remove the specified child from the linkset.
     // Safe to call even if the child is not really in the linkset.
-    protected override void RemoveChildFromLinkset(BSPrimLinkable child)
+    protected override void RemoveChildFromLinkset(BSPrimLinkable child, bool inTaintTime)
     {
         child.ClearDisplacement();
 
@@ -282,12 +282,12 @@ public sealed class BSLinksetCompound : BSLinkset
                             child.LocalID, child.PhysBody.AddrString);
 
             // Cause the child's body to be rebuilt and thus restored to normal operation
-            child.ForceBodyShapeRebuild(false);
+            child.ForceBodyShapeRebuild(inTaintTime);
 
             if (!HasAnyChildren)
             {
                 // The linkset is now empty. The root needs rebuilding.
-                LinksetRoot.ForceBodyShapeRebuild(false);
+                LinksetRoot.ForceBodyShapeRebuild(inTaintTime);
             }
             else
             {
@@ -318,10 +318,10 @@ public sealed class BSLinksetCompound : BSLinkset
             //     being destructed and going non-physical.
             LinksetRoot.ForceBodyShapeRebuild(true);
 
-            // There is no reason to build all this physical stuff for a non-physical linkset.
-            if (!LinksetRoot.IsPhysicallyActive)
+            // There is no reason to build all this physical stuff for a non-physical or empty linkset.
+            if (!LinksetRoot.IsPhysicallyActive || !HasAnyChildren)
             {
-                DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,notPhysical", LinksetRoot.LocalID);
+                DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,notPhysicalOrNoChildren", LinksetRoot.LocalID);
                 return; // Note the 'finally' clause at the botton which will get executed.
             }
 
