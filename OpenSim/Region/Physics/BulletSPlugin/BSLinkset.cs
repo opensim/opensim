@@ -148,7 +148,7 @@ public abstract class BSLinkset
     // Returns a new linkset for the child which is a linkset of one (just the
     //    orphened child).
     // Called at runtime.
-    public BSLinkset RemoveMeFromLinkset(BSPrimLinkable child)
+    public BSLinkset RemoveMeFromLinkset(BSPrimLinkable child, bool inTaintTime)
     {
         lock (m_linksetActivityLock)
         {
@@ -157,7 +157,7 @@ public abstract class BSLinkset
                 // Cannot remove the root from a linkset.
                 return this;
             }
-            RemoveChildFromLinkset(child);
+            RemoveChildFromLinkset(child, inTaintTime);
             LinksetMass = ComputeLinksetMass();
         }
 
@@ -255,7 +255,7 @@ public abstract class BSLinkset
 
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
-    protected abstract void RemoveChildFromLinkset(BSPrimLinkable child);
+    protected abstract void RemoveChildFromLinkset(BSPrimLinkable child, bool inTaintTime);
 
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.

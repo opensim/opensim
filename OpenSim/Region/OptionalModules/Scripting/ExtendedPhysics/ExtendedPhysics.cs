@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules;
@@ -198,7 +199,33 @@ public class ExtendedPhysics : INonSharedRegionModule
                 Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
                 if (rootPhysActor != null)
                 {
-                    ret = (int)rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                    if (rootPhysActor.IsPhysical)
+                    {
+                        // Change a physical linkset by making non-physical, waiting for one heartbeat so all
+                        //    the prim and linkset state is updated, changing the type and making the
+                        //    linkset physical again.
+                        containingGroup.ScriptSetPhysicsStatus(false);
+                        Thread.Sleep(150);  // longer than one heartbeat tick
+
+                        // A kludge for the moment.
+                        // Since compound linksets move the children but don't generate position updates to the
+                        //     simulator, it is possible for compound linkset children to have out-of-sync simulator
+                        //     and physical positions. The following causes the simulator to push the real child positions
+                        //     down into the physics engine to get everything synced.
+                        containingGroup.UpdateGroupPosition(containingGroup.AbsolutePosition);
+                        containingGroup.UpdateGroupRotationR(containingGroup.GroupRotation);
+
+                        ret = (int)rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                        Thread.Sleep(150);  // longer than one heartbeat tick
+
+                        containingGroup.ScriptSetPhysicsStatus(true);
+                    }
+                    else
+                    {
+                        // Non-physical linksets don't have a physical instantiation so there is no state to
+                        //    worry about being updated.
+                        ret = (int)rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                    }
                 }
                 else
                 {
