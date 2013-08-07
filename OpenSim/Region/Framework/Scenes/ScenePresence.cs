@@ -294,9 +294,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private Vector3 posLastSignificantMove;
 
-        // For teleports and crossings callbacks
+        #region For teleports and crossings callbacks
+
+        /// <summary>
+        /// In the V1 teleport protocol, the destination simulator sends ReleaseAgent to this address.
+        /// </summary>
         string m_callbackURI;
+
         UUID m_originRegionID;
+
+        /// <summary>
+        /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
+        /// teleport is reusing the connection.
+        /// </summary>
+        /// <remarks>May be refactored or move somewhere else soon.</remarks>
+        public bool DoNotCloseAfterTeleport { get; set; }
+
+        #endregion
 
         /// <value>
         /// Script engines present in the scene
@@ -763,13 +777,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inTransit = value;
             }
         }
-
-        /// <summary>
-        /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
-        /// teleport is reusing the connection.
-        /// </summary>
-        /// <remarks>May be refactored or move somewhere else soon.</remarks>
-        public bool DoNotCloseAfterTeleport { get; set; }
 
         private float m_speedModifier = 1.0f;
 
@@ -1516,14 +1523,14 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 20;
             while (m_originRegionID.Equals(UUID.Zero) && count-- > 0)
             {
-                m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.RegionInfo.RegionName);
+                m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.Name);
                 Thread.Sleep(200);
             }
 
             if (m_originRegionID.Equals(UUID.Zero))
             {
                 // Movement into region will fail
-                m_log.WarnFormat("[SCENE PRESENCE]: Update agent {0} never arrived", client.Name);
+                m_log.WarnFormat("[SCENE PRESENCE]: Update agent {0} never arrived in {1}", client.Name, Scene.Name);
                 return false;
             }
 
@@ -1829,7 +1836,13 @@ namespace OpenSim.Region.Framework.Scenes
             // Here's where you get them.
             m_AgentControlFlags = flags;
             m_headrotation = agentData.HeadRotation;
+            byte oldState = State;
             State = agentData.State;
+
+            // We need to send this back to the client in order to stop the edit beams
+            if ((oldState & (uint)AgentState.Editing) != 0 && State == (uint)AgentState.None)
+                ControllingClient.SendAgentTerseUpdate(this);
+
 
             PhysicsActor actor = PhysicsActor;
             if (actor == null)
@@ -3199,8 +3212,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
-            if (Util.GetDistanceTo(AbsolutePosition, m_lastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance ||
-                Util.GetDistanceTo(CameraPosition, m_lastChildAgentUpdateCamPosition) >= Scene.ChildReprioritizationDistance)
+            if (Util.GetDistanceTo(AbsolutePosition, m_lastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance)
             {
                 m_lastChildAgentUpdatePosition = AbsolutePosition;
                 m_lastChildAgentUpdateCamPosition = CameraPosition;

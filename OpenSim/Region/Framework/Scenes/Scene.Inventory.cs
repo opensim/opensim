@@ -551,6 +551,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
 
+            if (!Permissions.CanTransferUserInventory(itemId, senderId, recipient))
+                return null;
+
             InventoryItemBase item = new InventoryItemBase(itemId, senderId);
             item = InventoryService.GetItem(item);
 
@@ -2127,7 +2130,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // If we don't have permission, stop right here
                     if (!permissionToTakeCopy)
+                    {
+                        remoteClient.SendAlertMessage("You don't have permission to take the object");
                         return;
+                    }
 
                     permissionToTake = true;
                     // Don't delete

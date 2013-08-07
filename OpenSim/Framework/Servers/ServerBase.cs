@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Servers
                 "Show thread status", HandleShow);
 
             m_console.Commands.AddCommand(
-                "General", false, "threads abort",
+                "Debug", false, "threads abort",
                 "threads abort <thread-id>",
                 "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
 
@@ -256,8 +256,32 @@ namespace OpenSim.Framework.Servers
                 "Show thread status.  Synonym for \"show threads\"",
                 (string module, string[] args) => Notice(GetThreadsReport()));
 
+            m_console.Commands.AddCommand (
+                "Debug", false, "debug comms set",
+                "debug comms set serialosdreq true|false",
+                "Set comms parameters.  For debug purposes.",
+                HandleDebugCommsSet);
+
+            m_console.Commands.AddCommand (
+                "Debug", false, "debug comms status",
+                "debug comms status",
+                "Show current debug comms parameters.",
+                HandleDebugCommsStatus);
+
+            m_console.Commands.AddCommand (
+                "Debug", false, "debug threadpool set",
+                "debug threadpool set worker|iocp min|max <n>",
+                "Set threadpool parameters.  For debug purposes.",
+                HandleDebugThreadpoolSet);
+
+            m_console.Commands.AddCommand (
+                "Debug", false, "debug threadpool status",
+                "debug threadpool status",
+                "Show current debug threadpool parameters.",
+                HandleDebugThreadpoolStatus);
+
             m_console.Commands.AddCommand(
-                "General", false, "force gc",
+                "Debug", false, "force gc",
                 "force gc",
                 "Manually invoke runtime garbage collection.  For debugging purposes",
                 HandleForceGc);
@@ -272,14 +296,140 @@ namespace OpenSim.Framework.Servers
                 "shutdown",
                 "Quit the application", (mod, args) => Shutdown());
 
+            ChecksManager.RegisterConsoleCommands(m_console);
             StatsManager.RegisterConsoleCommands(m_console);
         }
 
         public void RegisterCommonComponents(IConfigSource configSource)
         {
+            IConfig networkConfig = configSource.Configs["Network"];
+
+            if (networkConfig != null)
+            {
+                WebUtil.SerializeOSDRequestsPerEndpoint = networkConfig.GetBoolean("SerializeOSDRequests", false);
+            }
+    
             m_serverStatsCollector = new ServerStatsCollector();
             m_serverStatsCollector.Initialise(configSource);
             m_serverStatsCollector.Start();
+        }
+
+        private void HandleDebugCommsStatus(string module, string[] args)
+        {
+            Notice("serialosdreq is {0}", WebUtil.SerializeOSDRequestsPerEndpoint);
+        }
+
+        private void HandleDebugCommsSet(string module, string[] args)
+        {
+            if (args.Length != 5)
+            {
+                Notice("Usage: debug comms set serialosdreq true|false");
+                return;
+            }
+
+            if (args[3] != "serialosdreq")
+            {
+                Notice("Usage: debug comms set serialosdreq true|false");
+                return;
+            }
+
+            bool setSerializeOsdRequests;
+
+            if (!ConsoleUtil.TryParseConsoleBool(m_console, args[4], out setSerializeOsdRequests))
+                return;
+
+            WebUtil.SerializeOSDRequestsPerEndpoint = setSerializeOsdRequests;
+
+            Notice("serialosdreq is now {0}", setSerializeOsdRequests);
+        }
+
+        private void HandleDebugThreadpoolStatus(string module, string[] args)
+        {
+            int workerThreads, iocpThreads;
+
+            ThreadPool.GetMinThreads(out workerThreads, out iocpThreads);
+            Notice("Min worker threads:       {0}", workerThreads);
+            Notice("Min IOCP threads:         {0}", iocpThreads);
+
+            ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+            Notice("Max worker threads:       {0}", workerThreads);
+            Notice("Max IOCP threads:         {0}", iocpThreads);
+
+            ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads);
+            Notice("Available worker threads: {0}", workerThreads);
+            Notice("Available IOCP threads:   {0}", iocpThreads);           
+        }
+
+        private void HandleDebugThreadpoolSet(string module, string[] args)
+        {
+            if (args.Length != 6)
+            {
+                Notice("Usage: debug threadpool set worker|iocp min|max <n>");
+                return;
+            }
+
+            int newThreads;
+
+            if (!ConsoleUtil.TryParseConsoleInt(m_console, args[5], out newThreads))
+                return;
+
+            string poolType = args[3];
+            string bound = args[4];
+
+            bool fail = false;
+            int workerThreads, iocpThreads;
+
+            if (poolType == "worker")
+            {
+                if (bound == "min")
+                {
+                    ThreadPool.GetMinThreads(out workerThreads, out iocpThreads);
+
+                    if (!ThreadPool.SetMinThreads(newThreads, iocpThreads))
+                        fail = true;
+                }
+                else
+                {
+                    ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+
+                    if (!ThreadPool.SetMaxThreads(newThreads, iocpThreads))
+                        fail = true;
+                }
+            }
+            else
+            {
+                if (bound == "min")
+                {
+                    ThreadPool.GetMinThreads(out workerThreads, out iocpThreads);
+
+                    if (!ThreadPool.SetMinThreads(workerThreads, newThreads))
+                        fail = true;
+                }
+                else
+                {
+                    ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+
+                    if (!ThreadPool.SetMaxThreads(workerThreads, newThreads))
+                        fail = true;
+                }
+            }
+             
+            if (fail)
+            {
+                Notice("ERROR: Could not set {0} {1} threads to {2}", poolType, bound, newThreads);
+            }
+            else
+            {
+                int minWorkerThreads, maxWorkerThreads, minIocpThreads, maxIocpThreads;
+
+                ThreadPool.GetMinThreads(out minWorkerThreads, out minIocpThreads);
+                ThreadPool.GetMaxThreads(out maxWorkerThreads, out maxIocpThreads);
+
+                Notice("Min worker threads now {0}", minWorkerThreads);
+                Notice("Min IOCP threads now {0}", minIocpThreads);
+                Notice("Max worker threads now {0}", maxWorkerThreads);
+                Notice("Max IOCP threads now {0}", maxIocpThreads);
+            }
         }
 
         private void HandleForceGc(string module, string[] args)

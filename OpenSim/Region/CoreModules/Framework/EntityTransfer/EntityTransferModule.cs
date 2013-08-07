@@ -693,8 +693,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (version.Equals("SIMULATION/0.2"))
                 TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
             else
-                TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
-
+                TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);           
         }
 
         private void TransferAgent_V1(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
@@ -703,7 +702,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ulong destinationHandle = finalDestination.RegionHandle;
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
 
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Using TP V1");
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Using TP V1 for {0} going from {1} to {2}", 
+                sp.Name, Scene.Name, finalDestination.RegionName);
+
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
@@ -961,6 +963,27 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
+            {
+                m_interRegionTeleportCancels.Value++;
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request",
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                return;
+            }
+            else if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
+            {
+                m_interRegionTeleportAborts.Value++;
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after CreateAgent due to previous client close.",
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                return;
+            }
+
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
@@ -1063,20 +1086,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!sp.DoNotCloseAfterTeleport)
                 {
                     // OK, it got this agent. Let's close everything
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing in agent {0} in region {1}", sp.Name, Scene.RegionInfo.RegionName);
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing in agent {0} in region {1}", sp.Name, Scene.Name);
                     sp.CloseChildAgents(newRegionX, newRegionY);
                     sp.Scene.IncomingCloseAgent(sp.UUID, false);
 
                 }
                 else
                 {
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {0}", sp.Name, Scene.RegionInfo.RegionName);
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {0}", sp.Name, Scene.Name);
                     sp.DoNotCloseAfterTeleport = false;
                 }
             }
             else
+            {
                 // now we have a child agent in this region. 
                 sp.Reset();
+            }
         }
 
         /// <summary>

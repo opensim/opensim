@@ -36,8 +36,78 @@ public sealed class BSLinksetConstraints : BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET CONSTRAINTS]";
 
+    public class BSLinkInfoConstraint : BSLinkInfo
+    {
+        public ConstraintType constraintType;
+        public BSConstraint constraint;
+        public OMV.Vector3 linearLimitLow;
+        public OMV.Vector3 linearLimitHigh;
+        public OMV.Vector3 angularLimitLow;
+        public OMV.Vector3 angularLimitHigh;
+        public bool useFrameOffset;
+        public bool enableTransMotor;
+        public float transMotorMaxVel;
+        public float transMotorMaxForce;
+        public float cfm;
+        public float erp;
+        public float solverIterations;
+
+        public BSLinkInfoConstraint(BSPrimLinkable pMember)
+            : base(pMember)
+        {
+            constraint = null;
+            ResetToFixedConstraint();
+        }
+
+        // Set all the parameters for this constraint to a fixed, non-movable constraint.
+        public void ResetToFixedConstraint()
+        {
+            constraintType = ConstraintType.D6_CONSTRAINT_TYPE;
+            linearLimitLow = OMV.Vector3.Zero;
+            linearLimitHigh = OMV.Vector3.Zero;
+            angularLimitLow = OMV.Vector3.Zero;
+            angularLimitHigh = OMV.Vector3.Zero;
+            useFrameOffset = BSParam.LinkConstraintUseFrameOffset;
+            enableTransMotor = BSParam.LinkConstraintEnableTransMotor;
+            transMotorMaxVel = BSParam.LinkConstraintTransMotorMaxVel;
+            transMotorMaxForce = BSParam.LinkConstraintTransMotorMaxForce;
+            cfm = BSParam.LinkConstraintCFM;
+            erp = BSParam.LinkConstraintERP;
+            solverIterations = BSParam.LinkConstraintSolverIterations;
+        }
+
+        // Given a constraint, apply the current constraint parameters to same.
+        public void SetConstraintParameters(BSConstraint constrain)
+        {
+            switch (constraintType)
+            {
+                case ConstraintType.D6_CONSTRAINT_TYPE:
+                    BSConstraint6Dof constrain6dof = constrain as BSConstraint6Dof;
+                    if (constrain6dof != null)
+                    {
+                        // zero linear and angular limits makes the objects unable to move in relation to each other
+                        constrain6dof.SetLinearLimits(linearLimitLow, linearLimitHigh);
+                        constrain6dof.SetAngularLimits(angularLimitLow, angularLimitHigh);
+
+                        // tweek the constraint to increase stability
+                        constrain6dof.UseFrameOffset(useFrameOffset);
+                        constrain6dof.TranslationalLimitMotor(enableTransMotor, transMotorMaxVel, transMotorMaxForce);
+                        constrain6dof.SetCFMAndERP(cfm, erp);
+                        if (solverIterations != 0f)
+                        {
+                            constrain6dof.SetSolverIterations(solverIterations);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     public BSLinksetConstraints(BSScene scene, BSPrimLinkable parent) : base(scene, parent)
     {
+        LinksetImpl = LinksetImplementation.Constraint;
     }
 
     // When physical properties are changed the linkset needs to recalculate
@@ -142,7 +212,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     {
         if (!HasChild(child))
         {
-            m_children.Add(child);
+            m_children.Add(child, new BSLinkInfoConstraint(child));
 
             DetailLog("{0},BSLinksetConstraints.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
@@ -190,73 +260,74 @@ public sealed class BSLinksetConstraints : BSLinkset
     }
 
     // Create a static constraint between the two passed objects
-    private BSConstraint BuildConstraint(BSPrimLinkable rootPrim, BSPrimLinkable childPrim)
+    private BSConstraint BuildConstraint(BSPrimLinkable rootPrim, BSLinkInfo li)
     {
+        BSLinkInfoConstraint liConstraint = li as BSLinkInfoConstraint;
+        if (liConstraint == null)
+            return null;
+
         // Zero motion for children so they don't interpolate
-        childPrim.ZeroMotion(true);
+        li.member.ZeroMotion(true);
 
-        // Relative position normalized to the root prim
-        // Essentually a vector pointing from center of rootPrim to center of childPrim
-        OMV.Vector3 childRelativePosition = childPrim.Position - rootPrim.Position;
+        BSConstraint constrain = null;
 
-        // real world coordinate of midpoint between the two objects
-        OMV.Vector3 midPoint = rootPrim.Position + (childRelativePosition / 2);
+        switch (liConstraint.constraintType)
+        {
+            case ConstraintType.D6_CONSTRAINT_TYPE:
+                // Relative position normalized to the root prim
+                // Essentually a vector pointing from center of rootPrim to center of li.member
+                OMV.Vector3 childRelativePosition = liConstraint.member.Position - rootPrim.Position;
 
-        DetailLog("{0},BSLinksetConstraint.BuildConstraint,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
-                                        rootPrim.LocalID,
-                                        rootPrim.LocalID, rootPrim.PhysBody.AddrString,
-                                        childPrim.LocalID, childPrim.PhysBody.AddrString,
-                                        rootPrim.Position, childPrim.Position, midPoint);
+                // real world coordinate of midpoint between the two objects
+                OMV.Vector3 midPoint = rootPrim.Position + (childRelativePosition / 2);
 
-        // create a constraint that allows no freedom of movement between the two objects
-        // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
+                DetailLog("{0},BSLinksetConstraint.BuildConstraint,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
+                                                rootPrim.LocalID,
+                                                rootPrim.LocalID, rootPrim.PhysBody.AddrString,
+                                                liConstraint.member.LocalID, liConstraint.member.PhysBody.AddrString,
+                                                rootPrim.Position, liConstraint.member.Position, midPoint);
 
-        BSConstraint6Dof constrain = new BSConstraint6Dof(
-                            m_physicsScene.World, rootPrim.PhysBody, childPrim.PhysBody, midPoint, true, true );
-                            // PhysicsScene.World, childPrim.BSBody, rootPrim.BSBody, midPoint, true, true );
+                // create a constraint that allows no freedom of movement between the two objects
+                // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
 
-        /* NOTE: below is an attempt to build constraint with full frame computation, etc.
-         *     Using the midpoint is easier since it lets the Bullet code manipulate the transforms
-         *     of the objects.
-         * Code left for future programmers.
-        // ==================================================================================
-        // relative position normalized to the root prim
-        OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(rootPrim.Orientation);
-        OMV.Vector3 childRelativePosition = (childPrim.Position - rootPrim.Position) * invThisOrientation;
+                constrain = new BSConstraint6Dof(
+                                    m_physicsScene.World, rootPrim.PhysBody, liConstraint.member.PhysBody, midPoint, true, true );
 
-        // relative rotation of the child to the parent
-        OMV.Quaternion childRelativeRotation = invThisOrientation * childPrim.Orientation;
-        OMV.Quaternion inverseChildRelativeRotation = OMV.Quaternion.Inverse(childRelativeRotation);
+                /* NOTE: below is an attempt to build constraint with full frame computation, etc.
+                 *     Using the midpoint is easier since it lets the Bullet code manipulate the transforms
+                 *     of the objects.
+                 * Code left for future programmers.
+                // ==================================================================================
+                // relative position normalized to the root prim
+                OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(rootPrim.Orientation);
+                OMV.Vector3 childRelativePosition = (liConstraint.member.Position - rootPrim.Position) * invThisOrientation;
 
-        DetailLog("{0},BSLinksetConstraint.PhysicallyLinkAChildToRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
-        BS6DofConstraint constrain = new BS6DofConstraint(
-                        PhysicsScene.World, rootPrim.Body, childPrim.Body,
-                        OMV.Vector3.Zero,
-                        OMV.Quaternion.Inverse(rootPrim.Orientation),
-                        OMV.Vector3.Zero,
-                        OMV.Quaternion.Inverse(childPrim.Orientation),
-                        true,
-                        true
-                        );
-        // ==================================================================================
-        */
+                // relative rotation of the child to the parent
+                OMV.Quaternion childRelativeRotation = invThisOrientation * liConstraint.member.Orientation;
+                OMV.Quaternion inverseChildRelativeRotation = OMV.Quaternion.Inverse(childRelativeRotation);
+
+                DetailLog("{0},BSLinksetConstraint.PhysicallyLinkAChildToRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, liConstraint.member.LocalID);
+                constrain = new BS6DofConstraint(
+                                PhysicsScene.World, rootPrim.Body, liConstraint.member.Body,
+                                OMV.Vector3.Zero,
+                                OMV.Quaternion.Inverse(rootPrim.Orientation),
+                                OMV.Vector3.Zero,
+                                OMV.Quaternion.Inverse(liConstraint.member.Orientation),
+                                true,
+                                true
+                                );
+                // ==================================================================================
+                */
+
+                break;
+            default:
+                break;
+        }
+
+        liConstraint.SetConstraintParameters(constrain);
 
         m_physicsScene.Constraints.AddConstraint(constrain);
 
-        // zero linear and angular limits makes the objects unable to move in relation to each other
-        constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
-        constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
-
-        // tweek the constraint to increase stability
-        constrain.UseFrameOffset(BSParam.LinkConstraintUseFrameOffset);
-        constrain.TranslationalLimitMotor(BSParam.LinkConstraintEnableTransMotor,
-                        BSParam.LinkConstraintTransMotorMaxVel,
-                        BSParam.LinkConstraintTransMotorMaxForce);
-        constrain.SetCFMAndERP(BSParam.LinkConstraintCFM, BSParam.LinkConstraintERP);
-        if (BSParam.LinkConstraintSolverIterations != 0f)
-        {
-            constrain.SetSolverIterations(BSParam.LinkConstraintSolverIterations);
-        }
         return constrain;
     }
 
@@ -317,23 +388,24 @@ public sealed class BSLinksetConstraints : BSLinkset
                 return; // Note the 'finally' clause at the botton which will get executed.
             }
 
-            foreach (BSPrimLinkable child in m_children)
+            ForEachLinkInfo((li) =>
             {
                 // A child in the linkset physically shows the mass of the whole linkset.
                 // This allows Bullet to apply enough force on the child to move the whole linkset.
                 // (Also do the mass stuff before recomputing the constraint so mass is not zero.)
-                child.UpdatePhysicalMassProperties(linksetMass, true);
+                li.member.UpdatePhysicalMassProperties(linksetMass, true);
 
                 BSConstraint constrain;
-                if (!m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))
+                if (!m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, li.member.PhysBody, out constrain))
                 {
                     // If constraint doesn't exist yet, create it.
-                    constrain = BuildConstraint(LinksetRoot, child);
+                    constrain = BuildConstraint(LinksetRoot, li);
                 }
                 constrain.RecomputeConstraintVariables(linksetMass);
 
                 // PhysicsScene.PE.DumpConstraint(PhysicsScene.World, constrain.Constraint);    // DEBUG DEBUG
-            }
+                return false;   // 'false' says to keep processing other members
+            });
         }
         finally
         {

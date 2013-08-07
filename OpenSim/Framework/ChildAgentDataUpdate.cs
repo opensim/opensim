@@ -292,6 +292,12 @@ namespace OpenSim.Framework
         public Vector3 AtAxis;
         public Vector3 LeftAxis;
         public Vector3 UpAxis;
+
+        /// <summary>
+        /// Signal on a V2 teleport that Scene.IncomingChildAgentDataUpdate(AgentData ad) should wait for the 
+        /// scene presence to become root (triggered when the viewer sends a CompleteAgentMovement UDP packet after
+        /// establishing the connection triggered by it's receipt of a TeleportFinish EQ message).
+        /// </summary>
         public bool SenderWantsToWaitForRoot;
 
         public float Far;

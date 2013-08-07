@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public void RegisterScriptInvocation(object target, MethodInfo mi)
         {
-            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, (target is Type) ? ((Type)target).Name : target.GetType().Name);
+//            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, (target is Type) ? ((Type)target).Name : target.GetType().Name);
 
             Type delegateType;
             List<Type> typeArgs = mi.GetParameters()
@@ -325,7 +325,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
         /// </summary>
         public void RegisterConstant(string cname, object value)
         {
-            m_log.DebugFormat("[MODULE COMMANDS] register constant <{0}> with value {1}",cname,value.ToString());
+//            m_log.DebugFormat("[MODULE COMMANDS] register constant <{0}> with value {1}",cname,value.ToString());
             lock (m_constants)
             {
                 m_constants.Add(cname,value);

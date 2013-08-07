@@ -62,6 +62,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         private string m_ThisGatekeeper;
         private bool m_RestrictInventoryAccessAbroad;
 
+        private bool m_bypassPermissions = true;
+
 //        private bool m_Initialized = false;
 
         #region INonSharedRegionModule
@@ -100,6 +102,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                     else
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
+
+                    m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(source, "serverside_object_permissions",
+                                            new string[] { "Startup", "Permissions" }, true); 
+
                 }
             }
         }
@@ -114,6 +120,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
             scene.EventManager.OnTeleportStart += TeleportStart;
             scene.EventManager.OnTeleportFail += TeleportFail;
+
+            // We're fgoing to enforce some stricter permissions if Outbound is false
+            scene.Permissions.OnTakeObject += CanTakeObject;
+            scene.Permissions.OnTakeCopyObject += CanTakeObject;
+            scene.Permissions.OnTransferUserInventory += OnTransferUserInventory;
         }
 
         #endregion
@@ -415,6 +426,37 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             // No-op for now
         }
+
+        #endregion
+
+        #region Permissions
+
+        private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
+        {
+            if (m_bypassPermissions) return true;
+
+            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(stealer))
+            {
+                SceneObjectGroup sog = null;
+                if (m_Scene.TryGetSceneObjectGroup(objectID, out sog) && sog.OwnerID == stealer)
+                    return true;
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool OnTransferUserInventory(UUID itemID, UUID userID, UUID recipientID)
+        {
+            if (m_bypassPermissions) return true;
+
+            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(recipientID))
+                return false;
+
+            return true;
+        }
+
 
         #endregion
     }

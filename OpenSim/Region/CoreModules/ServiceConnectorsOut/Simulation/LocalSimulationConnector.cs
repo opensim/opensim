@@ -63,32 +63,38 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// </summary>
         private bool m_ModuleEnabled = false;
 
-        public LocalSimulationConnectorModule()
-        {
-            ServiceVersion = "SIMULATION/0.2";
-        }
-
         #region Region Module interface
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(IConfigSource configSource)
         {
-            IConfig moduleConfig = config.Configs["Modules"];
+            IConfig moduleConfig = configSource.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("SimulationServices", "");
                 if (name == Name)
                 {
-                    //IConfig userConfig = config.Configs["SimulationService"];
-                    //if (userConfig == null)
-                    //{
-                    //    m_log.Error("[AVATAR CONNECTOR]: SimulationService missing from OpenSim.ini");
-                    //    return;
-                    //}
+                    InitialiseService(configSource);
 
                     m_ModuleEnabled = true;
 
-                    m_log.Info("[SIMULATION CONNECTOR]: Local simulation enabled");
+                    m_log.Info("[LOCAL SIMULATION CONNECTOR]: Local simulation enabled.");
                 }
+            }
+        }
+
+        public void InitialiseService(IConfigSource configSource)
+        {
+            ServiceVersion = "SIMULATION/0.2";
+            IConfig config = configSource.Configs["SimulationService"];
+            if (config != null)
+            {
+                ServiceVersion = config.GetString("ConnectorProtocolVersion", ServiceVersion);
+
+                if (ServiceVersion != "SIMULATION/0.1" && ServiceVersion != "SIMULATION/0.2")
+                    throw new Exception(string.Format("Invalid ConnectorProtocolVersion {0}", ServiceVersion));
+
+                m_log.InfoFormat(
+                    "[LOCAL SIMULATION CONNECTOR]: Initialzied with connector protocol version {0}", ServiceVersion);
             }
         }
 

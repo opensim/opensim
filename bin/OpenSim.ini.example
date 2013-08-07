@@ -180,10 +180,6 @@
     ;; if the first change occurred this number of seconds ago.
     ; MaximumTimeBeforePersistenceConsidered = 600
 
-    ;# {see_into_this_sim_from_neighbor} {} {Should avatars in neighbor sims see objects in this sim?} {true false} true
-    ;; Should avatars in neighbor sims see objects in this sim?
-    ; see_into_this_sim_from_neighbor = true
-
     ;# {physical_prim} {} {Allow prims to be physical?} {true false} true
     ;; if you would like to allow prims to be physical and move by physics
     ;; with the physical checkbox in the client set this to true.

@@ -319,7 +319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             object[] convertedParms = new object[parms.Length];
             for (int i = 0; i < parms.Length; i++)
-                convertedParms[i] = ConvertFromLSL(parms[i],signature[i], fname);
+                convertedParms[i] = ConvertFromLSL(parms[i], signature[i], fname);
 
             // now call the function, the contract with the function is that it will always return
             // non-null but don't trust it completely
@@ -448,7 +448,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             
-            MODError(String.Format("{1}: parameter type mismatch; expecting {0}",type.Name, fname));
+            MODError(String.Format("{0}: parameter type mismatch; expecting {1}, type(parm)={2}", fname, type.Name, lslparm.GetType()));
             return null;
         }
 

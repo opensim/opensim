@@ -29,6 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using log4net.Config;
 using Nini.Config;
 using NUnit.Framework;
@@ -53,6 +54,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [TestFixtureSetUp]
         public void FixtureInit()
         {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.None;
+
             using (
                 Stream resource
                     = GetType().Assembly.GetManifestResourceStream(
@@ -70,6 +74,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                     m_testImageAsset.Data = br.ReadBytes(99999999);
                 }
             }
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten not to worry about such things.
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
         [SetUp]

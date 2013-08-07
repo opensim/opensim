@@ -50,9 +50,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteSimulationConnectorModule")]
     public class RemoteSimulationConnectorModule : ISharedRegionModule, ISimulationService
     {
-        private bool initialized = false;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool initialized = false;
         protected bool m_enabled = false;
         protected Scene m_aScene;
         // RemoteSimulationConnector does not care about local regions; it delegates that to the Local module
@@ -64,27 +64,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         #region Region Module interface
 
-        public virtual void Initialise(IConfigSource config)
+        public virtual void Initialise(IConfigSource configSource)
         {
-
-            IConfig moduleConfig = config.Configs["Modules"];
+            IConfig moduleConfig = configSource.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("SimulationServices", "");
                 if (name == Name)
                 {
-                    //IConfig userConfig = config.Configs["SimulationService"];
-                    //if (userConfig == null)
-                    //{
-                    //    m_log.Error("[AVATAR CONNECTOR]: SimulationService missing from OpenSim.ini");
-                    //    return;
-                    //}
+                    m_localBackend = new LocalSimulationConnectorModule();
+
+                    m_localBackend.InitialiseService(configSource);
 
                     m_remoteConnector = new SimulationServiceConnector();
 
                     m_enabled = true;
 
-                    m_log.Info("[SIMULATION CONNECTOR]: Remote simulation enabled");
+                    m_log.Info("[REMOTE SIMULATION CONNECTOR]: Remote simulation enabled.");
                 }
             }
         }
@@ -142,8 +138,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
         protected virtual void InitOnce(Scene scene)
-        {
-            m_localBackend = new LocalSimulationConnectorModule();
+        {            
             m_aScene = scene;
             //m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
             m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);

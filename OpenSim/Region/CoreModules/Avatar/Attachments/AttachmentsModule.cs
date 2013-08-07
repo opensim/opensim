@@ -54,8 +54,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public int DebugLevel { get; set; }
 
         /// <summary>
-        /// Period to sleep per 100 prims in order to avoid CPU spikes when an avatar with many attachments logs in
-        /// or many avatars with a medium levels of attachments login simultaneously.
+        /// Period to sleep per 100 prims in order to avoid CPU spikes when an avatar with many attachments logs in/changes
+        /// outfit or many avatars with a medium levels of attachments login/change outfit simultaneously.
         /// </summary>
         /// <remarks>
         /// A value of 0 will apply no pause.  The pause is specified in milliseconds.
@@ -1094,7 +1094,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             if (tainted)
-                objatt.HasGroupChanged = true;
+                objatt.HasGroupChanged = true;           
+
+            if (ThrottlePer100PrimsRezzed > 0)
+            {
+                int throttleMs = (int)Math.Round((float)objatt.PrimCount / 100 * ThrottlePer100PrimsRezzed);
+
+                if (DebugLevel > 0)
+                    m_log.DebugFormat(
+                        "[ATTACHMENTS MODULE]: Throttling by {0}ms after rez of {1} with {2} prims for attachment to {3} on point {4} in {5}",
+                        throttleMs, objatt.Name, objatt.PrimCount, sp.Name, attachmentPt, m_scene.Name);
+
+                Thread.Sleep(throttleMs);
+            }
 
             return objatt;
         }

@@ -156,7 +156,27 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
-        /// Convert a minimum vector input from the console to an OpenMetaverse.Vector3
+        /// Convert a console integer to an int, automatically complaining if a console is given.
+        /// </summary>
+        /// <param name='console'>Can be null if no console is available.</param>
+        /// <param name='rawConsoleVector'>/param>
+        /// <param name='vector'></param>
+        /// <returns></returns>
+        public static bool TryParseConsoleBool(ICommandConsole console, string rawConsoleString, out bool b)
+        {
+            if (!bool.TryParse(rawConsoleString, out b))
+            {
+                if (console != null)
+                    console.OutputFormat("ERROR: {0} is not a true or false value", rawConsoleString);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Convert a console integer to an int, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
         /// <param name='rawConsoleVector'>/param>

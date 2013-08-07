@@ -67,6 +67,11 @@ namespace OpenSim.Framework
         public static int RequestNumber { get; internal set; }
 
         /// <summary>
+        /// Control where OSD requests should be serialized per endpoint.
+        /// </summary>
+        public static bool SerializeOSDRequestsPerEndpoint { get; set; }
+
+        /// <summary>
         /// this is the header field used to communicate the local request id
         /// used for performance and debugging
         /// </summary>
@@ -145,9 +150,16 @@ namespace OpenSim.Framework
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed)
         {
-            lock (EndPointLock(url))
+            if (SerializeOSDRequestsPerEndpoint)
             {
-                return ServiceOSDRequestWorker(url,data,method,timeout,compressed);
+                lock (EndPointLock(url))
+                {
+                    return ServiceOSDRequestWorker(url, data, method, timeout, compressed);
+                }
+            }
+            else
+            {
+                return ServiceOSDRequestWorker(url, data, method, timeout, compressed);
             }
         }
 

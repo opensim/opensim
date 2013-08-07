@@ -418,7 +418,8 @@ namespace OpenSim.Region.Physics.Manager
         // Extendable interface for new, physics engine specific operations
         public virtual object Extension(string pFunct, params object[] pParams)
         {
-            throw new NotImplementedException();
+            // A NOP of the physics engine does not implement this feature
+            return null;
         }
     }
 
