@@ -51,16 +51,26 @@ public sealed class BSLinksetConstraints : BSLinkset
         public float cfm;
         public float erp;
         public float solverIterations;
+        //
+        public OMV.Vector3 frameInAloc;
+        public OMV.Quaternion frameInArot;
+        public OMV.Vector3 frameInBloc;
+        public OMV.Quaternion frameInBrot;
+        // Spring
+        public float springDamping;
+        public float springStiffness;
+
+
 
         public BSLinkInfoConstraint(BSPrimLinkable pMember)
             : base(pMember)
         {
             constraint = null;
-            ResetToFixedConstraint();
+            ResetLink();
         }
 
         // Set all the parameters for this constraint to a fixed, non-movable constraint.
-        public void ResetToFixedConstraint()
+        public override void ResetLink()
         {
             constraintType = ConstraintType.D6_CONSTRAINT_TYPE;
             linearLimitLow = OMV.Vector3.Zero;
@@ -74,10 +84,16 @@ public sealed class BSLinksetConstraints : BSLinkset
             cfm = BSParam.LinkConstraintCFM;
             erp = BSParam.LinkConstraintERP;
             solverIterations = BSParam.LinkConstraintSolverIterations;
+            frameInAloc = OMV.Vector3.Zero;
+            frameInArot = OMV.Quaternion.Identity;
+            frameInBloc = OMV.Vector3.Zero;
+            frameInBrot = OMV.Quaternion.Identity;
+            springDamping = -1f;
+            springStiffness = -1f;
         }
 
         // Given a constraint, apply the current constraint parameters to same.
-        public void SetConstraintParameters(BSConstraint constrain)
+        public override void SetLinkParameters(BSConstraint constrain)
         {
             switch (constraintType)
             {
@@ -85,6 +101,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                     BSConstraint6Dof constrain6dof = constrain as BSConstraint6Dof;
                     if (constrain6dof != null)
                     {
+                        // NOTE: D6_SPRING_CONSTRAINT_TYPE should be updated if you change any of this code.
                         // zero linear and angular limits makes the objects unable to move in relation to each other
                         constrain6dof.SetLinearLimits(linearLimitLow, linearLimitHigh);
                         constrain6dof.SetAngularLimits(angularLimitLow, angularLimitHigh);
@@ -96,6 +113,31 @@ public sealed class BSLinksetConstraints : BSLinkset
                         if (solverIterations != 0f)
                         {
                             constrain6dof.SetSolverIterations(solverIterations);
+                        }
+                    }
+                    break;
+                case ConstraintType.D6_SPRING_CONSTRAINT_TYPE:
+                    BSConstraintSpring constrainSpring = constrain as BSConstraintSpring;
+                    if (constrainSpring != null)
+                    {
+                        // zero linear and angular limits makes the objects unable to move in relation to each other
+                        constrainSpring.SetLinearLimits(linearLimitLow, linearLimitHigh);
+                        constrainSpring.SetAngularLimits(angularLimitLow, angularLimitHigh);
+
+                        // tweek the constraint to increase stability
+                        constrainSpring.UseFrameOffset(useFrameOffset);
+                        constrainSpring.TranslationalLimitMotor(enableTransMotor, transMotorMaxVel, transMotorMaxForce);
+                        constrainSpring.SetCFMAndERP(cfm, erp);
+                        if (solverIterations != 0f)
+                        {
+                            constrainSpring.SetSolverIterations(solverIterations);
+                        }
+                        for (int ii = 0; ii < 6; ii++)
+                        {
+                            if (springDamping != -1)
+                                constrainSpring.SetDamping(ii, springDamping);
+                            if (springStiffness != -1)
+                            constrainSpring.SetStiffness(ii, springStiffness);
                         }
                     }
                     break;
@@ -262,8 +304,8 @@ public sealed class BSLinksetConstraints : BSLinkset
     // Create a static constraint between the two passed objects
     private BSConstraint BuildConstraint(BSPrimLinkable rootPrim, BSLinkInfo li)
     {
-        BSLinkInfoConstraint liConstraint = li as BSLinkInfoConstraint;
-        if (liConstraint == null)
+        BSLinkInfoConstraint linkInfo = li as BSLinkInfoConstraint;
+        if (linkInfo == null)
             return null;
 
         // Zero motion for children so they don't interpolate
@@ -271,27 +313,25 @@ public sealed class BSLinksetConstraints : BSLinkset
 
         BSConstraint constrain = null;
 
-        switch (liConstraint.constraintType)
+        switch (linkInfo.constraintType)
         {
             case ConstraintType.D6_CONSTRAINT_TYPE:
                 // Relative position normalized to the root prim
                 // Essentually a vector pointing from center of rootPrim to center of li.member
-                OMV.Vector3 childRelativePosition = liConstraint.member.Position - rootPrim.Position;
+                OMV.Vector3 childRelativePosition = linkInfo.member.Position - rootPrim.Position;
 
                 // real world coordinate of midpoint between the two objects
                 OMV.Vector3 midPoint = rootPrim.Position + (childRelativePosition / 2);
 
-                DetailLog("{0},BSLinksetConstraint.BuildConstraint,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
-                                                rootPrim.LocalID,
-                                                rootPrim.LocalID, rootPrim.PhysBody.AddrString,
-                                                liConstraint.member.LocalID, liConstraint.member.PhysBody.AddrString,
-                                                rootPrim.Position, liConstraint.member.Position, midPoint);
+                DetailLog("{0},BSLinksetConstraint.BuildConstraint,6Dof,rBody={1},cBody={2},rLoc={3},cLoc={4},midLoc={7}",
+                                                rootPrim.LocalID, rootPrim.PhysBody, linkInfo.member.PhysBody,
+                                                rootPrim.Position, linkInfo.member.Position, midPoint);
 
                 // create a constraint that allows no freedom of movement between the two objects
                 // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
 
                 constrain = new BSConstraint6Dof(
-                                    m_physicsScene.World, rootPrim.PhysBody, liConstraint.member.PhysBody, midPoint, true, true );
+                                    m_physicsScene.World, rootPrim.PhysBody, linkInfo.member.PhysBody, midPoint, true, true );
 
                 /* NOTE: below is an attempt to build constraint with full frame computation, etc.
                  *     Using the midpoint is easier since it lets the Bullet code manipulate the transforms
@@ -320,11 +360,23 @@ public sealed class BSLinksetConstraints : BSLinkset
                 */
 
                 break;
+            case ConstraintType.D6_SPRING_CONSTRAINT_TYPE:
+                constrain = new BSConstraintSpring(m_physicsScene.World, rootPrim.PhysBody, linkInfo.member.PhysBody,
+                                linkInfo.frameInAloc, linkInfo.frameInArot, linkInfo.frameInBloc, linkInfo.frameInBrot,
+                                true /*useLinearReferenceFrameA*/,
+                                true /*disableCollisionsBetweenLinkedBodies*/);
+                DetailLog("{0},BSLinksetConstraint.BuildConstraint,spring,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
+                                                rootPrim.LocalID,
+                                                rootPrim.LocalID, rootPrim.PhysBody.AddrString,
+                                                linkInfo.member.LocalID, linkInfo.member.PhysBody.AddrString,
+                                                rootPrim.Position, linkInfo.member.Position);
+
+                break;
             default:
                 break;
         }
 
-        liConstraint.SetConstraintParameters(constrain);
+        linkInfo.SetLinkParameters(constrain);
 
         m_physicsScene.Constraints.AddConstraint(constrain);
 
@@ -401,6 +453,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                     // If constraint doesn't exist yet, create it.
                     constrain = BuildConstraint(LinksetRoot, li);
                 }
+                li.SetLinkParameters(constrain);
                 constrain.RecomputeConstraintVariables(linksetMass);
 
                 // PhysicsScene.PE.DumpConstraint(PhysicsScene.World, constrain.Constraint);    // DEBUG DEBUG

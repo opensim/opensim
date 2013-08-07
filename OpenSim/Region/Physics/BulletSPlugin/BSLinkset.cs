@@ -77,6 +77,8 @@ public abstract class BSLinkset
         {
             member = pMember;
         }
+        public virtual void ResetLink() { }
+        public virtual void SetLinkParameters(BSConstraint constrain) { }
     }
 
     public LinksetImplementation LinksetImpl { get; protected set; }
