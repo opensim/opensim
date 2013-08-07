@@ -158,6 +158,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     //   refresh will happen once after all the other taints are applied.
     public override void Refresh(BSPrimLinkable requestor)
     {
+        ScheduleRebuild(requestor);
         base.Refresh(requestor);
 
     }
@@ -194,7 +195,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         if (IsRoot(child))
         {
             // The root is going dynamic. Rebuild the linkset so parts and mass get computed properly.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return ret;
     }
@@ -213,7 +214,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         if (IsRoot(child))
         {
             // Schedule a rebuild to verify that the root shape is set to the real shape.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return ret;
     }
@@ -241,7 +242,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             // Just undo all the constraints for this linkset. Rebuild at the end of the step.
             ret = PhysicallyUnlinkAllChildrenFromRoot(LinksetRoot);
             // Cause the constraints, et al to be rebuilt before the next simulation step.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return ret;
     }
@@ -259,7 +260,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             DetailLog("{0},BSLinksetConstraints.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
             // Cause constraints and assorted properties to be recomputed before the next simulation step.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return;
     }
@@ -283,7 +284,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
             // See that the linkset parameters are recomputed at the end of the taint time.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         else
         {

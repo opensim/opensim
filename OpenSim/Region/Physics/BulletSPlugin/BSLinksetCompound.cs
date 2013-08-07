@@ -90,10 +90,9 @@ public sealed class BSLinksetCompound : BSLinkset
     //   its internal properties.
     public override void Refresh(BSPrimLinkable requestor)
     {
-        base.Refresh(requestor);
-
         // Something changed so do the rebuilding thing
-        // ScheduleRebuild();
+        ScheduleRebuild(requestor);
+        base.Refresh(requestor);
     }
 
     // Schedule a refresh to happen after all the other taint processing.
@@ -127,7 +126,7 @@ public sealed class BSLinksetCompound : BSLinkset
         if (IsRoot(child))
         {
             // The root is going dynamic. Rebuild the linkset so parts and mass get computed properly.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return ret;
     }
@@ -144,7 +143,7 @@ public sealed class BSLinksetCompound : BSLinkset
         if (IsRoot(child))
         {
             // Schedule a rebuild to verify that the root shape is set to the real shape.
-            ScheduleRebuild(LinksetRoot);
+            Refresh(LinksetRoot);
         }
         return ret;
     }
@@ -227,7 +226,7 @@ public sealed class BSLinksetCompound : BSLinkset
                     //    there will already be a rebuild scheduled.
                     DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild.schedulingRebuild,whichUpdated={1}",
                                                                     updated.LocalID, whichUpdated);
-                    ScheduleRebuild(updated);
+                    Refresh(updated);
                 }
             }
         }
@@ -245,7 +244,7 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.RemoveDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
                         child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody, IsRoot(child));
 
-        ScheduleRebuild(child);
+        Refresh(child);
 
         return ret;
     }
@@ -263,7 +262,7 @@ public sealed class BSLinksetCompound : BSLinkset
             DetailLog("{0},BSLinksetCompound.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
             // Rebuild the compound shape with the new child shape included
-            ScheduleRebuild(child);
+            Refresh(child);
         }
         return;
     }
@@ -292,7 +291,7 @@ public sealed class BSLinksetCompound : BSLinkset
             else
             {
                 // Rebuild the compound shape with the child removed
-                ScheduleRebuild(LinksetRoot);
+                Refresh(LinksetRoot);
             }
         }
         return;
