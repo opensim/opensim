@@ -274,6 +274,12 @@ namespace OpenSim.Framework.Servers
                 "Set threadpool parameters.  For debug purposes.",
                 HandleDebugThreadpoolSet);
 
+            m_console.Commands.AddCommand (
+                "Debug", false, "debug threadpool status",
+                "debug threadpool status",
+                "Show current debug threadpool parameters.",
+                HandleDebugThreadpoolStatus);
+
             m_console.Commands.AddCommand(
                 "Debug", false, "force gc",
                 "force gc",
@@ -335,6 +341,23 @@ namespace OpenSim.Framework.Servers
             WebUtil.SerializeOSDRequestsPerEndpoint = setSerializeOsdRequests;
 
             Notice("serialosdreq is now {0}", setSerializeOsdRequests);
+        }
+
+        private void HandleDebugThreadpoolStatus(string module, string[] args)
+        {
+            int workerThreads, iocpThreads;
+
+            ThreadPool.GetMinThreads(out workerThreads, out iocpThreads);
+            Notice("Min worker threads:       {0}", workerThreads);
+            Notice("Min IOCP threads:         {0}", iocpThreads);
+
+            ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+            Notice("Max worker threads:       {0}", workerThreads);
+            Notice("Max IOCP threads:         {0}", iocpThreads);
+
+            ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads);
+            Notice("Available worker threads: {0}", workerThreads);
+            Notice("Available IOCP threads:   {0}", iocpThreads);           
         }
 
         private void HandleDebugThreadpoolSet(string module, string[] args)
