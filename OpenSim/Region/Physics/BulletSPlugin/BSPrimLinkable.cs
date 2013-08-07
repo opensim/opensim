@@ -41,6 +41,8 @@ public class BSPrimLinkable : BSPrimDisplaced
     //    operations necessary for keeping the linkset created and, additionally, this
     //    calls the linkset implementation for its creation and management.
 
+    private static readonly string LogHeader = "[BULLETS PRIMLINKABLE]";
+
     // This adds the overrides for link() and delink() so the prim is linkable.
 
     public BSLinkset Linkset { get; set; }
@@ -279,5 +281,44 @@ public class BSPrimLinkable : BSPrimDisplaced
         }
         return ret;
     }
+
+    #region Extension
+    public override object Extension(string pFunct, params object[] pParams)
+    {
+        object ret = null;
+        switch (pFunct)
+        {
+            case BSScene.PhysFunctGetLinksetType:
+            {
+                ret = (object)LinksetType;
+                m_log.DebugFormat("{0} Extension.physGetLinksetType, type={1}", LogHeader, ret);
+                break;
+            }
+            case BSScene.PhysFunctSetLinksetType:
+            {
+                if (pParams.Length > 0)
+                {
+                    BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[0];
+                    if (Linkset.IsRoot(this))
+                    {
+                        PhysScene.TaintedObject("BSPrim.PhysFunctSetLinksetType", delegate()
+                        {
+                            // Cause the linkset type to change
+                            m_log.DebugFormat("{0} Extension.physSetLinksetType, oldType={1}, newType={2}",
+                                                LogHeader, Linkset.LinksetImpl, linksetType);
+                            ConvertLinkset(linksetType);
+                        });
+                    }
+                    ret = (object)(int)linksetType;
+                }
+                break;
+            }
+            default:
+                ret = base.Extension(pFunct, pParams);
+                break;
+        }
+        return ret;
+    }
+    #endregion  // Extension
 }
 }
