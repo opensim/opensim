@@ -4013,28 +4013,28 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (RegionInfo.EstateSettings != null)
-            {
-                if (RegionInfo.EstateSettings.IsBanned(agent.AgentID))
-                {
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
-                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                    reason = String.Format("Denied access to region {0}: You have been banned from that region.",
-                                           RegionInfo.RegionName);
-                    return false;
-                }
-            }
-            else
-            {
-                m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
-            }
-
             // We only test the things below when we want to cut off
             // child agents from being present in the scene for which their root
             // agent isn't allowed. Otherwise, we allow child agents. The test for
             // the root is done elsewhere (QueryAccess)
             if (!bypassAccessControl)
             {
+                if (RegionInfo.EstateSettings != null)
+                {
+                    if (RegionInfo.EstateSettings.IsBanned(agent.AgentID))
+                    {
+                        m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
+                                         agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                        reason = String.Format("Denied access to region {0}: You have been banned from that region.",
+                                               RegionInfo.RegionName);
+                        return false;
+                    }
+                }
+                else
+                {
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
+                }
+
                 List<UUID> agentGroups = new List<UUID>();
 
                 if (m_groupsModule != null)
