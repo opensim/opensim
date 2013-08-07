@@ -41,7 +41,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
     [Serializable]
 public class BSPrim : BSPhysObject
 {
-    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+    protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
     // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
@@ -1555,36 +1555,6 @@ public class BSPrim : BSPhysObject
         object ret = null;
         switch (pFunct)
         {
-            case BSScene.PhysFunctGetLinksetType:
-            {
-                BSPrimLinkable myHandle = this as BSPrimLinkable;
-                if (myHandle != null)
-                {
-                    ret = (object)myHandle.LinksetType;
-                }
-                m_log.DebugFormat("{0} Extension.physGetLinksetType, type={1}", LogHeader, ret);
-                break;
-            }
-            case BSScene.PhysFunctSetLinksetType:
-            {
-                if (pParams.Length > 0)
-                {
-                    BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[0];
-                    BSPrimLinkable myHandle = this as BSPrimLinkable;
-                    if (myHandle != null && myHandle.Linkset.IsRoot(myHandle))
-                    {
-                        PhysScene.TaintedObject("BSPrim.PhysFunctSetLinksetType", delegate()
-                        {
-                            // Cause the linkset type to change
-                            m_log.DebugFormat("{0} Extension.physSetLinksetType, oldType={1}, newType={2}",
-                                                LogHeader, myHandle.Linkset.LinksetImpl, linksetType);
-                            myHandle.ConvertLinkset(linksetType);
-                        });
-                    }
-                    ret = (object)(int)linksetType;
-                }
-                break;
-            }
             default:
                 ret = base.Extension(pFunct, pParams);
                 break;
