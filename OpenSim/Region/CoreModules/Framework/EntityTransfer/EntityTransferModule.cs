@@ -956,6 +956,27 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
+            {
+                m_interRegionTeleportCancels.Value++;
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request",
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                return;
+            }
+            else if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
+            {
+                m_interRegionTeleportAborts.Value++;
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after CreateAgent due to previous client close.",
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                return;
+            }
+
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
