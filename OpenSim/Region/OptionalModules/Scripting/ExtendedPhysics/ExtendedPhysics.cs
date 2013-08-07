@@ -61,6 +61,10 @@ public class ExtendedPhysics : INonSharedRegionModule
     // Per prim functions. See BSPrim.
     public const string PhysFunctGetLinksetType = "BulletSim.GetLinksetType";
     public const string PhysFunctSetLinksetType = "BulletSim.SetLinksetType";
+    public const string PhysFunctChangeLinkFixed = "BulletSim.ChangeLinkFixed";
+    public const string PhysFunctChangeLinkHinge = "BulletSim.ChangeLinkHinge";
+    public const string PhysFunctChangeLinkSpring = "BulletSim.ChangeLinkSpring";
+    public const string PhysFunctChangeLinkSlider = "BulletSim.ChangeLinkSlider";
 
     // =============================================================
 
@@ -250,7 +254,6 @@ public class ExtendedPhysics : INonSharedRegionModule
     public int physGetLinksetType(UUID hostID, UUID scriptID)
     {
         int ret = -1;
-
         if (!Enabled) return ret;
 
         // The part that is requesting the change.
@@ -286,6 +289,83 @@ public class ExtendedPhysics : INonSharedRegionModule
             m_log.WarnFormat("{0} physGetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
         }
         return ret;
+    }
+
+    [ScriptInvocation]
+    public int physChangeLinkFixed(UUID hostID, UUID scriptID, int linkNum)
+    {
+        int ret = -1;
+        if (!Enabled) return ret;
+
+        // The part that is requesting the change.
+        SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
+
+        if (requestingPart != null)
+        {
+            // The type is is always on the root of a linkset.
+            SceneObjectGroup containingGroup = requestingPart.ParentGroup;
+            SceneObjectPart rootPart = containingGroup.RootPart;
+
+            if (rootPart != null)
+            {
+                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
+                if (rootPhysActor != null)
+                {
+                    SceneObjectPart linkPart = containingGroup.GetLinkNumPart(linkNum);
+                    if (linkPart != null)
+                    {
+                        Physics.Manager.PhysicsActor linkPhysActor = linkPart.PhysActor;
+                        if (linkPhysActor != null)
+                        {
+                            ret = (int)rootPhysActor.Extension(PhysFunctChangeLinkFixed, linkNum, linkPhysActor);
+                        }
+                        else
+                        {
+                            m_log.WarnFormat("{0} physChangeLinkFixed: Link part has no physical actor. rootName={1}, hostID={2}, linknum={3}",
+                                                LogHeader, rootPart.Name, hostID, linkNum);
+                        }
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("{0} physChangeLinkFixed: Could not find linknum part. rootName={1}, hostID={2}, linknum={3}",
+                                            LogHeader, rootPart.Name, hostID, linkNum);
+                    }
+                }
+                else
+                {
+                    m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not have a physics actor. rootName={1}, hostID={2}",
+                                        LogHeader, rootPart.Name, hostID);
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not exist. RequestingPartName={1}, hostID={2}",
+                                    LogHeader, requestingPart.Name, hostID);
+            }
+        }
+        else
+        {
+            m_log.WarnFormat("{0} physGetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
+        }
+        return ret;
+    }
+
+    [ScriptInvocation]
+    public int physChangeLinkHinge(UUID hostID, UUID scriptID, int linkNum)
+    {
+        return 0;
+    }
+
+    [ScriptInvocation]
+    public int physChangeLinkSpring(UUID hostID, UUID scriptID, int linkNum)
+    {
+        return 0;
+    }
+
+    [ScriptInvocation]
+    public int physChangeLinkSlider(UUID hostID, UUID scriptID, int linkNum)
+    {
+        return 0;
     }
 }
 }

@@ -60,10 +60,7 @@ public class BSPrimLinkable : BSPrimDisplaced
 
         Linkset = BSLinkset.Factory(PhysScene, this);
 
-        PhysScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()
-        {
-            Linkset.Refresh(this);
-        });
+        Linkset.Refresh(this);
     }
 
     public override void Destroy()
@@ -82,7 +79,7 @@ public class BSPrimLinkable : BSPrimDisplaced
 
             Linkset = parent.Linkset.AddMeToLinkset(this);
 
-            DetailLog("{0},BSPrimLinkset.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}",
+            DetailLog("{0},BSPrimLinkable.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}",
                 LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         }
         return;
@@ -98,7 +95,7 @@ public class BSPrimLinkable : BSPrimDisplaced
 
         Linkset = Linkset.RemoveMeFromLinkset(this, false /* inTaintTime*/);
 
-        DetailLog("{0},BSPrimLinkset.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
+        DetailLog("{0},BSPrimLinkable.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
             LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         return;
     }
@@ -110,7 +107,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Position = value;
-            PhysScene.TaintedObject("BSPrimLinkset.setPosition", delegate()
+            PhysScene.TaintedObject("BSPrimLinkable.setPosition", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Position, this);
             });
@@ -124,7 +121,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Orientation = value;
-            PhysScene.TaintedObject("BSPrimLinkset.setOrientation", delegate()
+            PhysScene.TaintedObject("BSPrimLinkable.setOrientation", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
             });
@@ -242,7 +239,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         bool ret = false;
         if (LinksetType != newType)
         {
-            DetailLog("{0},BSPrimLinkset.ConvertLinkset,oldT={1},newT={2}", LocalID, LinksetType, newType);
+            DetailLog("{0},BSPrimLinkable.ConvertLinkset,oldT={1},newT={2}", LocalID, LinksetType, newType);
 
             // Set the implementation type first so the call to BSLinkset.Factory gets the new type.
             this.LinksetType = newType;
@@ -288,12 +285,14 @@ public class BSPrimLinkable : BSPrimDisplaced
         object ret = null;
         switch (pFunct)
         {
+            // physGetLinksetType();
             case BSScene.PhysFunctGetLinksetType:
             {
                 ret = (object)LinksetType;
                 m_log.DebugFormat("{0} Extension.physGetLinksetType, type={1}", LogHeader, ret);
                 break;
             }
+            // physSetLinksetType(type);
             case BSScene.PhysFunctSetLinksetType:
             {
                 if (pParams.Length > 0)
@@ -310,6 +309,18 @@ public class BSPrimLinkable : BSPrimDisplaced
                         });
                     }
                     ret = (object)(int)linksetType;
+                }
+                break;
+            }
+            // physChangeLinkFixed(linknum);
+            // Params: int linkNum, PhysActor linkedPrim
+            case BSScene.PhysFunctChangeLinkFixed:
+            {
+                if (pParams.Length > 1)
+                {
+                    int linkNum = (int)pParams[0];
+                    Manager.PhysicsActor linkActor = (Manager.PhysicsActor)pParams[1];
+                    Linkset.Refresh(this);
                 }
                 break;
             }
