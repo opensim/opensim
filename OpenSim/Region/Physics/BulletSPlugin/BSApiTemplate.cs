@@ -441,6 +441,14 @@ public abstract bool TranslationalLimitMotor(BulletConstraint constrain, float e
 
 public abstract bool SetBreakingImpulseThreshold(BulletConstraint constrain, float threshold);
 
+public abstract bool SpringEnable(BulletConstraint constrain, int index, float numericTrueFalse);
+
+public abstract bool SpringSetEquilibriumPoint(BulletConstraint constrain, int index, float equilibriumPoint);
+
+public abstract bool SpringSetStiffness(BulletConstraint constrain, int index, float stiffnesss);
+
+public abstract bool SpringSetDamping(BulletConstraint constrain, int index, float damping);
+
 public abstract bool CalculateTransforms(BulletConstraint constrain);
 
 public abstract bool SetConstraintParam(BulletConstraint constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis);

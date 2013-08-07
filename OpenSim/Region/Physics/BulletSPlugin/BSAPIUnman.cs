@@ -596,6 +596,30 @@ public override bool SetBreakingImpulseThreshold(BulletConstraint constrain, flo
     return BSAPICPP.SetBreakingImpulseThreshold2(constrainu.ptr, threshold);
 }
 
+public override bool SpringEnable(BulletConstraint constrain, int index, float numericTrueFalse)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringEnable2(constrainu.ptr, index, numericTrueFalse);
+}
+
+public override bool SpringSetEquilibriumPoint(BulletConstraint constrain, int index, float equilibriumPoint)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringSetEquilibriumPoint2(constrainu.ptr, index, equilibriumPoint);
+}
+
+public override bool SpringSetStiffness(BulletConstraint constrain, int index, float stiffnesss)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringSetStiffness2(constrainu.ptr, index, stiffnesss);
+}
+
+public override bool SpringSetDamping(BulletConstraint constrain, int index, float damping)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringSetDamping2(constrainu.ptr, index, damping);
+}
+
 public override bool CalculateTransforms(BulletConstraint constrain)
 {
     BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
@@ -1599,6 +1623,18 @@ public static extern bool TranslationalLimitMotor2(IntPtr constrain, float enabl
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetBreakingImpulseThreshold2(IntPtr constrain, float threshold);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringEnable2(IntPtr constrain, int index, float numericTrueFalse);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringSetEquilibriumPoint2(IntPtr constrain, int index, float equilibriumPoint);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringSetStiffness2(IntPtr constrain, int index, float stiffness);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringSetDamping2(IntPtr constrain, int index, float damping);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CalculateTransforms2(IntPtr constrain);

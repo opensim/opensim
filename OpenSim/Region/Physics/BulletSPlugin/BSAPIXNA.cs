@@ -752,6 +752,44 @@ private sealed class BulletConstraintXNA : BulletConstraint
         constraint.SetBreakingImpulseThreshold(threshold);
         return true;
     }
+    public override bool SpringEnable(BulletConstraint pConstraint, int index, float numericTrueFalse)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        constraint.EnableSpring(index, (numericTrueFalse == 0f ? false : true));
+        return true;
+    }
+
+    public override bool SpringSetEquilibriumPoint(BulletConstraint pConstraint, int index, float equilibriumPoint)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        if (index == -1)
+        {
+            constraint.SetEquilibriumPoint();
+        }
+        else
+        {
+            if (equilibriumPoint == -1)
+                constraint.SetEquilibriumPoint(index);
+            else
+                constraint.SetEquilibriumPoint(index, equilibriumPoint);
+        }
+        return true;
+    }
+
+    public override bool SpringSetStiffness(BulletConstraint pConstraint, int index, float stiffness)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        constraint.SetStiffness(index, stiffness);
+        return true;
+    }
+
+    public override bool SpringSetDamping(BulletConstraint pConstraint, int index, float damping)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        constraint.SetDamping(index, damping);
+        return true;
+    }
+
     //BulletSimAPI.SetAngularDamping(Prim.PhysBody.ptr, angularDamping);
     public override void SetAngularDamping(BulletBody pBody, float angularDamping)
     {
