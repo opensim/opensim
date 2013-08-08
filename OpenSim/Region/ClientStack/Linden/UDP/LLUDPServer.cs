@@ -1799,9 +1799,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                 if (!client.SceneAgent.IsChildAgent)
                      client.Kick("Simulator logged you out due to connection timeout.");
-    
-                client.CloseWithoutChecks();
             }
+
+            m_scene.IncomingCloseAgent(client.AgentId, true);
         }
 
         private void IncomingPacketHandler()
@@ -2142,7 +2142,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!client.IsLoggingOut)
             {
                 client.IsLoggingOut = true;
-                client.Close();
+                m_scene.IncomingCloseAgent(client.AgentId, false);
             }
         }
     }
