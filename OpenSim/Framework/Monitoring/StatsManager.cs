@@ -281,6 +281,12 @@ namespace OpenSim.Framework.Monitoring
 
             string strOut = StatsManager.GetStatsAsOSDMap(pCategoryName, pContainerName, pStatName).ToString();
 
+            // If requestor wants it as a callback function, build response as a function rather than just the JSON string.
+            if (request.ContainsKey("callback"))
+            {
+                strOut = request["callback"].ToString() + "(" + strOut + ");";
+            }
+
             // m_log.DebugFormat("{0} StatFetch: uri={1}, cat={2}, cont={3}, stat={4}, resp={5}",
             //                         LogHeader, regpath, pCategoryName, pContainerName, pStatName, strOut);
 
