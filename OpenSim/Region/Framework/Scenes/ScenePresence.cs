@@ -290,9 +290,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// In the V1 teleport protocol, the destination simulator sends ReleaseAgent to this address.
         /// </summary>
-        string m_callbackURI;
+        private string m_callbackURI;
 
-        UUID m_originRegionID;
+        public UUID m_originRegionID;
 
         /// <summary>
         /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
