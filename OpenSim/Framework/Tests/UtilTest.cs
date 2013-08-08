@@ -363,8 +363,6 @@ namespace OpenSim.Framework.Tests
 
             uuid = new UUID("00dd0700-00d1-0700-3800-000032000000");
             Util.FakeParcelIDToGlobalPosition(uuid, out x2, out y2);
-System.Console.WriteLine("uuid: " + uuid);
-System.Console.WriteLine("x2/y2: " + x2 + "," + y2);
         }
     }
 }
