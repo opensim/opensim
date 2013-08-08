@@ -291,6 +291,10 @@ public class ExtendedPhysics : INonSharedRegionModule
         return ret;
     }
 
+    // physChangeLinkFixed(integer linkNum)
+    // Change the link between the root and the linkNum into a fixed, static physical connection.
+    // This needs to change 'linkNum' into the physical object because lower level code has
+    //     no access to the link numbers.
     [ScriptInvocation]
     public int physChangeLinkFixed(UUID hostID, UUID scriptID, int linkNum)
     {
@@ -353,13 +357,76 @@ public class ExtendedPhysics : INonSharedRegionModule
     [ScriptInvocation]
     public int physChangeLinkHinge(UUID hostID, UUID scriptID, int linkNum)
     {
-        return 0;
+        return -1;
     }
 
     [ScriptInvocation]
-    public int physChangeLinkSpring(UUID hostID, UUID scriptID, int linkNum)
+    public int physChangeLinkSpring(UUID hostID, UUID scriptID, int linkNum,
+                        Vector3 frameInAloc, Quaternion frameInArot,
+                        Vector3 frameInBloc, Quaternion frameInBrot,
+                        Vector3 linearLimitLow, Vector3 linearLimitHigh,
+                        Vector3 angularLimitLow, Vector3 angularLimitHigh
+        )
     {
-        return 0;
+        int ret = -1;
+        if (!Enabled) return ret;
+
+        // The part that is requesting the change.
+        SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
+
+        if (requestingPart != null)
+        {
+            // The type is is always on the root of a linkset.
+            SceneObjectGroup containingGroup = requestingPart.ParentGroup;
+            SceneObjectPart rootPart = containingGroup.RootPart;
+
+            if (rootPart != null)
+            {
+                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
+                if (rootPhysActor != null)
+                {
+                    SceneObjectPart linkPart = containingGroup.GetLinkNumPart(linkNum);
+                    if (linkPart != null)
+                    {
+                        Physics.Manager.PhysicsActor linkPhysActor = linkPart.PhysActor;
+                        if (linkPhysActor != null)
+                        {
+                            ret = (int)rootPhysActor.Extension(PhysFunctChangeLinkSpring, linkNum, linkPhysActor,
+                                                                    frameInAloc, frameInArot,
+                                                                    frameInBloc, frameInBrot,
+                                                                    linearLimitLow, linearLimitHigh,
+                                                                    angularLimitLow, angularLimitHigh
+                                                                        );
+                        }
+                        else
+                        {
+                            m_log.WarnFormat("{0} physChangeLinkFixed: Link part has no physical actor. rootName={1}, hostID={2}, linknum={3}",
+                                                LogHeader, rootPart.Name, hostID, linkNum);
+                        }
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("{0} physChangeLinkFixed: Could not find linknum part. rootName={1}, hostID={2}, linknum={3}",
+                                            LogHeader, rootPart.Name, hostID, linkNum);
+                    }
+                }
+                else
+                {
+                    m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not have a physics actor. rootName={1}, hostID={2}",
+                                        LogHeader, rootPart.Name, hostID);
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not exist. RequestingPartName={1}, hostID={2}",
+                                    LogHeader, requestingPart.Name, hostID);
+            }
+        }
+        else
+        {
+            m_log.WarnFormat("{0} physGetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
+        }
+        return ret;
     }
 
     [ScriptInvocation]

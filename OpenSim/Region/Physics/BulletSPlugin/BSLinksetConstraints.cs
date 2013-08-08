@@ -60,8 +60,6 @@ public sealed class BSLinksetConstraints : BSLinkset
         public float springDamping;
         public float springStiffness;
 
-
-
         public BSLinkInfoConstraint(BSPrimLinkable pMember)
             : base(pMember)
         {
@@ -72,7 +70,8 @@ public sealed class BSLinksetConstraints : BSLinkset
         // Set all the parameters for this constraint to a fixed, non-movable constraint.
         public override void ResetLink()
         {
-            constraintType = ConstraintType.D6_CONSTRAINT_TYPE;
+            // constraintType = ConstraintType.D6_CONSTRAINT_TYPE;
+            constraintType = ConstraintType.FIXED_CONSTRAINT_TYPE;
             linearLimitLow = OMV.Vector3.Zero;
             linearLimitHigh = OMV.Vector3.Zero;
             angularLimitLow = OMV.Vector3.Zero;
@@ -97,6 +96,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         {
             switch (constraintType)
             {
+                case ConstraintType.FIXED_CONSTRAINT_TYPE:
                 case ConstraintType.D6_CONSTRAINT_TYPE:
                     BSConstraint6Dof constrain6dof = constrain as BSConstraint6Dof;
                     if (constrain6dof != null)
@@ -144,6 +144,20 @@ public sealed class BSLinksetConstraints : BSLinkset
                 default:
                     break;
             }
+        }
+
+        // Return 'true' if the property updates from the physics engine should be reported
+        //    to the simulator.
+        // If the constraint is fixed, we don't need to report as the simulator and viewer will
+        //    report the right things.
+        public override bool ShouldUpdateChildProperties()
+        {
+            bool ret = true;
+
+            if (constraintType == ConstraintType.FIXED_CONSTRAINT_TYPE)
+                ret = false;
+
+            return ret;
         }
     }
 
@@ -316,6 +330,7 @@ public sealed class BSLinksetConstraints : BSLinkset
 
         switch (linkInfo.constraintType)
         {
+            case ConstraintType.FIXED_CONSTRAINT_TYPE:
             case ConstraintType.D6_CONSTRAINT_TYPE:
                 // Relative position normalized to the root prim
                 // Essentually a vector pointing from center of rootPrim to center of li.member
@@ -466,5 +481,86 @@ public sealed class BSLinksetConstraints : BSLinkset
             Rebuilding = false;
         }
     }
+
+    #region Extension
+    public override object Extension(string pFunct, params object[] pParams)
+    {
+        object ret = null;
+        switch (pFunct)
+        {
+            // pParams = (int linkNUm, PhysActor linkChild)
+            case BSScene.PhysFunctChangeLinkFixed:
+                if (pParams.Length > 1)
+                {
+                    BSPrimLinkable child = pParams[1] as BSPrimLinkable;
+                    if (child != null)
+                    {
+                        m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkFixed", delegate()
+                        {
+                            // Pick up all the constraints currently created.
+                            RemoveDependencies(child);
+
+                            BSLinkInfo linkInfo = null;
+                            if (m_children.TryGetValue(child, out linkInfo))
+                            {
+                                BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
+                                if (linkInfoC != null)
+                                {
+                                    // Setting to fixed is easy. The reset state is the fixed link configuration.
+                                    linkInfoC.ResetLink();
+                                    ret = (object)true;
+                                }
+                            }
+                            // Cause the whole linkset to be rebuilt in post-taint time.
+                            Refresh(child);
+                        });
+                    }
+                }
+                break;
+            case BSScene.PhysFunctChangeLinkSpring:
+                if (pParams.Length > 11)
+                {
+                    BSPrimLinkable child = pParams[1] as BSPrimLinkable;
+                    if (child != null)
+                    {
+                        m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkFixed", delegate()
+                        {
+                            // Pick up all the constraints currently created.
+                            RemoveDependencies(child);
+
+                            BSLinkInfo linkInfo = null;
+                            if (m_children.TryGetValue(child, out linkInfo))
+                            {
+                                BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
+                                if (linkInfoC != null)
+                                {
+                                    // Start with a reset link definition
+                                    linkInfoC.ResetLink();
+                                    linkInfoC.constraintType = ConstraintType.D6_SPRING_CONSTRAINT_TYPE;
+                                    linkInfoC.frameInAloc = (OMV.Vector3)pParams[2];
+                                    linkInfoC.frameInArot = (OMV.Quaternion)pParams[3];
+                                    linkInfoC.frameInBloc = (OMV.Vector3)pParams[4];
+                                    linkInfoC.frameInBrot = (OMV.Quaternion)pParams[5];
+                                    linkInfoC.linearLimitLow = (OMV.Vector3)pParams[6];
+                                    linkInfoC.linearLimitHigh = (OMV.Vector3)pParams[7];
+                                    linkInfoC.angularLimitLow = (OMV.Vector3)pParams[8];
+                                    linkInfoC.angularLimitHigh = (OMV.Vector3)pParams[9];
+                                    ret = (object)true;
+                                }
+                            }
+                            // Cause the whole linkset to be rebuilt in post-taint time.
+                            Refresh(child);
+                        });
+                    }
+                }
+                break;
+            default:
+                ret = base.Extension(pFunct, pParams);
+                break;
+        }
+        return ret;
+    }
+    #endregion // Extension
+
 }
 }
