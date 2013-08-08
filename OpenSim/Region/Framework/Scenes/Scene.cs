@@ -3699,6 +3699,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                         sp.DoNotCloseAfterTeleport = true;
                     }
+                    else if (EntityTransferModule.IsInTransit(sp.UUID))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because this region will attempt previous end-of-teleport close.", 
+                            sp.Name, Name);
+
+                        sp.DoNotCloseAfterTeleport = true;
+                    }
                 }
             }
 
