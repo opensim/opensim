@@ -79,6 +79,8 @@ public abstract class BSLinkset
         }
         public virtual void ResetLink() { }
         public virtual void SetLinkParameters(BSConstraint constrain) { }
+        // Returns 'true' if physical property updates from the child should be reported to the simulator
+        public virtual bool ShouldUpdateChildProperties() { return false; }
     }
 
     public LinksetImplementation LinksetImpl { get; protected set; }
@@ -221,6 +223,21 @@ public abstract class BSLinkset
                     break;
             }
         }
+        return ret;
+    }
+
+    // Check the type of the link and return 'true' if the link is flexible and the
+    //    updates from the child should be sent to the simulator so things change.
+    public virtual bool ShouldReportPropertyUpdates(BSPrimLinkable child)
+    {
+        bool ret = false;
+
+        BSLinkInfo linkInfo;
+        if (m_children.TryGetValue(child, out linkInfo))
+        {
+            ret = linkInfo.ShouldUpdateChildProperties();
+        }
+
         return ret;
     }
 
@@ -431,6 +448,13 @@ public abstract class BSLinkset
 
         return com;
     }
+
+    #region Extension
+    public virtual object Extension(string pFunct, params object[] pParams)
+    {
+        return null;
+    }
+    #endregion // Extension
 
     // Invoke the detailed logger and output something if it's enabled.
     protected void DetailLog(string msg, params Object[] args)

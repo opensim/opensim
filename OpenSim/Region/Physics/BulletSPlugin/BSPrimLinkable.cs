@@ -179,7 +179,7 @@ public class BSPrimLinkable : BSPrimDisplaced
     // Do any filtering/modification needed for linksets.
     public override void UpdateProperties(EntityProperties entprop)
     {
-        if (Linkset.IsRoot(this))
+        if (Linkset.IsRoot(this) || Linkset.ShouldReportPropertyUpdates(this))
         {
             // Properties are only updated for the roots of a linkset.
             // TODO: this will have to change when linksets are articulated.
@@ -316,12 +316,7 @@ public class BSPrimLinkable : BSPrimDisplaced
             // Params: int linkNum, PhysActor linkedPrim
             case BSScene.PhysFunctChangeLinkFixed:
             {
-                if (pParams.Length > 1)
-                {
-                    int linkNum = (int)pParams[0];
-                    Manager.PhysicsActor linkActor = (Manager.PhysicsActor)pParams[1];
-                    Linkset.Refresh(this);
-                }
+                Linkset.Extension(pFunct, pParams);
                 break;
             }
             default:
