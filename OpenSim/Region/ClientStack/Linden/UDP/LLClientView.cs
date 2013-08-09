@@ -512,7 +512,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We still perform a force close inside the sync lock since this is intended to attempt close where
                 // there is some unidentified connection problem, not where we have issues due to deadlock
                 if (!IsActive && !force)
+                {
+                    m_log.DebugFormat(
+                        "[CLIENT]: Not attempting to close inactive client {0} in {1} since force flag is not set", 
+                        Name, m_scene.Name);
+
                     return;
+                }
 
                 IsActive = false;
                 CloseWithoutChecks();

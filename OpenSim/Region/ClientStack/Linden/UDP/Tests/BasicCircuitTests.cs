@@ -200,7 +200,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestLogoutClientDueToAck()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+            TestHelpers.EnableLogging();
 
             IniConfigSource ics = new IniConfigSource();
             IConfig config = ics.AddConfig("ClientStack.LindenUDP");
