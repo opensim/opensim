@@ -28,6 +28,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using OpenSim.Region.OptionalModules.Scripting;
+
 using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -489,70 +491,45 @@ public sealed class BSLinksetConstraints : BSLinkset
         switch (pFunct)
         {
             // pParams = (int linkNUm, PhysActor linkChild)
-            case BSScene.PhysFunctChangeLinkFixed:
+            case ExtendedPhysics.PhysFunctChangeLinkType:
                 if (pParams.Length > 1)
                 {
-                    BSPrimLinkable child = pParams[1] as BSPrimLinkable;
-                    if (child != null)
+                    int requestedType = (int)pParams[1];
+                    if (requestedType == (int)ConstraintType.FIXED_CONSTRAINT_TYPE
+                        || requestedType == (int)ConstraintType.D6_CONSTRAINT_TYPE
+                        || requestedType == (int)ConstraintType.D6_SPRING_CONSTRAINT_TYPE
+                        || requestedType == (int)ConstraintType.HINGE_CONSTRAINT_TYPE
+                        || requestedType == (int)ConstraintType.CONETWIST_CONSTRAINT_TYPE
+                        || requestedType == (int)ConstraintType.SLIDER_CONSTRAINT_TYPE)
                     {
-                        m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkFixed", delegate()
+                        BSPrimLinkable child = pParams[0] as BSPrimLinkable;
+                        if (child != null)
                         {
-                            // Pick up all the constraints currently created.
-                            RemoveDependencies(child);
-
-                            BSLinkInfo linkInfo = null;
-                            if (m_children.TryGetValue(child, out linkInfo))
+                            m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkFixed", delegate()
                             {
-                                BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
-                                if (linkInfoC != null)
+                                // Pick up all the constraints currently created.
+                                RemoveDependencies(child);
+
+                                BSLinkInfo linkInfo = null;
+                                if (m_children.TryGetValue(child, out linkInfo))
                                 {
-                                    // Setting to fixed is easy. The reset state is the fixed link configuration.
-                                    linkInfoC.ResetLink();
-                                    ret = (object)true;
+                                    BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
+                                    if (linkInfoC != null)
+                                    {
+                                        // Setting to fixed is easy. The reset state is the fixed link configuration.
+                                        linkInfoC.ResetLink();
+                                        linkInfoC.constraintType = (ConstraintType)requestedType;
+                                        ret = (object)true;
+                                    }
                                 }
-                            }
-                            // Cause the whole linkset to be rebuilt in post-taint time.
-                            Refresh(child);
-                        });
+                                // Cause the whole linkset to be rebuilt in post-taint time.
+                                Refresh(child);
+                            });
+                        }
                     }
                 }
                 break;
-            case BSScene.PhysFunctChangeLinkSpring:
-                if (pParams.Length > 11)
-                {
-                    BSPrimLinkable child = pParams[1] as BSPrimLinkable;
-                    if (child != null)
-                    {
-                        m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkFixed", delegate()
-                        {
-                            // Pick up all the constraints currently created.
-                            RemoveDependencies(child);
-
-                            BSLinkInfo linkInfo = null;
-                            if (m_children.TryGetValue(child, out linkInfo))
-                            {
-                                BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
-                                if (linkInfoC != null)
-                                {
-                                    // Start with a reset link definition
-                                    linkInfoC.ResetLink();
-                                    linkInfoC.constraintType = ConstraintType.D6_SPRING_CONSTRAINT_TYPE;
-                                    linkInfoC.frameInAloc = (OMV.Vector3)pParams[2];
-                                    linkInfoC.frameInArot = (OMV.Quaternion)pParams[3];
-                                    linkInfoC.frameInBloc = (OMV.Vector3)pParams[4];
-                                    linkInfoC.frameInBrot = (OMV.Quaternion)pParams[5];
-                                    linkInfoC.linearLimitLow = (OMV.Vector3)pParams[6];
-                                    linkInfoC.linearLimitHigh = (OMV.Vector3)pParams[7];
-                                    linkInfoC.angularLimitLow = (OMV.Vector3)pParams[8];
-                                    linkInfoC.angularLimitHigh = (OMV.Vector3)pParams[9];
-                                    ret = (object)true;
-                                }
-                            }
-                            // Cause the whole linkset to be rebuilt in post-taint time.
-                            Refresh(child);
-                        });
-                    }
-                }
+            case ExtendedPhysics.PhysFunctChangeLinkParams:
                 break;
             default:
                 ret = base.Extension(pFunct, pParams);
