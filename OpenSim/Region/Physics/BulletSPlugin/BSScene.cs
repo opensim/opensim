@@ -867,20 +867,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public override bool IsThreaded { get { return false;  } }
 
     #region Extensions
-    // =============================================================
-    // Per scene functions. See below.
-
-    // Per avatar functions. See BSCharacter.
-
-    // Per prim functions. See BSPrim.
-    public const string PhysFunctGetLinksetType = "BulletSim.GetLinksetType";
-    public const string PhysFunctSetLinksetType = "BulletSim.SetLinksetType";
-    public const string PhysFunctChangeLinkFixed = "BulletSim.ChangeLinkFixed";
-    public const string PhysFunctChangeLinkHinge = "BulletSim.ChangeLinkHinge";
-    public const string PhysFunctChangeLinkSpring = "BulletSim.ChangeLinkSpring";
-    public const string PhysFunctChangeLinkSlider = "BulletSim.ChangeLinkSlider";
-    // =============================================================
-
     public override object Extension(string pFunct, params object[] pParams)
     {
         return base.Extension(pFunct, pParams);

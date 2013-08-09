@@ -36,6 +36,7 @@ using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Physics.Manager;
 
 using Mono.Addins;
 using Nini.Config;
@@ -62,9 +63,8 @@ public class ExtendedPhysics : INonSharedRegionModule
     public const string PhysFunctGetLinksetType = "BulletSim.GetLinksetType";
     public const string PhysFunctSetLinksetType = "BulletSim.SetLinksetType";
     public const string PhysFunctChangeLinkFixed = "BulletSim.ChangeLinkFixed";
-    public const string PhysFunctChangeLinkHinge = "BulletSim.ChangeLinkHinge";
-    public const string PhysFunctChangeLinkSpring = "BulletSim.ChangeLinkSpring";
-    public const string PhysFunctChangeLinkSlider = "BulletSim.ChangeLinkSlider";
+    public const string PhysFunctChangeLinkType = "BulletSim.ChangeLinkType";
+    public const string PhysFunctChangeLinkParams = "BulletSim.ChangeLinkParams";
 
     // =============================================================
 
@@ -200,7 +200,7 @@ public class ExtendedPhysics : INonSharedRegionModule
 
             if (rootPart != null)
             {
-                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
+                PhysicsActor rootPhysActor = rootPart.PhysActor;
                 if (rootPhysActor != null)
                 {
                     if (rootPhysActor.IsPhysical)
@@ -219,7 +219,7 @@ public class ExtendedPhysics : INonSharedRegionModule
                         containingGroup.UpdateGroupPosition(containingGroup.AbsolutePosition);
                         containingGroup.UpdateGroupRotationR(containingGroup.GroupRotation);
 
-                        ret = (int)rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                        ret = MakeIntError(rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType));
                         Thread.Sleep(150);  // longer than one heartbeat tick
 
                         containingGroup.ScriptSetPhysicsStatus(true);
@@ -228,7 +228,7 @@ public class ExtendedPhysics : INonSharedRegionModule
                     {
                         // Non-physical linksets don't have a physical instantiation so there is no state to
                         //    worry about being updated.
-                        ret = (int)rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType);
+                        ret = MakeIntError(rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType));
                     }
                 }
                 else
@@ -267,10 +267,10 @@ public class ExtendedPhysics : INonSharedRegionModule
 
             if (rootPart != null)
             {
-                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
+                PhysicsActor rootPhysActor = rootPart.PhysActor;
                 if (rootPhysActor != null)
                 {
-                    ret = (int)rootPhysActor.Extension(PhysFunctGetLinksetType);
+                    ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinksetType));
                 }
                 else
                 {
@@ -291,148 +291,225 @@ public class ExtendedPhysics : INonSharedRegionModule
         return ret;
     }
 
+    [ScriptConstant]
+    public static int PHYS_LINK_TYPE_FIXED  = 1234;
+    [ScriptConstant]
+    public static int PHYS_LINK_TYPE_HINGE  = 4;
+    [ScriptConstant]
+    public static int PHYS_LINK_TYPE_SPRING = 9;
+    [ScriptConstant]
+    public static int PHYS_LINK_TYPE_6DOF   = 6;
+    [ScriptConstant]
+    public static int PHYS_LINK_TYPE_SLIDER = 7;
+
+    // physChangeLinkType(integer linkNum, integer typeCode)
+    [ScriptInvocation]
+    public int physChangeLinkType(UUID hostID, UUID scriptID, int linkNum, int typeCode)
+    {
+        int ret = -1;
+        if (!Enabled) return ret;
+
+        PhysicsActor rootPhysActor;
+        PhysicsActor childPhysActor;
+
+        if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
+        {
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, childPhysActor, typeCode));
+        }
+
+        return ret;
+    }
+
     // physChangeLinkFixed(integer linkNum)
     // Change the link between the root and the linkNum into a fixed, static physical connection.
-    // This needs to change 'linkNum' into the physical object because lower level code has
-    //     no access to the link numbers.
     [ScriptInvocation]
     public int physChangeLinkFixed(UUID hostID, UUID scriptID, int linkNum)
     {
         int ret = -1;
         if (!Enabled) return ret;
 
-        // The part that is requesting the change.
-        SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
+        PhysicsActor rootPhysActor;
+        PhysicsActor childPhysActor;
 
-        if (requestingPart != null)
+        if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            // The type is is always on the root of a linkset.
-            SceneObjectGroup containingGroup = requestingPart.ParentGroup;
-            SceneObjectPart rootPart = containingGroup.RootPart;
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, childPhysActor, PHYS_LINK_TYPE_FIXED));
+        }
 
-            if (rootPart != null)
-            {
-                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
-                if (rootPhysActor != null)
-                {
-                    SceneObjectPart linkPart = containingGroup.GetLinkNumPart(linkNum);
-                    if (linkPart != null)
-                    {
-                        Physics.Manager.PhysicsActor linkPhysActor = linkPart.PhysActor;
-                        if (linkPhysActor != null)
-                        {
-                            ret = (int)rootPhysActor.Extension(PhysFunctChangeLinkFixed, linkNum, linkPhysActor);
-                        }
-                        else
-                        {
-                            m_log.WarnFormat("{0} physChangeLinkFixed: Link part has no physical actor. rootName={1}, hostID={2}, linknum={3}",
-                                                LogHeader, rootPart.Name, hostID, linkNum);
-                        }
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("{0} physChangeLinkFixed: Could not find linknum part. rootName={1}, hostID={2}, linknum={3}",
-                                            LogHeader, rootPart.Name, hostID, linkNum);
-                    }
-                }
-                else
-                {
-                    m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not have a physics actor. rootName={1}, hostID={2}",
-                                        LogHeader, rootPart.Name, hostID);
-                }
-            }
-            else
-            {
-                m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not exist. RequestingPartName={1}, hostID={2}",
-                                    LogHeader, requestingPart.Name, hostID);
-            }
-        }
-        else
-        {
-            m_log.WarnFormat("{0} physGetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
-        }
         return ret;
     }
 
-    [ScriptInvocation]
-    public int physChangeLinkHinge(UUID hostID, UUID scriptID, int linkNum)
-    {
-        return -1;
-    }
+    // Code for specifying params.
+    // The choice if 14400 is arbitrary and only serves to catch parameter code misuse.
+    public static int PHYS_PARAM_MIN                    = 14401;
+    [ScriptConstant]
+    public static int PHYS_PARAM_FRAMEINA_LOC           = 14401;
+    [ScriptConstant]
+    public static int PHYS_PARAM_FRAMEINA_ROT           = 14402;
+    [ScriptConstant]
+    public static int PHYS_PARAM_FRAMEINB_LOC           = 14403;
+    [ScriptConstant]
+    public static int PHYS_PARAM_FRAMEINB_ROT           = 14404;
+    [ScriptConstant]
+    public static int PHYS_PARAM_LINEAR_LIMIT_LOW       = 14405;
+    [ScriptConstant]
+    public static int PHYS_PARAM_LINEAR_LIMIT_HIGH      = 14406;
+    [ScriptConstant]
+    public static int PHYS_PARAM_ANGULAR_LIMIT_LOW      = 14407;
+    [ScriptConstant]
+    public static int PHYS_PARAM_ANGULAR_LIMIT_HIGH     = 14408;
+    [ScriptConstant]
+    public static int PHYS_PARAM_USE_FRAME_OFFSET       = 14409;
+    [ScriptConstant]
+    public static int PHYS_PARAM_ENABLE_TRANSMOTOR      = 14410;
+    [ScriptConstant]
+    public static int PHYS_PARAM_TRANSMOTOR_MAXVEL      = 14411;
+    [ScriptConstant]
+    public static int PHYS_PARAM_TRANSMOTOR_MAXFORCE    = 14412;
+    [ScriptConstant]
+    public static int PHYS_PARAM_CFM                    = 14413;
+    [ScriptConstant]
+    public static int PHYS_PARAM_ERP                    = 14414;
+    [ScriptConstant]
+    public static int PHYS_PARAM_SOLVER_ITERATIONS      = 14415;
+    [ScriptConstant]
+    public static int PHYS_PARAM_SPRING_DAMPING         = 14416;
+    [ScriptConstant]
+    public static int PHYS_PARAM_SPRING_STIFFNESS       = 14417;
+    public static int PHYS_PARAM_MAX                    = 14417;
 
+    // physChangeLinkParams(integer linkNum, [ PHYS_PARAM_*, value, PHYS_PARAM_*, value, ...])
     [ScriptInvocation]
-    public int physChangeLinkSpring(UUID hostID, UUID scriptID, int linkNum,
-                        Vector3 frameInAloc, Quaternion frameInArot,
-                        Vector3 frameInBloc, Quaternion frameInBrot,
-                        Vector3 linearLimitLow, Vector3 linearLimitHigh,
-                        Vector3 angularLimitLow, Vector3 angularLimitHigh
-        )
+    public int physChangeLinkParams(UUID hostID, UUID scriptID, int linkNum, object[] parms)
     {
         int ret = -1;
         if (!Enabled) return ret;
 
-        // The part that is requesting the change.
-        SceneObjectPart requestingPart = BaseScene.GetSceneObjectPart(hostID);
+        PhysicsActor rootPhysActor;
+        PhysicsActor childPhysActor;
 
+        if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
+        {
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkParams, childPhysActor, parms));
+        }
+
+        return ret;
+    }
+
+    private bool GetRootPhysActor(UUID hostID, out PhysicsActor rootPhysActor)
+    {
+        SceneObjectGroup containingGroup;
+        SceneObjectPart rootPart;
+        return GetRootPhysActor(hostID, out containingGroup, out rootPart, out rootPhysActor);
+    }
+
+    private bool GetRootPhysActor(UUID hostID, out SceneObjectGroup containingGroup, out SceneObjectPart rootPart, out PhysicsActor rootPhysActor)
+    {
+        bool ret = false;
+        rootPhysActor = null;
+        containingGroup = null;
+        rootPart = null;
+
+        SceneObjectPart requestingPart;
+
+        requestingPart = BaseScene.GetSceneObjectPart(hostID);
         if (requestingPart != null)
         {
             // The type is is always on the root of a linkset.
-            SceneObjectGroup containingGroup = requestingPart.ParentGroup;
-            SceneObjectPart rootPart = containingGroup.RootPart;
-
-            if (rootPart != null)
+            containingGroup = requestingPart.ParentGroup;
+            if (containingGroup != null && !containingGroup.IsDeleted)
             {
-                Physics.Manager.PhysicsActor rootPhysActor = rootPart.PhysActor;
-                if (rootPhysActor != null)
+                rootPart = containingGroup.RootPart;
+                if (rootPart != null)
                 {
-                    SceneObjectPart linkPart = containingGroup.GetLinkNumPart(linkNum);
-                    if (linkPart != null)
+                    rootPhysActor = rootPart.PhysActor;
+                    if (rootPhysActor != null)
                     {
-                        Physics.Manager.PhysicsActor linkPhysActor = linkPart.PhysActor;
-                        if (linkPhysActor != null)
-                        {
-                            ret = (int)rootPhysActor.Extension(PhysFunctChangeLinkSpring, linkNum, linkPhysActor,
-                                                                    frameInAloc, frameInArot,
-                                                                    frameInBloc, frameInBrot,
-                                                                    linearLimitLow, linearLimitHigh,
-                                                                    angularLimitLow, angularLimitHigh
-                                                                        );
-                        }
-                        else
-                        {
-                            m_log.WarnFormat("{0} physChangeLinkFixed: Link part has no physical actor. rootName={1}, hostID={2}, linknum={3}",
-                                                LogHeader, rootPart.Name, hostID, linkNum);
-                        }
+                        ret = true;
                     }
                     else
                     {
-                        m_log.WarnFormat("{0} physChangeLinkFixed: Could not find linknum part. rootName={1}, hostID={2}, linknum={3}",
-                                            LogHeader, rootPart.Name, hostID, linkNum);
+                        m_log.WarnFormat("{0} GetRootAndChildPhysActors: Root part does not have a physics actor. rootName={1}, hostID={2}",
+                                        LogHeader, rootPart.Name, hostID);
                     }
                 }
                 else
                 {
-                    m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not have a physics actor. rootName={1}, hostID={2}",
-                                        LogHeader, rootPart.Name, hostID);
+                    m_log.WarnFormat("{0} GetRootAndChildPhysActors: Root part does not exist. RequestingPartName={1}, hostID={2}",
+                                    LogHeader, requestingPart.Name, hostID);
                 }
             }
             else
             {
-                m_log.WarnFormat("{0} physChangeLinkFixed: Root part does not exist. RequestingPartName={1}, hostID={2}",
-                                    LogHeader, requestingPart.Name, hostID);
+                m_log.WarnFormat("{0} GetRootAndChildPhysActors: Containing group missing or deleted. hostID={1}", LogHeader, hostID);
             }
         }
         else
         {
-            m_log.WarnFormat("{0} physGetLinsetType: cannot find script object in scene. hostID={1}", LogHeader, hostID);
+            m_log.WarnFormat("{0} GetRootAndChildPhysActors: cannot find script object in scene. hostID={1}", LogHeader, hostID);
         }
+
         return ret;
     }
 
-    [ScriptInvocation]
-    public int physChangeLinkSlider(UUID hostID, UUID scriptID, int linkNum)
+    // Find the root and child PhysActors based on the linkNum.
+    // Return 'true' if both are found and returned.
+    private bool GetRootAndChildPhysActors(UUID hostID, int linkNum, out PhysicsActor rootPhysActor, out PhysicsActor childPhysActor)
     {
-        return 0;
+        bool ret = false;
+        rootPhysActor = null;
+        childPhysActor = null;
+
+        SceneObjectGroup containingGroup;
+        SceneObjectPart rootPart;
+
+        if (GetRootPhysActor(hostID, out containingGroup, out rootPart, out rootPhysActor))
+        {
+            SceneObjectPart linkPart = containingGroup.GetLinkNumPart(linkNum);
+            if (linkPart != null)
+            {
+                childPhysActor = linkPart.PhysActor;
+                if (childPhysActor != null)
+                {
+                    ret = true;
+                }
+                else
+                {
+                    m_log.WarnFormat("{0} GetRootAndChildPhysActors: Link part has no physical actor. rootName={1}, hostID={2}, linknum={3}",
+                                        LogHeader, rootPart.Name, hostID, linkNum);
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("{0} GetRootAndChildPhysActors: Could not find linknum part. rootName={1}, hostID={2}, linknum={3}",
+                                    LogHeader, rootPart.Name, hostID, linkNum);
+            }
+        }
+        else
+        {
+            m_log.WarnFormat("{0} GetRootAndChildPhysActors: Root part does not have a physics actor. rootName={1}, hostID={2}",
+                            LogHeader, rootPart.Name, hostID);
+        }
+
+        return ret;
+    }
+
+    // Extension() returns an object. Convert that object into the integer error we expect to return.
+    private int MakeIntError(object extensionRet)
+    {
+        int ret = -1;
+        if (extensionRet != null)
+        {
+            try
+            {
+                ret = (int)extensionRet;
+            }
+            catch
+            {
+                ret = -1;
+            }
+        }
+        return ret;
     }
 }
 }

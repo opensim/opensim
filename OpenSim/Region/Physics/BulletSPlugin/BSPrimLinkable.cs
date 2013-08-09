@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 
 using OpenSim.Framework;
+using OpenSim.Region.OptionalModules.Scripting;
 
 using OMV = OpenMetaverse;
 
@@ -286,14 +287,14 @@ public class BSPrimLinkable : BSPrimDisplaced
         switch (pFunct)
         {
             // physGetLinksetType();
-            case BSScene.PhysFunctGetLinksetType:
+            case ExtendedPhysics.PhysFunctGetLinksetType:
             {
                 ret = (object)LinksetType;
                 m_log.DebugFormat("{0} Extension.physGetLinksetType, type={1}", LogHeader, ret);
                 break;
             }
             // physSetLinksetType(type);
-            case BSScene.PhysFunctSetLinksetType:
+            case ExtendedPhysics.PhysFunctSetLinksetType:
             {
                 if (pParams.Length > 0)
                 {
@@ -312,9 +313,16 @@ public class BSPrimLinkable : BSPrimDisplaced
                 }
                 break;
             }
-            // physChangeLinkFixed(linknum);
-            // Params: int linkNum, PhysActor linkedPrim
-            case BSScene.PhysFunctChangeLinkFixed:
+            // physChangeLinkType(linknum, typeCode);
+            // Params: PhysActor linkedPrim, int typeCode
+            case ExtendedPhysics.PhysFunctChangeLinkType:
+            {
+                Linkset.Extension(pFunct, pParams);
+                break;
+            }
+            // physChangeLinkParams(linknum, [code, value, code, value, ...]);
+            // Params: PhysActor linkedPrim, object[] params
+            case ExtendedPhysics.PhysFunctChangeLinkParams:
             {
                 Linkset.Extension(pFunct, pParams);
                 break;
