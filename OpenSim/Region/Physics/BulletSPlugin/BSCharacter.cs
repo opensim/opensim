@@ -96,8 +96,8 @@ public sealed class BSCharacter : BSPhysObject
         m_moveActor = new BSActorAvatarMove(PhysScene, this, AvatarMoveActorName);
         PhysicalActors.Add(AvatarMoveActorName, m_moveActor);
 
-        DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
-                            LocalID, _size, Scale, Density, _avatarVolume, RawMass);
+        DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5},pos={6}",
+                            LocalID, _size, Scale, Density, _avatarVolume, RawMass, pos);
 
         // do actual creation in taint time
         PhysScene.TaintedObject("BSCharacter.create", delegate()
@@ -190,6 +190,10 @@ public sealed class BSCharacter : BSPhysObject
         }
 
         set {
+            // This is how much the avatar size is changing. Positive means getting bigger.
+            // The avatar altitude must be adjusted for this change.
+            float heightChange = value.Z - _size.Z;
+
             _size = value;
             // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
             //     replace with the default values.
@@ -207,6 +211,10 @@ public sealed class BSCharacter : BSPhysObject
                 {
                     PhysScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
                     UpdatePhysicalMassProperties(RawMass, true);
+
+                    // Adjust the avatar's position to account for the increase/decrease in size
+                    ForcePosition = new OMV.Vector3(RawPosition.X, RawPosition.Y, RawPosition.Z + heightChange / 2f);
+
                     // Make sure this change appears as a property update event
                     PhysScene.PE.PushUpdate(PhysBody);
                 }

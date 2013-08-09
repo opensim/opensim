@@ -4222,36 +4222,42 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // We have to wait until the viewer contacts this region
-            // after receiving the EnableSimulator HTTP Event Queue message.  This triggers the viewer to send
+            // after receiving the EnableSimulator HTTP Event Queue message (for the v1 teleport protocol) 
+            // or TeleportFinish (for the v2 teleport protocol).  This triggers the viewer to send
             // a UseCircuitCode packet which in turn calls AddNewClient which finally creates the ScenePresence.
-            ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
+            ScenePresence sp = WaitGetScenePresence(cAgentData.AgentID);
 
-            if (childAgentUpdate != null)
+            if (sp != null)
             {
-                if (cAgentData.SessionID != childAgentUpdate.ControllingClient.SessionId)
+                if (cAgentData.SessionID != sp.ControllingClient.SessionId)
                 {
-                    m_log.WarnFormat("[SCENE]: Attempt to update agent {0} with invalid session id {1} (possibly from simulator in older version; tell them to update).", childAgentUpdate.UUID, cAgentData.SessionID);
+                    m_log.WarnFormat(
+                        "[SCENE]: Attempt to update agent {0} with invalid session id {1} (possibly from simulator in older version; tell them to update).", 
+                        sp.UUID, cAgentData.SessionID);
+
                     Console.WriteLine(String.Format("[SCENE]: Attempt to update agent {0} ({1}) with invalid session id {2}", 
-                        childAgentUpdate.UUID, childAgentUpdate.ControllingClient.SessionId, cAgentData.SessionID));
+                        sp.UUID, sp.ControllingClient.SessionId, cAgentData.SessionID));
                 }
 
-                childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+                sp.ChildAgentDataUpdate(cAgentData);
 
                 int ntimes = 20;
                 if (cAgentData.SenderWantsToWaitForRoot)
                 {
-                    while (childAgentUpdate.IsChildAgent && ntimes-- > 0)
+                    while (sp.IsChildAgent && ntimes-- > 0)
                         Thread.Sleep(1000);
 
                     m_log.DebugFormat(
                         "[SCENE]: Found presence {0} {1} {2} in {3} after {4} waits",
-                        childAgentUpdate.Name, childAgentUpdate.UUID, childAgentUpdate.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 20 - ntimes);
+                        sp.Name, sp.UUID, sp.IsChildAgent ? "child" : "root", Name, 20 - ntimes);
 
-                    if (childAgentUpdate.IsChildAgent)
+                    if (sp.IsChildAgent)
                         return false;
                 }
+
                 return true;
             }
+
             return false;
         }
 
