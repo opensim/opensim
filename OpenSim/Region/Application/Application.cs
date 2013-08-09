@@ -142,19 +142,19 @@ namespace OpenSim
 			if (iocpThreads < iocpThreadsMin)
             {
                 iocpThreads = iocpThreadsMin;
-                m_log.InfoFormat("[OPENSIM MAIN]: Bumping up max IO completion threads to {0}",iocpThreads);
+                m_log.InfoFormat("[OPENSIM MAIN]: Bumping up max IOCP threads to {0}",iocpThreads);
             }
 			// Make sure we don't overallocate IOCP threads and thrash system resources
             if ( iocpThreads > iocpThreadsMax )
             {
                 iocpThreads = iocpThreadsMax;
-                m_log.InfoFormat("[OPENSIM MAIN]: Limiting max IO completion threads to {0}",iocpThreads);
+                m_log.InfoFormat("[OPENSIM MAIN]: Limiting max IOCP completion threads to {0}",iocpThreads);
             }
 			// set the resulting worker and IO completion thread counts back to ThreadPool
             if ( System.Threading.ThreadPool.SetMaxThreads(workerThreads, iocpThreads) )
 			{
 	            m_log.InfoFormat(
-                    "[OPENSIM MAIN]: Threadpool set to {0} max worker threads and {1} max IO completion threads",
+                    "[OPENSIM MAIN]: Threadpool set to {0} max worker threads and {1} max IOCP threads",
                     workerThreads, iocpThreads);
 			}
 			else
