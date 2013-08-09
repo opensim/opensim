@@ -1355,7 +1355,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool WaitForUpdateAgent(IClientAPI client)
         {
             // Before UpdateAgent, m_originRegionID is UUID.Zero; after, it's non-Zero
-            int count = 20;
+            int count = 50;
             while (m_originRegionID.Equals(UUID.Zero) && count-- > 0)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.Name);
