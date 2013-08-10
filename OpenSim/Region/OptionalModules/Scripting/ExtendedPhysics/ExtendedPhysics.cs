@@ -160,7 +160,7 @@ public class ExtendedPhysics : INonSharedRegionModule
     }
 
     [ScriptConstant]
-    public static int PHYS_CENTER_OF_MASS =     1 << 0;
+    public const int PHYS_CENTER_OF_MASS =     1 << 0;
 
     [ScriptInvocation]
     public string physGetEngineType(UUID hostID, UUID scriptID)
@@ -176,11 +176,11 @@ public class ExtendedPhysics : INonSharedRegionModule
     }
 
     [ScriptConstant]
-    public static int PHYS_LINKSET_TYPE_CONSTRAINT  = 0;
+    public const int PHYS_LINKSET_TYPE_CONSTRAINT  = 0;
     [ScriptConstant]
-    public static int PHYS_LINKSET_TYPE_COMPOUND    = 1;
+    public const int PHYS_LINKSET_TYPE_COMPOUND    = 1;
     [ScriptConstant]
-    public static int PHYS_LINKSET_TYPE_MANUAL      = 2;
+    public const int PHYS_LINKSET_TYPE_MANUAL      = 2;
 
     [ScriptInvocation]
     public int physSetLinksetType(UUID hostID, UUID scriptID, int linksetType)
@@ -292,15 +292,15 @@ public class ExtendedPhysics : INonSharedRegionModule
     }
 
     [ScriptConstant]
-    public static int PHYS_LINK_TYPE_FIXED  = 1234;
+    public const int PHYS_LINK_TYPE_FIXED  = 1234;
     [ScriptConstant]
-    public static int PHYS_LINK_TYPE_HINGE  = 4;
+    public const int PHYS_LINK_TYPE_HINGE  = 4;
     [ScriptConstant]
-    public static int PHYS_LINK_TYPE_SPRING = 9;
+    public const int PHYS_LINK_TYPE_SPRING = 9;
     [ScriptConstant]
-    public static int PHYS_LINK_TYPE_6DOF   = 6;
+    public const int PHYS_LINK_TYPE_6DOF   = 6;
     [ScriptConstant]
-    public static int PHYS_LINK_TYPE_SLIDER = 7;
+    public const int PHYS_LINK_TYPE_SLIDER = 7;
 
     // physChangeLinkType(integer linkNum, integer typeCode)
     [ScriptInvocation]
@@ -341,42 +341,42 @@ public class ExtendedPhysics : INonSharedRegionModule
 
     // Code for specifying params.
     // The choice if 14400 is arbitrary and only serves to catch parameter code misuse.
-    public static int PHYS_PARAM_MIN                    = 14401;
+    public const int PHYS_PARAM_MIN                    = 14401;
     [ScriptConstant]
-    public static int PHYS_PARAM_FRAMEINA_LOC           = 14401;
+    public const int PHYS_PARAM_FRAMEINA_LOC           = 14401;
     [ScriptConstant]
-    public static int PHYS_PARAM_FRAMEINA_ROT           = 14402;
+    public const int PHYS_PARAM_FRAMEINA_ROT           = 14402;
     [ScriptConstant]
-    public static int PHYS_PARAM_FRAMEINB_LOC           = 14403;
+    public const int PHYS_PARAM_FRAMEINB_LOC           = 14403;
     [ScriptConstant]
-    public static int PHYS_PARAM_FRAMEINB_ROT           = 14404;
+    public const int PHYS_PARAM_FRAMEINB_ROT           = 14404;
     [ScriptConstant]
-    public static int PHYS_PARAM_LINEAR_LIMIT_LOW       = 14405;
+    public const int PHYS_PARAM_LINEAR_LIMIT_LOW       = 14405;
     [ScriptConstant]
-    public static int PHYS_PARAM_LINEAR_LIMIT_HIGH      = 14406;
+    public const int PHYS_PARAM_LINEAR_LIMIT_HIGH      = 14406;
     [ScriptConstant]
-    public static int PHYS_PARAM_ANGULAR_LIMIT_LOW      = 14407;
+    public const int PHYS_PARAM_ANGULAR_LIMIT_LOW      = 14407;
     [ScriptConstant]
-    public static int PHYS_PARAM_ANGULAR_LIMIT_HIGH     = 14408;
+    public const int PHYS_PARAM_ANGULAR_LIMIT_HIGH     = 14408;
     [ScriptConstant]
-    public static int PHYS_PARAM_USE_FRAME_OFFSET       = 14409;
+    public const int PHYS_PARAM_USE_FRAME_OFFSET       = 14409;
     [ScriptConstant]
-    public static int PHYS_PARAM_ENABLE_TRANSMOTOR      = 14410;
+    public const int PHYS_PARAM_ENABLE_TRANSMOTOR      = 14410;
     [ScriptConstant]
-    public static int PHYS_PARAM_TRANSMOTOR_MAXVEL      = 14411;
+    public const int PHYS_PARAM_TRANSMOTOR_MAXVEL      = 14411;
     [ScriptConstant]
-    public static int PHYS_PARAM_TRANSMOTOR_MAXFORCE    = 14412;
+    public const int PHYS_PARAM_TRANSMOTOR_MAXFORCE    = 14412;
     [ScriptConstant]
-    public static int PHYS_PARAM_CFM                    = 14413;
+    public const int PHYS_PARAM_CFM                    = 14413;
     [ScriptConstant]
-    public static int PHYS_PARAM_ERP                    = 14414;
+    public const int PHYS_PARAM_ERP                    = 14414;
     [ScriptConstant]
-    public static int PHYS_PARAM_SOLVER_ITERATIONS      = 14415;
+    public const int PHYS_PARAM_SOLVER_ITERATIONS      = 14415;
     [ScriptConstant]
-    public static int PHYS_PARAM_SPRING_DAMPING         = 14416;
+    public const int PHYS_PARAM_SPRING_DAMPING         = 14416;
     [ScriptConstant]
-    public static int PHYS_PARAM_SPRING_STIFFNESS       = 14417;
-    public static int PHYS_PARAM_MAX                    = 14417;
+    public const int PHYS_PARAM_SPRING_STIFFNESS       = 14417;
+    public const int PHYS_PARAM_MAX                    = 14417;
 
     // physChangeLinkParams(integer linkNum, [ PHYS_PARAM_*, value, PHYS_PARAM_*, value, ...])
     [ScriptInvocation]
