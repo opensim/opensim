@@ -34,142 +34,6 @@ using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Monitoring
 {
-// Create a time histogram of events. The histogram is built in a wrap-around
-//   array of equally distributed buckets.
-// For instance, a minute long histogram of second sized buckets would be:
-//          new EventHistogram(60, 1000)
-public class EventHistogram
-{
-    private int m_timeBase;
-    private int m_numBuckets;
-    private int m_bucketMilliseconds;
-    private int m_lastBucket;
-    private int m_totalHistogramMilliseconds;
-    private long[] m_histogram;
-    private object histoLock = new object();
-
-    public EventHistogram(int numberOfBuckets, int millisecondsPerBucket)
-    {
-        m_numBuckets = numberOfBuckets;
-        m_bucketMilliseconds = millisecondsPerBucket;
-        m_totalHistogramMilliseconds = m_numBuckets * m_bucketMilliseconds;
-
-        m_histogram = new long[m_numBuckets];
-        Zero();
-        m_lastBucket = 0;
-        m_timeBase = Util.EnvironmentTickCount();
-    }
-
-    public void Event()
-    {
-        this.Event(1);
-    }
-
-    // Record an event at time 'now' in the histogram.
-    public void Event(int cnt)
-    {
-        lock (histoLock)
-        {
-            // The time as displaced from the base of the histogram
-            int bucketTime = Util.EnvironmentTickCountSubtract(m_timeBase);
-
-            // If more than the total time of the histogram, we just start over
-            if (bucketTime > m_totalHistogramMilliseconds)
-            {
-                Zero();
-                m_lastBucket = 0;
-                m_timeBase = Util.EnvironmentTickCount();
-            }
-            else
-            {
-                // To which bucket should we add this event?
-                int bucket = bucketTime / m_bucketMilliseconds;
-
-                // Advance m_lastBucket to the new bucket. Zero any buckets skipped over.
-                while (bucket != m_lastBucket)
-                {
-                    // Zero from just after the last bucket to the new bucket or the end
-                    for (int jj = m_lastBucket + 1; jj <= Math.Min(bucket, m_numBuckets - 1); jj++)
-                    {
-                        m_histogram[jj] = 0;
-                    }
-                    m_lastBucket = bucket;
-                    // If the new bucket is off the end, wrap around to the beginning
-                    if (bucket > m_numBuckets)
-                    {
-                        bucket -= m_numBuckets;
-                        m_lastBucket = 0;
-                        m_histogram[m_lastBucket] = 0;
-                        m_timeBase += m_totalHistogramMilliseconds;
-                    }
-                }
-            }
-            m_histogram[m_lastBucket] += cnt;
-        }
-    }
-
-    // Get a copy of the current histogram
-    public long[] GetHistogram()
-    {
-        long[] ret = new long[m_numBuckets];
-        lock (histoLock)
-        {
-            int indx = m_lastBucket + 1;
-            for (int ii = 0; ii < m_numBuckets; ii++, indx++)
-            {
-                if (indx >= m_numBuckets)
-                    indx = 0;
-                ret[ii] = m_histogram[indx];
-            }
-        }
-        return ret;
-    }
-
-    public OSDMap GetHistogramAsOSDMap()
-    {
-        OSDMap ret = new OSDMap();
-
-        ret.Add("Buckets", OSD.FromInteger(m_numBuckets));
-        ret.Add("BucketMilliseconds", OSD.FromInteger(m_bucketMilliseconds));
-        ret.Add("TotalMilliseconds", OSD.FromInteger(m_totalHistogramMilliseconds));
-
-        // Compute a number for the first bucket in the histogram.
-        // This will allow readers to know how this histogram relates to any previously read histogram.
-        int baseBucketNum = (m_timeBase / m_bucketMilliseconds) + m_lastBucket + 1;
-        ret.Add("BaseNumber", OSD.FromInteger(baseBucketNum));
-
-        ret.Add("Values", GetHistogramAsOSDArray());
-
-        return ret;
-    }
-    // Get a copy of the current histogram
-    public OSDArray GetHistogramAsOSDArray()
-    {
-        OSDArray ret = new OSDArray(m_numBuckets);
-        lock (histoLock)
-        {
-            int indx = m_lastBucket + 1;
-            for (int ii = 0; ii < m_numBuckets; ii++, indx++)
-            {
-                if (indx >= m_numBuckets)
-                    indx = 0;
-                ret[ii] = OSD.FromLong(m_histogram[indx]);
-            }
-        }
-        return ret;
-    }
-
-    // Zero out the histogram
-    public void Zero()
-    {
-        lock (histoLock)
-        {
-            for (int ii = 0; ii < m_numBuckets; ii++)
-                m_histogram[ii] = 0;
-        }
-    }
-}
-
 // A statistic that wraps a counter.
 // Built this way mostly so histograms and history can be created.
 public class CounterStat : Stat
@@ -236,12 +100,18 @@ public class CounterStat : Stat
         // If there are any histograms, add a new field that is an array of histograms as OSDMaps
         if (m_histograms.Count > 0)
         {
-            OSDArray histos = new OSDArray();
-            foreach (EventHistogram histo in m_histograms.Values)
+            lock (counterLock)
             {
-                histos.Add(histo.GetHistogramAsOSDMap());
+                if (m_histograms.Count > 0)
+                {
+                    OSDArray histos = new OSDArray();
+                    foreach (EventHistogram histo in m_histograms.Values)
+                    {
+                        histos.Add(histo.GetHistogramAsOSDMap());
+                    }
+                    map.Add("Histograms", histos);
+                }
             }
-            map.Add("Histograms", histos);
         }
         return map;
     }
