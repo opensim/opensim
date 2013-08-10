@@ -530,6 +530,28 @@ public sealed class BSLinksetConstraints : BSLinkset
                 }
                 break;
             case ExtendedPhysics.PhysFunctChangeLinkParams:
+                int setParam = 2;
+                switch (setParam)
+                {
+                    case ExtendedPhysics.PHYS_PARAM_FRAMEINA_LOC:
+                    case ExtendedPhysics.PHYS_PARAM_FRAMEINA_ROT:
+                    case ExtendedPhysics.PHYS_PARAM_FRAMEINB_LOC:
+                    case ExtendedPhysics.PHYS_PARAM_FRAMEINB_ROT:
+                    case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_LOW:
+                    case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_HIGH:
+                    case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_LOW:
+                    case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_HIGH:
+                    case ExtendedPhysics.PHYS_PARAM_USE_FRAME_OFFSET:
+                    case ExtendedPhysics.PHYS_PARAM_ENABLE_TRANSMOTOR:
+                    case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXVEL:
+                    case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXFORCE:
+                    case ExtendedPhysics.PHYS_PARAM_CFM:
+                    case ExtendedPhysics.PHYS_PARAM_ERP:
+                    case ExtendedPhysics.PHYS_PARAM_SOLVER_ITERATIONS:
+                    case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
+                    case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
+                        break;
+                }
                 break;
             default:
                 ret = base.Extension(pFunct, pParams);
