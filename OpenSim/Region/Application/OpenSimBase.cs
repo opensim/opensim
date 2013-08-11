@@ -75,6 +75,7 @@ namespace OpenSim
         protected int proxyOffset = 0;
         
         public string userStatsURI = String.Empty;
+        public string managedStatsURI = String.Empty;
 
         protected bool m_autoCreateClientStack = true;
 
@@ -197,6 +198,8 @@ namespace OpenSim
 
                 string permissionModules = startupConfig.GetString("permissionmodules", "DefaultPermissionsModule");
                 m_permsModules = new List<string>(permissionModules.Split(','));
+
+                managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
             }
 
             // Load the simulation data service

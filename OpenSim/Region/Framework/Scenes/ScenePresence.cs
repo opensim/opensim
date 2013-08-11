@@ -75,6 +75,8 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class ScenePresence : EntityBase, IScenePresence
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
 //        ~ScenePresence()
 //        {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
@@ -86,9 +88,26 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.EventManager.TriggerScenePresenceUpdated(this);
         }
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         public PresenceType PresenceType { get; private set; }
+
+        private ScenePresenceStateMachine m_stateMachine;
+
+        /// <summary>
+        /// The current state of this presence.  Governs only the existence lifecycle.  See ScenePresenceStateMachine
+        /// for more details.
+        /// </summary>
+        public ScenePresenceState LifecycleState 
+        { 
+            get
+            {
+                return m_stateMachine.GetState();
+            }
+
+            set
+            {
+                m_stateMachine.SetState(value);
+            }
+        }
 
 //        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
@@ -299,9 +318,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// In the V1 teleport protocol, the destination simulator sends ReleaseAgent to this address.
         /// </summary>
-        string m_callbackURI;
+        private string m_callbackURI;
 
-        UUID m_originRegionID;
+        public UUID m_originRegionID;
 
         /// <summary>
         /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
@@ -813,7 +832,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ScenePresence(
             IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
-        {
+        {            
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
@@ -859,6 +878,8 @@ namespace OpenSim.Region.Framework.Scenes
             SetDirectionVectors();
 
             Appearance = appearance;
+
+            m_stateMachine = new ScenePresenceStateMachine(this);
         }
 
         private void RegionHeartbeatEnd(Scene scene)
@@ -956,7 +977,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void MakeRootAgent(Vector3 pos, bool isFlying)
         {
-            m_log.DebugFormat(
+            m_log.InfoFormat(
                 "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
@@ -995,6 +1016,11 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
             IsChildAgent = false;
+
+            // Must reset this here so that a teleport to a region next to an existing region does not keep the flag
+            // set and prevent the close of the connection on a subsequent re-teleport.
+            // Should not be needed if we are not trying to tell this region to close
+//            DoNotCloseAfterTeleport = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
@@ -1520,7 +1546,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool WaitForUpdateAgent(IClientAPI client)
         {
             // Before UpdateAgent, m_originRegionID is UUID.Zero; after, it's non-Zero
-            int count = 20;
+            int count = 50;
             while (m_originRegionID.Equals(UUID.Zero) && count-- > 0)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.Name);
@@ -3994,6 +4020,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                Animator.Close();
             Animator = null;
 
+            LifecycleState = ScenePresenceState.Removed;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)

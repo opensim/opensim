@@ -1259,7 +1259,7 @@ namespace OpenSim.Framework
             byte[] bytes =
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
-                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle >> 56),
                 (byte)x, (byte)(x >> 8), 0, 0,
                 (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);
@@ -1270,7 +1270,7 @@ namespace OpenSim.Framework
             byte[] bytes =
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
-                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle >> 56),
                 (byte)x, (byte)(x >> 8), (byte)z, (byte)(z >> 8),
                 (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);

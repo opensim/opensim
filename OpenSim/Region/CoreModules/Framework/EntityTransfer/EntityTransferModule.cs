@@ -1069,8 +1069,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
 
-            // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+            // May still need to signal neighbours whether child agents may need closing irrespective of whether this
+            // one needed closing.  Neighbour regions also contain logic to prevent a close if a subsequent move or
+            // teleport re-established the child connection.
+            // 
+            // It may be possible to also close child agents after a pause but one needs to be very careful about
+            // race conditions between different regions on rapid teleporting (e.g. from A1 to a non-neighbour B, back
+            // to a neighbour A2 then off to a non-neighbour C.  Also, closing child agents early may be more compatible
+            // with complicated scenarios where there a mixture of V1 and V2 teleports, though this is conjecture.  It's
+            // easier to close immediately and greatly reduce the scope of race conditions if possible.
+            sp.CloseChildAgents(newRegionX, newRegionY);
 
+            // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
                 sp.DoNotCloseAfterTeleport = false;
@@ -1086,14 +1096,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!sp.DoNotCloseAfterTeleport)
                 {
                     // OK, it got this agent. Let's close everything
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing in agent {0} in region {1}", sp.Name, Scene.Name);
-                    sp.CloseChildAgents(newRegionX, newRegionY);
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing agent {0} in {1}", sp.Name, Scene.Name);
                     sp.Scene.IncomingCloseAgent(sp.UUID, false);
-
                 }
                 else
                 {
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {0}", sp.Name, Scene.Name);
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {1}", sp.Name, Scene.Name);
                     sp.DoNotCloseAfterTeleport = false;
                 }
             }
@@ -1836,10 +1844,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
             List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
 
-            //Dump("Current Neighbors", neighbourHandles);
-            //Dump("Previous Neighbours", previousRegionNeighbourHandles);
-            //Dump("New Neighbours", newRegions);
-            //Dump("Old Neighbours", oldRegions);
+//            Dump("Current Neighbors", neighbourHandles);
+//            Dump("Previous Neighbours", previousRegionNeighbourHandles);
+//            Dump("New Neighbours", newRegions);
+//            Dump("Old Neighbours", oldRegions);
 
             /// Update the scene presence's known regions here on this region
             sp.DropOldNeighbours(oldRegions);
@@ -1847,8 +1855,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             /// Collect as many seeds as possible
             Dictionary<ulong, string> seeds;
             if (sp.Scene.CapsModule != null)
-                seeds
-                    = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
+                seeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
             else
                 seeds = new Dictionary<ulong, string>();
 
@@ -1918,6 +1925,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     newAgent = true;
                 else
                     newAgent = false;
+//                    continue;
 
                 if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
                 {

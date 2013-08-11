@@ -337,6 +337,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool m_VelocityInterpolate = false;
         private const uint MaxTransferBytesPerPacket = 600;
 
+        private volatile bool m_justEditedTerrain = false;
 
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
@@ -536,7 +537,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We still perform a force close inside the sync lock since this is intended to attempt close where
                 // there is some unidentified connection problem, not where we have issues due to deadlock
                 if (!IsActive && !force)
+                {
+                    m_log.DebugFormat(
+                        "[CLIENT]: Not attempting to close inactive client {0} in {1} since force flag is not set", 
+                        Name, m_scene.Name);
+
                     return;
+                }
 
                 IsActive = false;
                 CloseWithoutChecks(sendStop);
@@ -1231,9 +1238,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     LLHeightFieldMoronize(map);
 
                 LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
-                layerpack.Header.Reliable = true;
+                
+                // When a user edits the terrain, so much data is sent, the data queues up fast and presents a sub optimal editing experience.  
+                // To alleviate this issue, when the user edits the terrain, we start skipping the queues until they're done editing the terrain.
+                // We also make them unreliable because it's extremely likely that multiple packets will be sent for a terrain patch area 
+                // invalidating previous packets for that area.
 
-                OutPacket(layerpack, ThrottleOutPacketType.Task);
+                // It's possible for an editing user to flood themselves with edited packets but the majority of use cases are such that only a 
+                // tiny percentage of users will be editing the terrain.     Other, non-editing users will see the edits much slower.
+                
+                // One last note on this topic, by the time users are going to be editing the terrain, it's extremely likely that the sim will 
+                // have rezzed already and therefore this is not likely going to cause any additional issues with lost packets, objects or terrain 
+                // patches.
+
+                // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we only have one cache miss.
+                if (m_justEditedTerrain)
+                {
+                    layerpack.Header.Reliable = false;
+                    OutPacket(layerpack,
+                               ThrottleOutPacketType.Unknown );
+                }
+                else
+                {
+                    layerpack.Header.Reliable = true;
+                    OutPacket(layerpack,
+                               ThrottleOutPacketType.Task);
+                }
             }
             catch (Exception e)
             {
@@ -6367,6 +6397,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //m_log.Info("[LAND]: LAND:" + modify.ToString());
             if (modify.ParcelData.Length > 0)
             {
+                // Note: the ModifyTerrain event handler sends out updated packets before the end of this event.  Therefore, 
+                // a simple boolean value should work and perhaps queue up just a few terrain patch packets at the end of the edit.
+                m_justEditedTerrain = true; // Prevent terrain packet (Land layer) from being queued, make it unreliable
                 if (OnModifyTerrain != null)
                 {
                     for (int i = 0; i < modify.ParcelData.Length; i++)
@@ -6382,6 +6415,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                 }
+                m_justEditedTerrain = false; // Queue terrain packet (Land layer) if necessary, make it reliable again
             }
 
             return true;

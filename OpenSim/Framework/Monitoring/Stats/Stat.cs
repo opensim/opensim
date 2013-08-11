@@ -241,6 +241,8 @@ namespace OpenSim.Framework.Monitoring
         public virtual OSDMap ToOSDMap()
         {
             OSDMap ret = new OSDMap();
+            ret.Add("StatType", "Stat");    // used by overloading classes to denote type of stat
+
             ret.Add("Category", OSD.FromString(Category));
             ret.Add("Container", OSD.FromString(Container));
             ret.Add("ShortName", OSD.FromString(ShortName));
@@ -248,26 +250,36 @@ namespace OpenSim.Framework.Monitoring
             ret.Add("Description", OSD.FromString(Description));
             ret.Add("UnitName", OSD.FromString(UnitName));
             ret.Add("Value", OSD.FromReal(Value));
-            ret.Add("StatType", "Stat");    // used by overloading classes to denote type of stat
+
+            double lastChangeOverTime, averageChangeOverTime;
+            if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))
+            {
+                ret.Add("LastChangeOverTime", OSD.FromReal(lastChangeOverTime));
+                ret.Add("AverageChangeOverTime", OSD.FromReal(averageChangeOverTime));
+            }
 
             return ret;
         }
 
-        protected void AppendMeasuresOfInterest(StringBuilder sb)
+        // Compute the averages over time and return same.
+        // Return 'true' if averages were actually computed. 'false' if no average info.
+        public bool ComputeMeasuresOfInterest(out double lastChangeOverTime, out double averageChangeOverTime)
         {
-            if ((MeasuresOfInterest & MeasuresOfInterest.AverageChangeOverTime) 
-                == MeasuresOfInterest.AverageChangeOverTime)
+            bool ret = false;
+            lastChangeOverTime = 0;
+            averageChangeOverTime = 0;
+
+            if ((MeasuresOfInterest & MeasuresOfInterest.AverageChangeOverTime) == MeasuresOfInterest.AverageChangeOverTime)
             {
                 double totalChange = 0;
-                double lastChangeOverTime = 0;
                 double? penultimateSample = null;
                 double? lastSample = null;
 
                 lock (m_samples)
                 {
-//                    m_log.DebugFormat(
-//                        "[STAT]: Samples for {0} are {1}", 
-//                        Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
+                    //                    m_log.DebugFormat(
+                    //                        "[STAT]: Samples for {0} are {1}", 
+                    //                        Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
 
                     foreach (double s in m_samples)
                     {
@@ -280,13 +292,27 @@ namespace OpenSim.Framework.Monitoring
                 }
 
                 if (lastSample != null && penultimateSample != null)
-                    lastChangeOverTime 
+                {
+                    lastChangeOverTime
                         = ((double)lastSample - (double)penultimateSample) / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+                }
 
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
 
-                double averageChangeOverTime = totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+                averageChangeOverTime = totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+                ret = true;
+            }
 
+            return ret;
+        }
+
+        protected void AppendMeasuresOfInterest(StringBuilder sb)
+        {
+            double lastChangeOverTime = 0;
+            double averageChangeOverTime = 0;
+
+            if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))
+            {
                 sb.AppendFormat(
                     ", {0:0.##}{1}/s, {2:0.##}{3}/s", 
                     lastChangeOverTime, 

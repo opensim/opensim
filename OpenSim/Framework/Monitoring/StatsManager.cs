@@ -26,10 +26,12 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using OpenSim.Framework;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Monitoring
@@ -260,6 +262,41 @@ namespace OpenSim.Framework.Monitoring
             }
 
             return map;
+        }
+
+        public static Hashtable HandleStatsRequest(Hashtable request)
+        {
+            Hashtable responsedata = new Hashtable();
+            string regpath = request["uri"].ToString();
+            int response_code = 200;
+            string contenttype = "text/json";
+
+            string pCategoryName = StatsManager.AllSubCommand;
+            string pContainerName = StatsManager.AllSubCommand;
+            string pStatName = StatsManager.AllSubCommand;
+
+            if (request.ContainsKey("cat")) pCategoryName = request["cat"].ToString();
+            if (request.ContainsKey("cont")) pContainerName = request["cat"].ToString();
+            if (request.ContainsKey("stat")) pStatName = request["cat"].ToString();
+
+            string strOut = StatsManager.GetStatsAsOSDMap(pCategoryName, pContainerName, pStatName).ToString();
+
+            // If requestor wants it as a callback function, build response as a function rather than just the JSON string.
+            if (request.ContainsKey("callback"))
+            {
+                strOut = request["callback"].ToString() + "(" + strOut + ");";
+            }
+
+            // m_log.DebugFormat("{0} StatFetch: uri={1}, cat={2}, cont={3}, stat={4}, resp={5}",
+            //                         LogHeader, regpath, pCategoryName, pContainerName, pStatName, strOut);
+
+            responsedata["int_response_code"] = response_code;
+            responsedata["content_type"] = contenttype;
+            responsedata["keepalive"] = false;
+            responsedata["str_response_string"] = strOut;
+            responsedata["access_control_allow_origin"] = "*";
+
+            return responsedata;
         }
 
 //        /// <summary>

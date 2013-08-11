@@ -45,6 +45,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[MODULE COMMS]";
 
         private Dictionary<string,object> m_constants = new Dictionary<string,object>();
 
@@ -148,7 +149,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             MethodInfo mi = GetMethodInfoFromType(target.GetType(), meth, true);
             if (mi == null)
             {
-                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}", meth);
+                m_log.WarnFormat("{0} Failed to register method {1}", LogHeader, meth);
                 return;
             }
 
@@ -165,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
         {
 //            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, (target is Type) ? ((Type)target).Name : target.GetType().Name);
 
-            Type delegateType;
+            Type delegateType = typeof(void);
             List<Type> typeArgs = mi.GetParameters()
                     .Select(p => p.ParameterType)
                     .ToList();
@@ -176,8 +177,16 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             }
             else
             {
-                typeArgs.Add(mi.ReturnType);
-                delegateType = Expression.GetFuncType(typeArgs.ToArray());
+                try
+                {
+                    typeArgs.Add(mi.ReturnType);
+                    delegateType = Expression.GetFuncType(typeArgs.ToArray());
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("{0} Failed to create function signature. Most likely more than 5 parameters. Method={1}. Error={2}",
+                        LogHeader, mi.Name, e);
+                }
             }
 
             Delegate fcall;

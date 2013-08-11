@@ -172,6 +172,13 @@ namespace OpenSim
             if (userStatsURI != String.Empty)
                 MainServer.Instance.AddStreamHandler(new OpenSim.UXSimStatusHandler(this));
 
+            if (managedStatsURI != String.Empty)
+            {
+                string urlBase = String.Format("/{0}/", managedStatsURI);
+                MainServer.Instance.AddHTTPHandler(urlBase, StatsManager.HandleStatsRequest);
+                m_log.InfoFormat("[OPENSIM] Enabling remote managed stats fetch. URL = {0}", urlBase);
+            }
+
             if (m_console is RemoteConsole)
             {
                 if (m_consolePort == 0)
@@ -348,18 +355,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("Regions", false, "delete-region",
                                           "delete-region <name>",
                                           "Delete a region from disk", RunCommand);
-
-            m_console.Commands.AddCommand("General", false, "modules list",
-                                          "modules list",
-                                          "List modules", HandleModules);
-
-            m_console.Commands.AddCommand("General", false, "modules load",
-                                          "modules load <name>",
-                                          "Load a module", HandleModules);
-
-            m_console.Commands.AddCommand("General", false, "modules unload",
-                                          "modules unload <name>",
-                                          "Unload a module", HandleModules);
         }
 
         protected override void ShutdownSpecific()
@@ -554,34 +549,6 @@ namespace OpenSim
 
             if (changed)
 	            regInfo.EstateSettings.Save();
-        }
-
-        /// <summary>
-        /// Load, Unload, and list Region modules in use
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleModules(string module, string[] cmd)
-        {
-            List<string> args = new List<string>(cmd);
-            args.RemoveAt(0);
-            string[] cmdparams = args.ToArray();
-
-            if (cmdparams.Length > 0)
-            {
-                switch (cmdparams[0].ToLower())
-                {
-                    case "list":
-                        //TODO: Convert to new region modules
-                        break;
-                    case "unload":
-                        //TODO: Convert to new region modules
-                        break;
-                    case "load":
-                        //TODO: Convert to new region modules
-                        break;
-                }
-            }
         }
 
         /// <summary>
