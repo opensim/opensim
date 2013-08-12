@@ -330,17 +330,30 @@ namespace pCampBot
             string outputFormat = "{0,-30}  {1, -30}  {2,-14}";
             MainConsole.Instance.OutputFormat(outputFormat, "Name", "Region", "Status");
 
+            Dictionary<ConnectionState, int> totals = new Dictionary<ConnectionState, int>();
+            foreach (object o in Enum.GetValues(typeof(ConnectionState)))
+                totals[(ConnectionState)o] = 0;
+
             lock (m_lBot)
             {
                 foreach (Bot pb in m_lBot)
                 {
                     Simulator currentSim = pb.Client.Network.CurrentSim;
+                    totals[pb.ConnectionState]++;
 
                     MainConsole.Instance.OutputFormat(
                         outputFormat,
                         pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState);
                 }
             }
+
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+
+            foreach (KeyValuePair<ConnectionState, int> kvp in totals)
+                cdl.AddRow(kvp.Key, kvp.Value);
+
+
+            MainConsole.Instance.OutputFormat("\n{0}", cdl.ToString());
         }
 
         /*
