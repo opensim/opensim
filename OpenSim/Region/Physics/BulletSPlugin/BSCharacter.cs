@@ -404,6 +404,7 @@ public sealed class BSCharacter : BSPhysObject
 
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
     public override void SetVolumeDetect(int param) { return; }
+    public override bool IsVolumeDetect { get { return false; } }
 
     public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
     public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }

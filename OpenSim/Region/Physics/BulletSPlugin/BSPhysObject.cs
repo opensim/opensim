@@ -175,6 +175,7 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract bool IsSolid { get; }
     public abstract bool IsStatic { get; }
     public abstract bool IsSelected { get; }
+    public abstract bool IsVolumeDetect { get; }
 
     // Materialness
     public MaterialAttributes.Material Material { get; private set; }
