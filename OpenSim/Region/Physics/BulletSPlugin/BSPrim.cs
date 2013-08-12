@@ -617,6 +617,10 @@ public class BSPrim : BSPhysObject
         }
         return;
     }
+    public override bool IsVolumeDetect
+    {
+        get { return _isVolumeDetect; }
+    }
     public override void SetMaterial(int material)
     {
         base.SetMaterial(material);
