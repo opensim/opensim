@@ -123,9 +123,10 @@ namespace pCampBot
                 "  -password          password for the bots\n" +
                 "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p\n" +
                 "    current options are:\n" +
-                "       p (physics)\n" +
-                "       g (grab)\n" +
-                "       t (teleport)\n" +
+                "       p (physics  - bots constantly move and jump around)\n" +
+                "       g (grab     - bots randomly click prims whether set clickable or not)\n" +
+                "       n (none     - bots do nothing)\n" +
+                "       t (teleport - bots regularly teleport between regions on the grid)\n" +
 //                "       c (cross)" +
                 "  -wear              set appearance folder to load from (default: no)\n" +
                 "  -h, -help          show this message");

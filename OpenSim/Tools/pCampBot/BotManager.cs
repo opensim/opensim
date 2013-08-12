@@ -177,18 +177,21 @@ namespace pCampBot
                 // We must give each bot its own list of instantiated behaviours since they store state.
                 List<IBehaviour> behaviours = new List<IBehaviour>();
     
-                // Hard-coded for now
+                // Hard-coded for now        
+                if (behaviourSwitches.Contains("c"))
+                    behaviours.Add(new CrossBehaviour());
+
+                if (behaviourSwitches.Contains("g"))
+                    behaviours.Add(new GrabbingBehaviour());
+
+                if (behaviourSwitches.Contains("n"))
+                    behaviours.Add(new NoneBehaviour());
+
                 if (behaviourSwitches.Contains("p"))
                     behaviours.Add(new PhysicsBehaviour());
     
-                if (behaviourSwitches.Contains("g"))
-                    behaviours.Add(new GrabbingBehaviour());
-    
                 if (behaviourSwitches.Contains("t"))
                     behaviours.Add(new TeleportBehaviour());
-    
-                if (behaviourSwitches.Contains("c"))
-                    behaviours.Add(new CrossBehaviour());
 
                 StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }
