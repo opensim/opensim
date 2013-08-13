@@ -63,6 +63,11 @@ namespace pCampBot
         protected CommandConsole m_console;
 
         /// <summary>
+        /// Controls whether bots start out sending agent updates on connection.
+        /// </summary>
+        public bool BotsInitSendAgentUpdates { get; set; }
+
+        /// <summary>
         /// Created bots, whether active or inactive.
         /// </summary>
         protected List<Bot> m_lBot;
@@ -71,11 +76,6 @@ namespace pCampBot
         /// Random number generator.
         /// </summary>
         public Random Rng { get; private set; }
-
-        /// <summary>
-        /// Overall configuration.
-        /// </summary>
-        public IConfig Config { get; private set; }
 
         /// <summary>
         /// Track the assets we have and have not received so we don't endlessly repeat requests.
@@ -92,6 +92,8 @@ namespace pCampBot
         /// </summary>
         public BotManager()
         {
+            BotsInitSendAgentUpdates = true;
+
             LoginDelay = DefaultLoginDelay;
 
             Rng = new Random(Environment.TickCount);
@@ -148,18 +150,17 @@ namespace pCampBot
         /// </summary>
         /// <param name="botcount">How many bots to start up</param>
         /// <param name="cs">The configuration for the bots to use</param>
-        public void dobotStartup(int botcount, IConfig cs)
+        public void dobotStartup(int botcount, IConfig startupConfig)
         {
-            Config = cs;
-
-            string firstName = cs.GetString("firstname");
-            string lastNameStem = cs.GetString("lastname");
-            string password = cs.GetString("password");
-            string loginUri = cs.GetString("loginuri");
+            string firstName = startupConfig.GetString("firstname");
+            string lastNameStem = startupConfig.GetString("lastname");
+            string password = startupConfig.GetString("password");
+            string loginUri = startupConfig.GetString("loginuri");
+            string wearSetting = startupConfig.GetString("wear", "no");
 
             HashSet<string> behaviourSwitches = new HashSet<string>();
             Array.ForEach<string>(
-                cs.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
+                startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
 
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting {0} bots connecting to {1}, named {2} {3}_<n>",
@@ -169,6 +170,7 @@ namespace pCampBot
                 lastNameStem);
 
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
+            MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", BotsInitSendAgentUpdates);
 
             for (int i = 0; i < botcount; i++)
             {
@@ -193,7 +195,7 @@ namespace pCampBot
                 if (behaviourSwitches.Contains("t"))
                     behaviours.Add(new TeleportBehaviour());
 
-                StartBot(this, behaviours, firstName, lastName, password, loginUri);
+                StartBot(this, behaviours, firstName, lastName, password, loginUri, wearSetting);
             }
         }
 
@@ -226,15 +228,18 @@ namespace pCampBot
         /// <param name="lastName">Last name</param>
         /// <param name="password">Password</param>
         /// <param name="loginUri">Login URI</param>
+        /// <param name="wearSetting"></param>
         public void StartBot(
              BotManager bm, List<IBehaviour> behaviours,
-             string firstName, string lastName, string password, string loginUri)
+             string firstName, string lastName, string password, string loginUri, string wearSetting)
         {
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting bot {0} {1}, behaviours are {2}",
                 firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, loginUri);
+            pb.wear = wearSetting;
+            pb.Client.Settings.SEND_AGENT_UPDATES = BotsInitSendAgentUpdates;
 
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;

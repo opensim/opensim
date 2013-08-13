@@ -64,11 +64,6 @@ namespace pCampBot
         public BotManager Manager { get; private set; }
 
         /// <summary>
-        /// Bot config, passed from BotManager.
-        /// </summary>
-        private IConfig startupConfig;
-
-        /// <summary>
         /// Behaviours implemented by this bot.
         /// </summary>
         /// <remarks>
@@ -153,9 +148,6 @@ namespace pCampBot
             LoginUri = loginUri;
 
             Manager = bm;
-            startupConfig = bm.Config;
-            readconfig();
-
             Behaviours = behaviours;
         }
 
@@ -174,14 +166,6 @@ namespace pCampBot
                             b.Action();
                         }
                     );
-        }
-
-        /// <summary>
-        /// Read the Nini config and initialize
-        /// </summary>
-        public void readconfig()
-        {
-            wear = startupConfig.GetString("wear", "no");
         }
 
         /// <summary>
@@ -207,6 +191,7 @@ namespace pCampBot
             Client.Settings.AVATAR_TRACKING = false;
             Client.Settings.OBJECT_TRACKING = false;
             Client.Settings.SEND_AGENT_THROTTLE = true;
+            Client.Settings.SEND_AGENT_UPDATES = false;
             Client.Settings.SEND_PINGS = true;
             Client.Settings.STORE_LAND_PATCHES = false;
             Client.Settings.USE_ASSET_CACHE = false;
@@ -481,9 +466,6 @@ namespace pCampBot
 
         public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
-//            if (Name.EndsWith("4"))
-//                throw new Exception("Aaargh");
-
             Primitive prim = args.Prim;
 
             if (prim != null)
