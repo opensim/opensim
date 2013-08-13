@@ -404,7 +404,7 @@ namespace OpenSim.Groups
                         url = m_UserManagement.GetUserServerURL(uid, "GroupsServerURI");
                         if (url == string.Empty)
                         {
-                            reason = "You don't have have an accessible groups server in your home world. You membership to this group in only within this grid.";
+                            reason = "You don't have an accessible groups server in your home world. You membership to this group in only within this grid.";
                             return true;
                         }
 
