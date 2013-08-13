@@ -1223,11 +1223,15 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.InfoFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
+            // NPCs currently don't have a CAPs structure or event queues.  There is a strong argument for conveying this information
+            // to them anyway since it makes writing server-side bots a lot easier, but for now we don't do anything.
+            if (remoteClient.SceneAgent.PresenceType == PresenceType.Npc)
+                return;
+
             OSDArray AgentData = new OSDArray(1);
             OSDMap AgentDataMap = new OSDMap(1);
             AgentDataMap.Add("AgentID", OSD.FromUUID(dataForAgentID));
             AgentData.Add(AgentDataMap);
-
 
             OSDArray GroupData = new OSDArray(data.Length);
             OSDArray NewGroupData = new OSDArray(data.Length);
@@ -1274,8 +1278,7 @@ namespace OpenSim.Groups
             if (queue != null)
             {
                 queue.Enqueue(queue.BuildEvent("AgentGroupDataUpdate", llDataStruct), GetRequestingAgentID(remoteClient));
-            }
-            
+            }            
         }
 
         private void SendScenePresenceUpdate(UUID AgentID, string Title)
@@ -1337,6 +1340,7 @@ namespace OpenSim.Groups
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, dataForAgentID);
             SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
+
             //remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipArray);
             if (remoteClient.AgentId == dataForAgentID)
                 remoteClient.RefreshGroupMembership();

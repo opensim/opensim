@@ -177,18 +177,21 @@ namespace pCampBot
                 // We must give each bot its own list of instantiated behaviours since they store state.
                 List<IBehaviour> behaviours = new List<IBehaviour>();
     
-                // Hard-coded for now
+                // Hard-coded for now        
+                if (behaviourSwitches.Contains("c"))
+                    behaviours.Add(new CrossBehaviour());
+
+                if (behaviourSwitches.Contains("g"))
+                    behaviours.Add(new GrabbingBehaviour());
+
+                if (behaviourSwitches.Contains("n"))
+                    behaviours.Add(new NoneBehaviour());
+
                 if (behaviourSwitches.Contains("p"))
                     behaviours.Add(new PhysicsBehaviour());
     
-                if (behaviourSwitches.Contains("g"))
-                    behaviours.Add(new GrabbingBehaviour());
-    
                 if (behaviourSwitches.Contains("t"))
                     behaviours.Add(new TeleportBehaviour());
-    
-                if (behaviourSwitches.Contains("c"))
-                    behaviours.Add(new CrossBehaviour());
 
                 StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }
@@ -327,17 +330,30 @@ namespace pCampBot
             string outputFormat = "{0,-30}  {1, -30}  {2,-14}";
             MainConsole.Instance.OutputFormat(outputFormat, "Name", "Region", "Status");
 
+            Dictionary<ConnectionState, int> totals = new Dictionary<ConnectionState, int>();
+            foreach (object o in Enum.GetValues(typeof(ConnectionState)))
+                totals[(ConnectionState)o] = 0;
+
             lock (m_lBot)
             {
                 foreach (Bot pb in m_lBot)
                 {
                     Simulator currentSim = pb.Client.Network.CurrentSim;
+                    totals[pb.ConnectionState]++;
 
                     MainConsole.Instance.OutputFormat(
                         outputFormat,
                         pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState);
                 }
             }
+
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+
+            foreach (KeyValuePair<ConnectionState, int> kvp in totals)
+                cdl.AddRow(kvp.Key, kvp.Value);
+
+
+            MainConsole.Instance.OutputFormat("\n{0}", cdl.ToString());
         }
 
         /*

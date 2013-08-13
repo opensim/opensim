@@ -229,7 +229,12 @@ namespace OpenSim.Region.ClientStack.Linden
                         queue.Enqueue(ev);
                 }
                 else
-                    m_log.WarnFormat("[EVENTQUEUE]: (Enqueue) No queue found for agent {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
+                {
+                    OSDMap evMap = (OSDMap)ev;
+                    m_log.WarnFormat(
+                        "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} when placing message {1} in region {2}", 
+                        avatarID, evMap["message"], m_scene.Name);
+                }
             } 
             catch (NullReferenceException e)
             {
@@ -365,14 +370,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 OSDMap ev = (OSDMap)element;
                 m_log.DebugFormat(
                     "Eq OUT {0,-30} to {1,-20} {2,-20}",
-                    ev["message"], m_scene.GetScenePresence(agentId).Name, m_scene.RegionInfo.RegionName);
+                    ev["message"], m_scene.GetScenePresence(agentId).Name, m_scene.Name);
             }
         }
 
         public Hashtable GetEvents(UUID requestID, UUID pAgentId)
         {
             if (DebugLevel >= 2)
-                m_log.WarnFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.RegionInfo.RegionName);
+                m_log.WarnFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.Name);
 
             Queue<OSD> queue = GetQueue(pAgentId);
             if (queue == null)

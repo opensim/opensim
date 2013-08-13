@@ -377,7 +377,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_log.DebugFormat("[NPC MODULE]: Found {0} {1} to remove",
                             agentID, av.Name);
                     */
-                    scene.RemoveClient(agentID, false);
+
+                    scene.IncomingCloseAgent(agentID, false);
+//                    scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
 
 //                    m_log.DebugFormat("[NPC MODULE]: Removed NPC {0} {1}", agentID, av.Name);

@@ -799,7 +799,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
-        public void TestSameSimulatorNeighbouringRegionsTeleport()
+        public void TestSameSimulatorNeighbouringRegionsTeleportV1()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -866,6 +866,117 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 (uint)TeleportFlags.ViaLocation);
 
             destinationTestClients[0].CompleteMovement();
+
+            // Check attachments have made it into sceneB
+            ScenePresence afterTeleportSceneBSp = sceneB.GetScenePresence(ua1.PrincipalID);
+
+            // This is appearance data, as opposed to actually rezzed attachments
+            List<AvatarAttachment> sceneBAttachments = afterTeleportSceneBSp.Appearance.GetAttachments();
+            Assert.That(sceneBAttachments.Count, Is.EqualTo(1));
+            Assert.That(sceneBAttachments[0].AttachPoint, Is.EqualTo((int)AttachmentPoint.Chest));
+            Assert.That(sceneBAttachments[0].ItemID, Is.EqualTo(attItem.ID));
+            Assert.That(sceneBAttachments[0].AssetID, Is.EqualTo(attItem.AssetID));
+            Assert.That(afterTeleportSceneBSp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
+
+            // This is the actual attachment
+            List<SceneObjectGroup> actualSceneBAttachments = afterTeleportSceneBSp.GetAttachments();
+            Assert.That(actualSceneBAttachments.Count, Is.EqualTo(1));
+            SceneObjectGroup actualSceneBAtt = actualSceneBAttachments[0];
+            Assert.That(actualSceneBAtt.Name, Is.EqualTo(attItem.Name));
+            Assert.That(actualSceneBAtt.AttachmentPoint, Is.EqualTo((uint)AttachmentPoint.Chest));
+
+            Assert.That(sceneB.GetSceneObjectGroups().Count, Is.EqualTo(1));
+
+            // Check attachments have been removed from sceneA
+            ScenePresence afterTeleportSceneASp = sceneA.GetScenePresence(ua1.PrincipalID);
+
+            // Since this is appearance data, it is still present on the child avatar!
+            List<AvatarAttachment> sceneAAttachments = afterTeleportSceneASp.Appearance.GetAttachments();
+            Assert.That(sceneAAttachments.Count, Is.EqualTo(1));
+            Assert.That(afterTeleportSceneASp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
+
+            // This is the actual attachment, which should no longer exist
+            List<SceneObjectGroup> actualSceneAAttachments = afterTeleportSceneASp.GetAttachments();
+            Assert.That(actualSceneAAttachments.Count, Is.EqualTo(0));
+
+            Assert.That(sceneA.GetSceneObjectGroups().Count, Is.EqualTo(0));
+
+            // Check events
+            Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestSameSimulatorNeighbouringRegionsTeleportV2()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            BaseHttpServer httpServer = new BaseHttpServer(99999);
+            MainServer.AddHttpServer(httpServer);
+            MainServer.Instance = httpServer;
+
+            AttachmentsModule attModA = new AttachmentsModule();
+            AttachmentsModule attModB = new AttachmentsModule();
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etmA.Name);
+            modulesConfig.Set("SimulationServices", lscm.Name);
+            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
+
+            modulesConfig.Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1001, 1000);
+
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
+            SceneHelpers.SetupSceneModules(
+                sceneA, config, new CapabilitiesModule(), etmA, attModA, new BasicInventoryAccessModule());
+            SceneHelpers.SetupSceneModules(
+                sceneB, config, new CapabilitiesModule(), etmB, attModB, new BasicInventoryAccessModule());
+
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
+            TestClient tc = new TestClient(acd, sceneA);
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+
+            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
+            beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
+
+            Assert.That(destinationTestClients.Count, Is.EqualTo(1));
+            Assert.That(destinationTestClients[0], Is.Not.Null);
+
+            InventoryItemBase attItem = CreateAttachmentItem(sceneA, ua1.PrincipalID, "att", 0x10, 0x20);
+
+            sceneA.AttachmentsModule.RezSingleAttachmentFromInventory(
+                beforeTeleportSp, attItem.ID, (uint)AttachmentPoint.Chest);
+
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
+
+            // Here, we need to make clientA's receipt of SendRegionTeleport trigger clientB's CompleteMovement().  This
+            // is to operate the teleport V2 mechanism where the EntityTransferModule will first request the client to
+            // CompleteMovement to the region and then call UpdateAgent to the destination region to confirm the receipt
+            // Both these operations will occur on different threads and will wait for each other.
+            // We have to do this via ThreadPool directly since FireAndForget has been switched to sync for the V1
+            // test protocol, where we are trying to avoid unpredictable async operations in regression tests.
+            ((TestClient)beforeTeleportSp.ControllingClient).OnTestClientSendRegionTeleport 
+                += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL) 
+                    => ThreadPool.UnsafeQueueUserWorkItem(o => destinationTestClients[0].CompleteMovement(), null);
+
+            m_numberOfAttachEventsFired = 0;
+            sceneA.RequestTeleportLocation(
+                beforeTeleportSp.ControllingClient,
+                sceneB.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
 
             // Check attachments have made it into sceneB
             ScenePresence afterTeleportSceneBSp = sceneB.GetScenePresence(ua1.PrincipalID);

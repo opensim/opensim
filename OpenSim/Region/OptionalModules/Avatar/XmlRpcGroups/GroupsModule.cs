@@ -1212,7 +1212,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             AgentDataMap.Add("AgentID", OSD.FromUUID(dataForAgentID));
             AgentData.Add(AgentDataMap);
 
-
             OSDArray GroupData = new OSDArray(data.Length);
             OSDArray NewGroupData = new OSDArray(data.Length);
 
