@@ -158,7 +158,7 @@ namespace pCampBot
         //add additional steps and/or things the bot should do
         private void Action()
         {
-            while (true)
+            while (ConnectionState != ConnectionState.Disconnecting)
                 lock (Behaviours)
                     Behaviours.ForEach(
                         b =>
@@ -178,8 +178,8 @@ namespace pCampBot
         {
             ConnectionState = ConnectionState.Disconnecting;
 
-            if (m_actionThread != null)
-                m_actionThread.Abort();
+//            if (m_actionThread != null)
+//                m_actionThread.Abort();
 
             Client.Network.Logout();
         }
