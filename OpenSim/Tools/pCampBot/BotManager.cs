@@ -157,6 +157,7 @@ namespace pCampBot
             string password = startupConfig.GetString("password");
             string loginUri = startupConfig.GetString("loginuri");
             string startLocation = startupConfig.GetString("start", "last");
+            int fromBotNumber = startupConfig.GetInt("from", 0);
             string wearSetting = startupConfig.GetString("wear", "no");
 
             string startUri = ParseInputStartLocationToUri(startLocation);
@@ -178,7 +179,7 @@ namespace pCampBot
 
             for (int i = 0; i < botcount; i++)
             {
-                string lastName = string.Format("{0}_{1}", lastNameStem, i);
+                string lastName = string.Format("{0}_{1}", lastNameStem, i + fromBotNumber);
 
                 // We must give each bot its own list of instantiated behaviours since they store state.
                 List<IBehaviour> behaviours = new List<IBehaviour>();
