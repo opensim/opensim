@@ -68,6 +68,11 @@ namespace pCampBot
         public bool InitBotSendAgentUpdates { get; set; }
 
         /// <summary>
+        /// Controls whether bots request textures for the object information they receive
+        /// </summary>
+        public bool InitBotRequestObjectTextures { get; set; }
+
+        /// <summary>
         /// Created bots, whether active or inactive.
         /// </summary>
         protected List<Bot> m_lBot;
@@ -93,6 +98,7 @@ namespace pCampBot
         public BotManager()
         {
             InitBotSendAgentUpdates = true;
+            InitBotRequestObjectTextures = true;
 
             LoginDelay = DefaultLoginDelay;
 
@@ -176,6 +182,7 @@ namespace pCampBot
 
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
+            MainConsole.Instance.OutputFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
 
             for (int i = 0; i < botcount; i++)
             {

@@ -88,6 +88,8 @@ namespace pCampBot
                     {
                         bm.InitBotSendAgentUpdates 
                             = botConfig.GetBoolean("SendAgentUpdates", bm.InitBotSendAgentUpdates);
+                        bm.InitBotRequestObjectTextures
+                            = botConfig.GetBoolean("RequestObjectTextures", bm.InitBotRequestObjectTextures);
                     }
                 }
 
