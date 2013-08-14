@@ -59,6 +59,11 @@ namespace pCampBot
         public delegate void AnEvent(Bot callbot, EventType someevent); // event delegate for bot events
 
         /// <summary>
+        /// Controls whether bots request textures for the object information they receive
+        /// </summary>
+        public bool RequestObjectTextures { get; set; }
+
+        /// <summary>
         /// Bot manager.
         /// </summary>
         public BotManager Manager { get; private set; }
@@ -469,6 +474,9 @@ namespace pCampBot
 
         public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
+            if (!RequestObjectTextures)
+                return;
+
             Primitive prim = args.Prim;
 
             if (prim != null)
