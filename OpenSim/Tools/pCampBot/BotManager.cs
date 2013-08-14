@@ -52,6 +52,11 @@ namespace pCampBot
         public const int DefaultLoginDelay = 5000;
 
         /// <summary>
+        /// True if pCampbot is in the process of shutting down.
+        /// </summary>
+        public bool ShuttingDown { get; private set; }
+
+        /// <summary>
         /// Delay between logins of multiple bots.
         /// </summary>
         /// <remarks>TODO: This value needs to be configurable by a command line argument.</remarks>
@@ -186,6 +191,9 @@ namespace pCampBot
 
             for (int i = 0; i < botcount; i++)
             {
+                if (ShuttingDown)
+                    break;
+
                 string lastName = string.Format("{0}_{1}", lastNameStem, i + fromBotNumber);
 
                 // We must give each bot its own list of instantiated behaviours since they store state.
@@ -363,7 +371,9 @@ namespace pCampBot
 
         private void HandleShutdown(string module, string[] cmd)
         {
-            m_log.Info("[BOTMANAGER]: Shutting down bots");
+            MainConsole.Instance.Output("Shutting down");
+
+            ShuttingDown = true;
             doBotShutdown();
         }
 
