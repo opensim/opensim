@@ -97,6 +97,8 @@ namespace pCampBot
         public string Name { get; private set; }
         public string Password { get; private set; }
         public string LoginUri { get; private set; }
+        public string StartLocation { get; private set; }
+
         public string saveDir;
         public string wear;
 
@@ -132,7 +134,7 @@ namespace pCampBot
         /// <param name="behaviours"></param>
         public Bot(
             BotManager bm, List<IBehaviour> behaviours,
-            string firstName, string lastName, string password, string loginUri)
+            string firstName, string lastName, string password, string startLocation, string loginUri)
         {
             ConnectionState = ConnectionState.Disconnected;
 
@@ -146,6 +148,7 @@ namespace pCampBot
             Name = string.Format("{0} {1}", FirstName, LastName);
             Password = password;
             LoginUri = loginUri;
+            StartLocation = startLocation;
 
             Manager = bm;
             Behaviours = behaviours;
@@ -209,7 +212,7 @@ namespace pCampBot
 
             ConnectionState = ConnectionState.Connecting;
 
-            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
+            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", StartLocation, "Your name"))
             {
                 ConnectionState = ConnectionState.Connected;
 

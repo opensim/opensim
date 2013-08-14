@@ -65,7 +65,7 @@ namespace pCampBot
         /// <summary>
         /// Controls whether bots start out sending agent updates on connection.
         /// </summary>
-        public bool BotsInitSendAgentUpdates { get; set; }
+        public bool InitBotSendAgentUpdates { get; set; }
 
         /// <summary>
         /// Created bots, whether active or inactive.
@@ -92,7 +92,7 @@ namespace pCampBot
         /// </summary>
         public BotManager()
         {
-            BotsInitSendAgentUpdates = true;
+            InitBotSendAgentUpdates = true;
 
             LoginDelay = DefaultLoginDelay;
 
@@ -156,21 +156,25 @@ namespace pCampBot
             string lastNameStem = startupConfig.GetString("lastname");
             string password = startupConfig.GetString("password");
             string loginUri = startupConfig.GetString("loginuri");
+            string startLocation = startupConfig.GetString("start", "last");
             string wearSetting = startupConfig.GetString("wear", "no");
+
+            string startUri = ParseInputStartLocationToUri(startLocation);
 
             HashSet<string> behaviourSwitches = new HashSet<string>();
             Array.ForEach<string>(
                 startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
 
             MainConsole.Instance.OutputFormat(
-                "[BOT MANAGER]: Starting {0} bots connecting to {1}, named {2} {3}_<n>",
+                "[BOT MANAGER]: Starting {0} bots connecting to {1}, location {2}, named {3} {4}_<n>",
                 botcount,
                 loginUri,
+                startUri,
                 firstName,
                 lastNameStem);
 
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
-            MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", BotsInitSendAgentUpdates);
+            MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
 
             for (int i = 0; i < botcount; i++)
             {
@@ -195,8 +199,47 @@ namespace pCampBot
                 if (behaviourSwitches.Contains("t"))
                     behaviours.Add(new TeleportBehaviour());
 
-                StartBot(this, behaviours, firstName, lastName, password, loginUri, wearSetting);
+                StartBot(this, behaviours, firstName, lastName, password, loginUri, startUri, wearSetting);
             }
+        }
+
+        /// <summary>
+        /// Parses the command line start location to a start string/uri that the login mechanism will recognize.
+        /// </summary>
+        /// <returns>
+        /// The input start location to URI.
+        /// </returns>
+        /// <param name='startLocation'>
+        /// Start location.
+        /// </param>
+        private string ParseInputStartLocationToUri(string startLocation)
+        {
+            if (startLocation == "home" || startLocation == "last")
+                return startLocation;
+
+            string regionName;
+
+            // Just a region name or only one (!) extra component.  Like a viewer, we will stick 128/128/0 on the end
+            Vector3 startPos = new Vector3(128, 128, 0);
+
+            string[] startLocationComponents = startLocation.Split('/');
+
+            regionName = startLocationComponents[0];
+
+            if (startLocationComponents.Length >= 2)
+            {
+                float.TryParse(startLocationComponents[1], out startPos.X);
+
+                if (startLocationComponents.Length >= 3)
+                {
+                    float.TryParse(startLocationComponents[2], out startPos.Y);
+
+                    if (startLocationComponents.Length >= 4)
+                        float.TryParse(startLocationComponents[3], out startPos.Z);
+                }
+            }
+
+            return string.Format("uri:{0}&{1}&{2}&{3}", regionName, startPos.X, startPos.Y, startPos.Z);
         }
 
 //        /// <summary>
@@ -228,18 +271,19 @@ namespace pCampBot
         /// <param name="lastName">Last name</param>
         /// <param name="password">Password</param>
         /// <param name="loginUri">Login URI</param>
+        /// <param name="startLocation">Location to start the bot.  Can be "last", "home" or a specific sim name.</param>
         /// <param name="wearSetting"></param>
         public void StartBot(
              BotManager bm, List<IBehaviour> behaviours,
-             string firstName, string lastName, string password, string loginUri, string wearSetting)
+             string firstName, string lastName, string password, string loginUri, string startLocation, string wearSetting)
         {
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting bot {0} {1}, behaviours are {2}",
                 firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
-            Bot pb = new Bot(bm, behaviours, firstName, lastName, password, loginUri);
+            Bot pb = new Bot(bm, behaviours, firstName, lastName, password, startLocation, loginUri);
             pb.wear = wearSetting;
-            pb.Client.Settings.SEND_AGENT_UPDATES = BotsInitSendAgentUpdates;
+            pb.Client.Settings.SEND_AGENT_UPDATES = InitBotSendAgentUpdates;
 
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
