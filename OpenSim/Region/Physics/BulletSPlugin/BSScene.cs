@@ -639,7 +639,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     BSPhysObject pobj;
                     if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                     {
-                        pobj.UpdateProperties(entprop);
+                        if (pobj.IsInitialized)
+                            pobj.UpdateProperties(entprop);
                     }
                 }
             }
@@ -766,10 +767,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
-        if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
+        if (collider.IsInitialized)
         {
-            // If a collision was 'good', remember to send it to the simulator
-            ObjectsWithCollisions.Add(collider);
+            if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
+            {
+                // If a collision was 'good', remember to send it to the simulator
+                ObjectsWithCollisions.Add(collider);
+            }
         }
 
         return;

@@ -72,6 +72,8 @@ public abstract class BSPhysObject : PhysicsActor
     }
     protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
+        IsInitialized = false;
+
         PhysScene = parentScene;
         LocalID = localID;
         PhysObjectName = name;
@@ -130,6 +132,8 @@ public abstract class BSPhysObject : PhysicsActor
     public string PhysObjectName { get; protected set; }
     public string TypeName { get; protected set; }
 
+    // Set to 'true' when the object is completely initialized
+    public bool IsInitialized { get; protected set; }
 
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
