@@ -3540,6 +3540,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Remove the given client from the scene. 
+        /// </summary>
+        /// <remarks>
+        /// Only clientstack code should call this directly.  All other code should call IncomingCloseAgent() instead
+        /// to properly operate the state machine and avoid race conditions with other close requests (such as directly
+        /// from viewers).
+        /// </remarks>
+        /// <param name='agentID'>ID of agent to close</param>
+        /// <param name='closeChildAgents'>
+        /// Close the neighbour child agents associated with this client.
+        /// </param>
         public override void RemoveClient(UUID agentID, bool closeChildAgents)
         {
             AgentCircuitData acd = m_authenticateHandler.GetAgentCircuitData(agentID);

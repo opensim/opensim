@@ -1,0 +1,15 @@
+; This is the example config file for pCampbot
+; To use it, copy this file to pCampbot.ini and change settings if required
+
+[Bot]
+  ; Control whether bots should regularly send agent updates
+  ; Not doing this will reduce CPU requirements for pCampbot but greatly 
+  ; reduce the realism compared to viewers which are constantly sending AgentUpdates UDP packets.
+  ; Defaults to true.
+  SendAgentUpdates = true
+
+  ; Control whether bots will requests textures when receiving object information
+  ; Not doing this will reduce CPU requirements for pCampbot but greatly 
+  ; reduce the realism compared to viewers which requests such texture data if not already cached.
+  ; Defaults to true.
+  RequestObjectTextures = true

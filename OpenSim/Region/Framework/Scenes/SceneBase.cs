@@ -218,6 +218,19 @@ namespace OpenSim.Region.Framework.Scenes
         #region Add/Remove Agent/Avatar
 
         public abstract ISceneAgent AddNewClient(IClientAPI client, PresenceType type);
+
+        /// <summary>
+        /// Remove the given client from the scene. 
+        /// </summary>
+        /// <remarks>
+        /// Only clientstack code should call this directly.  All other code should call IncomingCloseAgent() instead
+        /// to properly operate the state machine and avoid race conditions with other close requests (such as directly
+        /// from viewers).
+        /// </remarks>
+        /// <param name='agentID'>ID of agent to close</param>
+        /// <param name='closeChildAgents'>
+        /// Close the neighbour child agents associated with this client.
+        /// </param>
         public abstract void RemoveClient(UUID agentID, bool closeChildAgents);
 
         public bool TryGetScenePresence(UUID agentID, out object scenePresence)

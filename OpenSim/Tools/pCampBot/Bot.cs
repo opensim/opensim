@@ -64,11 +64,6 @@ namespace pCampBot
         public BotManager Manager { get; private set; }
 
         /// <summary>
-        /// Bot config, passed from BotManager.
-        /// </summary>
-        private IConfig startupConfig;
-
-        /// <summary>
         /// Behaviours implemented by this bot.
         /// </summary>
         /// <remarks>
@@ -102,6 +97,8 @@ namespace pCampBot
         public string Name { get; private set; }
         public string Password { get; private set; }
         public string LoginUri { get; private set; }
+        public string StartLocation { get; private set; }
+
         public string saveDir;
         public string wear;
 
@@ -137,7 +134,7 @@ namespace pCampBot
         /// <param name="behaviours"></param>
         public Bot(
             BotManager bm, List<IBehaviour> behaviours,
-            string firstName, string lastName, string password, string loginUri)
+            string firstName, string lastName, string password, string startLocation, string loginUri)
         {
             ConnectionState = ConnectionState.Disconnected;
 
@@ -151,11 +148,9 @@ namespace pCampBot
             Name = string.Format("{0} {1}", FirstName, LastName);
             Password = password;
             LoginUri = loginUri;
+            StartLocation = startLocation;
 
             Manager = bm;
-            startupConfig = bm.Config;
-            readconfig();
-
             Behaviours = behaviours;
         }
 
@@ -163,7 +158,7 @@ namespace pCampBot
         //add additional steps and/or things the bot should do
         private void Action()
         {
-            while (true)
+            while (ConnectionState != ConnectionState.Disconnecting)
                 lock (Behaviours)
                     Behaviours.ForEach(
                         b =>
@@ -177,22 +172,14 @@ namespace pCampBot
         }
 
         /// <summary>
-        /// Read the Nini config and initialize
-        /// </summary>
-        public void readconfig()
-        {
-            wear = startupConfig.GetString("wear", "no");
-        }
-
-        /// <summary>
         /// Tells LibSecondLife to logout and disconnect.  Raises the disconnect events once it finishes.
         /// </summary>
         public void shutdown()
         {
             ConnectionState = ConnectionState.Disconnecting;
 
-            if (m_actionThread != null)
-                m_actionThread.Abort();
+//            if (m_actionThread != null)
+//                m_actionThread.Abort();
 
             Client.Network.Logout();
         }
@@ -207,6 +194,7 @@ namespace pCampBot
             Client.Settings.AVATAR_TRACKING = false;
             Client.Settings.OBJECT_TRACKING = false;
             Client.Settings.SEND_AGENT_THROTTLE = true;
+            Client.Settings.SEND_AGENT_UPDATES = false;
             Client.Settings.SEND_PINGS = true;
             Client.Settings.STORE_LAND_PATCHES = false;
             Client.Settings.USE_ASSET_CACHE = false;
@@ -224,7 +212,7 @@ namespace pCampBot
 
             ConnectionState = ConnectionState.Connecting;
 
-            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
+            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", StartLocation, "Your name"))
             {
                 ConnectionState = ConnectionState.Connected;
 
@@ -481,9 +469,6 @@ namespace pCampBot
 
         public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
-//            if (Name.EndsWith("4"))
-//                throw new Exception("Aaargh");
-
             Primitive prim = args.Prim;
 
             if (prim != null)
