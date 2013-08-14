@@ -123,7 +123,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (m_URL == "localhost")
             {
-                m_log.DebugFormat("[AVATAR PICKER SEARCH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[AVATAR PICKER SEARCH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler(
                     "AvatarPickerSearch",
                     new AvatarPickerSearchHandler("/CAPS/" + capID + "/", m_People, "AvatarPickerSearch", "Search for avatars by name"));
