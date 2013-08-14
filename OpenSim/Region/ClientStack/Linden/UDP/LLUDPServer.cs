@@ -121,6 +121,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "IncomingPacketsOrphanedCount",
+                    "Number of inbound packets that were not initial connections packets and could not be associated with a viewer.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingOrphanedPacketCount,
+                    StatVerbosity.Info));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "OutgoingUDPSendsCount",
                     "Number of UDP sends performed",
                     "",
@@ -285,6 +298,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Record how many inbound packets could not be recognized as LLUDP packets.
         /// </summary>
         public int IncomingMalformedPacketCount { get; private set; }
+
+        /// <summary>
+        /// Record how many inbound packets could not be associated with a simulator circuit.
+        /// </summary>
+        public int IncomingOrphanedPacketCount { get; private set; }
 
         /// <summary>
         /// Record current outgoing client for monitoring purposes.
@@ -1206,7 +1224,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if ((IncomingMalformedPacketCount % 10000) == 0)
                 m_log.WarnFormat(
-                    "[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.  Last malformed was from {1}", 
+                    "[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.  Last was from {1}", 
                     IncomingMalformedPacketCount, endPoint);
         }
 
@@ -1279,9 +1297,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (IncomingMalformedPacketCount < 100)
                 {
-                    m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}:",
-                        buffer.DataLength, buffer.RemoteEndPoint);
-                    m_log.Error(Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
+                    m_log.WarnFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}, data {2}:",
+                        buffer.DataLength, buffer.RemoteEndPoint, Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
                 }
 
                 RecordMalformedInboundPacket(endPoint);
@@ -1323,6 +1340,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!m_scene.TryGetClient(endPoint, out client) || !(client is LLClientView))
             {
                 //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+
+                IncomingOrphanedPacketCount++;
+
+                if ((IncomingOrphanedPacketCount % 10000) == 0)
+                    m_log.WarnFormat(
+                        "[LLUDPSERVER]: Received {0} orphaned packets so far.  Last was from {1}", 
+                        IncomingOrphanedPacketCount, endPoint);
+
                 return;
             }
 
