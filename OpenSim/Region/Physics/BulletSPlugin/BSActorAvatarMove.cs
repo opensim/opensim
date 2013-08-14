@@ -69,7 +69,9 @@ public class BSActorAvatarMove : BSActor
     // BSActor.Dispose()
     public override void Dispose()
     {
-        Enabled = false;
+        base.SetEnabled(false);
+        // Now that turned off, remove any state we have in the scene.
+        Refresh();
     }
 
     // Called when physical parameters (properties set in Bullet) need to be re-applied.
@@ -181,7 +183,7 @@ public class BSActorAvatarMove : BSActor
             if (m_controllingPrim.IsColliding)
             {
                 // If we are colliding with a stationary object, presume we're standing and don't move around
-                if (!m_controllingPrim.ColliderIsMoving)
+                if (!m_controllingPrim.ColliderIsMoving && !m_controllingPrim.ColliderIsVolumeDetect)
                 {
                     m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
                     m_controllingPrim.IsStationary = true;

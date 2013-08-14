@@ -110,6 +110,8 @@ public class BSPrim : BSPhysObject
             CreateGeomAndObject(true);
 
             CurrentCollisionFlags = PhysScene.PE.GetCollisionFlags(PhysBody);
+
+            IsInitialized = true;
         });
     }
 
@@ -117,6 +119,8 @@ public class BSPrim : BSPhysObject
     public override void Destroy()
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
+        IsInitialized = false;
+
         base.Destroy();
 
         // Undo any vehicle properties
