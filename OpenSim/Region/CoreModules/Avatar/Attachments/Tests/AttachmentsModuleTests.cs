@@ -925,7 +925,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             IConfig modulesConfig = config.AddConfig("Modules");
             modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
-            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
             modulesConfig.Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
