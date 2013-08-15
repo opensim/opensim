@@ -1029,6 +1029,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.SenderWantsToWaitForRoot = true;
             //SetCallbackURL(agent, sp.Scene.RegionInfo);
 
+            // Reset the do not close flag.  This must be done before the destination opens child connections (here
+            // triggered by UpdateAgent) to avoid race conditions.  However, we also want to reset it as late as possible
+            // to avoid a situation where an unexpectedly early call to Scene.NewUserConnection() wrongly results
+            // in no close.
+            sp.DoNotCloseAfterTeleport = false;
+
             // Send the Update. If this returns true, we know the client has contacted the destination
             // via CompleteMovementIntoRegion, so we can let go.
             // If it returns false, something went wrong, and we need to abort.
@@ -1075,8 +1081,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                sp.DoNotCloseAfterTeleport = false;
-
                 // RED ALERT!!!!
                 // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
                 // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
