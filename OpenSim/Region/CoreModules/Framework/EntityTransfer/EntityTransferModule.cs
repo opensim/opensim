@@ -1055,6 +1055,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
+            // Need to signal neighbours whether child agents may need closing irrespective of whether this
+            // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
+            // race conditions with rapid agent releporting (e.g. from A1 to a non-neighbour B, back
+            // to a neighbour A2 then off to a non-neighbour C).  Closing child agents any later requires complex
+            // distributed checks to avoid problems in rapid reteleporting scenarios and where child agents are
+            // abandoned without proper close by viewer but then re-used by an incoming connection.
+            sp.CloseChildAgents(newRegionX, newRegionY);
+
             // May need to logout or other cleanup
             AgentHasMovedAway(sp, logout);
 
@@ -1063,17 +1071,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
-
-            // May still need to signal neighbours whether child agents may need closing irrespective of whether this
-            // one needed closing.  Neighbour regions also contain logic to prevent a close if a subsequent move or
-            // teleport re-established the child connection.
-            // 
-            // It may be possible to also close child agents after a pause but one needs to be very careful about
-            // race conditions between different regions on rapid teleporting (e.g. from A1 to a non-neighbour B, back
-            // to a neighbour A2 then off to a non-neighbour C.  Also, closing child agents early may be more compatible
-            // with complicated scenarios where there a mixture of V1 and V2 teleports, though this is conjecture.  It's
-            // easier to close immediately and greatly reduce the scope of race conditions if possible.
-            sp.CloseChildAgents(newRegionX, newRegionY);
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
@@ -1096,7 +1093,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 else
                 {
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {1}", sp.Name, Scene.Name);
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Connection for {0} in {1} has been re-established after teleport.  Not closing.", 
+                        sp.Name, Scene.Name);
+
                     sp.DoNotCloseAfterTeleport = false;
                 }
             }
