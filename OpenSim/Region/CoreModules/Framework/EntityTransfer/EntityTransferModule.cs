@@ -317,7 +317,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2}@{3} - agent is already in transit.",
                     sp.Name, sp.UUID, position, regionHandle);
 
-                sp.ControllingClient.SendTeleportFailed("Slow down!");
+                sp.ControllingClient.SendTeleportFailed("Previous teleport process incomplete.  Please retry shortly.");
+
                 return;
             }
 
