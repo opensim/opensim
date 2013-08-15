@@ -3725,7 +3725,7 @@ namespace OpenSim.Region.Framework.Scenes
                         sp.DoNotCloseAfterTeleport = true;
 
                         m_log.DebugFormat(
-                            "[SCENE]: Set DoNotCloseAfterTeleport for child scene presence {0} in {1} because this region will attempt previous end-of-teleport close.", 
+                            "[SCENE]: Set DoNotCloseAfterTeleport for child scene presence {0} in {1} because this region will attempt end-of-teleport close from a previous close.", 
                             sp.Name, Name);
                     }
                 }

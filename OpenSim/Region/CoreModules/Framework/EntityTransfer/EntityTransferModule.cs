@@ -1085,20 +1085,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
                 Thread.Sleep(15000);
             
-                if (!sp.DoNotCloseAfterTeleport)
-                {
-                    // OK, it got this agent. Let's close everything
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing agent {0} in {1}", sp.Name, Scene.Name);
-                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
-                }
-                else
-                {
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Connection for {0} in {1} has been re-established after teleport.  Not closing.", 
-                        sp.Name, Scene.Name);
-
-                    sp.DoNotCloseAfterTeleport = false;
-                }
+                // OK, it got this agent. Let's close everything
+                // If we shouldn't close the agent due to some other region renewing the connection 
+                // then this will be handled in IncomingCloseAgent under lock conditions
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
+                sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
             else
             {
