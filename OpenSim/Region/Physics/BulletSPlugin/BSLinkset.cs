@@ -209,6 +209,17 @@ public abstract class BSLinkset
         return ret;
     }
 
+    public bool TryGetLinkInfo(BSPrimLinkable child, out BSLinkInfo foundInfo)
+    {
+        bool ret = false;
+        BSLinkInfo found = null;
+        lock (m_linksetActivityLock)
+        {
+            ret = m_children.TryGetValue(child, out found);
+        }
+        foundInfo = found;
+        return ret;
+    }
     // Perform an action on each member of the linkset including root prim.
     // Depends on the action on whether this should be done at taint time.
     public delegate bool ForEachLinkInfoAction(BSLinkInfo obj);

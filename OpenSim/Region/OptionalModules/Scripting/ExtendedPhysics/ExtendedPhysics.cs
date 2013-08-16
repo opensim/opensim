@@ -64,6 +64,7 @@ public class ExtendedPhysics : INonSharedRegionModule
     public const string PhysFunctSetLinksetType = "BulletSim.SetLinksetType";
     public const string PhysFunctChangeLinkFixed = "BulletSim.ChangeLinkFixed";
     public const string PhysFunctChangeLinkType = "BulletSim.ChangeLinkType";
+    public const string PhysFunctGetLinkType = "BulletSim.GetLinkType";
     public const string PhysFunctChangeLinkParams = "BulletSim.ChangeLinkParams";
 
     // =============================================================
@@ -315,6 +316,24 @@ public class ExtendedPhysics : INonSharedRegionModule
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
             ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, childPhysActor, typeCode));
+        }
+
+        return ret;
+    }
+
+    // physGetLinkType(integer linkNum)
+    [ScriptInvocation]
+    public int physGetLinkType(UUID hostID, UUID scriptID, int linkNum, int typeCode)
+    {
+        int ret = -1;
+        if (!Enabled) return ret;
+
+        PhysicsActor rootPhysActor;
+        PhysicsActor childPhysActor;
+
+        if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
+        {
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinkType, childPhysActor));
         }
 
         return ret;
