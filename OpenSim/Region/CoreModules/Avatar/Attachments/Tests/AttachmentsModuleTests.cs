@@ -844,7 +844,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
@@ -943,7 +943,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);

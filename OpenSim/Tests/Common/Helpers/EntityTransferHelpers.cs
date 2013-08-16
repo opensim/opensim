@@ -31,6 +31,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using NUnit.Framework;
@@ -59,7 +60,8 @@ namespace OpenSim.Tests.Common
         /// A list that will be populated with any TestClients set up in response to 
         /// being informed about a destination region.
         /// </param>
-        public static void SetUpInformClientOfNeighbour(TestClient tc, List<TestClient> neighbourTcs)
+        public static void SetupInformClientOfNeighbourTriggersNeighbourClientCreate(
+            TestClient tc, List<TestClient> neighbourTcs)
         {
             // XXX: Confusingly, this is also used for non-neighbour notification (as in teleports that do not use the
             // event queue).
@@ -75,8 +77,6 @@ namespace OpenSim.Tests.Common
                     "[TEST CLIENT]: Processing inform client of neighbour located at {0},{1} at {2}", 
                     x, y, neighbourExternalEndPoint);
 
-                // In response to this message, we are going to make a teleport to the scene we've previous been told
-                // about by test code (this needs to be improved).
                 AgentCircuitData newAgent = tc.RequestClientInfo();
 
                 Scene neighbourScene;
@@ -85,6 +85,43 @@ namespace OpenSim.Tests.Common
                 TestClient neighbourTc = new TestClient(newAgent, neighbourScene);
                 neighbourTcs.Add(neighbourTc);
                 neighbourScene.AddNewClient(neighbourTc, PresenceType.User);
+            };
+        }
+
+        /// <summary>
+        /// Set up correct handling of the InformClientOfNeighbour call from the source region that triggers the
+        /// viewer to setup a connection with the destination region.
+        /// </summary>
+        /// <param name='tc'></param>
+        /// <param name='neighbourTcs'>
+        /// A list that will be populated with any TestClients set up in response to 
+        /// being informed about a destination region.
+        /// </param>
+        public static void SetupSendRegionTeleportTriggersDestinationClientCreateAndCompleteMovement(
+            TestClient client, List<TestClient> destinationClients)
+        {
+            client.OnTestClientSendRegionTeleport 
+                += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL) =>
+            {
+                uint x, y;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                x /= Constants.RegionSize;
+                y /= Constants.RegionSize;
+
+                m_log.DebugFormat(
+                    "[TEST CLIENT]: Processing send region teleport for destination at {0},{1} at {2}", 
+                    x, y, regionExternalEndPoint);
+
+                AgentCircuitData newAgent = client.RequestClientInfo();
+
+                Scene destinationScene;
+                SceneManager.Instance.TryGetScene(x, y, out destinationScene);
+
+                TestClient destinationClient = new TestClient(newAgent, destinationScene);
+                destinationClients.Add(destinationClient);
+                destinationScene.AddNewClient(destinationClient, PresenceType.User);
+
+                ThreadPool.UnsafeQueueUserWorkItem(o => destinationClient.CompleteMovement(), null);
             };
         }
     }

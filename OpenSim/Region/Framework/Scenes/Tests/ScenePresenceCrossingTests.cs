@@ -97,7 +97,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence originalSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             originalSp.AbsolutePosition = new Vector3(128, 32, 10);

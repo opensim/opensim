@@ -147,7 +147,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sp.AbsolutePosition = new Vector3(30, 31, 32);
 
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour((TestClient)sp.ControllingClient, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(
+                (TestClient)sp.ControllingClient, destinationTestClients);
 
             sceneA.RequestTeleportLocation(
                 sp.ControllingClient,
@@ -160,6 +161,67 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // agent.  This call will now complete the movement of the user into the destination and upgrade the agent
             // from child to root.
             destinationTestClients[0].CompleteMovement();
+
+            Assert.That(sceneA.GetScenePresence(userId), Is.Null);
+
+            ScenePresence sceneBSp = sceneB.GetScenePresence(userId);
+            Assert.That(sceneBSp, Is.Not.Null);
+            Assert.That(sceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
+            Assert.That(sceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
+
+            Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneB.GetChildAgentCount(), Is.EqualTo(0));
+
+            // TODO: Add assertions to check correct circuit details in both scenes.
+
+            // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
+            // position instead).
+//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+        }
+
+        [Test]
+        public void TestSameSimulatorIsolatedRegionsV2()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etmA.Name);
+            modulesConfig.Set("SimulationServices", lscm.Name);
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
+
+            SceneHelpers.SetupSceneModules(sceneA, config, etmA);
+            SceneHelpers.SetupSceneModules(sceneB, config, etmB);
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
+
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
+            sp.AbsolutePosition = new Vector3(30, 31, 32);
+
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetupSendRegionTeleportTriggersDestinationClientCreateAndCompleteMovement(
+                (TestClient)sp.ControllingClient, destinationTestClients);
+
+            sceneA.RequestTeleportLocation(
+                sp.ControllingClient,
+                sceneB.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
 
             Assert.That(sceneA.GetScenePresence(userId), Is.Null);
 
@@ -467,7 +529,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence beforeSceneASp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeSceneASp.AbsolutePosition = new Vector3(30, 31, 32);
@@ -545,7 +607,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence beforeSceneASp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeSceneASp.AbsolutePosition = new Vector3(30, 31, 32);
