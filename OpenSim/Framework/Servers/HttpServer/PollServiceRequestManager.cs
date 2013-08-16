@@ -51,10 +51,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
-        private Thread m_longPollThread;
 
         private bool m_running = true;
-        private int slowCount = 0;
 
         private SmartThreadPool m_threadPool = new SmartThreadPool(20000, 12, 2);
 
@@ -83,7 +81,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         int.MaxValue);
             }
 
-            m_longPollThread = Watchdog.StartThread(
+            Watchdog.StartThread(
                 this.CheckLongPollThreads,
                 string.Format("LongPollServiceWatcherThread:{0}", m_server.Port),
                 ThreadPriority.Normal,
@@ -136,7 +134,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 Thread.Sleep(500); 
                 Watchdog.UpdateThread();
 
-                List<PollServiceHttpRequest> not_ready = new List<PollServiceHttpRequest>();
+//                List<PollServiceHttpRequest> not_ready = new List<PollServiceHttpRequest>();
                 lock (m_longPollRequests)
                 {
                     if (m_longPollRequests.Count > 0 && m_running)
