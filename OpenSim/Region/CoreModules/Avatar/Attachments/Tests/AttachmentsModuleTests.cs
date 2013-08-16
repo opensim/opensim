@@ -965,7 +965,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // Both these operations will occur on different threads and will wait for each other.
             // We have to do this via ThreadPool directly since FireAndForget has been switched to sync for the V1
             // test protocol, where we are trying to avoid unpredictable async operations in regression tests.
-            ((TestClient)beforeTeleportSp.ControllingClient).OnTestClientSendRegionTeleport 
+            tc.OnTestClientSendRegionTeleport 
                 += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL) 
                     => ThreadPool.UnsafeQueueUserWorkItem(o => destinationTestClients[0].CompleteMovement(), null);
 
