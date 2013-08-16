@@ -317,14 +317,21 @@ public class BSPrimLinkable : BSPrimDisplaced
             // Params: PhysActor linkedPrim, int typeCode
             case ExtendedPhysics.PhysFunctChangeLinkType:
             {
-                Linkset.Extension(pFunct, pParams);
+                ret = Linkset.Extension(pFunct, pParams);
+                break;
+            }
+            // physGetLinkType(linknum);
+            // Params: PhysActor linkedPrim
+            case ExtendedPhysics.PhysFunctGetLinkType:
+            {
+                ret = Linkset.Extension(pFunct, pParams);
                 break;
             }
             // physChangeLinkParams(linknum, [code, value, code, value, ...]);
             // Params: PhysActor linkedPrim, object[] params
             case ExtendedPhysics.PhysFunctChangeLinkParams:
             {
-                Linkset.Extension(pFunct, pParams);
+                ret = Linkset.Extension(pFunct, pParams);
                 break;
             }
             default:

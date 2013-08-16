@@ -168,6 +168,8 @@ public sealed class BSLinksetConstraints : BSLinkset
         LinksetImpl = LinksetImplementation.Constraint;
     }
 
+    private static string LogHeader = "[BULLETSIM LINKSET CONSTRAINT]";
+
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     // This is queued in the 'post taint' queue so the
@@ -511,7 +513,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                                 RemoveDependencies(child);
 
                                 BSLinkInfo linkInfo = null;
-                                if (m_children.TryGetValue(child, out linkInfo))
+                                if (TryGetLinkInfo(child, out linkInfo))
                                 {
                                     BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
                                     if (linkInfoC != null)
@@ -529,28 +531,129 @@ public sealed class BSLinksetConstraints : BSLinkset
                     }
                 }
                 break;
-            case ExtendedPhysics.PhysFunctChangeLinkParams:
-                int setParam = 2;
-                switch (setParam)
+            case ExtendedPhysics.PhysFunctGetLinkType:
+                if (pParams.Length > 0)
                 {
-                    case ExtendedPhysics.PHYS_PARAM_FRAMEINA_LOC:
-                    case ExtendedPhysics.PHYS_PARAM_FRAMEINA_ROT:
-                    case ExtendedPhysics.PHYS_PARAM_FRAMEINB_LOC:
-                    case ExtendedPhysics.PHYS_PARAM_FRAMEINB_ROT:
-                    case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_LOW:
-                    case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_HIGH:
-                    case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_LOW:
-                    case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_HIGH:
-                    case ExtendedPhysics.PHYS_PARAM_USE_FRAME_OFFSET:
-                    case ExtendedPhysics.PHYS_PARAM_ENABLE_TRANSMOTOR:
-                    case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXVEL:
-                    case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXFORCE:
-                    case ExtendedPhysics.PHYS_PARAM_CFM:
-                    case ExtendedPhysics.PHYS_PARAM_ERP:
-                    case ExtendedPhysics.PHYS_PARAM_SOLVER_ITERATIONS:
-                    case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
-                    case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
-                        break;
+                    BSPrimLinkable child = pParams[0] as BSPrimLinkable;
+                    if (child != null)
+                    {
+                        BSLinkInfo linkInfo = null;
+                        if (TryGetLinkInfo(child, out linkInfo))
+                        {
+                            BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
+                            if (linkInfoC != null)
+                            {
+                                ret = (object)(int)linkInfoC.constraintType;
+                            }
+                        }
+                    }
+                }
+                break;
+            case ExtendedPhysics.PhysFunctChangeLinkParams:
+                // There should be two parameters: the childActor and a list of parameters to set
+                try
+                {
+                    if (pParams.Length > 1)
+                    {
+                        BSPrimLinkable child = pParams[0] as BSPrimLinkable;
+                        object[] setOps = (object[])pParams[1];
+                        BSLinkInfo baseLinkInfo = null;
+                        if (TryGetLinkInfo(child, out baseLinkInfo))
+                        {
+                            BSLinkInfoConstraint linkInfo = baseLinkInfo as BSLinkInfoConstraint;
+                            if (linkInfo != null)
+                            {
+                                float valueFloat;
+                                bool valueBool;
+                                OMV.Vector3 valueVector;
+                                OMV.Quaternion valueQuaternion;
+
+                                int opIndex = 0;
+                                while (opIndex < setOps.Length)
+                                {
+                                    int thisOp = (int)setOps[opIndex];
+                                    switch (thisOp)
+                                    {
+                                        case ExtendedPhysics.PHYS_PARAM_FRAMEINA_LOC:
+                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            linkInfo.frameInAloc = valueVector;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_FRAMEINA_ROT:
+                                            valueQuaternion = (OMV.Quaternion)setOps[opIndex + 1];
+                                            linkInfo.frameInArot = valueQuaternion;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_FRAMEINB_LOC:
+                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            linkInfo.frameInBloc = valueVector;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_FRAMEINB_ROT:
+                                            valueQuaternion = (OMV.Quaternion)setOps[opIndex + 1];
+                                            linkInfo.frameInBrot = valueQuaternion;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_LOW:
+                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            linkInfo.linearLimitLow = valueVector;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_HIGH:
+                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            linkInfo.linearLimitHigh = valueVector;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_LOW:
+                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            linkInfo.angularLimitLow = valueVector;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_HIGH:
+                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            linkInfo.angularLimitHigh = valueVector;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_USE_FRAME_OFFSET:
+                                            valueBool = (bool)setOps[opIndex + 1];
+                                            linkInfo.useFrameOffset = valueBool;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_ENABLE_TRANSMOTOR:
+                                            valueBool = (bool)setOps[opIndex + 1];
+                                            linkInfo.enableTransMotor = valueBool;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXVEL:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.transMotorMaxVel = valueFloat;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXFORCE:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.transMotorMaxForce = valueFloat;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_CFM:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.cfm = valueFloat;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_ERP:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.erp = valueFloat;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_SOLVER_ITERATIONS:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.solverIterations = valueFloat;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.springDamping = valueFloat;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
+                                            valueFloat = (float)setOps[opIndex + 1];
+                                            linkInfo.springStiffness = valueFloat;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    // There are many ways to mess up the parameters. If not just right don't fail without some error.
+                    m_physicsScene.Logger.WarnFormat("{0} bad parameters in physSetLinksetParams: {1}", LogHeader, e);
                 }
                 break;
             default:
