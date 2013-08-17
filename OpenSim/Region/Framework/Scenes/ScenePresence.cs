@@ -219,7 +219,7 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_sitAvatarHeight = 2.0f;
 
         private Vector3 m_lastChildAgentUpdatePosition;
-        private Vector3 m_lastChildAgentUpdateCamPosition;
+//        private Vector3 m_lastChildAgentUpdateCamPosition;
 
         private const int LAND_VELOCITYMAG_MAX = 12;
 
@@ -1847,8 +1847,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_movementUpdateCount < 1)
                 m_movementUpdateCount = 1;
 
-
-            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
+//            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
 
             // Camera location in world.  We'll need to raytrace
             // from this location from time to time.
@@ -3025,7 +3024,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (Util.GetDistanceTo(AbsolutePosition, m_lastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance)
             {
                 m_lastChildAgentUpdatePosition = AbsolutePosition;
-                m_lastChildAgentUpdateCamPosition = CameraPosition;
+//                m_lastChildAgentUpdateCamPosition = CameraPosition;
 
                 ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
                 cadu.ActiveGroupID = UUID.Zero.Guid;
