@@ -316,8 +316,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
-                    SceneObjectGroup objatt 
-                        = RezSingleAttachmentFromInventoryInternal(
+                    RezSingleAttachmentFromInventoryInternal(
                         sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, attachmentPt, true);
                 }
                 catch (Exception e)
