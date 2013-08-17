@@ -267,7 +267,7 @@ namespace OpenSim.Framework.Monitoring
         public static Hashtable HandleStatsRequest(Hashtable request)
         {
             Hashtable responsedata = new Hashtable();
-            string regpath = request["uri"].ToString();
+//            string regpath = request["uri"].ToString();
             int response_code = 200;
             string contenttype = "text/json";
 

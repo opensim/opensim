@@ -56,10 +56,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private Scene m_scene;
         private String m_simianURL;
         
-        private IGridUserService m_GridUserService;
-        
 #region IRegionModule Members
-
 
         public string Name
         {

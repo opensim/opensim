@@ -317,7 +317,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2}@{3} - agent is already in transit.",
                     sp.Name, sp.UUID, position, regionHandle);
 
-                sp.ControllingClient.SendTeleportFailed("Slow down!");
+                sp.ControllingClient.SendTeleportFailed("Previous teleport process incomplete.  Please retry shortly.");
+
                 return;
             }
 
@@ -1034,6 +1035,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.SenderWantsToWaitForRoot = true;
             //SetCallbackURL(agent, sp.Scene.RegionInfo);
 
+            // Reset the do not close flag.  This must be done before the destination opens child connections (here
+            // triggered by UpdateAgent) to avoid race conditions.  However, we also want to reset it as late as possible
+            // to avoid a situation where an unexpectedly early call to Scene.NewUserConnection() wrongly results
+            // in no close.
+            sp.DoNotCloseAfterTeleport = false;
+
             // Send the Update. If this returns true, we know the client has contacted the destination
             // via CompleteMovementIntoRegion, so we can let go.
             // If it returns false, something went wrong, and we need to abort.
@@ -1060,6 +1067,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
+            // Need to signal neighbours whether child agents may need closing irrespective of whether this
+            // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
+            // race conditions with rapid agent releporting (e.g. from A1 to a non-neighbour B, back
+            // to a neighbour A2 then off to a non-neighbour C).  Closing child agents any later requires complex
+            // distributed checks to avoid problems in rapid reteleporting scenarios and where child agents are
+            // abandoned without proper close by viewer but then re-used by an incoming connection.
+            sp.CloseChildAgents(newRegionX, newRegionY);
+
             // May need to logout or other cleanup
             AgentHasMovedAway(sp, logout);
 
@@ -1069,22 +1084,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
 
-            // May still need to signal neighbours whether child agents may need closing irrespective of whether this
-            // one needed closing.  Neighbour regions also contain logic to prevent a close if a subsequent move or
-            // teleport re-established the child connection.
-            // 
-            // It may be possible to also close child agents after a pause but one needs to be very careful about
-            // race conditions between different regions on rapid teleporting (e.g. from A1 to a non-neighbour B, back
-            // to a neighbour A2 then off to a non-neighbour C.  Also, closing child agents early may be more compatible
-            // with complicated scenarios where there a mixture of V1 and V2 teleports, though this is conjecture.  It's
-            // easier to close immediately and greatly reduce the scope of race conditions if possible.
-            sp.CloseChildAgents(newRegionX, newRegionY);
-
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                sp.DoNotCloseAfterTeleport = false;
-
                 // RED ALERT!!!!
                 // PLEASE DO NOT DECREASE THIS WAIT TIME UNDER ANY CIRCUMSTANCES.
                 // THE VIEWERS SEEM TO NEED SOME TIME AFTER RECEIVING MoveAgentIntoRegion
@@ -1093,17 +1095,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
                 Thread.Sleep(15000);
             
-                if (!sp.DoNotCloseAfterTeleport)
-                {
-                    // OK, it got this agent. Let's close everything
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Closing agent {0} in {1}", sp.Name, Scene.Name);
-                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
-                }
-                else
-                {
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Not closing agent {0}, user is back in {1}", sp.Name, Scene.Name);
-                    sp.DoNotCloseAfterTeleport = false;
-                }
+                // OK, it got this agent. Let's close everything
+                // If we shouldn't close the agent due to some other region renewing the connection 
+                // then this will be handled in IncomingCloseAgent under lock conditions
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
+                sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
             else
             {

@@ -300,6 +300,7 @@ namespace pCampBot
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, startLocation, loginUri);
             pb.wear = wearSetting;
             pb.Client.Settings.SEND_AGENT_UPDATES = InitBotSendAgentUpdates;
+            pb.RequestObjectTextures = InitBotRequestObjectTextures;
 
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;

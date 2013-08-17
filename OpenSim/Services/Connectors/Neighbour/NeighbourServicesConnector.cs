@@ -98,7 +98,7 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat(
-                    "[NEIGHBOUR SERVICE CONNCTOR]: Unable to parse uri {0} to send HelloNeighbour from {1} to {2}.  Exception {3}{4}",
+                    "[NEIGHBOUR SERVICES CONNECTOR]: Unable to parse uri {0} to send HelloNeighbour from {1} to {2}.  Exception {3}{4}",
                     uri, thisRegion.RegionName, region.RegionName, e.Message, e.StackTrace);
 
                 return false;
@@ -117,7 +117,7 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat(
-                    "[NEIGHBOUR SERVICE CONNCTOR]: PackRegionInfoData failed for HelloNeighbour from {0} to {1}.  Exception {2}{3}",
+                    "[NEIGHBOUR SERVICES CONNECTOR]: PackRegionInfoData failed for HelloNeighbour from {0} to {1}.  Exception {2}{3}",
                     thisRegion.RegionName, region.RegionName, e.Message, e.StackTrace);
 
                 return false;
@@ -137,7 +137,7 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat(
-                    "[NEIGHBOUR SERVICE CONNCTOR]: Exception thrown on serialization of HelloNeighbour from {0} to {1}.  Exception {2}{3}",
+                    "[NEIGHBOUR SERVICES CONNECTOR]: Exception thrown on serialization of HelloNeighbour from {0} to {1}.  Exception {2}{3}",
                     thisRegion.RegionName, region.RegionName, e.Message, e.StackTrace);
 
                 return false;
@@ -175,7 +175,7 @@ namespace OpenSim.Services.Connectors
                     if (webResponse == null)
                     {
                         m_log.DebugFormat(
-                            "[REST COMMS]: Null reply on DoHelloNeighbourCall post from {0} to {1}",
+                            "[NEIGHBOUR SERVICES CONNECTOR]: Null reply on DoHelloNeighbourCall post from {0} to {1}",
                             thisRegion.RegionName, region.RegionName);
                     }
 
@@ -193,7 +193,7 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat(
-                    "[NEIGHBOUR SERVICE CONNCTOR]: Exception on reply of DoHelloNeighbourCall from {0} back to {1}.  Exception {2}{3}",
+                    "[NEIGHBOUR SERVICES CONNECTOR]: Exception on reply of DoHelloNeighbourCall from {0} back to {1}.  Exception {2}{3}",
                     region.RegionName, thisRegion.RegionName, e.Message, e.StackTrace);
 
                 return false;

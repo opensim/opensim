@@ -72,6 +72,8 @@ public abstract class BSPhysObject : PhysicsActor
     }
     protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
+        IsInitialized = false;
+
         PhysScene = parentScene;
         LocalID = localID;
         PhysObjectName = name;
@@ -130,6 +132,9 @@ public abstract class BSPhysObject : PhysicsActor
     public string PhysObjectName { get; protected set; }
     public string TypeName { get; protected set; }
 
+    // Set to 'true' when the object is completely initialized.
+    // This mostly prevents property updates and collisions until the object is completely here.
+    public bool IsInitialized { get; protected set; }
 
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
@@ -352,6 +357,8 @@ public abstract class BSPhysObject : PhysicsActor
     // On a collision, check the collider and remember if the last collider was moving
     //    Used to modify the standing of avatars (avatars on stationary things stand still)
     public bool ColliderIsMoving;
+    // 'true' if the last collider was a volume detect object
+    public bool ColliderIsVolumeDetect;
     // Used by BSCharacter to manage standing (and not slipping)
     public bool IsStationary;
 
@@ -431,6 +438,7 @@ public abstract class BSPhysObject : PhysicsActor
 
         // For movement tests, remember if we are colliding with an object that is moving.
         ColliderIsMoving = collidee != null ? (collidee.RawVelocity != OMV.Vector3.Zero) : false;
+        ColliderIsVolumeDetect = collidee != null ? (collidee.IsVolumeDetect) : false;
 
         // Make a collection of the collisions that happened the last simulation tick.
         // This is different than the collection created for sending up to the simulator as it is cleared every tick.

@@ -361,22 +361,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
-                    SceneObjectGroup objatt 
-                        = RezSingleAttachmentFromInventoryInternal(
+                    RezSingleAttachmentFromInventoryInternal(
                         sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, attachmentPt, true, d);
-
-
-                    if (ThrottlePer100PrimsRezzed > 0)
-                    {
-                        int throttleMs = (int)Math.Round((float)objatt.PrimCount / 100 * ThrottlePer100PrimsRezzed);
-
-                        if (DebugLevel > 0)
-                            m_log.DebugFormat(
-                                "[ATTACHMENTS MODULE]: Throttling by {0}ms after rez of {1} with {2} prims for attachment to {3} on point {4} in {5}",
-                                throttleMs, objatt.Name, objatt.PrimCount, sp.Name, attachmentPt, m_scene.Name);
-
-                        Thread.Sleep(throttleMs);
-                    }
                 }
                 catch (Exception e)
                 {

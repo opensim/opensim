@@ -439,18 +439,26 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             //                       k, (string)requestData[k], ((string)requestData[k]).Length);
             // }
 
-            CheckStringParameters(requestData, responseData, new string[] {"filename", "regionid"});
+            CheckStringParameters(requestData, responseData, new string[] { "filename" });
             CheckRegionParams(requestData, responseData);
 
             Scene scene = null;
             GetSceneFromRegionParams(requestData, responseData, out scene);
-            string file = (string)requestData["filename"];
 
-            responseData["accepted"] = true;
+            if (scene != null)
+            {
+                string file = (string)requestData["filename"];
 
-            LoadHeightmap(file, scene.RegionInfo.RegionID);
+                responseData["accepted"] = true;
 
-            responseData["success"] = true;
+                LoadHeightmap(file, scene.RegionInfo.RegionID);
+
+                responseData["success"] = true;
+            }
+            else
+            {
+                responseData["success"] = false;
+            }
 
             m_log.Info("[RADMIN]: Load height maps request complete");
         }
@@ -464,23 +472,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
 //                m_log.DebugFormat("[RADMIN]: Save Terrain: XmlRpc {0}", request.ToString());
 
-            CheckStringParameters(requestData, responseData, new string[] { "filename", "regionid" });
+            CheckStringParameters(requestData, responseData, new string[] { "filename" });
             CheckRegionParams(requestData, responseData);
 
-            Scene region = null;
-            GetSceneFromRegionParams(requestData, responseData, out region);
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
 
-            string file = (string)requestData["filename"];
-            m_log.InfoFormat("[RADMIN]: Terrain Saving: {0}", file);
+            if (scene != null)
+            {
+                string file = (string)requestData["filename"];
+                m_log.InfoFormat("[RADMIN]: Terrain Saving: {0}", file);
 
-            responseData["accepted"] = true;
+                responseData["accepted"] = true;
 
-            ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
-            if (null == terrainModule) throw new Exception("terrain module not available");
+                ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
+                if (null == terrainModule) throw new Exception("terrain module not available");
 
-            terrainModule.SaveToFile(file);
+                terrainModule.SaveToFile(file);
 
-            responseData["success"] = true;
+                responseData["success"] = true;
+            }
+            else
+            {
+                responseData["success"] = false;
+            }
 
             m_log.Info("[RADMIN]: Save height maps request complete");
         }

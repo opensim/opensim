@@ -844,7 +844,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
@@ -925,7 +925,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             IConfig modulesConfig = config.AddConfig("Modules");
             modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
-            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
             modulesConfig.Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
@@ -944,7 +943,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
 
             ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
@@ -966,7 +965,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // Both these operations will occur on different threads and will wait for each other.
             // We have to do this via ThreadPool directly since FireAndForget has been switched to sync for the V1
             // test protocol, where we are trying to avoid unpredictable async operations in regression tests.
-            ((TestClient)beforeTeleportSp.ControllingClient).OnTestClientSendRegionTeleport 
+            tc.OnTestClientSendRegionTeleport 
                 += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL) 
                     => ThreadPool.UnsafeQueueUserWorkItem(o => destinationTestClients[0].CompleteMovement(), null);
 

@@ -85,7 +85,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     data.destinationServerURI = args["destination_serveruri"];
 
             }
-            catch (InvalidCastException e)
+            catch (InvalidCastException)
             {
                 m_log.ErrorFormat("[HOME AGENT HANDLER]: Bad cast in UnpackData");
             }

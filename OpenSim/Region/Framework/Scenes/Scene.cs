@@ -3862,21 +3862,30 @@ namespace OpenSim.Region.Framework.Scenes
                     // In the case where, for example, an A B C D region layout, an avatar may
                     // teleport from A -> D, but then -> C before A has asked B to close its old child agent.  When C
                     // renews the lease on the child agent at B, we must make sure that the close from A does not succeed.
-                    if (!acd.ChildrenCapSeeds.ContainsKey(RegionInfo.RegionHandle))
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because source will attempt close.", 
-                            sp.Name, Name);
+                    //
+                    // XXX: In the end, this should not be necessary if child agents are closed without delay on 
+                    // teleport, since realistically, the close request should always be processed before any other
+                    // region tried to re-establish a child agent.  This is much simpler since the logic below is 
+                    // vulnerable to an issue when a viewer quits a region without sending a proper logout but then
+                    // re-establishes the connection on a relogin.  This could wrongly set the DoNotCloseAfterTeleport
+                    // flag when no teleport had taken place (and hence no close was going to come).
+//                    if (!acd.ChildrenCapSeeds.ContainsKey(RegionInfo.RegionHandle))
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because source will attempt close.", 
+//                            sp.Name, Name);
+//
+//                        sp.DoNotCloseAfterTeleport = true;
+//                    }
+//                    else if (EntityTransferModule.IsInTransit(sp.UUID))
 
-                        sp.DoNotCloseAfterTeleport = true;
-                    }
-                    else if (EntityTransferModule.IsInTransit(sp.UUID))
+                    if (EntityTransferModule.IsInTransit(sp.UUID))
                     {
-                        m_log.DebugFormat(
-                            "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because this region will attempt previous end-of-teleport close.", 
-                            sp.Name, Name);
-
                         sp.DoNotCloseAfterTeleport = true;
+
+                        m_log.DebugFormat(
+                            "[SCENE]: Set DoNotCloseAfterTeleport for child scene presence {0} in {1} because this region will attempt end-of-teleport close from a previous close.", 
+                            sp.Name, Name);
                     }
                 }
             }

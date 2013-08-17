@@ -108,6 +108,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "IncomingPacketsMalformedCount",
+                    "Number of inbound UDP packets that could not be recognized as LL protocol packets.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingMalformedPacketCount,
+                    StatVerbosity.Info));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketsOrphanedCount",
+                    "Number of inbound packets that were not initial connections packets and could not be associated with a viewer.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingOrphanedPacketCount,
+                    StatVerbosity.Info));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "OutgoingUDPSendsCount",
                     "Number of UDP sends performed",
                     "",
@@ -272,7 +298,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public Socket Server { get { return null; } }
 
-        private int m_malformedCount = 0; // Guard against a spamming attack
+        /// <summary>
+        /// Record how many inbound packets could not be recognized as LLUDP packets.
+        /// </summary>
+        public int IncomingMalformedPacketCount { get; private set; }
+
+        /// <summary>
+        /// Record how many inbound packets could not be associated with a simulator circuit.
+        /// </summary>
+        public int IncomingOrphanedPacketCount { get; private set; }
 
         /// <summary>
         /// Record current outgoing client for monitoring purposes.
@@ -1193,6 +1227,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }
 
+        private void RecordMalformedInboundPacket(IPEndPoint endPoint)
+        {
+//                if (m_malformedCount < 100)
+//                    m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
+
+            IncomingMalformedPacketCount++;
+
+            if ((IncomingMalformedPacketCount % 10000) == 0)
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.  Last was from {1}", 
+                    IncomingMalformedPacketCount, endPoint);
+        }
+
         public override void PacketReceived(UDPPacketBuffer buffer)
         {
             // Debugging/Profiling
@@ -1214,6 +1261,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                    "[LLUDPSERVER]: Dropping undersized packet with {0} bytes received from {1} in {2}",
 //                    buffer.DataLength, buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
+                RecordMalformedInboundPacket(endPoint);
+
                 return; // Drop undersized packet
             }
 
@@ -1232,6 +1281,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                    "[LLUDPSERVER]: Dropping packet with malformed header received from {0} in {1}",
 //                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
+                RecordMalformedInboundPacket(endPoint);
+
                 return; // Malformed header
             }
 
@@ -1247,34 +1298,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Only allocate a buffer for zerodecoding if the packet is zerocoded
                     ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
             }
-            catch (MalformedDataException)
-            {
-            }
-            catch (IndexOutOfRangeException)
-            {
-//                m_log.WarnFormat(
-//                    "[LLUDPSERVER]: Dropping short packet received from {0} in {1}",
-//                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
-
-                return; // Drop short packet
-            }
             catch (Exception e)
             {
-                if (m_malformedCount < 100)
+                if (IncomingMalformedPacketCount < 100)
                     m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
-
-                m_malformedCount++;
-
-                if ((m_malformedCount % 100000) == 0)
-                    m_log.DebugFormat("[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.", m_malformedCount);
             }
 
             // Fail-safe check
             if (packet == null)
             {
-                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}:",
-                    buffer.DataLength, buffer.RemoteEndPoint);
-                m_log.Error(Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
+                if (IncomingMalformedPacketCount < 100)
+                {
+                    m_log.WarnFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}, data {2}:",
+                        buffer.DataLength, buffer.RemoteEndPoint, Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
+                }
+
+                RecordMalformedInboundPacket(endPoint);
+
                 return;
             }
 
@@ -1337,6 +1377,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (client == null || !(client is LLClientView))
             {
                 //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+
+                IncomingOrphanedPacketCount++;
+
+                if ((IncomingOrphanedPacketCount % 10000) == 0)
+                    m_log.WarnFormat(
+                        "[LLUDPSERVER]: Received {0} orphaned packets so far.  Last was from {1}", 
+                        IncomingOrphanedPacketCount, endPoint);
+
                 return;
             }
 

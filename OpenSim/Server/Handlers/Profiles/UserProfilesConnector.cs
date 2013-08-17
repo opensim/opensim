@@ -39,8 +39,7 @@ namespace OpenSim.Server.Handlers.Profiles
 {
     public class UserProfilesConnector: ServiceConnector
     {
-        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+//        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
         
         // Our Local Module
         public IUserProfilesService ServiceModule
@@ -111,4 +110,3 @@ namespace OpenSim.Server.Handlers.Profiles
         }
     }
 }
-
