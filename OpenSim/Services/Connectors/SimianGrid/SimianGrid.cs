@@ -29,11 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
-
 using log4net;
 using Mono.Addins;
 using Nini.Config;
-
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -52,7 +50,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig m_config = null;
-        private bool m_enabled = true;
 
         private String m_simianURL;
         
@@ -62,7 +59,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             get { return this.GetType().Name; }
         }
-
            
         public void Initialise(IConfigSource config)
         {
@@ -76,7 +72,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (String.IsNullOrEmpty(m_simianURL))
                     {
                         // m_log.DebugFormat("[SimianGrid] service URL is not defined");
-                        m_enabled = false;
                         return;
                     }
                     
@@ -141,6 +136,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
         
 #endregion
+
         public static String SimulatorCapability = UUID.Zero.ToString();
         public static OSDMap PostToService(string url, NameValueCollection data)
         {
