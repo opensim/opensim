@@ -453,7 +453,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;
-
         }
 
         /// <summary>
@@ -471,9 +470,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             //string portstr = (string)requestData["port"];
             if (requestData.ContainsKey("first") && requestData.ContainsKey("last"))
             {
-                UUID userID = UUID.Zero;
                 string first = (string)requestData["first"];
-
                 string last = (string)requestData["last"];
                 UUID uuid = m_HomeUsersService.GetUUID(first, last);
                 hash["UUID"] = uuid.ToString();
@@ -482,7 +479,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;
-
         }
     }
 }
