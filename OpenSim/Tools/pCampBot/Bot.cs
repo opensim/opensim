@@ -158,8 +158,6 @@ namespace pCampBot
 
             behaviours.ForEach(b => b.Initialize(this));
 
-            Client = new GridClient();
-
             Random = new Random(Environment.TickCount);// We do stuff randomly here
             FirstName = firstName;
             LastName = lastName;
@@ -170,6 +168,59 @@ namespace pCampBot
 
             Manager = bm;
             Behaviours = behaviours;
+
+            // Only calling for use as a template.
+            CreateLibOmvClient();
+        }
+
+        private void CreateLibOmvClient()
+        {
+            GridClient newClient = new GridClient();
+
+            if (Client != null)
+            {
+                newClient.Settings.LOGIN_SERVER = Client.Settings.LOGIN_SERVER;
+                newClient.Settings.ALWAYS_DECODE_OBJECTS = Client.Settings.ALWAYS_DECODE_OBJECTS;
+                newClient.Settings.AVATAR_TRACKING = Client.Settings.AVATAR_TRACKING;
+                newClient.Settings.OBJECT_TRACKING = Client.Settings.OBJECT_TRACKING;
+                newClient.Settings.SEND_AGENT_THROTTLE = Client.Settings.SEND_AGENT_THROTTLE;
+                newClient.Settings.SEND_AGENT_UPDATES = Client.Settings.SEND_AGENT_UPDATES;
+                newClient.Settings.SEND_PINGS = Client.Settings.SEND_PINGS;
+                newClient.Settings.STORE_LAND_PATCHES = Client.Settings.STORE_LAND_PATCHES;
+                newClient.Settings.USE_ASSET_CACHE = Client.Settings.USE_ASSET_CACHE;
+                newClient.Settings.MULTIPLE_SIMS = Client.Settings.MULTIPLE_SIMS;
+                newClient.Throttle.Asset = Client.Throttle.Asset;
+                newClient.Throttle.Land = Client.Throttle.Land;
+                newClient.Throttle.Task = Client.Throttle.Task;
+                newClient.Throttle.Texture = Client.Throttle.Texture;
+                newClient.Throttle.Wind = Client.Throttle.Wind;
+                newClient.Throttle.Total = Client.Throttle.Total;
+            }
+            else
+            {
+                newClient.Settings.LOGIN_SERVER = LoginUri;
+                newClient.Settings.ALWAYS_DECODE_OBJECTS = false;
+                newClient.Settings.AVATAR_TRACKING = false;
+                newClient.Settings.OBJECT_TRACKING = false;
+                newClient.Settings.SEND_AGENT_THROTTLE = true;
+                newClient.Settings.SEND_PINGS = true;
+                newClient.Settings.STORE_LAND_PATCHES = false;
+                newClient.Settings.USE_ASSET_CACHE = false;
+                newClient.Settings.MULTIPLE_SIMS = true;
+                newClient.Throttle.Asset = 100000;
+                newClient.Throttle.Land = 100000;
+                newClient.Throttle.Task = 100000;
+                newClient.Throttle.Texture = 100000;
+                newClient.Throttle.Wind = 100000;
+                newClient.Throttle.Total = 400000;
+            }
+
+            newClient.Network.LoginProgress += this.Network_LoginProgress;
+            newClient.Network.SimConnected += this.Network_SimConnected;
+            newClient.Network.Disconnected += this.Network_OnDisconnected;
+            newClient.Objects.ObjectUpdate += Objects_NewPrim;
+
+            Client = newClient;
         }
 
         //We do our actions here.  This is where one would
@@ -192,7 +243,7 @@ namespace pCampBot
         /// <summary>
         /// Tells LibSecondLife to logout and disconnect.  Raises the disconnect events once it finishes.
         /// </summary>
-        public void shutdown()
+        public void Disconnect()
         {
             ConnectionState = ConnectionState.Disconnecting;
 
@@ -202,33 +253,26 @@ namespace pCampBot
             Client.Network.Logout();
         }
 
+        public void Connect()
+        {            
+            Thread connectThread = new Thread(ConnectInternal);
+            connectThread.Name = Name;
+            connectThread.IsBackground = true;
+
+            connectThread.Start();
+        }
+
         /// <summary>
         /// This is the bot startup loop.
         /// </summary>
-        public void startup()
+        private void ConnectInternal()
         {
-            Client.Settings.LOGIN_SERVER = LoginUri;
-            Client.Settings.ALWAYS_DECODE_OBJECTS = false;
-            Client.Settings.AVATAR_TRACKING = false;
-            Client.Settings.OBJECT_TRACKING = false;
-            Client.Settings.SEND_AGENT_THROTTLE = true;
-            Client.Settings.SEND_AGENT_UPDATES = false;
-            Client.Settings.SEND_PINGS = true;
-            Client.Settings.STORE_LAND_PATCHES = false;
-            Client.Settings.USE_ASSET_CACHE = false;
-            Client.Settings.MULTIPLE_SIMS = true;
-            Client.Throttle.Asset = 100000;
-            Client.Throttle.Land = 100000;
-            Client.Throttle.Task = 100000;
-            Client.Throttle.Texture = 100000;
-            Client.Throttle.Wind = 100000;
-            Client.Throttle.Total = 400000;
-            Client.Network.LoginProgress += this.Network_LoginProgress;
-            Client.Network.SimConnected += this.Network_SimConnected;
-            Client.Network.Disconnected += this.Network_OnDisconnected;
-            Client.Objects.ObjectUpdate += Objects_NewPrim;
-
             ConnectionState = ConnectionState.Connecting;
+
+            // Current create a new client on each connect.  libomv doesn't seem to process new sim
+            // information (e.g. EstablishAgentCommunication events) if connecting after a disceonnect with the same
+            // client
+            CreateLibOmvClient();
 
             if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", StartLocation, "Your name"))
             {
@@ -473,6 +517,8 @@ namespace pCampBot
 //               (args.Reason == NetworkManager.DisconnectType.SimShutdown
 //                    || args.Reason == NetworkManager.DisconnectType.NetworkTimeout)
 //               && OnDisconnected != null)
+
+
 
            if (
                (args.Reason == NetworkManager.DisconnectType.ClientInitiated

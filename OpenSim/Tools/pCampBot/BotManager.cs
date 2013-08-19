@@ -182,6 +182,12 @@ namespace pCampBot
                 "bot", false, "quit", "quit", "Shutdown bots and exit", HandleShutdown);
 
             m_console.Commands.AddCommand(
+                "bot", false, "connect", "connect [<n>]", "Connect bots",
+                "If an <n> is given, then the first <n> disconnected bots by postfix number are connected.\n"
+                    + "If no <n> is given, then all currently disconnected bots are connected.",
+                HandleConnect);
+
+            m_console.Commands.AddCommand(
                 "bot", false, "disconnect", "disconnect [<n>]", "Disconnect bots",
                 "Disconnecting bots will interupt any bot connection process, including connection on startup.\n"
                     + "If an <n> is given, then the last <n> connected bots by postfix number are disconnected.\n"
@@ -206,7 +212,7 @@ namespace pCampBot
         /// </summary>
         /// <param name="botcount">How many bots to start up</param>
         /// <param name="cs">The configuration for the bots to use</param>
-        public void dobotStartup(int botcount, IConfig startupConfig)
+        public void CreateBots(int botcount, IConfig startupConfig)
         {
             m_firstName = startupConfig.GetString("firstname");
             m_lastNameStem = startupConfig.GetString("lastname");
@@ -220,39 +226,55 @@ namespace pCampBot
             Array.ForEach<string>(
                 startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => m_behaviourSwitches.Add(b));
 
-            ConnectBots(
-                botcount, m_firstName, m_lastNameStem, m_password, m_loginUri, m_startUri, m_fromBotNumber, m_wearSetting, m_behaviourSwitches);
+            for (int i = 0; i < botcount; i++)
+            {
+                lock (m_bots)
+                {
+                    string lastName = string.Format("{0}_{1}", m_lastNameStem, i + m_fromBotNumber);
+
+                    // We must give each bot its own list of instantiated behaviours since they store state.
+                    List<IBehaviour> behaviours = new List<IBehaviour>();
+        
+                    // Hard-coded for now        
+                    if (m_behaviourSwitches.Contains("c"))
+                        behaviours.Add(new CrossBehaviour());
+
+                    if (m_behaviourSwitches.Contains("g"))
+                        behaviours.Add(new GrabbingBehaviour());
+
+                    if (m_behaviourSwitches.Contains("n"))
+                        behaviours.Add(new NoneBehaviour());
+
+                    if (m_behaviourSwitches.Contains("p"))
+                        behaviours.Add(new PhysicsBehaviour());
+        
+                    if (m_behaviourSwitches.Contains("t"))
+                        behaviours.Add(new TeleportBehaviour());
+
+                    CreateBot(this, behaviours, m_firstName, lastName, m_password, m_loginUri, m_startUri, m_wearSetting);
+                }
+            }
         }
 
-        private bool ConnectBots(
-            int botcount, string firstName, string lastNameStem, string password, string loginUri, string startUri, int fromBotNumber, string wearSetting,
-            HashSet<string> behaviourSwitches)
+        public void ConnectBots(int botcount)
         {
             ConnectingBots = true;
 
-            Thread startBotThread 
-                = new Thread(
-                    o => ConnectBotsInternal(
-                        botcount, firstName, lastNameStem, password, loginUri, startUri, fromBotNumber, wearSetting,
-                        behaviourSwitches));
+            Thread connectBotThread = new Thread(o => ConnectBotsInternal(botcount));
 
-            startBotThread.Name = "Bots connection thread";
-            startBotThread.Start();
-
-            return true;
+            connectBotThread.Name = "Bots connection thread";
+            connectBotThread.Start();
         }
 
-        private void ConnectBotsInternal(
-            int botcount, string firstName, string lastNameStem, string password, string loginUri, string startUri, int fromBotNumber, string wearSetting,
-            HashSet<string> behaviourSwitches)
+        private void ConnectBotsInternal(int botcount)
         {
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting {0} bots connecting to {1}, location {2}, named {3} {4}_<n>",
                 botcount,
-                loginUri,
-                startUri,
-                firstName,
-                lastNameStem);
+                m_loginUri,
+                m_startUri,
+                m_firstName,
+                m_lastNameStem);
 
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
@@ -269,28 +291,7 @@ namespace pCampBot
                         break;
                     }
 
-                    string lastName = string.Format("{0}_{1}", lastNameStem, i + fromBotNumber);
-
-                    // We must give each bot its own list of instantiated behaviours since they store state.
-                    List<IBehaviour> behaviours = new List<IBehaviour>();
-        
-                    // Hard-coded for now        
-                    if (behaviourSwitches.Contains("c"))
-                        behaviours.Add(new CrossBehaviour());
-
-                    if (behaviourSwitches.Contains("g"))
-                        behaviours.Add(new GrabbingBehaviour());
-
-                    if (behaviourSwitches.Contains("n"))
-                        behaviours.Add(new NoneBehaviour());
-
-                    if (behaviourSwitches.Contains("p"))
-                        behaviours.Add(new PhysicsBehaviour());
-        
-                    if (behaviourSwitches.Contains("t"))
-                        behaviours.Add(new TeleportBehaviour());
-
-                    StartBot(this, behaviours, firstName, lastName, password, loginUri, startUri, wearSetting);
+                    m_bots[i].Connect();
                 }
 
                 // Stagger logins
@@ -360,7 +361,7 @@ namespace pCampBot
 //        }
 
         /// <summary>
-        /// This starts up the bot and stores the thread for the bot in the thread array
+        /// This creates a bot but does not start it.
         /// </summary>
         /// <param name="bm"></param>
         /// <param name="behaviours">Behaviours for this bot to perform.</param>
@@ -370,12 +371,12 @@ namespace pCampBot
         /// <param name="loginUri">Login URI</param>
         /// <param name="startLocation">Location to start the bot.  Can be "last", "home" or a specific sim name.</param>
         /// <param name="wearSetting"></param>
-        public void StartBot(
+        public void CreateBot(
              BotManager bm, List<IBehaviour> behaviours,
              string firstName, string lastName, string password, string loginUri, string startLocation, string wearSetting)
         {
             MainConsole.Instance.OutputFormat(
-                "[BOT MANAGER]: Starting bot {0} {1}, behaviours are {2}",
+                "[BOT MANAGER]: Creating bot {0} {1}, behaviours are {2}",
                 firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, startLocation, loginUri);
@@ -387,12 +388,6 @@ namespace pCampBot
             pb.OnDisconnected += handlebotEvent;
 
             m_bots.Add(pb);
-
-            Thread pbThread = new Thread(pb.startup);
-            pbThread.Name = pb.Name;
-            pbThread.IsBackground = true;
-
-            pbThread.Start();
         }
 
         /// <summary>
@@ -425,6 +420,37 @@ namespace pCampBot
         protected CommandConsole CreateConsole()
         {
             return new LocalConsole("pCampbot");
+        }
+
+        private void HandleConnect(string module, string[] cmd)
+        {
+            if (ConnectingBots)
+            {
+                MainConsole.Instance.Output("Still connecting bots.  Please wait for previous process to complete.");
+                return;
+            }
+
+            lock (m_bots)
+            {
+                int botsToConnect;
+                int disconnectedBots = m_bots.Count(b => b.ConnectionState == ConnectionState.Disconnected);
+
+                if (cmd.Length == 1)
+                {
+                    botsToConnect = disconnectedBots;
+                }
+                else
+                {
+                    if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[1], out botsToConnect))
+                        return;
+
+                    botsToConnect = Math.Min(botsToConnect, disconnectedBots);
+                }
+
+                MainConsole.Instance.OutputFormat("Connecting {0} bots", botsToConnect);
+
+                ConnectBots(botsToConnect);
+            }
         }
 
         private void HandleDisconnect(string module, string[] cmd)
@@ -461,10 +487,12 @@ namespace pCampBot
 
                     if (thisBot.ConnectionState == ConnectionState.Connected)
                     {
-                        Util.FireAndForget(o => thisBot.shutdown());
+                        Util.FireAndForget(o => thisBot.Disconnect());
                         disconnectedBots++;
                     }
                 }
+
+                DisconnectingBots = false;
             }
         }
 

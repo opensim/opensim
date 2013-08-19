@@ -95,7 +95,8 @@ namespace pCampBot
 
                 int botcount = commandLineConfig.GetInt("botcount", 1);
 
-                bm.dobotStartup(botcount, commandLineConfig);
+                bm.CreateBots(botcount, commandLineConfig);
+                bm.ConnectBots(botcount);
 
                 while (true)
                 {
