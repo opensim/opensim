@@ -676,18 +676,20 @@ public sealed class BSCharacter : BSPhysObject
         float heightAdjust = BSParam.AvatarHeightMidFudge;
         if (BSParam.AvatarHeightLowFudge != 0f || BSParam.AvatarHeightHighFudge != 0f)
         {
-            // An avatar is between 1.61 and 2.12 meters. Midpoint is 1.87m.
-            // The "times 4" relies on the fact that the difference from the midpoint to the extremes is exactly 0.25
-            float midHeightOffset = size.Z - 1.87f;
+            const float AVATAR_LOW = 1.1f;
+            const float AVATAR_MID = 1.775f; // 1.87f
+            const float AVATAR_HI = 2.45f;
+            // An avatar is between 1.1 and 2.45 meters. Midpoint is 1.775m.
+            float midHeightOffset = size.Z - AVATAR_MID;
             if (midHeightOffset < 0f)
             {
                 // Small avatar. Add the adjustment based on the distance from midheight
-                heightAdjust += -1f * midHeightOffset * 4f * BSParam.AvatarHeightLowFudge;
+                heightAdjust += ((-1f * midHeightOffset) / (AVATAR_MID - AVATAR_LOW)) * BSParam.AvatarHeightLowFudge;
             }
             else
             {
                 // Large avatar. Add the adjustment based on the distance from midheight
-                heightAdjust += midHeightOffset * 4f * BSParam.AvatarHeightHighFudge;
+                heightAdjust += ((midHeightOffset) / (AVATAR_HI - AVATAR_MID)) * BSParam.AvatarHeightHighFudge;
             }
         }
         // The total scale height is the central cylindar plus the caps on the two ends.
@@ -697,6 +699,9 @@ public sealed class BSCharacter : BSPhysObject
         // If smaller than the endcaps, just fake like we're almost that small
         if (newScale.Z < 0)
             newScale.Z = 0.1f;
+
+        DetailLog("{0},BSCharacter.ComputerAvatarScale,size={1},lowF={2},midF={3},hiF={4},adj={5},newScale={6}",
+            LocalID, size, BSParam.AvatarHeightLowFudge, BSParam.AvatarHeightMidFudge, BSParam.AvatarHeightHighFudge, heightAdjust, newScale);
 
         return newScale;
     }
