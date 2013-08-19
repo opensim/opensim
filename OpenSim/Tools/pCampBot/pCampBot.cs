@@ -94,9 +94,12 @@ namespace pCampBot
                 }
 
                 int botcount = commandLineConfig.GetInt("botcount", 1);
+                bool startConnected = commandLineConfig.Get("connect") != null;
 
                 bm.CreateBots(botcount, commandLineConfig);
-                bm.ConnectBots(botcount);
+
+                if (startConnected)
+                    bm.ConnectBots(botcount);
 
                 while (true)
                 {
@@ -117,6 +120,7 @@ namespace pCampBot
             //Set up our nifty config..  thanks to nini
             ArgvConfigSource cs = new ArgvConfigSource(args);
 
+            cs.AddSwitch("Startup", "connect", "c");
             cs.AddSwitch("Startup", "botcount", "n");
             cs.AddSwitch("Startup", "from", "f");
             cs.AddSwitch("Startup", "loginuri", "l");
@@ -143,20 +147,21 @@ namespace pCampBot
                 "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n"
                     + "Spawns a set of bots to test an OpenSim region\n\n"
                     + "  -l, -loginuri      loginuri for grid/standalone (required)\n"
-                    + "  -s, -start         optional start location for bots.  Can be \"last\", \"home\" or a specific location with or without co-ords (e.g. \"region1\" or \"region2/50/30/90\"\n"
-                    + "  -firstname         first name for the bots\n"
-                    + "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n"
-                    + "  -password          password for the bots\n"
-                    + "  -n, -botcount      optional number of bots to start (default: 1)\n"
-                    + "  -f, -from          optional starting number for login bot names, e.g. 25 will login Ima Bot_25, Ima Bot_26, etc.  (default: 0)"
-                    + "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p\n"
+                    + "  -s, -start         start location for bots (optional).  Can be \"last\", \"home\" or a specific location with or without co-ords (e.g. \"region1\" or \"region2/50/30/90\"\n"
+                    + "  -firstname         first name for the bots (required)\n"
+                    + "  -lastname          lastname for the bots (required).  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n"
+                    + "  -password          password for the bots (required)\n"
+                    + "  -n, -botcount      number of bots to start (default: 1) (optional)\n"
+                    + "  -f, -from          starting number for login bot names, e.g. 25 will login Ima Bot_25, Ima Bot_26, etc.  (default: 0) (optional)\n"
+                    + "  -c, -connect       connect all bots at startup (optional)\n"
+                    + "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p (required)\n"
                     + "    current options are:\n"
                     + "       p (physics  - bots constantly move and jump around)\n"
                     + "       g (grab     - bots randomly click prims whether set clickable or not)\n"
                     + "       n (none     - bots do nothing)\n"
                     + "       t (teleport - bots regularly teleport between regions on the grid)\n"
-//                "       c (cross)" +
-                    + "  -wear              optional folder from which to load appearance data, \"no\" if there is no such folder (default: no)\n"
+//                "       c (cross)\n" +
+                    + "  -wear              folder from which to load appearance data, \"no\" if there is no such folder (default: no) (optional)\n"
                     + "  -h, -help          show this message.\n");
         }
     }
