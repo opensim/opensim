@@ -52,6 +52,11 @@ namespace pCampBot
         public const int DefaultLoginDelay = 5000;
 
         /// <summary>
+        /// Is pCampbot in the process of connecting bots?
+        /// </summary>
+        public bool ConnectingBots { get; private set; }
+
+        /// <summary>
         /// Is pCampbot in the process of disconnecting bots?
         /// </summary>
         public bool DisconnectingBots { get; private set; }
@@ -219,7 +224,25 @@ namespace pCampBot
                 botcount, m_firstName, m_lastNameStem, m_password, m_loginUri, m_startUri, m_fromBotNumber, m_wearSetting, m_behaviourSwitches);
         }
 
-        private void ConnectBots(
+        private bool ConnectBots(
+            int botcount, string firstName, string lastNameStem, string password, string loginUri, string startUri, int fromBotNumber, string wearSetting,
+            HashSet<string> behaviourSwitches)
+        {
+            ConnectingBots = true;
+
+            Thread startBotThread 
+                = new Thread(
+                    o => ConnectBotsInternal(
+                        botcount, firstName, lastNameStem, password, loginUri, startUri, fromBotNumber, wearSetting,
+                        behaviourSwitches));
+
+            startBotThread.Name = "Bots connection thread";
+            startBotThread.Start();
+
+            return true;
+        }
+
+        private void ConnectBotsInternal(
             int botcount, string firstName, string lastNameStem, string password, string loginUri, string startUri, int fromBotNumber, string wearSetting,
             HashSet<string> behaviourSwitches)
         {
@@ -273,6 +296,8 @@ namespace pCampBot
                 // Stagger logins
                 Thread.Sleep(LoginDelay);
             }
+
+            ConnectingBots = false;
         }
 
         /// <summary>

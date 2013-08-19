@@ -95,10 +95,7 @@ namespace pCampBot
 
                 int botcount = commandLineConfig.GetInt("botcount", 1);
 
-                //startup specified number of bots.  1 is the default
-                Thread startBotThread = new Thread(o => bm.dobotStartup(botcount, commandLineConfig));
-                startBotThread.Name = "Initial start bots thread";
-                startBotThread.Start();
+                bm.dobotStartup(botcount, commandLineConfig);
 
                 while (true)
                 {
