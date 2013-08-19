@@ -52,9 +52,9 @@ namespace pCampBot
         public const int DefaultLoginDelay = 5000;
 
         /// <summary>
-        /// True if pCampbot is in the process of shutting down.
+        /// Is pCampbot in the process of disconnecting bots?
         /// </summary>
-        public bool ShuttingDown { get; private set; }
+        public bool DisconnectingBots { get; private set; }
 
         /// <summary>
         /// Delay between logins of multiple bots.
@@ -139,6 +139,11 @@ namespace pCampBot
                     "Shutdown bots and exit",
                     HandleShutdown);
 
+            m_console.Commands.AddCommand("bot", false, "disconnect",
+                    "disconnect",
+                    "Disconnect all bots",
+                    HandleDisconnect);
+
             m_console.Commands.AddCommand("bot", false, "show regions",
                     "show regions",
                     "Show regions known to bots",
@@ -191,31 +196,37 @@ namespace pCampBot
 
             for (int i = 0; i < botcount; i++)
             {
-                if (ShuttingDown)
-                    break;
+                lock (m_lBot)
+                {
+                    if (DisconnectingBots)
+                        break;
 
-                string lastName = string.Format("{0}_{1}", lastNameStem, i + fromBotNumber);
+                    string lastName = string.Format("{0}_{1}", lastNameStem, i + fromBotNumber);
 
-                // We must give each bot its own list of instantiated behaviours since they store state.
-                List<IBehaviour> behaviours = new List<IBehaviour>();
-    
-                // Hard-coded for now        
-                if (behaviourSwitches.Contains("c"))
-                    behaviours.Add(new CrossBehaviour());
+                    // We must give each bot its own list of instantiated behaviours since they store state.
+                    List<IBehaviour> behaviours = new List<IBehaviour>();
+        
+                    // Hard-coded for now        
+                    if (behaviourSwitches.Contains("c"))
+                        behaviours.Add(new CrossBehaviour());
 
-                if (behaviourSwitches.Contains("g"))
-                    behaviours.Add(new GrabbingBehaviour());
+                    if (behaviourSwitches.Contains("g"))
+                        behaviours.Add(new GrabbingBehaviour());
 
-                if (behaviourSwitches.Contains("n"))
-                    behaviours.Add(new NoneBehaviour());
+                    if (behaviourSwitches.Contains("n"))
+                        behaviours.Add(new NoneBehaviour());
 
-                if (behaviourSwitches.Contains("p"))
-                    behaviours.Add(new PhysicsBehaviour());
-    
-                if (behaviourSwitches.Contains("t"))
-                    behaviours.Add(new TeleportBehaviour());
+                    if (behaviourSwitches.Contains("p"))
+                        behaviours.Add(new PhysicsBehaviour());
+        
+                    if (behaviourSwitches.Contains("t"))
+                        behaviours.Add(new TeleportBehaviour());
 
-                StartBot(this, behaviours, firstName, lastName, password, loginUri, startUri, wearSetting);
+                    StartBot(this, behaviours, firstName, lastName, password, loginUri, startUri, wearSetting);
+                }
+
+                // Stagger logins
+                Thread.Sleep(LoginDelay);
             }
         }
 
@@ -305,17 +316,13 @@ namespace pCampBot
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
 
-            lock (m_lBot)
-                m_lBot.Add(pb);
+            m_lBot.Add(pb);
 
             Thread pbThread = new Thread(pb.startup);
             pbThread.Name = pb.Name;
             pbThread.IsBackground = true;
 
             pbThread.Start();
-
-            // Stagger logins
-            Thread.Sleep(LoginDelay);
         }
 
         /// <summary>
@@ -328,18 +335,16 @@ namespace pCampBot
             switch (eventt)
             {
                 case EventType.CONNECTED:
+                {
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Connected");
                     break;
+                }
+
                 case EventType.DISCONNECTED:
+                {
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Disconnected");
-
-                    lock (m_lBot)
-                    {
-                        if (m_lBot.TrueForAll(b => b.ConnectionState == ConnectionState.Disconnected))
-                            Environment.Exit(0);
-
-                        break;
-                    }
+                    break;
+                }
             }
         }
 
@@ -349,15 +354,12 @@ namespace pCampBot
         /// <remarks>
         /// We launch each shutdown on its own thread so that a slow shutting down bot doesn't hold up all the others.
         /// </remarks>
-        public void doBotShutdown()
+        private void ShutdownBots()
         {
-            lock (m_lBot)
+            foreach (Bot bot in m_lBot)
             {
-                foreach (Bot bot in m_lBot)
-                {
-                    Bot thisBot = bot;
-                    Util.FireAndForget(o => thisBot.shutdown());
-                }
+                Bot thisBot = bot;
+                Util.FireAndForget(o => thisBot.shutdown());
             }
         }
 
@@ -370,12 +372,34 @@ namespace pCampBot
             return new LocalConsole("pCampbot");
         }
 
+        private void HandleDisconnect(string module, string[] cmd)
+        {
+            MainConsole.Instance.Output("Disconnecting bots");
+
+            lock (m_lBot)
+            {
+                DisconnectingBots = true;
+
+                ShutdownBots();
+            }
+        }
+
         private void HandleShutdown(string module, string[] cmd)
         {
+            lock (m_lBot)
+            {
+                int connectedBots = m_lBot.Count(b => b.ConnectionState == ConnectionState.Connected);
+
+                if (connectedBots > 0)
+                {
+                    MainConsole.Instance.OutputFormat("Please disconnect {0} connected bots first", connectedBots);
+                    return;
+                }
+            }
+
             MainConsole.Instance.Output("Shutting down");
 
-            ShuttingDown = true;
-            doBotShutdown();
+            Environment.Exit(0);
         }
 
         private void HandleShowRegions(string module, string[] cmd)
