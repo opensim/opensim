@@ -395,8 +395,11 @@ namespace pCampBot
 
         private void HandleShowStatus(string module, string[] cmd)
         {
-            string outputFormat = "{0,-30}  {1, -30}  {2,-14}";
-            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Region", "Status");
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Name", 30);
+            cdt.AddColumn("Region", 30);
+            cdt.AddColumn("Status", 14);
+            cdt.AddColumn("Connections", 11);
 
             Dictionary<ConnectionState, int> totals = new Dictionary<ConnectionState, int>();
             foreach (object o in Enum.GetValues(typeof(ConnectionState)))
@@ -409,19 +412,19 @@ namespace pCampBot
                     Simulator currentSim = pb.Client.Network.CurrentSim;
                     totals[pb.ConnectionState]++;
 
-                    MainConsole.Instance.OutputFormat(
-                        outputFormat,
-                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState);
+                    cdt.AddRow(
+                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState, pb.ConnectionsCount);
                 }
             }
+
+            MainConsole.Instance.Output(cdt.ToString());
 
             ConsoleDisplayList cdl = new ConsoleDisplayList();
 
             foreach (KeyValuePair<ConnectionState, int> kvp in totals)
                 cdl.AddRow(kvp.Key, kvp.Value);
 
-
-            MainConsole.Instance.OutputFormat("\n{0}", cdl.ToString());
+            MainConsole.Instance.Output(cdl.ToString());
         }
 
         /*

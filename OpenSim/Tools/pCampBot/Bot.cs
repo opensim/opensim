@@ -97,6 +97,19 @@ namespace pCampBot
         /// </summary>
         public ConnectionState ConnectionState { get; private set; }
 
+        /// <summary>
+        /// The number of connections that this bot has to different simulators.
+        /// </summary>
+        /// <value>Includes both root and child connections.</value>
+        public int ConnectionsCount
+        {
+            get
+            {
+                lock (Client.Network.Simulators)
+                    return Client.Network.Simulators.Count;
+            }
+        }
+
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public string Name { get; private set; }
@@ -144,7 +157,7 @@ namespace pCampBot
             ConnectionState = ConnectionState.Disconnected;
 
             behaviours.ForEach(b => b.Initialize(this));
-            
+
             Client = new GridClient();
 
             Random = new Random(Environment.TickCount);// We do stuff randomly here
