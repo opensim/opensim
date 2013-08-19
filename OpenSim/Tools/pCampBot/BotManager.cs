@@ -80,7 +80,7 @@ namespace pCampBot
         /// <summary>
         /// Created bots, whether active or inactive.
         /// </summary>
-        protected List<Bot> m_lBot;
+        protected List<Bot> m_bots;
 
         /// <summary>
         /// Random number generator.
@@ -130,35 +130,30 @@ namespace pCampBot
                 }
             }
 
-            m_console.Commands.AddCommand("bot", false, "shutdown",
-                    "shutdown",
-                    "Shutdown bots and exit", HandleShutdown);
+            m_console.Commands.AddCommand(
+                "bot", false, "shutdown", "shutdown", "Shutdown bots and exit", HandleShutdown);
 
-            m_console.Commands.AddCommand("bot", false, "quit",
-                    "quit",
-                    "Shutdown bots and exit",
-                    HandleShutdown);
+            m_console.Commands.AddCommand(
+                "bot", false, "quit", "quit", "Shutdown bots and exit", HandleShutdown);
 
-            m_console.Commands.AddCommand("bot", false, "disconnect",
-                    "disconnect",
-                    "Disconnect all bots",
-                    HandleDisconnect);
+            m_console.Commands.AddCommand(
+                "bot", false, "disconnect", "disconnect [<n>]", "Disconnect bots",
+                "Disconnecting bots will interupt any bot connection process, including connection on startup.\n"
+                    + "If an <n> is given, then the last <n> connected bots by postfix number are disconnected.\n"
+                    + "If no <n> is given, then all currently connected bots are disconnected.",
+                HandleDisconnect);
 
-            m_console.Commands.AddCommand("bot", false, "show regions",
-                    "show regions",
-                    "Show regions known to bots",
-                    HandleShowRegions);
+            m_console.Commands.AddCommand(
+                "bot", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
 
-            m_console.Commands.AddCommand("bot", false, "show bots",
-                    "show bots",
-                    "Shows the status of all bots",
-                    HandleShowStatus);
+            m_console.Commands.AddCommand(
+                "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowStatus);
 
 //            m_console.Commands.AddCommand("bot", false, "add bots",
 //                    "add bots <number>",
 //                    "Add more bots", HandleAddBots);
 
-            m_lBot = new List<Bot>();
+            m_bots = new List<Bot>();
         }
 
         /// <summary>
@@ -196,7 +191,7 @@ namespace pCampBot
 
             for (int i = 0; i < botcount; i++)
             {
-                lock (m_lBot)
+                lock (m_bots)
                 {
                     if (DisconnectingBots)
                         break;
@@ -316,7 +311,7 @@ namespace pCampBot
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
 
-            m_lBot.Add(pb);
+            m_bots.Add(pb);
 
             Thread pbThread = new Thread(pb.startup);
             pbThread.Name = pb.Name;
@@ -349,21 +344,6 @@ namespace pCampBot
         }
 
         /// <summary>
-        /// Shut down all bots
-        /// </summary>
-        /// <remarks>
-        /// We launch each shutdown on its own thread so that a slow shutting down bot doesn't hold up all the others.
-        /// </remarks>
-        private void ShutdownBots()
-        {
-            foreach (Bot bot in m_lBot)
-            {
-                Bot thisBot = bot;
-                Util.FireAndForget(o => thisBot.shutdown());
-            }
-        }
-
-        /// <summary>
         /// Standard CreateConsole routine
         /// </summary>
         /// <returns></returns>
@@ -374,21 +354,50 @@ namespace pCampBot
 
         private void HandleDisconnect(string module, string[] cmd)
         {
-            MainConsole.Instance.Output("Disconnecting bots");
-
-            lock (m_lBot)
+            lock (m_bots)
             {
+                int botsToDisconnect;
+                int connectedBots = m_bots.Count(b => b.ConnectionState == ConnectionState.Connected);
+
+                if (cmd.Length == 1)
+                {
+                    botsToDisconnect = connectedBots;
+                }
+                else
+                {
+                    if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[1], out botsToDisconnect))
+                        return;
+
+                    botsToDisconnect = Math.Min(botsToDisconnect, connectedBots);
+                }
+
                 DisconnectingBots = true;
 
-                ShutdownBots();
+                MainConsole.Instance.OutputFormat("Disconnecting {0} bots", botsToDisconnect);
+
+                int disconnectedBots = 0;
+
+                for (int i = m_bots.Count - 1; i >= 0; i--)
+                {
+                    if (disconnectedBots >= botsToDisconnect)
+                        break;
+
+                    Bot thisBot = m_bots[i];
+
+                    if (thisBot.ConnectionState == ConnectionState.Connected)
+                    {
+                        Util.FireAndForget(o => thisBot.shutdown());
+                        disconnectedBots++;
+                    }
+                }
             }
         }
 
         private void HandleShutdown(string module, string[] cmd)
         {
-            lock (m_lBot)
+            lock (m_bots)
             {
-                int connectedBots = m_lBot.Count(b => b.ConnectionState == ConnectionState.Connected);
+                int connectedBots = m_bots.Count(b => b.ConnectionState == ConnectionState.Connected);
 
                 if (connectedBots > 0)
                 {
@@ -429,9 +438,9 @@ namespace pCampBot
             foreach (object o in Enum.GetValues(typeof(ConnectionState)))
                 totals[(ConnectionState)o] = 0;
 
-            lock (m_lBot)
+            lock (m_bots)
             {
-                foreach (Bot pb in m_lBot)
+                foreach (Bot pb in m_bots)
                 {
                     Simulator currentSim = pb.Client.Network.CurrentSim;
                     totals[pb.ConnectionState]++;
