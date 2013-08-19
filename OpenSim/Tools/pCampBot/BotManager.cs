@@ -98,6 +98,46 @@ namespace pCampBot
         public Dictionary<ulong, GridRegion> RegionsKnown { get; private set; }
 
         /// <summary>
+        /// First name for bots
+        /// </summary>
+        private string m_firstName;
+
+        /// <summary>
+        /// Last name stem for bots
+        /// </summary>
+        private string m_lastNameStem;
+
+        /// <summary>
+        /// Password for bots
+        /// </summary>
+        private string m_password;
+
+        /// <summary>
+        /// Login URI for bots.
+        /// </summary>
+        private string m_loginUri;
+
+        /// <summary>
+        /// Start location for bots.
+        /// </summary>
+        private string m_startUri;
+
+        /// <summary>
+        /// Postfix bot number at which bot sequence starts.
+        /// </summary>
+        private int m_fromBotNumber;
+
+        /// <summary>
+        /// Wear setting for bots.
+        /// </summary>
+        private string m_wearSetting;
+
+        /// <summary>
+        /// Behaviour switches for bots.
+        /// </summary>
+        private HashSet<string> m_behaviourSwitches = new HashSet<string>();
+
+        /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
         public BotManager()
@@ -163,20 +203,26 @@ namespace pCampBot
         /// <param name="cs">The configuration for the bots to use</param>
         public void dobotStartup(int botcount, IConfig startupConfig)
         {
-            string firstName = startupConfig.GetString("firstname");
-            string lastNameStem = startupConfig.GetString("lastname");
-            string password = startupConfig.GetString("password");
-            string loginUri = startupConfig.GetString("loginuri");
-            string startLocation = startupConfig.GetString("start", "last");
-            int fromBotNumber = startupConfig.GetInt("from", 0);
-            string wearSetting = startupConfig.GetString("wear", "no");
+            m_firstName = startupConfig.GetString("firstname");
+            m_lastNameStem = startupConfig.GetString("lastname");
+            m_password = startupConfig.GetString("password");
+            m_loginUri = startupConfig.GetString("loginuri");
+            m_fromBotNumber = startupConfig.GetInt("from", 0);
+            m_wearSetting = startupConfig.GetString("wear", "no");
 
-            string startUri = ParseInputStartLocationToUri(startLocation);
+            m_startUri = ParseInputStartLocationToUri(startupConfig.GetString("start", "last"));
 
-            HashSet<string> behaviourSwitches = new HashSet<string>();
             Array.ForEach<string>(
-                startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
+                startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => m_behaviourSwitches.Add(b));
 
+            ConnectBots(
+                botcount, m_firstName, m_lastNameStem, m_password, m_loginUri, m_startUri, m_fromBotNumber, m_wearSetting, m_behaviourSwitches);
+        }
+
+        private void ConnectBots(
+            int botcount, string firstName, string lastNameStem, string password, string loginUri, string startUri, int fromBotNumber, string wearSetting,
+            HashSet<string> behaviourSwitches)
+        {
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting {0} bots connecting to {1}, location {2}, named {3} {4}_<n>",
                 botcount,
@@ -194,7 +240,11 @@ namespace pCampBot
                 lock (m_bots)
                 {
                     if (DisconnectingBots)
+                    {
+                        MainConsole.Instance.Output(
+                            "[BOT MANAGER]: Aborting bot connection due to user-initiated disconnection");
                         break;
+                    }
 
                     string lastName = string.Format("{0}_{1}", lastNameStem, i + fromBotNumber);
 
