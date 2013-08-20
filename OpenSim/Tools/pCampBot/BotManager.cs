@@ -195,14 +195,18 @@ namespace pCampBot
                 HandleDisconnect);
 
             m_console.Commands.AddCommand(
+                "bot", false, "sit", "sit", "Sit all bots on the ground.",
+                HandleSit);
+
+            m_console.Commands.AddCommand(
+                "bot", false, "stand", "stand", "Stand all bots.",
+                HandleStand);
+
+            m_console.Commands.AddCommand(
                 "bot", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowStatus);
-
-//            m_console.Commands.AddCommand("bot", false, "add bots",
-//                    "add bots <number>",
-//                    "Add more bots", HandleAddBots);
+                "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
             m_bots = new List<Bot>();
         }
@@ -340,26 +344,6 @@ namespace pCampBot
             return string.Format("uri:{0}&{1}&{2}&{3}", regionName, startPos.X, startPos.Y, startPos.Z);
         }
 
-//        /// <summary>
-//        /// Add additional bots (and threads) to our bot pool
-//        /// </summary>
-//        /// <param name="botcount">How Many of them to add</param>
-//        public void addbots(int botcount)
-//        {
-//            int len = m_td.Length;
-//            Thread[] m_td2 = new Thread[len + botcount];
-//            for (int i = 0; i < len; i++)
-//            {
-//                m_td2[i] = m_td[i];
-//            }
-//            m_td = m_td2;
-//            int newlen = len + botcount;
-//            for (int i = len; i < newlen; i++)
-//            {
-//                startupBot(Config);
-//            }
-//        }
-
         /// <summary>
         /// This creates a bot but does not start it.
         /// </summary>
@@ -496,6 +480,22 @@ namespace pCampBot
             }
         }
 
+        private void HandleSit(string module, string[] cmd)
+        {
+            lock (m_bots)
+            {
+                m_bots.ForEach(b => b.SitOnGround());
+            }
+        }
+
+        private void HandleStand(string module, string[] cmd)
+        {
+            lock (m_bots)
+            {
+                m_bots.ForEach(b => b.Stand());
+            }
+        }
+
         private void HandleShutdown(string module, string[] cmd)
         {
             lock (m_bots)
@@ -529,7 +529,7 @@ namespace pCampBot
             }
         }
 
-        private void HandleShowStatus(string module, string[] cmd)
+        private void HandleShowBotsStatus(string module, string[] cmd)
         {
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
             cdt.AddColumn("Name", 30);
@@ -562,26 +562,6 @@ namespace pCampBot
 
             MainConsole.Instance.Output(cdl.ToString());
         }
-
-        /*
-        private void HandleQuit(string module, string[] cmd)
-        {
-            m_console.Warn("DANGER", "This should only be used to quit the program if you've already used the shutdown command and the program hasn't quit");
-            Environment.Exit(0);
-        }
-        */
-//
-//        private void HandleAddBots(string module, string[] cmd)
-//        {
-//            int newbots = 0;
-//            
-//            if (cmd.Length > 2)
-//            {
-//                Int32.TryParse(cmd[2], out newbots);
-//            }
-//            if (newbots > 0)
-//                addbots(newbots);
-//        }
 
         internal void Grid_GridRegion(object o, GridRegionEventArgs args)
         {

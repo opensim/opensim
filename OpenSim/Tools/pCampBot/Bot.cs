@@ -318,6 +318,30 @@ namespace pCampBot
             }
         }
 
+        /// <summary>
+        /// Sit this bot on the ground.
+        /// </summary>
+        public void SitOnGround()
+        {
+            if (ConnectionState == ConnectionState.Connected)
+                Client.Self.SitOnGround();
+        }
+
+        /// <summary>
+        /// Stand this bot
+        /// </summary>
+        public void Stand()
+        {
+            if (ConnectionState == ConnectionState.Connected)
+            {
+                // Unlike sit on ground, here libomv checks whether we have SEND_AGENT_UPDATES enabled.
+                bool prevUpdatesSetting = Client.Settings.SEND_AGENT_UPDATES;
+                Client.Settings.SEND_AGENT_UPDATES = true;
+                Client.Self.Stand();
+                Client.Settings.SEND_AGENT_UPDATES = prevUpdatesSetting;
+            }
+        }
+
         public void SaveDefaultAppearance()
         {
             saveDir = "MyAppearance/" + FirstName + "_" + LastName;
