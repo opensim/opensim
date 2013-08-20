@@ -30,18 +30,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using log4net;
 using Mono.Addins;
+using NDesk.Options;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Monitoring;
-using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Animation;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 {
@@ -92,89 +90,122 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
             scene.AddCommand(
                 "Users", this, "sit user name",
-                "sit user name <first-name> <last-name>",
-                "Sit the named user on an unoccupied object with a sit target.\n"
-                    + "If there are no such objects then nothing happens",
+                "sit user name [--regex] <first-name> <last-name>",
+                "Sit the named user on an unoccupied object with a sit target.",
+                "If there are no such objects then nothing happens.\n"
+                    + "If --regex is specified then the names are treated as regular expressions.",
                 HandleSitUserNameCommand);
 
             scene.AddCommand(
                 "Users", this, "stand user name",
-                "stand user name <first-name> <last-name>",
+                "stand user name [--regex] <first-name> <last-name>",
                 "Stand the named user.",
+                "If --regex is specified then the names are treated as regular expressions.",
                 HandleStandUserNameCommand);
         }
 
-        protected void HandleSitUserNameCommand(string module, string[] cmd)
+        private void HandleSitUserNameCommand(string module, string[] cmd)
         {
             if (MainConsole.Instance.ConsoleScene != m_scene && MainConsole.Instance.ConsoleScene != null)
                 return;
 
-            if (cmd.Length != 5)
+            if (cmd.Length < 5)
             {
-                MainConsole.Instance.Output("Usage: sit user name <first-name> <last-name>");
+                MainConsole.Instance.Output("Usage: sit user name [--regex] <first-name> <last-name>");
                 return;
             }
 
-            string firstName = cmd[3];
-            string lastName = cmd[4];
+            List<ScenePresence> scenePresences = GetScenePresences(cmd);
 
-            ScenePresence sp = m_scene.GetScenePresence(firstName, lastName);
-    
-            if (sp == null || sp.IsChildAgent)
-                return;
-
-            SceneObjectPart sitPart = null;
-            List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups();
-
-            foreach (SceneObjectGroup sceneObject in sceneObjects)
+            foreach (ScenePresence sp in scenePresences)
             {
-                foreach (SceneObjectPart part in sceneObject.Parts)
+                SceneObjectPart sitPart = null;
+                List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups();
+
+                foreach (SceneObjectGroup sceneObject in sceneObjects)
                 {
-                    if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
+                    foreach (SceneObjectPart part in sceneObject.Parts)
                     {
-                        sitPart = part;
-                        break;
+                        if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
+                        {
+                            sitPart = part;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (sitPart != null)
-            {
-                MainConsole.Instance.OutputFormat(
-                    "Sitting {0} on {1} {2} in {3}", 
-                    sp.Name, sitPart.ParentGroup.Name, sitPart.ParentGroup.UUID, m_scene.Name);
+                if (sitPart != null)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Sitting {0} on {1} {2} in {3}", 
+                        sp.Name, sitPart.ParentGroup.Name, sitPart.ParentGroup.UUID, m_scene.Name);
 
-                sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, sitPart.UUID, Vector3.Zero);
-                sp.HandleAgentSit(sp.ControllingClient, sp.UUID);
-            }
-            else
-            {
-                MainConsole.Instance.OutputFormat(
-                    "Could not find any unoccupied set seat on which to sit {0} in {1}",
-                    sp.Name, m_scene.Name);
+                    sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, sitPart.UUID, Vector3.Zero);
+                    sp.HandleAgentSit(sp.ControllingClient, sp.UUID);
+                }
+                else
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Could not find any unoccupied set seat on which to sit {0} in {1}.  Aborting",
+                        sp.Name, m_scene.Name);
+
+                    break;
+                }
             }
         }
 
-        protected void HandleStandUserNameCommand(string module, string[] cmd)
+        private void HandleStandUserNameCommand(string module, string[] cmd)
         {
             if (MainConsole.Instance.ConsoleScene != m_scene && MainConsole.Instance.ConsoleScene != null)
                 return;
 
-            if (cmd.Length != 5)
+            if (cmd.Length < 5)
             {
-                MainConsole.Instance.Output("Usage: stand user name <first-name> <last-name>");
+                MainConsole.Instance.Output("Usage: stand user name [--regex] <first-name> <last-name>");
                 return;
             }
 
-            string firstName = cmd[3];
-            string lastName = cmd[4];
+            List<ScenePresence> scenePresences = GetScenePresences(cmd);
 
-            ScenePresence sp = m_scene.GetScenePresence(firstName, lastName);
-    
-            if (sp == null || sp.IsChildAgent)
-                return;
+            foreach (ScenePresence sp in scenePresences)
+            {
+                MainConsole.Instance.OutputFormat("Standing {0} in {1}", sp.Name, m_scene.Name);
+                sp.StandUp();
+            }
+        }
 
-            sp.StandUp();
+        private List<ScenePresence> GetScenePresences(string[] cmdParams)
+        {
+            bool useRegex = false;
+            OptionSet options = new OptionSet().Add("regex", v=> useRegex = v != null );
+
+            List<string> mainParams = options.Parse(cmdParams);
+
+            string firstName = mainParams[3];
+            string lastName = mainParams[4];
+
+            List<ScenePresence> scenePresencesMatched = new List<ScenePresence>();
+
+            if (useRegex)
+            {
+                Regex nameRegex = new Regex(string.Format("{0} {1}", firstName, lastName));
+                List<ScenePresence> scenePresences = m_scene.GetScenePresences();
+
+                foreach (ScenePresence sp in scenePresences)
+                {
+                    if (!sp.IsChildAgent && nameRegex.IsMatch(sp.Name)) 
+                        scenePresencesMatched.Add(sp);
+                }
+            }
+            else
+            {
+                ScenePresence sp = m_scene.GetScenePresence(firstName, lastName);
+        
+                if (sp != null && !sp.IsChildAgent)
+                    scenePresencesMatched.Add(sp);
+            }
+
+            return scenePresencesMatched;
         }
     }
 }
