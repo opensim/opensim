@@ -220,7 +220,8 @@ public class ExtendedPhysics : INonSharedRegionModule
                         containingGroup.UpdateGroupPosition(containingGroup.AbsolutePosition);
                         containingGroup.UpdateGroupRotationR(containingGroup.GroupRotation);
 
-                        ret = MakeIntError(rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType));
+                        object[] parms2 = { rootPhysActor, null, linksetType };
+                        ret = MakeIntError(rootPhysActor.Extension(PhysFunctSetLinksetType, parms2));
                         Thread.Sleep(150);  // longer than one heartbeat tick
 
                         containingGroup.ScriptSetPhysicsStatus(true);
@@ -229,7 +230,8 @@ public class ExtendedPhysics : INonSharedRegionModule
                     {
                         // Non-physical linksets don't have a physical instantiation so there is no state to
                         //    worry about being updated.
-                        ret = MakeIntError(rootPhysActor.Extension(PhysFunctSetLinksetType, linksetType));
+                        object[] parms2 = { rootPhysActor, null, linksetType };
+                        ret = MakeIntError(rootPhysActor.Extension(PhysFunctSetLinksetType, parms2));
                     }
                 }
                 else
@@ -271,7 +273,8 @@ public class ExtendedPhysics : INonSharedRegionModule
                 PhysicsActor rootPhysActor = rootPart.PhysActor;
                 if (rootPhysActor != null)
                 {
-                    ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinksetType));
+                    object[] parms2 = { rootPhysActor, null };
+                    ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinksetType, parms2));
                 }
                 else
                 {
@@ -315,8 +318,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            object[] parms = { childPhysActor, typeCode };
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, parms));
+            object[] parms2 = { rootPhysActor, childPhysActor, typeCode };
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, parms2));
         }
 
         return ret;
@@ -334,8 +337,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            object[] parms = { childPhysActor };
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinkType, parms));
+            object[] parms2 = { rootPhysActor, childPhysActor };
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinkType, parms2));
         }
 
         return ret;
@@ -354,8 +357,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            object[] parms = { childPhysActor , PHYS_LINK_TYPE_FIXED };
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, parms));
+            object[] parms2 = { rootPhysActor, childPhysActor , PHYS_LINK_TYPE_FIXED };
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, parms2));
         }
 
         return ret;
@@ -412,7 +415,7 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            object[] parms2 = AddToBeginningOfArray(childPhysActor, parms);
+            object[] parms2 = AddToBeginningOfArray(rootPhysActor, childPhysActor, parms);
             ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkParams, parms2));
         }
 
@@ -518,11 +521,12 @@ public class ExtendedPhysics : INonSharedRegionModule
     }
 
     // Return an array of objects with the passed object as the first object of a new array
-    private object[] AddToBeginningOfArray(object firstOne, object[] prevArray)
+    private object[] AddToBeginningOfArray(object firstOne, object secondOne, object[] prevArray)
     {
-        object[] newArray = new object[1 + prevArray.Length];
+        object[] newArray = new object[2 + prevArray.Length];
         newArray[0] = firstOne;
-        prevArray.CopyTo(newArray, 1);
+        newArray[1] = secondOne;
+        prevArray.CopyTo(newArray, 2);
         return newArray;
     }
 

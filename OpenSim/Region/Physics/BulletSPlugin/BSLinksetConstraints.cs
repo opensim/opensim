@@ -385,7 +385,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                                 linkInfo.frameInAloc, linkInfo.frameInArot, linkInfo.frameInBloc, linkInfo.frameInBrot,
                                 true /*useLinearReferenceFrameA*/,
                                 true /*disableCollisionsBetweenLinkedBodies*/);
-                DetailLog("{0},BSLinksetConstraint.BuildConstraint,spring,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
+                DetailLog("{0},BSLinksetConstraint.BuildConstraint,spring,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6}",
                                                 rootPrim.LocalID,
                                                 rootPrim.LocalID, rootPrim.PhysBody.AddrString,
                                                 linkInfo.member.LocalID, linkInfo.member.PhysBody.AddrString,
@@ -492,12 +492,12 @@ public sealed class BSLinksetConstraints : BSLinkset
         object ret = null;
         switch (pFunct)
         {
-            // pParams = [ BSPhysObject child, integer linkType ]
+            // pParams = [ BSPhysObject root, BSPhysObject child, integer linkType ]
             case ExtendedPhysics.PhysFunctChangeLinkType:
-                if (pParams.Length > 1)
+                if (pParams.Length > 2)
                 {
-                    int requestedType = (int)pParams[1];
-                    DetailLog("{0},BSLinksetConstraint.SetLinkType,requestedType={1}", LinksetRoot.LocalID, requestedType);
+                    int requestedType = (int)pParams[2];
+                    DetailLog("{0},BSLinksetConstraint.ChangeLinkType,requestedType={1}", LinksetRoot.LocalID, requestedType);
                     if (requestedType == (int)ConstraintType.FIXED_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.D6_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.D6_SPRING_CONSTRAINT_TYPE
@@ -505,9 +505,11 @@ public sealed class BSLinksetConstraints : BSLinkset
                         || requestedType == (int)ConstraintType.CONETWIST_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.SLIDER_CONSTRAINT_TYPE)
                     {
-                        BSPrimLinkable child = pParams[0] as BSPrimLinkable;
+                        BSPrimLinkable child = pParams[1] as BSPrimLinkable;
                         if (child != null)
                         {
+                            DetailLog("{0},BSLinksetConstraint.ChangeLinkType,rootID={1},childID={2},type={3}",
+                                                    LinksetRoot.LocalID, LinksetRoot.LocalID, child.LocalID, requestedType);
                             m_physicsScene.TaintedObject(child.LocalID, "BSLinksetConstraint.PhysFunctChangeLinkType", delegate()
                             {
                                 // Pick up all the constraints currently created.
@@ -523,17 +525,17 @@ public sealed class BSLinksetConstraints : BSLinkset
                                         linkInfoC.ResetLink();
                                         linkInfoC.constraintType = (ConstraintType)requestedType;
                                         ret = (object)true;
-                                        DetailLog("{0},BSLinksetConstraint.SetLinkType,link={1},type={2}",
+                                        DetailLog("{0},BSLinksetConstraint.ChangeLinkType,link={1},type={2}",
                                                     linkInfo.member.LocalID, linkInfo.member.LocalID, linkInfoC.constraintType);
                                     }
                                     else
                                     {
-                                        DetailLog("{0},BSLinksetConstraint.SetLinkType,linkInfoNotConstraint,childID={1}", LinksetRoot.LocalID, child.LocalID);
+                                        DetailLog("{0},BSLinksetConstraint.ChangeLinkType,linkInfoNotConstraint,childID={1}", LinksetRoot.LocalID, child.LocalID);
                                     }
                                 }
                                 else
                                 {
-                                    DetailLog("{0},BSLinksetConstraint.SetLinkType,noLinkInfoForChild,childID={1}", LinksetRoot.LocalID, child.LocalID);
+                                    DetailLog("{0},BSLinksetConstraint.ChangeLinkType,noLinkInfoForChild,childID={1}", LinksetRoot.LocalID, child.LocalID);
                                 }
                                 // Cause the whole linkset to be rebuilt in post-taint time.
                                 Refresh(child);
@@ -551,11 +553,11 @@ public sealed class BSLinksetConstraints : BSLinkset
                     }
                 }
                 break;
-            // pParams = []
+            // pParams = [ BSPhysObject root, BSPhysObject child ]
             case ExtendedPhysics.PhysFunctGetLinkType:
                 if (pParams.Length > 0)
                 {
-                    BSPrimLinkable child = pParams[0] as BSPrimLinkable;
+                    BSPrimLinkable child = pParams[1] as BSPrimLinkable;
                     if (child != null)
                     {
                         BSLinkInfo linkInfo = null;
@@ -573,14 +575,14 @@ public sealed class BSLinksetConstraints : BSLinkset
                     }
                 }
                 break;
-            // pParams = [ BSPhysObject child, int op, object opParams, int op, object opParams, ... ]
+            // pParams = [ BSPhysObject root, BSPhysObject child, int op, object opParams, int op, object opParams, ... ]
             case ExtendedPhysics.PhysFunctChangeLinkParams:
                 // There should be two parameters: the childActor and a list of parameters to set
                 try
                 {
-                    if (pParams.Length > 1)
+                    if (pParams.Length > 2)
                     {
-                        BSPrimLinkable child = pParams[0] as BSPrimLinkable;
+                        BSPrimLinkable child = pParams[1] as BSPrimLinkable;
                         BSLinkInfo baseLinkInfo = null;
                         if (TryGetLinkInfo(child, out baseLinkInfo))
                         {
@@ -592,7 +594,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                                 OMV.Vector3 valueVector;
                                 OMV.Quaternion valueQuaternion;
 
-                                int opIndex = 1;
+                                int opIndex = 2;
                                 while (opIndex < pParams.Length)
                                 {
                                     int thisOp = (int)pParams[opIndex];

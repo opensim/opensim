@@ -288,7 +288,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         switch (pFunct)
         {
             // physGetLinksetType();
-            // pParams = []
+            // pParams = [ BSPhysObject root, null ]
             case ExtendedPhysics.PhysFunctGetLinksetType:
             {
                 ret = (object)LinksetType;
@@ -296,12 +296,12 @@ public class BSPrimLinkable : BSPrimDisplaced
                 break;
             }
             // physSetLinksetType(type);
-            // pParams = [ BSPhysObject child, integer type ]
+            // pParams = [ BSPhysObject root, null, integer type ]
             case ExtendedPhysics.PhysFunctSetLinksetType:
             {
-                if (pParams.Length > 0)
+                if (pParams.Length > 2)
                 {
-                    BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[0];
+                    BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[2];
                     if (Linkset.IsRoot(this))
                     {
                         PhysScene.TaintedObject(LocalID, "BSPrim.PhysFunctSetLinksetType", delegate()
@@ -317,21 +317,21 @@ public class BSPrimLinkable : BSPrimDisplaced
                 break;
             }
             // physChangeLinkType(linknum, typeCode);
-            // pParams = [ BSPhysObject child, integer linkType ]
+            // pParams = [ BSPhysObject root, BSPhysObject child, integer linkType ]
             case ExtendedPhysics.PhysFunctChangeLinkType:
             {
                 ret = Linkset.Extension(pFunct, pParams);
                 break;
             }
             // physGetLinkType(linknum);
-            // pParams = [ BSPhysObject child ]
+            // pParams = [ BSPhysObject root, BSPhysObject child ]
             case ExtendedPhysics.PhysFunctGetLinkType:
             {
                 ret = Linkset.Extension(pFunct, pParams);
                 break;
             }
             // physChangeLinkParams(linknum, [code, value, code, value, ...]);
-            // pParams = [ BSPhysObject child, object[] [ string op, object opParam, string op, object opParam, ... ] ]
+            // pParams = [ BSPhysObject root, BSPhysObject child, object[] [ string op, object opParam, string op, object opParam, ... ] ]
             case ExtendedPhysics.PhysFunctChangeLinkParams:
             {
                 ret = Linkset.Extension(pFunct, pParams);
