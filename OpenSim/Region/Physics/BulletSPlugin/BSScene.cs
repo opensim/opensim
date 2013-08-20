@@ -869,6 +869,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     #region Extensions
     public override object Extension(string pFunct, params object[] pParams)
     {
+        DetailLog("{0} BSScene.Extension,op={1}", DetailLogZero, pFunct);
         return base.Extension(pFunct, pParams);
     }
     #endregion // Extensions

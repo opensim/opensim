@@ -1552,6 +1552,7 @@ public class BSPrim : BSPhysObject
     #region Extension
     public override object Extension(string pFunct, params object[] pParams)
     {
+        DetailLog("{0} BSPrim.Extension,op={1}", LocalID, pFunct);
         object ret = null;
         switch (pFunct)
         {
