@@ -343,7 +343,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                 // real world coordinate of midpoint between the two objects
                 OMV.Vector3 midPoint = rootPrim.Position + (childRelativePosition / 2);
 
-                DetailLog("{0},BSLinksetConstraint.BuildConstraint,6Dof,rBody={1},cBody={2},rLoc={3},cLoc={4},midLoc={7}",
+                DetailLog("{0},BSLinksetConstraint.BuildConstraint,6Dof,rBody={1},cBody={2},rLoc={3},cLoc={4},midLoc={5}",
                                                 rootPrim.LocalID, rootPrim.PhysBody, linkInfo.member.PhysBody,
                                                 rootPrim.Position, linkInfo.member.Position, midPoint);
 
@@ -492,11 +492,12 @@ public sealed class BSLinksetConstraints : BSLinkset
         object ret = null;
         switch (pFunct)
         {
-            // pParams = (int linkNUm, PhysActor linkChild)
+            // pParams = [ BSPhysObject child, integer linkType ]
             case ExtendedPhysics.PhysFunctChangeLinkType:
                 if (pParams.Length > 1)
                 {
                     int requestedType = (int)pParams[1];
+                    DetailLog("{0},BSLinksetConstraint.SetLinkType,requestedType={1}", LinksetRoot.LocalID, requestedType);
                     if (requestedType == (int)ConstraintType.FIXED_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.D6_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.D6_SPRING_CONSTRAINT_TYPE
@@ -507,7 +508,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                         BSPrimLinkable child = pParams[0] as BSPrimLinkable;
                         if (child != null)
                         {
-                            m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkFixed", delegate()
+                            m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkType", delegate()
                             {
                                 // Pick up all the constraints currently created.
                                 RemoveDependencies(child);
@@ -522,15 +523,35 @@ public sealed class BSLinksetConstraints : BSLinkset
                                         linkInfoC.ResetLink();
                                         linkInfoC.constraintType = (ConstraintType)requestedType;
                                         ret = (object)true;
+                                        DetailLog("{0},BSLinksetConstraint.SetLinkType,link={1},type={2}",
+                                                    linkInfo.member.LocalID, linkInfo.member.LocalID, linkInfoC.constraintType);
                                     }
+                                    else
+                                    {
+                                        DetailLog("{0},BSLinksetConstraint.SetLinkType,linkInfoNotConstraint,childID={1}", LinksetRoot.LocalID, child.LocalID);
+                                    }
+                                }
+                                else
+                                {
+                                    DetailLog("{0},BSLinksetConstraint.SetLinkType,noLinkInfoForChild,childID={1}", LinksetRoot.LocalID, child.LocalID);
                                 }
                                 // Cause the whole linkset to be rebuilt in post-taint time.
                                 Refresh(child);
                             });
                         }
+                        else
+                        {
+                            DetailLog("{0},BSLinksetConstraint.SetLinkType,childNotBSPrimLinkable", LinksetRoot.LocalID);
+                        }
+                    }
+                    else
+                    {
+                        DetailLog("{0},BSLinksetConstraint.SetLinkType,illegalRequestedType,reqested={1},spring={2}",
+                                        LinksetRoot.LocalID, requestedType, ((int)ConstraintType.D6_SPRING_CONSTRAINT_TYPE));
                     }
                 }
                 break;
+            // pParams = []
             case ExtendedPhysics.PhysFunctGetLinkType:
                 if (pParams.Length > 0)
                 {
@@ -544,11 +565,15 @@ public sealed class BSLinksetConstraints : BSLinkset
                             if (linkInfoC != null)
                             {
                                 ret = (object)(int)linkInfoC.constraintType;
+                                DetailLog("{0},BSLinksetConstraint.GetLinkType,link={1},type={2}",
+                                            linkInfo.member.LocalID, linkInfo.member.LocalID, linkInfoC.constraintType);
+
                             }
                         }
                     }
                 }
                 break;
+            // pParams = [ BSPhysObject child, int op, object opParams, int op, object opParams, ... ]
             case ExtendedPhysics.PhysFunctChangeLinkParams:
                 // There should be two parameters: the childActor and a list of parameters to set
                 try
@@ -556,7 +581,6 @@ public sealed class BSLinksetConstraints : BSLinkset
                     if (pParams.Length > 1)
                     {
                         BSPrimLinkable child = pParams[0] as BSPrimLinkable;
-                        object[] setOps = (object[])pParams[1];
                         BSLinkInfo baseLinkInfo = null;
                         if (TryGetLinkInfo(child, out baseLinkInfo))
                         {
@@ -568,85 +592,106 @@ public sealed class BSLinksetConstraints : BSLinkset
                                 OMV.Vector3 valueVector;
                                 OMV.Quaternion valueQuaternion;
 
-                                int opIndex = 0;
-                                while (opIndex < setOps.Length)
+                                int opIndex = 1;
+                                while (opIndex < pParams.Length)
                                 {
-                                    int thisOp = (int)setOps[opIndex];
+                                    int thisOp = (int)pParams[opIndex];
+                                    DetailLog("{0},BSLinksetConstraint.ChangeLinkParams2,op={1},val={2}",
+                                                        linkInfo.member.LocalID, thisOp, pParams[opIndex+1]);
                                     switch (thisOp)
                                     {
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINA_LOC:
-                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.frameInAloc = valueVector;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINA_ROT:
-                                            valueQuaternion = (OMV.Quaternion)setOps[opIndex + 1];
+                                            valueQuaternion = (OMV.Quaternion)pParams[opIndex + 1];
                                             linkInfo.frameInArot = valueQuaternion;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINB_LOC:
-                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.frameInBloc = valueVector;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINB_ROT:
-                                            valueQuaternion = (OMV.Quaternion)setOps[opIndex + 1];
+                                            valueQuaternion = (OMV.Quaternion)pParams[opIndex + 1];
                                             linkInfo.frameInBrot = valueQuaternion;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_LOW:
-                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.linearLimitLow = valueVector;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_HIGH:
-                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.linearLimitHigh = valueVector;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_LOW:
-                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.angularLimitLow = valueVector;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_HIGH:
-                                            valueVector = (OMV.Vector3)setOps[opIndex + 1];
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.angularLimitHigh = valueVector;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_USE_FRAME_OFFSET:
-                                            valueBool = (bool)setOps[opIndex + 1];
+                                            valueBool = (bool)pParams[opIndex + 1];
                                             linkInfo.useFrameOffset = valueBool;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ENABLE_TRANSMOTOR:
-                                            valueBool = (bool)setOps[opIndex + 1];
+                                            valueBool = (bool)pParams[opIndex + 1];
                                             linkInfo.enableTransMotor = valueBool;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXVEL:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.transMotorMaxVel = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXFORCE:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.transMotorMaxForce = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_CFM:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.cfm = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ERP:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.erp = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SOLVER_ITERATIONS:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.solverIterations = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.springDamping = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
-                                            valueFloat = (float)setOps[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.springStiffness = valueFloat;
+                                            opIndex += 2;
                                             break;
                                         default:
                                             break;
                                     }
                                 }
                             }
+                            // Something changed so a rebuild is in order
+                            Refresh(child);
                         }
                     }
                 }

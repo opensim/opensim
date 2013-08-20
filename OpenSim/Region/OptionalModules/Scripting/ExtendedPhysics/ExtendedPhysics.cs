@@ -315,7 +315,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, childPhysActor, typeCode));
+            object[] parms = { childPhysActor, typeCode };
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, parms));
         }
 
         return ret;
@@ -323,7 +324,7 @@ public class ExtendedPhysics : INonSharedRegionModule
 
     // physGetLinkType(integer linkNum)
     [ScriptInvocation]
-    public int physGetLinkType(UUID hostID, UUID scriptID, int linkNum, int typeCode)
+    public int physGetLinkType(UUID hostID, UUID scriptID, int linkNum)
     {
         int ret = -1;
         if (!Enabled) return ret;
@@ -333,7 +334,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinkType, childPhysActor));
+            object[] parms = { childPhysActor };
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctGetLinkType, parms));
         }
 
         return ret;
@@ -352,7 +354,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, childPhysActor, PHYS_LINK_TYPE_FIXED));
+            object[] parms = { childPhysActor , PHYS_LINK_TYPE_FIXED };
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkType, parms));
         }
 
         return ret;
@@ -409,7 +412,8 @@ public class ExtendedPhysics : INonSharedRegionModule
 
         if (GetRootAndChildPhysActors(hostID, linkNum, out rootPhysActor, out childPhysActor))
         {
-            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkParams, childPhysActor, parms));
+            object[] parms2 = AddToBeginningOfArray(childPhysActor, parms);
+            ret = MakeIntError(rootPhysActor.Extension(PhysFunctChangeLinkParams, parms2));
         }
 
         return ret;
@@ -511,6 +515,15 @@ public class ExtendedPhysics : INonSharedRegionModule
         }
 
         return ret;
+    }
+
+    // Return an array of objects with the passed object as the first object of a new array
+    private object[] AddToBeginningOfArray(object firstOne, object[] prevArray)
+    {
+        object[] newArray = new object[1 + prevArray.Length];
+        newArray[0] = firstOne;
+        prevArray.CopyTo(newArray, 1);
+        return newArray;
     }
 
     // Extension() returns an object. Convert that object into the integer error we expect to return.
