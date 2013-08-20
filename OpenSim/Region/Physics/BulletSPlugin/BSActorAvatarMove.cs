@@ -105,7 +105,7 @@ public class BSActorAvatarMove : BSActor
     //     into the movement motor.
     public void SetVelocityAndTarget(OMV.Vector3 vel, OMV.Vector3 targ, bool inTaintTime)
     {
-        m_physicsScene.TaintedObject(inTaintTime, "BSActorAvatarMove.setVelocityAndTarget", delegate()
+        m_physicsScene.TaintedObject(inTaintTime, m_controllingPrim.LocalID, "BSActorAvatarMove.setVelocityAndTarget", delegate()
         {
             if (m_velocityMotor != null)
             {

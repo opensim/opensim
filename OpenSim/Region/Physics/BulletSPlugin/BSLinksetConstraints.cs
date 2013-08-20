@@ -297,7 +297,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                             rootx.LocalID, rootx.PhysBody.AddrString,
                             childx.LocalID, childx.PhysBody.AddrString);
 
-            m_physicsScene.TaintedObject(inTaintTime, "BSLinksetConstraints.RemoveChildFromLinkset", delegate()
+            m_physicsScene.TaintedObject(inTaintTime, childx.LocalID, "BSLinksetConstraints.RemoveChildFromLinkset", delegate()
             {
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
@@ -508,7 +508,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                         BSPrimLinkable child = pParams[0] as BSPrimLinkable;
                         if (child != null)
                         {
-                            m_physicsScene.TaintedObject("BSLinksetConstraint.PhysFunctChangeLinkType", delegate()
+                            m_physicsScene.TaintedObject(child.LocalID, "BSLinksetConstraint.PhysFunctChangeLinkType", delegate()
                             {
                                 // Pick up all the constraints currently created.
                                 RemoveDependencies(child);

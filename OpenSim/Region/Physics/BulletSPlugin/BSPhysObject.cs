@@ -121,7 +121,7 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual void Destroy()
     {
         PhysicalActors.Enable(false);
-        PhysScene.TaintedObject("BSPhysObject.Destroy", delegate()
+        PhysScene.TaintedObject(LocalID, "BSPhysObject.Destroy", delegate()
         {
             PhysicalActors.Dispose();
         });
@@ -509,7 +509,7 @@ public abstract class BSPhysObject : PhysicsActor
             // make sure first collision happens
             NextCollisionOkTime = Util.EnvironmentTickCountSubtract(SubscribedEventsMs);
 
-            PhysScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
+            PhysScene.TaintedObject(LocalID, TypeName+".SubscribeEvents", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
                     CurrentCollisionFlags = PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
@@ -524,7 +524,7 @@ public abstract class BSPhysObject : PhysicsActor
     public override void UnSubscribeEvents() {
         // DetailLog("{0},{1}.UnSubscribeEvents,unsubscribing", LocalID, TypeName);
         SubscribedEventsMs = 0;
-        PhysScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
+        PhysScene.TaintedObject(LocalID, TypeName+".UnSubscribeEvents", delegate()
         {
             // Make sure there is a body there because sometimes destruction happens in an un-ideal order.
             if (PhysBody.HasPhysicalBody)
