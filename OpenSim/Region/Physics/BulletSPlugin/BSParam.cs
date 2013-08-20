@@ -826,7 +826,7 @@ public static class BSParam
     private static void ResetConstraintSolverTainted(BSScene pPhysScene, float v)
     {
         BSScene physScene = pPhysScene;
-        physScene.TaintedObject("BSParam.ResetConstraintSolver", delegate()
+        physScene.TaintedObject(BSScene.DetailLogZero, "BSParam.ResetConstraintSolver", delegate()
         {
             physScene.PE.ResetConstraintSolver(physScene.World);
         });

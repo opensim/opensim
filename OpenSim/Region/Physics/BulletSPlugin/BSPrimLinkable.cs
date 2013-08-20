@@ -108,7 +108,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Position = value;
-            PhysScene.TaintedObject("BSPrimLinkable.setPosition", delegate()
+            PhysScene.TaintedObject(LocalID, "BSPrimLinkable.setPosition", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Position, this);
             });
@@ -122,7 +122,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Orientation = value;
-            PhysScene.TaintedObject("BSPrimLinkable.setOrientation", delegate()
+            PhysScene.TaintedObject(LocalID, "BSPrimLinkable.setOrientation", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
             });
@@ -304,7 +304,7 @@ public class BSPrimLinkable : BSPrimDisplaced
                     BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[0];
                     if (Linkset.IsRoot(this))
                     {
-                        PhysScene.TaintedObject("BSPrim.PhysFunctSetLinksetType", delegate()
+                        PhysScene.TaintedObject(LocalID, "BSPrim.PhysFunctSetLinksetType", delegate()
                         {
                             // Cause the linkset type to change
                             DetailLog("{0},BSPrimLinkable.Extension.physSetLinksetType, oldType={1},newType={2}",
