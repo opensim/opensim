@@ -597,7 +597,7 @@ namespace pCampBot
 
             List<Simulator> connectedSimulators = bot.Simulators;
             List<string> simulatorNames = connectedSimulators.ConvertAll<string>(cs => cs.Name);
-            cdl.AddRow("Connections", string.Join(", ", simulatorNames));
+            cdl.AddRow("Connections", string.Join(", ", simulatorNames.ToArray()));
 
             MainConsole.Instance.Output(cdl.ToString());
 
