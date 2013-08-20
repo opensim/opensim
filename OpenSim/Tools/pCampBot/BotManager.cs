@@ -208,6 +208,10 @@ namespace pCampBot
             m_console.Commands.AddCommand(
                 "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
+            m_console.Commands.AddCommand(
+                "bot", false, "show bot", "show bot <first-name> <last-name>", 
+                "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
+
             m_bots = new List<Bot>();
         }
 
@@ -549,7 +553,7 @@ namespace pCampBot
                     totals[pb.ConnectionState]++;
 
                     cdt.AddRow(
-                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState, pb.ConnectionsCount);
+                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState, pb.SimulatorsCount);
                 }
             }
 
@@ -561,6 +565,49 @@ namespace pCampBot
                 cdl.AddRow(kvp.Key, kvp.Value);
 
             MainConsole.Instance.Output(cdl.ToString());
+        }
+
+        private void HandleShowBotStatus(string module, string[] cmd)
+        {
+            if (cmd.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: show bot <first-name> <last-name>");
+                return;
+            }
+
+            string name = string.Format("{0} {1}", cmd[2], cmd[3]);
+
+            Bot bot;
+
+            lock (m_bots)
+                bot = m_bots.Find(b => b.Name == name);
+
+            if (bot == null)
+            {
+                MainConsole.Instance.Output("No bot found with name {0}", name);
+                return;
+            }
+
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            cdl.AddRow("Name", bot.Name);
+            cdl.AddRow("Status", bot.ConnectionState);
+
+            Simulator currentSim = bot.Client.Network.CurrentSim;
+            cdl.AddRow("Region", currentSim != null ? currentSim.Name : "(none)");
+
+            List<Simulator> connectedSimulators = bot.Simulators;
+            List<string> simulatorNames = connectedSimulators.ConvertAll<string>(cs => cs.Name);
+            cdl.AddRow("Connections", string.Join(", ", simulatorNames));
+
+            MainConsole.Instance.Output(cdl.ToString());
+
+            MainConsole.Instance.Output("Settings");
+
+            ConsoleDisplayList statusCdl = new ConsoleDisplayList();
+            GridClient botClient = bot.Client;
+            statusCdl.AddRow("SEND_AGENT_UPDATES", botClient.Settings.SEND_AGENT_UPDATES);
+
+            MainConsole.Instance.Output(statusCdl.ToString());
         }
 
         internal void Grid_GridRegion(object o, GridRegionEventArgs args)

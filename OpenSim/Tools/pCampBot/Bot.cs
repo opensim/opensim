@@ -97,11 +97,20 @@ namespace pCampBot
         /// </summary>
         public ConnectionState ConnectionState { get; private set; }
 
+        public List<Simulator> Simulators
+        {
+            get
+            {
+                lock (Client.Network.Simulators)
+                    return new List<Simulator>(Client.Network.Simulators);
+            }
+        }
+
         /// <summary>
         /// The number of connections that this bot has to different simulators.
         /// </summary>
         /// <value>Includes both root and child connections.</value>
-        public int ConnectionsCount
+        public int SimulatorsCount
         {
             get
             {
