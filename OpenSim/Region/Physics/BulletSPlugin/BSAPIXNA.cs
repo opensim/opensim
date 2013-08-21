@@ -1221,6 +1221,50 @@ private sealed class BulletConstraintXNA : BulletConstraint
         //BSParam.TerrainImplementation = 0;
         world.SetGravity(new IndexedVector3(0,0,p.gravity));
 
+        // Turn off Pooling since globals and pooling are bad for threading.
+        BulletGlobals.VoronoiSimplexSolverPool.SetPoolingEnabled(false);
+        BulletGlobals.SubSimplexConvexCastPool.SetPoolingEnabled(false);
+        BulletGlobals.ManifoldPointPool.SetPoolingEnabled(false);
+        BulletGlobals.CastResultPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereShapePool.SetPoolingEnabled(false);
+        BulletGlobals.DbvtNodePool.SetPoolingEnabled(false);
+        BulletGlobals.SingleRayCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.SubSimplexClosestResultPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkPairDetectorPool.SetPoolingEnabled(false);
+        BulletGlobals.DbvtTreeColliderPool.SetPoolingEnabled(false);
+        BulletGlobals.SingleSweepCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BroadphaseRayTesterPool.SetPoolingEnabled(false);
+        BulletGlobals.ClosestNotMeConvexResultCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkEpaPenetrationDepthSolverPool.SetPoolingEnabled(false);
+        BulletGlobals.ContinuousConvexCollisionPool.SetPoolingEnabled(false);
+        BulletGlobals.DbvtStackDataBlockPool.SetPoolingEnabled(false);
+
+        BulletGlobals.BoxBoxCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.CompoundCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.ConvexConcaveCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.ConvexConvexAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.ConvexPlaneAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereBoxCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereSphereCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereTriangleCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.GImpactCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkEpaSolver2MinkowskiDiffPool.SetPoolingEnabled(false);
+        BulletGlobals.PersistentManifoldPool.SetPoolingEnabled(false);
+        BulletGlobals.ManifoldResultPool.SetPoolingEnabled(false);
+        BulletGlobals.GJKPool.SetPoolingEnabled(false);
+        BulletGlobals.GIM_ShapeRetrieverPool.SetPoolingEnabled(false);
+        BulletGlobals.TriangleShapePool.SetPoolingEnabled(false);
+        BulletGlobals.SphereTriangleDetectorPool.SetPoolingEnabled(false);
+        BulletGlobals.CompoundLeafCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkConvexCastPool.SetPoolingEnabled(false);
+        BulletGlobals.LocalTriangleSphereCastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BridgeTriangleRaycastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BridgeTriangleConcaveRaycastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BridgeTriangleConvexcastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.MyNodeOverlapCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.ClosestRayResultCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.DebugDrawcallbackPool.SetPoolingEnabled(false);
+
         return world;
     }
     //m_constraint.ptr, ConstraintParams.BT_CONSTRAINT_STOP_CFM, cfm, ConstraintParamAxis.AXIS_ALL
@@ -1914,7 +1958,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                                                                            heightMap,  scaleFactor,
                                                                            minHeight, maxHeight, upAxis,
                                                                             false);
-        terrainShape.SetMargin(collisionMargin + 0.5f);
+        terrainShape.SetMargin(collisionMargin);
         terrainShape.SetUseDiamondSubdivision(true);
         terrainShape.SetUserPointer(id);
         return new BulletShapeXNA(terrainShape, BSPhysicsShapeType.SHAPE_TERRAIN);
