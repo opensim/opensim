@@ -6651,6 +6651,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 #endregion
 
+                if (SceneAgent.IsChildAgent)
+                {
+                    SendCantSitBecauseChildAgentResponse();
+                    return true;
+                }
+
                 AgentRequestSit handlerAgentRequestSit = OnAgentRequestSit;
 
                 if (handlerAgentRequestSit != null)
@@ -6675,6 +6681,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 #endregion
 
+                if (SceneAgent.IsChildAgent)
+                {
+                    SendCantSitBecauseChildAgentResponse();
+                    return true;
+                }
+
                 AgentSit handlerAgentSit = OnAgentSit;
                 if (handlerAgentSit != null)
                 {
@@ -6682,6 +6694,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Used when a child agent gets a sit response which should not be fulfilled.
+        /// </summary>
+        private void SendCantSitBecauseChildAgentResponse()
+        {
+            SendAlertMessage("Try moving closer.  Can't sit on object because it is not in the same region as you.");
         }
 
         private bool HandleSoundTrigger(IClientAPI sender, Packet Pack)
