@@ -3243,11 +3243,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void RestoreInCurrentScene()
-        {
-            AddToPhysicalScene(false); // not exactly false
-        }
-
         public void Reset()
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
