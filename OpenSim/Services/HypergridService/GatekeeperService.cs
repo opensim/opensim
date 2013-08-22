@@ -326,7 +326,7 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: User {0} is ok", aCircuit.Name);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: User is OK");
 
             bool isFirstLogin = false;
             //
@@ -345,7 +345,7 @@ namespace OpenSim.Services.HypergridService
                         aCircuit.firstname, aCircuit.lastname);
                     return false;
                 }
-                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence {0} is ok", aCircuit.Name);
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
 
                 // Also login foreigners with GridUser service
                 if (m_GridUserService != null && account == null)
@@ -376,8 +376,7 @@ namespace OpenSim.Services.HypergridService
                 reason = "Destination region not found";
                 return false;
             }
-            m_log.DebugFormat(
-                "[GATEKEEPER SERVICE]: Destination {0} is ok for {1}", destination.RegionName, aCircuit.Name);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: destination ok: {0}", destination.RegionName);
 
             //
             // Adjust the visible name
@@ -411,41 +410,8 @@ namespace OpenSim.Services.HypergridService
             // Preserve our TeleportFlags we have gathered so-far
             loginFlag |= (Constants.TeleportFlags) aCircuit.teleportFlags;
 
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Launching {0} {1}", aCircuit.Name, loginFlag);
-
-            bool success = m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason);
-
-            if (!success)
-            {
-                List<GridRegion> fallbackRegions = m_GridService.GetFallbackRegions(account.ScopeID, destination.RegionLocX, destination.RegionLocY);
-                if (fallbackRegions != null)
-                {
-                    // Try the fallback regions
-                    m_log.DebugFormat(
-                        "[GATEKEEPER SERVICE]: Could not successfully log agent {0} into {1}.  Trying fallback regions.", 
-                        aCircuit.Name, destination.RegionName);
-
-                    foreach (GridRegion fallbackRegion in fallbackRegions)
-                    {
-                        m_log.DebugFormat(
-                            "[GATEKEEPER SERVICE]: Trying fallback region {0} for {1}", 
-                            fallbackRegion.RegionName, aCircuit.Name);
-
-                        success = m_SimulationService.CreateAgent(fallbackRegion, aCircuit, (uint)loginFlag, out reason);
-
-                        if (success)
-                            break;
-                    }
-                }
-                else
-                {
-                    m_log.DebugFormat(
-                        "[GATEKEEPER SERVICE]: Could not successfully log agent {0} into {1} and no fallback regions to try.", 
-                        aCircuit.Name, destination.RegionName);
-                }
-            }
-
-            return success;
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: launching agent {0}", loginFlag);
+            return m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason);
         }
 
         protected bool Authenticate(AgentCircuitData aCircuit)
