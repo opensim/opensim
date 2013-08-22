@@ -277,11 +277,11 @@ namespace pCampBot
             connectBotThread.Start();
         }
 
-        private void ConnectBotsInternal(int botcount)
+        private void ConnectBotsInternal(int botCount)
         {
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting {0} bots connecting to {1}, location {2}, named {3} {4}_<n>",
-                botcount,
+                botCount,
                 m_loginUri,
                 m_startUri,
                 m_firstName,
@@ -291,7 +291,9 @@ namespace pCampBot
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
 
-            for (int i = 0; i < botcount; i++)
+            int connectedBots = 0;
+
+            for (int i = 0; i < m_bots.Count; i++)
             {
                 lock (m_bots)
                 {
@@ -303,11 +305,17 @@ namespace pCampBot
                     }
 
                     if (m_bots[i].ConnectionState == ConnectionState.Disconnected)
+                    {
                         m_bots[i].Connect();
-                }
+                        connectedBots++;
 
-                // Stagger logins
-                Thread.Sleep(LoginDelay);
+                        if (connectedBots >= botCount)
+                            break;
+
+                        // Stagger logins
+                        Thread.Sleep(LoginDelay);
+                    }
+                }
             }
 
             ConnectingBots = false;
