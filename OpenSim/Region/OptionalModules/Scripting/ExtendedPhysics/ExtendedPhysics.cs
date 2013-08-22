@@ -367,6 +367,7 @@ public class ExtendedPhysics : INonSharedRegionModule
     // Code for specifying params.
     // The choice if 14400 is arbitrary and only serves to catch parameter code misuse.
     public const int PHYS_PARAM_MIN                    = 14401;
+
     [ScriptConstant]
     public const int PHYS_PARAM_FRAMEINA_LOC           = 14401;
     [ScriptConstant]
@@ -401,7 +402,10 @@ public class ExtendedPhysics : INonSharedRegionModule
     public const int PHYS_PARAM_SPRING_DAMPING         = 14416;
     [ScriptConstant]
     public const int PHYS_PARAM_SPRING_STIFFNESS       = 14417;
-    public const int PHYS_PARAM_MAX                    = 14417;
+    [ScriptConstant]
+    public const int PHYS_PARAM_LINK_TYPE              = 14418;
+
+    public const int PHYS_PARAM_MAX                    = 14418;
 
     // physChangeLinkParams(integer linkNum, [ PHYS_PARAM_*, value, PHYS_PARAM_*, value, ...])
     [ScriptInvocation]

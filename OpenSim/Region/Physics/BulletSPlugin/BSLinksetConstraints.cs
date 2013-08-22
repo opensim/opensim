@@ -67,6 +67,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         {
             constraint = null;
             ResetLink();
+            member.PhysScene.DetailLog("{0},BSLinkInfoConstraint.creation", member.LocalID);
         }
 
         // Set all the parameters for this constraint to a fixed, non-movable constraint.
@@ -91,11 +92,13 @@ public sealed class BSLinksetConstraints : BSLinkset
             frameInBrot = OMV.Quaternion.Identity;
             springDamping = -1f;
             springStiffness = -1f;
+            member.PhysScene.DetailLog("{0},BSLinkInfoConstraint.ResetLink", member.LocalID);
         }
 
         // Given a constraint, apply the current constraint parameters to same.
         public override void SetLinkParameters(BSConstraint constrain)
         {
+            member.PhysScene.DetailLog("{0},BSLinkInfoConstraint.SetLinkParameters,type={1}", member.LocalID, constraintType);
             switch (constraintType)
             {
                 case ConstraintType.FIXED_CONSTRAINT_TYPE:
@@ -139,7 +142,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                             if (springDamping != -1)
                                 constrainSpring.SetDamping(ii, springDamping);
                             if (springStiffness != -1)
-                            constrainSpring.SetStiffness(ii, springStiffness);
+                                constrainSpring.SetStiffness(ii, springStiffness);
                         }
                     }
                     break;
@@ -155,7 +158,6 @@ public sealed class BSLinksetConstraints : BSLinkset
         public override bool ShouldUpdateChildProperties()
         {
             bool ret = true;
-
             if (constraintType == ConstraintType.FIXED_CONSTRAINT_TYPE)
                 ret = false;
 
@@ -193,10 +195,16 @@ public sealed class BSLinksetConstraints : BSLinkset
         {
             // Queue to happen after all the other taint processing
             m_physicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
+            {
+                if (HasAnyChildren)
                 {
-                    if (HasAnyChildren)
-                        RecomputeLinksetConstraints();
-                });
+                    // Constraints that have not been changed are not rebuild but make sure
+                    //     the constraint of the requestor is rebuilt.
+                    PhysicallyUnlinkAChildFromRoot(LinksetRoot, requestor);
+                    // Rebuild the linkset and all its constraints.
+                    RecomputeLinksetConstraints();
+                }
+            });
         }
     }
 
@@ -415,12 +423,21 @@ public sealed class BSLinksetConstraints : BSLinkset
                             rootPrim.LocalID, rootPrim.PhysBody.AddrString,
                             childPrim.LocalID, childPrim.PhysBody.AddrString);
 
-        // Find the constraint for this link and get rid of it from the overall collection and from my list
-        if (m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody, childPrim.PhysBody))
+        // If asked to unlink root from root, just remove all the constraints
+        if (rootPrim == childPrim || childPrim == LinksetRoot)
         {
-            // Make the child refresh its location
-            m_physicsScene.PE.PushUpdate(childPrim.PhysBody);
+            PhysicallyUnlinkAllChildrenFromRoot(LinksetRoot);
             ret = true;
+        }
+        else
+        {
+            // Find the constraint for this link and get rid of it from the overall collection and from my list
+            if (m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody, childPrim.PhysBody))
+            {
+                // Make the child refresh its location
+                m_physicsScene.PE.PushUpdate(childPrim.PhysBody);
+                ret = true;
+            }
         }
 
         return ret;
@@ -521,8 +538,6 @@ public sealed class BSLinksetConstraints : BSLinkset
                                     BSLinkInfoConstraint linkInfoC = linkInfo as BSLinkInfoConstraint;
                                     if (linkInfoC != null)
                                     {
-                                        // Setting to fixed is easy. The reset state is the fixed link configuration.
-                                        linkInfoC.ResetLink();
                                         linkInfoC.constraintType = (ConstraintType)requestedType;
                                         ret = (object)true;
                                         DetailLog("{0},BSLinksetConstraint.ChangeLinkType,link={1},type={2}",
@@ -589,6 +604,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                             BSLinkInfoConstraint linkInfo = baseLinkInfo as BSLinkInfoConstraint;
                             if (linkInfo != null)
                             {
+                                int valueInt;
                                 float valueFloat;
                                 bool valueBool;
                                 OMV.Vector3 valueVector;
@@ -602,6 +618,20 @@ public sealed class BSLinksetConstraints : BSLinkset
                                                         linkInfo.member.LocalID, thisOp, pParams[opIndex+1]);
                                     switch (thisOp)
                                     {
+                                        case ExtendedPhysics.PHYS_PARAM_LINK_TYPE:
+                                            valueInt = (int)pParams[opIndex + 1];
+                                            ConstraintType valueType = (ConstraintType)valueInt;
+                                            if (valueType == ConstraintType.FIXED_CONSTRAINT_TYPE
+                                                || valueType == ConstraintType.D6_CONSTRAINT_TYPE
+                                                || valueType == ConstraintType.D6_SPRING_CONSTRAINT_TYPE
+                                                || valueType == ConstraintType.HINGE_CONSTRAINT_TYPE
+                                                || valueType == ConstraintType.CONETWIST_CONSTRAINT_TYPE
+                                                || valueType == ConstraintType.SLIDER_CONSTRAINT_TYPE)
+                                            {
+                                                linkInfo.constraintType = valueType;
+                                            }
+                                            opIndex += 2;
+                                            break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINA_LOC:
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.frameInAloc = valueVector;
