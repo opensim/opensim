@@ -127,6 +127,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
                 {
+                    if (sceneObject.IsAttachment)
+                        continue;
+
                     foreach (SceneObjectPart part in sceneObject.Parts)
                     {
                         if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
