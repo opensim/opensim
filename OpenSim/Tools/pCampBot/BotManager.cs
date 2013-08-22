@@ -299,7 +299,8 @@ namespace pCampBot
                         break;
                     }
 
-                    m_bots[i].Connect();
+                    if (m_bots[i].ConnectionState == ConnectionState.Disconnected)
+                        m_bots[i].Connect();
                 }
 
                 // Stagger logins
