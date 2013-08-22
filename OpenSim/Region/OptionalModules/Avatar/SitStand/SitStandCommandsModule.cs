@@ -119,6 +119,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
             foreach (ScenePresence sp in scenePresences)
             {
+                if (sp.SitGround || sp.IsSatOnObject)
+                    continue;
+
                 SceneObjectPart sitPart = null;
                 List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups();
 
@@ -169,8 +172,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
             foreach (ScenePresence sp in scenePresences)
             {
-                MainConsole.Instance.OutputFormat("Standing {0} in {1}", sp.Name, m_scene.Name);
-                sp.StandUp();
+                if (sp.SitGround || sp.IsSatOnObject)
+                {
+                    MainConsole.Instance.OutputFormat("Standing {0} in {1}", sp.Name, m_scene.Name);
+                    sp.StandUp();
+                }
             }
         }
 
