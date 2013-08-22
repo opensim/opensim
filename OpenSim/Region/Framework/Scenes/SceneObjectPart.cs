@@ -2504,7 +2504,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (pa != null && ParentID != 0 && ParentGroup != null)
             {
-                // RA: Special case where a child object is requesting property updates.
+                // Special case where a child object is requesting property updates.
                 // This happens when linksets are modified to use flexible links rather than
                 //    the default links.
                 // The simulator code presumes that child parts are only modified by scripts
@@ -2518,8 +2518,8 @@ namespace OpenSim.Region.Framework.Scenes
                 Quaternion invRootRotation = Quaternion.Normalize(Quaternion.Inverse(ParentGroup.RootPart.RotationOffset));
                 m_offsetPosition = pa.Position - m_groupPosition;
                 RotationOffset = pa.Orientation * invRootRotation;
-                m_log.DebugFormat("{0} PhysicsRequestingTerseUpdate child: pos={1}, rot={2}, offPos={3}, offRot={4}",
-                                    "[SCENE OBJECT PART]", pa.Position, pa.Orientation, m_offsetPosition, RotationOffset);
+                // m_log.DebugFormat("{0} PhysicsRequestingTerseUpdate child: pos={1}, rot={2}, offPos={3}, offRot={4}",
+                //                     "[SCENE OBJECT PART]", pa.Position, pa.Orientation, m_offsetPosition, RotationOffset);
             }
 
             ScheduleTerseUpdate();
