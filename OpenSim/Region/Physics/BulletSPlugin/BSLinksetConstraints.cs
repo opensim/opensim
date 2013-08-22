@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -59,8 +59,9 @@ public sealed class BSLinksetConstraints : BSLinkset
         public OMV.Vector3 frameInBloc;
         public OMV.Quaternion frameInBrot;
         // Spring
-        public float springDamping;
-        public float springStiffness;
+        public bool[] springAxisEnable;
+        public float[] springDamping;
+        public float[] springStiffness;
 
         public BSLinkInfoConstraint(BSPrimLinkable pMember)
             : base(pMember)
@@ -90,8 +91,15 @@ public sealed class BSLinksetConstraints : BSLinkset
             frameInArot = OMV.Quaternion.Identity;
             frameInBloc = OMV.Vector3.Zero;
             frameInBrot = OMV.Quaternion.Identity;
-            springDamping = -1f;
-            springStiffness = -1f;
+            springAxisEnable = new bool[6];
+            springDamping = new float[6];
+            springStiffness = new float[6];
+            for (int ii = 0; ii < springAxisEnable.Length; ii++)
+            {
+                springAxisEnable[ii] = false;
+                springDamping[ii] = BSAPITemplate.SPRING_NOT_SPECIFIED;
+                springStiffness[ii] = BSAPITemplate.SPRING_NOT_SPECIFIED;
+            }
             member.PhysScene.DetailLog("{0},BSLinkInfoConstraint.ResetLink", member.LocalID);
         }
 
@@ -139,11 +147,13 @@ public sealed class BSLinksetConstraints : BSLinkset
                         }
                         for (int ii = 0; ii < 6; ii++)
                         {
-                            if (springDamping != -1)
-                                constrainSpring.SetDamping(ii, springDamping);
-                            if (springStiffness != -1)
-                                constrainSpring.SetStiffness(ii, springStiffness);
+                            constrainSpring.SetAxisEnable(ii, springAxisEnable[ii]);
+                            if (springDamping[ii] != BSAPITemplate.SPRING_NOT_SPECIFIED)
+                                constrainSpring.SetDamping(ii, springDamping[ii]);
+                            if (springStiffness[ii] != BSAPITemplate.SPRING_NOT_SPECIFIED)
+                                constrainSpring.SetStiffness(ii, springStiffness[ii]);
                         }
+                        constrainSpring.SetEquilibriumPoint(BSAPITemplate.SPRING_NOT_SPECIFIED, BSAPITemplate.SPRING_NOT_SPECIFIED);
                     }
                     break;
                 default:
@@ -707,15 +717,26 @@ public sealed class BSLinksetConstraints : BSLinkset
                                             linkInfo.solverIterations = valueFloat;
                                             opIndex += 2;
                                             break;
+                                        case ExtendedPhysics.PHYS_PARAM_SPRING_AXIS_ENABLE:
+                                            valueInt = (int)pParams[opIndex + 1];
+                                            valueBool = ((int)pParams[opIndex + 2] != 0);
+                                            if (valueInt >=0 && valueInt < linkInfo.springAxisEnable.Length)
+                                                linkInfo.springAxisEnable[valueInt] = valueBool;
+                                            opIndex += 3;
+                                            break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
-                                            valueFloat = (float)pParams[opIndex + 1];
-                                            linkInfo.springDamping = valueFloat;
-                                            opIndex += 2;
+                                            valueInt = (int)pParams[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 2];
+                                            if (valueInt >=0 && valueInt < linkInfo.springDamping.Length)
+                                                linkInfo.springDamping[valueInt] = valueFloat;
+                                            opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
-                                            valueFloat = (float)pParams[opIndex + 1];
-                                            linkInfo.springStiffness = valueFloat;
-                                            opIndex += 2;
+                                            valueInt = (int)pParams[opIndex + 1];
+                                            valueFloat = (float)pParams[opIndex + 2];
+                                            if (valueInt >=0 && valueInt < linkInfo.springStiffness.Length)
+                                                linkInfo.springStiffness[valueInt] = valueFloat;
+                                            opIndex += 3;
                                             break;
                                         default:
                                             break;

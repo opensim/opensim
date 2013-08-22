@@ -292,7 +292,7 @@ public enum ConstraintParamAxis : int
     AXIS_ANGULAR_X,
     AXIS_ANGULAR_Y,
     AXIS_ANGULAR_Z,
-    AXIS_LINEAR_ALL = 20,    // these last three added by BulletSim so we don't have to do zillions of calls
+    AXIS_LINEAR_ALL = 20,    // added by BulletSim so we don't have to do zillions of calls
     AXIS_ANGULAR_ALL,
     AXIS_ALL
 };

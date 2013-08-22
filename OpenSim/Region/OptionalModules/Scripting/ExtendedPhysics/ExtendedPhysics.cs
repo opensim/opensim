@@ -399,13 +399,15 @@ public class ExtendedPhysics : INonSharedRegionModule
     [ScriptConstant]
     public const int PHYS_PARAM_SOLVER_ITERATIONS      = 14415;
     [ScriptConstant]
-    public const int PHYS_PARAM_SPRING_DAMPING         = 14416;
+    public const int PHYS_PARAM_SPRING_AXIS_ENABLE     = 14416;
     [ScriptConstant]
-    public const int PHYS_PARAM_SPRING_STIFFNESS       = 14417;
+    public const int PHYS_PARAM_SPRING_DAMPING         = 14417;
     [ScriptConstant]
-    public const int PHYS_PARAM_LINK_TYPE              = 14418;
+    public const int PHYS_PARAM_SPRING_STIFFNESS       = 14418;
+    [ScriptConstant]
+    public const int PHYS_PARAM_LINK_TYPE              = 14419;
 
-    public const int PHYS_PARAM_MAX                    = 14418;
+    public const int PHYS_PARAM_MAX                    = 14419;
 
     // physChangeLinkParams(integer linkNum, [ PHYS_PARAM_*, value, PHYS_PARAM_*, value, ...])
     [ScriptInvocation]
