@@ -203,6 +203,9 @@ namespace pCampBot
                 HandleStand);
 
             m_console.Commands.AddCommand(
+                "bot", false, "set bots", "set bots <key> <value>", "Set a setting for all bots.", HandleSetBots);
+
+            m_console.Commands.AddCommand(
                 "bot", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
 
             m_console.Commands.AddCommand(
@@ -517,6 +520,30 @@ namespace pCampBot
             MainConsole.Instance.Output("Shutting down");
 
             Environment.Exit(0);
+        }
+
+        private void HandleSetBots(string module, string[] cmd)
+        {
+            string key = cmd[2];
+            string rawValue = cmd[3];
+
+            if (key == "SEND_AGENT_UPDATES")
+            {   
+                bool newSendAgentUpdatesSetting;
+
+                if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newSendAgentUpdatesSetting))
+                    return;
+
+                MainConsole.Instance.OutputFormat(
+                    "Setting SEND_AGENT_UPDATES to {0} for all bots", newSendAgentUpdatesSetting);
+
+                lock (m_bots)
+                    m_bots.ForEach(b => b.Client.Settings.SEND_AGENT_UPDATES = newSendAgentUpdatesSetting);
+            }
+            else
+            {
+                MainConsole.Instance.Output("Error: Only setting currently available is SEND_AGENT_UPDATES");
+            }
         }
 
         private void HandleShowRegions(string module, string[] cmd)
