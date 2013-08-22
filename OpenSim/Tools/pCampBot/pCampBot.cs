@@ -82,6 +82,13 @@ namespace pCampBot
 
                     IConfigSource configSource = new IniConfigSource(iniFilePath);
 
+                    IConfig botManagerConfig = configSource.Configs["BotManager"];
+
+                    if (botManagerConfig != null)
+                    {
+                        bm.LoginDelay = botManagerConfig.GetInt("LoginDelay", bm.LoginDelay);
+                    }
+
                     IConfig botConfig = configSource.Configs["Bot"];
 
                     if (botConfig != null)
