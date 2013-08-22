@@ -326,7 +326,7 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: User is OK");
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: User {0} is ok", aCircuit.Name);
 
             bool isFirstLogin = false;
             //
@@ -345,7 +345,8 @@ namespace OpenSim.Services.HypergridService
                         aCircuit.firstname, aCircuit.lastname);
                     return false;
                 }
-                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
+
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence {0} is ok", aCircuit.Name);
 
                 // Also login foreigners with GridUser service
                 if (m_GridUserService != null && account == null)
@@ -376,7 +377,9 @@ namespace OpenSim.Services.HypergridService
                 reason = "Destination region not found";
                 return false;
             }
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: destination ok: {0}", destination.RegionName);
+
+            m_log.DebugFormat(
+                "[GATEKEEPER SERVICE]: Destination {0} is ok for {1}", destination.RegionName, aCircuit.Name);
 
             //
             // Adjust the visible name
@@ -410,7 +413,8 @@ namespace OpenSim.Services.HypergridService
             // Preserve our TeleportFlags we have gathered so-far
             loginFlag |= (Constants.TeleportFlags) aCircuit.teleportFlags;
 
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: launching agent {0}", loginFlag);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Launching {0} {1}", aCircuit.Name, loginFlag);
+
             return m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason);
         }
 
