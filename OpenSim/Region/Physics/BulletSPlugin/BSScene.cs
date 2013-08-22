@@ -987,10 +987,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //     will replace any previous operation by the same object.
     public void PostTaintObject(String ident, uint ID, TaintCallback callback)
     {
-        string uniqueIdent = ident + "-" + ID.ToString();
+        string IDAsString = ID.ToString();
+        string uniqueIdent = ident + "-" + IDAsString;
         lock (_taintLock)
         {
-            _postTaintOperations[uniqueIdent] = new TaintCallbackEntry(uniqueIdent, callback);
+            _postTaintOperations[uniqueIdent] = new TaintCallbackEntry(IDAsString, uniqueIdent, callback);
         }
 
         return;
