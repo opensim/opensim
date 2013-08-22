@@ -53,7 +53,7 @@ public sealed class BSConstraintSpring : BSConstraint6Dof
                     m_body1.ID, frame1Loc, frame1Rot, frame2Loc, frame2Rot, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies);
     }
 
-    public bool SetEnable(int pIndex, bool pAxisEnable)
+    public bool SetAxisEnable(int pIndex, bool pAxisEnable)
     {
         PhysicsScene.DetailLog("{0},BSConstraintSpring.SetEnable,obj1ID={1},obj2ID={2},indx={3},enable={4}",
                                         m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pAxisEnable);
