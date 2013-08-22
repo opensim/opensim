@@ -47,37 +47,42 @@ public sealed class BSConstraintSpring : BSConstraint6Dof
                                 useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies);
         m_enabled = true;
 
-        world.physicsScene.DetailLog("{0},BSConstraintSpring,createFrame,wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
-                            BSScene.DetailLogZero, world.worldID,
-                            obj1.ID, obj1.AddrString, obj2.ID, obj2.AddrString);
+        PhysicsScene.DetailLog("{0},BSConstraintSpring,create,wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
+                            obj1.ID, world.worldID, obj1.ID, obj1.AddrString, obj2.ID, obj2.AddrString);
+        PhysicsScene.DetailLog("{0},BSConstraintSpring,create,  f1Loc={1},f1Rot={2},f2Loc={3},f2Rot={4},usefA={5},disCol={6}",
+                    m_body1.ID, frame1Loc, frame1Rot, frame2Loc, frame2Rot, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies);
     }
 
-    public bool SetEnable(int index, bool axisEnable)
+    public bool SetEnable(int pIndex, bool pAxisEnable)
     {
-        bool ret = false;
-
-        return ret;
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetEnable,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+                                        m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pAxisEnable);
+        PhysicsScene.PE.SpringEnable(m_constraint, pIndex, BSParam.NumericBool(pAxisEnable));
+        return true;
     }
 
-    public bool SetStiffness(int index, float stiffness)
+    public bool SetStiffness(int pIndex, float pStiffness)
     {
-        bool ret = false;
-
-        return ret;
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetStiffness,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+                                        m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pStiffness);
+        PhysicsScene.PE.SpringSetStiffness(m_constraint, pIndex, pStiffness);
+        return true;
     }
 
-    public bool SetDamping(int index, float damping)
+    public bool SetDamping(int pIndex, float pDamping)
     {
-        bool ret = false;
-
-        return ret;
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetDamping,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+                                        m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pDamping);
+        PhysicsScene.PE.SpringSetDamping(m_constraint, pIndex, pDamping);
+        return true;
     }
 
-    public bool SetEquilibriumPoint(int index, float eqPoint)
+    public bool SetEquilibriumPoint(int pIndex, float pEqPoint)
     {
-        bool ret = false;
-
-        return ret;
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetEquilibriumPoint,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+                                        m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pEqPoint);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, pIndex, pEqPoint);
+        return true;
     }
 
 }
