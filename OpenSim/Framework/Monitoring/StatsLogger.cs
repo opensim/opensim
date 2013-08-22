@@ -67,7 +67,7 @@ namespace OpenSim.Framework.Monitoring
             if (cmd[3] == "start")
             {
                 Start();
-                con.OutputFormat("Now recording all stats very {0}ms to file", m_statsLogIntervalMs);
+                con.OutputFormat("Now recording all stats to file every {0}ms", m_statsLogIntervalMs);
             }
             else if (cmd[3] == "stop")
             {
