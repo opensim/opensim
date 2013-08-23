@@ -212,7 +212,7 @@ namespace pCampBot
                 "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bot", "show bot <first-name> <last-name>", 
+                "bot", false, "show bot", "show bot <n>", 
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_bots = new List<Bot>();
@@ -605,13 +605,18 @@ namespace pCampBot
 
         private void HandleShowBotStatus(string module, string[] cmd)
         {
-            if (cmd.Length != 4)
+            if (cmd.Length != 3)
             {
-                MainConsole.Instance.Output("Usage: show bot <first-name> <last-name>");
+                MainConsole.Instance.Output("Usage: show bot <n>");
                 return;
             }
 
-            string name = string.Format("{0} {1}", cmd[2], cmd[3]);
+            int botNumber;
+
+            if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, cmd[2], out botNumber))
+                return;
+
+            string name = string.Format("{0} {1}_{2}", m_firstName, m_lastNameStem, botNumber);
 
             Bot bot;
 
