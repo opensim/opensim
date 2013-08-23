@@ -644,8 +644,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // m_group.AbsolutePosition += motionThisFrame;
                     m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
                     m_group.AbsolutePosition = m_nextPosition;
-
-                    //m_group.RootPart.Velocity = v;
+                    if ((m_group.AbsolutePosition.X < 10 || m_group.AbsolutePosition.Y < 10 || m_group.AbsolutePosition.X > Constants.RegionSize - 10 || m_group.AbsolutePosition.Y > Constants.RegionSize - 10))
+                        m_group.RootPart.Velocity = v;
                     update = true;
                 }
 
@@ -736,12 +736,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_waitingCrossing = true;
 
             // to remove / retune to smoth crossings
-            if (m_group.RootPart.Velocity != Vector3.Zero)
-            {
-                m_group.RootPart.Velocity = Vector3.Zero;
-                m_group.SendGroupRootTerseUpdate();
+            //if (m_group.RootPart.Velocity != Vector3.Zero)
+            //{
+            //    m_group.RootPart.Velocity = Vector3.Zero;
+             //   m_group.SendGroupRootTerseUpdate();
 //                m_group.RootPart.ScheduleTerseUpdate();
-            }
+            //}
         }
 
         public void CrossingFailure()
