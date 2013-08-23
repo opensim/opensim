@@ -561,8 +561,6 @@ namespace OpenSim.Services.GridService
                     MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
                 }
             }
-
-            return;
         }
 
         private void HandleShowRegions(string module, string[] cmd)
