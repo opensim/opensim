@@ -431,11 +431,14 @@ namespace OpenSim.Services.HypergridService
                 return true;
 
             // if that failed, try the fallbacks
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Region {0} did not accept agent {1}", destination.RegionName, aCircuit.Name);
             fallbackRegions = m_GridService.GetFallbackRegions(UUID.Zero, destination.RegionLocX, destination.RegionLocY);
             foreach (GridRegion r in fallbackRegions)
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Trying region {0}...", r.RegionName);
                 if (m_SimulationService.CreateAgent(r, aCircuit, (uint)loginFlag, out reason))
                     return true;
-
+            }
             return false;
         }
 
