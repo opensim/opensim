@@ -203,13 +203,16 @@ namespace pCampBot
                 HandleStand);
 
             m_console.Commands.AddCommand(
+                "bot", false, "set bots", "set bots <key> <value>", "Set a setting for all bots.", HandleSetBots);
+
+            m_console.Commands.AddCommand(
                 "bot", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
 
             m_console.Commands.AddCommand(
                 "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bot", "show bot <first-name> <last-name>", 
+                "bot", false, "show bot", "show bot <n>", 
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_bots = new List<Bot>();
@@ -274,11 +277,11 @@ namespace pCampBot
             connectBotThread.Start();
         }
 
-        private void ConnectBotsInternal(int botcount)
+        private void ConnectBotsInternal(int botCount)
         {
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Starting {0} bots connecting to {1}, location {2}, named {3} {4}_<n>",
-                botcount,
+                botCount,
                 m_loginUri,
                 m_startUri,
                 m_firstName,
@@ -288,7 +291,9 @@ namespace pCampBot
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
             MainConsole.Instance.OutputFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
 
-            for (int i = 0; i < botcount; i++)
+            int connectedBots = 0;
+
+            for (int i = 0; i < m_bots.Count; i++)
             {
                 lock (m_bots)
                 {
@@ -299,11 +304,18 @@ namespace pCampBot
                         break;
                     }
 
-                    m_bots[i].Connect();
-                }
+                    if (m_bots[i].ConnectionState == ConnectionState.Disconnected)
+                    {
+                        m_bots[i].Connect();
+                        connectedBots++;
 
-                // Stagger logins
-                Thread.Sleep(LoginDelay);
+                        if (connectedBots >= botCount)
+                            break;
+
+                        // Stagger logins
+                        Thread.Sleep(LoginDelay);
+                    }
+                }
             }
 
             ConnectingBots = false;
@@ -518,6 +530,30 @@ namespace pCampBot
             Environment.Exit(0);
         }
 
+        private void HandleSetBots(string module, string[] cmd)
+        {
+            string key = cmd[2];
+            string rawValue = cmd[3];
+
+            if (key == "SEND_AGENT_UPDATES")
+            {   
+                bool newSendAgentUpdatesSetting;
+
+                if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newSendAgentUpdatesSetting))
+                    return;
+
+                MainConsole.Instance.OutputFormat(
+                    "Setting SEND_AGENT_UPDATES to {0} for all bots", newSendAgentUpdatesSetting);
+
+                lock (m_bots)
+                    m_bots.ForEach(b => b.Client.Settings.SEND_AGENT_UPDATES = newSendAgentUpdatesSetting);
+            }
+            else
+            {
+                MainConsole.Instance.Output("Error: Only setting currently available is SEND_AGENT_UPDATES");
+            }
+        }
+
         private void HandleShowRegions(string module, string[] cmd)
         {
             string outputFormat = "{0,-30}  {1, -20}  {2, -5}  {3, -5}";
@@ -569,13 +605,18 @@ namespace pCampBot
 
         private void HandleShowBotStatus(string module, string[] cmd)
         {
-            if (cmd.Length != 4)
+            if (cmd.Length != 3)
             {
-                MainConsole.Instance.Output("Usage: show bot <first-name> <last-name>");
+                MainConsole.Instance.Output("Usage: show bot <n>");
                 return;
             }
 
-            string name = string.Format("{0} {1}", cmd[2], cmd[3]);
+            int botNumber;
+
+            if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, cmd[2], out botNumber))
+                return;
+
+            string name = string.Format("{0} {1}_{2}", m_firstName, m_lastNameStem, botNumber);
 
             Bot bot;
 
