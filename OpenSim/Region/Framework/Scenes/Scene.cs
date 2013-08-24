@@ -3824,7 +3824,7 @@ namespace OpenSim.Region.Framework.Scenes
     
                     try
                     {
-                        if (!AuthorizeUser(acd, SeeIntoRegion, out reason))
+                        if (!AuthorizeUser(acd, (vialogin ? false : SeeIntoRegion), out reason))
                         {
                             m_authenticateHandler.RemoveCircuit(acd.circuitcode);
                             return false;
