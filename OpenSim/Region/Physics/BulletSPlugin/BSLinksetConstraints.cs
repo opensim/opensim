@@ -58,6 +58,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         public OMV.Quaternion frameInArot;
         public OMV.Vector3 frameInBloc;
         public OMV.Quaternion frameInBrot;
+        public bool useLinearReferenceFrameA;
         // Spring
         public bool[] springAxisEnable;
         public float[] springDamping;
@@ -91,6 +92,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             frameInArot = OMV.Quaternion.Identity;
             frameInBloc = OMV.Vector3.Zero;
             frameInBrot = OMV.Quaternion.Identity;
+            useLinearReferenceFrameA = true;
             springAxisEnable = new bool[6];
             springDamping = new float[6];
             springStiffness = new float[6];
@@ -145,7 +147,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                         {
                             constrainSpring.SetSolverIterations(solverIterations);
                         }
-                        for (int ii = 0; ii < 6; ii++)
+                        for (int ii = 0; ii < springAxisEnable.Length; ii++)
                         {
                             constrainSpring.SetAxisEnable(ii, springAxisEnable[ii]);
                             if (springDamping[ii] != BSAPITemplate.SPRING_NOT_SPECIFIED)
@@ -401,7 +403,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             case ConstraintType.D6_SPRING_CONSTRAINT_TYPE:
                 constrain = new BSConstraintSpring(m_physicsScene.World, rootPrim.PhysBody, linkInfo.member.PhysBody,
                                 linkInfo.frameInAloc, linkInfo.frameInArot, linkInfo.frameInBloc, linkInfo.frameInBrot,
-                                true /*useLinearReferenceFrameA*/,
+                                linkInfo.useLinearReferenceFrameA,
                                 true /*disableCollisionsBetweenLinkedBodies*/);
                 DetailLog("{0},BSLinksetConstraint.BuildConstraint,spring,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6}",
                                                 rootPrim.LocalID,
@@ -619,6 +621,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                                 bool valueBool;
                                 OMV.Vector3 valueVector;
                                 OMV.Quaternion valueQuaternion;
+                                int axisLow, axisHigh;
 
                                 int opIndex = 2;
                                 while (opIndex < pParams.Length)
@@ -720,23 +723,31 @@ public sealed class BSLinksetConstraints : BSLinkset
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_AXIS_ENABLE:
                                             valueInt = (int)pParams[opIndex + 1];
                                             valueBool = ((int)pParams[opIndex + 2] != 0);
-                                            if (valueInt >=0 && valueInt < linkInfo.springAxisEnable.Length)
-                                                linkInfo.springAxisEnable[valueInt] = valueBool;
+                                            GetAxisRange(valueInt, out axisLow, out axisHigh);
+                                            for (int ii = axisLow; ii <= axisHigh; ii++)
+                                                linkInfo.springAxisEnable[ii] = valueBool;
                                             opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
                                             valueInt = (int)pParams[opIndex + 1];
                                             valueFloat = (float)pParams[opIndex + 2];
-                                            if (valueInt >=0 && valueInt < linkInfo.springDamping.Length)
-                                                linkInfo.springDamping[valueInt] = valueFloat;
+                                            GetAxisRange(valueInt, out axisLow, out axisHigh);
+                                            for (int ii = axisLow; ii <= axisHigh; ii++)
+                                                linkInfo.springDamping[ii] = valueFloat;
                                             opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
                                             valueInt = (int)pParams[opIndex + 1];
                                             valueFloat = (float)pParams[opIndex + 2];
-                                            if (valueInt >=0 && valueInt < linkInfo.springStiffness.Length)
-                                                linkInfo.springStiffness[valueInt] = valueFloat;
+                                            GetAxisRange(valueInt, out axisLow, out axisHigh);
+                                            for (int ii = axisLow; ii <= axisHigh; ii++)
+                                                linkInfo.springStiffness[ii] = valueFloat;
                                             opIndex += 3;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_USE_LINEAR_FRAMEA:
+                                            valueBool = (bool)pParams[opIndex + 1];
+                                            linkInfo.useLinearReferenceFrameA = valueBool;
+                                            opIndex += 2;
                                             break;
                                         default:
                                             break;
@@ -759,6 +770,32 @@ public sealed class BSLinksetConstraints : BSLinkset
                 break;
         }
         return ret;
+    }
+
+    // Bullet constraints keep some limit parameters for each linear and angular axis.
+    // Setting same is easier if there is an easy way to see all or types.
+    // This routine returns the array limits for the set of axis.
+    private void GetAxisRange(int rangeSpec, out int low, out int high)
+    {
+        switch (rangeSpec)
+        {
+            case ExtendedPhysics.PHYS_AXIS_ALL_LINEAR:
+                low = 0;
+                high = 2;
+                break;
+            case ExtendedPhysics.PHYS_AXIS_ALL_ANGULAR:
+                low = 3;
+                high = 5;
+                break;
+            case ExtendedPhysics.PHYS_AXIS_ALL:
+                low = 0;
+                high = 5;
+                break;
+            default:
+                low = high = rangeSpec;
+                break;
+        }
+        return;
     }
     #endregion // Extension
 
