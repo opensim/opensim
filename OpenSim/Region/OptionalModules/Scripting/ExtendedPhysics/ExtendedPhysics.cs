@@ -406,8 +406,18 @@ public class ExtendedPhysics : INonSharedRegionModule
     public const int PHYS_PARAM_SPRING_STIFFNESS       = 14418;
     [ScriptConstant]
     public const int PHYS_PARAM_LINK_TYPE              = 14419;
+    [ScriptConstant]
+    public const int PHYS_PARAM_USE_LINEAR_FRAMEA      = 14420;
 
-    public const int PHYS_PARAM_MAX                    = 14419;
+    public const int PHYS_PARAM_MAX                    = 14420;
+
+    // Used when specifying a parameter that has settings for the three linear and three angular axis
+    [ScriptConstant]
+    public const int PHYS_AXIS_ALL = -1;
+    [ScriptConstant]
+    public const int PHYS_AXIS_ALL_LINEAR = -2;
+    [ScriptConstant]
+    public const int PHYS_AXIS_ALL_ANGULAR = -3;
 
     // physChangeLinkParams(integer linkNum, [ PHYS_PARAM_*, value, PHYS_PARAM_*, value, ...])
     [ScriptInvocation]
