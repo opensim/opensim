@@ -478,6 +478,7 @@ namespace OpenSim.Region.Framework.Scenes
                         k.Position = pos;
 //                        k.Velocity = Vector3.Zero;
                     }
+                    k.AngularVelocity = (Vector3)k.Position;
 
                     k.StartRotation = rot;
                     if (k.Rotation.HasValue)
@@ -612,13 +613,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Do the frame processing
             double steps = (double)m_currentFrame.TimeMS / tickDuration;
-
+            
             if (steps <= 0.0)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_group.RootPart.AngularVelocity = Vector3.Zero;
 
-                m_nextPosition = (Vector3)m_currentFrame.Position;
+                m_nextPosition = NormalizeVector(m_currentFrame.AngularVelocity);
                 m_group.AbsolutePosition = m_nextPosition;
 
                 // we are sending imediate updates, no doing force a extra terseUpdate
@@ -706,7 +707,26 @@ namespace OpenSim.Region.Framework.Scenes
                 m_group.SendGroupRootTerseUpdate();
             }
         }
+        private Vector3 NormalizeVector(Vector3? pPosition)
+        {
+            if (pPosition == null)
+                return Vector3.Zero;
 
+            Vector3 tmp = (Vector3) pPosition;
+
+            while (tmp.X > Constants.RegionSize)
+                tmp.X -= Constants.RegionSize;
+            while (tmp.X < 0)
+                tmp.X += Constants.RegionSize;
+            while (tmp.Y > Constants.RegionSize)
+                tmp.Y -= Constants.RegionSize;
+            while (tmp.Y < 0)
+                tmp.Y += Constants.RegionSize;
+
+            return tmp;
+
+            
+        }
         public Byte[] Serialize()
         {
             StopTimer();
