@@ -1316,13 +1316,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             ScriptInstance instance = null;
             // Create the object record
+            UUID appDomain = assetID;
+           
+
+          
             lockScriptsForRead(true);
             if ((!m_Scripts.ContainsKey(itemID)) ||
                 (m_Scripts[itemID].AssetID != assetID))
             {
                 lockScriptsForRead(false);
-
-                UUID appDomain = assetID;
+  instance = new ScriptInstance(this, part,
+                                          item,
+                                          startParam, postOnRez,
+                                          m_MaxScriptQueue);
+                
+                
 
                 if (part.ParentGroup.IsAttachment)
                     appDomain = part.ParentGroup.RootPart.UUID;
@@ -1345,9 +1353,39 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             sandbox = AppDomain.CreateDomain(
                                             m_Scene.RegionInfo.RegionID.ToString(),
                                             evidence, appSetup);
-                            m_AppDomains[appDomain].AssemblyResolve +=
-                                new ResolveEventHandler(
-                                    AssemblyResolver.OnAssemblyResolve);
+                            if (m_AppDomains.ContainsKey(appDomain))
+                            {
+                                m_AppDomains[appDomain].AssemblyResolve +=
+                                    new ResolveEventHandler(
+                                        AssemblyResolver.OnAssemblyResolve);
+                                if (m_DomainScripts.ContainsKey(appDomain))
+                                {
+                                    m_DomainScripts[appDomain].Add(itemID);
+                                }
+                                else
+                                {
+                                    m_DomainScripts.Add(appDomain, new List<UUID>());
+                                    m_DomainScripts[appDomain].Add(itemID);
+                                }
+                            }
+                            else
+                            {
+                                m_AppDomains.Add(appDomain, sandbox);
+                                m_AppDomains[appDomain].AssemblyResolve +=
+                                    new ResolveEventHandler(
+                                        AssemblyResolver.OnAssemblyResolve);
+                                if (m_DomainScripts.ContainsKey(appDomain))
+                                {
+                                    m_DomainScripts[appDomain].Add(itemID);
+                                }
+                                else
+                                {
+                                    m_DomainScripts.Add(appDomain, new List<UUID>());
+                                    m_DomainScripts[appDomain].Add(itemID);
+                                }
+
+                            }
+
                         }
                         else
                         {
@@ -1373,12 +1411,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         return false;
                     }
                 }
-                m_DomainScripts[appDomain].Add(itemID);
-
-                instance = new ScriptInstance(this, part,
-                                              item,
-                                              startParam, postOnRez,
-                                              m_MaxScriptQueue);
+                
 
                 instance.Load(m_AppDomains[appDomain], assembly, stateSource);
 //                m_log.DebugFormat(
@@ -1502,6 +1535,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (handlerObjectRemoved != null)
             {
                 SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);                    
+                if (part != null)
                 handlerObjectRemoved(part.UUID);
             }
 

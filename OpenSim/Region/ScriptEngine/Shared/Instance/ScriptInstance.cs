@@ -231,6 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 ItemID = ScriptTask.ItemID;
                 AssetID = ScriptTask.AssetID;
             }
+            LocalID = part.LocalId;
 
             PrimName = part.ParentGroup.Name;
             StartParam = startParam;
