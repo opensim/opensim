@@ -3860,6 +3860,19 @@ namespace OpenSim.Region.Framework.Scenes
                     // Let the SP know how we got here. This has a lot of interesting
                     // uses down the line.
                     sp.TeleportFlags = (TPFlags)teleportFlags;
+
+                    // We must carry out a further authorization check if there's an 
+                    // attempt to make a child agent into a root agent, since SeeIntoRegion may have allowed a child
+                    // agent to login to a region where a full avatar would not be allowed.
+                    //
+                    // We determine whether this is a CreateAgent for a future non-child agent by inspecting 
+                    // TeleportFlags, which will be default for a child connection.  This relies on input from the source
+                    // region.
+                    if (sp.TeleportFlags != TPFlags.Default)
+                    {
+                        if (!AuthorizeUser(acd, false, out reason))
+                            return false;
+                    }
     
                     if (sp.IsChildAgent)
                     {
