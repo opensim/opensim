@@ -72,14 +72,11 @@ namespace OpenSim.Services.HypergridService
         private static Uri m_Uri;
         private static GridRegion m_DefaultGatewayRegion;
 
-        private static Random m_Random;
-
         public GatekeeperService(IConfigSource config, ISimulationService simService)
         {
             if (!m_Initialized)
             {
                 m_Initialized = true;
-                m_Random = new Random();
 
                 IConfig serverConfig = config.Configs["GatekeeperService"];
                 if (serverConfig == null)
@@ -223,8 +220,6 @@ namespace OpenSim.Services.HypergridService
         public bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason)
         {
             reason = string.Empty;
-            List<GridRegion> defaultRegions;
-            List<GridRegion> fallbackRegions;
 
             string authURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
@@ -379,14 +374,8 @@ namespace OpenSim.Services.HypergridService
             destination = m_GridService.GetRegionByUUID(m_ScopeID, destination.RegionID);
             if (destination == null)
             {
-                defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
-                if (defaultRegions == null || (defaultRegions != null && defaultRegions.Count == 0))
-                {
-                    reason = "Destination region not found";
-                    return false;
-                }
-                int index = m_Random.Next(0, defaultRegions.Count - 1);
-                destination = defaultRegions[index];
+                reason = "Destination region not found";
+                return false;
             }
 
             m_log.DebugFormat(
@@ -426,17 +415,7 @@ namespace OpenSim.Services.HypergridService
 
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Launching {0} {1}", aCircuit.Name, loginFlag);
 
-            // try login to the desired region
-            if (m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason))
-                return true;
-
-            // if that failed, try the fallbacks
-            fallbackRegions = m_GridService.GetFallbackRegions(UUID.Zero, destination.RegionLocX, destination.RegionLocY);
-            foreach (GridRegion r in fallbackRegions)
-                if (m_SimulationService.CreateAgent(r, aCircuit, (uint)loginFlag, out reason))
-                    return true;
-
-            return false;
+            return m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason);
         }
 
         protected bool Authenticate(AgentCircuitData aCircuit)
