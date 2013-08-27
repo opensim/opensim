@@ -946,7 +946,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     private void ProcessRegularTaints()
     {
-        if (_taintOperations.Count > 0)  // save allocating new list if there is nothing to process
+        if (m_initialized && _taintOperations.Count > 0)  // save allocating new list if there is nothing to process
         {
             // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
@@ -989,7 +989,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // Taints that happen after the normal taint processing but before the simulation step.
     private void ProcessPostTaintTaints()
     {
-        if (_postTaintOperations.Count > 0)
+        if (m_initialized && _postTaintOperations.Count > 0)
         {
             Dictionary<string, TaintCallbackEntry> oldList;
             lock (_taintLock)
