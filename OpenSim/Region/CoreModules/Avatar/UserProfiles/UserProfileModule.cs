@@ -309,6 +309,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             string serverURI = string.Empty;
             GetUserProfileServerURI(targetID, out serverURI);
             UUID creatorId = UUID.Zero;
+            Dictionary<UUID, string> classifieds = new Dictionary<UUID, string>();
 
             OSDMap parameters= new OSDMap();
             UUID.TryParse(args[0], out creatorId);
@@ -316,15 +317,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             OSD Params = (OSD)parameters;
             if(!JsonRpcRequest(ref Params, "avatarclassifiedsrequest", serverURI, UUID.Random().ToString()))
             {
-                // Error Handling here!
-                // if(parameters.ContainsKey("message")
+                remoteClient.SendAvatarClassifiedReply(new UUID(args[0]), classifieds);
+                return;
             }
 
             parameters = (OSDMap)Params;
 
             OSDArray list = (OSDArray)parameters["result"];
 
-            Dictionary<UUID, string> classifieds = new Dictionary<UUID, string>();
 
             foreach(OSD map in list)
             {
@@ -441,7 +441,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
             ScenePresence p = FindPresence(remoteClient.AgentId);
-//            Vector3 avaPos = p.AbsolutePosition;
             
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
@@ -542,22 +541,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
             string serverURI = string.Empty;
             GetUserProfileServerURI(targetId, out serverURI);
+            
+            Dictionary<UUID, string> picks = new Dictionary<UUID, string>();
 
             OSDMap parameters= new OSDMap();
             parameters.Add("creatorId", OSD.FromUUID(targetId));
             OSD Params = (OSD)parameters;
             if(!JsonRpcRequest(ref Params, "avatarpicksrequest", serverURI, UUID.Random().ToString()))
             {
-                remoteClient.SendAgentAlertMessage(
-                        "Error requesting picks", false);
+                remoteClient.SendAvatarPicksReply(new UUID(args[0]), picks);
                 return;
             }
 
             parameters = (OSDMap)Params;
 
             OSDArray list = (OSDArray)parameters["result"];
-
-            Dictionary<UUID, string> picks = new Dictionary<UUID, string>();
 
             foreach(OSD map in list)
             {
@@ -762,8 +760,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             object Note = (object)note;
             if(!JsonRpcRequest(ref Note, "avatarnotesrequest", serverURI, UUID.Random().ToString()))
             {
-                remoteClient.SendAgentAlertMessage(
-                        "Error requesting note", false);
+                remoteClient.SendAvatarNotesReply(note.TargetId, note.Notes);
+                return;
             }
             note = (UserProfileNotes) Note;
                 
@@ -796,8 +794,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             object Note = note;
             if(!JsonRpcRequest(ref Note, "avatar_notes_update", serverURI, UUID.Random().ToString()))
             {
-                remoteClient.SendAgentAlertMessage(
-                        "Error updating note", false);
+                return;
             }
         }
         #endregion Notes
@@ -1033,8 +1030,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             OSD Params = (OSD)parameters;
             if(!JsonRpcRequest(ref Params, "image_assets_request", profileServerURI, UUID.Random().ToString()))
             {
-                // Error Handling here!
-                // if(parameters.ContainsKey("message")
                 return false;
             }
             
@@ -1224,7 +1219,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             byte[] content = Encoding.UTF8.GetBytes(jsonRequestData);
 
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
-            // webRequest.Credentials = new NetworkCredential(rpcUser, rpcPass);
+
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
@@ -1245,7 +1240,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             Stream rstream = webResponse.GetResponseStream();
-            OSDMap mret = (OSDMap)OSDParser.DeserializeJson(rstream);
+            if (rstream.Length < 1)
+                return false;
+              
+            OSDMap mret = new OSDMap();
+            try
+            {
+                mret = (OSDMap)OSDParser.DeserializeJson(rstream);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
+                return false;
+            }
+
 
             if (mret.ContainsKey("error"))
                 return false;
@@ -1310,6 +1318,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             Stream rstream = webResponse.GetResponseStream();
+            if (rstream.Length < 1)
+                return false;
 
             OSDMap response = new OSDMap();
             try
