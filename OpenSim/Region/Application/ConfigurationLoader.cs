@@ -201,11 +201,11 @@ namespace OpenSim
 
                 envConfigSource.LoadEnv();
                 m_config.Source.Merge(envConfigSource);
-                m_config.Source.ExpandKeyValues();
             }
 
-
             ReadConfigSettings();
+            
+            m_config.Source.ExpandKeyValues();
 
             return m_config;
         }
