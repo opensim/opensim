@@ -538,7 +538,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not authenticate password, {0}", e.Message);
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not authenticate password, {0}", e);
                 return null;
             }
             */

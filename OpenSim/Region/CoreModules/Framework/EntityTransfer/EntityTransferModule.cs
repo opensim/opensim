@@ -837,8 +837,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 m_log.WarnFormat(
-                    "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Keeping avatar in source region.",
-                    sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
+                    "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Keeping avatar in {2}",
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
                 return;
@@ -1058,8 +1058,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 m_log.WarnFormat(
-                    "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Keeping avatar in source region.",
-                    sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
+                    "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Keeping avatar in {2}",
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
                 return;

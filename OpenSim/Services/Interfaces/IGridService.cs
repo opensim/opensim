@@ -137,7 +137,10 @@ namespace OpenSim.Services.Interfaces
                 if ( m_serverURI != string.Empty ) {
                     return m_serverURI;
                 } else {
-                    return "http://" + m_externalHostName + ":" + m_httpPort + "/";
+                    if (m_httpPort == 0)
+                        return "http://" + m_externalHostName + "/";
+                    else
+                        return "http://" + m_externalHostName + ":" + m_httpPort + "/";
                 }
             }
             set { 

@@ -631,40 +631,16 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal ScenePresence CreateAndAddChildScenePresence(
             IClientAPI client, AvatarAppearance appearance, PresenceType type)
         {
-            ScenePresence newAvatar = null;
-
             // ScenePresence always defaults to child agent
-            newAvatar = new ScenePresence(client, m_parentScene, appearance, type);
-
-            AddScenePresence(newAvatar);
-
-            return newAvatar;
-        }
-
-        /// <summary>
-        /// Add a presence to the scene
-        /// </summary>
-        /// <param name="presence"></param>
-        protected internal void AddScenePresence(ScenePresence presence)
-        {
-            // Always a child when added to the scene
-            bool child = presence.IsChildAgent;
-
-            if (child)
-            {
-                m_numChildAgents++;
-            }
-            else
-            {
-                m_numRootAgents++;
-                presence.AddToPhysicalScene(false);
-            }
+            ScenePresence presence = new ScenePresence(client, m_parentScene, appearance, type);
 
             Entities[presence.UUID] = presence;
 
             m_scenePresencesLock.EnterWriteLock();
             try
             {
+                m_numChildAgents++;
+
                 Dictionary<UUID, ScenePresence> newmap = new Dictionary<UUID, ScenePresence>(m_scenePresenceMap);
                 List<ScenePresence> newlist = new List<ScenePresence>(m_scenePresenceArray);
 
@@ -675,7 +651,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    // Remember the old presene reference from the dictionary
+                    // Remember the old presence reference from the dictionary
                     ScenePresence oldref = newmap[presence.UUID];
                     // Replace the presence reference in the dictionary with the new value
                     newmap[presence.UUID] = presence;
@@ -691,6 +667,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_scenePresencesLock.ExitWriteLock();
             }
+
+            return presence;
         }
 
         /// <summary>

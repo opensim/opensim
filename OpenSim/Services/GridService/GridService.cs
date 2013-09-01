@@ -86,7 +86,7 @@ namespace OpenSim.Services.GridService
                 {
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "deregister region id",
-                            "deregister region id <Region UUID>",
+                            "deregister region id <region-id>+",
                             "Deregister a region manually.",
                             String.Empty,
                             HandleDeregisterRegion);
@@ -526,40 +526,41 @@ namespace OpenSim.Services.GridService
 
         private void HandleDeregisterRegion(string module, string[] cmd)
         {
-            if (cmd.Length != 4)
+            if (cmd.Length < 4)
             {
-                MainConsole.Instance.Output("Syntax: degregister region id <Region UUID>");
+                MainConsole.Instance.Output("Usage: degregister region id <region-id>+");
                 return;
             }
 
-            string rawRegionUuid = cmd[3];
-            UUID regionUuid;
-
-            if (!UUID.TryParse(rawRegionUuid, out regionUuid))
+            for (int i = 3; i < cmd.Length; i++)
             {
-                MainConsole.Instance.OutputFormat("{0} is not a valid region uuid", rawRegionUuid);
-                return;
-            }
+                string rawRegionUuid = cmd[i];
+                UUID regionUuid;
 
-            GridRegion region = GetRegionByUUID(UUID.Zero, regionUuid);
+                if (!UUID.TryParse(rawRegionUuid, out regionUuid))
+                {
+                    MainConsole.Instance.OutputFormat("{0} is not a valid region uuid", rawRegionUuid);
+                    return;
+                }
 
-            if (region == null)
-            {
-                MainConsole.Instance.OutputFormat("No region with UUID {0}", regionUuid);
-                return;
-            }
+                GridRegion region = GetRegionByUUID(UUID.Zero, regionUuid);
 
-            if (DeregisterRegion(regionUuid))
-            {
-                MainConsole.Instance.OutputFormat("Deregistered {0} {1}", region.RegionName, regionUuid);
-            }
-            else
-            {
-                // I don't think this can ever occur if we know that the region exists.
-                MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
-            }
+                if (region == null)
+                {
+                    MainConsole.Instance.OutputFormat("No region with UUID {0}", regionUuid);
+                    return;
+                }
 
-            return;
+                if (DeregisterRegion(regionUuid))
+                {
+                    MainConsole.Instance.OutputFormat("Deregistered {0} {1}", region.RegionName, regionUuid);
+                }
+                else
+                {
+                    // I don't think this can ever occur if we know that the region exists.
+                    MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
+                }
+            }
         }
 
         private void HandleShowRegions(string module, string[] cmd)

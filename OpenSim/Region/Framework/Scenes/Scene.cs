@@ -3986,7 +3986,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     try
                     {
-                        if (!AuthorizeUser(acd, SeeIntoRegion, out reason))
+                        if (!AuthorizeUser(acd, (vialogin ? false : SeeIntoRegion), out reason))
                         {
                             m_authenticateHandler.RemoveCircuit(acd.circuitcode);
                             return false;
@@ -4596,10 +4596,27 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Check that the auth_token is valid
             AgentCircuitData acd = AuthenticateHandler.GetAgentCircuitData(agentID);
-            if (acd != null && acd.SessionID.ToString() == auth_token)
+
+            if (acd == null)
+            {
+                m_log.DebugFormat(
+                    "[SCENE]: Request to close agent {0} but no such agent in scene {1}.  May have been closed previously.", 
+                    agentID, Name);
+
+                return false;
+            }
+
+            if (acd.SessionID.ToString() == auth_token)
+            {
                 return IncomingCloseAgent(agentID, force);
+            }
             else
-                m_log.ErrorFormat("[SCENE]: Request to close agent {0} with invalid authorization token {1}", agentID, auth_token);
+            {
+                m_log.WarnFormat(
+                    "[SCENE]: Request to close agent {0} with invalid authorization token {1} in {2}", 
+                    agentID, auth_token, Name);
+            }
+
             return false;
         }
 

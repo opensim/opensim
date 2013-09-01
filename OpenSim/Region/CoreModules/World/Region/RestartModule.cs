@@ -48,8 +48,8 @@ namespace OpenSim.Region.CoreModules.World.Region
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RestartModule")]
     public class RestartModule : INonSharedRegionModule, IRestartModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Scene m_Scene;
         protected Timer m_CountdownTimer = null;
@@ -223,11 +223,25 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         public void SetTimer(int intervalSeconds)
         {
-            m_CountdownTimer = new Timer();
-            m_CountdownTimer.AutoReset = false;
-            m_CountdownTimer.Interval = intervalSeconds * 1000;
-            m_CountdownTimer.Elapsed += OnTimer;
-            m_CountdownTimer.Start();
+            if (intervalSeconds > 0)
+            {
+                m_CountdownTimer = new Timer();
+                m_CountdownTimer.AutoReset = false;
+                m_CountdownTimer.Interval = intervalSeconds * 1000;
+                m_CountdownTimer.Elapsed += OnTimer;
+                m_CountdownTimer.Start();
+            }
+            else if (m_CountdownTimer != null)
+            {
+                m_CountdownTimer.Stop();
+                m_CountdownTimer = null;
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[RESTART MODULE]: Tried to set restart timer to {0} in {1}, which is not a valid interval", 
+                    intervalSeconds, m_Scene.Name);
+            }
         }
 
         private void OnTimer(object source, ElapsedEventArgs e)

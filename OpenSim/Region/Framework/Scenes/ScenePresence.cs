@@ -2707,6 +2707,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
         {
+            if (IsChildAgent)
+                return;
+
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
 
             if (part != null)
@@ -2793,6 +2796,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleAgentSitOnGround()
         {
+            if (IsChildAgent)
+                return;
+
 //            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick..
             m_AngularVelocity = Vector3.Zero;
             Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
@@ -3449,11 +3455,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return m_scene.CrossAgentToNewRegion(this, false);
             }
-        }
-
-        public void RestoreInCurrentScene()
-        {
-            AddToPhysicalScene(false); // not exactly false
         }
 
         public void Reset()

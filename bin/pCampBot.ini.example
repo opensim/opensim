@@ -1,6 +1,10 @@
 ; This is the example config file for pCampbot
 ; To use it, copy this file to pCampbot.ini and change settings if required
 
+[BotManager]
+  ; Number of milliseconds to wait between bot logins
+  LoginDelay = 5000
+
 [Bot]
   ; Control whether bots should regularly send agent updates
   ; Not doing this will reduce CPU requirements for pCampbot but greatly 
