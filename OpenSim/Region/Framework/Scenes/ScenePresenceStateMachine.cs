@@ -37,7 +37,8 @@ namespace OpenSim.Region.Framework.Scenes
     /// This is a state machine.
     ///
     /// [Entry]               => Running
-    /// Running               => Removing
+    /// Running               => PreRemove, Removing
+    /// PreRemove             => Running, Removing
     /// Removing              => Removed
     /// 
     /// All other methods should only see the scene presence in running state - this is the normal operational state
@@ -46,6 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
     public enum ScenePresenceState
     {
         Running,                // Normal operation state.  The scene presence is available.
+        PreRemove,              // The presence is due to be removed but can still be returning to running.
         Removing,               // The presence is in the process of being removed from the scene via Scene.RemoveClient.
         Removed,                // The presence has been removed from the scene and is effectively dead.
                                 // There is no exit from this state.
@@ -80,8 +82,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (this)
             {
-                if (newState == ScenePresenceState.Removing && m_state == ScenePresenceState.Running)
+                if (newState == m_state)
+                    return;
+                else if (newState == ScenePresenceState.Running && m_state == ScenePresenceState.PreRemove)
                     transitionOkay = true;
+                else if (newState == ScenePresenceState.PreRemove && m_state == ScenePresenceState.Running)
+                    transitionOkay = true;
+                else if (newState == ScenePresenceState.Removing)
+                {   
+                    if (m_state == ScenePresenceState.Running || m_state == ScenePresenceState.PreRemove)
+                        transitionOkay = true;
+                }
                 else if (newState == ScenePresenceState.Removed && m_state == ScenePresenceState.Removing)
                     transitionOkay = true;
             }           
