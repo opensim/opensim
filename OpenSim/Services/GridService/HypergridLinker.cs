@@ -79,7 +79,7 @@ namespace OpenSim.Services.GridService
             {
                 if (m_DefaultRegion == null)
                 {
-                    List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
+                    List<GridRegion> defs = m_GridService.GetDefaultHypergridRegions(m_ScopeID);
                     if (defs != null && defs.Count > 0)
                         m_DefaultRegion = defs[0];
                     else

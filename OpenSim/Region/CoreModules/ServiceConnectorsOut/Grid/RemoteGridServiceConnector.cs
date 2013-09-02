@@ -277,6 +277,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            List<GridRegion> rinfo = m_LocalGridService.GetDefaultHypergridRegions(scopeID);
+            //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Local GetDefaultHypergridRegions {0} found {1} regions", name, rinfo.Count);
+            List<GridRegion> grinfo = m_RemoteGridService.GetDefaultHypergridRegions(scopeID);
+
+            if (grinfo != null)
+            {
+                //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetDefaultHypergridRegions {0} found {1} regions", name, grinfo.Count);
+                foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
+                    if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
+                        rinfo.Add(r);
+                }
+            }
+
+            return rinfo;
+        }
+
         public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             List<GridRegion> rinfo = m_LocalGridService.GetFallbackRegions(scopeID, x, y);

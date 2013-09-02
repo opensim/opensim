@@ -265,8 +265,9 @@ namespace OpenSim.Services.GridService
                 m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
             }
 
-            m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
-                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY);
+            m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3} with flags {4}", 
+                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY, 
+                (OpenSim.Framework.RegionFlags)flags);
 
             return String.Empty;
         }
@@ -475,6 +476,33 @@ namespace OpenSim.Services.GridService
             }
 
             m_log.DebugFormat("[GRID SERVICE]: GetDefaultRegions returning {0} regions", ret.Count);
+            return ret;
+        }
+
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetDefaultHypergridRegions(scopeID);
+
+            foreach (RegionData r in regions)
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
+                    ret.Add(RegionData2RegionInfo(r));
+            }
+
+            int hgDefaultRegionsFoundOnline = regions.Count;
+
+            // For now, hypergrid default regions will always be given precedence but we will also return simple default
+            // regions in case no specific hypergrid regions are specified.
+            ret.AddRange(GetDefaultRegions(scopeID));
+
+            int normalDefaultRegionsFoundOnline = ret.Count - hgDefaultRegionsFoundOnline;
+
+            m_log.DebugFormat(
+                "[GRID SERVICE]: GetDefaultHypergridRegions returning {0} hypergrid default and {1} normal default regions", 
+                hgDefaultRegionsFoundOnline, normalDefaultRegionsFoundOnline);
+
             return ret;
         }
 
