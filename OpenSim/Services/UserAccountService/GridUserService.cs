@@ -78,14 +78,13 @@ namespace OpenSim.Services.UserAccountService
 //                    onlineCount++;
 
                     int unixLoginTime = int.Parse(gu.Data["Login"]);
-                    DateTime loginDateTime = Util.UnixEpoch.AddSeconds(unixLoginTime);
 
-                    if ((loginDateTime - now).Days < 5)
+                    if ((now - Util.ToDateTime(unixLoginTime)).Days < 5)
                         onlineRecentlyCount++;
                 }
             }
 
-            MainConsole.Instance.OutputFormat("Users online within last 5 days: {0}", onlineRecentlyCount);
+            MainConsole.Instance.OutputFormat("Users online: {0}", onlineRecentlyCount);
         }
 
         public virtual GridUserInfo GetGridUserInfo(string userID)
