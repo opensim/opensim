@@ -81,6 +81,7 @@ namespace OpenSim.Data
         bool Delete(UUID regionID);
 
         List<RegionData> GetDefaultRegions(UUID scopeID);
+        List<RegionData> GetDefaultHypergridRegions(UUID scopeID);
         List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y);
         List<RegionData> GetHyperlinks(UUID scopeID);
     }

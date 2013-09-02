@@ -151,7 +151,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-	HypergridLinker = true
+
+    HypergridLinker = true
 
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
@@ -168,16 +169,16 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
-    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
+    ;; where <flags> can be DefaultRegion, DefaultHGRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut, Reservation, NoMove, Authenticate
     ;; For example: 
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
 
-	;; Allow Hyperlinks to be created at the console
+    ;; Allow Hyperlinks to be created at the console
     HypergridLinker = true
 
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-	; GatekeeperURI = "http://127.0.0.1:8002"
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ; GatekeeperURI = "http://127.0.0.1:8002"
 
 
 ; * This is the configuration for the freeswitch server in grid mode
