@@ -326,15 +326,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             UUID fromAgentID, UUID ownerID, string fromName, ChatTypeEnum type,
             string message, ChatSourceType src, bool ignoreDistance)
         {
-            Vector3 fromRegionPos = fromPos + regionPos;
-            Vector3 toRegionPos = presence.AbsolutePosition +
-                new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                            presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
-
-            int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
+            if (presence.LifecycleState != ScenePresenceState.Running)
+                return false;
 
             if (!ignoreDistance)
             {
+                Vector3 fromRegionPos = fromPos + regionPos;
+                Vector3 toRegionPos = presence.AbsolutePosition +
+                    new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
+                                presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+
+                int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
+
                 if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
                     type == ChatTypeEnum.Say && dis > m_saydistance ||
                     type == ChatTypeEnum.Shout && dis > m_shoutdistance)
