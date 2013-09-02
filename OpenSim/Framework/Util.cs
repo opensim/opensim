@@ -522,19 +522,17 @@ namespace OpenSim.Framework
         public static int ToUnixTime(DateTime stamp)
         {
             TimeSpan t = stamp.ToUniversalTime() - UnixEpoch;
-            return (int) t.TotalSeconds;
+            return (int)t.TotalSeconds;
         }
 
         public static DateTime ToDateTime(ulong seconds)
         {
-            DateTime epoch = UnixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         public static DateTime ToDateTime(int seconds)
         {
-            DateTime epoch = UnixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         /// <summary>
