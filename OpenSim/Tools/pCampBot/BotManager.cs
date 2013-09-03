@@ -650,7 +650,7 @@ namespace pCampBot
             MainConsole.Instance.Output("Settings");
 
             ConsoleDisplayList statusCdl = new ConsoleDisplayList();
-            statusCdl.AddRow("Behaviours", string.Join(", ", bot.Behaviours.ConvertAll<string>(b => b.Name)));
+            statusCdl.AddRow("Behaviours", string.Join(", ", bot.Behaviours.ConvertAll<string>(b => b.Name).ToArray()));
             GridClient botClient = bot.Client;
             statusCdl.AddRow("SEND_AGENT_UPDATES", botClient.Settings.SEND_AGENT_UPDATES);
 
