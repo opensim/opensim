@@ -80,7 +80,8 @@ namespace pCampBot
 
         public override void Close()
         {
-            Bot.Client.Self.Jump(false);
+            if (Bot.ConnectionState == ConnectionState.Connected)
+                Bot.Client.Self.Jump(false);
         }
 
         private string[] readexcuses()
