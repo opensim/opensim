@@ -78,6 +78,11 @@ namespace pCampBot
                 Bot.Client.Self.Chat(randomf, 0, ChatType.Normal);
         }
 
+        public override void Close()
+        {
+            Bot.Client.Self.Jump(false);
+        }
+
         private string[] readexcuses()
         {
             string allexcuses = "";
