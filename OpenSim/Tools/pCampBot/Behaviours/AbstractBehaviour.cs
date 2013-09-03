@@ -50,5 +50,7 @@ namespace pCampBot
         {
             Bot = bot;
         }
+
+        public virtual void Close() {}
     }
 }

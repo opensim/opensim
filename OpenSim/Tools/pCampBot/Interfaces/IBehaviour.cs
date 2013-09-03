@@ -51,6 +51,14 @@ namespace pCampBot.Interfaces
         void Initialize(Bot bot);
 
         /// <summary>
+        /// Close down this behaviour.
+        /// </summary>
+        /// <remarks>
+        /// This is triggered if a behaviour is removed via explicit command and when a bot is disconnected
+        /// </remarks>
+        void Close();
+
+        /// <summary>
         /// Action to take when this behaviour is invoked.
         /// </summary>
         /// <param name="bot"></param>

@@ -209,7 +209,17 @@ namespace pCampBot
         public bool RemoveBehaviour(string abbreviatedName)
         {
             lock (Behaviours)
-                return Behaviours.Remove(abbreviatedName);
+            {
+                IBehaviour behaviour;
+
+                if (!Behaviours.TryGetValue(abbreviatedName, out behaviour))
+                    return false;
+
+                behaviour.Close();
+                Behaviours.Remove(abbreviatedName);
+
+                return true;
+            }
         }
 
         private void CreateLibOmvClient()
@@ -282,6 +292,10 @@ namespace pCampBot
                 // XXX: This is a really shitty way of yielding so that behaviours can be added/removed
                 Thread.Sleep(100);
             }
+
+            lock (Behaviours)
+                foreach (IBehaviour b in Behaviours.Values)
+                    b.Close();
         }
 
         /// <summary>
