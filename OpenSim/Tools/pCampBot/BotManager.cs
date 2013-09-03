@@ -200,11 +200,11 @@ namespace pCampBot
                 "Can be performed on connected or disconnected bots.",
                 HandleAddBehaviour);
 
-//            m_console.Commands.AddCommand(
-//                "bot", false, "remove behaviour", "remove behaviour <abbreviated-name> <bot-number>", 
-//                "Remove a behaviour from a bot",
-//                "Can be performed on connected or disconnected bots.",
-//                HandleRemoveBehaviour);
+            m_console.Commands.AddCommand(
+                "bot", false, "remove behaviour", "remove behaviour <abbreviated-name> <bot-number>", 
+                "Remove a behaviour from a bot",
+                "Can be performed on connected or disconnected bots.",
+                HandleRemoveBehaviour);
 
             m_console.Commands.AddCommand(
                 "bot", false, "sit", "sit", "Sit all bots on the ground.",
@@ -523,6 +523,49 @@ namespace pCampBot
             MainConsole.Instance.OutputFormat(
                 "Added behaviours {0} to bot {1}", 
                 string.Join(", ", behavioursAdded.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+        }
+
+        private void HandleRemoveBehaviour(string module, string[] cmd)
+        {
+            if (cmd.Length != 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: remove behaviour <abbreviated-behaviour> <bot-number>");
+                return;
+            }
+
+            string rawBehaviours = cmd[2];
+            int botNumber;
+
+            if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
+                return;
+
+            Bot bot = GetBotFromNumber(botNumber);
+
+            if (bot == null)
+            {
+                MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                return;
+            }
+
+            HashSet<string> abbreviatedBehavioursToRemove = new HashSet<string>();
+            List<IBehaviour> behavioursRemoved = new List<IBehaviour>();
+
+            Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => abbreviatedBehavioursToRemove.Add(b));
+
+            foreach (string b in abbreviatedBehavioursToRemove)
+            {
+                IBehaviour behaviour;
+
+                if (bot.TryGetBehaviour(b, out behaviour))
+                {
+                    bot.RemoveBehaviour(b);
+                    behavioursRemoved.Add(behaviour);
+                }
+            }
+
+            MainConsole.Instance.OutputFormat(
+                "Removed behaviours {0} to bot {1}", 
+                string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
         }
 
         private void HandleDisconnect(string module, string[] cmd)
