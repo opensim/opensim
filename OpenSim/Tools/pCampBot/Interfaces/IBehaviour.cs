@@ -32,6 +32,11 @@ namespace pCampBot.Interfaces
     public interface IBehaviour
     {
         /// <summary>
+        /// Abbreviated name of this behaviour. 
+        /// </summary>
+        string AbbreviatedName { get; }
+
+        /// <summary>
         /// Name of this behaviour.
         /// </summary>
         string Name { get; }

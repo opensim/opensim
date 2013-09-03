@@ -38,6 +38,10 @@ namespace pCampBot
     /// </summary>
     public class NoneBehaviour : AbstractBehaviour
     {
-        public NoneBehaviour() { Name = "None"; }
+        public NoneBehaviour() 
+        { 
+            AbbreviatedName = "n";
+            Name = "None"; 
+        }
     }
 }

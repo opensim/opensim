@@ -572,10 +572,11 @@ namespace pCampBot
         private void HandleShowBotsStatus(string module, string[] cmd)
         {
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
-            cdt.AddColumn("Name", 30);
-            cdt.AddColumn("Region", 30);
-            cdt.AddColumn("Status", 14);
-            cdt.AddColumn("Connections", 11);
+            cdt.AddColumn("Name", 24);
+            cdt.AddColumn("Region", 24);
+            cdt.AddColumn("Status", 13);
+            cdt.AddColumn("Conns", 5);
+            cdt.AddColumn("Behaviours", 20);
 
             Dictionary<ConnectionState, int> totals = new Dictionary<ConnectionState, int>();
             foreach (object o in Enum.GetValues(typeof(ConnectionState)))
@@ -583,13 +584,17 @@ namespace pCampBot
 
             lock (m_bots)
             {
-                foreach (Bot pb in m_bots)
+                foreach (Bot bot in m_bots)
                 {
-                    Simulator currentSim = pb.Client.Network.CurrentSim;
-                    totals[pb.ConnectionState]++;
+                    Simulator currentSim = bot.Client.Network.CurrentSim;
+                    totals[bot.ConnectionState]++;
 
                     cdt.AddRow(
-                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState, pb.SimulatorsCount);
+                        bot.Name, 
+                        currentSim != null ? currentSim.Name : "(none)", 
+                        bot.ConnectionState, 
+                        bot.SimulatorsCount, 
+                        string.Join(",", bot.Behaviours.ConvertAll<string>(behaviour => behaviour.AbbreviatedName)));
                 }
             }
 
@@ -645,6 +650,7 @@ namespace pCampBot
             MainConsole.Instance.Output("Settings");
 
             ConsoleDisplayList statusCdl = new ConsoleDisplayList();
+            statusCdl.AddRow("Behaviours", string.Join(", ", bot.Behaviours.ConvertAll<string>(b => b.Name)));
             GridClient botClient = bot.Client;
             statusCdl.AddRow("SEND_AGENT_UPDATES", botClient.Settings.SEND_AGENT_UPDATES);
 

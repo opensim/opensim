@@ -41,7 +41,11 @@ namespace pCampBot
     /// </remarks>
     public class GrabbingBehaviour : AbstractBehaviour
     {
-        public GrabbingBehaviour() { Name = "Grabbing"; }
+        public GrabbingBehaviour() 
+        { 
+            AbbreviatedName = "g";
+            Name = "Grabbing"; 
+        }
 
         public override void Action()
         {

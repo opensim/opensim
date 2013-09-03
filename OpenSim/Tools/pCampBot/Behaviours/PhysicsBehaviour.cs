@@ -46,6 +46,7 @@ namespace pCampBot
 
         public PhysicsBehaviour()
         {
+            AbbreviatedName = "p";
             Name = "Physics";
             talkarray = readexcuses();
         }
