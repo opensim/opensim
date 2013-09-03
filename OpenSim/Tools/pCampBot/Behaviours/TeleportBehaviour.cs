@@ -42,7 +42,11 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public TeleportBehaviour() { Name = "Teleport"; }
+        public TeleportBehaviour() 
+        {
+            AbbreviatedName = "t";
+            Name = "Teleport"; 
+        }
 
         public override void Action()
         {
