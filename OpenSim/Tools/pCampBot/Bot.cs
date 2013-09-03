@@ -184,6 +184,12 @@ namespace pCampBot
             CreateLibOmvClient();
         }
 
+        public bool TryGetBehaviour(string abbreviatedName, out IBehaviour behaviour)
+        {
+            lock (Behaviours)
+                return Behaviours.TryGetValue(abbreviatedName, out behaviour);
+        }
+
         public bool AddBehaviour(IBehaviour behaviour)
         {
             lock (Behaviours)
@@ -198,6 +204,12 @@ namespace pCampBot
             }
 
             return false;
+        }
+
+        public bool RemoveBehaviour(string abbreviatedName)
+        {
+            lock (Behaviours)
+                return Behaviours.Remove(abbreviatedName);
         }
 
         private void CreateLibOmvClient()
