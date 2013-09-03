@@ -594,7 +594,7 @@ namespace pCampBot
                         currentSim != null ? currentSim.Name : "(none)", 
                         bot.ConnectionState, 
                         bot.SimulatorsCount, 
-                        string.Join(",", bot.Behaviours.ConvertAll<string>(behaviour => behaviour.AbbreviatedName)));
+                        string.Join(",", bot.Behaviours.ConvertAll<string>(behaviour => behaviour.AbbreviatedName).ToArray()));
                 }
             }
 
