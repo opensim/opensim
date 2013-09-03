@@ -195,15 +195,17 @@ namespace pCampBot
                 HandleDisconnect);
 
             m_console.Commands.AddCommand(
-                "bot", false, "add behaviour", "add behaviour <abbreviated-name> <bot-number>", 
+                "bot", false, "add behaviour", "add behaviour <abbreviated-name> [<bot-number>]", 
                 "Add a behaviour to a bot",
-                "Can be performed on connected or disconnected bots.",
+                "If no bot number is specified then behaviour is added to all bots.\n"
+                    + "Can be performed on connected or disconnected bots.",
                 HandleAddBehaviour);
 
             m_console.Commands.AddCommand(
-                "bot", false, "remove behaviour", "remove behaviour <abbreviated-name> <bot-number>", 
+                "bot", false, "remove behaviour", "remove behaviour <abbreviated-name> [<bot-number>]", 
                 "Remove a behaviour from a bot",
-                "Can be performed on connected or disconnected bots.",
+                "If no bot number is specified then behaviour is added to all bots.\n"
+                    + "Can be performed on connected or disconnected bots.",
                 HandleRemoveBehaviour);
 
             m_console.Commands.AddCommand(
@@ -224,7 +226,7 @@ namespace pCampBot
                 "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bot", "show bot <n>", 
+                "bot", false, "show bot", "show bot <bot-number>", 
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_bots = new List<Bot>();
@@ -489,83 +491,114 @@ namespace pCampBot
 
         private void HandleAddBehaviour(string module, string[] cmd)
         {
-            if (cmd.Length != 4)
+            if (cmd.Length < 3 || cmd.Length > 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: add behaviour <abbreviated-behaviour> <bot-number>");
+                MainConsole.Instance.OutputFormat("Usage: add behaviour <abbreviated-behaviour> [<bot-number>]");
                 return;
             }
 
             string rawBehaviours = cmd[2];
-            int botNumber;
 
-            if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
-                return;
+            List<Bot> botsToEffect = new List<Bot>();
 
-            Bot bot = GetBotFromNumber(botNumber);
-
-            if (bot == null)
+            if (cmd.Length == 3)
             {
-                MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
-                return;
+                lock (m_bots)
+                    botsToEffect.AddRange(m_bots);
             }
+            else
+            {
+                int botNumber;
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
+                    return;
+
+                Bot bot = GetBotFromNumber(botNumber);
+
+                if (bot == null)
+                {
+                    MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                    return;
+                }
+
+                botsToEffect.Add(bot);
+            }
+
 
             HashSet<string> rawAbbreviatedSwitchesToAdd = new HashSet<string>();
             Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => rawAbbreviatedSwitchesToAdd.Add(b));
 
-            List<IBehaviour> behavioursAdded = new List<IBehaviour>();
-
-            foreach (IBehaviour behaviour in CreateBehavioursFromAbbreviatedNames(rawAbbreviatedSwitchesToAdd))
+            foreach (Bot bot in botsToEffect)
             {
-                if (bot.AddBehaviour(behaviour))
-                    behavioursAdded.Add(behaviour);
-            }
+                List<IBehaviour> behavioursAdded = new List<IBehaviour>();
 
-            MainConsole.Instance.OutputFormat(
-                "Added behaviours {0} to bot {1}", 
-                string.Join(", ", behavioursAdded.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+                foreach (IBehaviour behaviour in CreateBehavioursFromAbbreviatedNames(rawAbbreviatedSwitchesToAdd))
+                {
+                    if (bot.AddBehaviour(behaviour))
+                        behavioursAdded.Add(behaviour);
+                }
+
+                MainConsole.Instance.OutputFormat(
+                    "Added behaviours {0} to bot {1}", 
+                    string.Join(", ", behavioursAdded.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+            }
         }
 
         private void HandleRemoveBehaviour(string module, string[] cmd)
         {
-            if (cmd.Length != 4)
+            if (cmd.Length < 3 || cmd.Length > 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: remove behaviour <abbreviated-behaviour> <bot-number>");
+                MainConsole.Instance.OutputFormat("Usage: remove behaviour <abbreviated-behaviour> [<bot-number>]");
                 return;
             }
 
             string rawBehaviours = cmd[2];
-            int botNumber;
 
-            if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
-                return;
+            List<Bot> botsToEffect = new List<Bot>();
 
-            Bot bot = GetBotFromNumber(botNumber);
-
-            if (bot == null)
+            if (cmd.Length == 3)
             {
-                MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
-                return;
+                lock (m_bots)
+                    botsToEffect.AddRange(m_bots);
+            }
+            else
+            {
+                int botNumber;
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
+                    return;
+
+                Bot bot = GetBotFromNumber(botNumber);
+
+                if (bot == null)
+                {
+                    MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                    return;
+                }
+
+                botsToEffect.Add(bot);
             }
 
             HashSet<string> abbreviatedBehavioursToRemove = new HashSet<string>();
-            List<IBehaviour> behavioursRemoved = new List<IBehaviour>();
-
             Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => abbreviatedBehavioursToRemove.Add(b));
 
-            foreach (string b in abbreviatedBehavioursToRemove)
+            foreach (Bot bot in botsToEffect)
             {
-                IBehaviour behaviour;
+                List<IBehaviour> behavioursRemoved = new List<IBehaviour>();
 
-                if (bot.TryGetBehaviour(b, out behaviour))
+                foreach (string b in abbreviatedBehavioursToRemove)
                 {
-                    bot.RemoveBehaviour(b);
-                    behavioursRemoved.Add(behaviour);
-                }
-            }
+                    IBehaviour behaviour;
 
-            MainConsole.Instance.OutputFormat(
-                "Removed behaviours {0} to bot {1}", 
-                string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+                    if (bot.TryGetBehaviour(b, out behaviour))
+                    {
+                        bot.RemoveBehaviour(b);
+                        behavioursRemoved.Add(behaviour);
+                    }
+                }
+
+                MainConsole.Instance.OutputFormat(
+                    "Removed behaviours {0} to bot {1}", 
+                    string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+            }
         }
 
         private void HandleDisconnect(string module, string[] cmd)
