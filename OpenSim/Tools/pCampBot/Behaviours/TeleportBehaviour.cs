@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using OpenMetaverse;
 using pCampBot.Interfaces;
@@ -74,6 +75,8 @@ namespace pCampBot
                 Bot.Name, sourceRegion.Name, Bot.Client.Self.SimPosition, destRegion.Name, destPosition);
 
             Bot.Client.Self.Teleport(destRegion.RegionHandle, destPosition);
+
+            Thread.Sleep(Bot.Random.Next(3000, 10000));
         }
     }
 }
