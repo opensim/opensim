@@ -605,30 +605,32 @@ public sealed class BSLinksetConstraints : BSLinkset
             // pParams = [ BSPhysObject root, BSPhysObject child, int op, object opParams, int op, object opParams, ... ]
             case ExtendedPhysics.PhysFunctChangeLinkParams:
                 // There should be two parameters: the childActor and a list of parameters to set
-                try
+                if (pParams.Length > 2)
                 {
-                    if (pParams.Length > 2)
+                    BSPrimLinkable child = pParams[1] as BSPrimLinkable;
+                    BSLinkInfo baseLinkInfo = null;
+                    if (TryGetLinkInfo(child, out baseLinkInfo))
                     {
-                        BSPrimLinkable child = pParams[1] as BSPrimLinkable;
-                        BSLinkInfo baseLinkInfo = null;
-                        if (TryGetLinkInfo(child, out baseLinkInfo))
+                        BSLinkInfoConstraint linkInfo = baseLinkInfo as BSLinkInfoConstraint;
+                        if (linkInfo != null)
                         {
-                            BSLinkInfoConstraint linkInfo = baseLinkInfo as BSLinkInfoConstraint;
-                            if (linkInfo != null)
-                            {
-                                int valueInt;
-                                float valueFloat;
-                                bool valueBool;
-                                OMV.Vector3 valueVector;
-                                OMV.Quaternion valueQuaternion;
-                                int axisLow, axisHigh;
+                            int valueInt;
+                            float valueFloat;
+                            bool valueBool;
+                            OMV.Vector3 valueVector;
+                            OMV.Quaternion valueQuaternion;
+                            int axisLow, axisHigh;
 
-                                int opIndex = 2;
-                                while (opIndex < pParams.Length)
+                            int opIndex = 2;
+                            while (opIndex < pParams.Length)
+                            {
+                                int thisOp = 0;
+                                string errMsg = "";
+                                try
                                 {
-                                    int thisOp = (int)pParams[opIndex];
+                                    thisOp = (int)pParams[opIndex];
                                     DetailLog("{0},BSLinksetConstraint.ChangeLinkParams2,op={1},val={2}",
-                                                        linkInfo.member.LocalID, thisOp, pParams[opIndex+1]);
+                                                        linkInfo.member.LocalID, thisOp, pParams[opIndex + 1]);
                                     switch (thisOp)
                                     {
                                         case ExtendedPhysics.PHYS_PARAM_LINK_TYPE:
@@ -646,89 +648,106 @@ public sealed class BSLinksetConstraints : BSLinkset
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINA_LOC:
+                                            errMsg = "PHYS_PARAM_FRAMEINA_LOC takes one parameter of type vector";
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.frameInAloc = valueVector;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINA_ROT:
+                                            errMsg = "PHYS_PARAM_FRAMEINA_ROT takes one parameter of type rotation";
                                             valueQuaternion = (OMV.Quaternion)pParams[opIndex + 1];
                                             linkInfo.frameInArot = valueQuaternion;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINB_LOC:
+                                            errMsg = "PHYS_PARAM_FRAMEINB_LOC takes one parameter of type vector";
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.frameInBloc = valueVector;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_FRAMEINB_ROT:
+                                            errMsg = "PHYS_PARAM_FRAMEINB_ROT takes one parameter of type rotation";
                                             valueQuaternion = (OMV.Quaternion)pParams[opIndex + 1];
                                             linkInfo.frameInBrot = valueQuaternion;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_LOW:
+                                            errMsg = "PHYS_PARAM_LINEAR_LIMIT_LOW takes one parameter of type vector";
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.linearLimitLow = valueVector;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_LINEAR_LIMIT_HIGH:
+                                            errMsg = "PHYS_PARAM_LINEAR_LIMIT_HIGH takes one parameter of type vector";
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.linearLimitHigh = valueVector;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_LOW:
+                                            errMsg = "PHYS_PARAM_ANGULAR_LIMIT_LOW takes one parameter of type vector";
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.angularLimitLow = valueVector;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ANGULAR_LIMIT_HIGH:
+                                            errMsg = "PHYS_PARAM_ANGULAR_LIMIT_HIGH takes one parameter of type vector";
                                             valueVector = (OMV.Vector3)pParams[opIndex + 1];
                                             linkInfo.angularLimitHigh = valueVector;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_USE_FRAME_OFFSET:
-                                            valueBool = (bool)pParams[opIndex + 1];
+                                            errMsg = "PHYS_PARAM_USE_FRAME_OFFSET takes one parameter of type integer (bool)";
+                                            valueBool = ((int)pParams[opIndex + 1]) != 0;
                                             linkInfo.useFrameOffset = valueBool;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ENABLE_TRANSMOTOR:
-                                            valueBool = (bool)pParams[opIndex + 1];
+                                            errMsg = "PHYS_PARAM_ENABLE_TRANSMOTOR takes one parameter of type integer (bool)";
+                                            valueBool = ((int)pParams[opIndex + 1]) != 0;
                                             linkInfo.enableTransMotor = valueBool;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXVEL:
+                                            errMsg = "PHYS_PARAM_TRANSMOTOR_MAXVEL takes one parameter of type float";
                                             valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.transMotorMaxVel = valueFloat;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_TRANSMOTOR_MAXFORCE:
+                                            errMsg = "PHYS_PARAM_TRANSMOTOR_MAXFORCE takes one parameter of type float";
                                             valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.transMotorMaxForce = valueFloat;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_CFM:
+                                            errMsg = "PHYS_PARAM_CFM takes one parameter of type float";
                                             valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.cfm = valueFloat;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_ERP:
+                                            errMsg = "PHYS_PARAM_ERP takes one parameter of type float";
                                             valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.erp = valueFloat;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SOLVER_ITERATIONS:
+                                            errMsg = "PHYS_PARAM_SOLVER_ITERATIONS takes one parameter of type float";
                                             valueFloat = (float)pParams[opIndex + 1];
                                             linkInfo.solverIterations = valueFloat;
                                             opIndex += 2;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_AXIS_ENABLE:
+                                            errMsg = "PHYS_PARAM_SPRING_AXIS_ENABLE takes two parameters of types integer and integer (bool)";
                                             valueInt = (int)pParams[opIndex + 1];
-                                            valueBool = ((int)pParams[opIndex + 2] != 0);
+                                            valueBool = ((int)pParams[opIndex + 2]) != 0;
                                             GetAxisRange(valueInt, out axisLow, out axisHigh);
                                             for (int ii = axisLow; ii <= axisHigh; ii++)
                                                 linkInfo.springAxisEnable[ii] = valueBool;
                                             opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_DAMPING:
+                                            errMsg = "PHYS_PARAM_SPRING_DAMPING takes two parameters of types integer and float";
                                             valueInt = (int)pParams[opIndex + 1];
                                             valueFloat = (float)pParams[opIndex + 2];
                                             GetAxisRange(valueInt, out axisLow, out axisHigh);
@@ -737,6 +756,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                                             opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_SPRING_STIFFNESS:
+                                            errMsg = "PHYS_PARAM_SPRING_STIFFNESS takes two parameters of types integer and float";
                                             valueInt = (int)pParams[opIndex + 1];
                                             valueFloat = (float)pParams[opIndex + 2];
                                             GetAxisRange(valueInt, out axisLow, out axisHigh);
@@ -745,7 +765,8 @@ public sealed class BSLinksetConstraints : BSLinkset
                                             opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_USE_LINEAR_FRAMEA:
-                                            valueBool = (bool)pParams[opIndex + 1];
+                                            errMsg = "PHYS_PARAM_USE_LINEAR_FRAMEA takes one parameter of type integer (bool)";
+                                            valueBool = ((int)pParams[opIndex + 1]) != 0;
                                             linkInfo.useLinearReferenceFrameA = valueBool;
                                             opIndex += 2;
                                             break;
@@ -753,18 +774,22 @@ public sealed class BSLinksetConstraints : BSLinkset
                                             break;
                                     }
                                 }
+                                catch (InvalidCastException e)
+                                {
+                                    m_physicsScene.Logger.WarnFormat("{0} value of wrong type in physSetLinksetParams: {1}, err={2}",
+                                                        LogHeader, errMsg, e);
+                                }
+                                catch (Exception e)
+                                {
+                                    m_physicsScene.Logger.WarnFormat("{0} bad parameters in physSetLinksetParams: {1}", LogHeader, e);
+                                }
                             }
-                            // Something changed so a rebuild is in order
-                            Refresh(child);
                         }
+                        // Something changed so a rebuild is in order
+                        Refresh(child);
                     }
                 }
-                catch (Exception e)
-                {
-                    // There are many ways to mess up the parameters. If not just right don't fail without some error.
-                    m_physicsScene.Logger.WarnFormat("{0} bad parameters in physSetLinksetParams: {1}", LogHeader, e);
-                }
-                break;
+            break;
             default:
                 ret = base.Extension(pFunct, pParams);
                 break;
@@ -779,11 +804,11 @@ public sealed class BSLinksetConstraints : BSLinkset
     {
         switch (rangeSpec)
         {
-            case ExtendedPhysics.PHYS_AXIS_ALL_LINEAR:
+            case ExtendedPhysics.PHYS_AXIS_LINEAR_ALL:
                 low = 0;
                 high = 2;
                 break;
-            case ExtendedPhysics.PHYS_AXIS_ALL_ANGULAR:
+            case ExtendedPhysics.PHYS_AXIS_ANGULAR_ALL:
                 low = 3;
                 high = 5;
                 break;
