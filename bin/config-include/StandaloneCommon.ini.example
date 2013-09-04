@@ -81,11 +81,27 @@
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegioName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
+    ;;  
+    ;; DefaultRegion    If a local login cannot be placed in the required region (e.g. home region does not exist, avatar is not allowed entry, etc.)
+    ;;                  then this region becomes the destination.  Only the first online default region will be used.  If no DefaultHGRegion
+    ;;                  is specified then this will also be used as the region for hypergrid connections that require it (commonly because they have not specified
+    ;;                  an explicit region.
+    ;;  
+    ;; DefaultHGRegion  If an avatar connecting via the hypergrid does not specify a region, then they are placed here.  Only the first online
+    ;;                  region will be used.
+    ;;  
+    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the 
+    ;;                  order specified.  This only applies to local logins at this time, not Hypergrid connections.
+    ;;  
+    ;; NoDirectLogin    A hypergrid user cannot directly connect to this region.  This does not apply to local logins.
+    ;;  
+    ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
+    ;;
     ;; For example:
     Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
     ; === HG ONLY ===
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI="http://127.0.0.1:9000"
 
 [LibraryModule]
@@ -94,7 +110,7 @@
 
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
-	;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
+    ;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "http://127.0.0.1:9000"
 
     SRV_HomeURI = "http://127.0.0.1:9000"    
