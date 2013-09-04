@@ -624,9 +624,16 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 int avg_reqs = cinfo.AsyncRequests.Values.Sum() + cinfo.GenericRequests.Values.Sum() + cinfo.SyncRequests.Values.Sum();
                                 avg_reqs = avg_reqs / ((DateTime.Now - cinfo.StartedTime).Minutes + 1);
 
+                                string childAgentStatus;
+
+                                if (llClient.SceneAgent != null)
+                                    childAgentStatus = llClient.SceneAgent.IsChildAgent ? "N" : "Y"; 
+                                else
+                                    childAgentStatus = "Off!";
+
                                 m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", 
                                     scene.RegionInfo.RegionName, llClient.Name,
-                                         llClient.SceneAgent.IsChildAgent ? "N" : "Y", 
+                                         childAgentStatus, 
                                          (DateTime.Now - cinfo.StartedTime).Minutes,
                                          avg_reqs, 
                                          string.Format(
