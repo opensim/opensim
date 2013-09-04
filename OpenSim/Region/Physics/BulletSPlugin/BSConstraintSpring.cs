@@ -63,7 +63,7 @@ public sealed class BSConstraintSpring : BSConstraint6Dof
 
     public bool SetStiffness(int pIndex, float pStiffness)
     {
-        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetStiffness,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetStiffness,obj1ID={1},obj2ID={2},indx={3},stiff={4}",
                                         m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pStiffness);
         PhysicsScene.PE.SpringSetStiffness(m_constraint, pIndex, pStiffness);
         return true;
@@ -71,7 +71,7 @@ public sealed class BSConstraintSpring : BSConstraint6Dof
 
     public bool SetDamping(int pIndex, float pDamping)
     {
-        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetDamping,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetDamping,obj1ID={1},obj2ID={2},indx={3},damp={4}",
                                         m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pDamping);
         PhysicsScene.PE.SpringSetDamping(m_constraint, pIndex, pDamping);
         return true;
@@ -79,7 +79,7 @@ public sealed class BSConstraintSpring : BSConstraint6Dof
 
     public bool SetEquilibriumPoint(int pIndex, float pEqPoint)
     {
-        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetEquilibriumPoint,obj1ID={1},obj2ID={2},indx={3},enable={4}",
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetEquilibriumPoint,obj1ID={1},obj2ID={2},indx={3},eqPoint={4}",
                                         m_body1.ID, m_body1.ID, m_body2.ID, pIndex, pEqPoint);
         PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, pIndex, pEqPoint);
         return true;

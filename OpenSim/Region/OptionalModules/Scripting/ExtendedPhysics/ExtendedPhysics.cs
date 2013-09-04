@@ -415,9 +415,21 @@ public class ExtendedPhysics : INonSharedRegionModule
     [ScriptConstant]
     public const int PHYS_AXIS_ALL = -1;
     [ScriptConstant]
-    public const int PHYS_AXIS_ALL_LINEAR = -2;
+    public const int PHYS_AXIS_LINEAR_ALL = -2;
     [ScriptConstant]
-    public const int PHYS_AXIS_ALL_ANGULAR = -3;
+    public const int PHYS_AXIS_ANGULAR_ALL = -3;
+    [ScriptConstant]
+    public const int PHYS_AXIS_LINEAR_X  = 0;
+    [ScriptConstant]
+    public const int PHYS_AXIS_LINEAR_Y  = 1;
+    [ScriptConstant]
+    public const int PHYS_AXIS_LINEAR_Z  = 2;
+    [ScriptConstant]
+    public const int PHYS_AXIS_ANGULAR_X = 3;
+    [ScriptConstant]
+    public const int PHYS_AXIS_ANGULAR_Y = 4;
+    [ScriptConstant]
+    public const int PHYS_AXIS_ANGULAR_Z = 5;
 
     // physChangeLinkParams(integer linkNum, [ PHYS_PARAM_*, value, PHYS_PARAM_*, value, ...])
     [ScriptInvocation]
