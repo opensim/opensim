@@ -5801,11 +5801,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                // If this is a hypergrid user, then we can't perform a successful groups access check here since this
-                // currently relies on a circuit being present in the AuthenticateHandler to construct a Hypergrid ID.
-                // This is only present in NewUserConnection() which entity transfer calls very soon after QueryAccess().
-                // Therefore, we'll defer to the check in NewUserConnection() instead.
-                if (!AuthorizeUser(aCircuit, !UserManagementModule.IsLocalGridUser(agentID), out reason))
+                if (!AuthorizeUser(aCircuit, false, out reason))
                 {
                     //m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
                     return false;

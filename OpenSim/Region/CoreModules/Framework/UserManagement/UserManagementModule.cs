@@ -481,13 +481,19 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserUUI(UUID userID)
         {
-            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, userID);
-            if (account != null)
-                return userID.ToString();
-
             UserData ud;
             lock (m_UserCache)
                 m_UserCache.TryGetValue(userID, out ud);
+
+            if (ud == null) // It's not in the cache
+            {
+                string[] names = new string[2];
+                // This will pull the data from either UserAccounts or GridUser
+                // and stick it into the cache
+                TryGetUserNamesFromServices(userID, names);
+                lock (m_UserCache)
+                    m_UserCache.TryGetValue(userID, out ud);
+            }
 
             if (ud != null)
             {
