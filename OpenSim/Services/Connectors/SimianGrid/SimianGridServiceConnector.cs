@@ -341,6 +341,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return new List<GridRegion>(0);
         }
 
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            // TODO: Allow specifying the default grid location
+            return GetDefaultRegions(scopeID);
+        }
+
         public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             GridRegion defRegion = GetNearestRegion(new Vector3d(x, y, 0.0), true);

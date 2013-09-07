@@ -3854,10 +3854,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We need to ensure that we are not already removing the scene presence before we ask it not to be 
                 // closed.
-                if (sp != null && sp.IsChildAgent && sp.LifecycleState == ScenePresenceState.Running)
+                if (sp != null && sp.IsChildAgent 
+                    && (sp.LifecycleState == ScenePresenceState.Running 
+                        || sp.LifecycleState == ScenePresenceState.PreRemove))
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Reusing existing child scene presence for {0} in {1}", sp.Name, Name);
+                        "[SCENE]: Reusing existing child scene presence for {0}, state {1} in {2}", 
+                        sp.Name, sp.LifecycleState, Name);
 
                     // In the case where, for example, an A B C D region layout, an avatar may
                     // teleport from A -> D, but then -> C before A has asked B to close its old child agent.  When C
@@ -3878,6 +3881,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                        sp.DoNotCloseAfterTeleport = true;
 //                    }
 //                    else if (EntityTransferModule.IsInTransit(sp.UUID))
+
+                    sp.LifecycleState = ScenePresenceState.Running;
 
                     if (EntityTransferModule.IsInTransit(sp.UUID))
                     {
@@ -4018,6 +4023,19 @@ namespace OpenSim.Region.Framework.Scenes
                     // uses down the line.
                     sp.TeleportFlags = (TPFlags)teleportFlags;
 
+                    // We must carry out a further authorization check if there's an 
+                    // attempt to make a child agent into a root agent, since SeeIntoRegion may have allowed a child
+                    // agent to login to a region where a full avatar would not be allowed.
+                    //
+                    // We determine whether this is a CreateAgent for a future non-child agent by inspecting 
+                    // TeleportFlags, which will be default for a child connection.  This relies on input from the source
+                    // region.
+                    if (sp.TeleportFlags != TPFlags.Default)
+                    {
+                        if (!AuthorizeUser(acd, false, out reason))
+                            return false;
+                    }
+    
                     if (sp.IsChildAgent)
                     {
                         m_log.DebugFormat(
@@ -4526,10 +4544,10 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
-                if (childAgentUpdate.ControllingClient.SessionId != cAgentData.SessionID)
-                    // Only warn for now
-                    m_log.WarnFormat("[SCENE]: Attempt at updating position of agent {0} with invalid session id {1}. Neighbor running older version?", 
-                        childAgentUpdate.UUID, cAgentData.SessionID);
+//                if (childAgentUpdate.ControllingClient.SessionId != cAgentData.SessionID)
+//                    // Only warn for now
+//                    m_log.WarnFormat("[SCENE]: Attempt at updating position of agent {0} with invalid session id {1}. Neighbor running older version?", 
+//                        childAgentUpdate.UUID, cAgentData.SessionID);
 
                 // I can't imagine *yet* why we would get an update if the agent is a root agent..
                 // however to avoid a race condition crossing borders..
@@ -4631,6 +4649,50 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Tell a single agent to prepare to close.
+        /// </summary>
+        /// <remarks>
+        /// This should only be called if we may close the agent but there will be some delay in so doing.  Meant for
+        /// internal use - other callers should almost certainly called IncomingCloseAgent().
+        /// </remarks>
+        /// <param name="sp"></param>
+        /// <returns>true if pre-close state notification was successful.  false if the agent
+        /// was not in a state where it could transition to pre-close.</returns>
+        public bool IncomingPreCloseAgent(ScenePresence sp)
+        {
+            lock (m_removeClientLock)
+            {
+                // We need to avoid a race condition where in, for example, an A B C D region layout, an avatar may
+                // teleport from A -> D, but then -> C before A has asked B to close its old child agent.  We do not
+                // want to obey this close since C may have renewed the child agent lease on B.
+                if (sp.DoNotCloseAfterTeleport)
+                {
+                    m_log.DebugFormat(
+                        "[SCENE]: Not pre-closing {0} agent {1} in {2} since another simulator has re-established the child connection",
+                        sp.IsChildAgent ? "child" : "root", sp.Name, Name);
+
+                    // Need to reset the flag so that a subsequent close after another teleport can succeed.
+                    sp.DoNotCloseAfterTeleport = false;
+
+                    return false;
+                }
+
+                if (sp.LifecycleState != ScenePresenceState.Running)
+                {
+                    m_log.DebugFormat(
+                        "[SCENE]: Called IncomingPreCloseAgent() for {0} in {1} but presence is already in state {2}",
+                        sp.Name, Name, sp.LifecycleState);
+
+                    return false;
+                }
+
+                sp.LifecycleState = ScenePresenceState.PreRemove;
+
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Tell a single agent to disconnect from the region.
         /// </summary>
         /// <param name="agentID"></param>
@@ -4649,16 +4711,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp == null)
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Called RemoveClient() with agent ID {0} but no such presence is in {1}", 
+                        "[SCENE]: Called IncomingCloseAgent() with agent ID {0} but no such presence is in {1}", 
                         agentID, Name);
     
                     return false;
                 }
 
-                if (sp.LifecycleState != ScenePresenceState.Running)
+                if (sp.LifecycleState != ScenePresenceState.Running && sp.LifecycleState != ScenePresenceState.PreRemove)
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Called RemoveClient() for {0} in {1} but presence is already in state {2}",
+                        "[SCENE]: Called IncomingCloseAgent() for {0} in {1} but presence is already in state {2}",
                         sp.Name, Name, sp.LifecycleState);
 
                     return false;
@@ -6025,7 +6087,7 @@ Environment.Exit(1);
             {
                 if (!AuthorizeUser(aCircuit, false, out reason))
                 {
-                    // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
+                    //m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
                     return false;
                 }
             }

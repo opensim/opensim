@@ -171,7 +171,7 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", (regionName == string.Empty)? "default region" : regionName);
             if (!m_AllowTeleportsToAnyRegion || regionName == string.Empty)
             {
-                List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
+                List<GridRegion> defs = m_GridService.GetDefaultHypergridRegions(m_ScopeID);
                 if (defs != null && defs.Count > 0)
                 {
                     region = defs[0];

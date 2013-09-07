@@ -140,7 +140,7 @@ namespace pCampBot
         /// <summary>
         /// Behaviour switches for bots.
         /// </summary>
-        private HashSet<string> m_behaviourSwitches = new HashSet<string>();
+        private HashSet<string> m_defaultBehaviourSwitches = new HashSet<string>();
 
         /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
@@ -195,6 +195,20 @@ namespace pCampBot
                 HandleDisconnect);
 
             m_console.Commands.AddCommand(
+                "bot", false, "add behaviour", "add behaviour <abbreviated-name> [<bot-number>]", 
+                "Add a behaviour to a bot",
+                "If no bot number is specified then behaviour is added to all bots.\n"
+                    + "Can be performed on connected or disconnected bots.",
+                HandleAddBehaviour);
+
+            m_console.Commands.AddCommand(
+                "bot", false, "remove behaviour", "remove behaviour <abbreviated-name> [<bot-number>]", 
+                "Remove a behaviour from a bot",
+                "If no bot number is specified then behaviour is added to all bots.\n"
+                    + "Can be performed on connected or disconnected bots.",
+                HandleRemoveBehaviour);
+
+            m_console.Commands.AddCommand(
                 "bot", false, "sit", "sit", "Sit all bots on the ground.",
                 HandleSit);
 
@@ -212,7 +226,7 @@ namespace pCampBot
                 "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bot", "show bot <n>", 
+                "bot", false, "show bot", "show bot <bot-number>", 
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_bots = new List<Bot>();
@@ -235,7 +249,7 @@ namespace pCampBot
             m_startUri = ParseInputStartLocationToUri(startupConfig.GetString("start", "last"));
 
             Array.ForEach<string>(
-                startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => m_behaviourSwitches.Add(b));
+                startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => m_defaultBehaviourSwitches.Add(b));
 
             for (int i = 0; i < botcount; i++)
             {
@@ -243,28 +257,50 @@ namespace pCampBot
                 {
                     string lastName = string.Format("{0}_{1}", m_lastNameStem, i + m_fromBotNumber);
 
-                    // We must give each bot its own list of instantiated behaviours since they store state.
-                    List<IBehaviour> behaviours = new List<IBehaviour>();
-        
-                    // Hard-coded for now        
-                    if (m_behaviourSwitches.Contains("c"))
-                        behaviours.Add(new CrossBehaviour());
-
-                    if (m_behaviourSwitches.Contains("g"))
-                        behaviours.Add(new GrabbingBehaviour());
-
-                    if (m_behaviourSwitches.Contains("n"))
-                        behaviours.Add(new NoneBehaviour());
-
-                    if (m_behaviourSwitches.Contains("p"))
-                        behaviours.Add(new PhysicsBehaviour());
-        
-                    if (m_behaviourSwitches.Contains("t"))
-                        behaviours.Add(new TeleportBehaviour());
-
-                    CreateBot(this, behaviours, m_firstName, lastName, m_password, m_loginUri, m_startUri, m_wearSetting);
+                    CreateBot(
+                        this,
+                        CreateBehavioursFromAbbreviatedNames(m_defaultBehaviourSwitches),
+                        m_firstName, lastName, m_password, m_loginUri, m_startUri, m_wearSetting);
                 }
             }
+        }
+
+        private List<IBehaviour> CreateBehavioursFromAbbreviatedNames(HashSet<string> abbreviatedNames)
+        {
+            // We must give each bot its own list of instantiated behaviours since they store state.
+            List<IBehaviour> behaviours = new List<IBehaviour>();
+
+            // Hard-coded for now    
+            foreach (string abName in abbreviatedNames)
+            {
+                IBehaviour newBehaviour = null;
+
+                if (abName == "c")
+                    newBehaviour = new CrossBehaviour();
+
+                if (abName == "g")
+                    newBehaviour = new GrabbingBehaviour();
+
+                if (abName == "n")
+                    newBehaviour = new NoneBehaviour();
+
+                if (abName == "p")
+                    newBehaviour = new PhysicsBehaviour();
+
+                if (abName == "t")
+                    newBehaviour = new TeleportBehaviour();
+
+                if (newBehaviour != null)
+                {
+                    behaviours.Add(newBehaviour);
+                }
+                else
+                {
+                    MainConsole.Instance.OutputFormat("No behaviour with abbreviated name {0} found", abName);
+                }
+            }
+
+            return behaviours;
         }
 
         public void ConnectBots(int botcount)
@@ -453,6 +489,118 @@ namespace pCampBot
             }
         }
 
+        private void HandleAddBehaviour(string module, string[] cmd)
+        {
+            if (cmd.Length < 3 || cmd.Length > 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: add behaviour <abbreviated-behaviour> [<bot-number>]");
+                return;
+            }
+
+            string rawBehaviours = cmd[2];
+
+            List<Bot> botsToEffect = new List<Bot>();
+
+            if (cmd.Length == 3)
+            {
+                lock (m_bots)
+                    botsToEffect.AddRange(m_bots);
+            }
+            else
+            {
+                int botNumber;
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
+                    return;
+
+                Bot bot = GetBotFromNumber(botNumber);
+
+                if (bot == null)
+                {
+                    MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                    return;
+                }
+
+                botsToEffect.Add(bot);
+            }
+
+
+            HashSet<string> rawAbbreviatedSwitchesToAdd = new HashSet<string>();
+            Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => rawAbbreviatedSwitchesToAdd.Add(b));
+
+            foreach (Bot bot in botsToEffect)
+            {
+                List<IBehaviour> behavioursAdded = new List<IBehaviour>();
+
+                foreach (IBehaviour behaviour in CreateBehavioursFromAbbreviatedNames(rawAbbreviatedSwitchesToAdd))
+                {
+                    if (bot.AddBehaviour(behaviour))
+                        behavioursAdded.Add(behaviour);
+                }
+
+                MainConsole.Instance.OutputFormat(
+                    "Added behaviours {0} to bot {1}", 
+                    string.Join(", ", behavioursAdded.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+            }
+        }
+
+        private void HandleRemoveBehaviour(string module, string[] cmd)
+        {
+            if (cmd.Length < 3 || cmd.Length > 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: remove behaviour <abbreviated-behaviour> [<bot-number>]");
+                return;
+            }
+
+            string rawBehaviours = cmd[2];
+
+            List<Bot> botsToEffect = new List<Bot>();
+
+            if (cmd.Length == 3)
+            {
+                lock (m_bots)
+                    botsToEffect.AddRange(m_bots);
+            }
+            else
+            {
+                int botNumber;
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[3], out botNumber))
+                    return;
+
+                Bot bot = GetBotFromNumber(botNumber);
+
+                if (bot == null)
+                {
+                    MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                    return;
+                }
+
+                botsToEffect.Add(bot);
+            }
+
+            HashSet<string> abbreviatedBehavioursToRemove = new HashSet<string>();
+            Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => abbreviatedBehavioursToRemove.Add(b));
+
+            foreach (Bot bot in botsToEffect)
+            {
+                List<IBehaviour> behavioursRemoved = new List<IBehaviour>();
+
+                foreach (string b in abbreviatedBehavioursToRemove)
+                {
+                    IBehaviour behaviour;
+
+                    if (bot.TryGetBehaviour(b, out behaviour))
+                    {
+                        bot.RemoveBehaviour(b);
+                        behavioursRemoved.Add(behaviour);
+                    }
+                }
+
+                MainConsole.Instance.OutputFormat(
+                    "Removed behaviours {0} to bot {1}", 
+                    string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
+            }
+        }
+
         private void HandleDisconnect(string module, string[] cmd)
         {
             lock (m_bots)
@@ -572,10 +720,11 @@ namespace pCampBot
         private void HandleShowBotsStatus(string module, string[] cmd)
         {
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
-            cdt.AddColumn("Name", 30);
-            cdt.AddColumn("Region", 30);
-            cdt.AddColumn("Status", 14);
-            cdt.AddColumn("Connections", 11);
+            cdt.AddColumn("Name", 24);
+            cdt.AddColumn("Region", 24);
+            cdt.AddColumn("Status", 13);
+            cdt.AddColumn("Conns", 5);
+            cdt.AddColumn("Behaviours", 20);
 
             Dictionary<ConnectionState, int> totals = new Dictionary<ConnectionState, int>();
             foreach (object o in Enum.GetValues(typeof(ConnectionState)))
@@ -583,13 +732,17 @@ namespace pCampBot
 
             lock (m_bots)
             {
-                foreach (Bot pb in m_bots)
+                foreach (Bot bot in m_bots)
                 {
-                    Simulator currentSim = pb.Client.Network.CurrentSim;
-                    totals[pb.ConnectionState]++;
+                    Simulator currentSim = bot.Client.Network.CurrentSim;
+                    totals[bot.ConnectionState]++;
 
                     cdt.AddRow(
-                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState, pb.SimulatorsCount);
+                        bot.Name, 
+                        currentSim != null ? currentSim.Name : "(none)", 
+                        bot.ConnectionState, 
+                        bot.SimulatorsCount, 
+                        string.Join(",", bot.Behaviours.Keys.ToArray()));
                 }
             }
 
@@ -616,16 +769,11 @@ namespace pCampBot
             if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, cmd[2], out botNumber))
                 return;
 
-            string name = string.Format("{0} {1}_{2}", m_firstName, m_lastNameStem, botNumber);
-
-            Bot bot;
-
-            lock (m_bots)
-                bot = m_bots.Find(b => b.Name == name);
+            Bot bot = GetBotFromNumber(botNumber);
 
             if (bot == null)
             {
-                MainConsole.Instance.Output("No bot found with name {0}", name);
+                MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
                 return;
             }
 
@@ -645,10 +793,37 @@ namespace pCampBot
             MainConsole.Instance.Output("Settings");
 
             ConsoleDisplayList statusCdl = new ConsoleDisplayList();
+
+            statusCdl.AddRow(
+                "Behaviours", 
+                string.Join(", ", bot.Behaviours.Values.ToList().ConvertAll<string>(b => b.Name).ToArray()));
+
             GridClient botClient = bot.Client;
             statusCdl.AddRow("SEND_AGENT_UPDATES", botClient.Settings.SEND_AGENT_UPDATES);
 
             MainConsole.Instance.Output(statusCdl.ToString());
+        }
+
+        /// <summary>
+        /// Get a specific bot from its number.
+        /// </summary>
+        /// <returns>null if no bot was found</returns>
+        /// <param name='botNumber'></param>
+        private Bot GetBotFromNumber(int botNumber)
+        {
+            string name = GenerateBotNameFromNumber(botNumber);
+
+            Bot bot;
+
+            lock (m_bots)
+                bot = m_bots.Find(b => b.Name == name);
+
+            return bot;
+        }
+
+        private string GenerateBotNameFromNumber(int botNumber)
+        {
+            return string.Format("{0} {1}_{2}", m_firstName, m_lastNameStem, botNumber);
         }
 
         internal void Grid_GridRegion(object o, GridRegionEventArgs args)

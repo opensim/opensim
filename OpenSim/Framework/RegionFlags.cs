@@ -48,6 +48,7 @@ namespace OpenSim.Framework
         NoMove = 64, // Don't allow moving this region
         Reservation = 128, // This is an inactive reservation
         Authenticate = 256, // Require authentication
-        Hyperlink = 512 // Record represents a HG link
+        Hyperlink = 512, // Record represents a HG link
+        DefaultHGRegion = 1024 // Record represents a default region for hypergrid teleports only.
     }
 }

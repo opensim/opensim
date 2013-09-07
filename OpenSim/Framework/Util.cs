@@ -130,7 +130,7 @@ namespace OpenSim.Framework
         private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
-        private static readonly DateTime unixEpoch =
+        public static readonly DateTime UnixEpoch =
             DateTime.ParseExact("1970-01-01 00:00:00 +0", "yyyy-MM-dd hh:mm:ss z", DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
 
         private static readonly string rawUUIDPattern
@@ -521,20 +521,18 @@ namespace OpenSim.Framework
 
         public static int ToUnixTime(DateTime stamp)
         {
-            TimeSpan t = stamp.ToUniversalTime() - unixEpoch;
-            return (int) t.TotalSeconds;
+            TimeSpan t = stamp.ToUniversalTime() - UnixEpoch;
+            return (int)t.TotalSeconds;
         }
 
         public static DateTime ToDateTime(ulong seconds)
         {
-            DateTime epoch = unixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         public static DateTime ToDateTime(int seconds)
         {
-            DateTime epoch = unixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         /// <summary>

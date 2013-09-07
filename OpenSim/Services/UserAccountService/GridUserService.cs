@@ -47,6 +47,44 @@ namespace OpenSim.Services.UserAccountService
         public GridUserService(IConfigSource config) : base(config) 
         {
             m_log.Debug("[GRID USER SERVICE]: Starting user grid service");
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Users", false,
+                "show grid users online",
+                "show grid users online",
+                "Show number of grid users registered as online.", 
+                "This number may not be accurate as a region may crash or not be cleanly shutdown and leave grid users shown as online\n."
+                + "For this reason, users online for more than 5 days are not currently counted",
+                HandleShowGridUsersOnline);
+        }
+
+        protected void HandleShowGridUsersOnline(string module, string[] cmdparams)
+        {
+//            if (cmdparams.Length != 4)
+//            {
+//                MainConsole.Instance.Output("Usage: show grid users online");
+//                return;
+//            }
+
+//            int onlineCount;
+            int onlineRecentlyCount = 0;
+
+            DateTime now = DateTime.UtcNow;
+
+            foreach (GridUserData gu in m_Database.GetAll(""))
+            {
+                if (bool.Parse(gu.Data["Online"]))
+                {
+//                    onlineCount++;
+
+                    int unixLoginTime = int.Parse(gu.Data["Login"]);
+
+                    if ((now - Util.ToDateTime(unixLoginTime)).Days < 5)
+                        onlineRecentlyCount++;
+                }
+            }
+
+            MainConsole.Instance.OutputFormat("Users online: {0}", onlineRecentlyCount);
         }
 
         public virtual GridUserInfo GetGridUserInfo(string userID)

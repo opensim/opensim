@@ -525,6 +525,57 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+
+            sendData["SCOPEID"] = scopeID.ToString();
+
+            sendData["METHOD"] = "get_default_hypergrid_regions";
+
+            List<GridRegion> rinfos = new List<GridRegion>();
+            string reply = string.Empty;
+            string uri = m_ServerURI + "/grid";
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        uri,
+                        ServerUtils.BuildQueryString(sendData));
+
+                //m_log.DebugFormat("[GRID CONNECTOR]: reply was {0}", reply);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID CONNECTOR]: Exception when contacting grid server at {0}: {1}", uri, e.Message);
+                return rinfos;
+            }
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                if (replyData != null)
+                {
+                    Dictionary<string, object>.ValueCollection rinfosList = replyData.Values;
+                    foreach (object r in rinfosList)
+                    {
+                        if (r is Dictionary<string, object>)
+                        {
+                            GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
+                            rinfos.Add(rinfo);
+                        }
+                    }
+                }
+                else
+                    m_log.DebugFormat("[GRID CONNECTOR]: GetDefaultHypergridRegions {0} received null response",
+                        scopeID);
+            }
+            else
+                m_log.DebugFormat("[GRID CONNECTOR]: GetDefaultHypergridRegions received null reply");
+
+            return rinfos;
+        }
+
         public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

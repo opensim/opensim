@@ -151,7 +151,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-	HypergridLinker = true
+
+    HypergridLinker = true
 
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
@@ -168,16 +169,31 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
-    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
-    ;; For example: 
+    ;; where <flags> can be DefaultRegion, DefaultHGRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut, Reservation, NoMove, Authenticate
+    ;;  
+    ;; DefaultRegion    If a local login cannot be placed in the required region (e.g. home region does not exist, avatar is not allowed entry, etc.)
+    ;;                  then this region becomes the destination.  Only the first online default region will be used.  If no DefaultHGRegion
+    ;;                  is specified then this will also be used as the region for hypergrid connections that require it (commonly because they have not specified
+    ;;                  an explicit region.
+    ;;  
+    ;; DefaultHGRegion  If an avatar connecting via the hypergrid does not specify a region, then they are placed here.  Only the first online
+    ;;                  region will be used.
+    ;;  
+    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the 
+    ;;                  order specified.  This only applies to local logins at this time, not Hypergrid connections.
+    ;;  
+    ;; NoDirectLogin    A hypergrid user cannot directly connect to this region.  This does not apply to local logins.
+    ;;  
+    ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
+    ;;
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
 
-	;; Allow Hyperlinks to be created at the console
+    ;; Allow Hyperlinks to be created at the console
     HypergridLinker = true
 
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-	; GatekeeperURI = "http://127.0.0.1:8002"
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ; GatekeeperURI = "http://127.0.0.1:8002"
 
 
 ; * This is the configuration for the freeswitch server in grid mode

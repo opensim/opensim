@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             json.Add("jsonrpc", OSD.FromString("2.0"));
             json.Add("id", OSD.FromString(jsonId));
             json.Add("method", OSD.FromString(method));
-            // Experiment
+
             json.Add("params", OSD.SerializeMembers(parameters));
 
             string jsonRequestData = OSDParser.SerializeJsonString(json);
@@ -1240,8 +1240,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             Stream rstream = webResponse.GetResponseStream();
-            if (rstream.Length < 1)
-                return false;
               
             OSDMap mret = new OSDMap();
             try
@@ -1318,8 +1316,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             Stream rstream = webResponse.GetResponseStream();
-            if (rstream.Length < 1)
-                return false;
 
             OSDMap response = new OSDMap();
             try
