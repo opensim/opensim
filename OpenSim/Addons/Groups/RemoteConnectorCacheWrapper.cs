@@ -53,7 +53,7 @@ namespace OpenSim.Groups
         private ForeignImporter m_ForeignImporter;
 
         private Dictionary<string, bool> m_ActiveRequests = new Dictionary<string, bool>();
-        private const int GROUPS_CACHE_TIMEOUT = 5 * 60; // 5 minutes
+        private const int GROUPS_CACHE_TIMEOUT = 1 * 60; // 1 minutes
 
         // This all important cache cahces objects of different types:
         // group-<GroupID> or group-<Name>          => ExtendedGroupRecord
@@ -209,13 +209,10 @@ namespace OpenSim.Groups
         public void SetAgentActiveGroup(string AgentID, GroupMembershipDelegate d)
         {
             GroupMembershipData activeGroup = d();
-            if (activeGroup != null)
-            {
-                string cacheKey = "active-" + AgentID.ToString();
-                lock (m_Cache)
-                    if (m_Cache.Contains(cacheKey))
-                        m_Cache.AddOrUpdate(cacheKey, activeGroup, GROUPS_CACHE_TIMEOUT);
-            }
+            string cacheKey = "active-" + AgentID.ToString();
+            lock (m_Cache)
+                if (m_Cache.Contains(cacheKey))
+                    m_Cache.AddOrUpdate(cacheKey, activeGroup, GROUPS_CACHE_TIMEOUT);
         }
 
         public ExtendedGroupMembershipData GetAgentActiveMembership(string AgentID, GroupMembershipDelegate d)

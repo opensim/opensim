@@ -133,6 +133,36 @@ namespace OpenSim.Groups
             return GroupsDataUtils.GroupRecord((Dictionary<string, object>)ret["RESULT"]);
         }
 
+        public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string query)
+        {
+            List<DirGroupsReplyData> hits = new List<DirGroupsReplyData>();
+            if (string.IsNullOrEmpty(query))
+                return hits;
+
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["Query"] = query;
+            sendData["RequestingAgentID"] = RequestingAgentID;
+
+            Dictionary<string, object> ret = MakeRequest("FINDGROUPS", sendData);
+
+            if (ret == null)
+                return hits;
+
+            if (!ret.ContainsKey("RESULT"))
+                return hits;
+
+            if (ret["RESULT"].ToString() == "NULL")
+                return hits;
+
+            foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
+            {
+                DirGroupsReplyData m = GroupsDataUtils.DirGroupsReplyData((Dictionary<string, object>)v);
+                hits.Add(m);
+            }
+
+            return hits;
+        }
+
         public GroupMembershipData AddAgentToGroup(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID, string token, out string reason)
         {
             reason = string.Empty;
@@ -226,6 +256,7 @@ namespace OpenSim.Groups
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["GroupID"] = GroupID.ToString();
             sendData["RequestingAgentID"] = RequestingAgentID;
+
             Dictionary<string, object> ret = MakeRequest("GETGROUPMEMBERS", sendData);
 
             if (ret == null)

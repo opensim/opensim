@@ -199,7 +199,7 @@ namespace OpenSim.Groups
         public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search)
         {
             // TODO!
-            return new List<DirGroupsReplyData>();
+            return m_GroupsService.FindGroups(RequestingAgentID, search);
         }
 
         public bool AddAgentToGroup(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID, string token, out string reason)
@@ -404,28 +404,6 @@ namespace OpenSim.Groups
             {
                 return m_GroupsService.GetGroupNotices(RequestingAgentID, GroupID);
             });
-        }
-
-        public void ResetAgentGroupChatSessions(string agentID)
-        {
-        }
-
-        public bool hasAgentBeenInvitedToGroupChatSession(string agentID, UUID groupID)
-        {
-            return false;
-        }
-
-        public bool hasAgentDroppedGroupChatSession(string agentID, UUID groupID)
-        {
-            return false;
-        }
-
-        public void AgentDroppedFromGroupChatSession(string agentID, UUID groupID)
-        {
-        }
-
-        public void AgentInvitedToGroupChatSession(string agentID, UUID groupID)
-        {
         }
 
         #endregion
