@@ -71,7 +71,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                        
             SceneHelpers.SetupSceneModules(
                 scene, configSource, new object[] 
-                   { new PermissionsModule(), 
+                   { new DefaultPermissionsModule(), 
                      new GroupsModule(), 
                      new MockGroupsServicesConnector() });
             
