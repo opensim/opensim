@@ -405,7 +405,7 @@ namespace OpenSim
                     }
                 }
 
-                m_log.InfoFormat("[SCENE]: Secure permissions loading enabled, modules loaded: {0}", String.Join(" ", m_permsModules));
+                m_log.InfoFormat("[SCENE]: Secure permissions loading enabled, modules loaded: {0}", String.Join(" ", m_permsModules.ToArray()));
             }
 
             scene.SetModuleInterfaces();

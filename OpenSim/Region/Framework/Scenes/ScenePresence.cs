@@ -242,7 +242,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_movementAnimationUpdateCounter = 0;
 
-        private Vector3 m_prevSitOffset;
+        public Vector3 PrevSitOffset { get; set; }
 
         protected AvatarAppearance m_appearance;
 
@@ -957,7 +957,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    ParentPosition = part.GetWorldPosition();
                     ParentID = part.LocalId;
                     ParentPart = part;
-                    m_pos = m_prevSitOffset;
+                    m_pos = PrevSitOffset;
 //                    pos = ParentPosition;
                     pos = part.GetWorldPosition();
                 }
@@ -2261,6 +2261,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID != 0)
             {
+                PrevSitOffset = m_pos; // Save sit offset
                 SceneObjectPart part = ParentPart;
                 UnRegisterSeatControls(part.ParentGroup.UUID);
 
@@ -3487,7 +3488,7 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.Appearance = new AvatarAppearance(Appearance);
 
             cAgent.ParentPart = ParentUUID;
-            cAgent.SitOffset = m_pos;
+            cAgent.SitOffset = PrevSitOffset;
             
             lock (scriptedcontrols)
             {
@@ -3530,7 +3531,7 @@ namespace OpenSim.Region.Framework.Scenes
             CameraLeftAxis = cAgent.LeftAxis;
             CameraUpAxis = cAgent.UpAxis;
             ParentUUID = cAgent.ParentPart;
-            m_prevSitOffset = cAgent.SitOffset;
+            PrevSitOffset = cAgent.SitOffset;
 
             // When we get to the point of re-computing neighbors everytime this
             // changes, then start using the agent's drawdistance rather than the 
