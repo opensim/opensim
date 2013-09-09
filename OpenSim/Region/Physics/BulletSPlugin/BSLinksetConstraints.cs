@@ -63,6 +63,8 @@ public sealed class BSLinksetConstraints : BSLinkset
         public bool[] springAxisEnable;
         public float[] springDamping;
         public float[] springStiffness;
+        public OMV.Vector3 springLinearEquilibriumPoint;
+        public OMV.Vector3 springAngularEquilibriumPoint;
 
         public BSLinkInfoConstraint(BSPrimLinkable pMember)
             : base(pMember)
@@ -102,6 +104,8 @@ public sealed class BSLinksetConstraints : BSLinkset
                 springDamping[ii] = BSAPITemplate.SPRING_NOT_SPECIFIED;
                 springStiffness[ii] = BSAPITemplate.SPRING_NOT_SPECIFIED;
             }
+            springLinearEquilibriumPoint = OMV.Vector3.Zero;
+            springAngularEquilibriumPoint = OMV.Vector3.Zero;
             member.PhysScene.DetailLog("{0},BSLinkInfoConstraint.ResetLink", member.LocalID);
         }
 
@@ -155,7 +159,12 @@ public sealed class BSLinksetConstraints : BSLinkset
                             if (springStiffness[ii] != BSAPITemplate.SPRING_NOT_SPECIFIED)
                                 constrainSpring.SetStiffness(ii, springStiffness[ii]);
                         }
-                        constrainSpring.SetEquilibriumPoint(BSAPITemplate.SPRING_NOT_SPECIFIED, BSAPITemplate.SPRING_NOT_SPECIFIED);
+                        constrainSpring.CalculateTransforms();
+
+                        if (springLinearEquilibriumPoint != OMV.Vector3.Zero)
+                            constrainSpring.SetEquilibriumPoint(springLinearEquilibriumPoint, springAngularEquilibriumPoint);
+                        else
+                            constrainSpring.SetEquilibriumPoint(BSAPITemplate.SPRING_NOT_SPECIFIED, BSAPITemplate.SPRING_NOT_SPECIFIED);
                     }
                     break;
                 default:
@@ -618,6 +627,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                             float valueFloat;
                             bool valueBool;
                             OMV.Vector3 valueVector;
+                            OMV.Vector3 valueVector2;
                             OMV.Quaternion valueQuaternion;
                             int axisLow, axisHigh;
 
@@ -762,6 +772,14 @@ public sealed class BSLinksetConstraints : BSLinkset
                                             GetAxisRange(valueInt, out axisLow, out axisHigh);
                                             for (int ii = axisLow; ii <= axisHigh; ii++)
                                                 linkInfo.springStiffness[ii] = valueFloat;
+                                            opIndex += 3;
+                                            break;
+                                        case ExtendedPhysics.PHYS_PARAM_SPRING_EQUILIBRIUM_POINT:
+                                            errMsg = "PHYS_PARAM_SPRING_EQUILIBRIUM_POINT takes two parameters of type vector";
+                                            valueVector = (OMV.Vector3)pParams[opIndex + 1];
+                                            valueVector2 = (OMV.Vector3)pParams[opIndex + 2];
+                                            linkInfo.springLinearEquilibriumPoint = valueVector;
+                                            linkInfo.springAngularEquilibriumPoint = valueVector2;
                                             opIndex += 3;
                                             break;
                                         case ExtendedPhysics.PHYS_PARAM_USE_LINEAR_FRAMEA:
