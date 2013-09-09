@@ -408,8 +408,10 @@ public class ExtendedPhysics : INonSharedRegionModule
     public const int PHYS_PARAM_LINK_TYPE              = 14419;
     [ScriptConstant]
     public const int PHYS_PARAM_USE_LINEAR_FRAMEA      = 14420;
+    [ScriptConstant]
+    public const int PHYS_PARAM_SPRING_EQUILIBRIUM_POINT = 14421;
 
-    public const int PHYS_PARAM_MAX                    = 14420;
+    public const int PHYS_PARAM_MAX                    = 14421;
 
     // Used when specifying a parameter that has settings for the three linear and three angular axis
     [ScriptConstant]

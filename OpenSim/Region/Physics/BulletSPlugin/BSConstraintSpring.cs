@@ -85,6 +85,19 @@ public sealed class BSConstraintSpring : BSConstraint6Dof
         return true;
     }
 
+    public bool SetEquilibriumPoint(Vector3 linearEq, Vector3 angularEq)
+    {
+        PhysicsScene.DetailLog("{0},BSConstraintSpring.SetEquilibriumPoint,obj1ID={1},obj2ID={2},linearEq={3},angularEq={4}",
+                                        m_body1.ID, m_body1.ID, m_body2.ID, linearEq, angularEq);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, 0, linearEq.X);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, 1, linearEq.Y);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, 2, linearEq.Z);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, 3, angularEq.X);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, 4, angularEq.Y);
+        PhysicsScene.PE.SpringSetEquilibriumPoint(m_constraint, 5, angularEq.Z);
+        return true;
+    }
+
 }
 
 }
