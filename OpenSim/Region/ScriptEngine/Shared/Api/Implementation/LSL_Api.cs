@@ -8483,7 +8483,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
 
                             case ScriptBaseClass.PRIM_TYPE_SCULPT:
-                                res.Add(Shape.SculptTexture.ToString());
+                                res.Add(new LSL_String(Shape.SculptTexture.ToString()));
                                 res.Add(new LSL_Integer(Shape.SculptType));
                                 break;
 
