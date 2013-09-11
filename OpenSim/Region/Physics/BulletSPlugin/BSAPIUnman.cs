@@ -725,6 +725,13 @@ public override bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj)
     return BSAPICPP.RemoveObjectFromWorld2(worldu.ptr, bodyu.ptr);
 }
 
+public override bool ClearCollisionProxyCache(BulletWorld world, BulletBody obj)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu = obj as BulletBodyUnman;
+    return BSAPICPP.ClearCollisionProxyCache2(worldu.ptr, bodyu.ptr);
+}
+
 public override bool AddConstraintToWorld(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
@@ -1711,6 +1718,9 @@ public static extern bool AddObjectToWorld2(IntPtr world, IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool RemoveObjectFromWorld2(IntPtr world, IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ClearCollisionProxyCache2(IntPtr world, IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool AddConstraintToWorld2(IntPtr world, IntPtr constrain, bool disableCollisionsBetweenLinkedObjects);
