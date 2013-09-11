@@ -302,12 +302,15 @@ public abstract class BSPhysObject : PhysicsActor
     {
         if (PhysBody.HasPhysicalBody)
         {
-            // Clear the collision cache since we've changed some properties.
-            PhysScene.PE.ClearCollisionProxyCache(PhysScene.World, PhysBody);
             if (IsPhysical)
             {
                 // Physical objects might need activating
                 PhysScene.PE.Activate(PhysBody, forceIt);
+            }
+            else
+            {
+                // Clear the collision cache since we've changed some properties.
+                PhysScene.PE.ClearCollisionProxyCache(PhysScene.World, PhysBody);
             }
         }
     }
