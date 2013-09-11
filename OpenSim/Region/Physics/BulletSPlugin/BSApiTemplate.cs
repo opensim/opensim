@@ -498,6 +498,8 @@ public abstract bool AddObjectToWorld(BulletWorld world, BulletBody obj);
 
 public abstract bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj);
 
+public abstract bool ClearCollisionProxyCache(BulletWorld world, BulletBody obj);
+
 public abstract bool AddConstraintToWorld(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects);
 
 public abstract bool RemoveConstraintFromWorld(BulletWorld world, BulletConstraint constrain);

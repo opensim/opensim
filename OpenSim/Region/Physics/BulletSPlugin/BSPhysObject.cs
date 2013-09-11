@@ -300,8 +300,16 @@ public abstract class BSPhysObject : PhysicsActor
     // Called in taint-time!!
     public void ActivateIfPhysical(bool forceIt)
     {
-        if (IsPhysical && PhysBody.HasPhysicalBody)
-            PhysScene.PE.Activate(PhysBody, forceIt);
+        if (PhysBody.HasPhysicalBody)
+        {
+            // Clear the collision cache since we've changed some properties.
+            PhysScene.PE.ClearCollisionProxyCache(PhysScene.World, PhysBody);
+            if (IsPhysical)
+            {
+                // Physical objects might need activating
+                PhysScene.PE.Activate(PhysBody, forceIt);
+            }
+        }
     }
 
     // 'actors' act on the physical object to change or constrain its motion. These can range from

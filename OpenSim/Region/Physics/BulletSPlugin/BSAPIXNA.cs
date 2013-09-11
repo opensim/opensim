@@ -169,6 +169,19 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return true;
     }
 
+    public override bool ClearCollisionProxyCache(BulletWorld pWorld, BulletBody pBody)
+    {
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody body = ((BulletBodyXNA)pBody).rigidBody;
+        CollisionObject collisionObject = ((BulletBodyXNA)pBody).body;
+        if (body != null && collisionObject != null && collisionObject.GetBroadphaseHandle() != null)
+        {
+            world.RemoveCollisionObject(collisionObject);
+            world.AddCollisionObject(collisionObject);
+        }
+        return true;
+    }
+
     public override bool AddConstraintToWorld(BulletWorld pWorld, BulletConstraint pConstraint, bool pDisableCollisionsBetweenLinkedObjects)
     {
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
