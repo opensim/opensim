@@ -518,6 +518,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </returns>
         private bool IsWithinMaxTeleportDistance(RegionInfo sourceRegion, GridRegion destRegion)
         {
+            if(MaxTransferDistance == 0)
+                return true;
+
 //                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Source co-ords are x={0} y={1}", curRegionX, curRegionY);
 //
 //                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final dest is x={0} y={1} {2}@{3}",
