@@ -8202,7 +8202,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                     remaining = GetAgentParams((ScenePresence)entity, rules, ref result);
 
-                if (remaining == null || remaining.Length <= 2)
+                if (remaining == null || remaining.Length < 2)
                     return result;
 
                 int linknumber = remaining.GetLSLIntegerItem(0);
@@ -8786,7 +8786,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.
-                        if (remain < 3)
+                        if (remain < 2)
                             return null;
 
                         return rules.GetSublist(idx, -1);
