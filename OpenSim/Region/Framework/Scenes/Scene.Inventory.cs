@@ -512,6 +512,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // This MAY be problematic, if it is, another solution
                     // needs to be found. If inventory item flags are updated
                     // the viewer's notion of the item needs to be refreshed.
+                    //
+                    // In other situations we cannot send out a bulk update here, since this will cause editing of clothing to start 
+                    // failing frequently.  Possibly this is a race with a separate transaction that uploads the asset.
                     if (sendUpdate)
                         remoteClient.SendBulkUpdateInventory(item);
                 }
