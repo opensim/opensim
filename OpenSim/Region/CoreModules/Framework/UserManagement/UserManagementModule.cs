@@ -602,8 +602,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             user.LastName = "@unknown";
                         }
                     }
+
                     if (parts.Length >= 2)
                         user.FirstName = parts[1].Replace(' ', '.');
+
+                    AddUserInternal(user);
                 }
 
                 // To avoid issues with clients, particularly Hypergrid ones, permanently caching
@@ -618,8 +621,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 //                    user.FirstName = "Unknown";
 //                    user.LastName = "UserUMMAU4";
 //                }
-
-                AddUserInternal(user);
             }
         }
 
