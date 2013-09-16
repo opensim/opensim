@@ -591,6 +591,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 avinfo.ParentID = av.ParentID;
                                 avsToCross.Add(avinfo);
 
+                                av.PrevSitOffset = av.OffsetPosition;
                                 av.ParentID = 0;
                             }
 

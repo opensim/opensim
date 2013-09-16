@@ -83,8 +83,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
             TestScene scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(scene, new PermissionsModule());
-            TestClient client = (TestClient)SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Startup");
+            config.Set("serverside_object_permissions", true);
+            SceneHelpers.SetupSceneModules(scene, configSource, new object[] { new DefaultPermissionsModule() });
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
@@ -106,9 +109,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
             Assert.That(retrievedPart2, Is.Null);              
-
-            Assert.That(client.ReceivedKills.Count, Is.EqualTo(1));
-            Assert.That(client.ReceivedKills[0], Is.EqualTo(soLocalId));
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneHelpers.SetupSceneModules(sceneB, config, etmB);
 
             // We need this for derez
-            SceneHelpers.SetupSceneModules(sceneA, new PermissionsModule());
+            //SceneHelpers.SetupSceneModules(sceneA, new PermissionsModule());
 
             UserAccount uaA = UserAccountHelpers.CreateUserWithInventory(sceneA, "Andy", "AAA", 0x1, "");
             UserAccount uaB = UserAccountHelpers.CreateUserWithInventory(sceneA, "Brian", "BBB", 0x2, "");
@@ -155,12 +155,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             uint soLocalId = so.LocalId;
 
             sceneA.DeleteSceneObject(so, false);
-
-            Assert.That(clientA.ReceivedKills.Count, Is.EqualTo(1));
-            Assert.That(clientA.ReceivedKills[0], Is.EqualTo(soLocalId));
-
-            Assert.That(childClientsB[0].ReceivedKills.Count, Is.EqualTo(1));
-            Assert.That(childClientsB[0].ReceivedKills[0], Is.EqualTo(soLocalId));
         }
         
         /// <summary>
@@ -179,7 +173,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID objectOwnerId = UUID.Parse("20000000-0000-0000-0000-000000000001");
             
             TestScene scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(scene, new PermissionsModule());            
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Startup");
+            config.Set("serverside_object_permissions", true);
+            SceneHelpers.SetupSceneModules(scene, configSource, new object[] { new DefaultPermissionsModule() });            
             IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
