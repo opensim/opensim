@@ -178,17 +178,20 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 m_ServiceThrottle.Enqueue("name", uuid.ToString(),  delegate
                 {
                     //m_log.DebugFormat("[YYY]: Name request {0}", uuid);
-                    bool foundRealName = TryGetUserNames(uuid, names);
 
-                    if (names.Length == 2)
-                    {
-                        if (!foundRealName)
-                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], uuid, client.Name);
-
+                    // As least upto September 2013, clients permanently cache UUID -> Name bindings.  Some clients
+                    // appear to clear this when the user asks it to clear the cache, but others may not.
+                    //
+                    // So to avoid clients
+                    // (particularly Hypergrid clients) permanently binding "Unknown User" to a given UUID, we will 
+                    // instead drop the request entirely.
+                    if (TryGetUserNames(uuid, names))
                         client.SendNameReply(uuid, names[0], names[1]);
-                    }
+//                    else
+//                        m_log.DebugFormat(
+//                            "[USER MANAGEMENT MODULE]: No bound name for {0} found, ignoring request from {1}", 
+//                            uuid, client.Name);
                 });
-
             }
         }
 
@@ -391,7 +394,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
 
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN8";
+                names[1] = "UserUMMTGUN9";
 
                 return false;
             }
@@ -539,7 +542,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 
-        public void AddUser (UUID id, string creatorData)
+        public void AddUser(UUID id, string creatorData)
         {
             //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
 
@@ -549,24 +552,24 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (oldUser != null)
             {
-                if (creatorData == null || creatorData == String.Empty)
-                {
-                    //ignore updates without creator data
-                    return;
-                }
-
-                //try update unknown users, but don't update anyone else
-                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
-                {
-                    lock (m_UserCache)
-                        m_UserCache.Remove(id);
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
-                }
-                else
-                {
+//                if (creatorData == null || creatorData == String.Empty)
+//                {
+//                    //ignore updates without creator data
+//                    return;
+//                }
+//
+//                //try update unknown users, but don't update anyone else
+//                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
+//                {
+//                    lock (m_UserCache)
+//                        m_UserCache.Remove(id);
+//                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
+//                }
+//                else
+//                {
                     //we have already a valid user within the cache
                     return;
-                }
+//                }
             }
 
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
@@ -602,15 +605,19 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     if (parts.Length >= 2)
                         user.FirstName = parts[1].Replace(' ', '.');
                 }
-                else
-                {
-                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
-                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
-                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
-                    // disappeared.
-                    user.FirstName = "Unknown";
-                    user.LastName = "UserUMMAU4";
-                }
+
+                // To avoid issues with clients, particularly Hypergrid ones, permanently caching
+                // UUID -> "Unknown User" name bindings, elsewhere we will drop such requests rather than replying.
+                // This also means that we cannot add an unknown user binding to the cache here.
+//                else
+//                {
+//                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
+//                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
+//                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
+//                    // disappeared.
+//                    user.FirstName = "Unknown";
+//                    user.LastName = "UserUMMAU4";
+//                }
 
                 AddUserInternal(user);
             }
