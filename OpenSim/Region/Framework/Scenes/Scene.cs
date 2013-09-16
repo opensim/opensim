@@ -2820,8 +2820,10 @@ namespace OpenSim.Region.Framework.Scenes
                 newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
                 newObject.ResumeScripts();
 
-                if (newObject.RootPart.KeyframeMotion != null)
-                    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
+                // AddSceneObject already does this and doing it again messes
+                // up region crossings, so don't.
+                //if (newObject.RootPart.KeyframeMotion != null)
+                //    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
             }
 
             // Do this as late as possible so that listeners have full access to the incoming object

@@ -282,7 +282,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // We need to set up the permisions module on scene B so that our later use of agent limit to deny
             // QueryAccess won't succeed anyway because administrators are always allowed in and the default
             // IsAdministrator if no permissions module is present is true.
-            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new PermissionsModule(), etmB });
+            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new DefaultPermissionsModule(), etmB });
 
             // Shared scene modules
             SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
@@ -447,7 +447,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // We need to set up the permisions module on scene B so that our later use of agent limit to deny
             // QueryAccess won't succeed anyway because administrators are always allowed in and the default
             // IsAdministrator if no permissions module is present is true.
-            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new PermissionsModule(), etmB });
+            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new DefaultPermissionsModule(), etmB });
 
             // Shared scene modules
             SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);

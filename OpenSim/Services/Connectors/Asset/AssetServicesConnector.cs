@@ -143,7 +143,13 @@ namespace OpenSim.Services.Connectors
 
             string prefix = id.Substring(0, 2).ToLower();
 
-            string host = m_UriMap[prefix];
+            string host;
+            
+            // HG URLs will not be valid UUIDS
+            if (m_UriMap.ContainsKey(prefix))
+                host = m_UriMap[prefix];
+            else
+                host = m_UriMap["00"];
 
             serverUri.Host = host;
 
