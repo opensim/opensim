@@ -100,6 +100,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 Assert.That(resList.Length, Is.EqualTo(1));
             }
 
+            // Check 2 prim case
+            {
+                LSL_List resList 
+                    = apiGrp1.llGetLinkPrimitiveParams(
+                        1, 
+                        new LSL_List(
+                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION), 
+                            new LSL_Integer(ScriptBaseClass.PRIM_LINK_TARGET),
+                            new LSL_Integer(2),
+                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION)));
+
+                Assert.That(resList.Length, Is.EqualTo(2));
+            }
+
             // Check invalid parameters are ignored
             {
                 LSL_List resList 
