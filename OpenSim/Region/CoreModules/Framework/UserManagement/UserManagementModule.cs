@@ -388,10 +388,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     else
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
                 }
-//                else
-//                {
-//                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
-//                }
+                else
+                {
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
+                }
 
                 names[0] = "Unknown";
                 names[1] = "UserUMMTGUN9";
@@ -552,24 +552,24 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (oldUser != null)
             {
-//                if (creatorData == null || creatorData == String.Empty)
-//                {
-//                    //ignore updates without creator data
-//                    return;
-//                }
-//
-//                //try update unknown users, but don't update anyone else
-//                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
-//                {
-//                    lock (m_UserCache)
-//                        m_UserCache.Remove(id);
-//                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
-//                }
-//                else
-//                {
+                if (creatorData == null || creatorData == String.Empty)
+                {
+                    //ignore updates without creator data
+                    return;
+                }
+
+                //try update unknown users, but don't update anyone else
+                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
+                {
+                    lock (m_UserCache)
+                        m_UserCache.Remove(id);
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
+                }
+                else
+                {
                     //we have already a valid user within the cache
                     return;
-//                }
+                }
             }
 
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
@@ -605,22 +605,18 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
                     if (parts.Length >= 2)
                         user.FirstName = parts[1].Replace(' ', '.');
-
-                    AddUserInternal(user);
                 }
-
-                // To avoid issues with clients, particularly Hypergrid ones, permanently caching
-                // UUID -> "Unknown User" name bindings, elsewhere we will drop such requests rather than replying.
-                // This also means that we cannot add an unknown user binding to the cache here.
-//                else
-//                {
-//                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
-//                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
-//                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
-//                    // disappeared.
-//                    user.FirstName = "Unknown";
-//                    user.LastName = "UserUMMAU4";
-//                }
+                else
+                {
+                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
+                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
+                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
+                    // disappeared.
+                    user.FirstName = "Unknown";
+                    user.LastName = "UserUMMAU4";
+                }
+                
+                AddUserInternal(user);
             }
         }
 
