@@ -1355,7 +1355,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool WaitForUpdateAgent(IClientAPI client)
         {
             // Before the source region executes UpdateAgent
-            // (which triggers Scene.IncomingChildAgentDataUpdate(AgentData cAgentData) here in the destination, 
+            // (which triggers Scene.IncomingUpdateChildAgent(AgentData cAgentData) here in the destination, 
             // m_originRegionID is UUID.Zero; after, it's non-Zero.  The CompleteMovement sequence initiated from the
             // viewer (in turn triggered by the source region sending it a TeleportFinish event) waits until it's non-zero
             int count = 50;
