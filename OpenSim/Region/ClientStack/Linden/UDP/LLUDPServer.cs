@@ -1693,31 +1693,60 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 CompleteAgentMovementPacket packet = (CompleteAgentMovementPacket)array[1];
 
                 // Determine which agent this packet came from
+                // We need to wait here because in when using the OpenSimulator V2 teleport protocol to travel to a destination
+                // simulator with no existing child presence, the viewer (at least LL 3.3.4) will send UseCircuitCode 
+                // and then CompleteAgentMovement immediately without waiting for an ack.  As we are now handling these
+                // packets asynchronously, we need to account for this thread proceeding more quickly than the 
+                // UseCircuitCode thread.
                 int count = 20;
-                bool ready = false;
-                while (!ready && count-- > 0)
+                while (count-- > 0)
                 {
-                    if (m_scene.TryGetClient(endPoint, out client) && client.IsActive && client.SceneAgent != null)
+                    if (m_scene.TryGetClient(endPoint, out client))
                     {
-                        LLClientView llClientView = (LLClientView)client;
-                        LLUDPClient udpClient = llClientView.UDPClient;
-                        if (udpClient != null && udpClient.IsConnected)
-                            ready = true;
+                        if (client.IsActive)
+                        {
+                            break;
+                        }
                         else
                         {
-                            m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
-                            Thread.Sleep(200);
+                            // This check exists to catch a condition where the client has been closed by another thread
+                            // but has not yet been removed from the client manager (and possibly a new connection has
+                            // not yet been established).
+                            m_log.DebugFormat(
+                                "[LLUDPSERVER]: Received a CompleteMovementIntoRegion from {0} for {1} in {2} but client is not active.  Waiting.",
+                                endPoint, client.Name, m_scene.Name);
                         }
                     }
                     else
                     {
-                        m_log.Debug("[LLUDPSERVER]: Received a CompleteMovementIntoRegion in " + m_scene.RegionInfo.RegionName + " (not ready yet)");
+                        m_log.DebugFormat(
+                            "[LLUDPSERVER]: Received a CompleteMovementIntoRegion from {0} in {1} but no client exists.  Waiting.", 
+                            endPoint, m_scene.Name);
+
                         Thread.Sleep(200);
                     }
                 }
 
                 if (client == null)
+                {
+                    m_log.DebugFormat(
+                        "[LLUDPSERVER]: No client found for CompleteMovementIntoRegion from {0} in {1} after wait.  Dropping.",
+                        endPoint, m_scene.Name);
+
                     return;
+                }
+                else if (!client.IsActive)
+                {
+                    // This check exists to catch a condition where the client has been closed by another thread
+                    // but has not yet been removed from the client manager.
+                    // The packet could be simply ignored but it is useful to know if this condition occurred for other debugging
+                    // purposes.
+                    m_log.DebugFormat(
+                        "[LLUDPSERVER]: Received a CompleteMovementIntoRegion from {0} for {1} in {2} but client is not active after wait.  Dropping.",
+                        endPoint, client.Name, m_scene.Name);
+
+                    return;
+                }
 
                 IncomingPacket incomingPacket1;
 
