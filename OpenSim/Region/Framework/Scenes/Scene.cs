@@ -4338,9 +4338,14 @@ namespace OpenSim.Region.Framework.Scenes
                     while (sp.IsChildAgent && ntimes-- > 0)
                         Thread.Sleep(1000);
 
-                    m_log.DebugFormat(
-                        "[SCENE]: Found presence {0} {1} {2} in {3} after {4} waits",
-                        sp.Name, sp.UUID, sp.IsChildAgent ? "child" : "root", Name, 20 - ntimes);
+                    if (sp.IsChildAgent)
+                        m_log.DebugFormat(
+                            "[SCENE]: Found presence {0} {1} unexpectedly still child in {2}",
+                            sp.Name, sp.UUID, Name);
+                    else
+                        m_log.DebugFormat(
+                            "[SCENE]: Found presence {0} {1} as root in {2} after {3} waits",
+                                sp.Name, sp.UUID, Name, 20 - ntimes);
 
                     if (sp.IsChildAgent)
                         return false;
