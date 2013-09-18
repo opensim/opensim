@@ -1698,7 +1698,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // and then CompleteAgentMovement immediately without waiting for an ack.  As we are now handling these
                 // packets asynchronously, we need to account for this thread proceeding more quickly than the 
                 // UseCircuitCode thread.
-                int count = 20;
+                int count = 40;
                 while (count-- > 0)
                 {
                     if (m_scene.TryGetClient(endPoint, out client))
