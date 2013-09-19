@@ -137,13 +137,19 @@ namespace OpenSim.Framework
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
         protected IPEndPoint m_internalEndPoint;
-        public uint RegionWorldLocX { get; set; }
-        public uint RegionWorldLocY { get; set; }
         protected uint m_remotingPort;
         public UUID RegionID = UUID.Zero;
         public string RemotingAddress;
         public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
+
+        public uint RegionWorldLocX = 0;
+        public uint RegionWorldLocY = 0;
+        public uint RegionWorldLocZ = 0;
+        public uint RegionSizeX = LegacyRegionSize;
+        public uint RegionSizeY = LegacyRegionSize;
+        public uint RegionSizeZ = Constants.RegionHeight;
+
 
         private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
 
@@ -236,9 +242,6 @@ namespace OpenSim.Framework
 
         public RegionInfo(uint legacyRegionLocX, uint legacyRegionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
-            RegionWorldLocX = legacyRegionLocX * LegacyRegionSize;
-            RegionWorldLocY = legacyRegionLocY * LegacyRegionSize;
-
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
             m_serverURI = string.Empty;
@@ -484,6 +487,17 @@ namespace OpenSim.Framework
             set { LegacyRegionLocX = value; }
         }
 
+        public void SetDefaultRegionSize()
+        {
+            RegionWorldLocX = 0;
+            RegionWorldLocY = 0;
+            RegionWorldLocZ = 0;
+            RegionSizeX = LegacyRegionSize;
+            RegionSizeY = LegacyRegionSize;
+            RegionSizeZ = Constants.RegionHeight;
+        }
+
+
         /// <summary>
         /// The y co-ordinate of this region in map tiles (e.g. 1000).
         /// Coordinate is scaled as world coordinates divided by the legacy region size
@@ -610,6 +624,21 @@ namespace OpenSim.Framework
 
             LegacyRegionLocX = Convert.ToUInt32(locationElements[0]);
             LegacyRegionLocY = Convert.ToUInt32(locationElements[1]);
+
+            // Region size
+            // Default to legacy region size if not specified.
+            allKeys.Remove("SizeX");
+            string configSizeX = config.GetString("SizeX", LegacyRegionSize.ToString());
+            config.Set("SizeX", configSizeX);
+            RegionSizeX = Convert.ToUInt32(configSizeX);
+            allKeys.Remove("SizeY");
+            string configSizeY = config.GetString("SizeY", LegacyRegionSize.ToString());
+            config.Set("SizeY", configSizeX);
+            RegionSizeY = Convert.ToUInt32(configSizeY);
+            allKeys.Remove("SizeZ");
+            string configSizeZ = config.GetString("SizeZ", Constants.RegionHeight.ToString());
+            config.Set("SizeZ", configSizeX);
+            RegionSizeZ = Convert.ToUInt32(configSizeZ);
 
             // InternalAddress
             //
@@ -743,6 +772,13 @@ namespace OpenSim.Framework
             string location = String.Format("{0},{1}", LegacyRegionLocX, LegacyRegionLocY);
             config.Set("Location", location);
 
+            if (RegionSizeX != LegacyRegionSize || RegionSizeY != LegacyRegionSize)
+            {
+                config.Set("SizeX", RegionSizeX);
+                config.Set("SizeY", RegionSizeY);
+                config.Set("SizeZ", RegionSizeZ);
+            }
+
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
             config.Set("InternalPort", m_internalEndPoint.Port);
 
@@ -825,10 +861,18 @@ namespace OpenSim.Framework
                                                 RegionID.ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Region Name", RegionName, true);
+
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (X Axis)", LegacyRegionLocX.ToString(), true);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (Y Axis)", LegacyRegionLocY.ToString(), true);
+            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in X dimension", RegionSizeX.ToString(), true);
+            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Y dimension", RegionSizeY.ToString(), true);
+            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Z dimension", RegionSizeZ.ToString(), true);
+
             //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
@@ -891,10 +935,18 @@ namespace OpenSim.Framework
                                                 UUID.Random().ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Region Name", "OpenSim Test", false);
+
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (Y Axis)", "1000", false);
+            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in X dimension", LegacyRegionSize.ToString(), false);
+            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Y dimension", LegacyRegionSize.ToString(), false);
+            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Z dimension", Constants.RegionHeight.ToString(), false);
+
             //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
@@ -956,6 +1008,15 @@ namespace OpenSim.Framework
                     break;
                 case "sim_location_y":
                     LegacyRegionLocY = (uint) configuration_result;
+                    break;
+                case "sim_size_x":
+                    RegionSizeX = (uint) configuration_result;
+                    break;
+                case "sim_size_y":
+                    RegionSizeY = (uint) configuration_result;
+                    break;
+                case "sim_size_z":
+                    RegionSizeZ = (uint) configuration_result;
                     break;
                 case "internal_ip_address":
                     IPAddress address = (IPAddress) configuration_result;
@@ -1036,8 +1097,13 @@ namespace OpenSim.Framework
             args["external_host_name"] = OSD.FromString(ExternalHostName);
             args["http_port"] = OSD.FromString(HttpPort.ToString());
             args["server_uri"] = OSD.FromString(ServerURI);
+
             args["region_xloc"] = OSD.FromString(LegacyRegionLocX.ToString());
             args["region_yloc"] = OSD.FromString(LegacyRegionLocY.ToString());
+            args["region_size_x"] = OSD.FromString(RegionSizeX.ToString());
+            args["region_size_y"] = OSD.FromString(RegionSizeY.ToString());
+            args["region_size_z"] = OSD.FromString(RegionSizeZ.ToString());
+
             args["internal_ep_address"] = OSD.FromString(InternalEndPoint.Address.ToString());
             args["internal_ep_port"] = OSD.FromString(InternalEndPoint.Port.ToString());
             if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
@@ -1076,6 +1142,13 @@ namespace OpenSim.Framework
                 UInt32.TryParse(args["region_yloc"].AsString(), out locy);
                 LegacyRegionLocY = locy;
             }
+            if (args.ContainsKey("region_size_x"))
+                RegionSizeX = (uint)args["region_size_x"].AsInteger();
+            if (args.ContainsKey("region_size_y"))
+                RegionSizeY = (uint)args["region_size_y"].AsInteger();
+            if (args.ContainsKey("region_size_z"))
+                RegionSizeZ = (uint)args["region_size_z"].AsInteger();
+
             IPAddress ip_addr = null;
             if (args["internal_ep_address"] != null)
             {
@@ -1111,24 +1184,6 @@ namespace OpenSim.Framework
             regionInfo.RegionName = regionName;
             regionInfo.ServerURI = serverURI;
             return regionInfo;
-        }
-
-        public Dictionary<string, object> ToKeyValuePairs()
-        {
-            Dictionary<string, object> kvp = new Dictionary<string, object>();
-            kvp["uuid"] = RegionID.ToString();
-            kvp["locX"] = LegacyRegionLocX.ToString();
-            kvp["locY"] = LegacyRegionLocY.ToString();
-            kvp["external_ip_address"] = ExternalEndPoint.Address.ToString();
-            kvp["external_port"] = ExternalEndPoint.Port.ToString();
-            kvp["external_host_name"] = ExternalHostName;
-            kvp["http_port"] = HttpPort.ToString();
-            kvp["internal_ip_address"] = InternalEndPoint.Address.ToString();
-            kvp["internal_port"] = InternalEndPoint.Port.ToString();
-            kvp["alternate_ports"] = m_allow_alternate_ports.ToString();
-            kvp["server_uri"] = ServerURI;
-
-            return kvp;
         }
     }
 }
