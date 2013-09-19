@@ -898,7 +898,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This method is on the critical path for transferring an avatar from one region to another.  Delay here
         /// delays that crossing.
         /// </summary>
-        public void MakeRootAgent(Vector3 pos, bool isFlying)
+        private void MakeRootAgent(Vector3 pos, bool isFlying)
         {
 //            m_log.InfoFormat(
 //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
