@@ -146,9 +146,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     int.MaxValue);
 
             m_log.DebugFormat(
-                    "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
-                    firstname, lastname, npcAvatar.AgentId, owner,
-                    senseAsAgent, position, scene.RegionInfo.RegionName);
+                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
+                firstname, lastname, npcAvatar.AgentId, owner,
+                senseAsAgent, position, scene.RegionInfo.RegionName);
 
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = npcAvatar.AgentId;
@@ -188,16 +188,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
                     sp.CompleteMovement(npcAvatar, false);
                     m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-                    m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}",
-                            npcAvatar.AgentId, sp.Name);
+                    m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
 
                     return npcAvatar.AgentId;
                 }
                 else
                 {
                     m_log.WarnFormat(
-                            "[NPC MODULE]: Could not find scene presence for NPC {0} {1}",
-                            sp.Name, sp.UUID);
+                        "[NPC MODULE]: Could not find scene presence for NPC {0} {1}",
+                        sp.Name, sp.UUID);
+
                     return UUID.Zero;
                 }
             }
@@ -213,10 +213,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(agentID, out sp))
                     {
-                        m_log.DebugFormat(
-                                "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
-                                sp.Name, pos, scene.RegionInfo.RegionName,
-                                noFly, landAtTarget);
+//                        m_log.DebugFormat(
+//                                "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+//                                sp.Name, pos, scene.RegionInfo.RegionName,
+//                                noFly, landAtTarget);
 
                         sp.MoveToTarget(pos, noFly, landAtTarget);
                         sp.SetAlwaysRun = running;
@@ -293,9 +293,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(agentID, out sp))
                     {
-                        sp.HandleAgentRequestSit(m_avatars[agentID], agentID,
-                                partID, Vector3.Zero);
-                        //sp.HandleAgentSit(m_avatars[agentID], agentID);
+                        sp.HandleAgentRequestSit(m_avatars[agentID], agentID, partID, Vector3.Zero);
 
                         return true;
                     }
@@ -387,8 +385,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     */
 
                     scene.IncomingCloseAgent(agentID, false);
-//                    scene.RemoveClient(agentID, false);
+
                     m_avatars.Remove(agentID);
+
                     /*
                     m_log.DebugFormat("[NPC MODULE]: Removed NPC {0} {1}",
                             agentID, av.Name);
