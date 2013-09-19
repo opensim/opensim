@@ -731,6 +731,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_config = config;
             MinFrameTime = 0.089f;
             MinMaintenanceTime = 1;
+            SeeIntoRegion = true;
 
             Random random = new Random();
 
@@ -841,7 +842,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
-                SeeIntoRegion = startupConfig.GetBoolean("see_into_region", true);
+                SeeIntoRegion = startupConfig.GetBoolean("see_into_region", SeeIntoRegion);
 
                 MaxUndoCount = startupConfig.GetInt("MaxPrimUndos", 20);
 
