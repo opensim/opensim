@@ -900,9 +900,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void MakeRootAgent(Vector3 pos, bool isFlying)
         {
-            m_log.InfoFormat(
-                "[SCENE]: Upgrading child to root agent for {0} in {1}",
-                Name, m_scene.RegionInfo.RegionName);
+//            m_log.InfoFormat(
+//                "[SCENE]: Upgrading child to root agent for {0} in {1}",
+//                Name, m_scene.RegionInfo.RegionName);
 
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
@@ -1388,9 +1388,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            DateTime startTime = DateTime.Now;
 
-            m_log.DebugFormat(
+            m_log.InfoFormat(
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
-                client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
+                client.Name, Scene.Name, AbsolutePosition);
 
             // Make sure it's not a login agent. We don't want to wait for updates during login
             if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
