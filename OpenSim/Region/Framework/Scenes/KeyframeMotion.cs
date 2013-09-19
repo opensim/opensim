@@ -662,7 +662,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Do the frame processing
             double steps = (double)m_currentFrame.TimeMS / tickDuration;
-
+            
             if (steps <= 0.0)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;

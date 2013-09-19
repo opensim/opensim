@@ -591,6 +591,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 avinfo.ParentID = av.ParentID;
                                 avsToCross.Add(avinfo);
 
+                                av.PrevSitOffset = av.OffsetPosition;
                                 av.ParentID = 0;
                             }
 
@@ -1072,6 +1073,11 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
+                if (part.KeyframeMotion != null)
+                {
+                    part.KeyframeMotion.UpdateSceneObject(this);
+                }
+
                 if (Object.ReferenceEquals(part, m_rootPart))
                     continue;
 
@@ -3483,8 +3489,8 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ClonePermissions(RootPart);
             });
 
-            uint lockMask = ~(uint)PermissionMask.Move;
-            uint lockBit = RootPart.OwnerMask & (uint)PermissionMask.Move;
+            uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
+            uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
             RootPart.ScheduleFullUpdate();
         }

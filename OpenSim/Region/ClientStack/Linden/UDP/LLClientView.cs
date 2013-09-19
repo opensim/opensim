@@ -3933,6 +3933,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         part.Shape.ProfileHollow = 27500;
                     }
                 }
+                else if (update.Entity is ScenePresence)
+                {
+                    ScenePresence presence = (ScenePresence)update.Entity;
+
+                    // If ParentUUID is not UUID.Zero and ParentID is 0, this
+                    // avatar is in the process of crossing regions while
+                    // sat on an object. In this state, we don't want any
+                    // updates because they will visually orbit the avatar.
+                    // Update will be forced once crossing is completed anyway.
+                    if (presence.ParentUUID != UUID.Zero && presence.ParentID == 0)
+                        continue;
+                }
 
                 ++updatesThisCall;
 

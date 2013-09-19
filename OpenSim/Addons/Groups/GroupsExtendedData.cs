@@ -504,6 +504,30 @@ namespace OpenSim.Groups
 
             return notice;
         }
+
+        public static Dictionary<string, object> DirGroupsReplyData(DirGroupsReplyData g)
+        {
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+
+            dict["GroupID"] = g.groupID;
+            dict["Name"] = g.groupName;
+            dict["NMembers"] = g.members;
+            dict["SearchOrder"] = g.searchOrder;
+
+            return dict;
+        }
+
+        public static DirGroupsReplyData DirGroupsReplyData(Dictionary<string, object> dict)
+        {
+            DirGroupsReplyData g;
+
+            g.groupID = new UUID(dict["GroupID"].ToString());
+            g.groupName = dict["Name"].ToString();
+            Int32.TryParse(dict["NMembers"].ToString(), out g.members);
+            float.TryParse(dict["SearchOrder"].ToString(), out g.searchOrder);
+
+            return g;
+        }
     }
 
 }

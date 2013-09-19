@@ -458,8 +458,6 @@ namespace OpenSim.Data.MySQL
                 if (prim.ParentUUID == UUID.Zero)
                 {
                     objects[prim.UUID] = new SceneObjectGroup(prim);
-                    if (prim.KeyframeMotion != null)
-                        prim.KeyframeMotion.UpdateSceneObject(objects[prim.UUID]);
                 }
             }
 

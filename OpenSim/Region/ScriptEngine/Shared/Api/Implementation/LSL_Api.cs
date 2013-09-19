@@ -3109,8 +3109,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
+                string reason;
                 money.ObjectGiveMoney(
-                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero, out reason);
             });
 
             return 0;
@@ -12784,8 +12785,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
+                    string reason;
                     bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn);
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn, out reason);
 
                     if (result)
                     {
@@ -12793,7 +12795,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    replydata = "LINDENDOLLAR_INSUFFICIENTFUNDS";
+                    replydata = reason;
                 }
                 finally
                 {

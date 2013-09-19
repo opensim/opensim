@@ -77,6 +77,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
 
+        private string m_Url = "localhost";
+
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
@@ -86,6 +88,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Initialise(IConfigSource source)
         {
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config != null)
+                m_Url = config.GetString("Cap_GetTexture", "localhost");
         }
 
         public void AddRegion(Scene s)
@@ -343,27 +348,34 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
-            // Register this as a poll service           
-            PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
-            
-            args.Type = PollServiceEventArgs.EventType.Texture;
-            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
-
-            string hostName = m_scene.RegionInfo.ExternalHostName;
-            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
-            string protocol = "http";
-            
-            if (MainServer.Instance.UseSSL)
+            if (m_Url == "localhost")
             {
-                hostName = MainServer.Instance.SSLCommonName;
-                port = MainServer.Instance.SSLPort;
-                protocol = "https";
+                string capUrl = "/CAPS/" + UUID.Random() + "/";
+
+                // Register this as a poll service           
+                PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
+                
+                args.Type = PollServiceEventArgs.EventType.Texture;
+                MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
+
+                string hostName = m_scene.RegionInfo.ExternalHostName;
+                uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+                string protocol = "http";
+                
+                if (MainServer.Instance.UseSSL)
+                {
+                    hostName = MainServer.Instance.SSLCommonName;
+                    port = MainServer.Instance.SSLPort;
+                    protocol = "https";
+                }
+                caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+                m_pollservices[agentID] = args;
+                m_capsDict[agentID] = capUrl;
             }
-            caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
-            m_pollservices[agentID] = args;
-            m_capsDict[agentID] = capUrl;
+            else
+            {
+                caps.RegisterHandler("GetTexture", m_Url);
+            }
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
