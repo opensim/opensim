@@ -224,10 +224,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             }
 
             string reason = string.Empty;
-            if (!m_MapService.AddMapTile((int)scene.RegionInfo.RegionLocX, (int)scene.RegionInfo.RegionLocY, jpgData, out reason))
+            if (!m_MapService.AddMapTile((int)scene.RegionInfo.LegacyRegionLocX, (int)scene.RegionInfo.LegacyRegionLocY, jpgData, out reason))
             {
                 m_log.DebugFormat("[MAP IMAGE SERVICE MODULE]: Unable to upload tile image for {0} at {1}-{2}: {3}",
-                    scene.RegionInfo.RegionName, scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY, reason);
+                    scene.RegionInfo.RegionName, scene.RegionInfo.LegacyRegionLocX, scene.RegionInfo.LegacyRegionLocY, reason);
             }
         }
     }

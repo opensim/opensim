@@ -246,8 +246,8 @@ namespace OpenSim.Region.RegionCombinerModule
             newConn.RegionScene = scene;
             newConn.RegionLandChannel = scene.LandChannel;
             newConn.RegionId = scene.RegionInfo.originRegionID;
-            newConn.X = scene.RegionInfo.RegionLocX;
-            newConn.Y = scene.RegionInfo.RegionLocY;
+            newConn.X = scene.RegionInfo.LegacyRegionLocX;
+            newConn.Y = scene.RegionInfo.LegacyRegionLocY;
             newConn.XEnd = (int)Constants.RegionSize;
             newConn.YEnd = (int)Constants.RegionSize;
 
@@ -502,11 +502,11 @@ namespace OpenSim.Region.RegionCombinerModule
 
             lock (scene.WestBorders)
             {
-                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocX - rootConn.RegionScene.RegionInfo.RegionLocX) * (int)Constants.RegionSize); //auto teleport West
+                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.LegacyRegionLocX - rootConn.RegionScene.RegionInfo.LegacyRegionLocX) * (int)Constants.RegionSize); //auto teleport West
 
                 // Trigger auto teleport to root region
-                scene.WestBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
-                scene.WestBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
+                scene.WestBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.LegacyRegionLocX;
+                scene.WestBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.LegacyRegionLocY;
             }
 
             // Reset Terrain..  since terrain loads before we get here, we need to load 
@@ -564,9 +564,9 @@ namespace OpenSim.Region.RegionCombinerModule
 
             lock (scene.SouthBorders)
             {
-                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocY - rootConn.RegionScene.RegionInfo.RegionLocY) * (int)Constants.RegionSize); //auto teleport south
-                scene.SouthBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
-                scene.SouthBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
+                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.LegacyRegionLocY - rootConn.RegionScene.RegionInfo.LegacyRegionLocY) * (int)Constants.RegionSize); //auto teleport south
+                scene.SouthBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.LegacyRegionLocX;
+                scene.SouthBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.LegacyRegionLocY;
             }
 
             // Reset Terrain..  since terrain normally loads first.
@@ -636,9 +636,9 @@ namespace OpenSim.Region.RegionCombinerModule
 
             lock (scene.SouthBorders)
             {
-                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocY - rootConn.RegionScene.RegionInfo.RegionLocY) * (int)Constants.RegionSize); //auto teleport south
-                scene.SouthBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
-                scene.SouthBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
+                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.LegacyRegionLocY - rootConn.RegionScene.RegionInfo.LegacyRegionLocY) * (int)Constants.RegionSize); //auto teleport south
+                scene.SouthBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.LegacyRegionLocX;
+                scene.SouthBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.LegacyRegionLocY;
             }
 
             lock (rootConn.RegionScene.EastBorders)
@@ -657,9 +657,9 @@ namespace OpenSim.Region.RegionCombinerModule
 
             lock (scene.WestBorders)
             {
-                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocX - rootConn.RegionScene.RegionInfo.RegionLocX) * (int)Constants.RegionSize); //auto teleport West
-                scene.WestBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
-                scene.WestBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
+                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.LegacyRegionLocX - rootConn.RegionScene.RegionInfo.LegacyRegionLocX) * (int)Constants.RegionSize); //auto teleport West
+                scene.WestBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.LegacyRegionLocX;
+                scene.WestBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.LegacyRegionLocY;
             }
 
             /*

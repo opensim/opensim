@@ -553,8 +553,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="fileStartY">Where to begin our slice</param>
         public void LoadFromFile(string filename, int fileWidth, int fileHeight, int fileStartX, int fileStartY)
         {
-            int offsetX = (int) m_scene.RegionInfo.RegionLocX - fileStartX;
-            int offsetY = (int) m_scene.RegionInfo.RegionLocY - fileStartY;
+            int offsetX = (int) m_scene.RegionInfo.LegacyRegionLocX - fileStartX;
+            int offsetY = (int) m_scene.RegionInfo.LegacyRegionLocY - fileStartY;
 
             if (offsetX >= 0 && offsetX < fileWidth && offsetY >= 0 && offsetY < fileHeight)
             {
@@ -594,14 +594,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="fileStartY">The may y co-ordinate at which to begin the save.</param>
         public void SaveToFile(string filename, int fileWidth, int fileHeight, int fileStartX, int fileStartY)
         {
-            int offsetX = (int)m_scene.RegionInfo.RegionLocX - fileStartX;
-            int offsetY = (int)m_scene.RegionInfo.RegionLocY - fileStartY;
+            int offsetX = (int)m_scene.RegionInfo.LegacyRegionLocX - fileStartX;
+            int offsetY = (int)m_scene.RegionInfo.LegacyRegionLocY - fileStartY;
 
             if (offsetX < 0 || offsetX >= fileWidth || offsetY < 0 || offsetY >= fileHeight)
             {
                 MainConsole.Instance.OutputFormat(
                     "ERROR: file width + minimum X tile and file height + minimum Y tile must incorporate the current region at ({0},{1}).  File width {2} from {3} and file height {4} from {5} does not.",
-                    m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY, fileWidth, fileStartX, fileHeight, fileStartY);
+                    m_scene.RegionInfo.LegacyRegionLocX, m_scene.RegionInfo.LegacyRegionLocY, fileWidth, fileStartX, fileHeight, fileStartY);
 
                 return;
             }

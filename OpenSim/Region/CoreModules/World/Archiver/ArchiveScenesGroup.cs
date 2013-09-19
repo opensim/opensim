@@ -71,8 +71,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void AddScene(Scene scene)
         {
-            uint x = scene.RegionInfo.RegionLocX;
-            uint y = scene.RegionInfo.RegionLocY;
+            uint x = scene.RegionInfo.LegacyRegionLocX;
+            uint y = scene.RegionInfo.LegacyRegionLocY;
 
             SortedDictionary<uint, Scene> row;
             if (!Regions.TryGetValue(y, out row))
@@ -120,8 +120,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 // We add the region's coordinates to ensure uniqueness even if multiple regions have the same name
                 string path = string.Format("{0}_{1}_{2}",
-                    scene.RegionInfo.RegionLocX - Rect.X + 1,
-                    scene.RegionInfo.RegionLocY - Rect.Y + 1,
+                    scene.RegionInfo.LegacyRegionLocX - Rect.X + 1,
+                    scene.RegionInfo.LegacyRegionLocY - Rect.Y + 1,
                     scene.RegionInfo.RegionName.Replace(' ', '_'));
                 m_regionDirs[scene.RegionInfo.RegionID] = path;
             });

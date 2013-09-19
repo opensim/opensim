@@ -240,7 +240,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // 6/8/2011 -- I'm adding an explicit 2048 check, so that we never forget that there is
             // a hack here, and so that regions below 4096 don't get spammed with unnecessary map blocks.
 
-            if (m_scene.RegionInfo.RegionLocX >= 2048 || m_scene.RegionInfo.RegionLocY >= 2048)
+            if (m_scene.RegionInfo.LegacyRegionLocX >= 2048 || m_scene.RegionInfo.LegacyRegionLocY >= 2048)
             {
                 ScenePresence avatarPresence = null;
 
@@ -269,10 +269,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
 
                         List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                            (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
-                            (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
-                            (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
-                            (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
+                            (int)(m_scene.RegionInfo.LegacyRegionLocX - 8) * (int)Constants.RegionSize,
+                            (int)(m_scene.RegionInfo.LegacyRegionLocX + 8) * (int)Constants.RegionSize,
+                            (int)(m_scene.RegionInfo.LegacyRegionLocY - 8) * (int)Constants.RegionSize,
+                            (int)(m_scene.RegionInfo.LegacyRegionLocY + 8) * (int)Constants.RegionSize);
                         foreach (GridRegion r in regions)
                         {
                             MapBlockData block = new MapBlockData();
@@ -1199,10 +1199,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    (int)(m_scene.RegionInfo.RegionLocX - 9) * (int)Constants.RegionSize,
-                    (int)(m_scene.RegionInfo.RegionLocX + 9) * (int)Constants.RegionSize,
-                    (int)(m_scene.RegionInfo.RegionLocY - 9) * (int)Constants.RegionSize,
-                    (int)(m_scene.RegionInfo.RegionLocY + 9) * (int)Constants.RegionSize);
+                    (int)(m_scene.RegionInfo.LegacyRegionLocX - 9) * (int)Constants.RegionSize,
+                    (int)(m_scene.RegionInfo.LegacyRegionLocX + 9) * (int)Constants.RegionSize,
+                    (int)(m_scene.RegionInfo.LegacyRegionLocY - 9) * (int)Constants.RegionSize,
+                    (int)(m_scene.RegionInfo.LegacyRegionLocY + 9) * (int)Constants.RegionSize);
             List<AssetBase> textures = new List<AssetBase>();
             List<Image> bitImages = new List<Image>();
 
@@ -1243,8 +1243,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             for (int i = 0; i < mapBlocks.Count; i++)
             {
-                ushort x = (ushort)((mapBlocks[i].X - m_scene.RegionInfo.RegionLocX) + 10);
-                ushort y = (ushort)((mapBlocks[i].Y - m_scene.RegionInfo.RegionLocY) + 10);
+                ushort x = (ushort)((mapBlocks[i].X - m_scene.RegionInfo.LegacyRegionLocX) + 10);
+                ushort y = (ushort)((mapBlocks[i].Y - m_scene.RegionInfo.LegacyRegionLocY) + 10);
                 g.DrawImage(bitImages[i], (x * 128), 2560 - (y * 128), 128, 128); // y origin is top
             }
 

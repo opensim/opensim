@@ -2910,8 +2910,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 pos = (land.AABBMax + land.AABBMin) * 0.5f;
             }
-            reply.Data.GlobalX = info.RegionLocX + x;
-            reply.Data.GlobalY = info.RegionLocY + y;
+            reply.Data.GlobalX = info.LegacyRegionLocX + x;
+            reply.Data.GlobalY = info.LegacyRegionLocY + y;
             reply.Data.GlobalZ = pos.Z;
             reply.Data.SimName = Utils.StringToBytes(info.RegionName);
             reply.Data.SnapshotID = land.SnapshotID;

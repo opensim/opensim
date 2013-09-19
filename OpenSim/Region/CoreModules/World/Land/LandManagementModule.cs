@@ -1717,8 +1717,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 // HACK for now
                 RegionInfo r = new RegionInfo();
                 r.RegionName = info.RegionName;
-                r.RegionLocX = (uint)info.RegionLocX;
-                r.RegionLocY = (uint)info.RegionLocY;
+                r.LegacyRegionLocX = (uint)info.RegionLocX;
+                r.LegacyRegionLocY = (uint)info.RegionLocY;
                 r.RegionSettings.Maturity = (int)Util.ConvertAccessLevelToMaturity(data.RegionAccess);
                 remoteClient.SendParcelInfo(r, data.LandData, parcelID, data.X, data.Y);
             }

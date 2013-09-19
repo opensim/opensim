@@ -742,7 +742,7 @@ namespace OpenSim
         {
             m_log.InfoFormat(
                 "[OPENSIM]: Got restart signal from SceneManager for region {0} ({1},{2})", 
-                whichRegion.RegionName, whichRegion.RegionLocX, whichRegion.RegionLocY);
+                whichRegion.RegionName, whichRegion.LegacyRegionLocX, whichRegion.LegacyRegionLocY);
 
             ShutdownClientServer(whichRegion);
             IScene scene;

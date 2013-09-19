@@ -184,11 +184,11 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                         return false;
                     }
                     else if (
-                        regions[i].RegionLocX == regions[j].RegionLocX && regions[i].RegionLocY == regions[j].RegionLocY)
+                        regions[i].LegacyRegionLocX == regions[j].LegacyRegionLocX && regions[i].LegacyRegionLocY == regions[j].LegacyRegionLocY)
                     {
                         m_log.ErrorFormat(
                             "[LOAD REGIONS PLUGIN]: Regions {0} and {1} have the same grid location ({2}, {3})",
-                            regions[i].RegionName, regions[j].RegionName, regions[i].RegionLocX, regions[i].RegionLocY);
+                            regions[i].RegionName, regions[j].RegionName, regions[i].LegacyRegionLocX, regions[i].LegacyRegionLocY);
                         return false;
                     }
                     else if (regions[i].InternalEndPoint.Port == regions[j].InternalEndPoint.Port)
