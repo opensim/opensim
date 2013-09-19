@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             foreach (RegionInfo archivedRegion in m_directory2region.Values)
             {
-                Point location = new Point((int)rootScene.RegionInfo.RegionLocX, (int)rootScene.RegionInfo.RegionLocY);
+                Point location = new Point((int)rootScene.RegionInfo.LegacyRegionLocX, (int)rootScene.RegionInfo.LegacyRegionLocY);
                 location.Offset(archivedRegion.Location);
 
                 Scene scene;

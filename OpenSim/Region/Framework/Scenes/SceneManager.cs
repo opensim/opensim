@@ -445,8 +445,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (Scene mscene in m_localScenes)
                 {
-                    if (mscene.RegionInfo.RegionLocX == locX &&
-                        mscene.RegionInfo.RegionLocY == locY)
+                    if (mscene.RegionInfo.LegacyRegionLocX == locX &&
+                        mscene.RegionInfo.LegacyRegionLocY == locY)
                     {
                         scene = mscene;
                         return true;

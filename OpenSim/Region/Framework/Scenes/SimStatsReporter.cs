@@ -437,7 +437,7 @@ namespace OpenSim.Region.Framework.Scenes
               
                 SimStats simStats 
                     = new SimStats(
-                        ReportingRegion.RegionLocX, ReportingRegion.RegionLocY, regionFlags, (uint)m_objectCapacity,
+                        ReportingRegion.LegacyRegionLocX, ReportingRegion.LegacyRegionLocY, regionFlags, (uint)m_objectCapacity,
                         rb, sb, m_scene.RegionInfo.originRegionID);
 
                 handlerSendStatResult = OnSendStatsResult;

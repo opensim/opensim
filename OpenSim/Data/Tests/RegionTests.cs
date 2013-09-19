@@ -300,8 +300,8 @@ namespace OpenSim.Data.Tests
 
             RegionInfo regionInfo = new RegionInfo();
             regionInfo.RegionID = region3;
-            regionInfo.RegionLocX = 0;
-            regionInfo.RegionLocY = 0;
+            regionInfo.LegacyRegionLocX = 0;
+            regionInfo.LegacyRegionLocY = 0;
 
             SceneObjectPart sop = new SceneObjectPart();
             SceneObjectGroup sog = new SceneObjectGroup(sop);
@@ -1066,8 +1066,8 @@ namespace OpenSim.Data.Tests
         {
             RegionInfo regionInfo = new RegionInfo();
             regionInfo.RegionID = regionId;
-            regionInfo.RegionLocX = 0;
-            regionInfo.RegionLocY = 0;
+            regionInfo.LegacyRegionLocX = 0;
+            regionInfo.LegacyRegionLocY = 0;
 
             SceneObjectPart sop = new SceneObjectPart();
             sop.Name = name;

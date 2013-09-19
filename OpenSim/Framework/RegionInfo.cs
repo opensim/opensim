@@ -137,8 +137,8 @@ namespace OpenSim.Framework
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
         protected IPEndPoint m_internalEndPoint;
-        protected uint? m_regionLocX;
-        protected uint? m_regionLocY;
+        public uint RegionWorldLocX { get; set; }
+        public uint RegionWorldLocY { get; set; }
         protected uint m_remotingPort;
         public UUID RegionID = UUID.Zero;
         public string RemotingAddress;
@@ -146,6 +146,11 @@ namespace OpenSim.Framework
         private UUID m_maptileStaticUUID = UUID.Zero;
 
         private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
+
+        // Originally, regions were fixed size of 256 in X and Y.
+        // For downward compatability, 'RegionLocX' returns the region coordinates in the legacy region units.
+        // This is the constant used to convert world integer coordinates to legacy region units.
+        public const uint LegacyRegionSize = 256;
 
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
@@ -229,10 +234,10 @@ namespace OpenSim.Framework
             m_serverURI = string.Empty;
         }
 
-        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
+        public RegionInfo(uint legacyRegionLocX, uint legacyRegionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
-            m_regionLocX = regionLocX;
-            m_regionLocY = regionLocY;
+            RegionWorldLocX = legacyRegionLocX * LegacyRegionSize;
+            RegionWorldLocY = legacyRegionLocY * LegacyRegionSize;
 
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
@@ -447,25 +452,56 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// The x co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
         /// </summary>
-        public uint RegionLocX
+        public uint LegacyRegionLocX
         {
-            get { return m_regionLocX.Value; }
-            set { m_regionLocX = value; }
+            get { return RegionWorldLocX / LegacyRegionSize; }
+            set { RegionWorldLocX = value * LegacyRegionSize; }
         }
 
         /// <summary>
         /// The y co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
+        /// </summary>
+        public uint LegacyRegionLocY
+        {
+            get { return RegionWorldLocY / LegacyRegionSize; }
+            set { RegionWorldLocY = value * LegacyRegionSize; }
+        }
+
+        /// <summary>
+        /// The x co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
+        /// This entrypoint exists for downward compatability for external modules.
+        /// </summary>
+        public uint RegionLocX
+        {
+            get { return LegacyRegionLocX; }
+            set { LegacyRegionLocX = value; }
+        }
+
+        /// <summary>
+        /// The y co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
+        /// This entrypoint exists for downward compatability for external modules.
         /// </summary>
         public uint RegionLocY
         {
-            get { return m_regionLocY.Value; }
-            set { m_regionLocY = value; }
+            get { return LegacyRegionLocY; }
+            set { LegacyRegionLocY = value; }
         }
 
+        // A unique region handle is created from the region's world coordinates.
+        // This cannot be changed because some code expects to receive the region handle and then
+        //    compute the region coordinates from it.
         public ulong RegionHandle
         {
-            get { return Util.UIntsToLong((RegionLocX * (uint) Constants.RegionSize), (RegionLocY * (uint) Constants.RegionSize)); }
+            get { return Util.UIntsToLong(RegionWorldLocX, RegionWorldLocY); }
         }
 
         public void SetEndPoint(string ipaddr, int port)
@@ -572,8 +608,8 @@ namespace OpenSim.Framework
 
             string[] locationElements = location.Split(new char[] {','});
 
-            m_regionLocX = Convert.ToUInt32(locationElements[0]);
-            m_regionLocY = Convert.ToUInt32(locationElements[1]);
+            LegacyRegionLocX = Convert.ToUInt32(locationElements[0]);
+            LegacyRegionLocY = Convert.ToUInt32(locationElements[1]);
 
             // InternalAddress
             //
@@ -704,7 +740,7 @@ namespace OpenSim.Framework
 
             config.Set("RegionUUID", RegionID.ToString());
 
-            string location = String.Format("{0},{1}", m_regionLocX, m_regionLocY);
+            string location = String.Format("{0},{1}", LegacyRegionLocX, LegacyRegionLocY);
             config.Set("Location", location);
 
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
@@ -790,9 +826,9 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Region Name", RegionName, true);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", m_regionLocX.ToString(), true);
+                                                "Grid Location (X Axis)", LegacyRegionLocX.ToString(), true);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", m_regionLocY.ToString(), true);
+                                                "Grid Location (Y Axis)", LegacyRegionLocY.ToString(), true);
             //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
@@ -916,10 +952,10 @@ namespace OpenSim.Framework
                     RegionName = (string) configuration_result;
                     break;
                 case "sim_location_x":
-                    m_regionLocX = (uint) configuration_result;
+                    LegacyRegionLocX = (uint) configuration_result;
                     break;
                 case "sim_location_y":
-                    m_regionLocY = (uint) configuration_result;
+                    LegacyRegionLocY = (uint) configuration_result;
                     break;
                 case "internal_ip_address":
                     IPAddress address = (IPAddress) configuration_result;
@@ -1000,8 +1036,8 @@ namespace OpenSim.Framework
             args["external_host_name"] = OSD.FromString(ExternalHostName);
             args["http_port"] = OSD.FromString(HttpPort.ToString());
             args["server_uri"] = OSD.FromString(ServerURI);
-            args["region_xloc"] = OSD.FromString(RegionLocX.ToString());
-            args["region_yloc"] = OSD.FromString(RegionLocY.ToString());
+            args["region_xloc"] = OSD.FromString(LegacyRegionLocX.ToString());
+            args["region_yloc"] = OSD.FromString(LegacyRegionLocY.ToString());
             args["internal_ep_address"] = OSD.FromString(InternalEndPoint.Address.ToString());
             args["internal_ep_port"] = OSD.FromString(InternalEndPoint.Port.ToString());
             if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
@@ -1032,13 +1068,13 @@ namespace OpenSim.Framework
             {
                 uint locx;
                 UInt32.TryParse(args["region_xloc"].AsString(), out locx);
-                RegionLocX = locx;
+                LegacyRegionLocX = locx;
             }
             if (args["region_yloc"] != null)
             {
                 uint locy;
                 UInt32.TryParse(args["region_yloc"].AsString(), out locy);
-                RegionLocY = locy;
+                LegacyRegionLocY = locy;
             }
             IPAddress ip_addr = null;
             if (args["internal_ep_address"] != null)
@@ -1081,8 +1117,8 @@ namespace OpenSim.Framework
         {
             Dictionary<string, object> kvp = new Dictionary<string, object>();
             kvp["uuid"] = RegionID.ToString();
-            kvp["locX"] = RegionLocX.ToString();
-            kvp["locY"] = RegionLocY.ToString();
+            kvp["locX"] = LegacyRegionLocX.ToString();
+            kvp["locY"] = LegacyRegionLocY.ToString();
             kvp["external_ip_address"] = ExternalEndPoint.Address.ToString();
             kvp["external_port"] = ExternalEndPoint.Port.ToString();
             kvp["external_host_name"] = ExternalHostName;

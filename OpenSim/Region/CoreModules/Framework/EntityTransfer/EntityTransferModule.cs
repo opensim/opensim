@@ -494,8 +494,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 // Check that these are not the same coordinates
-                if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
-                    finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
+                if (finalDestination.RegionLocX == sp.Scene.RegionInfo.LegacyRegionLocX &&
+                    finalDestination.RegionLocY == sp.Scene.RegionInfo.LegacyRegionLocY)
                 {
                     // Can't do. Viewer crashes
                     sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
@@ -567,8 +567,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                            destRegionX, destRegionY, finalDestination.RegionID, finalDestination.ServerURI);
 
             // Insanely, RegionLoc on RegionInfo is the 256m map co-ord whilst GridRegion.RegionLoc is the raw meters position.
-            return Math.Abs(sourceRegion.RegionLocX - destRegion.RegionCoordX) <= MaxTransferDistance
-                && Math.Abs(sourceRegion.RegionLocY - destRegion.RegionCoordY) <= MaxTransferDistance;
+            return Math.Abs(sourceRegion.LegacyRegionLocX - destRegion.RegionCoordX) <= MaxTransferDistance
+                && Math.Abs(sourceRegion.LegacyRegionLocY - destRegion.RegionCoordY) <= MaxTransferDistance;
         }
 
         /// <summary>
@@ -635,7 +635,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     string.Format(
                       "Can't teleport to {0} ({1},{2}) from {3} ({4},{5}), destination is more than {6} regions way",
                       finalDestination.RegionName, finalDestination.RegionCoordX, finalDestination.RegionCoordY,
-                      sourceRegion.RegionName, sourceRegion.RegionLocX, sourceRegion.RegionLocY,
+                      sourceRegion.RegionName, sourceRegion.LegacyRegionLocX, sourceRegion.LegacyRegionLocY,
                       MaxTransferDistance));
 
                 return;
@@ -1374,8 +1374,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
 
             Vector3 newpos = new Vector3(pos.X, pos.Y, pos.Z);
-            uint neighbourx = scene.RegionInfo.RegionLocX;
-            uint neighboury = scene.RegionInfo.RegionLocY;
+            uint neighbourx = scene.RegionInfo.LegacyRegionLocX;
+            uint neighboury = scene.RegionInfo.LegacyRegionLocY;
             const float boundaryDistance = 1.7f;
             Vector3 northCross = new Vector3(0, boundaryDistance, 0);
             Vector3 southCross = new Vector3(0, -1 * boundaryDistance, 0);
@@ -1408,8 +1408,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         neighbourx = b.TriggerRegionX;
 
                         Vector3 newposition = pos;
-                        newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                        newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                        newposition.X += (scene.RegionInfo.LegacyRegionLocX - neighbourx) * Constants.RegionSize;
+                        newposition.Y += (scene.RegionInfo.LegacyRegionLocY - neighboury) * Constants.RegionSize;
                         agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
                         InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
@@ -1431,8 +1431,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     neighbourx = ba.TriggerRegionX;
 
                     Vector3 newposition = pos;
-                    newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                    newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                    newposition.X += (scene.RegionInfo.LegacyRegionLocX - neighbourx) * Constants.RegionSize;
+                    newposition.Y += (scene.RegionInfo.LegacyRegionLocY - neighboury) * Constants.RegionSize;
                     agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
                     InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
@@ -1462,8 +1462,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         neighboury = ba.TriggerRegionY;
                         neighbourx = ba.TriggerRegionX;
                         Vector3 newposition = pos;
-                        newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                        newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                        newposition.X += (scene.RegionInfo.LegacyRegionLocX - neighbourx) * Constants.RegionSize;
+                        newposition.Y += (scene.RegionInfo.LegacyRegionLocY - neighboury) * Constants.RegionSize;
                         agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
                         InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
@@ -1492,8 +1492,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     neighboury = b.TriggerRegionY;
                     neighbourx = b.TriggerRegionX;
                     Vector3 newposition = pos;
-                    newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                    newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                    newposition.X += (scene.RegionInfo.LegacyRegionLocX - neighbourx) * Constants.RegionSize;
+                    newposition.Y += (scene.RegionInfo.LegacyRegionLocY - neighboury) * Constants.RegionSize;
                     agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
                     InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
@@ -1901,7 +1901,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (m_regionInfo != null)
             {
-                neighbours = RequestNeighbours(sp, m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+                neighbours = RequestNeighbours(sp, m_regionInfo.LegacyRegionLocX, m_regionInfo.LegacyRegionLocY);
             }
             else
             {
@@ -2057,8 +2057,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         Vector3 CalculateOffset(ScenePresence sp, GridRegion neighbour)
         {
-            int rRegionX = (int)sp.Scene.RegionInfo.RegionLocX;
-            int rRegionY = (int)sp.Scene.RegionInfo.RegionLocY;
+            int rRegionX = (int)sp.Scene.RegionInfo.LegacyRegionLocX;
+            int rRegionY = (int)sp.Scene.RegionInfo.LegacyRegionLocY;
             int tRegionX = neighbour.RegionLocX / (int)Constants.RegionSize;
             int tRegionY = neighbour.RegionLocY / (int)Constants.RegionSize;
             int shiftx = (rRegionX - tRegionX) * (int)Constants.RegionSize;
@@ -2161,10 +2161,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             extent.X = ((int)extent.X / (int)Constants.RegionSize);
             extent.Y = ((int)extent.Y / (int)Constants.RegionSize);
 
-            swCorner.X = Scene.RegionInfo.RegionLocX - 1;
-            swCorner.Y = Scene.RegionInfo.RegionLocY - 1;
-            neCorner.X = Scene.RegionInfo.RegionLocX + extent.X;
-            neCorner.Y = Scene.RegionInfo.RegionLocY + extent.Y;
+            swCorner.X = Scene.RegionInfo.LegacyRegionLocX - 1;
+            swCorner.Y = Scene.RegionInfo.LegacyRegionLocY - 1;
+            neCorner.X = Scene.RegionInfo.LegacyRegionLocX + extent.X;
+            neCorner.Y = Scene.RegionInfo.LegacyRegionLocY + extent.Y;
         }
 
         /// <summary>
@@ -2301,8 +2301,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            int thisx = (int)scene.RegionInfo.RegionLocX;
-            int thisy = (int)scene.RegionInfo.RegionLocY;
+            int thisx = (int)scene.RegionInfo.LegacyRegionLocX;
+            int thisy = (int)scene.RegionInfo.LegacyRegionLocY;
             Vector3 EastCross = new Vector3(0.1f, 0, 0);
             Vector3 WestCross = new Vector3(-0.1f, 0, 0);
             Vector3 NorthCross = new Vector3(0, 0.1f, 0);

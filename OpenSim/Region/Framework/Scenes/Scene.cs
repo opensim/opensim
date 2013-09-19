@@ -1107,8 +1107,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
                 // If these are cast to INT because long + negative values + abs returns invalid data
-                int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
-                int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
+                int resultX = Math.Abs((int)xcell - (int)RegionInfo.LegacyRegionLocX);
+                int resultY = Math.Abs((int)ycell - (int)RegionInfo.LegacyRegionLocY);
                 if (resultX <= 1 && resultY <= 1)
                 {
                     // Let the grid service module know, so this can be cached
@@ -1183,8 +1183,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         public int HaveNeighbor(Cardinals car, ref int[] fix)
         {
-            uint neighbourx = RegionInfo.RegionLocX;
-            uint neighboury = RegionInfo.RegionLocY;
+            uint neighbourx = RegionInfo.LegacyRegionLocX;
+            uint neighboury = RegionInfo.LegacyRegionLocY;
 
             int dir = (int)car;
 
@@ -1204,8 +1204,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (neighbourRegion == null)
             {
-                fix[0] = (int)(RegionInfo.RegionLocX - neighbourx);
-                fix[1] = (int)(RegionInfo.RegionLocY - neighboury);
+                fix[0] = (int)(RegionInfo.LegacyRegionLocX - neighbourx);
+                fix[1] = (int)(RegionInfo.LegacyRegionLocY - neighboury);
                 return dir * (-1);
             }
             else
@@ -4371,8 +4371,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     uint rRegionX = (uint)(cAgentData.RegionHandle >> 40);
                     uint rRegionY = (((uint)(cAgentData.RegionHandle)) >> 8);
-                    uint tRegionX = RegionInfo.RegionLocX;
-                    uint tRegionY = RegionInfo.RegionLocY;
+                    uint tRegionX = RegionInfo.LegacyRegionLocX;
+                    uint tRegionY = RegionInfo.LegacyRegionLocY;
                     //Send Data to ScenePresence
                     childAgentUpdate.UpdateChildAgent(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
                     // Not Implemented:
@@ -4600,13 +4600,13 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(remoteClient.AgentId);
             if (sp != null)
             {
-                uint regionX = RegionInfo.RegionLocX;
-                uint regionY = RegionInfo.RegionLocY;
+                uint regionX = RegionInfo.LegacyRegionLocX;
+                uint regionY = RegionInfo.LegacyRegionLocY;
 
                 Utils.LongToUInts(regionHandle, out regionX, out regionY);
 
-                int shiftx = (int) regionX - (int) RegionInfo.RegionLocX * (int)Constants.RegionSize;
-                int shifty = (int) regionY - (int) RegionInfo.RegionLocY * (int)Constants.RegionSize;
+                int shiftx = (int) regionX - (int) RegionInfo.LegacyRegionLocX * (int)Constants.RegionSize;
+                int shifty = (int) regionY - (int) RegionInfo.LegacyRegionLocY * (int)Constants.RegionSize;
 
                 position.X += shiftx;
                 position.Y += shifty;

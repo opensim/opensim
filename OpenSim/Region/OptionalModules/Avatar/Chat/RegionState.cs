@@ -84,8 +84,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             Region = scene.RegionInfo.RegionName;
             Host = scene.RegionInfo.ExternalHostName;
-            LocX = Convert.ToString(scene.RegionInfo.RegionLocX);
-            LocY = Convert.ToString(scene.RegionInfo.RegionLocY);
+            LocX = Convert.ToString(scene.RegionInfo.LegacyRegionLocX);
+            LocY = Convert.ToString(scene.RegionInfo.LegacyRegionLocY);
             IDK = Convert.ToString(_idk_++);
 
             showAlert = config.GetBoolean("alert_show", false);
