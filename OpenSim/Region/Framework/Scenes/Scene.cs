@@ -4293,7 +4293,7 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
             if (nearestParcel == null)
             {
-                m_log.DebugFormat(
+                m_log.InfoFormat(
                     "[SCENE]: Denying root agent entry to {0} in {1}: no allowed parcel",
                     cAgentData.AgentID, RegionInfo.RegionName);
 
@@ -4327,11 +4327,11 @@ namespace OpenSim.Region.Framework.Scenes
                         Thread.Sleep(1000);
 
                     if (sp.IsChildAgent)
-                        m_log.DebugFormat(
+                        m_log.WarnFormat(
                             "[SCENE]: Found presence {0} {1} unexpectedly still child in {2}",
                             sp.Name, sp.UUID, Name);
                     else
-                        m_log.DebugFormat(
+                        m_log.InfoFormat(
                             "[SCENE]: Found presence {0} {1} as root in {2} after {3} waits",
                                 sp.Name, sp.UUID, Name, 20 - ntimes);
 
