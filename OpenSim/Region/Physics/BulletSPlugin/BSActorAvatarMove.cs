@@ -278,6 +278,7 @@ public class BSActorAvatarMove : BSActor
         if (m_controllingPrim.IsStationary)
         {
             entprop.Position = m_controllingPrim.RawPosition;
+            entprop.Velocity = OMV.Vector3.Zero;
             m_physicsScene.PE.SetTranslation(m_controllingPrim.PhysBody, entprop.Position, entprop.Rotation);
         }
 
