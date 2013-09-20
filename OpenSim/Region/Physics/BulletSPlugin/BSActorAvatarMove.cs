@@ -128,6 +128,7 @@ public class BSActorAvatarMove : BSActor
                                                 BSMotor.Infinite,           // decay time scale
                                                 1f                          // efficiency
             );
+            m_velocityMotor.ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold;
             // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
             SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
