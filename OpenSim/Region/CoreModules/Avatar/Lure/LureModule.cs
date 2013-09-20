@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     (uint)presence.AbsolutePosition.Y,
                     (uint)Math.Ceiling(presence.AbsolutePosition.Z));
 
-            m_log.DebugFormat("TP invite with message {0}, type {1}", message, lureType);
+            m_log.DebugFormat("[LURE MODULE]: TP invite with message {0}, type {1}", message, lureType);
 
             GridInstantMessage m = new GridInstantMessage(scene, client.AgentId,
                     client.FirstName+" "+client.LastName, targetid,
