@@ -146,18 +146,11 @@ namespace OpenSim.Framework
         public uint RegionWorldLocX = 0;
         public uint RegionWorldLocY = 0;
         public uint RegionWorldLocZ = 0;
-        public uint RegionSizeX = LegacyRegionSize;
-        public uint RegionSizeY = LegacyRegionSize;
+        public uint RegionSizeX = Constants.RegionSize;
+        public uint RegionSizeY = Constants.RegionSize;
         public uint RegionSizeZ = Constants.RegionHeight;
 
-
         private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
-
-        // Originally, regions were fixed size of 256 in X and Y.
-        // For downward compatability, 'RegionLocX' returns the region coordinates in the legacy region units.
-        // This is the constant used to convert world integer coordinates to legacy region units.
-        public const uint LegacyRegionSize = 256;
-
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -460,8 +453,8 @@ namespace OpenSim.Framework
         /// </summary>
         public uint LegacyRegionLocX
         {
-            get { return RegionWorldLocX / LegacyRegionSize; }
-            set { RegionWorldLocX = value * LegacyRegionSize; }
+            get { return RegionWorldLocX / Constants.RegionSize; }
+            set { RegionWorldLocX = value * Constants.RegionSize; }
         }
 
         /// <summary>
@@ -471,8 +464,8 @@ namespace OpenSim.Framework
         /// </summary>
         public uint LegacyRegionLocY
         {
-            get { return RegionWorldLocY / LegacyRegionSize; }
-            set { RegionWorldLocY = value * LegacyRegionSize; }
+            get { return RegionWorldLocY / Constants.RegionSize; }
+            set { RegionWorldLocY = value * Constants.RegionSize; }
         }
 
         /// <summary>
@@ -492,8 +485,8 @@ namespace OpenSim.Framework
             RegionWorldLocX = 0;
             RegionWorldLocY = 0;
             RegionWorldLocZ = 0;
-            RegionSizeX = LegacyRegionSize;
-            RegionSizeY = LegacyRegionSize;
+            RegionSizeX = Constants.RegionSize;
+            RegionSizeY = Constants.RegionSize;
             RegionSizeZ = Constants.RegionHeight;
         }
 
@@ -628,11 +621,11 @@ namespace OpenSim.Framework
             // Region size
             // Default to legacy region size if not specified.
             allKeys.Remove("SizeX");
-            string configSizeX = config.GetString("SizeX", LegacyRegionSize.ToString());
+            string configSizeX = config.GetString("SizeX", Constants.RegionSize.ToString());
             config.Set("SizeX", configSizeX);
             RegionSizeX = Convert.ToUInt32(configSizeX);
             allKeys.Remove("SizeY");
-            string configSizeY = config.GetString("SizeY", LegacyRegionSize.ToString());
+            string configSizeY = config.GetString("SizeY", Constants.RegionSize.ToString());
             config.Set("SizeY", configSizeX);
             RegionSizeY = Convert.ToUInt32(configSizeY);
             allKeys.Remove("SizeZ");
@@ -772,7 +765,7 @@ namespace OpenSim.Framework
             string location = String.Format("{0},{1}", LegacyRegionLocX, LegacyRegionLocY);
             config.Set("Location", location);
 
-            if (RegionSizeX != LegacyRegionSize || RegionSizeY != LegacyRegionSize)
+            if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
             {
                 config.Set("SizeX", RegionSizeX);
                 config.Set("SizeY", RegionSizeY);
@@ -941,9 +934,9 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (Y Axis)", "1000", false);
             configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in X dimension", LegacyRegionSize.ToString(), false);
+                                                "Size of region in X dimension", Constants.RegionSize.ToString(), false);
             configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Y dimension", LegacyRegionSize.ToString(), false);
+                                                "Size of region in Y dimension", Constants.RegionSize.ToString(), false);
             configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Size of region in Z dimension", Constants.RegionHeight.ToString(), false);
 
