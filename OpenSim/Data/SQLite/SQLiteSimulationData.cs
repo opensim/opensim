@@ -828,22 +828,12 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                int revision = Util.UnixTimeSinceEpoch();
-
-                // This is added to get rid of the infinitely growing
-                // terrain databases which negatively impact on SQLite
-                // over time.  Before reenabling this feature there
-                // needs to be a limitter put on the number of
-                // revisions in the database, as this old
-                // implementation is a DOS attack waiting to happen.
+                int revision = (int)DBTerrainRevision.Legacy256;
 
                 using (
-                    SqliteCommand cmd =
-                        new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision <= :Revision",
-                                          m_conn))
+                    SqliteCommand cmd = new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID", m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
-                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
                     cmd.ExecuteNonQuery();
                 }
 

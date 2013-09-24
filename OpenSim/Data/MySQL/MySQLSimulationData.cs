@@ -575,6 +575,7 @@ namespace OpenSim.Data.MySQL
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
             m_log.Info("[REGION DB]: Storing terrain");
+            int revision = (int)DBTerrainRevision.Legacy256;
 
             lock (m_dbLock)
             {
@@ -589,10 +590,10 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
 
-                        cmd.CommandText = "insert into terrain (RegionUUID, " +
-                            "Revision, Heightfield) values (?RegionUUID, " +
-                            "1, ?Heightfield)";
+                        cmd.CommandText = "insert into terrain (RegionUUID, Revision, Heightfield)"
+                        +   "values (?RegionUUID, ?Revision, ?Heightfield)";
  
+                        cmd.Parameters.AddWithValue("Revision", revision);
                         cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
 
                         ExecuteNonQuery(cmd);
