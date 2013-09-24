@@ -576,7 +576,7 @@ ELSE
         /// <param name="regionID">regionID.</param>
         public void StoreTerrain(double[,] terrain, UUID regionID)
         {
-            int revision = Util.UnixTimeSinceEpoch();
+            int revision = (int)DBTerrainRevision.Legacy256;
 
             //Delete old terrain map
             string sql = "delete from terrain where RegionUUID=@RegionUUID";
