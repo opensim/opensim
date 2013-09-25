@@ -207,7 +207,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private void EventManager_OnMakeRootAgent(ScenePresence presence)
         {
-            m_log.Debug("[WINDLIGHT]: Sending windlight scene to new client");
+//            m_log.Debug("[WINDLIGHT]: Sending windlight scene to new client {0}", presence.Name);
+
             SendProfileToClient(presence.ControllingClient);
         }
 
