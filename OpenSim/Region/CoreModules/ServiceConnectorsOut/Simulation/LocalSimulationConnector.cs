@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                     throw new Exception(string.Format("Invalid ConnectorProtocolVersion {0}", ServiceVersion));
 
                 m_log.InfoFormat(
-                    "[LOCAL SIMULATION CONNECTOR]: Initialzied with connector protocol version {0}", ServiceVersion);
+                    "[LOCAL SIMULATION CONNECTOR]: Initialized with connector protocol version {0}", ServiceVersion);
             }
         }
 
