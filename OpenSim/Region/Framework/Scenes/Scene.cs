@@ -2863,6 +2863,9 @@ namespace OpenSim.Region.Framework.Scenes
     
                 // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
                 // client is for a root or child agent.
+                // XXX: This may be better set for a new client before that client is added to the client manager.
+                // But need to know what happens in the case where a ScenePresence is already present (and if this 
+                // actually occurs).
                 client.SceneAgent = sp;
 
                 // This is currently also being done earlier in NewUserConnection for real users to see if this 
