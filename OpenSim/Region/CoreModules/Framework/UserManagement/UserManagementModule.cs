@@ -73,8 +73,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 Init();
                 m_log.DebugFormat("[USER MANAGEMENT MODULE]: {0} is enabled", Name);
             }
-
-            AddUser(UUID.Zero, "Unknown", "User");
         }
 
         public bool IsSharedModule
@@ -645,6 +643,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         protected void Init()
         {
+            AddUser(UUID.Zero, "Unknown", "User");
             RegisterConsoleCmds();
         }
 
