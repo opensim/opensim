@@ -1722,9 +1722,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_log.DebugFormat(
                             "[LLUDPSERVER]: Received a CompleteMovementIntoRegion from {0} in {1} but no client exists.  Waiting.", 
                             endPoint, m_scene.Name);
-
-                        Thread.Sleep(200);
                     }
+
+                    Thread.Sleep(200);
                 }
 
                 if (client == null)
