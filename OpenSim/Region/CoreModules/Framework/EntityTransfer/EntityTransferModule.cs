@@ -185,6 +185,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 else
                 {
                     transferVersionName = rawVersionComponents[0];
+
+                    m_log.InfoFormat(
+                        "[ENTITY TRANSFER MODULE]: MaxOutgoingTransferVersion set to {0}", 
+                        string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
                 }
 
                 DisableInterRegionTeleportCancellation 
