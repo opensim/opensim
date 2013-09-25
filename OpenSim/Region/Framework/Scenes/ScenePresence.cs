@@ -2909,7 +2909,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
             {
-                m_log.DebugFormat("[SCENE PRESENCE]: baked textures are in the cache for {0}", Name);
+                m_log.DebugFormat("[SCENE PRESENCE]: Baked textures are in the cache for {0} in {1}", Name, m_scene.Name);
 
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
