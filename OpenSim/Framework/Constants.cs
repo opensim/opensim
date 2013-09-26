@@ -30,9 +30,18 @@ namespace OpenSim.Framework
 {
     public class Constants
     {
+        // 'RegionSize' captures the legacy region size.
+        // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionSize[XYZ] as a region might not
+        //      be the legacy region size.
         public const uint RegionSize = 256;
         public const uint RegionHeight = 4096;
+
+        // Terrain heightmap is kept as shorts that are the float value times this compression factor
+        public const float TerrainCompression = 100.0f;
+        // Since terrain is stored in 16x16 heights, regions must be a multiple of this number and that is the minimum
+        public const int MinRegionSize = 16;
         public const byte TerrainPatchSize = 16;
+
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
 
         public enum EstateAccessCodex : uint

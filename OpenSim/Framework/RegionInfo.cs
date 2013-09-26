@@ -472,12 +472,24 @@ namespace OpenSim.Framework
         /// The x co-ordinate of this region in map tiles (e.g. 1000).
         /// Coordinate is scaled as world coordinates divided by the legacy region size
         /// and is thus is the number of legacy regions.
-        /// This entrypoint exists for downward compatability for external modules.
+        /// DO NOT USE FOR NEW CODE! This entrypoint exists for downward compatability with external modules.
         /// </summary>
         public uint RegionLocX
         {
             get { return LegacyRegionLocX; }
             set { LegacyRegionLocX = value; }
+        }
+
+        /// <summary>
+        /// The y co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
+        /// DO NOT USE FOR NEW CODE! This entrypoint exists for downward compatability with external modules.
+        /// </summary>
+        public uint RegionLocY
+        {
+            get { return LegacyRegionLocY; }
+            set { LegacyRegionLocY = value; }
         }
 
         public void SetDefaultRegionSize()
@@ -488,19 +500,6 @@ namespace OpenSim.Framework
             RegionSizeX = Constants.RegionSize;
             RegionSizeY = Constants.RegionSize;
             RegionSizeZ = Constants.RegionHeight;
-        }
-
-
-        /// <summary>
-        /// The y co-ordinate of this region in map tiles (e.g. 1000).
-        /// Coordinate is scaled as world coordinates divided by the legacy region size
-        /// and is thus is the number of legacy regions.
-        /// This entrypoint exists for downward compatability for external modules.
-        /// </summary>
-        public uint RegionLocY
-        {
-            get { return LegacyRegionLocY; }
-            set { LegacyRegionLocY = value; }
         }
 
         // A unique region handle is created from the region's world coordinates.
