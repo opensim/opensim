@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         {
             using (Bitmap bitmap = new Bitmap(filename))
             {
-                ITerrainChannel retval = new TerrainChannel(true);
+                ITerrainChannel retval = new TerrainChannel(w, h);
 
                 for (int x = 0; x < retval.Width; x++)
                 {

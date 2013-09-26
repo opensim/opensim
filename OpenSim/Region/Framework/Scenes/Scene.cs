@@ -1905,13 +1905,13 @@ namespace OpenSim.Region.Framework.Scenes
                         m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
 
                     m_log.InfoFormat("[TERRAIN]: No default terrain. Generating a new terrain {0}.", m_InitialTerrain);
-                    Heightmap = new TerrainChannel(m_InitialTerrain);
+                    Heightmap = new TerrainChannel(m_InitialTerrain, RegionInfo.RegionSizeX, RegionInfo.RegionSizeY, RegionInfo.RegionSizeZ);
 
                     SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
                 }
                 else
                 {
-                    Heightmap = new TerrainChannel(map);
+                    Heightmap = new TerrainChannel(map, RegionInfo.RegionSizeZ);
                 }
             }
             catch (IOException e)

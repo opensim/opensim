@@ -130,15 +130,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 if (m_scene.Heightmap == null)
                 {
-                    m_channel = new TerrainChannel(m_InitialTerrain);
+                    m_channel = new TerrainChannel(m_InitialTerrain, 
+                            m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY, m_scene.RegionInfo.RegionSizeZ);
                     m_scene.Heightmap = m_channel;
-                    m_revert = new TerrainChannel();
                     UpdateRevertMap();
                 }
                 else
                 {
                     m_channel = m_scene.Heightmap;
-                    m_revert = new TerrainChannel();
                     UpdateRevertMap();
                 }
 
@@ -532,6 +531,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// </summary>
         public void UpdateRevertMap()
         {
+            /*
             int x;
             for (x = 0; x < m_channel.Width; x++)
             {
@@ -541,6 +541,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     m_revert[x, y] = m_channel[x, y];
                 }
             }
+             */
+            m_revert = m_channel.MakeCopy();
         }
 
         /// <summary>

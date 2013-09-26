@@ -29,15 +29,21 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ITerrainChannel
     {
-        int Height { get; }
+        int Width { get;}       // X dimension
+        int Height { get;}      // Y dimension
+        int Altitude { get;}    // Z dimension
+
         double this[int x, int y] { get; set; }
-        int Width { get; }
 
         /// <summary>
         /// Squash the entire heightmap into a single dimensioned array
         /// </summary>
         /// <returns></returns>
         float[] GetFloatsSerialised();
+        // Get version of map as a single dimensioned array and each value compressed
+        //     into an int (compressedHeight = (int)(floatHeight * Constants.TerrainCompression);)
+        // This is done to make the map smaller as it can get pretty larger for variable sized regions.
+        short[] GetCompressedMap();
 
         double[,] GetDoubles();
         bool Tainted(int x, int y);

@@ -1240,9 +1240,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try
             {
                 int[] patches = new int[] { py * 16 + px };
-                float[] heightmap = (map.Length == 65536) ?
-                    map :
-                    LLHeightFieldMoronize(map);
+                float[] heightmap = (map.Length == 65536) ? map : LLHeightFieldMoronize(map);
 
                 LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
                 
