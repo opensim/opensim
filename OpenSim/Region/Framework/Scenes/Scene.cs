@@ -1313,7 +1313,7 @@ namespace OpenSim.Region.Framework.Scenes
             Thread.Sleep(500);
 
             // Stop all client threads.
-            ForEachScenePresence(delegate(ScenePresence avatar) { IncomingCloseAgent(avatar.UUID, false); });
+            ForEachScenePresence(delegate(ScenePresence avatar) { CloseAgent(avatar.UUID, false); });
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
@@ -2976,7 +2976,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
 
-                            IncomingCloseAgent(sp.UUID, false);
+                            CloseAgent(sp.UUID, false);
                         }
                         else
                         {
@@ -3398,7 +3398,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='closeChildAgents'>
         /// Close the neighbour child agents associated with this client.
         /// </param>
-        public override void RemoveClient(UUID agentID, bool closeChildAgents)
+        public void RemoveClient(UUID agentID, bool closeChildAgents)
         {
             AgentCircuitData acd = m_authenticateHandler.GetAgentCircuitData(agentID);
 
@@ -3783,7 +3783,7 @@ namespace OpenSim.Region.Framework.Scenes
                             sp.Name, sp.UUID, RegionInfo.RegionName);
 
                         if (sp.ControllingClient != null)
-                            IncomingCloseAgent(sp.UUID, true);
+                            CloseAgent(sp.UUID, true);
 
                         sp = null;
                     }
@@ -4424,7 +4424,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="force"></param>
         /// <param name="auth_token"></param>
         /// <returns></returns>
-        public bool IncomingCloseAgent(UUID agentID, bool force, string auth_token)
+        public bool CloseAgent(UUID agentID, bool force, string auth_token)
         {
             //m_log.DebugFormat("[SCENE]: Processing incoming close agent {0} in region {1} with auth_token {2}", agentID, RegionInfo.RegionName, auth_token);
 
@@ -4442,7 +4442,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (acd.SessionID.ToString() == auth_token)
             {
-                return IncomingCloseAgent(agentID, force);
+                return CloseAgent(agentID, force);
             }
             else
             {
@@ -4455,16 +4455,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Tell a single agent to prepare to close.
+        /// Tell a single client to prepare to close.
         /// </summary>
         /// <remarks>
-        /// This should only be called if we may close the agent but there will be some delay in so doing.  Meant for
-        /// internal use - other callers should almost certainly called IncomingCloseAgent().
+        /// This should only be called if we may close the client but there will be some delay in so doing.  Meant for
+        /// internal use - other callers should almost certainly called CloseClient().
         /// </remarks>
         /// <param name="sp"></param>
         /// <returns>true if pre-close state notification was successful.  false if the agent
         /// was not in a state where it could transition to pre-close.</returns>
-        public bool IncomingPreCloseAgent(ScenePresence sp)
+        public bool IncomingPreCloseClient(ScenePresence sp)
         {
             lock (m_removeClientLock)
             {
@@ -4506,7 +4506,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Force the agent to close even if it might be in the middle of some other operation.  You do not want to
         /// force unless you are absolutely sure that the agent is dead and a normal close is not working.
         /// </param>
-        public bool IncomingCloseAgent(UUID agentID, bool force)
+        public override bool CloseAgent(UUID agentID, bool force)
         {
             ScenePresence sp;
 
@@ -4517,7 +4517,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp == null)
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Called IncomingCloseAgent() with agent ID {0} but no such presence is in {1}", 
+                        "[SCENE]: Called CloseClient() with agent ID {0} but no such presence is in {1}", 
                         agentID, Name);
     
                     return false;
@@ -4526,7 +4526,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp.LifecycleState != ScenePresenceState.Running && sp.LifecycleState != ScenePresenceState.PreRemove)
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Called IncomingCloseAgent() for {0} in {1} but presence is already in state {2}",
+                        "[SCENE]: Called CloseClient() for {0} in {1} but presence is already in state {2}",
                         sp.Name, Name, sp.LifecycleState);
 
                     return false;

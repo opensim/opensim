@@ -59,10 +59,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             // FIXME
             return null;
         }
-        
-        public override void RemoveClient(UUID agentID, bool someReason) {}
-//        public override void CloseAllAgents(uint circuitcode) {}
+
+        public override bool CloseAgent(UUID agentID, bool force) { return true; }
         public override bool CheckClient(UUID clientId, IPEndPoint endPoint) { return true; }
+
         public override void OtherRegionUp(GridRegion otherRegion) {  }
 
         public override bool TryGetScenePresence(UUID uuid, out ScenePresence sp) { sp = null; return false; }

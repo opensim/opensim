@@ -79,7 +79,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // TODO: Need to add tests for other ICapabiltiesModule methods.
 
-            scene.IncomingCloseAgent(sp.UUID, false);
+            scene.CloseAgent(sp.UUID, false);
             Assert.That(capsMod.GetCapsForUser(spUuid), Is.Null);
 
             // TODO: Need to add tests for other ICapabiltiesModule methods.
