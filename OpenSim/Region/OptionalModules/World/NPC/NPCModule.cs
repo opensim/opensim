@@ -384,7 +384,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                             agentID, av.Name);
                     */
 
-                    scene.IncomingCloseAgent(agentID, false);
+                    scene.CloseAgent(agentID, false);
 
                     m_avatars.Remove(agentID);
 

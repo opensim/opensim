@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                m_scenes[destination.RegionID].IncomingCloseAgent(id, false, auth_token);
+                m_scenes[destination.RegionID].CloseAgent(id, false, auth_token);
                 return true;
             }
 

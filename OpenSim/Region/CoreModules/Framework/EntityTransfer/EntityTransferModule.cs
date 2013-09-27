@@ -972,7 +972,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                if (!sp.Scene.IncomingPreCloseAgent(sp))
+                if (!sp.Scene.IncomingPreCloseClient(sp))
                     return;
 
                 // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
@@ -983,7 +983,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
 
-                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                sp.Scene.CloseAgent(sp.UUID, false);
             }
             else
             {
@@ -1137,7 +1137,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                if (!sp.Scene.IncomingPreCloseAgent(sp))
+                if (!sp.Scene.IncomingPreCloseClient(sp))
                     return;
 
                 // RED ALERT!!!!
@@ -1154,7 +1154,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
 
-                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                sp.Scene.CloseAgent(sp.UUID, false);
             }
             else
             {
