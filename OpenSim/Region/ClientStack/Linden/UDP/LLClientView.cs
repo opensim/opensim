@@ -750,7 +750,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            m_scene.AddNewClient(this, PresenceType.User);
+            m_scene.AddNewAgent(this, PresenceType.User);
 
             RefreshGroupMembership();
         }

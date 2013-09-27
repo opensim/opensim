@@ -52,7 +52,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public override void Update(int frames) {}
         public override void LoadWorldMap() {}
         
-        public override ISceneAgent AddNewClient(IClientAPI client, PresenceType type)
+        public override ISceneAgent AddNewAgent(IClientAPI client, PresenceType type)
         {
             client.OnObjectName += RecordObjectNameCall;
 
@@ -61,6 +61,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
 
         public override bool CloseAgent(UUID agentID, bool force) { return true; }
+
         public override bool CheckClient(UUID clientId, IPEndPoint endPoint) { return true; }
 
         public override void OtherRegionUp(GridRegion otherRegion) {  }

@@ -548,7 +548,7 @@ namespace OpenSim.Tests.Common
                 Console.WriteLine("NewUserConnection failed: " + reason);
 
             // Stage 2: add the new client as a child agent to the scene
-            scene.AddNewClient(client, PresenceType.User);
+            scene.AddNewAgent(client, PresenceType.User);
 
             return scene.GetScenePresence(client.AgentId);
         }
