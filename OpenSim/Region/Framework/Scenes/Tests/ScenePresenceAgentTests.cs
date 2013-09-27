@@ -200,7 +200,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // *** This is the second stage, where the client established a child agent/scene presence using the
             // circuit code given to the scene in stage 1 ***
             TestClient client = new TestClient(acd, scene);
-            scene.AddNewClient(client, PresenceType.User);
+            scene.AddNewAgent(client, PresenceType.User);
 
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            string reason;
 //            scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);
 //            testclient = new TestClient(agent, scene);
-//            scene.AddNewClient(testclient);
+//            scene.AddNewAgent(testclient);
 //
 //            ScenePresence presence = scene.GetScenePresence(agent1);
 //

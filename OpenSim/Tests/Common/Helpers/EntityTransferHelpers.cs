@@ -84,7 +84,7 @@ namespace OpenSim.Tests.Common
 
                 TestClient neighbourTc = new TestClient(newAgent, neighbourScene);
                 neighbourTcs.Add(neighbourTc);
-                neighbourScene.AddNewClient(neighbourTc, PresenceType.User);
+                neighbourScene.AddNewAgent(neighbourTc, PresenceType.User);
             };
         }
 
@@ -119,7 +119,7 @@ namespace OpenSim.Tests.Common
 
                 TestClient destinationClient = new TestClient(newAgent, destinationScene);
                 destinationClients.Add(destinationClient);
-                destinationScene.AddNewClient(destinationClient, PresenceType.User);
+                destinationScene.AddNewAgent(destinationClient, PresenceType.User);
 
                 ThreadPool.UnsafeQueueUserWorkItem(o => destinationClient.CompleteMovement(), null);
             };

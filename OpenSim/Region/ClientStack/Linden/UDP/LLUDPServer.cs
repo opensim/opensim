@@ -1718,7 +1718,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         else if (client.SceneAgent == null)
                         {
                             // This check exists to catch a condition where the new client has been added to the client
-                            // manager but the SceneAgent has not yet been set in Scene.AddNewClient().  If we are too
+                            // manager but the SceneAgent has not yet been set in Scene.AddNewAgent().  If we are too
                             // eager, then the new ScenePresence may not have registered a listener for this messsage
                             // before we try to process it.
                             // XXX: A better long term fix may be to add the SceneAgent before the client is added to 

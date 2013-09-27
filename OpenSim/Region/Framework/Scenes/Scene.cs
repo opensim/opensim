@@ -2802,7 +2802,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Avatar Methods
 
-        public override ISceneAgent AddNewClient(IClientAPI client, PresenceType type)
+        public override ISceneAgent AddNewAgent(IClientAPI client, PresenceType type)
         {
             ScenePresence sp;
             bool vialogin;
@@ -2810,7 +2810,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Validation occurs in LLUDPServer
             //
-            // XXX: A race condition exists here where two simultaneous calls to AddNewClient can interfere with
+            // XXX: A race condition exists here where two simultaneous calls to AddNewAgent can interfere with
             // each other.  In practice, this does not currently occur in the code.
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
@@ -2818,9 +2818,9 @@ namespace OpenSim.Region.Framework.Scenes
             // and a simultaneous one that removes it (as can happen if the client is closed at a particular point
             // whilst connecting).
             //
-            // It would be easier to lock across all NewUserConnection(), AddNewClient() and
+            // It would be easier to lock across all NewUserConnection(), AddNewAgent() and
             // RemoveClient() calls for all agents, but this would allow a slow call (e.g. because of slow service
-            // response in some module listening to AddNewClient()) from holding up unrelated agent calls.
+            // response in some module listening to AddNewAgent()) from holding up unrelated agent calls.
             //
             // In practice, the lock (this) in LLUDPServer.AddNewClient() currently lock across all
             // AddNewClient() operations (though not other ops).
@@ -2837,7 +2837,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // XXX: Not sure how good it is to add a new client if a scene presence already exists.  Possibly this
                 // could occur if a viewer crashes and relogs before the old client is kicked out.  But this could cause
-                // other problems, and possible the code calling AddNewClient() should ensure that no client is already
+                // other problems, and possibly the code calling AddNewAgent() should ensure that no client is already
                 // connected.
                 if (sp == null)
                 {
@@ -4306,7 +4306,7 @@ namespace OpenSim.Region.Framework.Scenes
             // We have to wait until the viewer contacts this region
             // after receiving the EnableSimulator HTTP Event Queue message (for the v1 teleport protocol) 
             // or TeleportFinish (for the v2 teleport protocol).  This triggers the viewer to send
-            // a UseCircuitCode packet which in turn calls AddNewClient which finally creates the ScenePresence.
+            // a UseCircuitCode packet which in turn calls AddNewAgent which finally creates the ScenePresence.
             ScenePresence sp = WaitGetScenePresence(cAgentData.AgentID);
 
             if (sp != null)

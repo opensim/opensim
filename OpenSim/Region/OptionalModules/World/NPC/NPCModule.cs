@@ -175,7 +175,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode,
                         acd);
-                scene.AddNewClient(npcAvatar, PresenceType.Npc);
+                scene.AddNewAgent(npcAvatar, PresenceType.Npc);
 
                 ScenePresence sp;
                 if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
