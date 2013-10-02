@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenSim.Framework;
+
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ITerrainChannel
@@ -35,18 +37,20 @@ namespace OpenSim.Region.Framework.Interfaces
 
         double this[int x, int y] { get; set; }
 
+        // Return the packaged terrain data for passing into lower levels of communication
+        TerrainData GetTerrainData();
+
         /// <summary>
         /// Squash the entire heightmap into a single dimensioned array
         /// </summary>
         /// <returns></returns>
         float[] GetFloatsSerialised();
-        // Get version of map as a single dimensioned array and each value compressed
-        //     into an int (compressedHeight = (int)(floatHeight * Constants.TerrainCompression);)
-        // This is done to make the map smaller as it can get pretty larger for variable sized regions.
-        short[] GetCompressedMap();
 
         double[,] GetDoubles();
+
+        // Check if a location has been updated. Clears the taint flag as a side effect.
         bool Tainted(int x, int y);
+
         ITerrainChannel MakeCopy();
         string SaveToXmlString();
         void LoadFromXmlString(string data);

@@ -30,10 +30,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Net;
+
 using log4net;
 using Nini.Config;
+
 using OpenMetaverse;
 using Mono.Addins;
+
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.CoreModules.World.Terrain.FileLoaders;
@@ -130,8 +134,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 if (m_scene.Heightmap == null)
                 {
-                    m_channel = new TerrainChannel(m_InitialTerrain, 
-                            m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY, m_scene.RegionInfo.RegionSizeZ);
+                    m_channel = new TerrainChannel(m_InitialTerrain, (int)m_scene.RegionInfo.RegionSizeX,
+                                                                     (int)m_scene.RegionInfo.RegionSizeY,
+                                                                     (int)m_scene.RegionInfo.RegionSizeZ);
                     m_scene.Heightmap = m_channel;
                     UpdateRevertMap();
                 }
@@ -707,7 +712,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void CheckForTerrainUpdates(bool respectEstateSettings)
         {
             bool shouldTaint = false;
-            float[] serialised = m_channel.GetFloatsSerialised();
+            float[] terrData = m_channel.GetFloatsSerialised();
             int x;
             for (x = 0; x < m_channel.Width; x += Constants.TerrainPatchSize)
             {
@@ -716,16 +721,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     if (m_channel.Tainted(x, y))
                     {
-                        // if we should respect the estate settings then
-                        // fixup and height deltas that don't respect them
+                        // If we should respect the estate settings then
+                        //     fixup and height deltas that don't respect them.
+                        // Note that LimitChannelChanges() modifies the TerrainChannel with the limited height values.
                         if (respectEstateSettings && LimitChannelChanges(x, y))
                         {
-                            // this has been vetoed, so update
-                            // what we are going to send to the client
-                            serialised = m_channel.GetFloatsSerialised();
+                            // Terrain heights were modified. Refetch the terrain info.
+                            terrData = m_channel.GetFloatsSerialised();
                         }
 
-                        SendToClients(serialised, x, y);
+                        SendToClients(terrData, x, y);
                         shouldTaint = true;
                     }
                 }
@@ -794,13 +799,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="serialised">A copy of the terrain as a 1D float array of size w*h</param>
         /// <param name="x">The patch corner to send</param>
         /// <param name="y">The patch corner to send</param>
-        private void SendToClients(float[] serialised, int x, int y)
+        private void SendToClients(float[] heightMap, int x, int y)
         {
             m_scene.ForEachClient(
                 delegate(IClientAPI controller)
-                    { controller.SendLayerData(
-                        x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised);
-                    }
+                    { controller.SendLayerData( x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, heightMap); }
             );
         }
 

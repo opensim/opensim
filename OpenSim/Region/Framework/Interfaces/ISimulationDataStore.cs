@@ -136,24 +136,4 @@ namespace OpenSim.Region.Framework.Interfaces
         void Shutdown();
     }
 
-    // The terrain is stored as a blob in the database with a 'revision' field.
-    // Some implementations of terrain storage would fill the revision field with
-    //    the time the terrain was stored. When real revisions were added and this
-    //    feature removed, that left some old entries with the time in the revision
-    //    field.
-    // Thus, if revision is greater than 'RevisionHigh' then terrain db entry is
-    //    left over and it is presumed to be 'Legacy256'.
-    // Numbers are arbitrary and are chosen to to reduce possible mis-interpretation.
-    // If a revision does not match any of these, it is assumed to be Legacy256.
-    public enum DBTerrainRevision
-    {
-        // Terrain is 'double[256,256]'
-        Legacy256 = 11,
-        // Terrain is 'int32, int32, float[,]' where the shorts are X and Y dimensions
-        // The dimensions are presumed to be multiples of 16 and, more likely, multiples of 256.
-        Variable2D = 22,
-        // A revision that is not listed above or any revision greater than this value is 'Legacy256'.
-        RevisionHigh = 1234
-    }
-
 }

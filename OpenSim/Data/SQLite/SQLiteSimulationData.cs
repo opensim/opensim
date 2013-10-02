@@ -51,6 +51,7 @@ namespace OpenSim.Data.SQLite
     public class SQLiteSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[REGION DB SQLLITE]";
 
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
@@ -819,17 +820,21 @@ namespace OpenSim.Data.SQLite
             prim.Inventory.RestoreInventoryItems(inventory);
         }
 
+        // Legacy entry point for when terrain was always a 256x256 hieghtmap
+        public void StoreTerrain(double[,] ter, UUID regionID)
+        {
+            StoreTerrain(new HeightmapTerrainData(ter), regionID);
+        }
+
         /// <summary>
         /// Store a terrain revision in region storage
         /// </summary>
         /// <param name="ter">terrain heightfield</param>
         /// <param name="regionID">region UUID</param>
-        public void StoreTerrain(double[,] ter, UUID regionID)
+        public void StoreTerrain(TerrainData terrData, UUID regionID)
         {
             lock (ds)
             {
-                int revision = (int)DBTerrainRevision.Legacy256;
-
                 using (
                     SqliteCommand cmd = new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID", m_conn))
                 {
@@ -839,15 +844,20 @@ namespace OpenSim.Data.SQLite
 
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
-                m_log.Debug("[SQLITE REGION DB]: Storing terrain revision r" + revision.ToString());
                 String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
                              " values(:RegionUUID, :Revision, :Heightfield)";
+
+                int terrainDBRevision;
+                Array terrainDBblob;
+                terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+                m_log.DebugFormat("{0} Storing terrain revision r {1}", LogHeader, terrainDBRevision);
 
                 using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
-                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
-                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
+                    cmd.Parameters.Add(new SqliteParameter(":Revision", terrainDBRevision));
+                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", terrainDBblob));
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -2004,24 +2014,6 @@ namespace OpenSim.Data.SQLite
             entry.Flags = (AccessList)row["Flags"];
             entry.Expires = 0;
             return entry;
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        private static Array serializeTerrain(double[,] val)
-        {
-            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) * sizeof(double));
-            BinaryWriter bw = new BinaryWriter(str);
-
-            // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
-                    bw.Write(val[x, y]);
-
-            return str.ToArray();
         }
 
         //         private void fillTerrainRow(DataRow row, UUID regionUUID, int rev, double[,] val)

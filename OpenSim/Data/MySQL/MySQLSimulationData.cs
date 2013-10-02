@@ -48,6 +48,7 @@ namespace OpenSim.Data.MySQL
     public class MySQLSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[REGION DB MYSQL]";
 
         private string m_connectionString;
         private object m_dbLock = new object();
@@ -91,7 +92,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.Error("[REGION DB]: MySQL error in ExecuteReader: " + e.Message);
+                m_log.ErrorFormat("{0} MySQL error in ExecuteReader: {1}", LogHeader, e);
                 throw;
             }
 
@@ -572,11 +573,14 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        // Legacy entry point for when terrain was always a 256x256 hieghtmap
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
-            m_log.Info("[REGION DB]: Storing terrain");
-            int revision = (int)DBTerrainRevision.Legacy256;
+            StoreTerrain(new HeightmapTerrainData(ter), regionID);
+        }
 
+        public void StoreTerrain(TerrainData terrData, UUID regionID)
+        {
             lock (m_dbLock)
             {
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -590,11 +594,18 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
 
+                        int terrainDBRevision;
+                        Array terrainDBblob;
+                        terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+                        m_log.InfoFormat("{0} Storing terrain. X={1}, Y={2}, rev={3}",
+                                    LogHeader, terrData.SizeX, terrData.SizeY, terrainDBRevision);
+
                         cmd.CommandText = "insert into terrain (RegionUUID, Revision, Heightfield)"
                         +   "values (?RegionUUID, ?Revision, ?Heightfield)";
- 
-                        cmd.Parameters.AddWithValue("Revision", revision);
-                        cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
+
+                        cmd.Parameters.AddWithValue("Revision", terrainDBRevision);
+                        cmd.Parameters.AddWithValue("Heightfield", terrainDBblob);
 
                         ExecuteNonQuery(cmd);
                     }
@@ -1523,30 +1534,6 @@ namespace OpenSim.Data.MySQL
             entry.Flags = (AccessList) Convert.ToInt32(row["Flags"]);
             entry.Expires = Convert.ToInt32(row["Expires"]);
             return entry;
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        private static Array SerializeTerrain(double[,] val)
-        {
-            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) *sizeof (double));
-            BinaryWriter bw = new BinaryWriter(str);
-
-            // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
-                {
-                    double height = val[x, y];
-                    if (height == 0.0)
-                        height = double.Epsilon;
-
-                    bw.Write(height);
-                }
-
-            return str.ToArray();
         }
 
         /// <summary>

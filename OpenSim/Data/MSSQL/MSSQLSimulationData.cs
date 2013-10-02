@@ -49,6 +49,7 @@ namespace OpenSim.Data.MSSQL
 
         // private static FileSystemDataStore Instance = new FileSystemDataStore();
         private static readonly ILog _Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[REGION DB MSSQL]";
 
         /// <summary>
         /// The database manager
@@ -569,15 +570,19 @@ ELSE
             return terrain;
         }
 
+        // Legacy entry point for when terrain was always a 256x256 hieghtmap
+        public void StoreTerrain(double[,] ter, UUID regionID)
+        {
+            StoreTerrain(new HeightmapTerrainData(ter), regionID);
+        }
+
         /// <summary>
         /// Stores the terrain map to DB.
         /// </summary>
         /// <param name="terrain">terrain map data.</param>
         /// <param name="regionID">regionID.</param>
-        public void StoreTerrain(double[,] terrain, UUID regionID)
+        public void StoreTerrain(TerrainData terrData, UUID regionID)
         {
-            int revision = (int)DBTerrainRevision.Legacy256;
-
             //Delete old terrain map
             string sql = "delete from terrain where RegionUUID=@RegionUUID";
             using (SqlConnection conn = new SqlConnection(m_connectionString))
@@ -590,17 +595,21 @@ ELSE
 
             sql = "insert into terrain(RegionUUID, Revision, Heightfield) values(@RegionUUID, @Revision, @Heightfield)";
 
+            int terrainDBRevision;
+            Array terrainDBblob;
+            terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
-                cmd.Parameters.Add(_Database.CreateParameter("@Revision", revision));
-                cmd.Parameters.Add(_Database.CreateParameter("@Heightfield", serializeTerrain(terrain)));
+                cmd.Parameters.Add(_Database.CreateParameter("@Revision", terrainDBRevision));
+                cmd.Parameters.Add(_Database.CreateParameter("@Heightfield", terrainDBblob));
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
-            _Log.Info("[REGION DB]: Stored terrain revision r " + revision);
+            _Log.InfoFormat("{0} Stored terrain revision r={1}", LogHeader, terrainDBRevision);
         }
 
         /// <summary>
@@ -1343,30 +1352,6 @@ VALUES
         }
 
         #region Private Methods
-
-        /// <summary>
-        /// Serializes the terrain data for storage in DB.
-        /// </summary>
-        /// <param name="val">terrain data</param>
-        /// <returns></returns>
-        private static Array serializeTerrain(double[,] val)
-        {
-            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) * sizeof(double));
-            BinaryWriter bw = new BinaryWriter(str);
-
-            // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
-                {
-                    double height = val[x, y];
-                    if (height == 0.0)
-                        height = double.Epsilon;
-
-                    bw.Write(height);
-                }
-
-            return str.ToArray();
-        }
 
         /// <summary>
         /// Stores new regionsettings.

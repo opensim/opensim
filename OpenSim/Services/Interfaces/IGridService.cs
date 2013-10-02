@@ -246,8 +246,8 @@ namespace OpenSim.Services.Interfaces
         public GridRegion(RegionInfo ConvertFrom)
         {
             m_regionName = ConvertFrom.RegionName;
-            m_regionLocX = (int)(ConvertFrom.LegacyRegionLocX * Constants.RegionSize);
-            m_regionLocY = (int)(ConvertFrom.LegacyRegionLocY * Constants.RegionSize);
+            m_regionLocX = (int)(ConvertFrom.RegionWorldLocX);
+            m_regionLocY = (int)(ConvertFrom.RegionWorldLocY);
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_httpPort = ConvertFrom.HttpPort;

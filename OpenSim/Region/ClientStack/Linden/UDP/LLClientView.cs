@@ -34,11 +34,13 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 using System.Xml;
+
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.StructuredData;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Monitoring;
@@ -48,7 +50,6 @@ using OpenSim.Services.Interfaces;
 using Timer = System.Timers.Timer;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using RegionFlags = OpenMetaverse.RegionFlags;
-using Nini.Config;
 
 using System.IO;
 using PermissionMask = OpenSim.Framework.PermissionMask;
@@ -307,6 +308,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[LLCLIENTVIEW]";
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
         /// <summary>
@@ -447,7 +449,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //        ~LLClientView()
 //        {
-//            m_log.DebugFormat("[LLCLIENTVIEW]: Destructor called for {0}, circuit code {1}", Name, CircuitCode);
+//            m_log.DebugFormat("{0} Destructor called for {1}, circuit code {2}", LogHeader, Name, CircuitCode);
 //        }
 
         /// <summary>
@@ -513,9 +515,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // there is some unidentified connection problem, not where we have issues due to deadlock
                 if (!IsActive && !force)
                 {
-                    m_log.DebugFormat(
-                        "[CLIENT]: Not attempting to close inactive client {0} in {1} since force flag is not set", 
-                        Name, m_scene.Name);
+                    m_log.DebugFormat( "{0} Not attempting to close inactive client {1} in {2} since force flag is not set", 
+                        LogHeader, Name, m_scene.Name);
 
                     return;
                 }
@@ -1162,10 +1163,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="o"></param>
         private void DoSendLayerData(object o)
         {
-            float[] map = LLHeightFieldMoronize((float[])o);
+            float[] map = (float[])o;
 
             try
             {
+                // Send LayerData in typerwriter pattern
                 //for (int y = 0; y < 16; y++)
                 //{
                 //    for (int x = 0; x < 16; x++)
@@ -1230,7 +1232,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // }
 
         /// <summary>
-        /// Sends a specified patch to a client
+        /// Sends a terrain packet for the point specified.
+        /// This is a legacy call that has refarbed the terrain into a flat map of floats.
+        /// We just use the terrain from the region we know about.
         /// </summary>
         /// <param name="px">Patch coordinate (x) 0..15</param>
         /// <param name="py">Patch coordinate (y) 0..15</param>
@@ -1239,10 +1243,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                int[] patches = new int[] { py * 16 + px };
-                float[] heightmap = (map.Length == 65536) ? map : LLHeightFieldMoronize(map);
-
-                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
+                // For unknown reasons, after this point, patch numbers are swapped X for y.
+                //    That means, that for <patchNumX, patchNumY, the array location is computed as map[patchNumY * 16 + patchNumX].
+                //    TODO: someday straighten the below implementation to keep the X row order for patch numbers.
+                // Since this is passing only one patch, we just swap the patch numbers.
+                LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(m_scene.Heightmap.GetTerrainData(), px, py);
                 
                 // When a user edits the terrain, so much data is sent, the data queues up fast and presents a sub optimal editing experience.  
                 // To alleviate this issue, when the user edits the terrain, we start skipping the queues until they're done editing the terrain.
@@ -1260,52 +1265,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_justEditedTerrain)
                 {
                     layerpack.Header.Reliable = false;
-                    OutPacket(layerpack,
-                               ThrottleOutPacketType.Unknown );
+                    OutPacket(layerpack, ThrottleOutPacketType.Unknown );
                 }
                 else
                 {
                     layerpack.Header.Reliable = true;
-                    OutPacket(layerpack,
-                               ThrottleOutPacketType.Land);
+                    OutPacket(layerpack, ThrottleOutPacketType.Land);
                 }
             }
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
             }
-        }
-
-        /// <summary>
-        /// Munges heightfield into the LLUDP backed in restricted heightfield.
-        /// </summary>
-        /// <param name="map">float array in the base; Constants.RegionSize</param>
-        /// <returns>float array in the base 256</returns>
-        internal float[] LLHeightFieldMoronize(float[] map)
-        {
-            if (map.Length == 65536)
-                return map;
-            else
-            {
-                float[] returnmap = new float[65536];
-
-                if (map.Length < 65535)
-                {
-                    // rebase the vector stride to 256
-                    for (int i = 0; i < Constants.RegionSize; i++)
-                        Array.Copy(map, i * (int)Constants.RegionSize, returnmap, i * 256, (int)Constants.RegionSize);
-                }
-                else
-                {
-                    for (int i = 0; i < 256; i++)
-                        Array.Copy(map, i * (int)Constants.RegionSize, returnmap, i * 256, 256);
-                }
-
-                //Array.Copy(map,0,returnmap,0,(map.Length < 65536)? map.Length : 65536);
-
-                return returnmap;
-            }
-
         }
 
         /// <summary>
@@ -2780,8 +2751,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (req.AssetInf.Data == null)
             {
-                m_log.ErrorFormat("Cannot send asset {0} ({1}), asset data is null",
-                    req.AssetInf.ID, req.AssetInf.Metadata.ContentType);
+                m_log.ErrorFormat("{0} Cannot send asset {1} ({2}), asset data is null",
+                                LogHeader, req.AssetInf.ID, req.AssetInf.Metadata.ContentType);
                 return;
             }
 

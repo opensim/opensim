@@ -25,13 +25,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.IO;
+using System.Text;
+using System.Reflection;
+using System.Xml;
+using System.Xml.Serialization;
+
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using System;
-using System.Text;
-using System.Xml;
-using System.IO;
-using System.Xml.Serialization;
+
+using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -40,18 +45,20 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public class TerrainChannel : ITerrainChannel
     {
-        protected bool[,] m_taint;
-        protected short[] m_map;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[TERRAIN CHANNEL]";
 
-        public int Width { get; private set; }  // X dimension
+        protected TerrainData m_terrainData;
+
+        public int Width { get { return m_terrainData.SizeX; } }  // X dimension
         // Unfortunately, for historical reasons, in this module 'Width' is X and 'Height' is Y
-        public int Height { get; private set; } // Y dimension
-        public int Altitude { get; private set; } // Y dimension
+        public int Height { get { return m_terrainData.SizeY; } } // Y dimension
+        public int Altitude { get { return m_terrainData.SizeZ; } } // Y dimension
 
         // Default, not-often-used builder
         public TerrainChannel()
         {
-            InitializeStructures(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight, false);
+            m_terrainData = new HeightmapTerrainData((int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
             FlatLand();
             // PinHeadIsland();
         }
@@ -59,27 +66,23 @@ namespace OpenSim.Region.Framework.Scenes
         // Create terrain of given size
         public TerrainChannel(int pX, int pY)
         {
-            InitializeStructures((uint)pX, (uint)pY, Constants.RegionHeight, true);
+            m_terrainData = new HeightmapTerrainData(pX, pY, (int)Constants.RegionHeight);
         }
 
         // Create terrain of specified size and initialize with specified terrain.
         // TODO: join this with the terrain initializers.
-        public TerrainChannel(String type, uint pX, uint pY, uint pZ)
+        public TerrainChannel(String type, int pX, int pY, int pZ)
         {
-            InitializeStructures(pX, pY, pZ, false);
+            m_terrainData = new HeightmapTerrainData(pX, pY, pZ);
             if (type.Equals("flat"))
                 FlatLand();
             else
                 PinHeadIsland();
         }
 
-        public TerrainChannel(double[,] pM, uint pH)
+        public TerrainChannel(double[,] pM, uint pAltitude)
         {
-            InitializeStructures((uint)pM.GetLength(0), (uint)pM.GetLength(1), pH, false);
-            int idx = 0;
-            for (int ii = 0; ii < Height; ii++)
-                for (int jj = 0; jj < Width; jj++)
-                    m_map[idx++] = ToCompressedHeight(pM[ii, jj]);
+            m_terrainData = new HeightmapTerrainData(pM);
         }
 
         #region ITerrainChannel Members
@@ -90,20 +93,23 @@ namespace OpenSim.Region.Framework.Scenes
             return this.Copy();
         }
 
-        // ITerrainChannel.GetCompressedMap()
-        public short[] GetCompressedMap()
+        // ITerrainChannel.GetTerrainData()
+        public TerrainData GetTerrainData()
         {
-            return m_map;
+            return m_terrainData;
         }
 
         // ITerrainChannel.GetFloatsSerialized()
+        // NOTICE that the one dimensional form is ordered by Y!!
         public float[] GetFloatsSerialised()
         {
             int points = Width * Height;
             float[] heights = new float[points];
 
-            for (int ii = 0; ii < points; ii++)
-                heights[ii] = FromCompressedHeight(m_map[ii]);
+            int idx = 0;
+            for (int ii = 0; ii < Height; ii++)
+                for (int jj = 0; jj < Width; jj++)
+                    heights[idx++] = m_terrainData[jj, ii];
 
             return heights;
         }
@@ -116,11 +122,11 @@ namespace OpenSim.Region.Framework.Scenes
             double[,] heights = new double[w, l];
 
             int idx = 0; // index into serialized array
-            for (int ii = 0; ii < l; ii++)
+            for (int ii = 0; ii < w; ii++)
             {
-                for (int jj = 0; jj < w; jj++)
+                for (int jj = 0; jj < l; jj++)
                 {
-                    heights[ii, jj] = (double)FromCompressedHeight(m_map[idx]);
+                    heights[ii, jj] = (double)m_terrainData[ii, jj];
                     idx++;
                 }
             }
@@ -131,31 +137,20 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.this[x,y]
         public double this[int x, int y]
         {
-            get { return m_map[x * Width + y]; }
+            get { return (double)m_terrainData[x, y]; }
             set
             {
-                // Will "fix" terrain hole problems. Although not fantastically.
                 if (Double.IsNaN(value) || Double.IsInfinity(value))
                     return;
 
-                int idx = x * Width + y;
-                if (m_map[idx] != value)
-                {
-                    m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = true;
-                    m_map[idx] = ToCompressedHeight(value);
-                }
+                m_terrainData[x, y] = (float)value;
             }
         }
 
         // ITerrainChannel.Tainted()
         public bool Tainted(int x, int y)
         {
-            if (m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize])
-            {
-                m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = false;
-                return true;
-            }
-            return false;
+            return m_terrainData.IsTaintedAt(x, y);
         }
 
         // ITerrainChannel.SaveToXmlString()
@@ -188,49 +183,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        private void InitializeStructures(uint pX, uint pY, uint pZ, bool shouldInitializeHeightmap)
-        {
-            Width = (int)pX;
-            Height = (int)pY;
-            Altitude = (int)pZ;
-            m_map = new short[Width * Height];
-            m_taint = new bool[Width / Constants.TerrainPatchSize, Height / Constants.TerrainPatchSize];
-            ClearTaint();
-            if (shouldInitializeHeightmap)
-            {
-                FlatLand();
-            }
-        }
-
-        public void ClearTaint()
-        {
-            for (int ii = 0; ii < Width / Constants.TerrainPatchSize; ii++)
-                for (int jj = 0; jj < Height / Constants.TerrainPatchSize; jj++)
-                    m_taint[ii, jj] = false;
-        }
-
+        /*
         // To save space (especially for large regions), keep the height as a short integer
         //    that is coded as the float height times the compression factor (usually '100'
         //    to make for two decimal points).
-        public short ToCompressedHeight(double pHeight)
+        public static short ToCompressedHeight(double pHeight)
         {
             return (short)(pHeight * Constants.TerrainCompression);
         }
 
-        public float FromCompressedHeight(short pHeight)
+        public static float FromCompressedHeight(short pHeight)
         {
             return ((float)pHeight) / Constants.TerrainCompression;
         }
+         */
 
         public TerrainChannel Copy()
         {
             TerrainChannel copy = new TerrainChannel();
-            copy.m_map = (short[])m_map.Clone();
-            copy.m_taint = (bool[,])m_taint.Clone();
-            copy.Width = Width;
-            copy.Height = Height;
-            copy.Altitude = Altitude;
-
+            copy.m_terrainData = m_terrainData.Clone();
             return copy;
         }
 
@@ -289,6 +260,8 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] dataArray = (byte[])serializer.Deserialize(xmlReader);
             int index = 0;
 
+            m_terrainData = new HeightmapTerrainData(Width, Height, Altitude);
+            
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
@@ -321,7 +294,7 @@ namespace OpenSim.Region.Framework.Scenes
         // New terrain serialization format that includes the width and length.
         private void ToXml2(XmlWriter xmlWriter)
         {
-            TerrainChannelXMLPackage package = new TerrainChannelXMLPackage(Width, Height, Altitude, m_map);
+            TerrainChannelXMLPackage package = new TerrainChannelXMLPackage(Width, Height, Altitude, m_terrainData.GetCompressedMap());
             XmlSerializer serializer = new XmlSerializer(typeof(TerrainChannelXMLPackage));
             serializer.Serialize(xmlWriter, package);
         }
@@ -331,38 +304,32 @@ namespace OpenSim.Region.Framework.Scenes
         {
             XmlSerializer serializer = new XmlSerializer(typeof(TerrainChannelXMLPackage));
             TerrainChannelXMLPackage package = (TerrainChannelXMLPackage)serializer.Deserialize(xmlReader);
-            Width = package.SizeX;
-            Height = package.SizeY;
-            Altitude = package.SizeZ;
-            m_map = package.Map;
+            m_terrainData = new HeightmapTerrainData(package.Map, package.SizeX, package.SizeY, package.SizeZ);
         }
 
         // Fill the heightmap with the center bump terrain
         private void PinHeadIsland()
         {
-            int x;
-            for (x = 0; x < Width; x++)
+            for (int x = 0; x < Width; x++)
             {
-                int y;
-                for (y = 0; y < Height; y++)
+                for (int y = 0; y < Height; y++)
                 {
-                    int idx = x * (int)Width + y;
-                    m_map[idx] = ToCompressedHeight(TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10);
-                    short spherFacA = ToCompressedHeight(TerrainUtil.SphericalFactor(x, y, Constants.RegionSize / 2.0, Constants.RegionSize / 2.0, 50) * 0.01);
-                    short spherFacB = ToCompressedHeight(TerrainUtil.SphericalFactor(x, y, Constants.RegionSize / 2.0, Constants.RegionSize / 2.0, 100) * 0.001);
-                    if (m_map[idx] < spherFacA)
-                        m_map[idx] = spherFacA;
-                    if (m_map[idx] < spherFacB)
-                        m_map[idx] = spherFacB;
+                    m_terrainData[x, y] = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
+                    float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, m_terrainData.SizeX / 2.0, m_terrainData.SizeY / 2.0, 50) * 0.01d);
+                    float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, m_terrainData.SizeX / 2.0, m_terrainData.SizeY / 2.0, 100) * 0.001d);
+                    if (m_terrainData[x, y]< spherFacA)
+                        m_terrainData[x, y]= spherFacA;
+                    if (m_terrainData[x, y]< spherFacB)
+                        m_terrainData[x, y] = spherFacB;
                 }
             }
         }
 
         private void FlatLand()
         {
-            short flatHeight = ToCompressedHeight(21);
-            for (int ii = 0; ii < m_map.Length; ii++)
-                m_map[ii] = flatHeight;
+            for (int xx = 0; xx < Width; xx++)
+                for (int yy = 0; yy < Height; yy++)
+                    m_terrainData[xx, yy] = 21;
         }
     }
 }
