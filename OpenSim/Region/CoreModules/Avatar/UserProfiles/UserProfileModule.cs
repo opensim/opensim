@@ -663,8 +663,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
             Vector3 avaPos = p.AbsolutePosition;
             // Getting the global position for the Avatar
-            Vector3 posGlobal = new Vector3(remoteClient.Scene.RegionInfo.LegacyRegionLocX*Constants.RegionSize + avaPos.X,
-                                            remoteClient.Scene.RegionInfo.LegacyRegionLocY*Constants.RegionSize + avaPos.Y,
+            Vector3 posGlobal = new Vector3(remoteClient.Scene.RegionInfo.RegionWorldLocX + avaPos.X,
+                                            remoteClient.Scene.RegionInfo.RegionWorldLocY + avaPos.Y,
                                             avaPos.Z);
 
             string landOwnerName = string.Empty;

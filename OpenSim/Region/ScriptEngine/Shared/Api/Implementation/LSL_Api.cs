@@ -4241,10 +4241,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                      m_item.ItemID, item.AssetID.ToString());
 
-                    Vector3 region = new Vector3(
-                        World.RegionInfo.LegacyRegionLocX * Constants.RegionSize,
-                        World.RegionInfo.LegacyRegionLocY * Constants.RegionSize,
-                        0);
+                    Vector3 region = new Vector3(World.RegionInfo.RegionWorldLocX, World.RegionInfo.RegionWorldLocY, 0);
 
                     World.AssetService.Get(item.AssetID.ToString(), this,
                         delegate(string i, object sender, AssetBase a)
@@ -5478,7 +5475,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetRegionCorner()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(World.RegionInfo.LegacyRegionLocX * Constants.RegionSize, World.RegionInfo.LegacyRegionLocY * Constants.RegionSize, 0);
+            return new LSL_Vector(World.RegionInfo.RegionWorldLocX, World.RegionInfo.RegionWorldLocY, 0);
         }
 
         /// <summary>

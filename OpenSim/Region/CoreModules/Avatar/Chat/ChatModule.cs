@@ -180,8 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             string message = c.Message;
             Scene scene = (Scene)c.Scene;
             Vector3 fromPos = c.Position;
-            Vector3 regionPos = new Vector3(scene.RegionInfo.LegacyRegionLocX * Constants.RegionSize,
-                                            scene.RegionInfo.LegacyRegionLocY * Constants.RegionSize, 0);
+            Vector3 regionPos = new Vector3(scene.RegionInfo.RegionWorldLocX, scene.RegionInfo.RegionWorldLocY, 0);
 
             if (c.Channel == DEBUG_CHANNEL) c.Type = ChatTypeEnum.DebugChannel;
 
@@ -333,8 +332,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             {
                 Vector3 fromRegionPos = fromPos + regionPos;
                 Vector3 toRegionPos = presence.AbsolutePosition +
-                    new Vector3(presence.Scene.RegionInfo.LegacyRegionLocX * Constants.RegionSize,
-                                presence.Scene.RegionInfo.LegacyRegionLocY * Constants.RegionSize, 0);
+                    new Vector3(presence.Scene.RegionInfo.RegionWorldLocX, presence.Scene.RegionInfo.RegionWorldLocY, 0);
 
                 int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
 
