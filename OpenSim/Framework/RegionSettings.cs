@@ -200,7 +200,7 @@ namespace OpenSim.Framework
             set { m_ObjectBonus = value; }
         }
 
-        private int m_Maturity = 1;
+        private int m_Maturity = 0;
 
         public int Maturity
         {

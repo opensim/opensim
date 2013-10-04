@@ -277,6 +277,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 pbs.ProfileEnd = (ushort) obj.ProfileEnd;
                 pbs.Scale = obj.Scale;
                 pbs.State = (byte) 0;
+                pbs.LastAttachPoint = (byte) 0;
                 SceneObjectPart prim = new SceneObjectPart();
                 prim.UUID = UUID.Random();
                 prim.CreatorID = AgentId;

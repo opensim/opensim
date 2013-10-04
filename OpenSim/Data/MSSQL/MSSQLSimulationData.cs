@@ -351,7 +351,7 @@ IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
             ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
             SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
             ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, PassTouches = @PassTouches,
-            LinkNumber = @LinkNumber, MediaURL = @MediaURL, DynAttrs = @DynAttrs,
+            LinkNumber = @LinkNumber, MediaURL = @MediaURL, AttachedPosX = @AttachedPosX, AttachedPosY = @AttachedPosY, AttachedPosZ = @AttachedPosZ, DynAttrs = @DynAttrs,
             PhysicsShapeType = @PhysicsShapeType, Density = @Density, GravityModifier = @GravityModifier, Friction = @Friction, Restitution = @Restitution
         WHERE UUID = @UUID
     END
@@ -367,7 +367,7 @@ ELSE
             PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
             OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
             ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
-            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL, DynAttrs,
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL, AttachedPosX, AttachedPosY, AttachedPosZ, DynAttrs,
             PhysicsShapeType, Density, GravityModifier, Friction, Restitution
             ) VALUES (
             @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
@@ -378,7 +378,7 @@ ELSE
             @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
             @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
             @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
-            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL, @DynAttrs,
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL, @AttachedPosX, @AttachedPosY, @AttachedPosZ, @DynAttrs,
             @PhysicsShapeType, @Density, @GravityModifier, @Friction, @Restitution
             )
     END";
@@ -1695,6 +1695,12 @@ VALUES
             if (!(primRow["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)primRow["MediaURL"];
             
+            if (!(primRow["AttachedPosX"] is System.DBNull))
+                prim.AttachedPos = new Vector3(
+                                        Convert.ToSingle(primRow["AttachedPosX"]),
+                                        Convert.ToSingle(primRow["AttachedPosY"]),
+                                        Convert.ToSingle(primRow["AttachedPosZ"]));
+
             if (!(primRow["DynAttrs"] is System.DBNull))
                 prim.DynAttrs = DAMap.FromXml((string)primRow["DynAttrs"]);
             else
@@ -2099,7 +2105,10 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
-            
+            parameters.Add(_Database.CreateParameter("AttachedPosX", prim.AttachedPos.X));
+            parameters.Add(_Database.CreateParameter("AttachedPosY", prim.AttachedPos.Y));
+            parameters.Add(_Database.CreateParameter("AttachedPosZ", prim.AttachedPos.Z));
+
             if (prim.DynAttrs.CountNamespaces > 0)
                 parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
             else

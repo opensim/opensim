@@ -149,8 +149,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
 //            m_log.DebugFormat(
-//                "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
-//                (InstantMessageDialog)im.dialog, client.Name);
+//                "[INVENTORY TRANSFER]: {0} IM type received from client {1}. From={2} ({3}), To={4}", 
+//                (InstantMessageDialog)im.dialog, client.Name,
+//                im.fromAgentID, im.fromAgentName, im.toAgentID);
           
             Scene scene = FindClientScene(client.AgentId);
 
@@ -467,9 +468,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         /// <summary>
         ///
         /// </summary>
-        /// <param name="msg"></param>
+        /// <param name="im"></param>
         private void OnGridInstantMessage(GridInstantMessage im)
         {
+            // Check if it's a type of message that we should handle
+            if (!((im.dialog == (byte) InstantMessageDialog.InventoryOffered)
+                || (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
+                || (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+                || (im.dialog == (byte) InstantMessageDialog.TaskInventoryDeclined)))
+                return;
+
+            m_log.DebugFormat(
+                "[INVENTORY TRANSFER]: {0} IM type received from grid. From={1} ({2}), To={3}",
+                (InstantMessageDialog)im.dialog, im.fromAgentID, im.fromAgentName, im.toAgentID);
+
             // Check if this is ours to handle
             //
             Scene scene = FindClientScene(new UUID(im.toAgentID));

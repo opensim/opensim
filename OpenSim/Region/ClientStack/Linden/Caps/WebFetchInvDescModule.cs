@@ -116,7 +116,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
 
             foreach (Thread t in m_workerThreads)
-                Watchdog.AbortThread(t.ManagedThreadId); 
+                Watchdog.AbortThread(t.ManagedThreadId);
 
             m_scene = null;
         }
@@ -298,36 +298,49 @@ namespace OpenSim.Region.ClientStack.Linden
                         requestinfo.request["body"].ToString(), String.Empty, String.Empty, null, null);
 
                 lock (responses)
-                    responses[requestID] = response; 
+                    responses[requestID] = response;
             }
         }
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            if (m_fetchInventoryDescendents2Url == "")
+            RegisterFetchDescendentsCap(agentID, caps, "FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
+        }
+
+        private void RegisterFetchDescendentsCap(UUID agentID, Caps caps, string capName, string url)
+        {
+            string capUrl;
+
+            // disable the cap clause
+            if (url == "")
+            {
                 return;
+            }
+            // handled by the simulator
+            else if (url == "localhost")
+            {
+                capUrl = "/CAPS/" + UUID.Random() + "/";
 
-            // Register this as a poll service          
-            PollServiceInventoryEventArgs args 
-                = new PollServiceInventoryEventArgs(m_scene, "/CAPS/" + UUID.Random() + "/", agentID);            
-            args.Type = PollServiceEventArgs.EventType.Inventory;
+                // Register this as a poll service
+                PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(m_scene, capUrl, agentID);
+                args.Type = PollServiceEventArgs.EventType.Inventory;
 
-            caps.RegisterPollHandler("FetchInventoryDescendents2", args);
+                caps.RegisterPollHandler(capName, args);
+            }
+            // external handler
+            else
+            {
+                capUrl = url;
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+                if (handler != null)
+                    handler.RegisterExternalUserCapsHandler(agentID,caps,capName,capUrl);
+                else
+                    caps.RegisterHandler(capName, capUrl);
+            }
 
-//            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
-//
-//            string hostName = m_scene.RegionInfo.ExternalHostName;
-//            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
-//            string protocol = "http";
-//            
-//            if (MainServer.Instance.UseSSL)
-//            {
-//                hostName = MainServer.Instance.SSLCommonName;
-//                port = MainServer.Instance.SSLPort;
-//                protocol = "https";
-//            }
-//
-//            caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+            // m_log.DebugFormat(
+            //     "[FETCH INVENTORY DESCENDENTS2 MODULE]: Registered capability {0} at {1} in region {2} for {3}",
+            //     capName, capUrl, m_scene.RegionInfo.RegionName, agentID);
         }
 
 //        private void DeregisterCaps(UUID agentID, Caps caps)

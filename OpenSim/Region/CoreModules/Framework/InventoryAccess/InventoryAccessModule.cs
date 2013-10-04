@@ -906,6 +906,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_log.Debug("[INVENTORY ACCESS MODULE]: Object has UUID.Zero! Position 3");
                 }
 
+                // if this was previously an attachment and is now being rezzed,
+                // save the old attachment info.
+                if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
+                {
+                    group.RootPart.AttachedPos = group.AbsolutePosition;
+                    group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+                }
+
                 foreach (SceneObjectPart part in group.Parts)
                 {
                     // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.

@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             if (sp.IsChildAgent)
                 return;
             sp.ControllingClient.Kick(reason);
-            sp.Scene.IncomingCloseAgent(sp.UUID, true); 
+            sp.Scene.CloseAgent(sp.UUID, true); 
         }
 
         private void OnIncomingInstantMessage(GridInstantMessage msg)

@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 
 using OpenSim.Framework;
+using OpenSim.Region.OptionalModules.Scripting;
 
 using OMV = OpenMetaverse;
 
@@ -40,6 +41,8 @@ public class BSPrimLinkable : BSPrimDisplaced
     // The purpose of this subclass is to add linkset functionality to the prim. This overrides
     //    operations necessary for keeping the linkset created and, additionally, this
     //    calls the linkset implementation for its creation and management.
+
+    private static readonly string LogHeader = "[BULLETS PRIMLINKABLE]";
 
     // This adds the overrides for link() and delink() so the prim is linkable.
 
@@ -58,15 +61,12 @@ public class BSPrimLinkable : BSPrimDisplaced
 
         Linkset = BSLinkset.Factory(PhysScene, this);
 
-        PhysScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()
-        {
-            Linkset.Refresh(this);
-        });
+        Linkset.Refresh(this);
     }
 
     public override void Destroy()
     {
-        Linkset = Linkset.RemoveMeFromLinkset(this);
+        Linkset = Linkset.RemoveMeFromLinkset(this, false /* inTaintTime */);
         base.Destroy();
     }
 
@@ -80,7 +80,7 @@ public class BSPrimLinkable : BSPrimDisplaced
 
             Linkset = parent.Linkset.AddMeToLinkset(this);
 
-            DetailLog("{0},BSPrimLinkset.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}",
+            DetailLog("{0},BSPrimLinkable.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}",
                 LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         }
         return;
@@ -94,9 +94,9 @@ public class BSPrimLinkable : BSPrimDisplaced
         BSPhysObject parentBefore = Linkset.LinksetRoot;        // DEBUG
         int childrenBefore = Linkset.NumberOfChildren;          // DEBUG
 
-        Linkset = Linkset.RemoveMeFromLinkset(this);
+        Linkset = Linkset.RemoveMeFromLinkset(this, false /* inTaintTime*/);
 
-        DetailLog("{0},BSPrimLinkset.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
+        DetailLog("{0},BSPrimLinkable.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
             LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         return;
     }
@@ -108,7 +108,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Position = value;
-            PhysScene.TaintedObject("BSPrimLinkset.setPosition", delegate()
+            PhysScene.TaintedObject(LocalID, "BSPrimLinkable.setPosition", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Position, this);
             });
@@ -122,7 +122,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Orientation = value;
-            PhysScene.TaintedObject("BSPrimLinkset.setOrientation", delegate()
+            PhysScene.TaintedObject(LocalID, "BSPrimLinkable.setOrientation", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
             });
@@ -180,7 +180,7 @@ public class BSPrimLinkable : BSPrimDisplaced
     // Do any filtering/modification needed for linksets.
     public override void UpdateProperties(EntityProperties entprop)
     {
-        if (Linkset.IsRoot(this))
+        if (Linkset.IsRoot(this) || Linkset.ShouldReportPropertyUpdates(this))
         {
             // Properties are only updated for the roots of a linkset.
             // TODO: this will have to change when linksets are articulated.
@@ -240,6 +240,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         bool ret = false;
         if (LinksetType != newType)
         {
+            DetailLog("{0},BSPrimLinkable.ConvertLinkset,oldT={1},newT={2}", LocalID, LinksetType, newType);
+
             // Set the implementation type first so the call to BSLinkset.Factory gets the new type.
             this.LinksetType = newType;
 
@@ -263,7 +265,10 @@ public class BSPrimLinkable : BSPrimDisplaced
             // Remove the children from the old linkset and add to the new (will be a new instance from the factory)
             foreach (BSPrimLinkable child in children)
             {
-                oldLinkset.RemoveMeFromLinkset(child);
+                oldLinkset.RemoveMeFromLinkset(child, true /*inTaintTime*/);
+            }
+            foreach (BSPrimLinkable child in children)
+            {
                 newLinkset.AddMeToLinkset(child);
                 child.Linkset = newLinkset;
             }
@@ -274,5 +279,70 @@ public class BSPrimLinkable : BSPrimDisplaced
         }
         return ret;
     }
+
+    #region Extension
+    public override object Extension(string pFunct, params object[] pParams)
+    {
+        DetailLog("{0} BSPrimLinkable.Extension,op={1},nParam={2}", LocalID, pFunct, pParams.Length);
+        object ret = null;
+        switch (pFunct)
+        {
+            // physGetLinksetType();
+            // pParams = [ BSPhysObject root, null ]
+            case ExtendedPhysics.PhysFunctGetLinksetType:
+            {
+                ret = (object)LinksetType;
+                DetailLog("{0},BSPrimLinkable.Extension.physGetLinksetType,type={1}", LocalID, ret);
+                break;
+            }
+            // physSetLinksetType(type);
+            // pParams = [ BSPhysObject root, null, integer type ]
+            case ExtendedPhysics.PhysFunctSetLinksetType:
+            {
+                if (pParams.Length > 2)
+                {
+                    BSLinkset.LinksetImplementation linksetType = (BSLinkset.LinksetImplementation)pParams[2];
+                    if (Linkset.IsRoot(this))
+                    {
+                        PhysScene.TaintedObject(LocalID, "BSPrim.PhysFunctSetLinksetType", delegate()
+                        {
+                            // Cause the linkset type to change
+                            DetailLog("{0},BSPrimLinkable.Extension.physSetLinksetType, oldType={1},newType={2}",
+                                                LocalID, Linkset.LinksetImpl, linksetType);
+                            ConvertLinkset(linksetType);
+                        });
+                    }
+                    ret = (object)(int)linksetType;
+                }
+                break;
+            }
+            // physChangeLinkType(linknum, typeCode);
+            // pParams = [ BSPhysObject root, BSPhysObject child, integer linkType ]
+            case ExtendedPhysics.PhysFunctChangeLinkType:
+            {
+                ret = Linkset.Extension(pFunct, pParams);
+                break;
+            }
+            // physGetLinkType(linknum);
+            // pParams = [ BSPhysObject root, BSPhysObject child ]
+            case ExtendedPhysics.PhysFunctGetLinkType:
+            {
+                ret = Linkset.Extension(pFunct, pParams);
+                break;
+            }
+            // physChangeLinkParams(linknum, [code, value, code, value, ...]);
+            // pParams = [ BSPhysObject root, BSPhysObject child, object[] [ string op, object opParam, string op, object opParam, ... ] ]
+            case ExtendedPhysics.PhysFunctChangeLinkParams:
+            {
+                ret = Linkset.Extension(pFunct, pParams);
+                break;
+            }
+            default:
+                ret = base.Extension(pFunct, pParams);
+                break;
+        }
+        return ret;
+    }
+    #endregion  // Extension
 }
 }

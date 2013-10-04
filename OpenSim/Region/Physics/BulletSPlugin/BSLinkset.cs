@@ -77,6 +77,10 @@ public abstract class BSLinkset
         {
             member = pMember;
         }
+        public virtual void ResetLink() { }
+        public virtual void SetLinkParameters(BSConstraint constrain) { }
+        // Returns 'true' if physical property updates from the child should be reported to the simulator
+        public virtual bool ShouldUpdateChildProperties() { return false; }
     }
 
     public LinksetImplementation LinksetImpl { get; protected set; }
@@ -148,7 +152,7 @@ public abstract class BSLinkset
     // Returns a new linkset for the child which is a linkset of one (just the
     //    orphened child).
     // Called at runtime.
-    public BSLinkset RemoveMeFromLinkset(BSPrimLinkable child)
+    public BSLinkset RemoveMeFromLinkset(BSPrimLinkable child, bool inTaintTime)
     {
         lock (m_linksetActivityLock)
         {
@@ -157,7 +161,7 @@ public abstract class BSLinkset
                 // Cannot remove the root from a linkset.
                 return this;
             }
-            RemoveChildFromLinkset(child);
+            RemoveChildFromLinkset(child, inTaintTime);
             LinksetMass = ComputeLinksetMass();
         }
 
@@ -205,6 +209,17 @@ public abstract class BSLinkset
         return ret;
     }
 
+    public bool TryGetLinkInfo(BSPrimLinkable child, out BSLinkInfo foundInfo)
+    {
+        bool ret = false;
+        BSLinkInfo found = null;
+        lock (m_linksetActivityLock)
+        {
+            ret = m_children.TryGetValue(child, out found);
+        }
+        foundInfo = found;
+        return ret;
+    }
     // Perform an action on each member of the linkset including root prim.
     // Depends on the action on whether this should be done at taint time.
     public delegate bool ForEachLinkInfoAction(BSLinkInfo obj);
@@ -219,6 +234,21 @@ public abstract class BSLinkset
                     break;
             }
         }
+        return ret;
+    }
+
+    // Check the type of the link and return 'true' if the link is flexible and the
+    //    updates from the child should be sent to the simulator so things change.
+    public virtual bool ShouldReportPropertyUpdates(BSPrimLinkable child)
+    {
+        bool ret = false;
+
+        BSLinkInfo linkInfo;
+        if (m_children.TryGetValue(child, out linkInfo))
+        {
+            ret = linkInfo.ShouldUpdateChildProperties();
+        }
+
         return ret;
     }
 
@@ -255,7 +285,7 @@ public abstract class BSLinkset
 
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
-    protected abstract void RemoveChildFromLinkset(BSPrimLinkable child);
+    protected abstract void RemoveChildFromLinkset(BSPrimLinkable child, bool inTaintTime);
 
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
@@ -429,6 +459,13 @@ public abstract class BSLinkset
 
         return com;
     }
+
+    #region Extension
+    public virtual object Extension(string pFunct, params object[] pParams)
+    {
+        return null;
+    }
+    #endregion // Extension
 
     // Invoke the detailed logger and output something if it's enabled.
     protected void DetailLog(string msg, params Object[] args)

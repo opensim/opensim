@@ -414,8 +414,8 @@
     ;# {SMTP_SERVER_PASSWORD} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server password} {}
     ; SMTP_SERVER_PASSWORD = ""
 
-[Network]
 
+[Network]
     ;# {ConsoleUser} {} {User name for console account} {}
     ;; Configure the remote console user here. This will not actually be used
     ;; unless you use -console=rest at startup.
@@ -452,6 +452,7 @@
     ;; web server
     ; user_agent = "OpenSim LSL (Mozilla Compatible)"
 
+
 [XMLRPC]
     ;# {XmlRpcRouterModule} {} {Module used to route incoming llRemoteData calls} {XmlRpcRouterModule XmlRpcGridRouterModule} XmlRpcRouterModule
     ;; If enabled and set to XmlRpcRouterModule, this will post an event, 
@@ -465,9 +466,6 @@
 
     ;# {XmlRpcPort} {} {Port for incoming llRemoteData xmlrpc calls} {} 20800
     ;XmlRpcPort = 20800
-
-
-;;    {option} {depends on} {question to ask} {choices} default value
 
     ;# {XmlRpcHubURI} {XmlRpcRouterModule} {URI for external service used to register xmlrpc channels created in the simulator. This depends on XmlRpcRouterModule being set to XmlRpcGridRouterModule} {} http://example.com
     ;; If XmlRpcRouterModule is set to XmlRpcGridRouterModule, the simulator
@@ -504,7 +502,7 @@
     ; These are enabled by default to localhost. Change if you see fit.
     Cap_GetTexture = "localhost"
     Cap_GetMesh = "localhost"
-	Cap_AvatarPickerSearch = "localhost"
+    Cap_AvatarPickerSearch = "localhost"
 
     ; This is disabled by default. Change if you see fit. Note that
     ; serving this cap from the simulators may lead to poor performace.
@@ -512,7 +510,6 @@
 
 
 [SimulatorFeatures]
-
     ;# {MapImageServerURI} {} {URL for the map server} {}
     ; Experimental new information sent in SimulatorFeatures cap for Kokua
     ; viewers 
@@ -550,7 +547,7 @@
     ;; Module to handle offline messaging. The core module requires an external
     ;; web service to do this. See OpenSim wiki.
     ; OfflineMessageModule = OfflineMessageModule
-	;; Or, alternatively, use this one, which works for both standalones and grids
+    ;; Or, alternatively, use this one, which works for both standalones and grids
     ; OfflineMessageModule = "Offline Message Module V2"
 
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
@@ -558,8 +555,8 @@
     ; OfflineMessageURL = http://yourserver/Offline.php or http://yourrobustserver:8003
 
     ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
-	;; For standalones, this is the storage dll.
-	; StorageProvider = OpenSim.Data.MySQL.dll
+    ;; For standalones, this is the storage dll.
+    ; StorageProvider = OpenSim.Data.MySQL.dll
 
     ;# {MuteListModule} {OfflineMessageModule:OfflineMessageModule} {} {} MuteListModule
     ;; Mute list handler (not yet implemented). MUST BE SET to allow offline
@@ -956,38 +953,38 @@
     ;; http://code.google.com/p/flotsam/
     ;; or from the SimianGrid project at http://code.google.com/p/openmetaverse
     ; Module = Default
-	;; or... use Groups Module V2, which works for standalones and robust grids
-	; Module = "Groups Module V2"
+    ;; or... use Groups Module V2, which works for standalones and robust grids
+    ; Module = "Groups Module V2"
 
     ;# {StorageProvider} {Module:Groups Module V2} {The DLL that provides the storage for V2} {OpenSim.Data.MySQL.dll} 
     ; StorageProvider = OpenSim.Data.MySQL.dll
 
     ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
     ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one as follows:
-	;; -- for Flotsam Groups use XmlRpcGroupsServicesConnector
-	;; -- for Simian Groups use SimianGroupsServicesConnector
-	;; -- for V2 Groups, standalone, non-HG use "Groups Local Service Connector"
-	;; -- for V2 Groups, grided sim, non-HG use "Groups Remote Service Connector"
-	;; -- for V2 Groups, HG, both standalone and grided sim, use "Groups HG Service Connector"
-	;; Note that the quotes "" around the words are important!
+    ;; -- for Flotsam Groups use XmlRpcGroupsServicesConnector
+    ;; -- for Simian Groups use SimianGroupsServicesConnector
+    ;; -- for V2 Groups, standalone, non-HG use "Groups Local Service Connector"
+    ;; -- for V2 Groups, grided sim, non-HG use "Groups Remote Service Connector"
+    ;; -- for V2 Groups, HG, both standalone and grided sim, use "Groups HG Service Connector"
+    ;; Note that the quotes "" around the words are important!
     ; ServicesConnectorModule = XmlRpcGroupsServicesConnector
 
     ;# {LocalService} {ServicesConnectorModule:Groups HG Service Connector} {Is the group service in this process or elsewhere?} {local remote} local
-	;; Used for V2 in HG only. If standalone, set this to local; if grided sim, set this to remote
+    ;; Used for V2 in HG only. If standalone, set this to local; if grided sim, set this to remote
     ; LocalService = local
 
     ;# {GroupsServerURI} {Module:GroupsModule (ServicesConnectorModule:Groups Remote Service Connector or (ServicesConnectorModule:Groups HG Service Connector and LocalService:remote))} {Groups Server URI} {}
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
-	;; or http:://mygridserver.com:8003 for robust, V2
-	;; Leave it commented for standalones, V2
+    ;; or http:://mygridserver.com:8003 for robust, V2
+    ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
     ;# {HomeURI} {ServicesConnectorModule:Groups HG Service Connector} {What's the home address of this world?} {} 
-	;; Used for V2 in HG only. For example
-	;; http://mygridserver.com:9000 or http://mygridserver.com:8002
-	;; If you have this set under [Startup], no need to set it here, leave it commented
+    ;; Used for V2 in HG only. For example
+    ;; http://mygridserver.com:9000 or http://mygridserver.com:8002
+    ;; If you have this set under [Startup], no need to set it here, leave it commented
     ; HomeURI = "" 
 
     ;# {MessagingEnabled} {Module:GroupsModule Module:Groups Module V2} {Is groups messaging enabled?} {true false} true
@@ -995,8 +992,8 @@
 
     ;# {MessagingModule} {MessagingEnabled:true} {Module to use for groups messaging} {GroupsMessagingModule "Groups Messaging Module V2"} GroupsMessagingModule
     ; MessagingModule = GroupsMessagingModule
-	;; or use V2 for Groups V2
-	; MessagingModule = "Groups Messaging Module V2"
+    ;; or use V2 for Groups V2
+    ; MessagingModule = "Groups Messaging Module V2"
 
     ;# {NoticesEnabled} {Module:GroupsModule Module:Groups Module V2} {Enable group notices?} {true false} true
     ;; Enable Group Notices
@@ -1016,6 +1013,7 @@
     ; XmlRpcServiceReadKey    = 1234
     ; XmlRpcServiceWriteKey   = 1234
 
+
 [InterestManagement]
      ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness Time Distance SimpleAngularDistance FrontBack} BestAvatarResponsiveness
      ;; This section controls how state updates are prioritized for each client
@@ -1034,15 +1032,18 @@
     ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
     ; Enabled = false
 
+
 [Terrain]
     ;# {InitialTerrain} {} {Initial terrain type} {pinhead-island flat} pinhead-island
     ; InitialTerrain = "pinhead-island"
+
 
 [UserProfiles]
   ;# {ProfileURL} {} {Set url to UserProfilesService} {}
   ;; Set the value of the url to your UserProfilesService
   ;; If un-set / "" the module is disabled
   ;; ProfileServiceURL = http://127.0.0.1:8002
+
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini

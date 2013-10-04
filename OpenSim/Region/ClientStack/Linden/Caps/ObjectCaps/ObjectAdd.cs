@@ -155,6 +155,7 @@ namespace OpenSim.Region.ClientStack.Linden
             Quaternion rotation = Quaternion.Identity;
             Vector3 scale = Vector3.Zero;
             int state = 0;
+            int lastattach = 0;
 
             if (r.Type != OSDType.Map) // not a proper req
                 return responsedata;
@@ -224,6 +225,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 ray_target_id = ObjMap["RayTargetId"].AsUUID();
                 state = ObjMap["State"].AsInteger();
+                lastattach = ObjMap["LastAttachPoint"].AsInteger();
                 try
                 {
                     ray_end = ((OSDArray)ObjMap["RayEnd"]).AsVector3();
@@ -290,6 +292,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 //session_id = rm["session_id"].AsUUID();
                 state = rm["state"].AsInteger();
+                lastattach = rm["last_attach_point"].AsInteger();
                 try
                 {
                     ray_end = ((OSDArray)rm["ray_end"]).AsVector3();
@@ -331,6 +334,7 @@ namespace OpenSim.Region.ClientStack.Linden
             pbs.ProfileEnd = (ushort)profile_end;
             pbs.Scale = scale;
             pbs.State = (byte)state;
+            pbs.LastAttachPoint = (byte)lastattach;
 
             SceneObjectGroup obj = null; ;
 

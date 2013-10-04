@@ -105,6 +105,7 @@ namespace OpenSim.Framework
         private ushort _profileHollow;
         private Vector3 _scale;
         private byte _state;
+        private byte _lastattach;
         private ProfileShape _profileShape;
         private HollowShape _hollowShape;
 
@@ -207,6 +208,7 @@ namespace OpenSim.Framework
             PCode = (byte)prim.PrimData.PCode;
 
             State = prim.PrimData.State;
+            LastAttachPoint = prim.PrimData.State;
             PathBegin = Primitive.PackBeginCut(prim.PrimData.PathBegin);
             PathEnd = Primitive.PackEndCut(prim.PrimData.PathEnd);
             PathScaleX = Primitive.PackPathScale(prim.PrimData.PathScaleX);
@@ -580,6 +582,15 @@ namespace OpenSim.Framework
             }
             set {
                 _state = value;
+            }
+        }
+
+        public byte LastAttachPoint {
+            get {
+                return _lastattach;
+            }
+            set {
+                _lastattach = value;
             }
         }
 

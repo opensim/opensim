@@ -105,7 +105,7 @@ public class BSActorAvatarMove : BSActor
     //     into the movement motor.
     public void SetVelocityAndTarget(OMV.Vector3 vel, OMV.Vector3 targ, bool inTaintTime)
     {
-        m_physicsScene.TaintedObject(inTaintTime, "BSActorAvatarMove.setVelocityAndTarget", delegate()
+        m_physicsScene.TaintedObject(inTaintTime, m_controllingPrim.LocalID, "BSActorAvatarMove.setVelocityAndTarget", delegate()
         {
             if (m_velocityMotor != null)
             {
@@ -128,6 +128,7 @@ public class BSActorAvatarMove : BSActor
                                                 BSMotor.Infinite,           // decay time scale
                                                 1f                          // efficiency
             );
+            m_velocityMotor.ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold;
             // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
             SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
@@ -278,6 +279,7 @@ public class BSActorAvatarMove : BSActor
         if (m_controllingPrim.IsStationary)
         {
             entprop.Position = m_controllingPrim.RawPosition;
+            entprop.Velocity = OMV.Vector3.Zero;
             m_physicsScene.PE.SetTranslation(m_controllingPrim.PhysBody, entprop.Position, entprop.Rotation);
         }
 

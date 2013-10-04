@@ -572,7 +572,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                 if (!Scene.TeleportClientHome(user, s.ControllingClient))
                                 {
                                     s.ControllingClient.Kick("Your access to the region was revoked and TP home failed - you have been logged out.");
-                                    Scene.IncomingCloseAgent(s.UUID, false);
+                                    Scene.CloseAgent(s.UUID, false);
                                 }
                             }
                         }
@@ -807,7 +807,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     if (!Scene.TeleportClientHome(prey, s.ControllingClient))
                     {
                         s.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
-                        Scene.IncomingCloseAgent(s.UUID, false);
+                        Scene.CloseAgent(s.UUID, false);
                     }
                 }
             }
@@ -830,7 +830,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         if (!Scene.TeleportClientHome(p.UUID, p.ControllingClient))
                         {
                             p.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
-                            Scene.IncomingCloseAgent(p.UUID, false);
+                            Scene.CloseAgent(p.UUID, false);
                         }
                     }
                 }

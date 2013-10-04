@@ -203,9 +203,9 @@ namespace OpenSim
                 m_config.Source.Merge(envConfigSource);
             }
 
-            ReadConfigSettings();
-            
             m_config.Source.ExpandKeyValues();
+
+            ReadConfigSettings();
 
             return m_config;
         }
