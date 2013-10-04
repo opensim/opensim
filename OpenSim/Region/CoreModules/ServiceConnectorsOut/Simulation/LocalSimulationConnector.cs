@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                     throw new Exception(string.Format("Invalid ConnectorProtocolVersion {0}", ServiceVersion));
 
                 m_log.InfoFormat(
-                    "[LOCAL SIMULATION CONNECTOR]: Initialzied with connector protocol version {0}", ServiceVersion);
+                    "[LOCAL SIMULATION CONNECTOR]: Initialized with connector protocol version {0}", ServiceVersion);
             }
         }
 
@@ -235,7 +235,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        destination.RegionName, destination.RegionID);
 
-                return m_scenes[destination.RegionID].IncomingChildAgentDataUpdate(cAgentData);
+                return m_scenes[destination.RegionID].IncomingUpdateChildAgent(cAgentData);
             }
 
 //            m_log.DebugFormat(
@@ -245,7 +245,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool UpdateAgent(GridRegion destination, AgentPosition cAgentData)
+        public bool UpdateAgent(GridRegion destination, AgentPosition agentPosition)
         {
             if (destination == null)
                 return false;
@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             foreach (Scene s in m_scenes.Values)
             {
 //                m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
-                s.IncomingChildAgentDataUpdate(cAgentData);
+                s.IncomingUpdateChildAgent(agentPosition);
             }
 
             //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                m_scenes[destination.RegionID].IncomingCloseAgent(id, false, auth_token);
+                m_scenes[destination.RegionID].CloseAgent(id, false, auth_token);
                 return true;
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");

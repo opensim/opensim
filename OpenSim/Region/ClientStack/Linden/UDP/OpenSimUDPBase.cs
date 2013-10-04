@@ -291,7 +291,16 @@ namespace OpenMetaverse
                         m_log.Warn("[UDPBASE]: Salvaged the UDP listener on port " + m_udpPort);
                     }
                 }
-                catch (ObjectDisposedException) { }
+                catch (ObjectDisposedException e) 
+                { 
+                    m_log.Error(
+                        string.Format("[UDPBASE]: Error processing UDP begin receive {0}.  Exception  ", UdpReceives), e);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format("[UDPBASE]: Error processing UDP begin receive {0}.  Exception  ", UdpReceives), e);
+                }
             }
         }
 
@@ -308,12 +317,12 @@ namespace OpenMetaverse
                 if (m_asyncPacketHandling)
                     AsyncBeginReceive();
 
-                // get the buffer that was created in AsyncBeginReceive
-                // this is the received data
-                UDPPacketBuffer buffer = (UDPPacketBuffer)iar.AsyncState;
-
                 try
                 {
+                    // get the buffer that was created in AsyncBeginReceive
+                    // this is the received data
+                    UDPPacketBuffer buffer = (UDPPacketBuffer)iar.AsyncState;
+
                     int startTick = Util.EnvironmentTickCount();
 
                     // get the length of data actually read from the socket, store it with the
@@ -341,8 +350,24 @@ namespace OpenMetaverse
                         m_currentReceiveTimeSamples++;
                     }
                 }
-                catch (SocketException) { }
-                catch (ObjectDisposedException) { }
+                catch (SocketException se) 
+                { 
+                    m_log.Error(
+                        string.Format(
+                            "[UDPBASE]: Error processing UDP end receive {0}, socket error code {1}.  Exception  ", 
+                            UdpReceives, se.ErrorCode), 
+                        se);
+                }
+                catch (ObjectDisposedException e) 
+                { 
+                    m_log.Error(
+                        string.Format("[UDPBASE]: Error processing UDP end receive {0}.  Exception  ", UdpReceives), e);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format("[UDPBASE]: Error processing UDP end receive {0}.  Exception  ", UdpReceives), e);
+                }
                 finally
                 {
 //                    if (UsePools)

@@ -3043,7 +3043,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         sp.ControllingClient.Kick(alert);
 
                     // ...and close on our side
-                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                    sp.Scene.CloseAgent(sp.UUID, false);
                 }
             });
         }

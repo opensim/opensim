@@ -174,7 +174,8 @@ namespace OpenSim.Data.MySQL
                                     "CollisionSound, CollisionSoundVolume, " +
                                     "PassTouches, " +
                                     "PassCollisions, " +
-                                    "LinkNumber, MediaURL, KeyframeMotion, " +
+                                    "LinkNumber, MediaURL, KeyframeMotion, AttachedPosX, " +
+                                    "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, DynAttrs " +
                                     ") values (" + "?UUID, " +
@@ -209,7 +210,8 @@ namespace OpenSim.Data.MySQL
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
                                     "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
-                                    "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
+                                    "?LinkNumber, ?MediaURL, ?KeyframeMotion, ?AttachedPosX, " +
+                                    "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?DynAttrs)";
 
@@ -228,7 +230,7 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, Media) " +
+                                    "ExtraParams, State, LastAttachPoint, Media) " +
                                     "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
@@ -240,7 +242,7 @@ namespace OpenSim.Data.MySQL
                                     "?PathTwistBegin, ?ProfileBegin, " +
                                     "?ProfileEnd, ?ProfileCurve, " +
                                     "?ProfileHollow, ?Texture, ?ExtraParams, " +
-                                    "?State, ?Media)";
+                                    "?State, ?LastAttachPoint, ?Media)";
 
                             FillShapeCommand(cmd, prim);
 
@@ -1320,7 +1322,16 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)row["MediaURL"];
-            
+
+            if (!(row["AttachedPosX"] is System.DBNull))
+            {
+                prim.AttachedPos = new Vector3(
+                    (float)(double)row["AttachedPosX"],
+                    (float)(double)row["AttachedPosY"],
+                    (float)(double)row["AttachedPosZ"]
+                    );
+            }
+
             if (!(row["DynAttrs"] is System.DBNull))
                 prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
             else
@@ -1719,6 +1730,12 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+            if (prim.AttachedPos != null)
+            {
+                cmd.Parameters.AddWithValue("AttachedPosX", (double)prim.AttachedPos.X);
+                cmd.Parameters.AddWithValue("AttachedPosY", (double)prim.AttachedPos.Y);
+                cmd.Parameters.AddWithValue("AttachedPosZ", (double)prim.AttachedPos.Z);
+            }
 
             if (prim.KeyframeMotion != null)
                 cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
@@ -1932,6 +1949,7 @@ namespace OpenSim.Data.MySQL
             s.ExtraParams = (byte[])row["ExtraParams"];
 
             s.State = (byte)(int)row["State"];
+            s.LastAttachPoint = (byte)(int)row["LastAttachPoint"];
             
             if (!(row["Media"] is System.DBNull))
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
@@ -1978,6 +1996,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Texture", s.TextureEntry);
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
+            cmd.Parameters.AddWithValue("LastAttachPoint", s.LastAttachPoint);
             cmd.Parameters.AddWithValue("Media", null == s.Media ? null : s.Media.ToXml());
         }
 

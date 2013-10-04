@@ -1920,6 +1920,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Region.Physics.Meshing" path="../../../../bin/Physics/"/>

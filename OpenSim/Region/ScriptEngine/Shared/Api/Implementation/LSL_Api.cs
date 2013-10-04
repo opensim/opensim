@@ -8900,8 +8900,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int idx=0;
             while (idx < rules.Length)
             {
-                int code=(int)rules.GetLSLIntegerItem(idx++);
-                int remain=rules.Length-idx;
+                int code = (int)rules.GetLSLIntegerItem(idx++);
+                int remain = rules.Length - idx;
 
                 switch (code)
                 {
@@ -8974,7 +8974,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
 
                             case ScriptBaseClass.PRIM_TYPE_SCULPT:
-                                res.Add(Shape.SculptTexture.ToString());
+                                res.Add(new LSL_String(Shape.SculptTexture.ToString()));
                                 res.Add(new LSL_Integer(Shape.SculptType));
                                 break;
 
@@ -9316,7 +9316,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ));
                         break;
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
-                        if(remain < 3)
+
+                        // TODO: Should be issuing a runtime script warning in this case.
+                        if (remain < 2)
                             return null;
 
                         return rules.GetSublist(idx, -1);

@@ -28,25 +28,24 @@
     ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
 
 [Hypergrid]
-	; Uncomment the variables in this section only if you are in
-	; Hypergrid configuration. Otherwise, ignore.
+    ; Uncomment the variables in this section only if you are in
+    ; Hypergrid configuration. Otherwise, ignore.
 
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
-	;; If this is a standalone world, this is the address of this instance.
-	;; If this is a grided simulator, this is the address of the external robust server that
-	;; runs the UserAgentsService.
-	;; For example http://myworld.com:9000 or http://myworld.com:8002
-	;; This is a default that can be overwritten in some sections.
-	; HomeURI = "http://127.0.0.1:9000"
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server that
+    ;; runs the UserAgentsService.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    ;; This is a default that can be overwritten in some sections.
+    ; HomeURI = "http://127.0.0.1:9000"
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
-	;; If this is a standalone world, this is the address of this instance.
-	;; If this is a grided simulator, this is the address of the external robust server
-	;; that runs the Gatekeeper service.
-	;; For example http://myworld.com:9000 or http://myworld.com:8002
-	;; This is a default that can be overwritten in some sections.
-	; GatekeeperURI = "http://127.0.0.1:9000"
-
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server
+    ;; that runs the Gatekeeper service.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    ;; This is a default that can be overwritten in some sections.
+    ; GatekeeperURI = "http://127.0.0.1:9000"
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
@@ -266,20 +265,20 @@
     ; If false, HG TPs happen only to the  Default regions specified in [GridService] section
     AllowTeleportsToAnyRegion = true
 
-	;; Regular expressions for controlling which client versions are accepted/denied.
-	;; An empty string means nothing is checked.
-	;;
-	;; Example 1: allow only these 3 types of clients (any version of them)
-	;; AllowedClients = "Imprudence|Hippo|Second Life"
-	;;
-	;; Example 2: allow all clients except these
-	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
-	;;
-	;; Note that these are regular expressions, so every character counts.
-	;; Also note that this is very weak security and should not be trusted as a reliable means
-	;; for keeping bad clients out; modified clients can fake their identifiers.
-	;;
-	;;
+    ;; Regular expressions for controlling which client versions are accepted/denied.
+    ;; An empty string means nothing is checked.
+    ;;
+    ;; Example 1: allow only these 3 types of clients (any version of them)
+    ;; AllowedClients = "Imprudence|Hippo|Second Life"
+    ;;
+    ;; Example 2: allow all clients except these
+    ;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+    ;;
+    ;; Note that these are regular expressions, so every character counts.
+    ;; Also note that this is very weak security and should not be trusted as a reliable means
+    ;; for keeping bad clients out; modified clients can fake their identifiers.
+    ;;
+    ;;
     ;AllowedClients = ""
     ;DeniedClients = ""
 
@@ -302,7 +301,7 @@
     ;; Are local users allowed to visit other grids?
     ;; What user level? Use variables of this forrm:
     ;; ForeignTripsAllowed_Level_<UserLevel> = true | false
-	;; (the default is true)
+    ;; (the default is true)
     ;; For example:
     ; ForeignTripsAllowed_Level_0 = false
     ; ForeignTripsAllowed_Level_200 = true ; true is default, no need to say it
@@ -310,45 +309,45 @@
     ;; If ForeignTripsAllowed is false, make exceptions using DisallowExcept
     ;; Leave blank or commented for no exceptions.
     ; DisallowExcept_Level_0 = "http://myothergrid.com:8002, http://boss.com:8002"
-	;;
+    ;;
     ;; If ForeignTripsAllowed is true, make exceptions using AllowExcept.
     ;; Leave blank or commented for no exceptions.
     ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
 
 [HGInventoryService]
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "http://127.0.0.1:9000"
 
 [HGAssetService]
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "http://127.0.0.1:9000"
 
     ;; The asset types that this grid can export to / import from other grids.
-	;; Comma separated.
-	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
-	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
-	;;
-	;; Leave blank or commented if you don't want to apply any restrictions.
-	;; A more strict, but still reasonable, policy may be to disallow the exchange 
-	;; of scripts, like so:
+    ;; Comma separated.
+    ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+    ;;
+    ;; Leave blank or commented if you don't want to apply any restrictions.
+    ;; A more strict, but still reasonable, policy may be to disallow the exchange 
+    ;; of scripts, like so:
     ; DisallowExport ="LSLText"
     ; DisallowImport ="LSLBytecode"
 
 
 [HGInventoryAccessModule]
-	;; If you have these set under [Hypergrid], no need to set it here, leave it commented
+    ;; If you have these set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "http://127.0.0.1:9000"
-	; GatekeeperURI = "http://127.0.0.1:9000"
+    ; GatekeeperURI = "http://127.0.0.1:9000"
 
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
-	;; true = allow exports, false = disallow exports. True by default.
+    ;; true = allow exports, false = disallow exports. True by default.
     ; OutboundPermission = True
 
-	;; Send visual reminder to local users that their inventories are unavailable while they are traveling
-	;; and available when they return. True by default.
-	;RestrictInventoryAccessAbroad = True
+    ;; Send visual reminder to local users that their inventories are unavailable while they are traveling
+    ;; and available when they return. True by default.
+    ;RestrictInventoryAccessAbroad = True
 
 [HGFriendsModule]
     ; User level required to be able to send friendship invitations to foreign users
@@ -356,20 +355,20 @@
 
 [Messaging]
     ; === HG ONLY ===
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "http://127.0.0.1:9000"
 
 
 [EntityTransfer]
-	;; User level from which local users are allowed to HG teleport. Default 0 (all users)
-	;LevelHGTeleport = 0
+    ;; User level from which local users are allowed to HG teleport. Default 0 (all users)
+    ;LevelHGTeleport = 0
 
-	;; Are local users restricted from taking their appearance abroad?
-	;; Default is no restrictions
+    ;; Are local users restricted from taking their appearance abroad?
+    ;; Default is no restrictions
     ;RestrictAppearanceAbroad = false
 
-	;; If appearance is restricted, which accounts' appearances are allowed to be exported?
-	;; Comma-separated list of account names
+    ;; If appearance is restricted, which accounts' appearances are allowed to be exported?
+    ;; Comma-separated list of account names
     AccountForAppearance = "Test User, Astronaut Smith"
 
 ;; UserProfiles Service
@@ -385,5 +384,3 @@
 
     UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-
-

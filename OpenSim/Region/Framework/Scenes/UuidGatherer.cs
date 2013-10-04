@@ -168,7 +168,20 @@ namespace OpenSim.Region.Framework.Scenes
                     // If the prim is a sculpt then preserve this information too
                     if (part.Shape.SculptTexture != UUID.Zero)
                         assetUuids[part.Shape.SculptTexture] = AssetType.Texture;
-                    
+
+                    if (part.Shape.ProjectionTextureUUID != UUID.Zero)
+                        assetUuids[part.Shape.ProjectionTextureUUID] = AssetType.Texture;
+
+                    if (part.CollisionSound != UUID.Zero)
+                        assetUuids[part.CollisionSound] = AssetType.Sound;
+
+                    if (part.ParticleSystem.Length > 0)
+                    {
+                        Primitive.ParticleSystem ps = new Primitive.ParticleSystem(part.ParticleSystem, 0);
+                        if (ps.Texture != UUID.Zero)
+                            assetUuids[ps.Texture] = AssetType.Texture;
+                    }
+
                     TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
                     
                     // Now analyze this prim's inventory items to preserve all the uuids that they reference

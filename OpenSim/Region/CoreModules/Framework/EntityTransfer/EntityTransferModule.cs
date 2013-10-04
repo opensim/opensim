@@ -56,6 +56,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public const int DefaultMaxTransferDistance = 4095;
         public const bool WaitForAgentArrivedAtDestinationDefault = true;
 
+        public string OutgoingTransferVersionName { get; set; }
+
+        /// <summary>
+        /// Determine the maximum entity transfer version we will use for teleports.
+        /// </summary>
+        public float MaxOutgoingTransferVersion { get; set; }
+
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
@@ -151,9 +158,39 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="source"></param>
         protected virtual void InitialiseCommon(IConfigSource source)
         {
+            string transferVersionName = "SIMULATION";
+            float maxTransferVersion = 0.2f;
+
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
             {
+                string rawVersion 
+                    = transferConfig.GetString(
+                        "MaxOutgoingTransferVersion", 
+                        string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
+
+                string[] rawVersionComponents = rawVersion.Split(new char[] { '/' });
+
+                bool versionValid = false;
+
+                if (rawVersionComponents.Length >= 2)
+                    versionValid = float.TryParse(rawVersionComponents[1], out maxTransferVersion);
+
+                if (!versionValid)
+                {
+                    m_log.ErrorFormat(
+                        "[ENTITY TRANSFER MODULE]: MaxOutgoingTransferVersion {0} is invalid, using {1}", 
+                        rawVersion, string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
+                }
+                else
+                {
+                    transferVersionName = rawVersionComponents[0];
+
+                    m_log.InfoFormat(
+                        "[ENTITY TRANSFER MODULE]: MaxOutgoingTransferVersion set to {0}", 
+                        string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
+                }
+
                 DisableInterRegionTeleportCancellation 
                     = transferConfig.GetBoolean("DisableInterRegionTeleportCancellation", false);
 
@@ -166,6 +203,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 MaxTransferDistance = DefaultMaxTransferDistance;
             }
+
+            OutgoingTransferVersionName = transferVersionName;
+            MaxOutgoingTransferVersion = maxTransferVersion;
 
             m_entityTransferStateMachine = new EntityTransferStateMachine(this);
 
@@ -522,6 +562,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </returns>
         private bool IsWithinMaxTeleportDistance(RegionInfo sourceRegion, GridRegion destRegion)
         {
+            if(MaxTransferDistance == 0)
+                return true;
+
 //                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Source co-ords are x={0} y={1}", curRegionX, curRegionY);
 //
 //                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final dest is x={0} y={1} {2}@{3}",
@@ -623,7 +666,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!sp.ValidateAttachments())
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for teleport of {0} from {1} to {2}.  Continuing.",
-                    sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName);
+                    sp.Name, sp.Scene.Name, finalDestination.RegionName);
 
             string reason;
             string version;
@@ -634,7 +677,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: {0} was stopped from teleporting from {1} to {2} because {3}",
-                    sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
+                    sp.Name, sp.Scene.Name, finalDestination.RegionName, reason);
 
                 return;
             }
@@ -644,7 +687,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // as server attempts.
             m_interRegionTeleportAttempts.Value++;
 
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Destination is running version {0}", version);
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: {0} max transfer version is {1}/{2}, {3} max version is {4}", 
+                sp.Scene.Name, OutgoingTransferVersionName, MaxOutgoingTransferVersion, finalDestination.RegionName, version);
 
             // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
             // both regions
@@ -691,7 +736,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             }
 
-            if (version.Equals("SIMULATION/0.2"))
+            // We're going to fallback to V1 if the destination gives us anything smaller than 0.2 or we're forcing
+            // use of the earlier protocol
+            float versionNumber = 0.1f;
+            string[] versionComponents = version.Split(new char[] { '/' });
+            if (versionComponents.Length >= 2)
+                float.TryParse(versionComponents[1], out versionNumber);
+
+            if (versionNumber == 0.2f && MaxOutgoingTransferVersion >= versionNumber)
                 TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
             else
                 TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);           
@@ -925,7 +977,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                if (!sp.Scene.IncomingPreCloseAgent(sp))
+                if (!sp.Scene.IncomingPreCloseClient(sp))
                     return;
 
                 // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
@@ -936,7 +988,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
 
-                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                sp.Scene.CloseAgent(sp.UUID, false);
             }
             else
             {
@@ -1090,7 +1142,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
             {
-                if (!sp.Scene.IncomingPreCloseAgent(sp))
+                if (!sp.Scene.IncomingPreCloseClient(sp))
                     return;
 
                 // RED ALERT!!!!
@@ -1107,7 +1159,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
 
-                sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                sp.Scene.CloseAgent(sp.UUID, false);
             }
             else
             {

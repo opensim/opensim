@@ -719,7 +719,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneObjectGroup rezzedAtt = presence.GetAttachments()[0];
 
             m_numberOfAttachEventsFired = 0;
-            scene.IncomingCloseAgent(presence.UUID, false);
+            scene.CloseAgent(presence.UUID, false);
 
             // Check that we can't retrieve this attachment from the scene.
             Assert.That(scene.GetSceneObjectGroup(rezzedAtt.UUID), Is.Null);

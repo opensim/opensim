@@ -93,7 +93,7 @@ public sealed class BSCharacter : BSPhysObject
                             LocalID, _size, Scale, Density, _avatarVolume, RawMass, pos);
 
         // do actual creation in taint time
-        PhysScene.TaintedObject("BSCharacter.create", delegate()
+        PhysScene.TaintedObject(LocalID, "BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
             // New body and shape into PhysBody and PhysShape
@@ -121,7 +121,7 @@ public sealed class BSCharacter : BSPhysObject
         base.Destroy();
 
         DetailLog("{0},BSCharacter.Destroy", LocalID);
-        PhysScene.TaintedObject("BSCharacter.destroy", delegate()
+        PhysScene.TaintedObject(LocalID, "BSCharacter.destroy", delegate()
         {
             PhysScene.Shapes.DereferenceBody(PhysBody, null /* bodyCallback */);
             PhysBody.Clear();
@@ -209,7 +209,7 @@ public sealed class BSCharacter : BSPhysObject
             DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, Density, _avatarVolume, RawMass);
 
-            PhysScene.TaintedObject("BSCharacter.setSize", delegate()
+            PhysScene.TaintedObject(LocalID, "BSCharacter.setSize", delegate()
             {
                 if (PhysBody.HasPhysicalBody && PhysShape.physShapeInfo.HasPhysicalShape)
                 {
@@ -257,7 +257,7 @@ public sealed class BSCharacter : BSPhysObject
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        PhysScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
+        PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.ZeroMotion", delegate()
         {
             if (PhysBody.HasPhysicalBody)
                 PhysScene.PE.ClearAllForces(PhysBody);
@@ -267,7 +267,7 @@ public sealed class BSCharacter : BSPhysObject
     {
         _rotationalVelocity = OMV.Vector3.Zero;
 
-        PhysScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
+        PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.ZeroMotion", delegate()
         {
             if (PhysBody.HasPhysicalBody)
             {
@@ -291,7 +291,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             RawPosition = value;
 
-            PhysScene.TaintedObject("BSCharacter.setPosition", delegate()
+            PhysScene.TaintedObject(LocalID, "BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, RawPosition, RawOrientation);
                 PositionSanityCheck();
@@ -363,7 +363,7 @@ public sealed class BSCharacter : BSPhysObject
         {
             // The new position value must be pushed into the physics engine but we can't
             //    just assign to "Position" because of potential call loops.
-            PhysScene.TaintedObject(inTaintTime, "BSCharacter.PositionSanityCheck", delegate()
+            PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, RawPosition, RawOrientation);
                 ForcePosition = RawPosition;
@@ -390,7 +390,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             RawForce = value;
             // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
-            PhysScene.TaintedObject("BSCharacter.SetForce", delegate()
+            PhysScene.TaintedObject(LocalID, "BSCharacter.SetForce", delegate()
             {
                 DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, RawForce);
                 if (PhysBody.HasPhysicalBody)
@@ -438,7 +438,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             RawVelocity = value;
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, RawVelocity);
-            PhysScene.TaintedObject("BSCharacter.setVelocity", delegate()
+            PhysScene.TaintedObject(LocalID, "BSCharacter.setVelocity", delegate()
             {
                 if (m_moveActor != null)
                     m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, true /* inTaintTime */);
@@ -480,7 +480,7 @@ public sealed class BSCharacter : BSPhysObject
             if (RawOrientation != value)
             {
                 RawOrientation = value;
-                PhysScene.TaintedObject("BSCharacter.setOrientation", delegate()
+                PhysScene.TaintedObject(LocalID, "BSCharacter.setOrientation", delegate()
                 {
                     // Bullet assumes we know what we are doing when forcing orientation
                     //    so it lets us go against all the rules and just compensates for them later.
@@ -560,7 +560,7 @@ public sealed class BSCharacter : BSPhysObject
     public override bool FloatOnWater {
         set {
             _floatOnWater = value;
-            PhysScene.TaintedObject("BSCharacter.setFloatOnWater", delegate()
+            PhysScene.TaintedObject(LocalID, "BSCharacter.setFloatOnWater", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
                 {
@@ -588,7 +588,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float Buoyancy {
         get { return _buoyancy; }
         set { _buoyancy = value;
-            PhysScene.TaintedObject("BSCharacter.setBuoyancy", delegate()
+            PhysScene.TaintedObject(LocalID, "BSCharacter.setBuoyancy", delegate()
             {
                 DetailLog("{0},BSCharacter.setBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 ForceBuoyancy = _buoyancy;
@@ -633,7 +633,7 @@ public sealed class BSCharacter : BSPhysObject
             OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
             // DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
 
-            PhysScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
+            PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.AddForce", delegate()
             {
                 // Bullet adds this central force to the total force for this tick
                 // DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
@@ -676,18 +676,20 @@ public sealed class BSCharacter : BSPhysObject
         float heightAdjust = BSParam.AvatarHeightMidFudge;
         if (BSParam.AvatarHeightLowFudge != 0f || BSParam.AvatarHeightHighFudge != 0f)
         {
-            // An avatar is between 1.61 and 2.12 meters. Midpoint is 1.87m.
-            // The "times 4" relies on the fact that the difference from the midpoint to the extremes is exactly 0.25
-            float midHeightOffset = size.Z - 1.87f;
+            const float AVATAR_LOW = 1.1f;
+            const float AVATAR_MID = 1.775f; // 1.87f
+            const float AVATAR_HI = 2.45f;
+            // An avatar is between 1.1 and 2.45 meters. Midpoint is 1.775m.
+            float midHeightOffset = size.Z - AVATAR_MID;
             if (midHeightOffset < 0f)
             {
                 // Small avatar. Add the adjustment based on the distance from midheight
-                heightAdjust += -1f * midHeightOffset * 4f * BSParam.AvatarHeightLowFudge;
+                heightAdjust += ((-1f * midHeightOffset) / (AVATAR_MID - AVATAR_LOW)) * BSParam.AvatarHeightLowFudge;
             }
             else
             {
                 // Large avatar. Add the adjustment based on the distance from midheight
-                heightAdjust += midHeightOffset * 4f * BSParam.AvatarHeightHighFudge;
+                heightAdjust += ((midHeightOffset) / (AVATAR_HI - AVATAR_MID)) * BSParam.AvatarHeightHighFudge;
             }
         }
         // The total scale height is the central cylindar plus the caps on the two ends.
@@ -697,6 +699,9 @@ public sealed class BSCharacter : BSPhysObject
         // If smaller than the endcaps, just fake like we're almost that small
         if (newScale.Z < 0)
             newScale.Z = 0.1f;
+
+        DetailLog("{0},BSCharacter.ComputerAvatarScale,size={1},lowF={2},midF={3},hiF={4},adj={5},newScale={6}",
+            LocalID, size, BSParam.AvatarHeightLowFudge, BSParam.AvatarHeightMidFudge, BSParam.AvatarHeightHighFudge, heightAdjust, newScale);
 
         return newScale;
     }

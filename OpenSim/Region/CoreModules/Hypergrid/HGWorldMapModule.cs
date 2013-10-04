@@ -129,7 +129,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         b.Access = 254; // means 'simulator is offline'. We need this because the viewer ignores 255's
                     }
 
-                    m_log.DebugFormat("[HG MAP]: Reseting {0} blocks", mapBlocks.Count);
+                    m_log.DebugFormat("[HG MAP]: Resetting {0} blocks", mapBlocks.Count);
                     sp.ControllingClient.SendMapBlock(mapBlocks, 0);
                     m_SeenMapBlocks.Remove(clientID);
                 }

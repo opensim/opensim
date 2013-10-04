@@ -27,24 +27,24 @@
     ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
 
 [Hypergrid]
-	; Uncomment the variables in this section only if you are in
-	; Hypergrid configuration. Otherwise, ignore.
+    ; Uncomment the variables in this section only if you are in
+    ; Hypergrid configuration. Otherwise, ignore.
 
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
-	;; If this is a standalone world, this is the address of this instance.
-	;; If this is a grided simulator, this is the address of the external robust server that
-	;; runs the UserAgentsService.
-	;; For example http://myworld.com:9000 or http://myworld.com:8002
-	;; This is a default that can be overwritten in some sections.
-	; HomeURI = "http://127.0.0.1:9000"
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server that
+    ;; runs the UserAgentsService.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    ;; This is a default that can be overwritten in some sections.
+    ; HomeURI = "http://127.0.0.1:9000"
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
-	;; If this is a standalone world, this is the address of this instance.
-	;; If this is a grided simulator, this is the address of the external robust server
-	;; that runs the Gatekeeper service.
-	;; For example http://myworld.com:9000 or http://myworld.com:8002
-	;; This is a default that can be overwritten in some sections.
-	; GatekeeperURI = "http://127.0.0.1:9000"
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server
+    ;; that runs the Gatekeeper service.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    ;; This is a default that can be overwritten in some sections.
+    ; GatekeeperURI = "http://127.0.0.1:9000"
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
@@ -81,10 +81,10 @@
     InventoryServerURI = "http://mygridserver.com:8003"
 
 [GridInfo]
-   ;
-   ; Change this to your grid info service
-   ;
-   GridInfoURI = "http://mygridserver.com:8002"
+    ;
+    ; Change this to your grid info service
+    ;
+    GridInfoURI = "http://mygridserver.com:8002"
 
 [GridService]
     ;
@@ -157,9 +157,9 @@
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
     ; OutboundPermission = False
 
-	;; Send visual reminder to local users that their inventories are unavailable while they are traveling
-	;; and available when they return. True by default.
-	;RestrictInventoryAccessAbroad = True
+    ;; Send visual reminder to local users that their inventories are unavailable while they are traveling
+    ;; and available when they return. True by default.
+    ;RestrictInventoryAccessAbroad = True
 
 
 [HGAssetService]
@@ -171,14 +171,14 @@
     HomeURI = "http://mygridserver.com:8002"
 
     ;; The asset types that this grid can export to / import from other grids.
-	;; Comma separated.
-	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
-	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
-	;;
-	;; Leave blank or commented if you don't want to apply any restrictions.
-	;; A more strict, but still reasonable, policy may be to disallow the exchange 
-	;; of scripts, like so:
+    ;; Comma separated.
+    ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+    ;;
+    ;; Leave blank or commented if you don't want to apply any restrictions.
+    ;; A more strict, but still reasonable, policy may be to disallow the exchange 
+    ;; of scripts, like so:
     ; DisallowExport ="LSLText"
     ; DisallowImport ="LSLBytecode"
 
@@ -197,20 +197,19 @@
    	MapImageServerURI = "http://mygridserver.com:8003"
 
 [AuthorizationService]
-	; If you have regions with access restrictions
-	; specify them here using the convention
-	; Region_<Region_Name> = <flags>
-	; Valid flags are:
-	; DisallowForeigners -- HG visitors not allowed
-	; DisallowResidents -- only Admins and Managers allowed
-	; Example:
-	; Region_Test_1 = "DisallowForeigners"
-
+  ; If you have regions with access restrictions
+    ; specify them here using the convention
+    ; Region_<Region_Name> = <flags>
+    ; Valid flags are:
+    ; DisallowForeigners -- HG visitors not allowed
+    ; DisallowResidents -- only Admins and Managers allowed
+    ; Example:
+    ; Region_Test_1 = "DisallowForeigners"
 
 ;; Uncomment if you are using SimianGrid for grid services
 [SimianGrid]
-        ;; SimianGrid services URL
-        ;; SimianServiceURL = "http://grid.sciencesim.com/Grid/"
+    ;; SimianGrid services URL
+    ;; SimianServiceURL = "http://grid.sciencesim.com/Grid/"
 
-        ;; Capability assigned by the grid administrator for the simulator
-        ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"
+    ;; Capability assigned by the grid administrator for the simulator
+    ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"

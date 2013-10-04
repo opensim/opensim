@@ -783,7 +783,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            m_scene.AddNewClient(this, PresenceType.User);
+            m_scene.AddNewAgent(this, PresenceType.User);
 
             RefreshGroupMembership();
         }
@@ -12548,6 +12548,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             shape.PCode = addPacket.ObjectData.PCode;
             shape.State = addPacket.ObjectData.State;
+            shape.LastAttachPoint = addPacket.ObjectData.State;
             shape.PathBegin = addPacket.ObjectData.PathBegin;
             shape.PathEnd = addPacket.ObjectData.PathEnd;
             shape.PathScaleX = addPacket.ObjectData.PathScaleX;

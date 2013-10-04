@@ -596,6 +596,60 @@ public override bool SetBreakingImpulseThreshold(BulletConstraint constrain, flo
     return BSAPICPP.SetBreakingImpulseThreshold2(constrainu.ptr, threshold);
 }
 
+public override bool HingeSetLimits(BulletConstraint constrain, float low, float high, float softness, float bias, float relaxation)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.HingeSetLimits2(constrainu.ptr, low, high, softness, bias, relaxation);
+}
+
+public override bool SpringEnable(BulletConstraint constrain, int index, float numericTrueFalse)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringEnable2(constrainu.ptr, index, numericTrueFalse);
+}
+
+public override bool SpringSetEquilibriumPoint(BulletConstraint constrain, int index, float equilibriumPoint)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringSetEquilibriumPoint2(constrainu.ptr, index, equilibriumPoint);
+}
+
+public override bool SpringSetStiffness(BulletConstraint constrain, int index, float stiffnesss)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringSetStiffness2(constrainu.ptr, index, stiffnesss);
+}
+
+public override bool SpringSetDamping(BulletConstraint constrain, int index, float damping)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.ConstraintSpringSetDamping2(constrainu.ptr, index, damping);
+}
+
+public override bool SliderSetLimits(BulletConstraint constrain, int lowerUpper, int linAng, float val)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.SliderSetLimits2(constrainu.ptr, lowerUpper, linAng, val);
+}
+
+public override bool SliderSet(BulletConstraint constrain, int softRestDamp, int dirLimOrtho, int linAng, float val)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.SliderSet2(constrainu.ptr, softRestDamp, dirLimOrtho, linAng, val);
+}
+
+public override bool SliderMotorEnable(BulletConstraint constrain, int linAng, float numericTrueFalse)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.SliderMotorEnable2(constrainu.ptr, linAng, numericTrueFalse);
+}
+
+public override bool SliderMotor(BulletConstraint constrain, int forceVel, int linAng, float val)
+{
+    BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
+    return BSAPICPP.SliderMotor2(constrainu.ptr, forceVel, linAng, val);
+}
+
 public override bool CalculateTransforms(BulletConstraint constrain)
 {
     BulletConstraintUnman constrainu = constrain as BulletConstraintUnman;
@@ -669,6 +723,13 @@ public override bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj)
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
     return BSAPICPP.RemoveObjectFromWorld2(worldu.ptr, bodyu.ptr);
+}
+
+public override bool ClearCollisionProxyCache(BulletWorld world, BulletBody obj)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu = obj as BulletBodyUnman;
+    return BSAPICPP.ClearCollisionProxyCache2(worldu.ptr, bodyu.ptr);
 }
 
 public override bool AddConstraintToWorld(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects)
@@ -1601,6 +1662,33 @@ public static extern bool TranslationalLimitMotor2(IntPtr constrain, float enabl
 public static extern bool SetBreakingImpulseThreshold2(IntPtr constrain, float threshold);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool HingeSetLimits2(IntPtr constrain, float low, float high, float softness, float bias, float relaxation);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringEnable2(IntPtr constrain, int index, float numericTrueFalse);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringSetEquilibriumPoint2(IntPtr constrain, int index, float equilibriumPoint);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringSetStiffness2(IntPtr constrain, int index, float stiffness);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ConstraintSpringSetDamping2(IntPtr constrain, int index, float damping);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SliderSetLimits2(IntPtr constrain, int lowerUpper, int linAng, float val);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SliderSet2(IntPtr constrain, int softRestDamp, int dirLimOrtho, int linAng, float val);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SliderMotorEnable2(IntPtr constrain, int linAng, float numericTrueFalse);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SliderMotor2(IntPtr constrain, int forceVel, int linAng, float val);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CalculateTransforms2(IntPtr constrain);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -1630,6 +1718,9 @@ public static extern bool AddObjectToWorld2(IntPtr world, IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool RemoveObjectFromWorld2(IntPtr world, IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ClearCollisionProxyCache2(IntPtr world, IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool AddConstraintToWorld2(IntPtr world, IntPtr constrain, bool disableCollisionsBetweenLinkedObjects);

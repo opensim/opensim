@@ -908,7 +908,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Start()
         {
-            m_scene.AddNewClient(this, PresenceType.User);
+            m_scene.AddNewAgent(this, PresenceType.User);
 
             // Mimicking LLClientView which gets always set appearance from client.
             AvatarAppearance appearance;

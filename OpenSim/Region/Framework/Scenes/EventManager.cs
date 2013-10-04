@@ -148,7 +148,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Triggered when a new presence is added to the scene
         /// </summary>
         /// <remarks>
-        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/> which is used by both
         /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
         /// </remarks>
         public event OnNewPresenceDelegate OnNewPresence;
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Triggered when a presence is removed from the scene
         /// </summary>
         /// <remarks>
-        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/> which is used by both
         /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
         /// 
         /// Triggered under per-agent lock.  So if you want to perform any long-running operations, please
@@ -1107,7 +1107,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessMoneyTransferRequest"/>
         /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientGridEvents"/>
         /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientEvents"/>
-        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/>
         /// </remarks>
         public event MoneyTransferEvent OnMoneyTransfer;
 

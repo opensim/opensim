@@ -507,6 +507,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // This MAY be problematic, if it is, another solution
                     // needs to be found. If inventory item flags are updated
                     // the viewer's notion of the item needs to be refreshed.
+                    //
+                    // In other situations we cannot send out a bulk update here, since this will cause editing of clothing to start 
+                    // failing frequently.  Possibly this is a race with a separate transaction that uploads the asset.
                     if (sendUpdate)
                         remoteClient.SendBulkUpdateInventory(item);
                 }
@@ -2393,6 +2396,13 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
 
+
+            if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
+            {
+                group.RootPart.AttachedPos = group.AbsolutePosition;
+                group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+            }
+                                    
             group.FromPartID = sourcePart.UUID;
             AddNewSceneObject(group, true, pos, rot, vel);
             

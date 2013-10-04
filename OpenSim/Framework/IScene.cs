@@ -86,24 +86,26 @@ namespace OpenSim.Framework
         event restart OnRestart;
 
         /// <summary>
-        /// Add a new client and create a presence for it.  All clients except initial login clients will starts off as a child agent
+        /// Add a new agent with an attached client.  All agents except initial login clients will starts off as a child agent
         /// - the later agent crossing will promote it to a root agent.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="type">The type of agent to add.</param>
         /// <returns>
         /// The scene agent if the new client was added or if an agent that already existed.</returns>
-        ISceneAgent AddNewClient(IClientAPI client, PresenceType type);
+        ISceneAgent AddNewAgent(IClientAPI client, PresenceType type);
 
         /// <summary>
-        /// Remove the given client from the scene.
+        /// Tell a single agent to disconnect from the region.
         /// </summary>
         /// <param name="agentID"></param>
-        /// <param name="closeChildAgents">Close the neighbour child agents associated with this client.</param>
-        void RemoveClient(UUID agentID, bool closeChildAgents);
+        /// <param name="force">
+        /// Force the agent to close even if it might be in the middle of some other operation.  You do not want to
+        /// force unless you are absolutely sure that the agent is dead and a normal close is not working.
+        /// </param>
+        bool CloseAgent(UUID agentID, bool force);
 
         void Restart();
-        //RegionInfo OtherRegionUp(RegionInfo thisRegion);
 
         string GetSimulatorVersion();
 
