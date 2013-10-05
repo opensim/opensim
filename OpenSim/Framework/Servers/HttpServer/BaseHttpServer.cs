@@ -1967,6 +1967,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
+            if (path == null) return; // Caps module isn't loaded, tries to remove handler where path = null
             lock (m_HTTPHandlers)
             {
                 if (httpMethod != null && httpMethod.Length == 0)

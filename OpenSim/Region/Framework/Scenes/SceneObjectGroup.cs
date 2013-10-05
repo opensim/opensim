@@ -1667,7 +1667,8 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
             if (avatar == null)
                 return;
-
+            m_rootPart.Shape.LastAttachPoint = m_rootPart.Shape.State;
+            m_rootPart.AttachedPos = m_rootPart.OffsetPosition;
             avatar.RemoveAttachment(this);
 
             Vector3 detachedpos = new Vector3(127f,127f,127f);
@@ -2107,6 +2108,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (RootPart.Shape.PCode == 9 && RootPart.Shape.State != 0)
                         {
+                            RootPart.Shape.LastAttachPoint = RootPart.Shape.State;
                             RootPart.Shape.State = 0;
                             ScheduleGroupForFullUpdate();
                         }
