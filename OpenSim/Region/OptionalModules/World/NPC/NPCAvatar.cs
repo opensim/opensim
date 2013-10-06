@@ -44,6 +44,20 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     {
         public bool SenseAsAgent { get; set; }
 
+        public delegate void ChatToNPC(
+            string message, byte type, Vector3 fromPos, string fromName, 
+            UUID fromAgentID, UUID ownerID, byte source, byte audible);
+
+        /// <summary>
+        /// Fired when the NPC receives a chat message.
+        /// </summary>
+        public event ChatToNPC OnChatToNPC;
+
+        /// <summary>
+        /// Fired when the NPC receives an instant message.
+        /// </summary>
+        public event Action<GridInstantMessage> OnInstantMessageToNPC;
+
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
@@ -624,17 +638,18 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             string message, byte type, Vector3 fromPos, string fromName,
             UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
-        }
+            ChatToNPC ctn = OnChatToNPC;
 
-        public virtual void SendChatMessage(
-            byte[] message, byte type, Vector3 fromPos, string fromName,
-            UUID fromAgentID, UUID ownerID, byte source, byte audible)
-        {
+            if (ctn != null)
+                ctn(message, type, fromPos, fromName, fromAgentID, ownerID, source, audible);
         }
 
         public void SendInstantMessage(GridInstantMessage im)
         {
-            
+            Action<GridInstantMessage> oimtn = OnInstantMessageToNPC;
+
+            if (oimtn != null)
+                oimtn(im);
         }
 
         public void SendGenericMessage(string method, UUID invoice, List<string> message)
