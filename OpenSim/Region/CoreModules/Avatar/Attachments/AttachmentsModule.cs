@@ -685,6 +685,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
 
+                so.RootPart.Shape.LastAttachPoint = (byte)so.AttachmentPoint;
+                
                 sp.RemoveAttachment(so);
                 so.FromItemID = UUID.Zero;
 
@@ -699,7 +701,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 so.ClearPartAttachmentData();
                 rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive,false);
                 so.HasGroupChanged = true;
-                so.RootPart.Shape.LastAttachPoint = (byte)so.AttachmentPoint;
                 rootPart.Rezzed = DateTime.Now;
                 rootPart.RemFlag(PrimFlags.TemporaryOnRez);
                 so.AttachToBackup();

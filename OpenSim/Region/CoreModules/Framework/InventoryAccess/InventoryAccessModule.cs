@@ -390,9 +390,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 // Trees could be attached and it's been done, but it makes
                 // no sense. State must be preserved because it's the tree type
-                if (objectGroup.RootPart.Shape.PCode != (byte)PCode.Tree &&
-                    objectGroup.RootPart.Shape.PCode != (byte)PCode.NewTree)
+                if (objectGroup.RootPart.Shape.PCode != (byte) PCode.Tree &&
+                    objectGroup.RootPart.Shape.PCode != (byte) PCode.NewTree)
+                {
                     objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
+                    if (objectGroup.RootPart.AttachPoint > 0)
+                        objectGroup.RootPart.Shape.LastAttachPoint = objectGroup.RootPart.AttachPoint;
+                }
 
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
                 objectGroup.RootPart.RotationOffset = inventoryStoredRotation;
