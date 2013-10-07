@@ -53,6 +53,7 @@ namespace OpenSim.Server.Handlers.Login
 
         private ILoginService m_LocalService;
         private bool m_Proxy;
+        
 
         public LLLoginHandlers(ILoginService service, bool hasProxy)
         {
@@ -212,6 +213,61 @@ namespace OpenSim.Server.Handlers.Login
 
             return FailedOSDResponse();
         }
+
+        public void HandleWebSocketLoginEvents(string path, WebSocketHttpServerHandler sock)
+        {
+            sock.MaxPayloadSize = 16384; //16 kb payload
+            sock.InitialMsgTimeout = 5000; //5 second first message to trigger at least one of these events
+            sock.NoDelay_TCP_Nagle = true;
+            sock.OnData += delegate(object sender, WebsocketDataEventArgs data) { sock.Close("fail"); };
+            sock.OnPing += delegate(object sender, PingEventArgs pingdata) { sock.Close("fail"); };
+            sock.OnPong += delegate(object sender, PongEventArgs pongdata) { sock.Close("fail"); };
+            sock.OnText += delegate(object sender, WebsocketTextEventArgs text)
+                               {
+                                   OSD request = null;
+                                   try
+                                   {
+                                       request = OSDParser.DeserializeJson(text.Data);
+                                       if (!(request is OSDMap))
+                                       {
+                                           sock.SendMessage(OSDParser.SerializeJsonString(FailedOSDResponse()));
+                                       }
+                                       else
+                                       {
+                                           OSDMap req = request as OSDMap;
+                                           string first = req["firstname"].AsString();
+                                           string last = req["lastname"].AsString();
+                                           string passwd = req["passwd"].AsString();
+                                           string start = req["startlocation"].AsString();
+                                           string version = req["version"].AsString();
+                                           string channel = req["channel"].AsString();
+                                           string mac = req["mac"].AsString();
+                                           string id0 = req["id0"].AsString();
+                                           UUID scope = UUID.Zero;
+                                           IPEndPoint endPoint =
+                                               (sender as WebSocketHttpServerHandler).GetRemoteIPEndpoint();
+                                           LoginResponse reply = null;
+                                           reply = m_LocalService.Login(first, last, passwd, start, scope, version,
+                                                                        channel, mac, id0, endPoint);
+                                           sock.SendMessage(OSDParser.SerializeJsonString(reply.ToOSDMap()));
+
+                                       }
+
+                                   }
+                                   catch (Exception)
+                                   {
+                                       sock.SendMessage(OSDParser.SerializeJsonString(FailedOSDResponse()));
+                                   }
+                                   finally
+                                   {
+                                       sock.Close("success");
+                                   }
+                               };
+            
+            sock.HandshakeAndUpgrade();
+
+        }
+        
 
         private XmlRpcResponse FailedXMLRPCResponse()
         {
