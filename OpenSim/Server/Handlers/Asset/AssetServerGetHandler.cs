@@ -42,22 +42,14 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Asset
 {
-    public class AssetServerGetHandler : BaseStreamHandlerBasicDOSProtector
+    public class AssetServerGetHandler : BaseStreamHandler
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
 
         public AssetServerGetHandler(IAssetService service) :
-                base("GET", "/assets",new BasicDosProtectorOptions()
-                                          {
-                                              AllowXForwardedFor = true,
-                                              ForgetTimeSpan = TimeSpan.FromSeconds(2),
-                                              MaxRequestsInTimeframe = 5,
-                                              ReportingName = "ASSETGETDOSPROTECTOR",
-                                              RequestTimeSpan = TimeSpan.FromSeconds(5),
-                                              ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
-                                          })
+                base("GET", "/assets")
         {
             m_AssetService = service;
         }
