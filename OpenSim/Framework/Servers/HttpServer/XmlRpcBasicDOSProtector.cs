@@ -25,162 +25,42 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using log4net;
+
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public enum ThrottleAction
-    {
-        DoThrottledMethod,
-        DoThrow
-    }
-
     public class XmlRpcBasicDOSProtector
     {
         private readonly XmlRpcMethod _normalMethod;
         private readonly XmlRpcMethod _throttledMethod;
-        private readonly CircularBuffer<int> _generalRequestTimes; // General request checker
+       
         private readonly BasicDosProtectorOptions _options;
-        private readonly Dictionary<string, CircularBuffer<int>> _deeperInspection;   // per client request checker
-        private readonly Dictionary<string, int> _tempBlocked;  // blocked list
-        private readonly System.Timers.Timer _forgetTimer;  // Cleanup timer
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly System.Threading.ReaderWriterLockSlim _lockSlim = new System.Threading.ReaderWriterLockSlim();
+        private readonly BasicDOSProtector _dosProtector;
 
         public XmlRpcBasicDOSProtector(XmlRpcMethod normalMethod, XmlRpcMethod throttledMethod,BasicDosProtectorOptions options)
         {
             _normalMethod = normalMethod;
             _throttledMethod = throttledMethod;
-            _generalRequestTimes = new CircularBuffer<int>(options.MaxRequestsInTimeframe + 1,true);
-            _generalRequestTimes.Put(0);
+           
             _options = options;
-            _deeperInspection = new Dictionary<string, CircularBuffer<int>>();
-            _tempBlocked = new Dictionary<string, int>();
-            _forgetTimer = new System.Timers.Timer();
-            _forgetTimer.Elapsed += delegate
-                                        {
-                                            _forgetTimer.Enabled = false;
+            _dosProtector = new BasicDOSProtector(_options);
 
-                                            List<string> removes = new List<string>();
-                                            _lockSlim.EnterReadLock();
-                                            foreach (string str in _tempBlocked.Keys)
-                                            {
-                                                if (
-                                                    Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(),
-                                                                                      _tempBlocked[str]) > 0)
-                                                    removes.Add(str);
-                                            }
-                                            _lockSlim.ExitReadLock();
-                                            lock (_deeperInspection)
-                                            {
-                                                _lockSlim.EnterWriteLock();
-                                                for (int i = 0; i < removes.Count; i++)
-                                                {
-                                                    _tempBlocked.Remove(removes[i]);
-                                                    _deeperInspection.Remove(removes[i]);
-                                                }
-                                                _lockSlim.ExitWriteLock();
-                                            }
-                                            foreach (string str in removes)
-                                            {
-                                                m_log.InfoFormat("[{0}] client: {1} is no longer blocked.",
-                                                                 _options.ReportingName, str);
-                                            }
-                                            _lockSlim.EnterReadLock();
-                                            if (_tempBlocked.Count > 0)
-                                                _forgetTimer.Enabled = true;
-                                            _lockSlim.ExitReadLock();
-                                        };
-                                        
-            _forgetTimer.Interval = _options.ForgetTimeSpan.TotalMilliseconds;
         }
         public XmlRpcResponse Process(XmlRpcRequest request, IPEndPoint client)
         {
-            // If these are set like this, this is disabled
-            if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
-                return _normalMethod(request, client);
-           
-            string clientstring = GetClientString(request, client);
 
-            _lockSlim.EnterReadLock();
-            if (_tempBlocked.ContainsKey(clientstring))
-            {
-                _lockSlim.ExitReadLock();
-
-                if (_options.ThrottledAction == ThrottleAction.DoThrottledMethod)
-                    return _throttledMethod(request, client);
-                else
-                    throw new System.Security.SecurityException("Throttled");
-            }
-            _lockSlim.ExitReadLock();
-
-            _generalRequestTimes.Put(Util.EnvironmentTickCount());
-            
-            if (_generalRequestTimes.Size == _generalRequestTimes.Capacity &&
-                (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _generalRequestTimes.Get()) <
-                 _options.RequestTimeSpan.TotalMilliseconds))
-            {
-                //Trigger deeper inspection
-                if (DeeperInspection(request, client))
-                    return _normalMethod(request, client);
-                if (_options.ThrottledAction == ThrottleAction.DoThrottledMethod)
-                    return _throttledMethod(request, client);
-                else
-                    throw new System.Security.SecurityException("Throttled");
-            }
             XmlRpcResponse resp = null;
-           
-            resp = _normalMethod(request, client);
-           
+            if (_dosProtector.Process(GetClientString(request, client), GetEndPoint(request, client)))
+                resp = _normalMethod(request, client);
+            else
+                resp = _throttledMethod(request, client);
+            
             return resp;
         }
 
-        // If the service is getting more hits per expected timeframe then it starts to separate them out by client
-        private bool DeeperInspection(XmlRpcRequest request, IPEndPoint client)
-        {
-            lock (_deeperInspection)
-            {
-                string clientstring = GetClientString(request, client);
-                
-
-                if (_deeperInspection.ContainsKey(clientstring))
-                {
-                    _deeperInspection[clientstring].Put(Util.EnvironmentTickCount());
-                    if (_deeperInspection[clientstring].Size == _deeperInspection[clientstring].Capacity &&
-                        (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _deeperInspection[clientstring].Get()) <
-                         _options.RequestTimeSpan.TotalMilliseconds))
-                    {
-                        //Looks like we're over the limit
-                        _lockSlim.EnterWriteLock();
-                        if (!_tempBlocked.ContainsKey(clientstring))
-                            _tempBlocked.Add(clientstring, Util.EnvironmentTickCount() + (int)_options.ForgetTimeSpan.TotalMilliseconds);
-                        else
-                            _tempBlocked[clientstring] = Util.EnvironmentTickCount() + (int)_options.ForgetTimeSpan.TotalMilliseconds;
-                        _lockSlim.ExitWriteLock();
-
-                        m_log.WarnFormat("[{0}]: client: {1} is blocked for {2} milliseconds, X-ForwardedForAllowed status is {3}, endpoint:{4}",_options.ReportingName,clientstring,_options.ForgetTimeSpan.TotalMilliseconds, _options.AllowXForwardedFor, client.Address);
-                        
-                        return false;
-                    }
-                    //else
-                     //   return true;
-                }
-                else
-                {
-                    _deeperInspection.Add(clientstring, new CircularBuffer<int>(_options.MaxRequestsInTimeframe + 1, true));
-                    _deeperInspection[clientstring].Put(Util.EnvironmentTickCount());
-                    _forgetTimer.Enabled = true;
-                }
-
-            }
-            return true;
-        }
         private string GetClientString(XmlRpcRequest request, IPEndPoint client)
         {
             string clientstring;
@@ -197,15 +77,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             return clientstring;
         }
 
+        private string GetEndPoint(XmlRpcRequest request, IPEndPoint client)
+        {
+             return client.Address.ToString();
+        }
+
     }
 
-    public class BasicDosProtectorOptions
-    {
-        public int MaxRequestsInTimeframe;
-        public TimeSpan RequestTimeSpan;
-        public TimeSpan ForgetTimeSpan;
-        public bool AllowXForwardedFor;
-        public string ReportingName = "BASICDOSPROTECTOR";
-        public ThrottleAction ThrottledAction = ThrottleAction.DoThrottledMethod;
-    }
+    
 }

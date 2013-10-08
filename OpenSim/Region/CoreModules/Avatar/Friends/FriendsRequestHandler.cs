@@ -53,10 +53,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                                           {
                                               AllowXForwardedFor = true,
                                               ForgetTimeSpan = TimeSpan.FromMinutes(2),
-                                              MaxRequestsInTimeframe = 5,
+                                              MaxRequestsInTimeframe = 20,
                                               ReportingName = "FRIENDSDOSPROTECTOR",
                                               RequestTimeSpan = TimeSpan.FromSeconds(5),
-                                              ThrottledAction = ThrottleAction.DoThrottledMethod
+                                              ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
                                           })
         {
             m_FriendsModule = fmodule;

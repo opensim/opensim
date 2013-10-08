@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         MaxRequestsInTimeframe = 4,
                         ReportingName = "MAPDOSPROTECTOR",
                         RequestTimeSpan = TimeSpan.FromSeconds(10),
-                        ThrottledAction = ThrottleAction.DoThrottledMethod
+                        ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
                     }).Process);
             MainServer.Instance.AddLLSDHandler(
                 "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
@@ -1094,7 +1094,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             Hashtable reply = new Hashtable();
             int statuscode = 500;
-            reply["str_response_string"] = "I blocked you! HAHAHAHAHAHAHHAHAH";
+            reply["str_response_string"] = "";
             reply["int_response_code"] = statuscode;
             reply["content_type"] = "text/plain";
             return reply;

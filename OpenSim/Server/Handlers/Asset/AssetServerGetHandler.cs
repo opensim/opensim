@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.Asset
                                               MaxRequestsInTimeframe = 5,
                                               ReportingName = "ASSETGETDOSPROTECTOR",
                                               RequestTimeSpan = TimeSpan.FromSeconds(5),
-                                              ThrottledAction = ThrottleAction.DoThrottledMethod
+                                              ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
                                           })
         {
             m_AssetService = service;
