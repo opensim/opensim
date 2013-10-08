@@ -117,7 +117,7 @@
     SRV_AssetServerURI = "http://127.0.0.1:9000"
     SRV_ProfileServerURI = "http://127.0.0.1:9000"
     SRV_FriendsServerURI = "http://127.0.0.1:9000"
-    SRV_IMServerURI = "http://127.0.0.1:9000"
+    SRV_IMServerURI = "http://127.0.0.1:9000
 
     ;; For Viewer 2
     MapTileURL = "http://127.0.0.1:9000/"
@@ -150,6 +150,23 @@
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+    ; Basic Login Service Dos Protection Tweaks
+    ; ;
+    ; ; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true
+    ; ; If you set this to true and you don't have a transparent proxy, it may allow attackers to put random things in the X-Forwarded-For header to
+    ; ;     get around this basic DOS protection.
+    ; DOSAllowXForwardedForHeader = false
+    ; ;
+    ; ; The protector adds up requests during this rolling period of time, default 10 seconds
+    ; DOSRequestTimeFrameMS = 10000
+    ; ;
+    ; ; The amount of requests in the above timeframe from the same endpoint that triggers protection
+    ; DOSMaxRequestsInTimeFrame = 5
+    ; ;
+    ; ; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
+    ; DOSForgiveClientAfterMS = 120000
+    ; ; 
+    ; ; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
 
 [FreeswitchService]
     ;; If FreeSWITCH is not being used then you don't need to set any of these parameters
