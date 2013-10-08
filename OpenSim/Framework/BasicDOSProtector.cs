@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 
-namespace OpenSim.Framework.Servers.HttpServer
+namespace OpenSim.Framework
 {
    
     public class BasicDOSProtector
@@ -91,6 +91,27 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             _forgetTimer.Interval = _options.ForgetTimeSpan.TotalMilliseconds;
         }
+
+        /// <summary>
+        /// Given a string Key, Returns if that context is blocked
+        /// </summary>
+        /// <param name="key">A Key identifying the context</param>
+        /// <returns>bool Yes or No, True or False for blocked</returns>
+        public bool IsBlocked(string key)
+        {
+            bool ret = false;
+             _lockSlim.EnterReadLock();
+            ret = _tempBlocked.ContainsKey(key);
+            _lockSlim.ExitReadLock();
+            return ret;
+        }
+
+        /// <summary>
+        /// Process the velocity of this context
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
         public bool Process(string key, string endpoint)
         {
             if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
@@ -126,6 +147,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             return true;
         }
+
+        /// <summary>
+        /// At this point, the rate limiting code needs to track 'per user' velocity.
+        /// </summary>
+        /// <param name="key">Context Key, string representing a rate limiting context</param>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
         private bool DeeperInspection(string key, string endpoint)
         {
             lock (_deeperInspection)
