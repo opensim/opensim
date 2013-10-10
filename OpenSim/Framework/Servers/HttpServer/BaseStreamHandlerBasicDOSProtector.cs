@@ -55,12 +55,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             byte[] result;
             RequestsReceived++;
-
-            if (_dosProtector.Process(GetClientString(httpRequest), GetRemoteAddr(httpRequest)))
+            string clientstring = GetClientString(httpRequest);
+            string endpoint = GetRemoteAddr(httpRequest);
+            if (_dosProtector.Process(clientstring, endpoint))
                 result = ProcessRequest(path, request, httpRequest, httpResponse);
             else
                 result = ThrottledRequest(path, request, httpRequest, httpResponse);
-
+            if (_options.MaxConcurrentSessions > 0)
+                _dosProtector.ProcessEnd(clientstring, endpoint);
             
             RequestsHandled++;
 

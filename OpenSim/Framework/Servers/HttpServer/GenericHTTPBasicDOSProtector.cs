@@ -47,10 +47,18 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
         public Hashtable Process(Hashtable request)
         {
-            if (_dosProtector.Process(GetClientString(request), GetRemoteAddr(request)))
-                return _normalMethod(request);
+            Hashtable process = null;
+            string clientstring= GetClientString(request);
+            string endpoint = GetRemoteAddr(request);
+            if (_dosProtector.Process(clientstring, endpoint))
+                process =  _normalMethod(request);
             else
-                return _throttledMethod(request);
+                process = _throttledMethod(request);
+
+            if (_options.MaxConcurrentSessions>0)
+                _dosProtector.ProcessEnd(clientstring, endpoint);
+
+            return process;
         }
         
         private string GetRemoteAddr(Hashtable request)

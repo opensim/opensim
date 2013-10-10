@@ -53,11 +53,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
 
             XmlRpcResponse resp = null;
-            if (_dosProtector.Process(GetClientString(request, client), GetEndPoint(request, client)))
+            string clientstring = GetClientString(request, client);
+            string endpoint = GetEndPoint(request, client);
+            if (_dosProtector.Process(clientstring, endpoint))
                 resp = _normalMethod(request, client);
             else
                 resp = _throttledMethod(request, client);
-            
+            if (_options.MaxConcurrentSessions > 0)
+                _dosProtector.ProcessEnd(clientstring, endpoint);
             return resp;
         }
 
