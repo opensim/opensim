@@ -1,0 +1,16 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE logs (
+  "logID" int NOT NULL Primary Key,
+  "target" varchar(36) default NULL,
+  "server" varchar(64) default NULL,
+  "method" varchar(64) default NULL,
+  "arguments" varchar(255) default NULL,
+  "priority" int default NULL,
+  "message" text
+);
+
+COMMIT;
+

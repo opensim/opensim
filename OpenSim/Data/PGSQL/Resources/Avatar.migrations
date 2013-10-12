@@ -1,0 +1,59 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Avatars (
+"PrincipalID" uuid NOT NULL PRIMARY KEY, 
+"Name" varchar(32) NOT NULL, 
+"Value" varchar(255) NOT NULL DEFAULT ''
+);
+
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_Avatars
+	(
+	"PrincipalID" uuid NOT NULL,
+	"Name" varchar(32) NOT NULL, 
+	"Value" text NOT NULL DEFAULT ''
+	)  ;
+	
+ INSERT INTO Tmp_Avatars ("PrincipalID", "Name", "Value")
+	SELECT "PrincipalID", cast("Name" as text), "Value" 
+	FROM Avatars ;
+
+DROP TABLE Avatars;
+
+Alter table Tmp_Avatars
+  rename to Avatars;
+
+COMMIT;
+
+:VERSION 3
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_Avatars
+	(
+	"PrincipalID" uuid NOT NULL,
+	"Name" varchar(32) NOT NULL, 
+	"Value" text NOT NULL DEFAULT ''
+);
+
+ALTER TABLE Tmp_Avatars ADD PRIMARY KEY ("PrincipalID", "Name");
+
+
+INSERT INTO Tmp_Avatars ("PrincipalID", "Name", "Value")
+	SELECT "PrincipalID", "Name", cast("Value" as text) FROM Avatars ;
+
+DROP TABLE Avatars;
+
+Alter table Tmp_Avatars
+  rename to Avatars;
+
+COMMIT;
+

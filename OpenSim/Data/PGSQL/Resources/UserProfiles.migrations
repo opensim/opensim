@@ -1,0 +1,83 @@
+:VERSION 1         # -------------------------------
+
+begin;
+
+CREATE TABLE classifieds (
+  "classifieduuid" char(36) NOT NULL,
+  "creatoruuid" char(36) NOT NULL,
+  "creationdate" integer NOT NULL,
+  "expirationdate" integer NOT NULL,
+  "category" varchar(20) NOT NULL,
+  "name" varchar(255) NOT NULL,
+  "description" text NOT NULL,
+  "parceluuid" char(36) NOT NULL,
+  "parentestate" integer NOT NULL,
+  "snapshotuuid" char(36) NOT NULL,
+  "simname" varchar(255) NOT NULL,
+  "posglobal" varchar(255) NOT NULL,
+  "parcelname" varchar(255) NOT NULL,
+  "classifiedflags" integer NOT NULL,
+  "priceforlisting" integer NOT NULL,
+  constraint classifiedspk PRIMARY KEY ("classifieduuid")
+);
+
+
+CREATE TABLE usernotes (
+  "useruuid" varchar(36) NOT NULL,
+  "targetuuid" varchar(36) NOT NULL,
+  "notes" text NOT NULL,
+  constraint usernoteuk UNIQUE ("useruuid","targetuuid")
+);
+
+
+CREATE TABLE userpicks (
+  "pickuuid" varchar(36) NOT NULL,
+  "creatoruuid" varchar(36) NOT NULL,
+  "toppick" boolean NOT NULL,
+  "parceluuid" varchar(36) NOT NULL,
+  "name" varchar(255) NOT NULL,
+  "description" text NOT NULL,
+  "snapshotuuid" varchar(36) NOT NULL,
+  "user" varchar(255) NOT NULL,
+  "originalname" varchar(255) NOT NULL,
+  "simname" varchar(255) NOT NULL,
+  "posglobal" varchar(255) NOT NULL,
+  "sortorder" integer NOT NULL,
+  "enabled" boolean NOT NULL,
+  PRIMARY KEY ("pickuuid")
+);
+
+
+CREATE TABLE userprofile (
+  "useruuid" varchar(36) NOT NULL,
+  "profilePartner" varchar(36) NOT NULL,
+  "profileAllowPublish" bytea NOT NULL,
+  "profileMaturePublish" bytea NOT NULL,
+  "profileURL" varchar(255) NOT NULL,
+  "profileWantToMask" integer NOT NULL,
+  "profileWantToText" text NOT NULL,
+  "profileSkillsMask" integer NOT NULL,
+  "profileSkillsText" text NOT NULL,
+  "profileLanguages" text NOT NULL,
+  "profileImage" varchar(36) NOT NULL,
+  "profileAboutText" text NOT NULL,
+  "profileFirstImage" varchar(36) NOT NULL,
+  "profileFirstText" text NOT NULL,
+  PRIMARY KEY ("useruuid")
+);
+
+commit;
+
+:VERSION 2         # -------------------------------
+ 
+begin;
+CREATE TABLE userdata (
+    "UserId" char(36) NOT NULL,
+    "TagId" varchar(64) NOT NULL,
+    "DataKey" varchar(255),
+    "DataVal" varchar(255),
+    PRIMARY KEY ("UserId","TagId")
+);
+
+commit;
+
