@@ -123,7 +123,7 @@
     SRV_AssetServerURI = "http://127.0.0.1:9000"
     SRV_ProfileServerURI = "http://127.0.0.1:9000"
     SRV_FriendsServerURI = "http://127.0.0.1:9000"
-    SRV_IMServerURI = "http://127.0.0.1:9000
+    SRV_IMServerURI = "http://127.0.0.1:9000"
 
     ;; For Viewer 2
     MapTileURL = "http://127.0.0.1:9000/"
