@@ -1134,3 +1134,21 @@ ALTER TABLE prims ADD "Friction" double precision NOT NULL default '0.6';
 ALTER TABLE prims ADD "Restitution" double precision NOT NULL default '0.5';
 
 COMMIT;
+
+:VERSION 40      #-- regionwindlight changed type from smallint to bool
+
+BEGIN TRANSACTION;
+
+ALTER TABLE regionwindlight ALTER COLUMN cloud_scroll_x_lock DROP DEFAULT;
+ALTER TABLE regionwindlight ALTER cloud_scroll_x_lock TYPE bool USING CASE WHEN cloud_scroll_x_lock=0 THEN FALSE ELSE TRUE END;
+ALTER TABLE regionwindlight ALTER COLUMN cloud_scroll_x_lock SET DEFAULT FALSE;
+
+ALTER TABLE regionwindlight ALTER COLUMN cloud_scroll_y_lock DROP DEFAULT;
+ALTER TABLE regionwindlight ALTER cloud_scroll_y_lock TYPE bool USING CASE WHEN cloud_scroll_y_lock=0 THEN FALSE ELSE TRUE END;
+ALTER TABLE regionwindlight ALTER COLUMN cloud_scroll_y_lock SET DEFAULT FALSE;
+
+ALTER TABLE regionwindlight ALTER COLUMN draw_classic_clouds DROP DEFAULT;
+ALTER TABLE regionwindlight ALTER draw_classic_clouds TYPE bool USING CASE WHEN draw_classic_clouds=0 THEN FALSE ELSE TRUE END;
+ALTER TABLE regionwindlight ALTER COLUMN draw_classic_clouds SET DEFAULT FALSE;
+
+COMMIT;

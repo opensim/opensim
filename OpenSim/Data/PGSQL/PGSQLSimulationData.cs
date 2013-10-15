@@ -727,7 +727,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("regionID", regionUUID));
+                cmd.Parameters.Add(_Database.CreateParameter("regionID", regionUUID.ToString() ));
                 conn.Open();
                 using (NpgsqlDataReader result = cmd.ExecuteReader())
                 {
@@ -817,7 +817,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
                 conn.Open();
-                cmd.Parameters.Add(_Database.CreateParameter("region_id", regionID));
+                cmd.Parameters.Add(_Database.CreateParameter("region_id", regionID.ToString()));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -831,8 +831,8 @@ namespace OpenSim.Data.PGSQL
                 conn.Open();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    cmd.Parameters.Add(_Database.CreateParameter("region_id", wl.regionID));
-                    exists = (int)cmd.ExecuteScalar() > 0;
+                    cmd.Parameters.Add(_Database.CreateParameter("region_id", wl.regionID.ToString() ));
+                    exists = cmd.ExecuteNonQuery() > 0;
                 }
             }
             if (exists)
