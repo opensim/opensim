@@ -209,3 +209,12 @@ alter table inventoryitems
   alter column "creatorID" type varchar(255);
   
 Commit;
+
+:VERSION 10
+
+BEGIN TRANSACTION;
+
+Alter table inventoryitems Rename Column "SaleType" to "saleType";
+
+Commit;
+

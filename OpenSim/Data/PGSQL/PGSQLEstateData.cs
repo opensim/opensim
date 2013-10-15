@@ -201,11 +201,10 @@ namespace OpenSim.Data.PGSQL
 
             string sql = string.Format("insert into estate_settings (\"{0}\") values ( :{1} )", String.Join("\",\"", names.ToArray()), String.Join(", :", names.ToArray()));
 
-            m_log.Debug("[DB ESTATE]: SQL: " + sql);
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand insertCommand = new NpgsqlCommand(sql, conn))
             {
-                insertCommand.CommandText = sql + "; Select cast(lastval() as int) as ID ;";
+                insertCommand.CommandText = sql;
 
                 foreach (string name in names)
                 {
@@ -218,11 +217,16 @@ namespace OpenSim.Data.PGSQL
 
                 es.EstateID = 100;
 
-                using (NpgsqlDataReader result = insertCommand.ExecuteReader())
+                if (insertCommand.ExecuteNonQuery() > 0)
                 {
-                    if (result.Read())
+                    insertCommand.CommandText = "Select cast(lastval() as int) as ID ;";
+
+                    using (NpgsqlDataReader result = insertCommand.ExecuteReader())
                     {
-                        es.EstateID = (uint)result.GetInt32(0);
+                        if (result.Read())
+                        {
+                            es.EstateID = (uint)result.GetInt32(0);
+                        }
                     }
                 }
 
