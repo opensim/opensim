@@ -28,8 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 using OpenMetaverse;
+
+using log4net;
 
 namespace OpenSim.Framework
 {
@@ -54,12 +57,13 @@ namespace OpenSim.Framework
 
         // return a special compressed representation of the heightmap in shorts
         public abstract short[] GetCompressedMap();
-        public abstract void SetCompressedMap(short[] cmap);
+        public abstract float CompressionFactor { get; }
+        public abstract void SetCompressedMap(short[] cmap, float pCompressionFactor);
 
         public abstract TerrainData Clone();
     }
 
-    // The terrain is stored as a blob in the database with a 'revision' field.
+    // The terrain is stored in the database as a blob with a 'revision' field.
     // Some implementations of terrain storage would fill the revision field with
     //    the time the terrain was stored. When real revisions were added and this
     //    feature removed, that left some old entries with the time in the revision
@@ -83,9 +87,12 @@ namespace OpenSim.Framework
     // This should really be 'LLOptimizedHeightmapTerrainData' as it includes knowledge
     //    of 'patches' which are 16x16 terrain areas which can be sent separately to the viewer.
     // The heighmap is kept as an array of short integers. The integer values are converted to
-    //    and from floats by TerrainCompressionFactor.
+    //    and from floats by TerrainCompressionFactor. Shorts are used to limit storage used.
     public class HeightmapTerrainData : TerrainData
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[TERRAIN DATA]";
+
         // TerrainData.this[x, y]
         public override float this[int x, int y]
         {
@@ -96,7 +103,7 @@ namespace OpenSim.Framework
                 {
                     m_heightmap[x, y] = newVal;
                     m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = true;
-
+                    m_log.DebugFormat("{0} set[{1},{2}] to {3} ({4})", LogHeader, x, y, value, newVal);
                 }
             }
         }
@@ -131,6 +138,11 @@ namespace OpenSim.Framework
             return false;
         }
 
+        // TerrainData.CompressionFactor
+        private float m_compressionFactor = 100.0f;
+        public override float CompressionFactor { get { return m_compressionFactor; } }
+
+        // TerrainData.GetCompressedMap
         public override short[] GetCompressedMap()
         {
             short[] newMap = new short[SizeX * SizeY];
@@ -143,8 +155,11 @@ namespace OpenSim.Framework
             return newMap;
 
         }
-        public override void SetCompressedMap(short[] cmap)
+        // TerrainData.SetCompressedMap
+        public override void SetCompressedMap(short[] cmap, float pCompressionFactor)
         {
+            m_compressionFactor = pCompressionFactor;
+
             int ind = 0;
             for (int xx = 0; xx < SizeX; xx++)
                 for (int yy = 0; yy < SizeY; yy++)
@@ -168,23 +183,24 @@ namespace OpenSim.Framework
         // To save space (especially for large regions), keep the height as a short integer
         //    that is coded as the float height times the compression factor (usually '100'
         //    to make for two decimal points).
-        public static short ToCompressedHeight(double pHeight)
+        public short ToCompressedHeight(double pHeight)
         {
-            return (short)(pHeight * Constants.TerrainCompression);
+            return (short)(pHeight * CompressionFactor);
         }
 
-        public static float FromCompressedHeight(short pHeight)
+        public float FromCompressedHeight(short pHeight)
         {
-            return ((float)pHeight) / Constants.TerrainCompression;
+            return ((float)pHeight) / CompressionFactor;
         }
 
-        // To keep with the legacy theme, this can be created with the way terrain
-        //     used to passed around as.
+        // To keep with the legacy theme, create an instance of this class based on the
+        //     way terrain used to be passed around.
         public HeightmapTerrainData(double[,] pTerrain)
         {
             SizeX = pTerrain.GetLength(0);
             SizeY = pTerrain.GetLength(1);
             SizeZ = (int)Constants.RegionHeight;
+            m_compressionFactor = 100.0f;
 
             m_heightmap = new short[SizeX, SizeY];
             for (int ii = 0; ii < SizeX; ii++)
@@ -206,14 +222,15 @@ namespace OpenSim.Framework
             SizeX = pX;
             SizeY = pY;
             SizeZ = pZ;
+            m_compressionFactor = 100.0f;
             m_heightmap = new short[SizeX, SizeY];
             m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
             ClearTaint();
         }
 
-        public HeightmapTerrainData(short[] cmap, int pX, int pY, int pZ) : this(pX, pY, pZ)
+        public HeightmapTerrainData(short[] cmap, float pCompressionFactor, int pX, int pY, int pZ) : this(pX, pY, pZ)
         {
-            SetCompressedMap(cmap);
+            SetCompressedMap(cmap, pCompressionFactor);
         }
 
 

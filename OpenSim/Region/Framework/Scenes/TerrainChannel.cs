@@ -183,21 +183,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        /*
-        // To save space (especially for large regions), keep the height as a short integer
-        //    that is coded as the float height times the compression factor (usually '100'
-        //    to make for two decimal points).
-        public static short ToCompressedHeight(double pHeight)
-        {
-            return (short)(pHeight * Constants.TerrainCompression);
-        }
-
-        public static float FromCompressedHeight(short pHeight)
-        {
-            return ((float)pHeight) / Constants.TerrainCompression;
-        }
-         */
-
         public TerrainChannel Copy()
         {
             TerrainChannel copy = new TerrainChannel();
@@ -280,13 +265,15 @@ namespace OpenSim.Region.Framework.Scenes
             public int SizeX;
             public int SizeY;
             public int SizeZ;
+            public float CompressionFactor;
             public short[] Map;
-            public TerrainChannelXMLPackage(int pX, int pY, int pZ, short[] pMap)
+            public TerrainChannelXMLPackage(int pX, int pY, int pZ, float pCompressionFactor, short[] pMap)
             {
                 Version = 1;
                 SizeX = pX;
                 SizeY = pY;
                 SizeZ = pZ;
+                CompressionFactor = pCompressionFactor;
                 Map = pMap;
             }
         }
@@ -294,7 +281,8 @@ namespace OpenSim.Region.Framework.Scenes
         // New terrain serialization format that includes the width and length.
         private void ToXml2(XmlWriter xmlWriter)
         {
-            TerrainChannelXMLPackage package = new TerrainChannelXMLPackage(Width, Height, Altitude, m_terrainData.GetCompressedMap());
+            TerrainChannelXMLPackage package = new TerrainChannelXMLPackage(Width, Height, Altitude, m_terrainData.CompressionFactor,
+                                            m_terrainData.GetCompressedMap());
             XmlSerializer serializer = new XmlSerializer(typeof(TerrainChannelXMLPackage));
             serializer.Serialize(xmlWriter, package);
         }
@@ -304,7 +292,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             XmlSerializer serializer = new XmlSerializer(typeof(TerrainChannelXMLPackage));
             TerrainChannelXMLPackage package = (TerrainChannelXMLPackage)serializer.Deserialize(xmlReader);
-            m_terrainData = new HeightmapTerrainData(package.Map, package.SizeX, package.SizeY, package.SizeZ);
+            m_terrainData = new HeightmapTerrainData(package.Map, package.CompressionFactor, package.SizeX, package.SizeY, package.SizeZ);
         }
 
         // Fill the heightmap with the center bump terrain

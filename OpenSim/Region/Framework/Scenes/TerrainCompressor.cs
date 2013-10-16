@@ -112,7 +112,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // This is an intermediate step in converting terrain into a variable sized heightmap. Some of the
         //     routines (like IClientAPI) only pass the float array of heights around. This entry
         //     converts that legacy representation into the more compact represenation used in
-        //     TerrainChannel. Someday fix the plumbing between here and the scene.
+        //     TerrainData. Someday fix the plumbing between here and the scene.
         public static LayerDataPacket CreateLandPacket(TerrainData terrData, int patchX, int patchY)
         {
             int[] xPieces = new int[1];

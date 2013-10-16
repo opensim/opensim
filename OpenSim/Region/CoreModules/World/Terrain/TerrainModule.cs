@@ -74,6 +74,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         #endregion
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[TERRAIN MODULE]";
         
         private readonly Commander m_commander = new Commander("terrain");
 
@@ -712,7 +713,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void CheckForTerrainUpdates(bool respectEstateSettings)
         {
             bool shouldTaint = false;
-            float[] terrData = m_channel.GetFloatsSerialised();
+            float[] terrHeights = m_channel.GetFloatsSerialised();
             int x;
             for (x = 0; x < m_channel.Width; x += Constants.TerrainPatchSize)
             {
@@ -727,10 +728,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         if (respectEstateSettings && LimitChannelChanges(x, y))
                         {
                             // Terrain heights were modified. Refetch the terrain info.
-                            terrData = m_channel.GetFloatsSerialised();
+                            terrHeights = m_channel.GetFloatsSerialised();
                         }
 
-                        SendToClients(terrData, x, y);
+                        // m_log.DebugFormat("{0} Patch modified. Sending (x,y) = ({1},{2})", LogHeader, x, y);
+                        SendToClients(terrHeights, x, y);
                         shouldTaint = true;
                     }
                 }
