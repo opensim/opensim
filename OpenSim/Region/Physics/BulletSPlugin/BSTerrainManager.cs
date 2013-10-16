@@ -354,6 +354,8 @@ public sealed class BSTerrainManager : IDisposable
     // Return a new position that is over known terrain if the position is outside our terrain.
     public Vector3 ClampPositionIntoKnownTerrain(Vector3 pPos)
     {
+        float edgeEpsilon = 0.1f;
+
         Vector3 ret = pPos;
 
         // First, base addresses are never negative so correct for that possible problem.
@@ -378,10 +380,19 @@ public sealed class BSTerrainManager : IDisposable
             // NOTE that GetTerrainPhysicalAtXYZ will set 'terrainBaseXYZ' to the base of the unfound region.
 
             // Must be off the top of a region. Find an adjacent region to move into.
+            //     The returned terrain is always 'lower'. That is, closer to <0,0>.
             Vector3 adjacentTerrainBase = FindAdjacentTerrainBase(terrainBaseXYZ);
 
-            ret.X = Math.Min(ret.X, adjacentTerrainBase.X + (ret.X % DefaultRegionSize.X));
-            ret.Y = Math.Min(ret.Y, adjacentTerrainBase.Y + (ret.X % DefaultRegionSize.Y));
+            if (adjacentTerrainBase.X < terrainBaseXYZ.X)
+            {
+                // moving down into a new region in the X dimension. New position will be the max in the new base.
+                ret.X = adjacentTerrainBase.X + DefaultRegionSize.X - edgeEpsilon;
+            }
+            if (adjacentTerrainBase.Y < terrainBaseXYZ.Y)
+            {
+                // moving down into a new region in the X dimension. New position will be the max in the new base.
+                ret.Y = adjacentTerrainBase.Y + DefaultRegionSize.Y - edgeEpsilon;
+            }
             DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,findingAdjacentRegion,adjacentRegBase={1},oldPos={2},newPos={3}",
                                         BSScene.DetailLogZero, adjacentTerrainBase, pPos, ret);
 

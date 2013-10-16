@@ -1,0 +1,242 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE regions(
+ "regionHandle" varchar(255) NULL,
+ "regionName" varchar(255) NULL,
+ uuid varchar(255) NOT NULL PRIMARY KEY,
+ "regionRecvKey" varchar(255) NULL,
+ "regionSecret" varchar(255) NULL,
+ "regionSendKey" varchar(255) NULL,
+ "regionDataURI" varchar(255) NULL,
+ "serverIP" varchar(255) NULL,
+ "serverPort" varchar(255) NULL,
+ "serverURI" varchar(255) NULL,
+ "locX" varchar(255) NULL,
+ "locY" varchar(255) NULL,
+ "locZ" varchar(255) NULL,
+ "eastOverrideHandle" varchar(255) NULL,
+ "westOverrideHandle" varchar(255) NULL,
+ "southOverrideHandle" varchar(255) NULL,
+ "northOverrideHandle" varchar(255) NULL,
+ "regionAssetURI" varchar(255) NULL,
+ "regionAssetRecvKey" varchar(255) NULL,
+ "regionAssetSendKey" varchar(255) NULL,
+ "regionUserURI" varchar(255) NULL,
+ "regionUserRecvKey" varchar(255) NULL,
+ "regionUserSendKey" varchar(255) NULL,
+ "regionMapTexture" varchar(255) NULL,
+ "serverHttpPort" varchar(255) NULL,
+ "serverRemotingPort" varchar(255) NULL,
+ "owner_uuid" varchar(36) NULL
+);
+
+COMMIT;
+
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_regions
+	(
+	uuid varchar(36) NOT NULL,
+	"regionHandle" bigint NULL,
+	"regionName" varchar(20) NULL,
+	"regionRecvKey" varchar(128) NULL,
+	"regionSendKey" varchar(128) NULL,
+	"regionSecret" varchar(128) NULL,
+	"regionDataURI" varchar(128) NULL,
+	"serverIP" varchar(64) NULL,
+	"serverPort" int NULL,
+	"serverURI" varchar(255) NULL,
+	"locX" int NULL,
+	"locY" int NULL,
+	"locZ" int NULL,
+	"eastOverrideHandle" bigint NULL,
+	"westOverrideHandle" bigint NULL,
+	"southOverrideHandle" bigint NULL,
+	"northOverrideHandle" bigint NULL,
+	"regionAssetURI" varchar(255) NULL,
+	"regionAssetRecvKey" varchar(128) NULL,
+	"regionAssetSendKey" varchar(128) NULL,
+	"regionUserURI" varchar(255) NULL,
+	"regionUserRecvKey" varchar(128) NULL,
+	"regionUserSendKey" varchar(128) NULL,
+	"regionMapTexture" varchar(36) NULL,
+	"serverHttpPort" int NULL,
+	"serverRemotingPort" int NULL,
+	"owner_uuid" varchar(36) NULL,
+	"originUUID" varchar(36) NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000')
+	);
+
+INSERT INTO Tmp_regions (uuid, "regionHandle", "regionName", "regionRecvKey", "regionSendKey", "regionSecret", "regionDataURI", "serverIP", "serverPort", "serverURI", "locX", "locY", "locZ", "eastOverrideHandle", "westOverrideHandle", "southOverrideHandle", "northOverrideHandle", "regionAssetURI", "regionAssetRecvKey", "regionAssetSendKey", "regionUserURI", "regionUserRecvKey", "regionUserSendKey", "regionMapTexture", "serverHttpPort", "serverRemotingPort", "owner_uuid")
+	SELECT cast(uuid as varchar(36)), cast("regionHandle" as bigint), cast("regionName" as varchar(20)), cast("regionRecvKey" as varchar(128)), cast("regionSendKey" as varchar(128)), cast("regionSecret" as varchar(128)), cast("regionDataURI" as varchar(128)), cast("serverIP" as varchar(64)), cast("serverPort" as int), "serverURI", cast("locX" as int), cast("locY" as int), cast("locZ" as int), cast("eastOverrideHandle" as bigint), cast("westOverrideHandle" as bigint), 
+	      cast("southOverrideHandle" as bigint), cast("northOverrideHandle" as bigint), "regionAssetURI", cast("regionAssetRecvKey" as varchar(128)), cast("regionAssetSendKey" as varchar(128)), "regionUserURI", cast("regionUserRecvKey" as varchar(128)), cast("regionUserSendKey" as varchar(128)), cast("regionMapTexture" as varchar(36)), 
+	      cast("serverHttpPort" as int), cast("serverRemotingPort" as int), "owner_uuid" 
+	      FROM regions;
+
+DROP TABLE regions;
+
+alter table Tmp_regions
+  rename to regions;
+
+COMMIT;
+
+:VERSION 3
+
+BEGIN TRANSACTION;
+
+CREATE INDEX IX_regions_name ON regions
+	(
+	"regionName"
+	);
+
+CREATE INDEX IX_regions_handle ON regions
+	(
+	"regionHandle"
+	);
+
+
+CREATE INDEX IX_regions_override ON regions
+	(
+	"eastOverrideHandle",
+	"westOverrideHandle",
+	"southOverrideHandle",
+	"northOverrideHandle"
+	);
+
+COMMIT;
+
+
+:VERSION 4
+
+/* To prevent any potential data loss issues, you should review this script in detail before running it outside the cotext of the database designer.*/
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_regions
+	(
+	uuid uuid NOT NULL,
+	"regionHandle" bigint NULL,
+	"regionName" varchar(20) NULL,
+	"regionRecvKey" varchar(128) NULL,
+	"regionSendKey" varchar(128) NULL,
+	"regionSecret" varchar(128) NULL,
+	"regionDataURI" varchar(128) NULL,
+	"serverIP" varchar(64) NULL,
+	"serverPort" int NULL,
+	"serverURI" varchar(255) NULL,
+	"locX" int NULL,
+	"locY" int NULL,
+	"locZ" int NULL,
+	"eastOverrideHandle" bigint NULL,
+	"westOverrideHandle" bigint NULL,
+	"southOverrideHandle" bigint NULL,
+	"northOverrideHandle" bigint NULL,
+	"regionAssetURI" varchar(255) NULL,
+	"regionAssetRecvKey" varchar(128) NULL,
+	"regionAssetSendKey" varchar(128) NULL,
+	"regionUserURI" varchar(255) NULL,
+	"regionUserRecvKey" varchar(128) NULL,
+	"regionUserSendKey" varchar(128) NULL,
+	"regionMapTexture" uuid NULL,
+	"serverHttpPort" int NULL,
+	"serverRemotingPort" int NULL,
+	"owner_uuid" uuid NOT NULL,
+	"originUUID" uuid NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000')
+	);
+	
+
+INSERT INTO Tmp_regions (uuid, "regionHandle", "regionName", "regionRecvKey", "regionSendKey", "regionSecret", "regionDataURI", "serverIP", "serverPort", "serverURI", "locX", "locY", "locZ", "eastOverrideHandle", "westOverrideHandle", "southOverrideHandle", "northOverrideHandle", "regionAssetURI", "regionAssetRecvKey", "regionAssetSendKey", "regionUserURI", "regionUserRecvKey", "regionUserSendKey", "regionMapTexture", "serverHttpPort", "serverRemotingPort", "owner_uuid", "originUUID")
+  SELECT cast(uuid as uuid), "regionHandle", "regionName", "regionRecvKey", "regionSendKey", "regionSecret", "regionDataURI", "serverIP", "serverPort", "serverURI", "locX", "locY", "locZ", "eastOverrideHandle", "westOverrideHandle", "southOverrideHandle", "northOverrideHandle", "regionAssetURI", "regionAssetRecvKey", "regionAssetSendKey", "regionUserURI", "regionUserRecvKey", "regionUserSendKey", cast("regionMapTexture" as uuid), "serverHttpPort", "serverRemotingPort", cast( "owner_uuid" as uuid), cast("originUUID" as uuid) FROM regions ;
+  
+
+DROP TABLE regions;
+
+alter table Tmp_regions rename to regions;
+
+ALTER TABLE regions ADD CONSTRAINT
+	PK__regions__uuid PRIMARY KEY 
+	(
+	uuid
+	);
+
+CREATE INDEX IX_regions_name ON regions
+	(
+	"regionName"
+	);
+
+CREATE INDEX IX_regions_handle ON regions
+	(
+	"regionHandle"
+	);
+
+CREATE INDEX IX_regions_override ON regions
+	(
+	"eastOverrideHandle",
+	"westOverrideHandle",
+	"southOverrideHandle",
+	"northOverrideHandle"
+	);
+
+COMMIT;
+
+
+:VERSION 5
+
+BEGIN TRANSACTION;
+
+ALTER TABLE regions ADD access int default 0;
+
+COMMIT;
+
+
+:VERSION 6
+
+BEGIN TRANSACTION;
+
+ALTER TABLE regions ADD "ScopeID" uuid default '00000000-0000-0000-0000-000000000000';
+ALTER TABLE regions alter column "owner_uuid" set DEFAULT ('00000000-0000-0000-0000-000000000000');
+ALTER TABLE regions ADD "sizeX" integer not null default 0;
+ALTER TABLE regions ADD "sizeY" integer not null default 0;
+
+COMMIT;
+
+
+:VERSION 7
+
+BEGIN TRANSACTION;
+
+ALTER TABLE regions ADD "flags" integer NOT NULL DEFAULT 0;
+CREATE INDEX flags ON regions("flags");
+ALTER TABLE regions ADD "last_seen" integer NOT NULL DEFAULT 0;
+ALTER TABLE regions ADD "PrincipalID" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+ALTER TABLE regions ADD "Token" varchar(255) NOT NULL DEFAULT 0;
+
+COMMIT;
+
+:VERSION 8
+
+BEGIN TRANSACTION;
+ALTER TABLE regions ALTER COLUMN "regionName" type VarChar(128) ;
+
+DROP INDEX IX_regions_name;
+ALTER TABLE regions ALTER COLUMN "regionName" type VarChar(128),
+  ALTER COLUMN "regionName" SET NOT NULL;
+
+CREATE INDEX IX_regions_name ON regions
+	(
+	"regionName"
+	);
+
+COMMIT;
+
+:VERSION 9
+
+BEGIN TRANSACTION;
+
+ALTER TABLE regions ADD "parcelMapTexture" uuid NULL;
+
+COMMIT;
+

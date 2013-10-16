@@ -145,6 +145,17 @@ namespace OpenSim.Server.Handlers.Login
             return FailedXMLRPCResponse();
 
         }
+        public XmlRpcResponse HandleXMLRPCLoginBlocked(XmlRpcRequest request, IPEndPoint client)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable resp = new Hashtable();
+
+            resp["reason"] = "presence";
+            resp["message"] = "Logins are currently restricted. Please try again later.";
+            resp["login"] = "false";
+            response.Value = resp;
+            return response;
+        }
 
         public XmlRpcResponse HandleXMLRPCSetLoginLevel(XmlRpcRequest request, IPEndPoint remoteClient)
         {

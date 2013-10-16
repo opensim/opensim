@@ -1,0 +1,60 @@
+:VERSION 1         # -------------------------- 
+
+BEGIN TRANSACTION;
+
+CREATE TABLE GridUser (
+    "UserID" VARCHAR(255) NOT NULL Primary Key,
+    "HomeRegionID" CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+    "HomePosition" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "HomeLookAt" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "LastRegionID" CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+    "LastPosition" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "LastLookAt" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "Online" CHAR(5) NOT NULL DEFAULT 'false',
+    "Login" CHAR(16) NOT NULL DEFAULT '0',
+    "Logout" CHAR(16) NOT NULL DEFAULT '0'
+) ;
+
+COMMIT;
+
+:VERSION 2         # -------------------------- 
+
+BEGIN TRANSACTION;
+
+CREATE TABLE GridUser_tmp (
+    "UserID" VARCHAR(255) NOT NULL PRIMARY KEY,
+    "HomeRegionID" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+    "HomePosition" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "HomeLookAt" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "LastRegionID" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+    "LastPosition" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "LastLookAt" CHAR(64) NOT NULL DEFAULT '<0,0,0>',
+    "Online" CHAR(5) NOT NULL DEFAULT 'false',
+    "Login" CHAR(16) NOT NULL DEFAULT '0',
+    "Logout" CHAR(16) NOT NULL DEFAULT '0'
+    );
+
+COMMIT;
+
+
+INSERT INTO GridUser_tmp ("UserID"
+           ,"HomeRegionID"
+           ,"HomePosition"
+           ,"HomeLookAt"
+           ,"LastRegionID"
+           ,"LastPosition"
+           ,"LastLookAt"
+           ,"Online"
+           ,"Login"
+           ,"Logout")
+ SELECT "UserID", cast("HomeRegionID" as uuid), "HomePosition" ,"HomeLookAt" , cast("LastRegionID" as uuid),
+       "LastPosition"
+      ,"LastLookAt"
+      ,"Online"
+      ,"Login"
+      ,"Logout" FROM GridUser;
+
+DROP TABLE GridUser;
+
+alter table GridUser_tmp rename to GridUser;
+

@@ -78,7 +78,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
         /// <param name="data"></param>
         public void XferReceive(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
         {
-            if (mXferID == xferID)
+            if (mXferID != xferID)
+                return;
+
+            lock (this)
             {
                 if (m_asset.Data.Length > 1)
                 {
@@ -99,7 +102,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 if ((packetID & 0x80000000) != 0)
                 {
                     SendCompleteMessage(remoteClient);
-
                 }
             }
         }
