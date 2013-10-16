@@ -46,6 +46,7 @@ namespace OpenSim.Data.PGSQL
     public class PGSQLSimulationData : ISimulationDataStore
     {
         private const string _migrationStore = "RegionStore";
+        private const string LogHeader = "[REGION DB PGSQL]";
 
         // private static FileSystemDataStore Instance = new FileSystemDataStore();
         private static readonly ILog _Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -563,40 +564,54 @@ namespace OpenSim.Data.PGSQL
             return terrain;
         }
 
+        // Legacy entry point for when terrain was always a 256x256 heightmap
+        public void StoreTerrain(double[,] terrain, UUID regionID)
+        {
+            StoreTerrain(new HeightmapTerrainData(terrain), regionID);
+        }
+
         /// <summary>
         /// Stores the terrain map to DB.
         /// </summary>
         /// <param name="terrain">terrain map data.</param>
         /// <param name="regionID">regionID.</param>
-        public void StoreTerrain(double[,] terrain, UUID regionID)
+        public void StoreTerrain(TerrainData terrData, UUID regionID)
         {
-            int revision = Util.UnixTimeSinceEpoch();
-
             //Delete old terrain map
             string sql = @"delete from terrain where ""RegionUUID""=:RegionUUID";
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+
+                    _Log.InfoFormat("{0} Deleted terrain revision id = {1}", LogHeader, regionID);
+                }
             }
 
-            _Log.Info("[REGION DB]: Deleted terrain revision r " + revision);
+            int terrainDBRevision;
+            Array terrainDBblob;
+            terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
 
             sql = @"insert into terrain(""RegionUUID"", ""Revision"", ""Heightfield"") values(:RegionUUID, :Revision, :Heightfield)";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
-                cmd.Parameters.Add(_Database.CreateParameter("Revision", revision));
-                cmd.Parameters.Add(_Database.CreateParameter("Heightfield", serializeTerrain(terrain)));
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    cmd.Parameters.Add(_Database.CreateParameter("Revision", terrainDBRevision));
+                    cmd.Parameters.Add(_Database.CreateParameter("Heightfield", terrainDBblob));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+
+                    _Log.InfoFormat("{0} Stored terrain id = {1}, terrainSize = <{2},{3}>",
+                                    LogHeader, regionID, terrData.SizeX, terrData.SizeY);
+                }
             }
 
-            _Log.Info("[REGION DB]: Stored terrain revision r " + revision);
         }
 
         /// <summary>
