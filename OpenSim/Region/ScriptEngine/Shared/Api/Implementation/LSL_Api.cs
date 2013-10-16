@@ -3325,7 +3325,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             emailModule.SendEmail(m_host.UUID, address, subject, message);
-            llSleep(EMAIL_PAUSE_TIME);
+            ScriptSleep(EMAIL_PAUSE_TIME * 1000);
         }
 
         public void llGetNextEmail(string address, string subject)
