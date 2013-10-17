@@ -64,8 +64,13 @@ namespace OpenSim.Data.PGSQL
         {
             if (!Util.IsPlatformMono)
             {
-                AppDomain currentDomain = AppDomain.CurrentDomain;
-                currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveEventHandlerMonoSec);
+                if (AppDomain.CurrentDomain.GetData("MonoSecurityPostgresAdded") == null)
+                {
+                    AppDomain.CurrentDomain.SetData("MonoSecurityPostgresAdded", "true");
+
+                    AppDomain currentDomain = AppDomain.CurrentDomain;
+                    currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveEventHandlerMonoSec);
+                }
             }
         }
 
