@@ -82,12 +82,15 @@ namespace OpenSim.Framework
             set
             {
                 m_creatorId = value;
+                
+                if ((m_creatorId == null) || !UUID.TryParse(m_creatorId, out m_creatorIdAsUuid))
+                    m_creatorIdAsUuid = UUID.Zero;
             }
         }
         protected string m_creatorId;
 
         /// <value>
-        /// The CreatorId expressed as a UUID.tely
+        /// The CreatorId expressed as a UUID.
         /// </value>
         public UUID CreatorIdAsUuid 
         {
