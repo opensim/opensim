@@ -179,7 +179,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
                 List<GridInstantMessage> msglist
                     = SynchronousRestObjectRequester.MakeRequest<UUID, List<GridInstantMessage>>(
-                        "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
+                        "POST", m_RestURL + "?RetrieveMessages", client.AgentId);
 
                 if (msglist == null)
                 {
@@ -231,7 +231,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 scene = m_SceneList[0];
 
             bool success = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
-                    "POST", m_RestURL+"/SaveMessage/", im);
+                    "POST", m_RestURL+"?SaveMessage", im);
 
             if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
             {
