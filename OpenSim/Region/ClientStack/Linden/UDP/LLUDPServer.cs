@@ -862,44 +862,44 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return x == m_location;
         }
 
-        public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
-        {
-            // CoarseLocationUpdate and AvatarGroupsReply packets cannot be split in an automated way
-            if ((packet.Type == PacketType.CoarseLocationUpdate || packet.Type == PacketType.AvatarGroupsReply) && allowSplitting)
-                allowSplitting = false;
-
-            if (allowSplitting && packet.HasVariableBlocks)
-            {
-                byte[][] datas = packet.ToBytesMultiple();
-                int packetCount = datas.Length;
-
-                if (packetCount < 1)
-                    m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
-
-                for (int i = 0; i < packetCount; i++)
-                {
-                    byte[] data = datas[i];
-                    m_scene.ForEachClient(
-                        delegate(IClientAPI client)
-                        {
-                            if (client is LLClientView)
-                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
-                        }
-                    );
-                }
-            }
-            else
-            {
-                byte[] data = packet.ToBytes();
-                m_scene.ForEachClient(
-                    delegate(IClientAPI client)
-                    {
-                        if (client is LLClientView)
-                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
-                    }
-                );
-            }
-        }
+//        public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
+//        {
+//            // CoarseLocationUpdate and AvatarGroupsReply packets cannot be split in an automated way
+//            if ((packet.Type == PacketType.CoarseLocationUpdate || packet.Type == PacketType.AvatarGroupsReply) && allowSplitting)
+//                allowSplitting = false;
+//
+//            if (allowSplitting && packet.HasVariableBlocks)
+//            {
+//                byte[][] datas = packet.ToBytesMultiple();
+//                int packetCount = datas.Length;
+//
+//                if (packetCount < 1)
+//                    m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
+//
+//                for (int i = 0; i < packetCount; i++)
+//                {
+//                    byte[] data = datas[i];
+//                    m_scene.ForEachClient(
+//                        delegate(IClientAPI client)
+//                        {
+//                            if (client is LLClientView)
+//                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
+//                        }
+//                    );
+//                }
+//            }
+//            else
+//            {
+//                byte[] data = packet.ToBytes();
+//                m_scene.ForEachClient(
+//                    delegate(IClientAPI client)
+//                    {
+//                        if (client is LLClientView)
+//                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
+//                    }
+//                );
+//            }
+//        }
 
         /// <summary>
         /// Start the process of sending a packet to the client.
