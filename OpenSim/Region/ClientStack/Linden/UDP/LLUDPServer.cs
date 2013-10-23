@@ -919,6 +919,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
                 allowSplitting = false;
 
+            bool packetQueued = false;
+
             if (allowSplitting && packet.HasVariableBlocks)
             {
                 byte[][] datas = packet.ToBytesMultiple();
@@ -930,18 +932,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    SendPacketData(udpClient, data, packet.Type, category, method);
+
+                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
+                        packetQueued = true;
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                SendPacketData(udpClient, data, packet.Type, category, method);
+                packetQueued = SendPacketData(udpClient, data, packet.Type, category, method);
             }
 
             PacketPool.Instance.ReturnPacket(packet);
 
-            m_dataPresentEvent.Set();
+            if (packetQueued)
+                m_dataPresentEvent.Set();
         }
 
         /// <summary>
@@ -955,7 +960,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// The method to call if the packet is not acked by the client.  If null, then a standard
         /// resend of the packet is done.
         /// </param>
-        public void SendPacketData(
+        /// <returns>true if the data was sent immediately, false if it was queued for sending</returns>
+        public bool SendPacketData(
             LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category, UnackedPacketMethod method)
         {
             int dataLength = data.Length;
@@ -1020,7 +1026,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // packet so that it isn't sent before a queued update packet.
             bool requestQueue = type == PacketType.KillObject;
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue))
+            {
                 SendPacketFinal(outgoingPacket);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
             #endregion Queue or Send
         }
