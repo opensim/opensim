@@ -631,7 +631,22 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 cdl.AddRow("SculptType", s.SculptType);
                 cdl.AddRow("State", s.State);
 
-                // TODO, unpack and display texture entries
+                // TODO, need to display more information about textures but in a compact format
+                // to stop output becoming huge.
+                for (int i = 0; i < sop.GetNumberOfSides(); i++)               
+                {
+                    Primitive.TextureEntryFace teFace = s.Textures.FaceTextures[i];
+
+                    UUID textureID;
+
+                    if (teFace != null)
+                        textureID = teFace.TextureID;
+                    else
+                        textureID = s.Textures.DefaultTexture.TextureID;
+
+                    cdl.AddRow(string.Format("Face {0} texture ID", i), textureID);
+                }
+
                 //cdl.AddRow("Textures", string.Format("{0} entries", s.Textures.
             }
 
