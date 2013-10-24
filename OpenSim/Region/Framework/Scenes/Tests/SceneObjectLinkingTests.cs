@@ -143,7 +143,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(grp1.Parts.Length, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
             Assert.That(part2.AbsolutePosition == Vector3.Zero, "The absolute position should be zero");
-            Assert.That(grp3.HasGroupChangedDueToDelink, Is.True);
+            Assert.That(grp3.GroupContainsForeignPrims, Is.True);
         }
 
         [Test]
@@ -349,10 +349,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             // These changes should occur immediately without waiting for a backup pass
             SceneObjectGroup groupToDelete = sog.DelinkFromGroup(linkPart, false);
-            
-            Assert.That(groupToDelete.HasGroupChangedDueToDelink, Is.True);
+
+            Assert.That(groupToDelete.GroupContainsForeignPrims, Is.True);
             scene.DeleteSceneObject(groupToDelete, false);
-            Assert.That(groupToDelete.HasGroupChangedDueToDelink, Is.False);
+            Assert.That(groupToDelete.GroupContainsForeignPrims, Is.False);
             
             List<SceneObjectGroup> storedObjects = scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID);
             

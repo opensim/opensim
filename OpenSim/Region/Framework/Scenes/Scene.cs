@@ -1757,6 +1757,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (group != null)
             {
+                group.HasGroupChanged = true;
                 group.ProcessBackup(SimulationDataService, true);
             }
         }
@@ -2345,13 +2346,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!softDelete)
                 {
-                    // Force a database update so that the scene object group ID is accurate.  It's possible that the
-                    // group has recently been delinked from another group but that this change has not been persisted
-                    // to the DB.
+                    // If the group contains prims whose SceneGroupID is incorrect then force a
+                    // database update, because RemoveObject() works by searching on the SceneGroupID.
                     // This is an expensive thing to do so only do it if absolutely necessary.
-                    if (so.HasGroupChangedDueToDelink)
-                        ForceSceneObjectBackup(so);                
-                    
+                    if (so.GroupContainsForeignPrims)
+                        ForceSceneObjectBackup(so);
+
                     so.DetachFromBackup();
                     SimulationDataService.RemoveObject(so.UUID, RegionInfo.RegionID);
                 }

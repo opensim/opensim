@@ -150,12 +150,27 @@ namespace OpenSim.Region.Framework.Scenes
 
             get { return m_hasGroupChanged; }
         }
+
+        private bool m_groupContainsForeignPrims = false;
         
         /// <summary>
-        /// Has the group changed due to an unlink operation?  We record this in order to optimize deletion, since
-        /// an unlinked group currently has to be persisted to the database before we can perform an unlink operation.
+        /// Whether the group contains prims that came from a different group. This happens when
+        /// linking or delinking groups. The implication is that until the group is persisted,
+        /// the prims in the database still use the old SceneGroupID. That's a problem if the group
+        /// is deleted, because we delete groups by searching for prims by their SceneGroupID.
         /// </summary>
-        public bool HasGroupChangedDueToDelink { get; private set; }
+        public bool GroupContainsForeignPrims
+        {
+            private set
+            {
+                m_groupContainsForeignPrims = value;
+                if (m_groupContainsForeignPrims)
+                    HasGroupChanged = true;
+            }
+
+            get { return m_groupContainsForeignPrims; }
+        }
+
 
         private bool isTimeToPersist()
         {
@@ -1624,7 +1639,7 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
                         backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
                         HasGroupChanged = false;
-                        HasGroupChangedDueToDelink = false;
+                        GroupContainsForeignPrims = false;
 
                         m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
@@ -2388,6 +2403,8 @@ namespace OpenSim.Region.Framework.Scenes
             // If linking prims with different permissions, fix them
             AdjustChildPrimPermissions();
 
+            GroupContainsForeignPrims = true;
+
             AttachToBackup();
 
             // Here's the deal, this is ABSOLUTELY CRITICAL so the physics scene gets the update about the 
@@ -2531,9 +2548,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             linkPart.Rezzed = RootPart.Rezzed;
 
-            // When we delete a group, we currently have to force persist to the database if the object id has changed
-            // (since delete works by deleting all rows which have a given object id)
-            objectGroup.HasGroupChangedDueToDelink = true;
+            // We must persist the delinked group to the database immediately, for safety. The problem
+            // is that although in memory the new group has a new SceneGroupID, in the database it
+            // still has the parent group's SceneGroupID (until the next backup). This means that if the
+            // parent group is deleted then the delinked group will also be deleted from the database.
+            // This problem will disappear if the region remains alive long enough for another backup,
+            // since at that time the delinked group's new SceneGroupID will be written to the database.
+            // But if the region crashes before that then the prims will be permanently gone, and this must
+            // not happen. (We can't use a just-in-time trick like GroupContainsForeignPrims in this case
+            // because the delinked group doesn't know when the source group is deleted.)
+            m_scene.ForceSceneObjectBackup(objectGroup);
 
             return objectGroup;
         }
