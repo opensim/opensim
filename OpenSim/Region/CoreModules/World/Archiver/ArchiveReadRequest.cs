@@ -189,8 +189,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"] 
                                 : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
-            // Zero can never be a valid user id
+            // Zero can never be a valid user or group id
             m_validUserUuids[UUID.Zero] = false;
+            m_validGroupUuids[UUID.Zero] = false;
 
             m_groupsModule = m_rootScene.RequestModuleInterface<IGroupsModule>();
             m_assetService = m_rootScene.AssetService;
@@ -705,9 +706,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         private bool ResolveGroupUuid(UUID uuid)
         {
-            if (uuid == UUID.Zero)
-                return true;    // this means the object has no group
-
             lock (m_validGroupUuids)
             {
                 if (!m_validGroupUuids.ContainsKey(uuid))
