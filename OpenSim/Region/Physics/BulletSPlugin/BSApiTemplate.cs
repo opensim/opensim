@@ -249,7 +249,7 @@ public enum CollisionFlags : uint
     BS_VEHICLE_COLLISIONS            = 1 << 12, // return collisions for vehicle ground checking
     BS_RETURN_ROOT_COMPOUND_SHAPE    = 1 << 13, // return the pos/rot of the root shape in a compound shape
     BS_NONE                          = 0,
-    BS_ALL                           = 0xFFFFFFFF
+    BS_ALL                           = 0x7FFF   // collision flags are a signed short
 };
 
 // Values f collisions groups and masks
@@ -265,14 +265,14 @@ public enum CollisionFilterGroups : uint
     BDebrisGroup            = 1 << 3,   // 0008
     BSensorTrigger          = 1 << 4,   // 0010
     BCharacterGroup         = 1 << 5,   // 0020
-    BAllGroup               = 0x000FFFFF,
+    BAllGroup               = 0x0007FFF,        // collision flags are a signed short
     // Filter groups defined by BulletSim
-    BGroundPlaneGroup       = 1 << 10,  // 0400
-    BTerrainGroup           = 1 << 11,  // 0800
-    BRaycastGroup           = 1 << 12,  // 1000
-    BSolidGroup             = 1 << 13,  // 2000
+    BGroundPlaneGroup       = 1 << 8,  // 0400
+    BTerrainGroup           = 1 << 9,  // 0800
+    BRaycastGroup           = 1 << 10,  // 1000
+    BSolidGroup             = 1 << 11,  // 2000
     // BLinksetGroup        = xx  // a linkset proper is either static or dynamic
-    BLinksetChildGroup      = 1 << 14,  // 4000
+    BLinksetChildGroup      = 1 << 12,  // 4000
 };
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
