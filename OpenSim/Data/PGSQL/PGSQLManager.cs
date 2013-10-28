@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Reflection;
+using OpenSim.Framework;
 using log4net;
 using OpenMetaverse;
 using Npgsql;
@@ -56,6 +57,34 @@ namespace OpenSim.Data.PGSQL
         public PGSQLManager(string connection)
         {
             connectionString = connection;
+            InitializeMonoSecurity();
+        }
+
+        public void InitializeMonoSecurity()
+        {
+            if (!Util.IsPlatformMono)
+            {
+                if (AppDomain.CurrentDomain.GetData("MonoSecurityPostgresAdded") == null)
+                {
+                    AppDomain.CurrentDomain.SetData("MonoSecurityPostgresAdded", "true");
+
+                    AppDomain currentDomain = AppDomain.CurrentDomain;
+                    currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveEventHandlerMonoSec);
+                }
+            }
+        }
+
+        private System.Reflection.Assembly ResolveEventHandlerMonoSec(object sender, ResolveEventArgs args)
+        {
+            Assembly MyAssembly = null;
+
+            if (args.Name.Substring(0, args.Name.IndexOf(",")) == "Mono.Security")
+            {
+                MyAssembly = Assembly.LoadFrom("lib/NET/Mono.Security.dll");
+            }
+
+            //Return the loaded assembly.
+            return MyAssembly;
         }
 
         /// <summary>

@@ -138,13 +138,14 @@ public sealed class BSTerrainManager : IDisposable
         m_groundPlane = m_physicsScene.PE.CreateBodyWithDefaultMotionState(groundPlaneShape,
                                         BSScene.GROUNDPLANE_ID, Vector3.Zero, Quaternion.Identity);
 
-        m_physicsScene.PE.AddObjectToWorld(m_physicsScene.World, m_groundPlane);
-        m_physicsScene.PE.UpdateSingleAabb(m_physicsScene.World, m_groundPlane);
-        // Ground plane does not move
-        m_physicsScene.PE.ForceActivationState(m_groundPlane, ActivationState.DISABLE_SIMULATION);
         // Everything collides with the ground plane.
         m_groundPlane.collisionType = CollisionType.Groundplane;
-        m_groundPlane.ApplyCollisionMask(m_physicsScene);
+
+        m_physicsScene.PE.AddObjectToWorld(m_physicsScene.World, m_groundPlane);
+        m_physicsScene.PE.UpdateSingleAabb(m_physicsScene.World, m_groundPlane);
+
+        // Ground plane does not move
+        m_physicsScene.PE.ForceActivationState(m_groundPlane, ActivationState.DISABLE_SIMULATION);
 
         BSTerrainPhys initialTerrain = new BSTerrainHeightmap(m_physicsScene, Vector3.Zero, BSScene.TERRAIN_ID, DefaultRegionSize);
         lock (m_terrains)

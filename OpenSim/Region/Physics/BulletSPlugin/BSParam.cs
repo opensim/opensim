@@ -120,6 +120,7 @@ public static class BSParam
 	public static float NumberOfSolverIterations { get; private set; }
     public static bool UseSingleSidedMeshes { get; private set; }
     public static float GlobalContactBreakingThreshold { get; private set; }
+    public static float PhysicsUnmanLoggingFrames { get; private set; }
 
     // Avatar parameters
     public static float AvatarFriction { get; private set; }
@@ -671,6 +672,10 @@ public static class BSParam
             0f,
             (s) => { return GlobalContactBreakingThreshold; },
             (s,v) => { GlobalContactBreakingThreshold = v; s.UnmanagedParams[0].globalContactBreakingThreshold = v; } ),
+	    new ParameterDefn<float>("PhysicsUnmanLoggingFrames", "If non-zero, frames between output of detailed unmanaged physics statistics",
+            0f,
+            (s) => { return PhysicsUnmanLoggingFrames; },
+            (s,v) => { PhysicsUnmanLoggingFrames = v; s.UnmanagedParams[0].physicsLoggingFrames = v; } ),
 
 	    new ParameterDefn<int>("CSHullMaxDepthSplit", "CS impl: max depth to split for hull. 1-10 but > 7 is iffy",
             7 ),

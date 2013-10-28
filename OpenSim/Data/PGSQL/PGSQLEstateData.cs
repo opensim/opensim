@@ -452,7 +452,7 @@ namespace OpenSim.Data.PGSQL
         public List<int> GetEstates(string search)
         {
             List<int> result = new List<int>();
-            string sql = "select \"estateID\" from estate_settings where lower(\"EstateName\") = lower(:EstateName)";
+            string sql = "select \"EstateID\" from estate_settings where lower(\"EstateName\") = lower(:EstateName)";
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             {
                 conn.Open();
