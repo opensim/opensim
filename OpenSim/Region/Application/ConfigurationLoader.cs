@@ -338,8 +338,6 @@ namespace OpenSim
                 config.Set("meshing", "Meshmerizer");
                 config.Set("physical_prim", true);
                 config.Set("serverside_object_permissions", true);
-                config.Set("storage_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
@@ -371,7 +369,6 @@ namespace OpenSim
             {
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
-                m_configSettings.StorageDll = startupConfig.GetString("storage_plugin");
 
                 m_configSettings.ClientstackDll 
                     = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
