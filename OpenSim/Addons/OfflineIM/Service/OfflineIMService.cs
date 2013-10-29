@@ -124,5 +124,12 @@ namespace OpenSim.OfflineIM
             return m_Database.Store(data);
 
         }
+
+        public void DeleteMessages(UUID userID)
+        {
+            m_Database.Delete("PrincipalID", userID.ToString());
+            m_Database.Delete("FromID", userID.ToString());
+        }
+
     }
 }
