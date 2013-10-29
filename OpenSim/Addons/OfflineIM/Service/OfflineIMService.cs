@@ -91,7 +91,7 @@ namespace OpenSim.OfflineIM
         {
             reason = string.Empty;
             
-            // TODO Check limits
+            // Check limits
             UUID principalID = new UUID(im.toAgentID);
             long count = m_Database.GetCount("PrincipalID", principalID.ToString());
             if (count >= MAX_IM)
@@ -117,6 +117,7 @@ namespace OpenSim.OfflineIM
 
             OfflineIMData data = new OfflineIMData();
             data.PrincipalID = principalID;
+            data.FromID = new UUID(im.fromAgentID);
             data.Data = new Dictionary<string, string>();
             data.Data["Message"] = imXml;
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -96,7 +96,6 @@ namespace OpenSim.OfflineIM
                 string method = request["METHOD"].ToString();
                 request.Remove("METHOD");
 
-                m_log.DebugFormat("[OfflineIM.V2.Handler]: {0}", method);
                 switch (method)
                 {
                     case "GET":
