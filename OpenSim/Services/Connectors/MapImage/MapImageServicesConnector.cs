@@ -114,29 +114,32 @@ namespace OpenSim.Services.Connectors
                     }
                     else if (replyData.ContainsKey("Result") && (replyData["Result"].ToString().ToLower() == "failure"))
                     {
-                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Registration failed: {0}", replyData["Message"].ToString());
-                        reason = replyData["Message"].ToString();
+                        reason = string.Format("Map post to {0} failed: {1}", uri, replyData["Message"].ToString());
+                        m_log.WarnFormat("[MAP IMAGE CONNECTOR]: {0}", reason);
+
                         return false;
                     }
                     else if (!replyData.ContainsKey("Result"))
                     {
-                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: reply data does not contain result field");
+                        reason = string.Format("Reply data from {0} does not contain result field", uri);
+                        m_log.WarnFormat("[MAP IMAGE CONNECTOR]: {0}", reason);
                     }
                     else
                     {
-                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
-                        reason = "Unexpected result " + replyData["Result"].ToString();
+                        reason = string.Format("Unexpected result {0} from {1}" + replyData["Result"].ToString(), uri);
+                        m_log.WarnFormat("[MAP IMAGE CONNECTOR]: {0}", reason);
                     }
-
                 }
                 else
                 {
-                    m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Map post received null reply");
+                    reason = string.Format("Map post received null reply from {0}", uri);
+                    m_log.WarnFormat("[MAP IMAGE CONNECTOR]: {0}", reason);
                 }
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Exception when contacting map server at {0}: {1}", uri, e.Message);
+                reason = string.Format("Exception when posting to map server at {0}: {1}", uri, e.Message);
+                m_log.WarnFormat("[MAP IMAGE CONNECTOR]: {0}", reason);
             }
             finally
             {
