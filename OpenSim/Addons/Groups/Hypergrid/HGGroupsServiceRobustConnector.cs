@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -158,7 +158,7 @@ namespace OpenSim.Groups
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[Groups.RobustHGConnector]: Exception {0}", e.StackTrace);
+                m_log.Error(string.Format("[Groups.RobustHGConnector]: Exception {0} ", e.Message), e);
             }
 
             return FailureResult();

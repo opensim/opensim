@@ -897,15 +897,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                            Part.Name, Part.UUID, false);
 
 
-                                    m_log.DebugFormat(
-                                        "[SCRIPT INSTANCE]: Runtime error in script {0}, part {1} {2} at {3} in {4}, displayed error {5}, actual exception {6}", 
+                                    m_log.Debug(string.Format(
+                                        "[SCRIPT INSTANCE]: Runtime error in script {0}, part {1} {2} at {3} in {4} ", 
                                         ScriptName, 
                                         PrimName, 
                                         Part.UUID,
                                         Part.AbsolutePosition,
-                                        Part.ParentGroup.Scene.Name, 
-                                        text.Replace("\n", "\\n"), 
-                                        e.InnerException);
+                                        Part.ParentGroup.Scene.Name), 
+                                        e);
                                 }
                                 catch (Exception)
                                 {

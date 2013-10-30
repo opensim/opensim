@@ -280,11 +280,11 @@ namespace OpenSim.Server.Base
                             {
                                 if (!(e is System.MissingMethodException))
                                 {
-                                    m_log.ErrorFormat("[SERVER UTILS]: Error loading plugin {0} from {1}. Exception: {2}, {3}",
+                                    m_log.Error(string.Format("[SERVER UTILS]: Error loading plugin {0} from {1}. Exception: {2}",
                                         interfaceName, 
                                         dllName, 
-                                        e.InnerException == null ? e.Message : e.InnerException.Message, 
-                                        e.StackTrace);
+                                        e.InnerException == null ? e.Message : e.InnerException.Message),
+                                            e);
                                 }
                                 m_log.ErrorFormat("[SERVER UTILS]: Error loading plugin {0}: {1} args.Length {2}", dllName, e.Message, args.Length);
                                 return null;

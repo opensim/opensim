@@ -140,7 +140,7 @@ namespace OpenSim.Groups
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[GROUPS HANDLER]: Exception {0}", e.StackTrace);
+                m_log.Error(string.Format("[GROUPS HANDLER]: Exception {0} ", e.Message), e);
             }
 
             return FailureResult();
