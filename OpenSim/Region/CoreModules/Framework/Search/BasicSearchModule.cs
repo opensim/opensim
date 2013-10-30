@@ -150,6 +150,8 @@ namespace OpenSim.Region.CoreModules.Framework.Search
 
         void OnDirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart)
         {
+            queryText = queryText.Trim();
+
             if (((DirFindFlags)queryFlags & DirFindFlags.People) == DirFindFlags.People)
             {
                 if (string.IsNullOrEmpty(queryText))
