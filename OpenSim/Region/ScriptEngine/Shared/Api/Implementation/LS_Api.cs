@@ -446,7 +446,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return 0;
             }
-            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+
+            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && (sp == null || sp.GodLevel < 200))
             {
                 LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                 return 0;
@@ -474,7 +476,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return;
             }
-            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            
+            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && (sp == null || sp.GodLevel < 200))
             {
                 LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                 return;
@@ -497,7 +501,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return 0;
             }
-            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            
+            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && (sp == null || sp.GodLevel < 200))
             {
                 LSShoutError("lsSetWindlightSceneTargeted can only be used by estate managers or owners.");
                 return 0;
