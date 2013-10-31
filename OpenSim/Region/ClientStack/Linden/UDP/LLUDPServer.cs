@@ -1237,6 +1237,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 Interlocked.Increment(ref udpClient.PacketsResent);
+
+                // We're not going to worry about interlock yet since its not currently critical that this total count
+                // is 100% correct
+                PacketsResentCount++;
             }
 
             #endregion Sequence Number Assignment
