@@ -100,16 +100,20 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // ITerrainChannel.GetFloatsSerialized()
-        // NOTICE that the one dimensional form is ordered by Y!!
+        // This one dimensional version is ordered so height = map[y*sizeX+x];
+        // DEPRECATED: don't use this function as it does not retain the dimensions of the terrain
+        //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
         public float[] GetFloatsSerialised()
         {
             int points = Width * Height;
             float[] heights = new float[points];
 
             int idx = 0;
-            for (int ii = 0; ii < Height; ii++)
-                for (int jj = 0; jj < Width; jj++)
-                    heights[idx++] = m_terrainData[jj, ii];
+            for (int jj = 0; jj < Height; jj++)
+                for (int ii = 0; ii < Width; ii++)
+                {
+                    heights[idx++] = m_terrainData[ii, jj];
+                }
 
             return heights;
         }
@@ -117,14 +121,12 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.GetDoubles()
         public double[,] GetDoubles()
         {
-            int w = Width;
-            int l = Height;
-            double[,] heights = new double[w, l];
+            double[,] heights = new double[Width, Height];
 
             int idx = 0; // index into serialized array
-            for (int ii = 0; ii < w; ii++)
+            for (int ii = 0; ii < Width; ii++)
             {
-                for (int jj = 0; jj < l; jj++)
+                for (int jj = 0; jj < Height; jj++)
                 {
                     heights[ii, jj] = (double)m_terrainData[ii, jj];
                     idx++;

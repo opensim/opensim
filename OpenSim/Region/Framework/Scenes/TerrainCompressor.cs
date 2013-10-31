@@ -108,20 +108,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return layer;
         }
 
-        // Legacy land packet generation gluing old land representation (heights) to compressed representation.
-        // This is an intermediate step in converting terrain into a variable sized heightmap. Some of the
-        //     routines (like IClientAPI) only pass the float array of heights around. This entry
-        //     converts that legacy representation into the more compact represenation used in
-        //     TerrainData. Someday fix the plumbing between here and the scene.
+        // Create a land packet for a single patch.
         public static LayerDataPacket CreateLandPacket(TerrainData terrData, int patchX, int patchY)
         {
             int[] xPieces = new int[1];
             int[] yPieces = new int[1];
             xPieces[0] = patchX;  // patch X dimension
             yPieces[0] = patchY;
-
-            m_log.DebugFormat("{0} CreateLandPacket. patchX={1}, patchY={2}, sizeX={3}, sizeY={4}",
-                                    LogHeader, patchX, patchY, terrData.SizeX, terrData.SizeY);
 
             return CreateLandPacket(terrData, xPieces, yPieces, (int)TerrainPatch.LayerType.Land);
         }
@@ -130,19 +123,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         ///     Creates a LayerData packet for compressed land data given a full
         ///     simulator heightmap and an array of indices of patches to compress
         /// </summary>
-        /// <param name="heightmap">
-        ///     A 256 * 256 array of floating point values
-        ///     specifying the height at each meter in the simulator
+        /// <param name="terrData">
+        ///     Terrain data that can result in a meter square heightmap.
         /// </param>
         /// <param name="x">
-        ///     Array of indexes in the 16x16 grid of patches
-        ///     for this simulator. For example if 1 and 17 are specified, patches
-        ///     x=1,y=0 and x=1,y=1 are sent
+        ///     Array of indexes in the grid of patches
+        ///     for this simulator.
+        ///     If creating a packet for multiple patches, there will be entries in
+        ///     both the X and Y arrays for each of the patches.
+        ///     For example if patches 1 and 17 are to be sent,
+        ///     x[] = {1,1} and y[] = {0,1} which specifies the patches at
+        ///     indexes <1,0> and <1,1> (presuming the terrain size is 16x16 patches).
         /// </param>
         /// <param name="y">
-        ///     Array of indexes in the 16x16 grid of patches
-        ///     for this simulator. For example if 1 and 17 are specified, patches
-        ///     x=1,y=0 and x=1,y=1 are sent
+        ///     Array of indexes in the grid of patches.
         /// </param>
         /// <param name="type"></param>
         /// <param name="pRegionSizeX"></param>
@@ -228,6 +222,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 header.PatchIDs += (patchX << 5);
             }
 
+            // m_log.DebugFormat("{0} CreatePatchFromHeightmap. patchX={1}, patchY={2}, DCOffset={3}, range={4}",
+            //                         LogHeader, patchX, patchY, header.DCOffset, header.Range);
+
             // NOTE: No idea what prequant and postquant should be or what they do
             int wbits;
             int[] patch = CompressPatch(terrData, patchX, patchY, header, 10, out wbits);
@@ -266,7 +263,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = patchX*16; i < (patchX + 1)*16; i++)
                 {
                     // short val = heightmap[j*pRegionSizeX + i];
-                    float val = terrData[j, i];
+                    float val = terrData[i, j];
                     if (val > zmax) zmax = val;
                     if (val < zmin) zmin = val;
                 }
@@ -838,7 +835,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = patchX * Constants.TerrainPatchSize; i < iPatchLimit; i++)
                 {
                     // block[k++] = (heightmap[j*pRegionSizeX + i])*premult - sub;
-                    block[k++] = terrData[j, i] - sub;
+                    block[k++] = terrData[i, j] * premult - sub;
                 }
             }
 

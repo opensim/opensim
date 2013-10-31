@@ -103,7 +103,7 @@ namespace OpenSim.Framework
                 {
                     m_heightmap[x, y] = newVal;
                     m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = true;
-                    m_log.DebugFormat("{0} set[{1},{2}] to {3} ({4})", LogHeader, x, y, value, newVal);
+                    // m_log.DebugFormat("{0} set[{1},{2}] to {3} ({4})", LogHeader, x, y, value, newVal);
                 }
             }
         }

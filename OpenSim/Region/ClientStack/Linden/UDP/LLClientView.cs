@@ -1154,7 +1154,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
         {
-            Util.FireAndForget(DoSendLayerData, map);
+            Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData());
         }
 
         /// <summary>
@@ -1163,7 +1163,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="o"></param>
         private void DoSendLayerData(object o)
         {
-            float[] map = (float[])o;
+            TerrainData map = (TerrainData)o;
 
             try
             {
@@ -1177,7 +1177,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //}
 
                 // Send LayerData in a spiral pattern. Fun!
-                SendLayerTopRight(map, 0, 0, 15, 15);
+                SendLayerTopRight(map, 0, 0, map.SizeX/Constants.TerrainPatchSize-1, map.SizeY/Constants.TerrainPatchSize-1);
             }
             catch (Exception e)
             {
@@ -1185,7 +1185,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void SendLayerTopRight(float[] map, int x1, int y1, int x2, int y2)
+        private void SendLayerTopRight(TerrainData map, int x1, int y1, int x2, int y2)
         {
             // Row
             for (int i = x1; i <= x2; i++)
@@ -1199,7 +1199,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
         }
 
-        void SendLayerBottomLeft(float[] map, int x1, int y1, int x2, int y2)
+        void SendLayerBottomLeft(TerrainData map, int x1, int y1, int x2, int y2)
         {
             // Row in reverse
             for (int i = x2; i >= x1; i--)
@@ -1231,6 +1231,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //     OutPacket(layerpack, ThrottleOutPacketType.Land);
         // }
 
+        // Legacy form of invocation that passes around a bare data array.
+        // Just ignore what was passed and use the real terrain info that is part of the scene.
+        public void SendLayerData(int px, int py, float[] map)
+        {
+            SendLayerData(px, py, m_scene.Heightmap.GetTerrainData());
+        }
+
         /// <summary>
         /// Sends a terrain packet for the point specified.
         /// This is a legacy call that has refarbed the terrain into a flat map of floats.
@@ -1239,15 +1246,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="px">Patch coordinate (x) 0..15</param>
         /// <param name="py">Patch coordinate (y) 0..15</param>
         /// <param name="map">heightmap</param>
-        public void SendLayerData(int px, int py, float[] map)
+        public void SendLayerData(int px, int py, TerrainData terrData)
         {
             try
             {
-                // For unknown reasons, after this point, patch numbers are swapped X for y.
-                //    That means, that for <patchNumX, patchNumY, the array location is computed as map[patchNumY * 16 + patchNumX].
-                //    TODO: someday straighten the below implementation to keep the X row order for patch numbers.
-                // Since this is passing only one patch, we just swap the patch numbers.
-                LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(m_scene.Heightmap.GetTerrainData(), px, py);
+                LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, px, py);
                 
                 // When a user edits the terrain, so much data is sent, the data queues up fast and presents a sub optimal editing experience.  
                 // To alleviate this issue, when the user edits the terrain, we start skipping the queues until they're done editing the terrain.
