@@ -2250,10 +2250,15 @@ namespace OpenSim.Framework
             {
                 string[] parts = firstName.Split(new char[] { '.' });
                 if (parts.Length == 2)
-                    return id.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
+                    return CalcUniversalIdentifier(id, agentsURI, parts[0] + " " + parts[1]);
             }
-            return id.ToString() + ";" + agentsURI + ";" + firstName + " " + lastName;
+            
+            return CalcUniversalIdentifier(id, agentsURI, firstName + " " + lastName);
+        }
 
+        private static string CalcUniversalIdentifier(UUID id, string agentsURI, string name)
+        {
+            return id.ToString() + ";" + agentsURI + ";" + name;
         }
 
         /// <summary>

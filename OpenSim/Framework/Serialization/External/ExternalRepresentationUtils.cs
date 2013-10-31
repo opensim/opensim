@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -161,7 +161,7 @@ namespace OpenSim.Framework.Serialization.External
                 if (!hasCreatorData && creator != null)
                 {
                     XmlElement creatorData = doc.CreateElement("CreatorData");
-                    creatorData.InnerText = homeURL + ";" + creator.FirstName + " " + creator.LastName;
+                    creatorData.InnerText = CalcCreatorData(homeURL, creator.FirstName + " " + creator.LastName);
                     sop.AppendChild(creatorData);
                 }
             }
@@ -171,6 +171,16 @@ namespace OpenSim.Framework.Serialization.External
                 doc.Save(wr);
                 return wr.ToString();
             }
+        }
+
+        public static string CalcCreatorData(string homeURL, string name)
+        {
+            return homeURL + ";" + name;
+        }
+
+        internal static string CalcCreatorData(string homeURL, UUID uuid, string name)
+        {
+            return homeURL + "/" + uuid + ";" + name;
         }
     }
 }

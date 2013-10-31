@@ -286,7 +286,8 @@ namespace OpenSim.Framework.Serialization.External
                     UserAccount account = userAccountService.GetUserAccount(UUID.Zero, inventoryItem.CreatorIdAsUuid);
                     if (account != null)
                     {
-                        writer.WriteElementString("CreatorData", (string)options["home"] + "/" + inventoryItem.CreatorIdAsUuid + ";" + account.FirstName + " " + account.LastName);
+                        string creatorData = ExternalRepresentationUtils.CalcCreatorData((string)options["home"], inventoryItem.CreatorIdAsUuid, account.FirstName + " " + account.LastName);
+                        writer.WriteElementString("CreatorData", creatorData);
                     }
                     writer.WriteElementString("CreatorID", inventoryItem.CreatorId);
                 }

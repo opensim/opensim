@@ -1230,7 +1230,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (m_UserManagement == null)
                     m_UserManagement = sop.ParentGroup.Scene.RequestModuleInterface<IUserManagement>();
                 string name = m_UserManagement.GetUserName(sop.CreatorID);
-                writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
+                writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)options["home"], name));
             }
 
             WriteUUID(writer, "FolderID", sop.FolderID, options);
@@ -1403,7 +1403,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         if (m_UserManagement == null)
                             m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
                         string name = m_UserManagement.GetUserName(item.CreatorID);
-                        writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
+                        writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)options["home"], name));
                     }
 
                     writer.WriteElementString("Description", item.Description);
