@@ -280,9 +280,11 @@ namespace OpenSim.Framework
             {
                 case DBTerrainRevision.Compressed2D:
                     FromCompressedTerrainSerialization(pBlob);
+                    m_log.DebugFormat("{0} HeightmapTerrainData create from Compressed2D serialization. Size=<{1},{2}>", LogHeader, SizeX, SizeY);
                     break;
                 default:
                     FromLegacyTerrainSerialization(pBlob);
+                    m_log.DebugFormat("{0} HeightmapTerrainData create from legacy serialization. Size=<{1},{2}>", LogHeader, SizeX, SizeY);
                     break;
             }
         }
@@ -333,8 +335,6 @@ namespace OpenSim.Framework
                     }
                 }
                 ClearTaint();
-
-                m_log.InfoFormat("{0} Loaded legacy heightmap. SizeX={1}, SizeY={2}", LogHeader, SizeX, SizeY);
             }
         }
         

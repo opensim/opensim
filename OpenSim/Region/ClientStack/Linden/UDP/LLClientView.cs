@@ -1195,7 +1195,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int j = y1 + 1; j <= y2; j++)
                 SendLayerData(x2, j, map);
 
-            if (x2 - x1 > 0)
+            if (x2 - x1 > 0 && y2 - y1 > 0)
                 SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
         }
 
@@ -1209,7 +1209,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int j = y2 - 1; j >= y1; j--)
                 SendLayerData(x1, j, map);
 
-            if (x2 - x1 > 0)
+            if (x2 - x1 > 0 && y2 - y1 > 0)
                 SendLayerTopRight(map, x1 + 1, y1, x2, y2 - 1);
         }
 
