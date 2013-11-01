@@ -629,21 +629,16 @@ namespace OpenSim.Region.Physics.Meshing
 
                 try
                 {
-                    OpenMetaverse.Imaging.ManagedImage unusedData;
-                    OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out unusedData, out idata);
+                    OpenMetaverse.Imaging.ManagedImage managedImage;
 
-                    if (idata == null)
-                    {
-                        // In some cases it seems that the decode can return a null bitmap without throwing
-                        // an exception
-                        m_log.WarnFormat("[PHYSICS]: OpenJPEG decoded sculpt data for {0} to a null bitmap.  Ignoring.", primName);
+                    OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage);
 
-                        return false;
-                    }
+                    if ((managedImage.Channels & OpenMetaverse.Imaging.ManagedImage.ImageChannels.Alpha) != 0)
+                        managedImage.ConvertChannels(managedImage.Channels & ~OpenMetaverse.Imaging.ManagedImage.ImageChannels.Alpha);
 
-                    unusedData = null;
-
-                    //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
+                    Bitmap imgData = OpenMetaverse.Imaging.LoadTGAClass.LoadTGA(new MemoryStream(managedImage.ExportTGA()));
+                    idata = (Image)imgData;
+                    managedImage = null;
 
                     if (cacheSculptMaps)
                     {
