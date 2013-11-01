@@ -99,6 +99,7 @@ namespace OpenSim.Framework
     public class RegionInfo
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[REGION INFO]";
 
         public bool commFailTF = false;
         public ConfigurationMember configMember;
@@ -632,6 +633,8 @@ namespace OpenSim.Framework
             config.Set("SizeZ", configSizeX);
             RegionSizeZ = Convert.ToUInt32(configSizeZ);
 
+            DoRegionSizeSanityChecks();
+
             // InternalAddress
             //
             IPAddress address;
@@ -747,6 +750,36 @@ namespace OpenSim.Framework
             foreach (String s in allKeys)
             {
                 SetOtherSetting(s, config.GetString(s));
+            }
+        }
+
+        // Make sure user specified region sizes are sane.
+        // Must be multiples of legacy region size (256).
+        private void DoRegionSizeSanityChecks()
+        {
+            if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
+            {
+                // Doing non-legacy region sizes.
+                // Enforce region size to be multiples of the legacy region size (256)
+                uint partial = RegionSizeX % Constants.RegionSize;
+                if (partial != 0)
+                {
+                    RegionSizeX -= partial;
+                    if (RegionSizeX == 0)
+                        RegionSizeX = Constants.RegionSize;
+                    m_log.WarnFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeX={3} instead of specified {4}",
+                        LogHeader, Constants.RegionSize, m_regionName, RegionSizeX, RegionSizeX + partial);
+                }
+                partial = RegionSizeY % Constants.RegionSize;
+                if (partial != 0)
+                {
+                    RegionSizeY -= partial;
+                    if (RegionSizeY == 0)
+                        RegionSizeY = Constants.RegionSize;
+                    m_log.WarnFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeY={3} instead of specified {4}",
+                        LogHeader, Constants.RegionSize, m_regionName, RegionSizeY, RegionSizeY + partial);
+                }
+                m_log.InfoFormat("{0} Region {1} size set to x={2}, y={3}", LogHeader, m_regionName, RegionSizeX, RegionSizeY);
             }
         }
 
