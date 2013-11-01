@@ -524,44 +524,44 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         public double[,] LoadTerrain(UUID regionID)
         {
-            double[,] terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-            terrain.Initialize();
+            TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
+            return terrData.GetDoubles();
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
 
             string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from terrain 
                             where ""RegionUUID"" = :RegionUUID order by ""Revision"" desc limit 1; ";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                // PGSqlParameter param = new PGSqlParameter();
-                cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
-                conn.Open();
-                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    int rev;
-                    if (reader.Read())
+                    // PGSqlParameter param = new PGSqlParameter();
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    conn.Open();
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
-                        MemoryStream str = new MemoryStream((byte[])reader["Heightfield"]);
-                        BinaryReader br = new BinaryReader(str);
-                        for (int x = 0; x < (int)Constants.RegionSize; x++)
+                        int rev;
+                        if (reader.Read())
                         {
-                            for (int y = 0; y < (int)Constants.RegionSize; y++)
-                            {
-                                terrain[x, y] = br.ReadDouble();
-                            }
+                            rev = Convert.ToInt32(reader["Revision"]);
+                            byte[] blob = (byte[])reader["Heightfield"];
+                            terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
                         }
-                        rev = (int)reader["Revision"];
+                        else
+                        {
+                            _Log.Info("[REGION DB]: No terrain found for region");
+                            return null;
+                        }
+                        _Log.Info("[REGION DB]: Loaded terrain revision r" + rev);
                     }
-                    else
-                    {
-                        _Log.Info("[REGION DB]: No terrain found for region");
-                        return null;
-                    }
-                    _Log.Info("[REGION DB]: Loaded terrain revision r" + rev);
                 }
             }
 
-            return terrain;
+            return terrData;
         }
 
         // Legacy entry point for when terrain was always a 256x256 heightmap

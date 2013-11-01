@@ -870,11 +870,16 @@ namespace OpenSim.Data.SQLite
         /// <returns>Heightfield data</returns>
         public double[,] LoadTerrain(UUID regionID)
         {
+            TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
+            return terrData.GetDoubles();
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
+
             lock (ds)
             {
-                double[,] terret = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-                terret.Initialize();
-
                 String sql = "select RegionUUID, Revision, Heightfield from terrain" +
                              " where RegionUUID=:RegionUUID order by Revision desc";
 
@@ -887,21 +892,9 @@ namespace OpenSim.Data.SQLite
                         int rev = 0;
                         if (row.Read())
                         {
-                            // TODO: put this into a function
-                            using (MemoryStream str = new MemoryStream((byte[])row["Heightfield"]))
-                            {
-                                using (BinaryReader br = new BinaryReader(str))
-                                {
-                                    for (int x = 0; x < (int)Constants.RegionSize; x++)
-                                    {
-                                        for (int y = 0; y < (int)Constants.RegionSize; y++)
-                                        {
-                                            terret[x, y] = br.ReadDouble();
-                                        }
-                                    }
-                                }
-                            }
                             rev = Convert.ToInt32(row["Revision"]);
+                            byte[] blob = (byte[])row["Heightfield"];
+                            terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
                         }
                         else
                         {
@@ -912,8 +905,8 @@ namespace OpenSim.Data.SQLite
                         m_log.Debug("[SQLITE REGION DB]: Loaded terrain revision r" + rev.ToString());
                     }
                 }
-                return terret;
             }
+            return terrData;
         }
 
         public void RemoveLandObject(UUID globalID)

@@ -1894,7 +1894,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                double[,] map = SimulationDataService.LoadTerrain(RegionInfo.RegionID);
+                TerrainData map = SimulationDataService.LoadTerrain(RegionInfo.RegionID, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
                 if (map == null)
                 {
                     // This should be in the Terrain module, but it isn't because
@@ -1911,7 +1911,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    Heightmap = new TerrainChannel(map, RegionInfo.RegionSizeZ);
+                    Heightmap = new TerrainChannel(map);
                 }
             }
             catch (IOException e)

@@ -100,6 +100,11 @@ namespace OpenSim.Services.Connectors
             return m_database.LoadObjects(regionUUID);
         }
 
+        public void StoreTerrain(TerrainData terrain, UUID regionID)
+        {
+            m_database.StoreTerrain(terrain, regionID);
+        }
+
         public void StoreTerrain(double[,] terrain, UUID regionID)
         {
             m_database.StoreTerrain(terrain, regionID);
@@ -108,6 +113,11 @@ namespace OpenSim.Services.Connectors
         public double[,] LoadTerrain(UUID regionID)
         {
             return m_database.LoadTerrain(regionID);
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            return m_database.LoadTerrain(regionID, pSizeX, pSizeY, pSizeZ);
         }
 
         public void StoreLandObject(ILandObject Parcel)

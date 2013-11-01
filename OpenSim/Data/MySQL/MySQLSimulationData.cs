@@ -613,9 +613,16 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        // Legacy region loading
         public double[,] LoadTerrain(UUID regionID)
         {
-            double[,] terrain = null;
+            TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
+            return terrData.GetDoubles();
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
 
             lock (m_dbLock)
             {
@@ -635,32 +642,15 @@ namespace OpenSim.Data.MySQL
                             while (reader.Read())
                             {
                                 int rev = Convert.ToInt32(reader["Revision"]);
-
-                                terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-                                terrain.Initialize();
-
-                                using (MemoryStream mstr = new MemoryStream((byte[])reader["Heightfield"]))
-                                {
-                                    using (BinaryReader br = new BinaryReader(mstr))
-                                    {
-                                        for (int x = 0; x < (int)Constants.RegionSize; x++)
-                                        {
-                                            for (int y = 0; y < (int)Constants.RegionSize; y++)
-                                            {
-                                                terrain[x, y] = br.ReadDouble();
-                                            }
-                                        }
-                                    }
-
-                                    m_log.InfoFormat("[REGION DB]: Loaded terrain revision r{0}", rev);
-                                }
+                                byte[] blob = (byte[])reader["Heightfield"];
+                                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
                             }
                         }
                     }
                 }
             }
 
-            return terrain;
+            return terrData;
         }
 
         public void RemoveLandObject(UUID globalID)

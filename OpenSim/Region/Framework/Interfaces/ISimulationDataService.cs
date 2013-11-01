@@ -68,13 +68,22 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="ter">HeightField data</param>
         /// <param name="regionID">region UUID</param>
+        void StoreTerrain(TerrainData terrain, UUID regionID);
+
+        // Legacy version kept for downward compabibility
         void StoreTerrain(double[,] terrain, UUID regionID);
 
         /// <summary>
         /// Load the latest terrain revision from region storage
         /// </summary>
         /// <param name="regionID">the region UUID</param>
+        /// <param name="sizeX">the X dimension of the region being filled</param>
+        /// <param name="sizeY">the Y dimension of the region being filled</param>
+        /// <param name="sizeZ">the Z dimension of the region being filled</param>
         /// <returns>Heightfield data</returns>
+        TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ);
+
+        // Legacy version kept for downward compabibility
         double[,] LoadTerrain(UUID regionID);
 
         void StoreLandObject(ILandObject Parcel);

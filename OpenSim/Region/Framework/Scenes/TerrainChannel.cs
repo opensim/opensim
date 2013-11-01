@@ -80,9 +80,26 @@ namespace OpenSim.Region.Framework.Scenes
                 PinHeadIsland();
         }
 
-        public TerrainChannel(double[,] pM, uint pAltitude)
+        // Create channel passed a heightmap and expected dimensions of the region.
+        // The heightmap might not fit the passed size so accomodations must be made.
+        public TerrainChannel(double[,] pM, int pSizeX, int pSizeY, int pAltitude)
         {
-            m_terrainData = new HeightmapTerrainData(pM);
+            int hmSizeX = pM.GetLength(0);
+            int hmSizeY = pM.GetLength(1);
+
+            m_terrainData = new HeightmapTerrainData(pSizeX, pSizeY, pAltitude);
+
+            for (int xx = 0; xx < pSizeX; xx++)
+                for (int yy = 0; yy < pSizeY; yy++)
+                    if (xx > hmSizeX || yy > hmSizeY)
+                        m_terrainData[xx, yy] = TerrainData.DefaultTerrainHeight;
+                    else
+                        m_terrainData[xx, yy] = (float)pM[xx, yy];
+        }
+
+        public TerrainChannel(TerrainData pTerrData)
+        {
+            m_terrainData = pTerrData;
         }
 
         #region ITerrainChannel Members
@@ -247,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] dataArray = (byte[])serializer.Deserialize(xmlReader);
             int index = 0;
 
-            m_terrainData = new HeightmapTerrainData(Width, Height, Altitude);
+            m_terrainData = new HeightmapTerrainData((int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
             
             for (int y = 0; y < Height; y++)
             {
@@ -317,9 +334,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void FlatLand()
         {
-            for (int xx = 0; xx < Width; xx++)
-                for (int yy = 0; yy < Height; yy++)
-                    m_terrainData[xx, yy] = 21;
+            m_terrainData.ClearLand();
         }
     }
 }
