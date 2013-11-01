@@ -166,7 +166,7 @@ namespace pCampBot
         {
             ConnectionState = ConnectionState.Disconnected;
 
-            Random = new Random(Environment.TickCount);// We do stuff randomly here
+            Random = new Random(bm.Rng.Next());
             FirstName = firstName;
             LastName = lastName;
             Name = string.Format("{0} {1}", FirstName, LastName);
