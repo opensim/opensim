@@ -767,7 +767,7 @@ namespace OpenSim.Framework
                     RegionSizeX -= partial;
                     if (RegionSizeX == 0)
                         RegionSizeX = Constants.RegionSize;
-                    m_log.WarnFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeX={3} instead of specified {4}",
+                    m_log.ErrorFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeX={3} instead of specified {4}",
                         LogHeader, Constants.RegionSize, m_regionName, RegionSizeX, RegionSizeX + partial);
                 }
                 partial = RegionSizeY % Constants.RegionSize;
@@ -776,10 +776,22 @@ namespace OpenSim.Framework
                     RegionSizeY -= partial;
                     if (RegionSizeY == 0)
                         RegionSizeY = Constants.RegionSize;
-                    m_log.WarnFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeY={3} instead of specified {4}",
+                    m_log.ErrorFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeY={3} instead of specified {4}",
                         LogHeader, Constants.RegionSize, m_regionName, RegionSizeY, RegionSizeY + partial);
                 }
-                m_log.InfoFormat("{0} Region {1} size set to x={2}, y={3}", LogHeader, m_regionName, RegionSizeX, RegionSizeY);
+
+                // Because of things in the viewer, regions MUST be square.
+                // Remove this check when viewers have been updated.
+                if (RegionSizeX != RegionSizeY)
+                {
+                    uint minSize = Math.Min(RegionSizeX, RegionSizeY);
+                    RegionSizeX = minSize;
+                    RegionSizeY = minSize;
+                    m_log.ErrorFormat("{0} Regions must be square until viewers are updated. Forcing region {1} size to <{2},{3}>",
+                                                    LogHeader, m_regionName, RegionSizeX, RegionSizeY);
+                }
+
+                m_log.InfoFormat("{0} Region {1} size set to <{2},{3}>", LogHeader, m_regionName, RegionSizeX, RegionSizeY);
             }
         }
 
