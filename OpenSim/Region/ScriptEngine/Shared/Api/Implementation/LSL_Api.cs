@@ -3247,46 +3247,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // need the magnitude later
                 // float velmag = (float)Util.GetMagnitude(llvel);
 
-                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, rot, vel, param);
+                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, rot, vel, param);
 
                 // If either of these are null, then there was an unknown error.
-                if (new_group == null)
+                if (new_groups == null)
                     return;
 
-                // objects rezzed with this method are die_at_edge by default.
-                new_group.RootPart.SetDieAtEdge(true);
-
-                new_group.ResumeScripts();
-
-                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
-                        "object_rez", new Object[] {
-                        new LSL_String(
-                        new_group.RootPart.UUID.ToString()) },
-                        new DetectParams[0]));
-
-                // do recoil
-                SceneObjectGroup hostgrp = m_host.ParentGroup;
-                if (hostgrp == null)
-                    return;
-
-                if (hostgrp.IsAttachment) // don't recoil avatars
-                    return;
-
-                PhysicsActor pa = new_group.RootPart.PhysActor;
-
-                //Recoil.
-                if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
+                foreach (SceneObjectGroup group in new_groups)
                 {
-                    float groupmass = new_group.GetMass();
-                    Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
-                    if (recoil != Vector3.Zero)
-                    {
-                        llApplyImpulse(recoil, 0);
-                    }
-                }
-                // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                return;
+                    // objects rezzed with this method are die_at_edge by default.
+                    group.RootPart.SetDieAtEdge(true);
 
+                    group.ResumeScripts();
+
+                    m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                            "object_rez", new Object[] {
+                            new LSL_String(
+                            group.RootPart.UUID.ToString()) },
+                            new DetectParams[0]));
+
+                    float groupmass = group.GetMass();
+
+                    PhysicsActor pa = group.RootPart.PhysActor;
+
+                    //Recoil.
+                    if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
+                    {
+                        Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
+                        if (recoil != Vector3.Zero)
+                        {
+                            llApplyImpulse(recoil, 0);
+                        }
+                    }
+                    // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
+                }
+                return;
             });
 
             //ScriptSleep((int)((groupmass * velmag) / 10));

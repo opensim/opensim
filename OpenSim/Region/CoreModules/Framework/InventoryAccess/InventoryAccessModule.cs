@@ -789,83 +789,29 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             SceneObjectGroup group = null;
 
-            string xmlData = Utils.BytesToString(rezAsset.Data);
-            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>();
-            List<Vector3> veclist = new List<Vector3>();
+            List<SceneObjectGroup> objlist;
+            List<Vector3> veclist;
+            Vector3 bbox;
+            float offsetHeight;
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 pos;
 
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xmlData);
-            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
-            Vector3 rez_pos;
-            if (e == null || attachment) // Single
+            bool single = m_Scene.GetObjectsToRez(rezAsset.Data, attachment, out objlist, out veclist, out bbox, out offsetHeight);
+
+            if (single)
             {
-                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-                if (!attachment)
-                {
-                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
-                    g.RootPart.AttachOffset = g.AbsolutePosition;
-                    g.RootPart.AttachRotation = g.GroupRotation;
-                    if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
-                        g.RootPart.Shape.PCode != (byte)PCode.Tree)
-                        g.RootPart.Shape.State = 0;
-                }
-
-                objlist.Add(g);
-                veclist.Add(Vector3.Zero);
-
-                float offsetHeight = 0;
                 pos = m_Scene.GetNewRezLocation(
                     RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                    BypassRayCast, bRayEndIsIntersection, true, g.GetAxisAlignedBoundingBox(out offsetHeight), false);
+                    BypassRayCast, bRayEndIsIntersection, true, bbox, false);
                 pos.Z += offsetHeight;
-                rez_pos = pos;
             }
             else
             {
-                XmlElement coll = (XmlElement)e;
-                float bx = Convert.ToSingle(coll.GetAttribute("x"));
-                float by = Convert.ToSingle(coll.GetAttribute("y"));
-                float bz = Convert.ToSingle(coll.GetAttribute("z"));
-                Vector3 bbox = new Vector3(bx, by, bz);
-
                 pos = m_Scene.GetNewRezLocation(RayStart, RayEnd,
                         RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true,
                         bbox, false);
-
-                rez_pos = pos;
-
                 pos -= bbox / 2;
-
-                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
-                foreach (XmlNode n in groups)
-                {
-                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
-                    g.RootPart.AttachOffset = g.AbsolutePosition;
-                    g.RootPart.AttachRotation = g.GroupRotation;
-                    if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
-                        g.RootPart.Shape.PCode != (byte)PCode.Tree)
-                        g.RootPart.Shape.State = 0;
-
-                    objlist.Add(g);
-                    XmlElement el = (XmlElement)n;
-
-                    string rawX = el.GetAttribute("offsetx");
-                    string rawY = el.GetAttribute("offsety");
-                    string rawZ = el.GetAttribute("offsetz");
-//                        
-//                            m_log.DebugFormat(
-//                                "[INVENTORY ACCESS MODULE]: Converting coalesced object {0} offset <{1}, {2}, {3}>", 
-//                                g.Name, rawX, rawY, rawZ);
-
-                    float x = Convert.ToSingle(rawX);
-                    float y = Convert.ToSingle(rawY);
-                    float z = Convert.ToSingle(rawZ);
-                    veclist.Add(new Vector3(x, y, z));
-                }
             }
 
             int primcount = 0;
@@ -873,7 +819,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 primcount += g.PrimCount;
 
             if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, rez_pos)
+                primcount, remoteClient.AgentId, pos)
                 && !attachment)
             {
                 // The client operates in no fail mode. It will
@@ -890,7 +836,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, rez_pos, veclist, attachment))
+            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, veclist, attachment))
                 return null;
 
             for (int i = 0; i < objlist.Count; i++)

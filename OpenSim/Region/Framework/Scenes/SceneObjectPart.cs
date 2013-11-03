@@ -3158,7 +3158,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // This was pulled from SceneViewer. Attachments always receive full updates.
-            // I could not verify if this is a requirement but this maintains existing behavior
+            // This is needed because otherwise if only the root prim changes position, then
+            // it looks as if the entire object has moved (including the other prims).
             if (ParentGroup.IsAttachment)
             {
                 ScheduleFullUpdate();

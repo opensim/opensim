@@ -1,0 +1,27 @@
+# -----------------
+:VERSION 1
+
+BEGIN;
+
+CREATE TABLE XAssetsMeta (
+  "ID" char(36) NOT NULL,
+  "Hash" char(32) NOT NULL,
+  "Name" varchar(64) NOT NULL,
+  "Description" varchar(64) NOT NULL,
+  "AssetType" smallint NOT NULL,
+  "Local" smallint NOT NULL,
+  "Temporary" smallint NOT NULL,
+  "CreateTime" integer NOT NULL,
+  "AccessTime" integer NOT NULL,
+  "AssetFlags" integer NOT NULL,
+  "CreatorID" varchar(128) NOT NULL,
+  PRIMARY KEY ("ID")
+);
+
+CREATE TABLE XAssetsData (
+  "Hash" char(32) NOT NULL,
+  "Data" bytea NOT NULL,
+  PRIMARY KEY ("Hash")
+);
+
+COMMIT;

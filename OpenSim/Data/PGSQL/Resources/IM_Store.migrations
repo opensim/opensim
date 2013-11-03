@@ -1,0 +1,26 @@
+:VERSION 1         # -------------------------- 
+
+BEGIN Transaction;
+
+Create Sequence im_offiline_id increment by 1 start with 1;
+
+CREATE TABLE im_offline (
+  "ID" integer PRIMARY KEY NOT NULL DEFAULT nextval('im_offiline_id') ,
+  "PrincipalID" char(36) NOT NULL default '',
+  "Message" text NOT NULL,
+  "TMStamp" timestamp NOT NULL default now()
+);
+
+COMMIT;
+
+:VERSION 2         # -------------------------- 
+
+BEGIN;
+
+/*
+INSERT INTO `im_offline` SELECT * from `diva_im_offline`;
+DROP TABLE `diva_im_offline`;
+DELETE FROM `migrations` WHERE name='diva_im_Store';
+*/
+
+COMMIT;

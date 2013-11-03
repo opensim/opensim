@@ -252,8 +252,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.ParentGroup.RootPart.LocalId != part.LocalId)
                 return;
 
-            bool isAttachment = false;
-            
             // This is wrong, wrong, wrong. Selection should not be
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
@@ -262,17 +260,14 @@ namespace OpenSim.Region.Framework.Scenes
                 || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
                 part.ParentGroup.IsSelected = false;
             
-            if (part.ParentGroup.IsAttachment)
-                isAttachment = true;
-            else
-                part.ParentGroup.ScheduleGroupForFullUpdate();
+            part.ParentGroup.ScheduleGroupForFullUpdate();
 
             // If it's not an attachment, and we are allowed to move it,
             // then we might have done so. If we moved across a parcel
             // boundary, we will need to recount prims on the parcels.
             // For attachments, that makes no sense.
             //
-            if (!isAttachment)
+            if (!part.ParentGroup.IsAttachment)
             {
                 if (Permissions.CanEditObject(
                         part.UUID, remoteClient.AgentId) 

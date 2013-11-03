@@ -33,6 +33,7 @@ using OpenSim.Framework;
 
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
@@ -119,6 +120,14 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
             else
             {
+                // Check if the xfer is a terrain xfer
+                IEstateModule estateModule = m_Scene.RequestModuleInterface<IEstateModule>();
+                if (estateModule != null)
+                {
+                    if (estateModule.IsTerrainXfer(xferID))
+                        return;
+                }
+                
                 m_log.ErrorFormat(
                     "[AGENT ASSET TRANSACTIONS]: Could not find uploader for xfer id {0}, packet id {1}, data length {2}",
                     xferID, packetID, data.Length);

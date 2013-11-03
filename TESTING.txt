@@ -1,4 +1,4 @@
-= The Quick Guide to OpenSim Unit Testing =
+= The Quick Guide to OpenSim Unit Testing = 
 
 == Running Tests ==
 

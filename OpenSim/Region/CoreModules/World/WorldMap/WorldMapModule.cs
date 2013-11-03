@@ -162,7 +162,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             regionimage = regionimage.Replace("-", "");
             m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "index.php?method=" + regionimage);
 
-            MainServer.Instance.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
+            MainServer.Instance.AddHTTPHandler(regionimage,
+                new GenericHTTPDOSProtector(OnHTTPGetMapImage, OnHTTPThrottled, new BasicDosProtectorOptions()
+                    {
+                        AllowXForwardedFor = false,
+                        ForgetTimeSpan = TimeSpan.FromMinutes(2),
+                        MaxRequestsInTimeframe = 4,
+                        ReportingName = "MAPDOSPROTECTOR",
+                        RequestTimeSpan = TimeSpan.FromSeconds(10),
+                        ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
+                    }).Process);
             MainServer.Instance.AddLLSDHandler(
                 "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
 
@@ -1129,6 +1138,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             block.Name = r.RegionName;
             block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
             block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
+        }
+
+        public Hashtable OnHTTPThrottled(Hashtable keysvals)
+        {
+            Hashtable reply = new Hashtable();
+            int statuscode = 500;
+            reply["str_response_string"] = "";
+            reply["int_response_code"] = statuscode;
+            reply["content_type"] = "text/plain";
+            return reply;
         }
 
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)

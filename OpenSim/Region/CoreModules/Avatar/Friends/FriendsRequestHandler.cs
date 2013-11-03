@@ -42,14 +42,22 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
-    public class FriendsRequestHandler : BaseStreamHandler
+    public class FriendsRequestHandler : BaseStreamHandlerBasicDOSProtector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private FriendsModule m_FriendsModule;
 
         public FriendsRequestHandler(FriendsModule fmodule)
-                : base("POST", "/friends")
+                : base("POST", "/friends", new BasicDosProtectorOptions()
+                                          {
+                                              AllowXForwardedFor = true,
+                                              ForgetTimeSpan = TimeSpan.FromMinutes(2),
+                                              MaxRequestsInTimeframe = 20,
+                                              ReportingName = "FRIENDSDOSPROTECTOR",
+                                              RequestTimeSpan = TimeSpan.FromSeconds(5),
+                                              ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
+                                          })
         {
             m_FriendsModule = fmodule;
         }

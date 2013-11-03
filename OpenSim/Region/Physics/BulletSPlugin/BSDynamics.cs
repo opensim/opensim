@@ -1125,7 +1125,19 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     // If body is already heigher, use its height as target height
                     if (VehiclePosition.Z > m_VhoverTargetHeight)
+                    {
                         m_VhoverTargetHeight = VehiclePosition.Z;
+
+                        // A 'misfeature' of this flag is that if the vehicle is above it's hover height,
+                        //     the vehicle's buoyancy goes away. This is an SL bug that got used by so many
+                        //    scripts that it could not be changed.
+                        // So, if above the height, reapply gravity if buoyancy had it turned off.
+                        if (m_VehicleBuoyancy != 0)
+                        {
+                            Vector3 appliedGravity = ControllingPrim.ComputeGravity(ControllingPrim.Buoyancy) * m_vehicleMass;
+                            VehicleAddForce(appliedGravity);
+                        }
+                    }
                 }
 
                 if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)

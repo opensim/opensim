@@ -1,0 +1,94 @@
+:VERSION 1
+
+CREATE TABLE assets (
+  "id" varchar(36) NOT NULL PRIMARY KEY,
+  "name" varchar(64) NOT NULL,
+  "description" varchar(64) NOT NULL,
+  "assetType" smallint NOT NULL,
+  "local" smallint NOT NULL,
+  "temporary" smallint NOT NULL,
+  "data" bytea NOT NULL
+) ;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_assets
+	(
+	"id" varchar(36) NOT NULL,
+	"name" varchar(64) NOT NULL,
+	"description" varchar(64) NOT NULL,
+	"assetType" smallint NOT NULL,
+	"local" boolean NOT NULL,
+	"temporary" boolean NOT NULL,
+	"data" bytea NOT NULL
+	) ; 
+
+INSERT INTO Tmp_assets ("id", "name", "description", "assetType", "local", "temporary", "data")
+ SELECT "id", "name", "description", "assetType", case when "local" = 1 then true else false end, case when "temporary" = 1 then true else false end, "data" 
+   FROM assets ;
+
+DROP TABLE assets;
+
+Alter table Tmp_assets
+  rename to assets;
+
+ALTER TABLE assets ADD PRIMARY KEY ("id");
+
+COMMIT;
+
+
+:VERSION 3
+
+BEGIN TRANSACTION;
+
+ALTER TABLE assets add "create_time" integer default 0;
+ALTER TABLE assets add "access_time" integer default 0;
+
+COMMIT;
+
+
+:VERSION 4
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_assets
+	(
+	"id" uuid NOT NULL,
+	"name" varchar(64) NOT NULL,
+	"description" varchar(64) NOT NULL,
+	"assetType" smallint NOT NULL,
+	"local" boolean NOT NULL,
+	"temporary" boolean NOT NULL,
+	"data" bytea NOT NULL,
+	"create_time" int NULL,
+	"access_time" int NULL
+	)  ;
+	 
+
+INSERT INTO Tmp_assets ("id", "name", "description", "assetType", "local", "temporary", "data", "create_time", "access_time")
+		SELECT cast("id" as uuid), "name", "description", "assetType", "local", "temporary", "data", "create_time", "access_time" 
+		FROM assets ;
+
+DROP TABLE assets;
+
+Alter table Tmp_assets
+  rename to assets;
+
+ ALTER TABLE assets ADD PRIMARY KEY ("id");
+
+COMMIT;
+
+
+:VERSION 5
+
+DELETE FROM assets WHERE "id" = 'dc4b9f0b-d008-45c6-96a4-01dd947ac621';
+
+:VERSION 6
+
+ALTER TABLE assets ADD "asset_flags" INTEGER NOT NULL DEFAULT 0;
+
+:VERSION 7
+
+alter table assets add "creatorid" varchar(36) not null default '';

@@ -31,6 +31,7 @@ using System.Collections;
 using System.Reflection;
 using System.Text;
 using System.Timers;
+using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
@@ -2301,6 +2302,85 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Returns the list of Scene Objects in an asset.
+        /// </summary>
+        /// <remarks>
+        /// Returns one object if the asset is a regular object, and multiple objects for a coalesced object.
+        /// </remarks>
+        /// <param name="assetData">Asset data</param>
+        /// <param name="attachment">Whether the item is an attachment</param>
+        /// <param name="objlist">The objects included in the asset</param>
+        /// <param name="veclist">Relative positions of the objects</param>
+        /// <param name="bbox">Bounding box of all the objects</param>
+        /// <param name="offsetHeight">Offset in the Z axis from the centre of the bounding box
+        /// to the centre of the root prim (relevant only when returning a single object)</param>
+        /// <returns>true = returning a single object; false = multiple objects</returns>
+        public bool GetObjectsToRez(byte[] assetData, bool attachment, out List<SceneObjectGroup> objlist, out List<Vector3> veclist,
+            out Vector3 bbox, out float offsetHeight)
+        {
+            objlist = new List<SceneObjectGroup>();
+            veclist = new List<Vector3>();
+
+            XmlDocument doc = new XmlDocument();
+            string xmlData = Utils.BytesToString(assetData);
+            doc.LoadXml(xmlData);
+            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+
+            if (e == null || attachment) // Single
+            {
+                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+
+                g.RootPart.AttachPoint = g.RootPart.Shape.State;
+                g.RootPart.AttachOffset = g.AbsolutePosition;
+                g.RootPart.AttachRotation = g.GroupRotation;
+                if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
+                    g.RootPart.Shape.PCode != (byte)PCode.Tree)
+                g.RootPart.Shape.State = 0;
+
+                objlist.Add(g);
+                veclist.Add(new Vector3(0, 0, 0));
+                bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
+                return true;
+            }
+            else
+            {
+                XmlElement coll = (XmlElement)e;
+                float bx = Convert.ToSingle(coll.GetAttribute("x"));
+                float by = Convert.ToSingle(coll.GetAttribute("y"));
+                float bz = Convert.ToSingle(coll.GetAttribute("z"));
+                bbox = new Vector3(bx, by, bz);
+                offsetHeight = 0;
+
+                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                foreach (XmlNode n in groups)
+                {
+                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+
+                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
+                    g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.AttachRotation = g.GroupRotation;
+                    if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
+                        g.RootPart.Shape.PCode != (byte)PCode.Tree)
+                    g.RootPart.Shape.State = 0;
+
+                    objlist.Add(g);
+
+                    XmlElement el = (XmlElement)n;
+                    string rawX = el.GetAttribute("offsetx");
+                    string rawY = el.GetAttribute("offsety");
+                    string rawZ = el.GetAttribute("offsetz");
+
+                    float x = Convert.ToSingle(rawX);
+                    float y = Convert.ToSingle(rawY);
+                    float z = Convert.ToSingle(rawZ);
+                    veclist.Add(new Vector3(x, y, z));
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Event Handler Rez an object into a scene
         /// Calls the non-void event handler
         /// </summary>
@@ -2375,19 +2455,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// will be used if it exists.</param>
         /// <param name="vel">The velocity of the rezzed object.</param>
         /// <param name="param"></param>
-        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful</returns>
-        public virtual SceneObjectGroup RezObject(
+        /// <returns>The SceneObjectGroup(s) rezzed, or null if rez was unsuccessful</returns>
+        public virtual List<SceneObjectGroup> RezObject(
             SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param)
         {
             if (null == item)
                 return null;
+
+            List<SceneObjectGroup> objlist;
+            List<Vector3> veclist;
             
-            SceneObjectGroup group = sourcePart.Inventory.GetRezReadySceneObject(item);
-            
-            if (null == group)
+            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist);
+            if (!success)
                 return null;
-            
-            if (!Permissions.CanRezObject(group.PrimCount, item.OwnerID, pos))
+
+            int totalPrims = 0;
+            foreach (SceneObjectGroup group in objlist)
+                totalPrims += group.PrimCount;
+
+            if (!Permissions.CanRezObject(totalPrims, item.OwnerID, pos))
                 return null;
 
             if (!Permissions.BypassPermissions())
@@ -2396,23 +2482,28 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
 
-
-            if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
+            for (int i = 0; i < objlist.Count; i++)
             {
-                group.RootPart.AttachedPos = group.AbsolutePosition;
-                group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+                SceneObjectGroup group = objlist[i];
+                Vector3 curpos = pos + veclist[i];
+
+                if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
+                {
+                    group.RootPart.AttachedPos = group.AbsolutePosition;
+                    group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+                }
+
+                group.FromPartID = sourcePart.UUID;
+                AddNewSceneObject(group, true, curpos, rot, vel);
+
+                // We can only call this after adding the scene object, since the scene object references the scene
+                // to find out if scripts should be activated at all.
+                group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
+
+                group.ScheduleGroupForFullUpdate();
             }
-                                    
-            group.FromPartID = sourcePart.UUID;
-            AddNewSceneObject(group, true, pos, rot, vel);
-            
-            // We can only call this after adding the scene object, since the scene object references the scene
-            // to find out if scripts should be activated at all.
-            group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
-            
-            group.ScheduleGroupForFullUpdate();
-        
-            return group;
+
+            return objlist;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,

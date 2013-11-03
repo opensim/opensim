@@ -88,6 +88,15 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 ;ConsolePort = 0
 
 [DatabaseService]
+    ; PGSQL
+    ; Uncomment these lines if you want to use PGSQL storage
+    ; Change the connection string to your db details
+    ;StorageProvider = "OpenSim.Data.PGSQL.dll"
+    ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
+
+    ; MySQL
+    ; Uncomment these lines if you want to use MySQL storage
+    ; Change the connection string to your db details
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
 
@@ -355,6 +364,25 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     ;;   "America/Los_Angeles;Pacific Standard Time" use these timezone names to look up Daylight savings.
     ;;      'America/Los_Angeles' is used on Linux/Mac systems whilst 'Pacific Standard Time' is used on Windows
     DSTZone = "America/Los_Angeles;Pacific Standard Time"
+
+    ;Basic Login Service Dos Protection Tweaks
+    ;;
+    ;; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true
+    ;; If you set this to true and you don't have a transparent proxy, it may allow attackers to put random things in the X-Forwarded-For header to
+    ;;     get around this basic DOS protection.
+    ;DOSAllowXForwardedForHeader = false
+    ;;
+    ;; The protector adds up requests during this rolling period of time, default 10 seconds
+    ;DOSRequestTimeFrameMS = 10000
+    ;;
+    ;; The amount of requests in the above timeframe from the same endpoint that triggers protection
+    ;DOSMaxRequestsInTimeFrame = 5
+    ;;
+    ;; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
+    ;DOSForgiveClientAfterMS = 120000
+    ;; 
+    ;; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
+
 
 [MapImageService]
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"

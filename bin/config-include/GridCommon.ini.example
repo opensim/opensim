@@ -26,6 +26,12 @@
     ;StorageProvider = "OpenSim.Data.MSSQL.dll"
     ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
 
+    ; PGSQL
+    ; Uncomment these lines if you want to use PGSQL storage
+    ; Change the connection string to your db details
+    ;StorageProvider = "OpenSim.Data.PGSQL.dll"
+    ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
+
 [Hypergrid]
     ; Uncomment the variables in this section only if you are in
     ; Hypergrid configuration. Otherwise, ignore.

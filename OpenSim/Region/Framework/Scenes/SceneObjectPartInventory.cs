@@ -881,8 +881,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             return items;
         }
-        
-        public SceneObjectGroup GetRezReadySceneObject(TaskInventoryItem item)
+
+        public bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist)
         {
             AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
 
@@ -891,70 +891,79 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[PRIM INVENTORY]: Could not find asset {0} for inventory item {1} in {2}", 
                     item.AssetID, item.Name, m_part.Name);
-                return null;
+                objlist = null;
+                veclist = null;
+                return false;
             }
 
-            string xmlData = Utils.BytesToString(rezAsset.Data);
-            SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+            Vector3 bbox;
+            float offsetHeight;
 
-            group.RootPart.AttachPoint = group.RootPart.Shape.State;
-            group.RootPart.AttachOffset = group.AbsolutePosition;
-            group.RootPart.AttachRotation = group.GroupRotation;
+            bool single = m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
 
-            group.ResetIDs();
-
-            SceneObjectPart rootPart = group.GetPart(group.UUID);
-
-            // Since renaming the item in the inventory does not affect the name stored
-            // in the serialization, transfer the correct name from the inventory to the
-            // object itself before we rez.
-            rootPart.Name = item.Name;
-            rootPart.Description = item.Description;
-
-            SceneObjectPart[] partList = group.Parts;
-
-            group.SetGroup(m_part.GroupID, null);
-
-            // TODO: Remove magic number badness
-            if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+            for (int i = 0; i < objlist.Count; i++)
             {
-                if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
-                {
-                    foreach (SceneObjectPart part in partList)
-                    {
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                            part.EveryoneMask = item.EveryonePermissions;
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                            part.NextOwnerMask = item.NextPermissions;
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                            part.GroupMask = item.GroupPermissions;
-                    }
-                    
-                    group.ApplyNextOwnerPermissions();
-                }
-            }
+                SceneObjectGroup group = objlist[i];
 
-            foreach (SceneObjectPart part in partList)
-            {
+                group.RootPart.AttachPoint = group.RootPart.Shape.State;
+                group.RootPart.AttachOffset = group.AbsolutePosition;
+                group.RootPart.AttachRotation = group.GroupRotation;
+
+                group.ResetIDs();
+
+                SceneObjectPart rootPart = group.GetPart(group.UUID);
+
+                // Since renaming the item in the inventory does not affect the name stored
+                // in the serialization, transfer the correct name from the inventory to the
+                // object itself before we rez.
+                rootPart.Name = item.Name;
+                rootPart.Description = item.Description;
+
+                SceneObjectPart[] partList = group.Parts;
+
+                group.SetGroup(m_part.GroupID, null);
+
                 // TODO: Remove magic number badness
-                if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
                 {
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = item.OwnerID;
-                    part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                    if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
+                    {
+                        foreach (SceneObjectPart part in partList)
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                part.EveryoneMask = item.EveryonePermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                part.NextOwnerMask = item.NextPermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                part.GroupMask = item.GroupPermissions;
+                        }
+
+                        group.ApplyNextOwnerPermissions();
+                    }
                 }
-                
-                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                    part.EveryoneMask = item.EveryonePermissions;
-                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                    part.NextOwnerMask = item.NextPermissions;
-                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                    part.GroupMask = item.GroupPermissions;
+
+                foreach (SceneObjectPart part in partList)
+                {
+                    // TODO: Remove magic number badness
+                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                    {
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = item.OwnerID;
+                        part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                    }
+
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                        part.EveryoneMask = item.EveryonePermissions;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                        part.NextOwnerMask = item.NextPermissions;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                        part.GroupMask = item.GroupPermissions;
+                }
+
+                rootPart.TrimPermissions();
             }
-            
-            rootPart.TrimPermissions(); 
-            
-            return group;
+
+            return true;
         }
         
         /// <summary>
