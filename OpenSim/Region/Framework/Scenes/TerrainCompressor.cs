@@ -116,7 +116,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             xPieces[0] = patchX;  // patch X dimension
             yPieces[0] = patchY;
 
-            return CreateLandPacket(terrData, xPieces, yPieces, (int)TerrainPatch.LayerType.Land);
+            byte landPacketType = (byte)TerrainPatch.LayerType.Land;
+            if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
+            {
+                // libOMV does not have a packet type defined for the extended parcel format.
+                // We just happen to know the extended parcel format code is one more than the usual code.
+                landPacketType++;
+            }
+
+            return CreateLandPacket(terrData, xPieces, yPieces, landPacketType);
         }
 
         /// <summary>
@@ -258,19 +266,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float zmax = -99999999.0f;
             float zmin = 99999999.0f;
 
-            for (int j = patchY*16; j < (patchY + 1)*16; j++)
+            for (int j = patchY*Constants.TerrainPatchSize; j < (patchY + 1)*Constants.TerrainPatchSize; j++)
             {
-                for (int i = patchX*16; i < (patchX + 1)*16; i++)
+                for (int i = patchX*Constants.TerrainPatchSize; i < (patchX + 1)*Constants.TerrainPatchSize; i++)
                 {
-                    // short val = heightmap[j*pRegionSizeX + i];
                     float val = terrData[i, j];
                     if (val > zmax) zmax = val;
                     if (val < zmin) zmin = val;
                 }
             }
 
-            // Since the the min and max values are the shorts, rescale to be real values.
-            // TODO: all this logic should go into the class wrapping the short values.
             header.DCOffset = zmin;
             header.Range = (int)(zmax - zmin + 1.0f);
 
@@ -816,26 +821,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int k = 0;
 
-            int jPatchLimit = patchY;
-            if (patchY >= (terrData.SizeY / Constants.TerrainPatchSize))
-            {
-                jPatchLimit = (int)(terrData.SizeY - Constants.TerrainPatchSize) / Constants.TerrainPatchSize;
-            }
-            jPatchLimit = (jPatchLimit + 1) * Constants.TerrainPatchSize;
+            int yPatchLimit = patchY >= (terrData.SizeY / Constants.TerrainPatchSize) ?
+                            (terrData.SizeY - Constants.TerrainPatchSize) / Constants.TerrainPatchSize : patchY;
+            yPatchLimit = (yPatchLimit + 1) * Constants.TerrainPatchSize;
 
-            int iPatchLimit = patchX;
-            if (patchX >= (terrData.SizeX / Constants.TerrainPatchSize))
-            {
-                iPatchLimit = (int)(terrData.SizeX - Constants.TerrainPatchSize) / Constants.TerrainPatchSize;
-            }
-            iPatchLimit = (iPatchLimit + 1) * Constants.TerrainPatchSize;
+            int xPatchLimit = patchX >= (terrData.SizeX / Constants.TerrainPatchSize) ?
+                            (terrData.SizeX - Constants.TerrainPatchSize) / Constants.TerrainPatchSize : patchX;
+            xPatchLimit = (xPatchLimit + 1) * Constants.TerrainPatchSize;
 
-            for (int j = patchY * Constants.TerrainPatchSize; j < jPatchLimit; j++)
+            for (int yy = patchY * Constants.TerrainPatchSize; yy < yPatchLimit; yy++)
             {
-                for (int i = patchX * Constants.TerrainPatchSize; i < iPatchLimit; i++)
+                for (int xx = patchX * Constants.TerrainPatchSize; xx < xPatchLimit; xx++)
                 {
-                    // block[k++] = (heightmap[j*pRegionSizeX + i])*premult - sub;
-                    block[k++] = terrData[i, j] * premult - sub;
+                    block[k++] = terrData[xx, yy] * premult - sub;
                 }
             }
 
