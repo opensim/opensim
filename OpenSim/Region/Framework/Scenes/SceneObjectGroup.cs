@@ -109,6 +109,9 @@ namespace OpenSim.Region.Framework.Scenes
             STATUS_ROTATE_Z = 0x008,
         }
 
+        // This flag has the same purpose as InventoryItemFlags.ObjectSlamPerm
+        public static readonly uint SLAM = 16;
+
         // private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
         /// <summary>

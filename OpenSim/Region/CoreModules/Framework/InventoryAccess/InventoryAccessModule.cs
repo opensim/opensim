@@ -512,10 +512,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
                 
-                // Magic number badness. Maybe this deserves an enum.
-                // bit 4 (16) is the "Slam" bit, it means treat as passed
-                // and apply next owner perms on rez
-                item.CurrentPermissions |= 16; // Slam!
+                // apply next owner perms on rez
+                item.CurrentPermissions |= SceneObjectGroup.SLAM;
             }
             else
             {
@@ -809,11 +807,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
                 }
 
-                foreach (SceneObjectPart part in group.Parts)
+                if (item == null)
                 {
-                    // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = remoteClient.AgentId;
+                    // Change ownership. Normally this is done in DoPreRezWhenFromItem(), but in this case we must do it here.
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = remoteClient.AgentId;
+                    }
                 }
 
                 if (!attachment)
@@ -969,44 +971,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    "[INVENTORY ACCESS MODULE]: rootPart.OwnedID {0}, item.Owner {1}, item.CurrentPermissions {2:X}",
 //                    rootPart.OwnerID, item.Owner, item.CurrentPermissions);
 
-                if ((rootPart.OwnerID != item.Owner) ||
-                    (item.CurrentPermissions & 16) != 0)
+                if ((rootPart.OwnerID != item.Owner) || (item.CurrentPermissions & SceneObjectGroup.SLAM) != 0)
                 {
                     //Need to kill the for sale here
                     rootPart.ObjectSaleType = 0;
                     rootPart.SalePrice = 10;
-    
-                    if (m_Scene.Permissions.PropagatePermissions())
-                    {
-                        foreach (SceneObjectPart part in so.Parts)
-                        {
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                            {
-                                part.EveryoneMask = item.EveryOnePermissions;
-                                part.NextOwnerMask = item.NextPermissions;
-                            }
-                            part.GroupMask = 0; // DO NOT propagate here
-                        }
-    
-                        so.ApplyNextOwnerPermissions();
-                    }
                 }
-    
+
                 foreach (SceneObjectPart part in so.Parts)
                 {
                     part.FromUserInventoryItemID = fromUserInventoryItemId;
-
-                    if ((part.OwnerID != item.Owner) ||
-                        (item.CurrentPermissions & 16) != 0)
-                    {
-                        part.Inventory.ChangeInventoryOwner(item.Owner);
-                        part.GroupMask = 0; // DO NOT propagate here
-                    }
-
-                    part.EveryoneMask = item.EveryOnePermissions;
-                    part.NextOwnerMask = item.NextPermissions;
+                    part.ApplyPermissionsOnRez(item, true, m_Scene);
                 }
-    
+
                 rootPart.TrimPermissions();
 
                 if (isAttachment)
