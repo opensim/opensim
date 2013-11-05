@@ -2009,22 +2009,6 @@ namespace OpenSim.Data.SQLite
             return entry;
         }
 
-        //         private void fillTerrainRow(DataRow row, UUID regionUUID, int rev, double[,] val)
-        //         {
-        //             row["RegionUUID"] = regionUUID;
-        //             row["Revision"] = rev;
-
-        //             MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize)*sizeof (double));
-        //             BinaryWriter bw = new BinaryWriter(str);
-
-        //             // TODO: COMPATIBILITY - Add byte-order conversions
-        //             for (int x = 0; x < (int)Constants.RegionSize; x++)
-        //                 for (int y = 0; y < (int)Constants.RegionSize; y++)
-        //                     bw.Write(val[x, y]);
-
-        //             row["Heightfield"] = str.ToArray();
-        //         }
-
         /// <summary>
         ///
         /// </summary>

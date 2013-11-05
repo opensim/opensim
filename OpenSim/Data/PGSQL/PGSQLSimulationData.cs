@@ -1364,30 +1364,6 @@ namespace OpenSim.Data.PGSQL
         #region Private Methods
 
         /// <summary>
-        /// Serializes the terrain data for storage in DB.
-        /// </summary>
-        /// <param name="val">terrain data</param>
-        /// <returns></returns>
-        private static Array serializeTerrain(double[,] val)
-        {
-            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) * sizeof(double));
-            BinaryWriter bw = new BinaryWriter(str);
-
-            // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
-                {
-                    double height = val[x, y];
-                    if (height == 0.0)
-                        height = double.Epsilon;
-
-                    bw.Write(height);
-                }
-
-            return str.ToArray();
-        }
-
-        /// <summary>
         /// Stores new regionsettings.
         /// </summary>
         /// <param name="regionSettings">The region settings.</param>
