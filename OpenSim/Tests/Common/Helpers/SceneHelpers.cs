@@ -186,8 +186,9 @@ namespace OpenSim.Tests.Common
 
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
+            Vector3 regionExtent = new Vector3( regInfo.RegionSizeX, regInfo.RegionSizeY, regInfo.RegionSizeZ);
             testScene.PhysicsScene
-                = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", new IniConfigSource(), "test");
+                = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", new IniConfigSource(), "test", regionExtent);
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsEnabled = true;

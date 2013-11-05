@@ -58,7 +58,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         {
             initialMap[ii] = BSTerrainManager.HEIGHT_INITIALIZATION;
         }
-        m_mapInfo = new BulletHMapInfo(id, initialMap);
+        m_mapInfo = new BulletHMapInfo(id, initialMap, regionSize.X, regionSize.Y);
         m_mapInfo.minCoords = minTerrainCoords;
         m_mapInfo.maxCoords = maxTerrainCoords;
         m_mapInfo.terrainRegionBase = TerrainBase;
@@ -72,7 +72,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
                                                     Vector3 minCoords, Vector3 maxCoords)
         : base(physicsScene, regionBase, id)
     {
-        m_mapInfo = new BulletHMapInfo(id, initialMap);
+        m_mapInfo = new BulletHMapInfo(id, initialMap, maxCoords.X - minCoords.X, maxCoords.Y - minCoords.Y);
         m_mapInfo.minCoords = minCoords;
         m_mapInfo.maxCoords = maxCoords;
         m_mapInfo.minZ = minCoords.Z;

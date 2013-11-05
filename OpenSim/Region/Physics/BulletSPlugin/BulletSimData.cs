@@ -165,14 +165,15 @@ public class BulletConstraint
 //      than making copies.
 public class BulletHMapInfo
 {
-    public BulletHMapInfo(uint id, float[] hm) {
+    public BulletHMapInfo(uint id, float[] hm, float pSizeX, float pSizeY) {
         ID = id;
         heightMap = hm;
         terrainRegionBase = OMV.Vector3.Zero;
         minCoords = new OMV.Vector3(100f, 100f, 25f);
         maxCoords = new OMV.Vector3(101f, 101f, 26f);
         minZ = maxZ = 0f;
-        sizeX = sizeY = 256f;
+        sizeX = pSizeX;
+        sizeY = pSizeY;
     }
     public uint ID;
     public float[] heightMap;

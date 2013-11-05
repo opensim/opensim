@@ -210,6 +210,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
+        m_log.ErrorFormat("{0} WARNING WARNING WARNING! BulletSim initialized without region extent specification. Terrain will be messed up.");
+        Vector3 regionExtent = new Vector3( Constants.RegionSize, Constants.RegionSize, Constants.RegionSize);
+        Initialise(meshmerizer, config, regionExtent);
+        
+    }
+
+    public override void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
+    {
         mesher = meshmerizer;
         _taintOperations = new List<TaintCallbackEntry>();
         _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
@@ -250,13 +258,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         //    a child in a mega-region.
         // Bullet actually doesn't care about the extents of the simulated
         //    area. It tracks active objects no matter where they are.
-        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+        Vector3 worldExtent = regionExtent;
 
         World = PE.Initialize(worldExtent, Params, m_maxCollisionsPerFrame, ref m_collisionArray, m_maxUpdatesPerFrame, ref m_updateArray);
 
         Constraints = new BSConstraintCollection(World);
 
-        TerrainManager = new BSTerrainManager(this);
+        TerrainManager = new BSTerrainManager(this, worldExtent);
         TerrainManager.CreateInitialGroundPlaneAndTerrain();
 
         // Put some informational messages into the log file.

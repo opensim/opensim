@@ -111,9 +111,11 @@ public sealed class BSTerrainManager : IDisposable
     private Vector3 m_worldMax;
     private PhysicsScene MegaRegionParentPhysicsScene { get; set; }
 
-    public BSTerrainManager(BSScene physicsScene)
+    public BSTerrainManager(BSScene physicsScene, Vector3 regionSize)
     {
         m_physicsScene = physicsScene;
+        DefaultRegionSize = regionSize;
+
         m_terrains = new Dictionary<Vector3,BSTerrainPhys>();
 
         // Assume one region of default size
@@ -268,7 +270,7 @@ public sealed class BSTerrainManager : IDisposable
             {
                 // There is already a terrain in this spot. Free the old and build the new.
                 DetailLog("{0},BSTErrainManager.UpdateTerrain:UpdateExisting,call,id={1},base={2},minC={3},maxC={4}",
-                                BSScene.DetailLogZero, id, terrainRegionBase, minCoords, minCoords);
+                                BSScene.DetailLogZero, id, terrainRegionBase, minCoords, maxCoords);
 
                 // Remove old terrain from the collection
                 m_terrains.Remove(terrainRegionBase);
