@@ -443,12 +443,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
-                AddPermissions(item, objlist[0], objlist, remoteClient);
-
                 item.CreationDate = Util.UnixTimeSinceEpoch();
                 item.Description = asset.Description;
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
+
+                AddPermissions(item, objlist[0], objlist, remoteClient);
 
                 m_Scene.AddInventoryItem(item);
 
@@ -495,16 +495,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 effectivePerms &= grp.GetEffectivePermissions();
             effectivePerms |= (uint)PermissionMask.Move;
 
+            //PermissionsUtil.LogPermissions(item.Name, "Before AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);
+
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
                 uint perms = effectivePerms;
-                uint nextPerms = (perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
+                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref perms);
 
                 item.BasePermissions = perms & so.RootPart.NextOwnerMask;
                 item.CurrentPermissions = item.BasePermissions;
@@ -530,8 +526,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
                          7); // Preserve folded permissions
-            }    
-            
+            }
+
+            //PermissionsUtil.LogPermissions(item.Name, "After AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);            
+
             return item;
         }
         
