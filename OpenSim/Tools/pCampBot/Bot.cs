@@ -276,7 +276,7 @@ namespace pCampBot
         //add additional steps and/or things the bot should do
         private void Action()
         {
-            while (ConnectionState != ConnectionState.Disconnecting)
+            while (ConnectionState == ConnectionState.Connected)
             {
                 lock (Behaviours)
                 {
