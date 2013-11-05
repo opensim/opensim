@@ -49,12 +49,10 @@ using OpenSim.Capabilities.Handlers;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AvatarPickerSearchModule")]
     public class AvatarPickerSearchModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
         private IPeople m_People;
@@ -134,6 +132,5 @@ namespace OpenSim.Region.ClientStack.Linden
                 caps.RegisterHandler("AvatarPickerSearch", m_URL);
             }
         }
-
     }
 }

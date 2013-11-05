@@ -147,6 +147,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "OutgoingPacketsResentCount",
+                    "Number of packets resent because a client did not acknowledge receipt",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.PacketsResentCount,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "AverageUDPProcessTime",
                     "Average number of milliseconds taken to process each incoming UDP packet in a sample.",
                     "This is for initial receive processing which is separate from the later client LL packet processing stage.",
@@ -293,6 +306,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool m_disableFacelights = false;
 
         public Socket Server { get { return null; } }
+
+        /// <summary>
+        /// Record how many packets have been resent
+        /// </summary>
+        internal int PacketsResentCount { get; set; }
+
+        /// <summary>
+        /// Record how many packets have been sent
+        /// </summary>
+        internal int PacketsSentCount { get; set; }
 
         /// <summary>
         /// Record how many inbound packets could not be recognized as LLUDP packets.
@@ -1214,12 +1237,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 Interlocked.Increment(ref udpClient.PacketsResent);
+
+                // We're not going to worry about interlock yet since its not currently critical that this total count
+                // is 100% correct
+                PacketsResentCount++;
             }
 
             #endregion Sequence Number Assignment
 
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsSent);
+
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            PacketsSentCount++;
 
             // Put the UDP payload on the wire
             AsyncBeginSend(buffer);

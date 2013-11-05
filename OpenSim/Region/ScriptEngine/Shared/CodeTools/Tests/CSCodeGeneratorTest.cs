@@ -762,6 +762,7 @@ default
         public void TestIfStatement()
         {
             TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
 
             string input = @"// let's test if statements
 

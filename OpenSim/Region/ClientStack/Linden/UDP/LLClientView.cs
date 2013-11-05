@@ -3773,7 +3773,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber);
 
             // Count this as a resent packet since we are going to requeue all of the updates contained in it
-            Interlocked.Increment(ref m_udpClient.PacketsResent);
+            Interlocked.Increment(ref m_udpClient.PacketsResent);           
+
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            m_udpServer.PacketsResentCount++;
 
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
@@ -4334,6 +4338,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Count this as a resent packet since we are going to requeue all of the updates contained in it
             Interlocked.Increment(ref m_udpClient.PacketsResent);
+
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            m_udpServer.PacketsResentCount++;
 
             foreach (ObjectPropertyUpdate update in updates)
                 ResendPropertyUpdate(update);
