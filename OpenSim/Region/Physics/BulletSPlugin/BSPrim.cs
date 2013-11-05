@@ -376,18 +376,19 @@ public class BSPrim : BSPhysObject
     {
         bool ret = false;
 
-        uint wayOutThere = Constants.RegionSize * Constants.RegionSize;
+        int wayOverThere = -1000;
+        int wayOutThere = 10000;
         // There have been instances of objects getting thrown way out of bounds and crashing
         //    the border crossing code.
-        if (   RawPosition.X < -Constants.RegionSize || RawPosition.X > wayOutThere
-            || RawPosition.Y < -Constants.RegionSize || RawPosition.Y > wayOutThere
-            || RawPosition.Z < -Constants.RegionSize || RawPosition.Z > wayOutThere)
+        if (   RawPosition.X < wayOverThere || RawPosition.X > wayOutThere
+            || RawPosition.Y < wayOverThere || RawPosition.X > wayOutThere
+            || RawPosition.Z < wayOverThere || RawPosition.X > wayOutThere)
         {
             RawPosition = new OMV.Vector3(10, 10, 50);
             ZeroMotion(inTaintTime);
             ret = true;
         }
-        if (RawVelocity.LengthSquared() > BSParam.MaxLinearVelocity)
+        if (RawVelocity.LengthSquared() > BSParam.MaxLinearVelocitySquared)
         {
             RawVelocity = Util.ClampV(RawVelocity, BSParam.MaxLinearVelocity);
             ret = true;

@@ -842,9 +842,9 @@ namespace OpenSim.Region.Framework.Scenes
             maxX = -256f;
             maxY = -256f;
             maxZ = -256f;
-            minX = 256f;
-            minY = 256f;
-            minZ = 8192f;
+            minX = 10000f;
+            minY = 10000f;
+            minZ = 10000f;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)

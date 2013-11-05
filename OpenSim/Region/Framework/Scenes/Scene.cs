@@ -1033,7 +1033,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             BordersLocked = true;
             Border northBorder = new Border();
-            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
+            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (float)RegionInfo.RegionSizeY);  //<---
             northBorder.CrossDirection = Cardinals.N;
             NorthBorders.Add(northBorder);
 
@@ -1043,7 +1043,7 @@ namespace OpenSim.Region.Framework.Scenes
             SouthBorders.Add(southBorder);
 
             Border eastBorder = new Border();
-            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);   //<---
+            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (float)RegionInfo.RegionSizeY);   //<---
             eastBorder.CrossDirection = Cardinals.E;
             EastBorders.Add(eastBorder);
 
@@ -3994,12 +3994,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (posX < 0)
                 posX = 0;
-            else if (posX >= 256)
-                posX = 255.999f;
+            else if (posX >= (float)RegionInfo.RegionSizeX)
+                posX = (float)RegionInfo.RegionSizeX - 0.001f;
             if (posY < 0)
                 posY = 0;
-            else if (posY >= 256)
-                posY = 255.999f;
+            else if (posY >= (float)RegionInfo.RegionSizeY)
+                posY = (float)RegionInfo.RegionSizeY - 0.001f;
 
             reason = String.Empty;
             if (Permissions.IsGod(agentID))
