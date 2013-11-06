@@ -69,7 +69,7 @@
 
     ;# {PIDFile} {} {Path to PID file?} {}
     ;; Place to create a PID file
-    ; PIDFile = "/tmp/my.pid"
+    ; PIDFile = "/tmp/OpenSim.exe.pid"
 
     ;# {region_info_source} {} {Where to load region from?} {filesystem web} filesystem
     ;; Determine where OpenSimulator looks for the files which tell it
