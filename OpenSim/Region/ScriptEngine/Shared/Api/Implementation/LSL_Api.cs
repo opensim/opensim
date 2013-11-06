@@ -6270,6 +6270,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ps.BurstRate = 0.1f;
             ps.PartMaxAge = 10.0f;
             ps.BurstPartCount = 1;
+            ps.BlendFuncSource = ScriptBaseClass.PSYS_PART_BF_SOURCE_ALPHA;
+            ps.BlendFuncDest = ScriptBaseClass.PSYS_PART_BF_ONE_MINUS_SOURCE_ALPHA;
+
             return ps;
         }
 
@@ -6304,6 +6307,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSL_Vector tempv = new LSL_Vector();
 
                 float tempf = 0;
+                int tmpi = 0;
 
                 for (int i = 0; i < rules.Length; i += 2)
                 {
@@ -6362,7 +6366,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_PATTERN:
-                            int tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
 
@@ -6380,6 +6384,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.OuterAngle = (float)tempf;
                             prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_PART_BLEND_FUNC_SOURCE:
+                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            prules.BlendFuncSource = (byte)tmpi;
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_PART_BLEND_FUNC_DEST:
+                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            prules.BlendFuncDest = (byte)tmpi;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
