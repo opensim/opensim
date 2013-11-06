@@ -194,7 +194,8 @@ namespace OpenSim.Services.UserAccountService
 
         public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
-            m_log.DebugFormat("[GRID USER SERVICE]: SetLastPosition for {0}", userID);
+//            m_log.DebugFormat("[GRID USER SERVICE]: SetLastPosition for {0}", userID);
+
             GridUserData d = m_Database.Get(userID);
             if (d == null)
             {

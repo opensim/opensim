@@ -2573,58 +2573,6 @@
         <member name="F:OpenMetaverse.UUID.ZeroString">
             <summary>A cache of UUID.Zero as a string to optimize a common path</summary>
         </member>
-        <member name="T:OpenMetaverse.Parallel">
-            <summary>
-            Provides helper methods for parallelizing loops
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Action{System.Int32})">
-            <summary>
-            Executes a for loop in which iterations may run in parallel
-            </summary>
-            <param name="fromInclusive">The loop will be started at this index</param>
-            <param name="toExclusive">The loop will be terminated before this index is reached</param>
-            <param name="body">Method body to run for each iteration of the loop</param>
-        </member>
-        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Int32,System.Action{System.Int32})">
-            <summary>
-            Executes a for loop in which iterations may run in parallel
-            </summary>
-            <param name="threadCount">The number of concurrent execution threads to run</param>
-            <param name="fromInclusive">The loop will be started at this index</param>
-            <param name="toExclusive">The loop will be terminated before this index is reached</param>
-            <param name="body">Method body to run for each iteration of the loop</param>
-        </member>
-        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
-            <summary>
-            Executes a foreach loop in which iterations may run in parallel
-            </summary>
-            <typeparam name="T">Object type that the collection wraps</typeparam>
-            <param name="enumerable">An enumerable collection to iterate over</param>
-            <param name="body">Method body to run for each object in the collection</param>
-        </member>
-        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Int32,System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
-            <summary>
-            Executes a foreach loop in which iterations may run in parallel
-            </summary>
-            <typeparam name="T">Object type that the collection wraps</typeparam>
-            <param name="threadCount">The number of concurrent execution threads to run</param>
-            <param name="enumerable">An enumerable collection to iterate over</param>
-            <param name="body">Method body to run for each object in the collection</param>
-        </member>
-        <member name="M:OpenMetaverse.Parallel.Invoke(System.Action[])">
-            <summary>
-            Executes a series of tasks in parallel
-            </summary>
-            <param name="actions">A series of method bodies to execute</param>
-        </member>
-        <member name="M:OpenMetaverse.Parallel.Invoke(System.Int32,System.Action[])">
-            <summary>
-            Executes a series of tasks in parallel
-            </summary>
-            <param name="threadCount">The number of concurrent execution threads to run</param>
-            <param name="actions">A series of method bodies to execute</param>
-        </member>
         <member name="M:OpenMetaverse.CircularQueue`1.#ctor(OpenMetaverse.CircularQueue{`0})">
             <summary>
             Copy constructor
