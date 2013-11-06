@@ -412,17 +412,28 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item == null)
                 return null;
+
+            item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
+            item.CreatorData = objlist[0].RootPart.CreatorData;
                             
-            // Can't know creator is the same, so null it in inventory
             if (objlist.Count > 1)
             {
-                item.CreatorId = UUID.Zero.ToString();
                 item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
+                
+                // If the objects have different creators then don't specify a creator at all
+                foreach (SceneObjectGroup objectGroup in objlist)
+                {
+                    if ((objectGroup.RootPart.CreatorID.ToString() != item.CreatorId)
+                        || (objectGroup.RootPart.CreatorData.ToString() != item.CreatorData))
+                    {
+                        item.CreatorId = UUID.Zero.ToString();
+                        item.CreatorData = string.Empty;
+                        break;
+                    }
+                }
             }
             else
             {
-                item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
-                item.CreatorData = objlist[0].RootPart.CreatorData;
                 item.SaleType = objlist[0].RootPart.ObjectSaleType;
                 item.SalePrice = objlist[0].RootPart.SalePrice;                    
             }              
