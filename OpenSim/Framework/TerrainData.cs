@@ -168,9 +168,20 @@ namespace OpenSim.Framework
         // The user wants something to store in the database.
         public override bool GetDatabaseBlob(out int DBRevisionCode, out Array blob)
         {
-            DBRevisionCode = (int)DBTerrainRevision.Legacy256;
-            blob = ToLegacyTerrainSerialization();
-            return false;
+            bool ret = false;
+            if (SizeX == Constants.RegionSize && SizeY == Constants.RegionSize)
+            {
+                DBRevisionCode = (int)DBTerrainRevision.Legacy256;
+                blob = ToLegacyTerrainSerialization();
+                ret = true;
+            }
+            else
+            {
+                DBRevisionCode = (int)DBTerrainRevision.Compressed2D;
+                blob = ToCompressedTerrainSerialization();
+                ret = true;
+            }
+            return ret;
         }
 
         // TerrainData.CompressionFactor
@@ -391,7 +402,7 @@ namespace OpenSim.Framework
                         {
                             Int16 val = br.ReadInt16();
                             if (xx < SizeX && yy < SizeY)
-                                m_heightmap[xx, yy] = ToCompressedHeight(val);
+                                m_heightmap[xx, yy] = val;
                         }
                     }
                 }
