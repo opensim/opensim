@@ -7,7 +7,7 @@ people that make the day to day of OpenSim happen.
 
 * justincc (OSVW Consulting, justincc.org)
 * chi11ken (Genkii)
-* dahlia
+* dahlia 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
 * Dan Lake (Intel)
