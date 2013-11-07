@@ -502,8 +502,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             IClientAPI remoteClient)
         {
             uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export) | 7;
+            uint allObjectsNextOwnerPerms = 0x7fffffff;
+            uint allObjectsEveryOnePerms = 0x7fffffff;
+            uint allObjectsGroupPerms = 0x7fffffff;
+
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
+            {
                 effectivePerms &= grp.GetEffectivePermissions();
+                allObjectsNextOwnerPerms &= grp.RootPart.NextOwnerMask;
+                allObjectsEveryOnePerms &= grp.RootPart.EveryoneMask;
+                allObjectsGroupPerms &= grp.RootPart.GroupMask;
+            }
             effectivePerms |= (uint)PermissionMask.Move;
 
             //PermissionsUtil.LogPermissions(item.Name, "Before AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);
@@ -513,11 +522,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 uint perms = effectivePerms;
                 PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref perms);
 
-                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                item.BasePermissions = perms & allObjectsNextOwnerPerms;
                 item.CurrentPermissions = item.BasePermissions;
-                item.NextPermissions = perms & so.RootPart.NextOwnerMask;
-                item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
-                item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
+                item.NextPermissions = perms & allObjectsNextOwnerPerms;
+                item.EveryOnePermissions = allObjectsEveryOnePerms & allObjectsNextOwnerPerms;
+                item.GroupPermissions = allObjectsGroupPerms & allObjectsNextOwnerPerms;
                 
                 // apply next owner perms on rez
                 item.CurrentPermissions |= SceneObjectGroup.SLAM;
@@ -526,9 +535,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 item.BasePermissions = effectivePerms;
                 item.CurrentPermissions = effectivePerms;
-                item.NextPermissions = so.RootPart.NextOwnerMask & effectivePerms;
-                item.EveryOnePermissions = so.RootPart.EveryoneMask & effectivePerms;
-                item.GroupPermissions = so.RootPart.GroupMask & effectivePerms;
+                item.NextPermissions = allObjectsNextOwnerPerms & effectivePerms;
+                item.EveryOnePermissions = allObjectsEveryOnePerms & effectivePerms;
+                item.GroupPermissions = allObjectsGroupPerms & effectivePerms;
 
                 item.CurrentPermissions &=
                         ((uint)PermissionMask.Copy |
