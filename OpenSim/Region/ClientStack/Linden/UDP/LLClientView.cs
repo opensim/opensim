@@ -3842,7 +3842,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber);
 
             // Count this as a resent packet since we are going to requeue all of the updates contained in it
-            Interlocked.Increment(ref m_udpClient.PacketsResent);
+            Interlocked.Increment(ref m_udpClient.PacketsResent);           
+
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            m_udpServer.PacketsResentCount++;
 
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
@@ -4407,6 +4411,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Count this as a resent packet since we are going to requeue all of the updates contained in it
             Interlocked.Increment(ref m_udpClient.PacketsResent);
 
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            m_udpServer.PacketsResentCount++;
+
             foreach (ObjectPropertyUpdate update in updates)
                 ResendPropertyUpdate(update);
         }
@@ -4594,6 +4602,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SceneObjectPart root = sop.ParentGroup.RootPart;
 
             block.TouchName = Util.StringToBytes256(root.TouchName);
+
+            // SL 3.3.4, at least, appears to read this information as a concatenated byte[] stream of UUIDs but
+            // it's not yet clear whether this is actually used.  If this is done in the future then a pre-cached
+            // copy is really needed since it's less efficient to be constantly recreating this byte array.
+//            using (MemoryStream memStream = new MemoryStream())
+//            {
+//                using (BinaryWriter binWriter = new BinaryWriter(memStream))
+//                {
+//                    for (int i = 0; i < sop.GetNumberOfSides(); i++)               
+//                    {
+//                        Primitive.TextureEntryFace teFace = sop.Shape.Textures.FaceTextures[i];
+//
+//                        UUID textureID;
+//
+//                        if (teFace != null)
+//                            textureID = teFace.TextureID;
+//                        else
+//                            textureID = sop.Shape.Textures.DefaultTexture.TextureID;
+//
+//                        binWriter.Write(textureID.GetBytes());
+//                    }
+//
+//                    block.TextureID = memStream.ToArray();
+//                }
+//            }
+           
             block.TextureID = new byte[0]; // TextureID ???
             block.SitName = Util.StringToBytes256(root.SitName);
             block.OwnerMask = root.OwnerMask;

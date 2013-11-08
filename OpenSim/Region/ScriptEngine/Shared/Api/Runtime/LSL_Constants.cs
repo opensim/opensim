@@ -107,6 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PSYS_PART_TARGET_POS_MASK = 64;
         public const int PSYS_PART_TARGET_LINEAR_MASK = 128;
         public const int PSYS_PART_EMISSIVE_MASK = 256;
+        public const int PSYS_PART_RIBBON_MASK = 1024;
         public const int PSYS_PART_FLAGS = 0;
         public const int PSYS_PART_START_COLOR = 1;
         public const int PSYS_PART_START_ALPHA = 2;
@@ -130,6 +131,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PSYS_SRC_OMEGA = 21;
         public const int PSYS_SRC_ANGLE_BEGIN = 22;
         public const int PSYS_SRC_ANGLE_END = 23;
+        public const int PSYS_PART_BLEND_FUNC_SOURCE = 24;
+        public const int PSYS_PART_BLEND_FUNC_DEST = 25;
+        public const int PSYS_PART_START_GLOW = 26;
+        public const int PSYS_PART_END_GLOW = 27;
+        public const int PSYS_PART_BF_ONE = 0;
+        public const int PSYS_PART_BF_ZERO = 1;
+        public const int PSYS_PART_BF_DEST_COLOR = 2;
+        public const int PSYS_PART_BF_SOURCE_COLOR = 3;
+        public const int PSYS_PART_BF_ONE_MINUS_DEST_COLOR = 4;
+        public const int PSYS_PART_BF_ONE_MINUS_SOURCE_COLOR = 5;
+        public const int PSYS_PART_BF_SOURCE_ALPHA = 7;
+        public const int PSYS_PART_BF_ONE_MINUS_SOURCE_ALPHA = 9;
         public const int PSYS_SRC_PATTERN_DROP = 1;
         public const int PSYS_SRC_PATTERN_EXPLODE = 2;
         public const int PSYS_SRC_PATTERN_ANGLE = 4;

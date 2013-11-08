@@ -235,7 +235,8 @@ public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeM
     { CollisionType.Groundplane,
                 new CollisionTypeFilterGroup(CollisionType.Groundplane,
                                 (uint)CollisionFilterGroups.BGroundPlaneGroup,
-                                (uint)CollisionFilterGroups.BAllGroup)
+                                // (uint)CollisionFilterGroups.BAllGroup)
+                                (uint)(CollisionFilterGroups.BCharacterGroup | CollisionFilterGroups.BSolidGroup))
     },
     { CollisionType.Terrain,
                 new CollisionTypeFilterGroup(CollisionType.Terrain,

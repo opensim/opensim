@@ -176,57 +176,57 @@ namespace pCampBot
             }
 
             m_console.Commands.AddCommand(
-                "bot", false, "shutdown", "shutdown", "Shutdown bots and exit", HandleShutdown);
+                "Bots", false, "shutdown", "shutdown", "Shutdown bots and exit", HandleShutdown);
 
             m_console.Commands.AddCommand(
-                "bot", false, "quit", "quit", "Shutdown bots and exit", HandleShutdown);
+                "Bots", false, "quit", "quit", "Shutdown bots and exit", HandleShutdown);
 
             m_console.Commands.AddCommand(
-                "bot", false, "connect", "connect [<n>]", "Connect bots",
+                "Bots", false, "connect", "connect [<n>]", "Connect bots",
                 "If an <n> is given, then the first <n> disconnected bots by postfix number are connected.\n"
                     + "If no <n> is given, then all currently disconnected bots are connected.",
                 HandleConnect);
 
             m_console.Commands.AddCommand(
-                "bot", false, "disconnect", "disconnect [<n>]", "Disconnect bots",
+                "Bots", false, "disconnect", "disconnect [<n>]", "Disconnect bots",
                 "Disconnecting bots will interupt any bot connection process, including connection on startup.\n"
                     + "If an <n> is given, then the last <n> connected bots by postfix number are disconnected.\n"
                     + "If no <n> is given, then all currently connected bots are disconnected.",
                 HandleDisconnect);
 
             m_console.Commands.AddCommand(
-                "bot", false, "add behaviour", "add behaviour <abbreviated-name> [<bot-number>]", 
+                "Bots", false, "add behaviour", "add behaviour <abbreviated-name> [<bot-number>]", 
                 "Add a behaviour to a bot",
                 "If no bot number is specified then behaviour is added to all bots.\n"
                     + "Can be performed on connected or disconnected bots.",
                 HandleAddBehaviour);
 
             m_console.Commands.AddCommand(
-                "bot", false, "remove behaviour", "remove behaviour <abbreviated-name> [<bot-number>]", 
+                "Bots", false, "remove behaviour", "remove behaviour <abbreviated-name> [<bot-number>]", 
                 "Remove a behaviour from a bot",
                 "If no bot number is specified then behaviour is added to all bots.\n"
                     + "Can be performed on connected or disconnected bots.",
                 HandleRemoveBehaviour);
 
             m_console.Commands.AddCommand(
-                "bot", false, "sit", "sit", "Sit all bots on the ground.",
+                "Bots", false, "sit", "sit", "Sit all bots on the ground.",
                 HandleSit);
 
             m_console.Commands.AddCommand(
-                "bot", false, "stand", "stand", "Stand all bots.",
+                "Bots", false, "stand", "stand", "Stand all bots.",
                 HandleStand);
 
             m_console.Commands.AddCommand(
-                "bot", false, "set bots", "set bots <key> <value>", "Set a setting for all bots.", HandleSetBots);
+                "Bots", false, "set bots", "set bots <key> <value>", "Set a setting for all bots.", HandleSetBots);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
+                "Bots", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
+                "Bots", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
-                "bot", false, "show bot", "show bot <bot-number>", 
+                "Bots", false, "show bot", "show bot <bot-number>", 
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_bots = new List<Bot>();

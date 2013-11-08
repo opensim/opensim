@@ -31,17 +31,16 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Timers;
-
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
@@ -76,8 +75,6 @@ namespace OpenSim.Region.CoreModules.Asset
         private static ulong m_RequestsForInprogress;
         private static ulong m_DiskHits;
         private static ulong m_MemoryHits;
-        private static double m_HitRateMemory;
-        private static double m_HitRateFile;
 
 #if WAIT_ON_INPROGRESS_REQUESTS
         private Dictionary<string, ManualResetEvent> m_CurrentlyWriting = new Dictionary<string, ManualResetEvent>();
@@ -498,18 +495,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
             if (((m_LogLevel >= 1)) && (m_HitRateDisplay != 0) && (m_Requests % m_HitRateDisplay == 0))
             {
-                m_HitRateFile = (double)m_DiskHits / m_Requests * 100.0;
-
                 m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Get :: {0} :: {1}", id, asset == null ? "Miss" : "Hit");
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: File Hit Rate {0}% for {1} requests", m_HitRateFile.ToString("0.00"), m_Requests);
 
-                if (m_MemoryCacheEnabled)
-                {
-                    m_HitRateMemory = (double)m_MemoryHits / m_Requests * 100.0;
-                    m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Memory Hit Rate {0}% for {1} requests", m_HitRateMemory.ToString("0.00"), m_Requests);
-                }
-
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0} unnessesary requests due to requests for assets that are currently downloading.", m_RequestsForInprogress);
+                GenerateCacheHitReport().ForEach(l => m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0}", l));
             }
 
             return asset;
@@ -891,37 +879,69 @@ namespace OpenSim.Region.CoreModules.Asset
             }
         }
 
+        private List<string> GenerateCacheHitReport()
+        {
+            List<string> outputLines = new List<string>();
+
+            double fileHitRate = (double)m_DiskHits / m_Requests * 100.0;
+            outputLines.Add(
+                string.Format("File Hit Rate: {0}% for {1} requests", fileHitRate.ToString("0.00"), m_Requests));
+
+            if (m_MemoryCacheEnabled)
+            {
+                double memHitRate = (double)m_MemoryHits / m_Requests * 100.0;
+
+                outputLines.Add(
+                    string.Format("Memory Hit Rate: {0}% for {1} requests", memHitRate.ToString("0.00"), m_Requests));
+            }
+
+            outputLines.Add(
+                string.Format(
+                    "Unnecessary requests due to requests for assets that are currently downloading: {0}", 
+                    m_RequestsForInprogress));
+
+            return outputLines;
+        }
+
         #region Console Commands
         private void HandleConsoleCommand(string module, string[] cmdparams)
         {
+            ICommandConsole con = MainConsole.Instance;
+
             if (cmdparams.Length >= 2)
             {
                 string cmd = cmdparams[1];
+
                 switch (cmd)
                 {
                     case "status":
                         if (m_MemoryCacheEnabled)
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Memory Cache : {0} assets", m_MemoryCache.Count);
+                            con.OutputFormat("Memory Cache: {0} assets", m_MemoryCache.Count);
                         else
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Memory cache disabled");
+                            con.OutputFormat("Memory cache disabled");
 
                         if (m_FileCacheEnabled)
                         {
                             int fileCount = GetFileCacheCount(m_CacheDirectory);
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: File Cache : {0} assets", fileCount);
-    
-                            foreach (string s in Directory.GetFiles(m_CacheDirectory, "*.fac"))
-                            {
-                                m_log.Info("[FLOTSAM ASSET CACHE]: Deep scans have previously been performed on the following regions:");
-    
-                                string RegionID = s.Remove(0,s.IndexOf("_")).Replace(".fac","");
-                                DateTime RegionDeepScanTMStamp = File.GetLastWriteTime(s);
-                                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Region: {0}, {1}", RegionID, RegionDeepScanTMStamp.ToString("MM/dd/yyyy hh:mm:ss"));
-                            }
+                            con.OutputFormat("File Cache: {0} assets", fileCount);
                         }
                         else
                         {
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: File cache disabled");
+                            con.Output("File cache disabled");
+                        }
+
+                        GenerateCacheHitReport().ForEach(l => con.Output(l));
+
+                        if (m_FileCacheEnabled)
+                        {
+                            con.Output("Deep scans have previously been performed on the following regions:");
+    
+                            foreach (string s in Directory.GetFiles(m_CacheDirectory, "*.fac"))
+                            {                                    
+                                string RegionID = s.Remove(0,s.IndexOf("_")).Replace(".fac","");
+                                DateTime RegionDeepScanTMStamp = File.GetLastWriteTime(s);
+                                con.OutputFormat("Region: {0}, {1}", RegionID, RegionDeepScanTMStamp.ToString("MM/dd/yyyy hh:mm:ss"));
+                            }
                         }
 
                         break;
@@ -929,7 +949,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     case "clear":
                         if (cmdparams.Length < 2)
                         {
-                            m_log.Warn("[FLOTSAM ASSET CACHE]: Usage is fcache clear [file] [memory]");
+                            con.Output("Usage is fcache clear [file] [memory]");
                             break;
                         }
 
@@ -953,11 +973,11 @@ namespace OpenSim.Region.CoreModules.Asset
                             if (m_MemoryCacheEnabled)
                             {
                                 m_MemoryCache.Clear();
-                                m_log.Info("[FLOTSAM ASSET CACHE]: Memory cache cleared.");
+                                con.Output("Memory cache cleared.");
                             }
                             else
                             {
-                                m_log.Info("[FLOTSAM ASSET CACHE]: Memory cache not enabled.");
+                                con.Output("Memory cache not enabled.");
                             }
                         }
     
@@ -966,24 +986,22 @@ namespace OpenSim.Region.CoreModules.Asset
                             if (m_FileCacheEnabled)
                             {
                                 ClearFileCache();
-                                m_log.Info("[FLOTSAM ASSET CACHE]: File cache cleared.");
+                                con.Output("File cache cleared.");
                             }
                             else
                             {
-                                m_log.Info("[FLOTSAM ASSET CACHE]: File cache not enabled.");
+                                con.Output("File cache not enabled.");
                             }
                         }
 
                         break;
 
                     case "assets":
-                        m_log.Info("[FLOTSAM ASSET CACHE]: Ensuring assets are cached for all scenes.");
+                        con.Output("Ensuring assets are cached for all scenes.");
 
                         Util.FireAndForget(delegate {
                             int assetReferenceTotal = TouchAllSceneAssets(true);
-                            m_log.InfoFormat(
-                                "[FLOTSAM ASSET CACHE]: Completed check with {0} assets.",
-                                assetReferenceTotal);
+                            con.OutputFormat("Completed check with {0} assets.", assetReferenceTotal);
                         });
 
                         break;
@@ -991,7 +1009,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     case "expire":
                         if (cmdparams.Length < 3)
                         {
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Invalid parameters for Expire, please specify a valid date & time", cmd);
+                            con.OutputFormat("Invalid parameters for Expire, please specify a valid date & time", cmd);
                             break;
                         }
 
@@ -1009,28 +1027,27 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         if (!DateTime.TryParse(s_expirationDate, out expirationDate))
                         {
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0} is not a valid date & time", cmd);
+                            con.OutputFormat("{0} is not a valid date & time", cmd);
                             break;
                         }
 
                         if (m_FileCacheEnabled)
                             CleanExpiredFiles(m_CacheDirectory, expirationDate);
                         else
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: File cache not active, not clearing.");
+                            con.OutputFormat("File cache not active, not clearing.");
 
                         break;
                     default:
-                        m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Unknown command {0}", cmd);
+                        con.OutputFormat("Unknown command {0}", cmd);
                         break;
                 }
             }
             else if (cmdparams.Length == 1)
             {
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: fcache status - Display cache status");
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: fcache clearmem - Remove all assets cached in memory");
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: fcache clearfile - Remove all assets cached on disk");
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: fcache cachescenes - Attempt a deep cache of all assets in all scenes");
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: fcache <datetime> - Purge assets older then the specified date & time");
+                con.Output("fcache assets - Attempt a deep cache of all assets in all scenes");
+                con.Output("fcache expire <datetime> - Purge assets older then the specified date & time");
+                con.Output("fcache clear [file] [memory] - Remove cached assets");
+                con.Output("fcache status - Display cache status");
             }
         }
 

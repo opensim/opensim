@@ -6736,7 +6736,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             PSYS_SRC_TARGET_KEY = 20,
             PSYS_SRC_OMEGA = 21,
             PSYS_SRC_ANGLE_BEGIN = 22,
-            PSYS_SRC_ANGLE_END = 23
+            PSYS_SRC_ANGLE_END = 23,
+            PSYS_PART_BLEND_FUNC_SOURCE = 24,
+            PSYS_PART_BLEND_FUNC_DEST = 25,
+            PSYS_PART_START_GLOW = 26,
+            PSYS_PART_END_GLOW = 27
         }
 
         internal Primitive.ParticleSystem.ParticleDataFlags ConvertUINTtoFlags(uint flags)

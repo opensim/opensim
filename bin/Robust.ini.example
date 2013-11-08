@@ -425,7 +425,7 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; helper uri: optional: if it exists if will be used to tell the client to use
     ;                       this for all economy related things
-    ;economy = http://127.0.0.1:9000/
+    ;economy = http://127.0.0.1:8002/
 
     ; web page of grid: optional: page providing further information about your grid
     ;about = http://127.0.0.1/about/
