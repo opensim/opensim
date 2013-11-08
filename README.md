@@ -19,6 +19,8 @@ need to build OpenSim before running it.
 
 You will need .NET Framework 3.5 installed to run OpenSimulator.
 
+You will need .NET 4.0 installed to run OpenSimulator.
+
 We recommend that you run OpenSim from a command prompt on Windows in order
 to capture any errors.
 
@@ -31,7 +33,7 @@ Now see the "Configuring OpenSim" section
 
 # Running OpenSim on Linux
 
-You will need Mono >= 2.4.3 to run OpenSim.  On some Linux distributions you
+You will need Mono >= 2.10.8.1 to run OpenSimulator.  On some Linux distributions you
 may need to install additional packages.  See http://opensimulator.org/wiki/Dependencies
 for more information.
 
