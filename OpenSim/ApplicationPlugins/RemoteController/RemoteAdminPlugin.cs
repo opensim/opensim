@@ -1408,7 +1408,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// </remarks>
         private void XmlRpcSaveOARMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
         {
-            m_log.Info("[RADMIN]: Received Save OAR Administrator Request");
+            m_log.Info("[RADMIN]: Received Save OAR Request");
 
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -1454,8 +1454,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 if (archiver != null)
                 {
+                    Guid requestId = Guid.NewGuid();
                     scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
-                    archiver.ArchiveRegion(filename, options);
+
+                    m_log.InfoFormat(
+                        "[RADMIN]: Submitting save OAR request for {0} to file {1}, request ID {2}", 
+                        scene.Name, filename, requestId);
+
+                    archiver.ArchiveRegion(filename, requestId, options);
 
                     lock (m_saveOarLock)
                         Monitor.Wait(m_saveOarLock,5000);
@@ -1476,12 +1482,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 throw e;
             }
 
-            m_log.Info("[RADMIN]: Save OAR Administrator Request complete");
+            m_log.Info("[RADMIN]: Save OAR Request complete");
         }
 
         private void RemoteAdminOarSaveCompleted(Guid uuid, string name)
         {
-            m_log.DebugFormat("[RADMIN]: File processing complete for {0}", name);
+            if (name != "")
+                m_log.ErrorFormat("[RADMIN]: Saving of OAR file with request ID {0} failed with message {1}", uuid, name);
+            else
+                m_log.DebugFormat("[RADMIN]: Saved OAR file for request {0}", uuid);
+
             lock (m_saveOarLock)
                 Monitor.Pulse(m_saveOarLock);
         }
