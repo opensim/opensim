@@ -15,7 +15,7 @@
 [Startup]
   ; Place to create a PID file
   ; If no path if specified then a PID file is not created.
-  ; PIDFile = "/tmp/my.pid"
+  ; PIDFile = "/tmp/Robust.exe.pid"
 
   ; Plugin Registry Location
   ; Set path to directory for plugin registry. Information
