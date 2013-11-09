@@ -1099,8 +1099,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override void OtherRegionUp(GridRegion otherRegion)
         {
-            uint xcell = (uint)((int)otherRegion.RegionLocX / (int)Constants.RegionSize);
-            uint ycell = (uint)((int)otherRegion.RegionLocY / (int)Constants.RegionSize);
+            // uint xcell = (uint)((int)otherRegion.RegionLocX / (int)Constants.RegionSize);
+            // uint ycell = (uint)((int)otherRegion.RegionLocY / (int)Constants.RegionSize);
+            uint xcell = Util.WorldToRegionLoc((uint)otherRegion.RegionLocX);
+            uint ycell = Util.WorldToRegionLoc((uint)otherRegion.RegionLocY);
+
             //m_log.InfoFormat("[SCENE]: (on region {0}): Region {1} up in coords {2}-{3}", 
             //    RegionInfo.RegionName, otherRegion.RegionName, xcell, ycell);
 
@@ -1198,9 +1201,11 @@ namespace OpenSim.Region.Framework.Scenes
             else if (dir > 3 && dir < 7) // Heading Sout
                 neighboury--;
 
-            int x = (int)(neighbourx * Constants.RegionSize);
-            int y = (int)(neighboury * Constants.RegionSize);
-            GridRegion neighbourRegion = GridService.GetRegionByPosition(RegionInfo.ScopeID, x, y);
+            // int x = (int)(neighbourx * Constants.RegionSize);
+            // int y = (int)(neighboury * Constants.RegionSize);
+            uint x = Util.RegionToWorldLoc(neighbourx);
+            uint y = Util.RegionToWorldLoc(neighboury);
+            GridRegion neighbourRegion = GridService.GetRegionByPosition(RegionInfo.ScopeID, (int)x, (int)y);
 
             if (neighbourRegion == null)
             {
@@ -4293,7 +4298,7 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
 
             // TODO: This check should probably be in QueryAccess().
-            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
+            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, RegionInfo.RegionSizeX / 2, RegionInfo.RegionSizeY / 2);
             if (nearestParcel == null)
             {
                 m_log.InfoFormat(
@@ -4600,13 +4605,22 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(remoteClient.AgentId);
             if (sp != null)
             {
+                /*
                 uint regionX = RegionInfo.LegacyRegionLocX;
                 uint regionY = RegionInfo.LegacyRegionLocY;
 
+                Util.RegionHandleToWorldLoc(regionHandle, out regionX, out regionY);
                 Utils.LongToUInts(regionHandle, out regionX, out regionY);
 
                 int shiftx = (int) regionX - (int) RegionInfo.LegacyRegionLocX * (int)Constants.RegionSize;
                 int shifty = (int) regionY - (int) RegionInfo.LegacyRegionLocY * (int)Constants.RegionSize;
+                 */
+
+                uint regionX, regionY;
+                Util.RegionHandleToWorldLoc(regionHandle, out regionX, out regionY);
+
+                int shiftx = (int) regionX - (int)RegionInfo.RegionWorldLocX;
+                int shifty = (int) regionY - (int)RegionInfo.RegionWorldLocY;
 
                 position.X += shiftx;
                 position.Y += shifty;
@@ -4817,7 +4831,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
 
-                    if (pos.X > 0f && pos.X < Constants.RegionSize && pos.Y > 0f && pos.Y < Constants.RegionSize)
+                    if (pos.X > 0f && pos.X < RegionInfo.RegionSizeX && pos.Y > 0f && pos.Y < RegionInfo.RegionSizeY)
                     {
                         // The only time parcel != null when an object is inside a region is when
                         // there is nothing behind the landchannel.  IE, no land plugin loaded.
@@ -5478,7 +5492,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Vector3 unitDirection = Vector3.Normalize(direction);
             //Making distance to search go through some sane limit of distance
-            for (float distance = 0; distance < Constants.RegionSize * 2; distance += .5f)
+            for (float distance = 0; distance < Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY) * 2; distance += .5f)
             {
                 Vector3 testPos = Vector3.Add(pos, Vector3.Multiply(unitDirection, distance));
                 if (parcel.ContainsPoint((int)testPos.X, (int)testPos.Y))
@@ -5532,9 +5546,9 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 0;
             int avgx = 0;
             int avgy = 0;
-            for (int x = 0; x < Constants.RegionSize; x++)
+            for (int x = 0; x < RegionInfo.RegionSizeX; x++)
             {
-                for (int y = 0; y < Constants.RegionSize; y++)
+                for (int y = 0; y < RegionInfo.RegionSizeY; y++)
                 {
                     //Just keep a running average as we check if all the points are inside or not
                     if (parcel.ContainsPoint(x, y))
@@ -5558,31 +5572,33 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Vector3 GetNearestRegionEdgePosition(ScenePresence avatar)
         {
-            float xdistance = avatar.AbsolutePosition.X < Constants.RegionSize / 2 ? avatar.AbsolutePosition.X : Constants.RegionSize - avatar.AbsolutePosition.X;
-            float ydistance = avatar.AbsolutePosition.Y < Constants.RegionSize / 2 ? avatar.AbsolutePosition.Y : Constants.RegionSize - avatar.AbsolutePosition.Y;
+            float xdistance = avatar.AbsolutePosition.X < RegionInfo.RegionSizeX / 2
+                                ? avatar.AbsolutePosition.X : RegionInfo.RegionSizeX - avatar.AbsolutePosition.X;
+            float ydistance = avatar.AbsolutePosition.Y < RegionInfo.RegionSizeY / 2
+                                ? avatar.AbsolutePosition.Y : RegionInfo.RegionSizeY - avatar.AbsolutePosition.Y;
 
             //find out what vertical edge to go to
             if (xdistance < ydistance)
             {
-                if (avatar.AbsolutePosition.X < Constants.RegionSize / 2)
+                if (avatar.AbsolutePosition.X < RegionInfo.RegionSizeX / 2)
                 {
                     return GetPositionAtAvatarHeightOrGroundHeight(avatar, 0.0f, avatar.AbsolutePosition.Y);
                 }
                 else
                 {
-                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, Constants.RegionSize, avatar.AbsolutePosition.Y);
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, RegionInfo.RegionSizeY, avatar.AbsolutePosition.Y);
                 }
             }
             //find out what horizontal edge to go to
             else
             {
-                if (avatar.AbsolutePosition.Y < Constants.RegionSize / 2)
+                if (avatar.AbsolutePosition.Y < RegionInfo.RegionSizeY / 2)
                 {
                     return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, 0.0f);
                 }
                 else
                 {
-                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, Constants.RegionSize);
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, RegionInfo.RegionSizeY);
                 }
             }
         }

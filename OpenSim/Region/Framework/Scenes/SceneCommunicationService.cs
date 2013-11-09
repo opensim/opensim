@@ -92,7 +92,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.DebugFormat(
                     "[SCENE COMMUNICATION SERVICE]: Region {0} successfully informed neighbour {1} at {2}-{3} that it is up",
-                    m_scene.Name, neighbour.RegionName, x / Constants.RegionSize, y / Constants.RegionSize);
+                    m_scene.Name, neighbour.RegionName, Util.WorldToRegionLoc(x), Util.WorldToRegionLoc(y));
 
                 m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat(
                     "[SCENE COMMUNICATION SERVICE]: Region {0} failed to inform neighbour at {1}-{2} that it is up.",
-                    m_scene.Name, x / Constants.RegionSize, y / Constants.RegionSize);
+                    m_scene.Name, Util.WorldToRegionLoc(x), Util.WorldToRegionLoc(y));
             }
         }
 

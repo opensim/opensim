@@ -69,9 +69,7 @@ namespace OpenSim.Tests.Common
             tc.OnTestClientInformClientOfNeighbour += (neighbourHandle, neighbourExternalEndPoint) =>
             {
                 uint x, y;
-                Utils.LongToUInts(neighbourHandle, out x, out y);
-                x /= Constants.RegionSize;
-                y /= Constants.RegionSize;
+                Util.RegionHandleToRegionLoc(neighbourHandle, out x, out y);
 
                 m_log.DebugFormat(
                     "[TEST CLIENT]: Processing inform client of neighbour located at {0},{1} at {2}", 
@@ -104,9 +102,7 @@ namespace OpenSim.Tests.Common
                 += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL) =>
             {
                 uint x, y;
-                Utils.LongToUInts(regionHandle, out x, out y);
-                x /= Constants.RegionSize;
-                y /= Constants.RegionSize;
+                Util.RegionHandleToRegionLoc(regionHandle, out x, out y);
 
                 m_log.DebugFormat(
                     "[TEST CLIENT]: Processing send region teleport for destination at {0},{1} at {2}", 

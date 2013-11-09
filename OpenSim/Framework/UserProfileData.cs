@@ -160,15 +160,19 @@ namespace OpenSim.Framework
         public virtual ulong HomeRegion
         {
             get 
-            { 
-                return Utils.UIntsToLong(
-                    m_homeRegionX * (uint)Constants.RegionSize, m_homeRegionY * (uint)Constants.RegionSize); 
+            {
+                return Util.RegionWorldLocToHandle(Util.RegionToWorldLoc(m_homeRegionX), Util.RegionToWorldLoc(m_homeRegionY));
+                // return Utils.UIntsToLong( m_homeRegionX * (uint)Constants.RegionSize, m_homeRegionY * (uint)Constants.RegionSize); 
             }
             
             set
             {
-                m_homeRegionX = (uint) (value >> 40);
-                m_homeRegionY = (((uint) (value)) >> 8);
+                uint regionWorldLocX, regionWorldLocY;
+                Util.RegionHandleToWorldLoc(value, out regionWorldLocX, out regionWorldLocY);
+                m_homeRegionX = Util.WorldToRegionLoc(regionWorldLocX);
+                m_homeRegionY = Util.WorldToRegionLoc(regionWorldLocY);
+                // m_homeRegionX = (uint) (value >> 40);
+                // m_homeRegionY = (((uint) (value)) >> 8);
             }
         }
 

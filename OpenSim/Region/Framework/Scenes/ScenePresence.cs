@@ -707,9 +707,8 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (ulong handle in seeds.Keys)
             {
                 uint x, y;
-                Utils.LongToUInts(handle, out x, out y);
-                x = x / Constants.RegionSize;
-                y = y / Constants.RegionSize;
+                Util.RegionHandleToRegionLoc(handle, out x, out y);
+
                 if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.LegacyRegionLocX, y, Scene.RegionInfo.LegacyRegionLocY))
                 {
                     old.Add(handle);
@@ -731,9 +730,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (KeyValuePair<ulong, string> kvp in KnownRegions)
             {
                 uint x, y;
-                Utils.LongToUInts(kvp.Key, out x, out y);
-                x = x / Constants.RegionSize;
-                y = y / Constants.RegionSize;
+                Util.RegionHandleToRegionLoc(kvp.Key, out x, out y);
                 m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
             }
         }
@@ -971,7 +968,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             float posZLimit = 0;
 
-            if (pos.X < Constants.RegionSize && pos.Y < Constants.RegionSize)
+            if (pos.X < m_scene.RegionInfo.RegionSizeX && pos.Y < m_scene.RegionInfo.RegionSizeY)
                 posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
             
             float newPosZ = posZLimit + localAVHeight / 2;
@@ -2076,7 +2073,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (regionCombinerModule != null)
                 regionSize = regionCombinerModule.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
             else
-                regionSize = new Vector2(Constants.RegionSize);
+                regionSize = new Vector2(m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY);
 
             if (pos.X < 0 || pos.X >= regionSize.X
                 || pos.Y < 0 || pos.Y >= regionSize.Y
@@ -2106,7 +2103,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))
                 targetScene = m_scene;
 
-            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % Constants.RegionSize), (int)(pos.Y % Constants.RegionSize)];
+            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
             pos.Z = Math.Max(terrainHeight, pos.Z);
 
             // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
@@ -3199,11 +3196,11 @@ namespace OpenSim.Region.Framework.Scenes
                                 Vector3 pos = AbsolutePosition;
                                 if (AbsolutePosition.X < 0)
                                     pos.X += Velocity.X * 2;
-                                else if (AbsolutePosition.X > Constants.RegionSize)
+                                else if (AbsolutePosition.X > m_scene.RegionInfo.RegionSizeX)
                                     pos.X -= Velocity.X * 2;
                                 if (AbsolutePosition.Y < 0)
                                     pos.Y += Velocity.Y * 2;
-                                else if (AbsolutePosition.Y > Constants.RegionSize)
+                                else if (AbsolutePosition.Y > m_scene.RegionInfo.RegionSizeY)
                                     pos.Y -= Velocity.Y * 2;
                                 Velocity = Vector3.Zero;
                                 AbsolutePosition = pos;
@@ -3226,11 +3223,11 @@ namespace OpenSim.Region.Framework.Scenes
                                 Vector3 pos = AbsolutePosition;
                                 if (AbsolutePosition.X < 0)
                                     pos.X += Velocity.X * 2;
-                                else if (AbsolutePosition.X > Constants.RegionSize)
+                                else if (AbsolutePosition.X > m_scene.RegionInfo.RegionSizeX)
                                     pos.X -= Velocity.X * 2;
                                 if (AbsolutePosition.Y < 0)
                                     pos.Y += Velocity.Y * 2;
-                                else if (AbsolutePosition.Y > Constants.RegionSize)
+                                else if (AbsolutePosition.Y > m_scene.RegionInfo.RegionSizeY)
                                     pos.Y -= Velocity.Y * 2;
                                 Velocity = Vector3.Zero;
                                 AbsolutePosition = pos;
@@ -3279,7 +3276,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Put the child agent back at the center
             AbsolutePosition 
-                = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 70);
+                = new Vector3(((float)m_scene.RegionInfo.RegionSizeX * 0.5f), ((float)m_scene.RegionInfo.RegionSizeY * 0.5f), 70);
 
             Animator.ResetAnimations();
         }
@@ -3306,9 +3303,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (handle != Scene.RegionInfo.RegionHandle)
                 {
                     uint x, y;
-                    Utils.LongToUInts(handle, out x, out y);
-                    x = x / Constants.RegionSize;
-                    y = y / Constants.RegionSize;
+                    Util.RegionHandleToRegionLoc(handle, out x, out y);
 
 //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
 //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
@@ -3389,8 +3384,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
-            int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
-            int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
+            // Find  the distance (in meters) between the two regions
+            uint shiftx = Util.RegionToWorldLoc(rRegionX - tRegionX);
+            uint shifty = Util.RegionToWorldLoc(rRegionY - tRegionY);
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 

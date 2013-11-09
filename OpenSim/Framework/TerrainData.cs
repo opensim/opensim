@@ -408,8 +408,8 @@ namespace OpenSim.Framework
                 }
                 ClearTaint();
 
-                m_log.InfoFormat("{0} Read compressed 2d heightmap. Heightmap size=<{1},{2}>. Region size={<{3},{4}>. CompFact={5}", LogHeader,
-                                                        hmSizeX, hmSizeY, SizeX, SizeY, hmCompressionFactor);
+                m_log.InfoFormat("{0} Read compressed 2d heightmap. Heightmap size=<{1},{2}>. Region size=<{3},{4}>. CompFact={5}",
+                                LogHeader, hmSizeX, hmSizeY, SizeX, SizeY, hmCompressionFactor);
             }
         }
     }

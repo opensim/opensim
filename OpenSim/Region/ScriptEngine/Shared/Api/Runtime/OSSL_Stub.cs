@@ -721,8 +721,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     Position.y = ((int)Constants.RegionSize - 1);
                 if (Position.y < 0)
                     Position.y = 0;
-                if (Position.z > 768)
-                    Position.z = 768;
+                if (Position.z > Constants.RegionHeight)
+                    Position.z = Constants.RegionHeight;
                 if (Position.z < 0)
                     Position.z = 0;
                 prim.OSSL.llSetPos(Position);

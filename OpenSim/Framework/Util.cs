@@ -333,6 +333,43 @@ namespace OpenSim.Framework
             return Utils.UIntsToLong(X, Y);
         }
 
+        // Regions are identified with a 'handle' made up of its region coordinates packed into a ulong.
+        // Several places rely on the ability to extract a region's location from its handle.
+        // Note the location is in 'world coordinates' (see below).
+        public static ulong RegionWorldLocToHandle(uint X, uint Y)
+        {
+            return Utils.UIntsToLong(X, Y);
+        }
+
+        public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
+        {
+            X = (uint)(handle >> 32);
+            Y = (uint)(handle & (ulong)uint.MaxValue);
+        }
+
+        public static void RegionHandleToRegionLoc(ulong handle, out uint X, out uint Y)
+        {
+            uint worldX, worldY;
+            RegionHandleToWorldLoc(handle, out worldX, out worldY);
+            X = WorldToRegionLoc(worldX);
+            Y = WorldToRegionLoc(worldY);
+        }
+
+        // A region location can be 'world coordinates' (meters from zero) or 'region coordinates'
+        //      (number of regions from zero). This measurement of regions relies on the legacy 256 region size.
+        // These routines exist to make what is being converted explicit so the next person knows what was meant.
+        // Convert a region's 'world coordinate' to its 'region coordinate'.
+        public static uint WorldToRegionLoc(uint worldCoord)
+        {
+            return worldCoord / Constants.RegionSize;
+        }
+
+        // Convert a region's 'region coordinate' to its 'world coordinate'.
+        public static uint RegionToWorldLoc(uint regionCoord)
+        {
+            return regionCoord * Constants.RegionSize;
+        }
+
         public static T Clamp<T>(T x, T min, T max)
             where T : IComparable<T>
         {

@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             m_log.DebugFormat("[REGION CACHE]: (on region {0}) Region {1} is up @ {2}-{3}",
-                m_scene.RegionInfo.RegionName, otherRegion.RegionName, otherRegion.RegionLocX / Constants.RegionSize, otherRegion.RegionLocY / Constants.RegionSize);
+                m_scene.RegionInfo.RegionName, otherRegion.RegionName, Util.WorldToRegionLoc((uint)otherRegion.RegionLocX), Util.WorldToRegionLoc((uint)otherRegion.RegionLocY));
 
             m_neighbours[otherRegion.RegionHandle] = otherRegion;
         }
@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             uint xsnap = (uint)(x / Constants.RegionSize) * Constants.RegionSize;
             uint ysnap = (uint)(y / Constants.RegionSize) * Constants.RegionSize;
-            ulong handle = Utils.UIntsToLong(xsnap, ysnap);
+            ulong handle = Util.RegionWorldLocToHandle(xsnap, ysnap);
             
             if (m_neighbours.ContainsKey(handle))
                 return m_neighbours[handle];

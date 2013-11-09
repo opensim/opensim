@@ -264,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] dataArray = (byte[])serializer.Deserialize(xmlReader);
             int index = 0;
 
-            m_terrainData = new HeightmapTerrainData((int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
+            m_terrainData = new HeightmapTerrainData(Height, Width, (int)Constants.RegionHeight);
             
             for (int y = 0; y < Height; y++)
             {

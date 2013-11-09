@@ -54,12 +54,12 @@ namespace OpenSim.Data
         /// <summary>
         /// Return the x-coordinate of this region.
         /// </summary>
-        public int coordX { get { return posX / (int)Constants.RegionSize; } }
+        public int coordX { get { return (int)Util.WorldToRegionLoc((uint)posX); } }
 
         /// <summary>
         /// Return the y-coordinate of this region.
         /// </summary>
-        public int coordY { get { return posY / (int)Constants.RegionSize; } }
+        public int coordY { get { return (int)Util.WorldToRegionLoc((uint)posY); } }
 
         public Dictionary<string, object> Data;
     }

@@ -168,12 +168,12 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// The co-ordinate of this region.
         /// </summary>
-        public int RegionCoordX { get { return RegionLocX / (int)Constants.RegionSize; } }
+        public int RegionCoordX { get { return (int)Util.WorldToRegionLoc((uint)RegionLocX); } }
 
         /// <summary>
         /// The co-ordinate of this region
         /// </summary>
-        public int RegionCoordY { get { return RegionLocY / (int)Constants.RegionSize; } }
+        public int RegionCoordY { get { return (int)Util.WorldToRegionLoc((uint)RegionLocY); } }
 
         /// <summary>
         /// The location of this region in meters.
@@ -246,8 +246,8 @@ namespace OpenSim.Services.Interfaces
 
         public GridRegion(uint xcell, uint ycell)
         {
-            m_regionLocX = (int)(xcell * Constants.RegionSize);
-            m_regionLocY = (int)(ycell * Constants.RegionSize);
+            m_regionLocX = (int)Util.RegionToWorldLoc(xcell);
+            m_regionLocY = (int)Util.RegionToWorldLoc(ycell);
             RegionSizeX = (int)Constants.RegionSize;
             RegionSizeY = (int)Constants.RegionSize;
         }
