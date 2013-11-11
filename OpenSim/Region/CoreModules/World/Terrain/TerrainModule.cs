@@ -235,11 +235,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         try
                         {
                             ITerrainChannel channel = loader.Value.LoadFile(filename);
-                            if (channel.Width != Constants.RegionSize || channel.Height != Constants.RegionSize)
+                            if (channel.Width != m_scene.RegionInfo.RegionSizeX || channel.Height != m_scene.RegionInfo.RegionSizeY)
                             {
                                 // TerrainChannel expects a RegionSize x RegionSize map, currently
                                 throw new ArgumentException(String.Format("wrong size, use a file with size {0} x {1}",
-                                                                          Constants.RegionSize, Constants.RegionSize));
+                                                                          m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY));
                             }
                             m_log.DebugFormat("[TERRAIN]: Loaded terrain, wd/ht: {0}/{1}", channel.Width, channel.Height);
                             m_scene.Heightmap = channel;
@@ -575,8 +575,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                             ITerrainChannel channel = loader.Value.LoadFile(filename, offsetX, offsetY,
                                                                             fileWidth, fileHeight,
-                                                                            (int) Constants.RegionSize,
-                                                                            (int) Constants.RegionSize);
+                                                                            (int) m_scene.RegionInfo.RegionSizeX,
+                                                                            (int) m_scene.RegionInfo.RegionSizeY);
                             m_scene.Heightmap = channel;
                             m_channel = channel;
                             UpdateRevertMap();
@@ -623,8 +623,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         loader.Value.SaveFile(m_channel, filename, offsetX, offsetY,
                                               fileWidth, fileHeight,
-                                              (int)Constants.RegionSize,
-                                              (int)Constants.RegionSize);
+                                              (int)m_scene.RegionInfo.RegionSizeX,
+                                              (int)m_scene.RegionInfo.RegionSizeY);
 
                         MainConsole.Instance.OutputFormat(
                             "Saved terrain from ({0},{1}) to ({2},{3}) from {4} to {5}",
@@ -991,28 +991,28 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             if (direction.ToLower().StartsWith("y"))
             {
-                for (int x = 0; x < Constants.RegionSize; x++)
+                for (int x = 0; x < m_channel.Width; x++)
                 {
-                    for (int y = 0; y < Constants.RegionSize / 2; y++)
+                    for (int y = 0; y < m_channel.Height / 2; y++)
                     {
                         double height = m_channel[x, y];
-                        double flippedHeight = m_channel[x, (int)Constants.RegionSize - 1 - y];
+                        double flippedHeight = m_channel[x, (int)m_channel.Height - 1 - y];
                         m_channel[x, y] = flippedHeight;
-                        m_channel[x, (int)Constants.RegionSize - 1 - y] = height;
+                        m_channel[x, (int)m_channel.Height - 1 - y] = height;
 
                     }
                 }
             }
             else if (direction.ToLower().StartsWith("x"))
             {
-                for (int y = 0; y < Constants.RegionSize; y++)
+                for (int y = 0; y < m_channel.Height; y++)
                 {
-                    for (int x = 0; x < Constants.RegionSize / 2; x++)
+                    for (int x = 0; x < m_channel.Width / 2; x++)
                     {
                         double height = m_channel[x, y];
-                        double flippedHeight = m_channel[(int)Constants.RegionSize - 1 - x, y];
+                        double flippedHeight = m_channel[(int)m_channel.Width - 1 - x, y];
                         m_channel[x, y] = flippedHeight;
-                        m_channel[(int)Constants.RegionSize - 1 - x, y] = height;
+                        m_channel[(int)m_channel.Width - 1 - x, y] = height;
 
                     }
                 }
