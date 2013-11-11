@@ -112,7 +112,7 @@ namespace OpenSim.Framework
     public class HeightmapTerrainData : TerrainData
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[TERRAIN DATA]";
+        private static string LogHeader = "[HEIGHTMAP TERRAIN DATA]";
 
         // TerrainData.this[x, y]
         public override float this[int x, int y]
@@ -124,7 +124,6 @@ namespace OpenSim.Framework
                 {
                     m_heightmap[x, y] = newVal;
                     m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = true;
-                    // m_log.DebugFormat("{0} set[{1},{2}] to {3} ({4})", LogHeader, x, y, value, newVal);
                 }
             }
         }
@@ -258,6 +257,7 @@ namespace OpenSim.Framework
 
                 }
             }
+            // m_log.DebugFormat("{0} new by doubles. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
 
             m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
             ClearTaint();
@@ -272,6 +272,7 @@ namespace OpenSim.Framework
             m_compressionFactor = 100.0f;
             m_heightmap = new short[SizeX, SizeY];
             m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
+            // m_log.DebugFormat("{0} new by dimensions. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
             ClearTaint();
         }
 
@@ -282,6 +283,7 @@ namespace OpenSim.Framework
             for (int xx = 0; xx < SizeX; xx++)
                 for (int yy = 0; yy < SizeY; yy++)
                     m_heightmap[xx, yy] = cmap[ind++];
+            // m_log.DebugFormat("{0} new by compressed map. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
         }
 
         // Create a heighmap from a database blob

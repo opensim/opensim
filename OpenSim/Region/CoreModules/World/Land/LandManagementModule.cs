@@ -635,14 +635,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                 new_land.LandData.LocalID = newLandLocalID;
 
                 bool[,] landBitmap = new_land.GetLandBitmap();
-                m_log.DebugFormat("{0} AddLandObject. new_land.bitmapSize=({1},{2}). bitmap[600/4,600/4]={3}, newLocalID={4}",
-                                LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), landBitmap[600/4, 600/4], newLandLocalID);
+                // m_log.DebugFormat("{0} AddLandObject. new_land.bitmapSize=({1},{2}). newLocalID={3}",
+                //                 LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), newLandLocalID);
 
                 if (landBitmap.GetLength(0) != m_landIDList.GetLength(0) || landBitmap.GetLength(1) != m_landIDList.GetLength(1))
                 {
                     // Going to variable sized regions can cause mismatches
                     m_log.ErrorFormat("{0} AddLandObject. Added land bitmap different size than region ID map. bitmapSize=({1},{2}), landIDSize=({3},{4})",
-                        LogHeader, landBitmap.GetLength(0), m_landIDList.GetLength(1), landBitmap.GetLength(0), m_landIDList.GetLength(1) );
+                        LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1) );
                 }
                 else
                 {
@@ -769,7 +769,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>Land object at the point supplied</returns>
         public ILandObject GetLandObject(float x_float, float y_float)
         {
-            return GetLandObject((int)x_float, (int)y_float);
+            return GetLandObject((int)x_float, (int)y_float, true /* returnNullIfLandObjectNotFound */);
             /*
             int x;
             int y;
@@ -823,8 +823,15 @@ namespace OpenSim.Region.CoreModules.World.Land
              */
         }
 
-        // Given a region position, return the parcel land object for that location
+        // Public entry.
+        // Throws exception if land object is not found
         public ILandObject GetLandObject(int x, int y)
+        {
+            return GetLandObject(x, y, false /* returnNullIfLandObjectNotFound */);
+        }
+
+        // Given a region position, return the parcel land object for that location
+        private ILandObject GetLandObject(int x, int y, bool returnNullIfLandObjectNotFound)
         {
             ILandObject ret = null;
 
@@ -832,9 +839,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 // These exceptions here will cause a lot of complaints from the users specifically because
                 // they happen every time at border crossings
-                throw new Exception(
-                    String.Format("{0} GetLandObject for non-existant position. Region={1}, pos=<{2},{3}",
-                                            LogHeader, m_scene.RegionInfo.RegionName, x, y)
+                if (returnNullIfLandObjectNotFound)
+                    return null;
+                else
+                    throw new Exception(
+                        String.Format("{0} GetLandObject for non-existant position. Region={1}, pos=<{2},{3}",
+                                                LogHeader, m_scene.RegionInfo.RegionName, x, y)
                 );
             }
 

@@ -102,6 +102,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
+                m_log.ErrorFormat("{0} StartPoint. No start point found. bitmapSize=<{1},{2}>",
+                                    LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
                 return new Vector3(-1, -1, -1);
             }
         }
@@ -121,6 +123,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
+                m_log.ErrorFormat("{0} EndPoint. No end point found. bitmapSize=<{1},{2}>",
+                                    LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
                 return new Vector3(-1, -1, -1);
             }
         }
@@ -757,6 +761,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SetLandBitmap(bool[,] bitmap)
         {
             LandBitmap = bitmap;
+            // m_log.DebugFormat("{0} SetLandBitmap. BitmapSize=<{1},{2}>", LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
             ForceUpdateLandInfo();
         }
 
@@ -776,10 +781,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         public bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y)
         {
-            bool[,] tempBitmap = new bool[(end_x-start_x)/landUnit,(end_y-start_y)/landUnit];
+            // Empty bitmap for the whole region
+            bool[,] tempBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
             tempBitmap.Initialize();
 
+            // Fill the bitmap square area specified by state and end
             tempBitmap = ModifyLandBitmapSquare(tempBitmap, start_x, start_y, end_x, end_y, true);
+            // m_log.DebugFormat("{0} GetSquareLandBitmap. tempBitmapSize=<{1},{2}>",
+            //                         LogHeader, tempBitmap.GetLength(0), tempBitmap.GetLength(1));
             return tempBitmap;
         }
 
@@ -808,6 +817,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
             }
+            // m_log.DebugFormat("{0} ModifyLandBitmapSquare. startXY=<{1},{2}>, endXY=<{3},{4}>, val={5}, landBitmapSize=<{6},{7}>",
+            //                         LogHeader, start_x, start_y, end_x, end_y, set_value, land_bitmap.GetLength(0), land_bitmap.GetLength(1));
             return land_bitmap;
         }
 
@@ -868,6 +879,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
             }
+            // m_log.DebugFormat("{0} ConvertLandBitmapToBytes. BitmapSize=<{1},{2}>",
+            //                         LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
             return tempConvertArr;
         }
 
@@ -886,7 +899,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 //    and only set the lower area of the larger region.
                 xLen = (int)(Constants.RegionSize / landUnit);
             }
-            m_log.DebugFormat("{0} ConvertBytesToLandBitmap: bitmapLen={1}, xLen={2}", LogHeader, bitmapLen, xLen);
+            // m_log.DebugFormat("{0} ConvertBytesToLandBitmap: bitmapLen={1}, xLen={2}", LogHeader, bitmapLen, xLen);
 
             int x = 0, y = 0;
             for (int i = 0; i < bitmapLen; i++)
