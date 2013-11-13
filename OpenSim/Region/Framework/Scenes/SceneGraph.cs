@@ -519,12 +519,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void AddPhysicalPrim(int number)
         {
-            m_physicalPrim++;
+            m_physicalPrim += number;
         }
 
         protected internal void RemovePhysicalPrim(int number)
         {
-            m_physicalPrim--;
+            m_physicalPrim -= number;
         }
 
         protected internal void AddToScriptLPS(int number)
