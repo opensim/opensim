@@ -213,16 +213,23 @@ namespace OpenSim.Services.HypergridService
                 // In the DB we tag it as type 100, but we use -1 (Unknown) outside
                 suitcase = CreateFolder(principalID, root.folderID, 100, "My Suitcase");
                 if (suitcase == null)
+                {
                     m_log.ErrorFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to create suitcase folder");
-                m_Database.StoreFolder(suitcase);
+                }
+                else
+                {
+                    m_Database.StoreFolder(suitcase);
 
-                // Create System folders
-                CreateSystemFolders(principalID, suitcase.folderID);
+                    // Create System folders
+                    CreateSystemFolders(principalID, suitcase.folderID);
+
+                    SetAsNormalFolder(suitcase);
+
+                    return ConvertToOpenSim(suitcase);
+                }
             }
 
-            SetAsNormalFolder(suitcase);
-
-            return ConvertToOpenSim(suitcase);
+            return null;
         }
 
         protected void CreateSystemFolders(UUID principalID, UUID rootID)
