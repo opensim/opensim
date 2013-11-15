@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void AdjustIdentifiers(AssetMetadata meta)
         {
-            if (meta.CreatorID != null && meta.CreatorID != string.Empty)
+            if (!string.IsNullOrEmpty(meta.CreatorID))
             {
                 UUID uuid = UUID.Zero;
                 UUID.TryParse(meta.CreatorID, out uuid);

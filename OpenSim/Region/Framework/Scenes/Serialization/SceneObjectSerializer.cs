@@ -1223,7 +1223,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             WriteUUID(writer, "CreatorID", sop.CreatorID, options);
 
-            if (sop.CreatorData != null && sop.CreatorData != string.Empty)
+            if (!string.IsNullOrEmpty(sop.CreatorData))
                 writer.WriteElementString("CreatorData", sop.CreatorData);
             else if (options.ContainsKey("home"))
             {
@@ -1396,7 +1396,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                     WriteUUID(writer, "CreatorID", item.CreatorID, options);
 
-                    if (item.CreatorData != null && item.CreatorData != string.Empty)
+                    if (!string.IsNullOrEmpty(item.CreatorData))
                         writer.WriteElementString("CreatorData", item.CreatorData);
                     else if (options.ContainsKey("home"))
                     {

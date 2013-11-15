@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Monitoring
                 Container, 
                 ShortName, 
                 Value, 
-                UnitName == null || UnitName == "" ? "" : string.Format(" {0}", UnitName));
+                string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
 
             AppendMeasuresOfInterest(sb);
 
@@ -316,9 +316,9 @@ namespace OpenSim.Framework.Monitoring
                 sb.AppendFormat(
                     ", {0:0.##}{1}/s, {2:0.##}{3}/s", 
                     lastChangeOverTime, 
-                    UnitName == null || UnitName == "" ? "" : string.Format(" {0}", UnitName), 
+                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName), 
                     averageChangeOverTime,
-                    UnitName == null || UnitName == "" ? "" : string.Format(" {0}", UnitName));
+                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
             }
         }
     }

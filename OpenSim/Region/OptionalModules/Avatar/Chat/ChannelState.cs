@@ -461,7 +461,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             string result = instr;
 
-            if (result == null || result.Length == 0)
+            if (string.IsNullOrEmpty(result))
                 return result;
 
             // Repeatedly scan the string until all possible
