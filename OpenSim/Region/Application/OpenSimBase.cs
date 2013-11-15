@@ -909,7 +909,7 @@ namespace OpenSim
             regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
 
             string newName;
-            if (estateName != null && estateName != "")
+            if (!string.IsNullOrEmpty(estateName))
                 newName = estateName;
             else
                 newName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);

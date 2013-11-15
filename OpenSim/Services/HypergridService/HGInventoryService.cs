@@ -298,7 +298,7 @@ namespace OpenSim.Services.HypergridService
                 UserAccount user = m_Cache.GetUser(it.CreatorId);
 
                 // Adjust the creator data
-                if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
+                if (user != null && it != null && string.IsNullOrEmpty(it.CreatorData))
                     it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
             }
             return it;

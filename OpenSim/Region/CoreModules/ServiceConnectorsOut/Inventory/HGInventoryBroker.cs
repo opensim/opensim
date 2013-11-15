@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 if (sp == null)
                 {
                     inventoryURL = UserManagementModule.GetUserServerURL(userID, "InventoryServerURI");
-                    if (inventoryURL != null && inventoryURL != string.Empty)
+                    if (!string.IsNullOrEmpty(inventoryURL))
                     {
                         inventoryURL = inventoryURL.Trim(new char[] { '/' });
                         m_InventoryURLs.Add(userID, inventoryURL);

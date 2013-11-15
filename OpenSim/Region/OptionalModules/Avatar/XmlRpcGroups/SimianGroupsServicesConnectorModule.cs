@@ -212,8 +212,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
                 m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
-                if ((m_groupsServerURI == null) ||
-                    (m_groupsServerURI == string.Empty))
+                if (string.IsNullOrEmpty(m_groupsServerURI))
                 {
                     m_log.ErrorFormat("Please specify a valid Simian Server for GroupsServerURI in OpenSim.ini, [Groups]");
                     m_connectorEnabled = false;
@@ -438,7 +437,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return null;
                 }
             } 
-            else if ((groupName != null) && (groupName != string.Empty))
+            else if (!string.IsNullOrEmpty(groupName))
             {
                 if (!SimianGetFirstGenericEntry("Group", groupName, out groupID, out GroupInfoMap))
                 {

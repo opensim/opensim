@@ -101,7 +101,7 @@ namespace OpenSim.Groups
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             if (GroupID != UUID.Zero)
                 sendData["GroupID"] = GroupID.ToString();
-            if (GroupName != null && GroupName != string.Empty)
+            if (!string.IsNullOrEmpty(GroupName))
                 sendData["Name"] = GroupsDataUtils.Sanitize(GroupName);
 
             sendData["RequestingAgentID"] = RequestingAgentID;
@@ -275,7 +275,7 @@ namespace OpenSim.Groups
 
             //m_log.DebugFormat("[XXX]: reply was {0}", reply);
 
-            if (reply == string.Empty || reply == null)
+            if (string.IsNullOrEmpty(reply))
                 return null;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
