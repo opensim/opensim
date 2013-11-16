@@ -39,6 +39,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         CSCodeGenerator m_cg = new CSCodeGenerator();
 
         [Test]
+        public void TestBadEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { bad() {} }", true);
+        }
+
+        [Test]
         public void TestMovingEndEvent()
         {
             TestHelpers.InMethod();
