@@ -36,29 +36,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     public class LSL_EventTests : OpenSimTestCase
     {
+        CSCodeGenerator m_cg = new CSCodeGenerator();
+
         [Test]
         public void TestStateEntryEvent()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            CSCodeGenerator cg = new CSCodeGenerator();
-            cg.Convert("default { state_entry() {} }");
+            TestCompile("default { state_entry() {} }", false);
+            TestCompile("default { state_entry(integer n) {} }", true);
+        }
 
+        private void TestCompile(string script, bool expectException)
+        {
+            bool gotException = false;
+
+            try
             {
-                bool gotException = false;
-
-                try
-                {
-                    cg.Convert("default { state_entry(integer n) {} }");
-                }
-                catch (Exception )
-                {
-                    gotException = true;
-                }
-
-                Assert.That(gotException, Is.True);
+                m_cg.Convert(script);
             }
+            catch (Exception)
+            {
+                gotException = true;
+            }
+
+            Assert.That(gotException, Is.EqualTo(expectException));
         }
     }
 }
