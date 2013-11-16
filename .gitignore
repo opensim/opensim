@@ -66,6 +66,10 @@ Examples/*.dll
 OpenSim.build
 OpenSim.sln
 OpenSim.suo
+
+# This is generated if a vs2010 OpenSim.sln is loaded into vs2012
+OpenSim.v11.suo
+
 OpenSim.userprefs
 Prebuild/Prebuild.build
 Prebuild/Prebuild.sln
