@@ -39,6 +39,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         CSCodeGenerator m_cg = new CSCodeGenerator();
 
         [Test]
+        public void TestMovingEndEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { moving_end() {} }", false);
+            TestCompile("default { moving_end(integer n) {} }", true);
+        }
+
+        [Test]
+        public void TestMovingStartEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { moving_start() {} }", false);
+            TestCompile("default { moving_start(integer n) {} }", true);
+        }
+
+        [Test]
+        public void TestNotAtRotTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { not_at_rot_target() {} }", false);
+            TestCompile("default { not_at_rot_target(integer n) {} }", true);
+        }
+
+        [Test]
+        public void TestNotAtTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { not_at_target() {} }", false);
+            TestCompile("default { not_at_target(integer n) {} }", true);
+        }
+
+        [Test]
         public void TestStateEntryEvent()
         {
             TestHelpers.InMethod();
@@ -46,6 +86,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             TestCompile("default { state_entry() {} }", false);
             TestCompile("default { state_entry(integer n) {} }", true);
+        }
+
+        [Test]
+        public void TestStateExitEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { state_exit() {} }", false);
+            TestCompile("default { state_exit(integer n) {} }", true);
+        }
+
+        [Test]
+        public void TestTimerEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { timer() {} }", false);
+            TestCompile("default { timer(integer n) {} }", true);
         }
 
         private void TestCompile(string script, bool expectException)
