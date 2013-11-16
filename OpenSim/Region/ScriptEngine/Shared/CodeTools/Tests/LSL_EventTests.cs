@@ -44,8 +44,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { moving_end() {} }", false);
-            TestCompile("default { moving_end(integer n) {} }", true);
+            TestVoidArgEvent("moving_end");
         }
 
         [Test]
@@ -54,8 +53,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { moving_start() {} }", false);
-            TestCompile("default { moving_start(integer n) {} }", true);
+            TestVoidArgEvent("moving_start");
         }
 
         [Test]
@@ -64,8 +62,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { not_at_rot_target() {} }", false);
-            TestCompile("default { not_at_rot_target(integer n) {} }", true);
+            TestVoidArgEvent("not_at_rot_target");
         }
 
         [Test]
@@ -74,8 +71,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { not_at_target() {} }", false);
-            TestCompile("default { not_at_target(integer n) {} }", true);
+            TestVoidArgEvent("not_at_target");
         }
 
         [Test]
@@ -84,8 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { state_entry() {} }", false);
-            TestCompile("default { state_entry(integer n) {} }", true);
+            TestVoidArgEvent("state_entry");
         }
 
         [Test]
@@ -94,8 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { state_exit() {} }", false);
-            TestCompile("default { state_exit(integer n) {} }", true);
+            TestVoidArgEvent("state_exit");
         }
 
         [Test]
@@ -104,8 +98,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            TestCompile("default { timer() {} }", false);
-            TestCompile("default { timer(integer n) {} }", true);
+            TestVoidArgEvent("timer");
+        }
+
+        private void TestVoidArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "() {} }", false);
+            TestCompile("default { " + eventName + "(integer n) {} }", true);
         }
 
         [Test]
