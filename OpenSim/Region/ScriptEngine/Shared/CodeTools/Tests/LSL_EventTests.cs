@@ -57,6 +57,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         [Test]
+        public void TestNoSensorEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("no_sensor");
+        }
+
+        [Test]
         public void TestNotAtRotTargetEvent()
         {
             TestHelpers.InMethod();
