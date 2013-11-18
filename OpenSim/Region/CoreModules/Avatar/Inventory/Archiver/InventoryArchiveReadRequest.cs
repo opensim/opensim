@@ -483,52 +483,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     if (m_creatorIdForAssetId.ContainsKey(assetId))
                     {
-                        string xmlData = Utils.BytesToString(data);
-                        List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+                        data = SceneObjectSerializer.ModifySerializedObject(assetId, data,
+                            sog => {
+                                bool modified = false;
+                                
+                                foreach (SceneObjectPart sop in sog.Parts)
+                                {
+                                    if (string.IsNullOrEmpty(sop.CreatorData))
+                                    {
+                                        sop.CreatorID = m_creatorIdForAssetId[assetId];
+                                        modified = true;
+                                    }
+                                }
+                                
+                                return modified;
+                            });
                         
-                        CoalescedSceneObjects coa = null;
-                        if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
-                        {
-//                            m_log.DebugFormat(
-//                                "[INVENTORY ARCHIVER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
-
-                            if (coa.Objects.Count == 0)
-                            {
-                                m_log.WarnFormat(
-                                    "[INVENTORY ARCHIVE READ REQUEST]: Aborting load of coalesced object from asset {0} as it has zero loaded components", 
-                                    assetId);
-                                return false;
-                            }
-                            
-                            sceneObjects.AddRange(coa.Objects);
-                        }
-                        else
-                        {
-                            SceneObjectGroup deserializedObject = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-
-                            if (deserializedObject != null)
-                            {
-                                sceneObjects.Add(deserializedObject);
-                            }
-                            else
-                            {
-                                m_log.WarnFormat(
-                                    "[INVENTORY ARCHIVE READ REQUEST]: Aborting load of object from asset {0} as deserialization failed", 
-                                    assetId);
-
-                                return false;
-                            }
-                        }
-                        
-                        foreach (SceneObjectGroup sog in sceneObjects)
-                            foreach (SceneObjectPart sop in sog.Parts)
-                                if (string.IsNullOrEmpty(sop.CreatorData))
-                                    sop.CreatorID = m_creatorIdForAssetId[assetId];
-
-                        if (coa != null)
-                            data = Utils.StringToBytes(CoalescedSceneObjectsSerializer.ToXml(coa));
-                        else
-                            data = Utils.StringToBytes(SceneObjectSerializer.ToOriginalXmlFormat(sceneObjects[0]));
+                        if (data == null)
+                            return false;
                     }
                 }
 
@@ -550,7 +522,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Load control file
         /// </summary>
