@@ -119,21 +119,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 return output;
             }
         }
-        
+
         public static bool TryFromXml(string xml, out CoalescedSceneObjects coa)
         {
 //            m_log.DebugFormat("[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() deserializing {0}", xml);
             
             coa = null;
-            int i = 0;
             
-            using (StringReader sr = new StringReader(xml))
-            {                
-                using (XmlTextReader reader = new XmlTextReader(sr))
-                {
-                    try
+            try
+            {
+                // Quickly check if this is a coalesced object, without fully parsing the XML
+                using (StringReader sr = new StringReader(xml))
+                {                
+                    using (XmlTextReader reader = new XmlTextReader(sr))
                     {
-                        reader.Read();
+                        reader.MoveToContent(); // skip possible xml declaration
+
                         if (reader.Name != "CoalescedObject")
                         {
     //                        m_log.DebugFormat(
@@ -142,47 +143,47 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                             
                             return false;
                         }
-                        
-                        coa = new CoalescedSceneObjects(UUID.Zero);                    
-                        reader.Read();                                            
-                        
-                        while (reader.NodeType != XmlNodeType.EndElement && reader.Name != "CoalescedObject")
-                        {
-                            if (reader.Name == "SceneObjectGroup")
-                            {
-                                string soXml = reader.ReadOuterXml();
-
-                                SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(soXml);
-
-                                if (so != null)
-                                {
-                                    coa.Add(so);
-                                }
-                                else
-                                {
-                                    // XXX: Possibly we should fail outright here rather than continuing if a particular component of the 
-                                    // coalesced object fails to load.
-                                    m_log.WarnFormat(
-                                        "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml for component {0} failed.  Continuing.", 
-                                        i);
-                                }
-
-                                i++;
-                            }
-                        }
-                        
-                        reader.ReadEndElement(); // CoalescedObject
                     }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml failed with {0} {1}", 
-                            e.Message, e.StackTrace);
+                }
+
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(xml);
+                XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+                if (e == null)
+                    return false;
                         
-                        return false;
-                    }                        
+                coa = new CoalescedSceneObjects(UUID.Zero);
+
+                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                int i = 0;
+                
+                foreach (XmlNode n in groups)
+                {
+                    SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                    if (so != null)
+                    {
+                        coa.Add(so);
+                    }
+                    else
+                    {
+                        // XXX: Possibly we should fail outright here rather than continuing if a particular component of the 
+                        // coalesced object fails to load.
+                        m_log.WarnFormat(
+                            "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml for component {0} failed.  Continuing.", 
+                            i);
+                    }
+
+                    i++;
                 }
             }
+            catch (Exception e)
+            {
+                m_log.Error(string.Format(
+                    "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml failed with {0} ", 
+                    e.Message), e);
+                        
+                return false;
+            }                        
             
             return true;
         }
