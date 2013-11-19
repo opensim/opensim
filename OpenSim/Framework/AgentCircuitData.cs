@@ -142,7 +142,7 @@ namespace OpenSim.Framework
             get
             {
                 // Old style version string contains viewer name followed by a space followed by a version number
-                if (ViewerInternal.Contains(" "))
+                if (ViewerInternal == null || ViewerInternal.Contains(" "))
                 {
                     return ViewerInternal;
                 }
