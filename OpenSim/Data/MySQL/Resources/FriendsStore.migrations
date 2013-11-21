@@ -9,7 +9,7 @@ CREATE TABLE `Friends` (
 	`Offered` VARCHAR(32) NOT NULL DEFAULT 0, 
 	PRIMARY KEY(`PrincipalID`, `Friend`), 
 	KEY(`PrincipalID`)
-);
+) ENGINE=InnoDB;
 
 COMMIT;
 

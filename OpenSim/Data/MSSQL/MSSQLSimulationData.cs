@@ -351,7 +351,8 @@ IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
             ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
             SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
             ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, PassTouches = @PassTouches,
-            LinkNumber = @LinkNumber, MediaURL = @MediaURL
+            LinkNumber = @LinkNumber, MediaURL = @MediaURL, AttachedPosX = @AttachedPosX, AttachedPosY = @AttachedPosY, AttachedPosZ = @AttachedPosZ, DynAttrs = @DynAttrs,
+            PhysicsShapeType = @PhysicsShapeType, Density = @Density, GravityModifier = @GravityModifier, Friction = @Friction, Restitution = @Restitution
         WHERE UUID = @UUID
     END
 ELSE
@@ -366,7 +367,8 @@ ELSE
             PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
             OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
             ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
-            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL, AttachedPosX, AttachedPosY, AttachedPosZ, DynAttrs,
+            PhysicsShapeType, Density, GravityModifier, Friction, Restitution
             ) VALUES (
             @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
             @EveryoneMask, @BaseMask, @PositionX, @PositionY, @PositionZ, @GroupPositionX, @GroupPositionY, @GroupPositionZ, @VelocityX, 
@@ -376,7 +378,8 @@ ELSE
             @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
             @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
             @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
-            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL, @AttachedPosX, @AttachedPosY, @AttachedPosZ, @DynAttrs,
+            @PhysicsShapeType, @Density, @GravityModifier, @Friction, @Restitution
             )
     END";
 
@@ -675,13 +678,13 @@ VALUES
                 cmd.ExecuteNonQuery();
             }
 
-            sql = "INSERT INTO [landaccesslist] ([LandUUID],[AccessUUID],[Flags]) VALUES (@LandUUID,@AccessUUID,@Flags)";
+            sql = "INSERT INTO [landaccesslist] ([LandUUID],[AccessUUID],[Flags],[Expires]) VALUES (@LandUUID,@AccessUUID,@Flags,@Expires)";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 conn.Open();
-                foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
+                foreach (LandAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
                 {
                     cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.RegionUUID));
 
@@ -1181,6 +1184,72 @@ VALUES
             //            }
             #endregion
         }
+
+        #region Environment Settings
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            string sql = "select * from [regionenvironment] where region_id = @region_id";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(_Database.CreateParameter("@region_id", regionUUID));
+                conn.Open();
+                using (SqlDataReader result = cmd.ExecuteReader())
+                {
+                    if (!result.Read())
+                    {
+                        return String.Empty;
+                    }
+                    else
+                    {
+                        return Convert.ToString(result["llsd_settings"]);
+                    }
+                }
+            }
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            {
+                string sql = "DELETE FROM [regionenvironment] WHERE region_id = @region_id";
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("@region_id", regionUUID));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                sql = "INSERT INTO [regionenvironment] (region_id, llsd_settings) VALUES (@region_id, @llsd_settings)";
+
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("@region_id", regionUUID));
+                    cmd.Parameters.Add(_Database.CreateParameter("@llsd_settings", settings));
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            string sql = "delete from [regionenvironment] where region_id = @region_id";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(_Database.CreateParameter("@region_id", regionUUID));
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Loads the settings of a region.
         /// </summary>
@@ -1214,6 +1283,8 @@ VALUES
 
             //Store new values
             StoreNewRegionSettings(regionSettings);
+
+            LoadSpawnPoints(regionSettings);
 
             return regionSettings;
         }
@@ -1252,7 +1323,7 @@ VALUES
 ,[elevation_1_ne] = @elevation_1_ne ,[elevation_2_ne] = @elevation_2_ne ,[elevation_1_se] = @elevation_1_se ,[elevation_2_se] = @elevation_2_se 
 ,[elevation_1_sw] = @elevation_1_sw ,[elevation_2_sw] = @elevation_2_sw ,[water_height] = @water_height ,[terrain_raise_limit] = @terrain_raise_limit 
 ,[terrain_lower_limit] = @terrain_lower_limit ,[use_estate_sun] = @use_estate_sun ,[fixed_sun] = @fixed_sun ,[sun_position] = @sun_position 
-,[covenant] = @covenant , [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id
+,[covenant] = @covenant ,[covenant_datetime] = @covenant_datetime, [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id, [map_tile_id] = @TerrainImageID, [telehubobject] = @telehubobject, [parcel_tile_id] = @ParcelImageID
  WHERE [regionUUID] = @regionUUID";
 
                 using (SqlConnection conn = new SqlConnection(m_connectionString))
@@ -1263,6 +1334,7 @@ VALUES
                     cmd.ExecuteNonQuery();
                 }
             }
+            SaveSpawnPoints(regionSettings);
         }
 
         public void Shutdown()
@@ -1307,14 +1379,14 @@ VALUES
                                 [block_show_in_search],[agent_limit],[object_bonus],[maturity],[disable_scripts],[disable_collisions],[disable_physics],
                                 [terrain_texture_1],[terrain_texture_2],[terrain_texture_3],[terrain_texture_4],[elevation_1_nw],[elevation_2_nw],[elevation_1_ne],
                                 [elevation_2_ne],[elevation_1_se],[elevation_2_se],[elevation_1_sw],[elevation_2_sw],[water_height],[terrain_raise_limit],
-                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[sunvectorx], [sunvectory], [sunvectorz],[Sandbox], [loaded_creation_datetime], [loaded_creation_id]
+                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[covenant_datetime],[sunvectorx], [sunvectory], [sunvectorz],[Sandbox], [loaded_creation_datetime], [loaded_creation_id]
  ) 
                             VALUES
                                 (@regionUUID,@block_terraform,@block_fly,@allow_damage,@restrict_pushing,@allow_land_resell,@allow_land_join_divide,
                                 @block_show_in_search,@agent_limit,@object_bonus,@maturity,@disable_scripts,@disable_collisions,@disable_physics,
                                 @terrain_texture_1,@terrain_texture_2,@terrain_texture_3,@terrain_texture_4,@elevation_1_nw,@elevation_2_nw,@elevation_1_ne,
                                 @elevation_2_ne,@elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,
-                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_datetime, @loaded_creation_id)";
+                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant, @covenant_datetime, @sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_datetime, @loaded_creation_id)";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -1367,7 +1439,7 @@ VALUES
             newSettings.TerrainRaiseLimit = Convert.ToDouble(row["terrain_raise_limit"]);
             newSettings.TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]);
             newSettings.UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]);
-            newSettings.Sandbox = Convert.ToBoolean(row["sandbox"]);
+            newSettings.Sandbox = Convert.ToBoolean(row["Sandbox"]);
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
             newSettings.SunVector = new Vector3(
@@ -1376,13 +1448,18 @@ VALUES
                                                  Convert.ToSingle(row["sunvectorz"])
                                                  );
             newSettings.Covenant = new UUID((Guid)row["covenant"]);
-
+            newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
             newSettings.LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"]);
 
             if (row["loaded_creation_id"] is DBNull)
                 newSettings.LoadedCreationID = "";
             else
                 newSettings.LoadedCreationID = (String)row["loaded_creation_id"];
+
+            newSettings.TerrainImageID = new UUID((string)row["map_tile_ID"]);
+            newSettings.ParcelImageID = new UUID((Guid)row["parcel_tile_ID"]);
+            newSettings.TelehubObject = new UUID((Guid)row["TelehubObject"]);
+
             return newSettings;
         }
 
@@ -1453,7 +1530,14 @@ VALUES
                 _Log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
 
-            newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+            newData.ParcelAccessList = new List<LandAccessEntry>();
+            newData.MediaDescription = (string)row["MediaDescription"];
+            newData.MediaType = (string)row["MediaType"];
+            newData.MediaWidth = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[0]);
+            newData.MediaHeight = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[1]);
+            newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
+            newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
+            newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
 
             return newData;
         }
@@ -1463,12 +1547,12 @@ VALUES
         /// </summary>
         /// <param name="row">datarecord with landaccess data</param>
         /// <returns></returns>
-        private static ParcelManager.ParcelAccessEntry BuildLandAccessData(IDataRecord row)
+        private static LandAccessEntry BuildLandAccessData(IDataRecord row)
         {
-            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+            LandAccessEntry entry = new LandAccessEntry();
             entry.AgentID = new UUID((Guid)row["AccessUUID"]);
             entry.Flags = (AccessList)Convert.ToInt32(row["Flags"]);
-            entry.Time = new DateTime();
+            entry.Expires = Convert.ToInt32(row["Expires"]);
             return entry;
         }
 
@@ -1497,7 +1581,8 @@ VALUES
             prim.TouchName = (string)primRow["TouchName"];
             // permissions
             prim.Flags = (PrimFlags)Convert.ToUInt32(primRow["ObjectFlags"]);
-            prim.CreatorID = new UUID((Guid)primRow["CreatorID"]);
+            //prim.CreatorID = new UUID((Guid)primRow["CreatorID"]);
+            prim.CreatorIdentification = (string)primRow["CreatorID"];
             prim.OwnerID = new UUID((Guid)primRow["OwnerID"]);
             prim.GroupID = new UUID((Guid)primRow["GroupID"]);
             prim.LastOwnerID = new UUID((Guid)primRow["LastOwnerID"]);
@@ -1609,6 +1694,23 @@ VALUES
 
             if (!(primRow["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)primRow["MediaURL"];
+            
+            if (!(primRow["AttachedPosX"] is System.DBNull))
+                prim.AttachedPos = new Vector3(
+                                        Convert.ToSingle(primRow["AttachedPosX"]),
+                                        Convert.ToSingle(primRow["AttachedPosY"]),
+                                        Convert.ToSingle(primRow["AttachedPosZ"]));
+
+            if (!(primRow["DynAttrs"] is System.DBNull))
+                prim.DynAttrs = DAMap.FromXml((string)primRow["DynAttrs"]);
+            else
+                prim.DynAttrs = new DAMap();             
+
+            prim.PhysicsShapeType = Convert.ToByte(primRow["PhysicsShapeType"]);
+            prim.Density = Convert.ToSingle(primRow["Density"]);
+            prim.GravityModifier = Convert.ToSingle(primRow["GravityModifier"]);
+            prim.Friction = Convert.ToSingle(primRow["Friction"]);
+            prim.Restitution = Convert.ToSingle(primRow["Restitution"]);
 
             return prim;
         }
@@ -1667,7 +1769,6 @@ VALUES
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
             }
 
-
             return baseShape;
         }
 
@@ -1691,7 +1792,8 @@ VALUES
             taskItem.Name = (string)inventoryRow["name"];
             taskItem.Description = (string)inventoryRow["description"];
             taskItem.CreationDate = Convert.ToUInt32(inventoryRow["creationDate"]);
-            taskItem.CreatorID = new UUID((Guid)inventoryRow["creatorID"]);
+            //taskItem.CreatorID = new UUID((Guid)inventoryRow["creatorID"]);
+            taskItem.CreatorIdentification = (string)inventoryRow["creatorID"];
             taskItem.OwnerID = new UUID((Guid)inventoryRow["ownerID"]);
             taskItem.LastOwnerID = new UUID((Guid)inventoryRow["lastOwnerID"]);
             taskItem.GroupID = new UUID((Guid)inventoryRow["groupID"]);
@@ -1782,15 +1884,19 @@ VALUES
             parameters.Add(_Database.CreateParameter("terrain_raise_limit", settings.TerrainRaiseLimit));
             parameters.Add(_Database.CreateParameter("terrain_lower_limit", settings.TerrainLowerLimit));
             parameters.Add(_Database.CreateParameter("use_estate_sun", settings.UseEstateSun));
-            parameters.Add(_Database.CreateParameter("sandbox", settings.Sandbox));
+            parameters.Add(_Database.CreateParameter("Sandbox", settings.Sandbox));
             parameters.Add(_Database.CreateParameter("fixed_sun", settings.FixedSun));
             parameters.Add(_Database.CreateParameter("sun_position", settings.SunPosition));
             parameters.Add(_Database.CreateParameter("sunvectorx", settings.SunVector.X));
             parameters.Add(_Database.CreateParameter("sunvectory", settings.SunVector.Y));
             parameters.Add(_Database.CreateParameter("sunvectorz", settings.SunVector.Z));
             parameters.Add(_Database.CreateParameter("covenant", settings.Covenant));
+            parameters.Add(_Database.CreateParameter("covenant_datetime", settings.CovenantChangedDateTime));
             parameters.Add(_Database.CreateParameter("Loaded_Creation_DateTime", settings.LoadedCreationDateTime));
             parameters.Add(_Database.CreateParameter("Loaded_Creation_ID", settings.LoadedCreationID));
+            parameters.Add(_Database.CreateParameter("TerrainImageID", settings.TerrainImageID));
+            parameters.Add(_Database.CreateParameter("ParcelImageID", settings.ParcelImageID));
+            parameters.Add(_Database.CreateParameter("TelehubObject", settings.TelehubObject));
 
             return parameters.ToArray();
         }
@@ -1851,13 +1957,14 @@ VALUES
         /// <param name="parcelAccessEntry">parcel access entry.</param>
         /// <param name="parcelID">parcel ID.</param>
         /// <returns></returns>
-        private SqlParameter[] CreateLandAccessParameters(ParcelManager.ParcelAccessEntry parcelAccessEntry, UUID parcelID)
+        private SqlParameter[] CreateLandAccessParameters(LandAccessEntry parcelAccessEntry, UUID parcelID)
         {
             List<SqlParameter> parameters = new List<SqlParameter>();
 
             parameters.Add(_Database.CreateParameter("LandUUID", parcelID));
             parameters.Add(_Database.CreateParameter("AccessUUID", parcelAccessEntry.AgentID));
             parameters.Add(_Database.CreateParameter("Flags", parcelAccessEntry.Flags));
+            parameters.Add(_Database.CreateParameter("Expires", parcelAccessEntry.Expires));
 
             return parameters.ToArray();
         }
@@ -1998,6 +2105,20 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
+            parameters.Add(_Database.CreateParameter("AttachedPosX", prim.AttachedPos.X));
+            parameters.Add(_Database.CreateParameter("AttachedPosY", prim.AttachedPos.Y));
+            parameters.Add(_Database.CreateParameter("AttachedPosZ", prim.AttachedPos.Z));
+
+            if (prim.DynAttrs.CountNamespaces > 0)
+                parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
+            else
+                parameters.Add(_Database.CreateParameter("DynAttrs", null));
+            
+            parameters.Add(_Database.CreateParameter("PhysicsShapeType", prim.PhysicsShapeType));
+            parameters.Add(_Database.CreateParameter("Density", (double)prim.Density));
+            parameters.Add(_Database.CreateParameter("GravityModifier", (double)prim.GravityModifier));
+            parameters.Add(_Database.CreateParameter("Friction", (double)prim.Friction));
+            parameters.Add(_Database.CreateParameter("Restitution", (double)prim.Restitution));
 
             return parameters.ToArray();
         }
@@ -2055,12 +2176,76 @@ VALUES
                 parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));
             }
 
-
             return parameters.ToArray();
         }
 
         #endregion
 
         #endregion
+
+        private void LoadSpawnPoints(RegionSettings rs)
+        {
+            rs.ClearSpawnPoints();
+
+            string sql = "SELECT Yaw, Pitch, Distance FROM spawn_points WHERE RegionUUID = @RegionUUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", rs.RegionUUID.ToString()));
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        SpawnPoint sp = new SpawnPoint();
+
+                        sp.Yaw = (float)reader["Yaw"];
+                        sp.Pitch = (float)reader["Pitch"];
+                        sp.Distance = (float)reader["Distance"];
+
+                        rs.AddSpawnPoint(sp);
+                    }
+                }
+            }
+        }
+
+        private void SaveSpawnPoints(RegionSettings rs)
+        {
+            string sql = "DELETE FROM spawn_points WHERE RegionUUID = @RegionUUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", rs.RegionUUID));
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+            foreach (SpawnPoint p in rs.SpawnPoints())
+            {
+                sql = "INSERT INTO spawn_points (RegionUUID, Yaw, Pitch, Distance) VALUES (@RegionUUID, @Yaw, @Pitch, @Distance)";
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", rs.RegionUUID));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Yaw", p.Yaw));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Pitch", p.Pitch));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Distance", p.Distance));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void SaveExtra(UUID regionID, string name, string value)
+        {
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return null;
+        }
     }
 }

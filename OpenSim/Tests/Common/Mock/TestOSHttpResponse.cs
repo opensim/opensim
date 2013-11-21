@@ -27,25 +27,107 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using System.Web;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Tests.Common.Mock
 {
-    public class TestOSHttpResponse : OSHttpResponse
+    public class TestOSHttpResponse : IOSHttpResponse
     {
-        private int m_statusCode;
-        public override int StatusCode
-        {
-            get { return m_statusCode; }
-            set { m_statusCode = value; }
-        }
+        /// <summary>
+        /// Content type property.
+        /// </summary>
+        /// <remarks>
+        /// Setting this property will also set IsContentTypeSet to
+        /// true.
+        /// </remarks>
+        public string ContentType { get; set; }
 
-        private string m_contentType;
-        public override string ContentType
-        {
-            get { return m_contentType; }
-            set { m_contentType = value; }
-        }
+        /// <summary>
+        /// Boolean property indicating whether the content type
+        /// property actively has been set.
+        /// </summary>
+        /// <remarks>
+        /// IsContentTypeSet will go away together with .NET base.
+        /// </remarks>
+        // public bool IsContentTypeSet
+        // {
+        //     get { return _contentTypeSet; }
+        // }
+        // private bool _contentTypeSet;
+
+        /// <summary>
+        /// Length of the body content; 0 if there is no body.
+        /// </summary>
+        public long ContentLength { get; set; }
+
+        /// <summary>
+        /// Alias for ContentLength.
+        /// </summary>
+        public long ContentLength64 { get; set; }
+
+        /// <summary>
+        /// Encoding of the body content.
+        /// </summary>
+        public Encoding ContentEncoding { get; set; }
+
+        public bool KeepAlive { get; set; }
+
+        /// <summary>
+        /// Get or set the keep alive timeout property (default is
+        /// 20). Setting this to 0 also disables KeepAlive. Setting
+        /// this to something else but 0 also enable KeepAlive.
+        /// </summary>
+        public int KeepAliveTimeout { get; set; }
+
+        /// <summary>
+        /// Return the output stream feeding the body.
+        /// </summary>
+        /// <remarks>
+        /// On its way out...
+        /// </remarks>
+        public Stream OutputStream { get; private set; }
+
+        public string ProtocolVersion { get; set; }
+
+        /// <summary>
+        /// Return the output stream feeding the body.
+        /// </summary>
+        public Stream Body { get; private set; }
+
+        /// <summary>
+        /// Set a redirct location.
+        /// </summary>
+        public string RedirectLocation { private get; set; }
+
+        /// <summary>
+        /// Chunk transfers.
+        /// </summary>
+        public bool SendChunked { get; set; }
+
+        /// <summary>
+        /// HTTP status code.
+        /// </summary>
+        public int StatusCode { get; set; }
+
+        /// <summary>
+        /// HTTP status description.
+        /// </summary>
+        public string StatusDescription { get; set; }
+
+        public bool ReuseContext { get; set; }
+
+        /// <summary>
+        /// Add a header field and content to the response.
+        /// </summary>
+        /// <param name="key">string containing the header field
+        /// name</param>
+        /// <param name="value">string containing the header field
+        /// value</param>
+        public void AddHeader(string key, string value) { throw new NotImplementedException(); }
+
+        public void Send() { }
     }
 }

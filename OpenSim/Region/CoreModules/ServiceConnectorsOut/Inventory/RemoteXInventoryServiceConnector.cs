@@ -29,9 +29,10 @@ using log4net;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -40,6 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteXInventoryServicesConnector")]
     public class RemoteXInventoryServicesConnector : ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
@@ -167,12 +169,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
-            return new List<InventoryFolderBase>();
+            return m_RemoteConnector.GetInventorySkeleton(userId);
         }
 
         public  InventoryCollection GetUserInventory(UUID userID)
         {
-            return null;
+            return m_RemoteConnector.GetUserInventory(userID);
         }
 
         public  void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
@@ -193,17 +195,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             InventoryCollection invCol = m_RemoteConnector.GetFolderContent(userID, folderID);
 
-            if (UserManager != null)
-            {
-                // Protect ourselves against the caller subsequently modifying the items list
-                List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
+            // Commenting this for now, because it's causing more grief than good
+            //if (invCol != null && UserManager != null)
+            //{
+            //    // Protect ourselves against the caller subsequently modifying the items list
+            //    List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
 
-                Util.FireAndForget(delegate
-                {
-                    foreach (InventoryItemBase item in items)
-                        UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
-                });
-            }
+            //    if (items != null && items.Count > 0)
+            //        //Util.FireAndForget(delegate
+            //        //{
+            //            foreach (InventoryItemBase item in items)
+            //                if (!string.IsNullOrEmpty(item.CreatorData))
+            //                    UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+            //        //});
+            //}
 
             return invCol;
         }

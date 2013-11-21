@@ -1,0 +1,341 @@
+<Nini>
+ <!-- Ubit 2012
+   using Nebadon collision sounds collection-->
+   
+  <Section Name="snd_StoneStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800200c9a66" />
+    <Key Name="name" Value="snd_StoneStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StoneStone.ogg" />
+  </Section>
+  <Section Name="snd_StoneMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800201c9a66" />
+    <Key Name="name" Value="snd_StoneMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StoneMetal.ogg" />
+  </Section>
+  <Section Name="snd_StoneGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800202c9a66" />
+    <Key Name="name" Value="snd_StoneGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StoneGlass.ogg" />
+  </Section>
+  <Section Name="snd_StoneWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800203c9a66" />
+    <Key Name="name" Value="snd_StoneWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StoneWood.ogg" />
+  </Section>
+  <Section Name="snd_StoneFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800204c9a66" />
+    <Key Name="name" Value="snd_StoneFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StoneFlesh.ogg" />
+  </Section>
+  <Section Name="snd_StonePlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800205c9a66" />
+    <Key Name="name" Value="snd_StonePlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StonePlastic.ogg" />
+  </Section>
+  <Section Name="snd_StoneRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0800206c9a66" />
+    <Key Name="name" Value="snd_StoneRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_StoneRubber.ogg" />
+  </Section>
+  <Section Name="snd_MetalStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801200c9a66" />
+    <Key Name="name" Value="snd_MetalStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalStone.ogg" />
+  </Section>
+  <Section Name="snd_MetalMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801201c9a66" />
+    <Key Name="name" Value="snd_MetalMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalMetal.ogg" />
+  </Section>
+  <Section Name="snd_MetalGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801202c9a66" />
+    <Key Name="name" Value="snd_MetalGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalGlass.ogg" />
+  </Section>
+  <Section Name="snd_MetalWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801203c9a66" />
+    <Key Name="name" Value="snd_MetalWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalWood.ogg" />
+  </Section>
+  <Section Name="snd_MetalFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801204c9a66" />
+    <Key Name="name" Value="snd_MetalFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalFlesh.ogg" />
+  </Section>
+  <Section Name="snd_MetalPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801205c9a66" />
+    <Key Name="name" Value="snd_MetalPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalPlastic.ogg" />
+  </Section>
+  <Section Name="snd_MetalRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0801206c9a66" />
+    <Key Name="name" Value="snd_MetalRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_MetalRubber.ogg" />
+  </Section>
+  <Section Name="snd_GlassStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802200c9a66" />
+    <Key Name="name" Value="snd_GlassStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassStone.ogg" />
+  </Section>
+  <Section Name="snd_GlassMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802201c9a66" />
+    <Key Name="name" Value="snd_GlassMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassMetal.ogg" />
+  </Section>
+  <Section Name="snd_GlassGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802202c9a66" />
+    <Key Name="name" Value="snd_GlassGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassGlass.ogg" />
+  </Section>
+  <Section Name="snd_GlassWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802203c9a66" />
+    <Key Name="name" Value="snd_GlassWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassWood.ogg" />
+  </Section>
+  <Section Name="snd_GlassFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802204c9a66" />
+    <Key Name="name" Value="snd_GlassFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassFlesh.ogg" />
+  </Section>
+  <Section Name="snd_GlassPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802205c9a66" />
+    <Key Name="name" Value="snd_GlassPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassPlastic.ogg" />
+  </Section>
+  <Section Name="snd_GlassRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0802206c9a66" />
+    <Key Name="name" Value="snd_GlassRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_GlassRubber.ogg" />
+  </Section>
+  <Section Name="snd_WoodStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803200c9a66" />
+    <Key Name="name" Value="snd_WoodStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodStone.ogg" />
+  </Section>
+  <Section Name="snd_WoodMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803201c9a66" />
+    <Key Name="name" Value="snd_WoodMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodMetal.ogg" />
+  </Section>
+  <Section Name="snd_WoodGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803202c9a66" />
+    <Key Name="name" Value="snd_WoodGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodGlass.ogg" />
+  </Section>
+  <Section Name="snd_WoodWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803203c9a66" />
+    <Key Name="name" Value="snd_WoodWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodWood.ogg" />
+  </Section>
+  <Section Name="snd_WoodFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803204c9a66" />
+    <Key Name="name" Value="snd_WoodFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodFlesh.ogg" />
+  </Section>
+  <Section Name="snd_WoodPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803205c9a66" />
+    <Key Name="name" Value="snd_WoodPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodPlastic.ogg" />
+  </Section>
+  <Section Name="snd_WoodRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0803206c9a66" />
+    <Key Name="name" Value="snd_WoodRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_WoodRubber.ogg" />
+  </Section>
+  <Section Name="snd_FleshStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804200c9a66" />
+    <Key Name="name" Value="snd_FleshStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshStone.ogg" />
+  </Section>
+  <Section Name="snd_FleshMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804201c9a66" />
+    <Key Name="name" Value="snd_FleshMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshMetal.ogg" />
+  </Section>
+  <Section Name="snd_FleshGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804202c9a66" />
+    <Key Name="name" Value="snd_FleshGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshGlass.ogg" />
+  </Section>
+  <Section Name="snd_FleshWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804203c9a66" />
+    <Key Name="name" Value="snd_FleshWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshWood.ogg" />
+  </Section>
+  <Section Name="snd_FleshFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804204c9a66" />
+    <Key Name="name" Value="snd_FleshFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshFlesh.ogg" />
+  </Section>
+  <Section Name="snd_FleshPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804205c9a66" />
+    <Key Name="name" Value="snd_FleshPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshPlastic.ogg" />
+  </Section>
+  <Section Name="snd_FleshRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0804206c9a66" />
+    <Key Name="name" Value="snd_FleshRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_FleshRubber.ogg" />
+  </Section>
+  <Section Name="snd_PlasticStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805200c9a66" />
+    <Key Name="name" Value="snd_PlasticStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticStone.ogg" />
+  </Section>
+  <Section Name="snd_PlasticMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805201c9a66" />
+    <Key Name="name" Value="snd_PlasticMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticMetal.ogg" />
+  </Section>
+  <Section Name="snd_PlasticGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805202c9a66" />
+    <Key Name="name" Value="snd_PlasticGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticGlass.ogg" />
+  </Section>
+  <Section Name="snd_PlasticWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805203c9a66" />
+    <Key Name="name" Value="snd_PlasticWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticWood.ogg" />
+  </Section>
+  <Section Name="snd_PlasticFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805204c9a66" />
+    <Key Name="name" Value="snd_PlasticFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticFlesh.ogg" />
+  </Section>
+  <Section Name="snd_PlasticPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805205c9a66" />
+    <Key Name="name" Value="snd_PlasticPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticPlastic.ogg" />
+  </Section>
+  <Section Name="snd_PlasticRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0805206c9a66" />
+    <Key Name="name" Value="snd_PlasticRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_PlasticRubber.ogg" />
+  </Section>
+  <Section Name="snd_RubberStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806200c9a66" />
+    <Key Name="name" Value="snd_RubberStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberStone.ogg" />
+  </Section>
+  <Section Name="snd_RubberMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806201c9a66" />
+    <Key Name="name" Value="snd_RubberMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberMetal.ogg" />
+  </Section>
+  <Section Name="snd_RubberGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806202c9a66" />
+    <Key Name="name" Value="snd_RubberGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberGlass.ogg" />
+  </Section>
+  <Section Name="snd_RubberWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806203c9a66" />
+    <Key Name="name" Value="snd_RubberWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberWood.ogg" />
+  </Section>
+  <Section Name="snd_RubberFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806204c9a66" />
+    <Key Name="name" Value="snd_RubberFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberFlesh.ogg" />
+  </Section>
+  <Section Name="snd_RubberPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806205c9a66" />
+    <Key Name="name" Value="snd_RubberPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberPlastic.ogg" />
+  </Section>
+  <Section Name="snd_RubberRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0806206c9a66" />
+    <Key Name="name" Value="snd_RubberRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_RubberRubber.ogg" />
+  </Section>
+  <Section Name="snd_TerrainStone">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807200c9a66" />
+    <Key Name="name" Value="snd_TerrainStone" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainStone.ogg" />
+  </Section>
+  <Section Name="snd_TerrainMetal">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807201c9a66" />
+    <Key Name="name" Value="snd_TerrainMetal" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainMetal.ogg" />
+  </Section>
+  <Section Name="snd_TerrainGlass">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807202c9a66" />
+    <Key Name="name" Value="snd_TerrainGlass" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainGlass.ogg" />
+  </Section>
+  <Section Name="snd_TerrainWood">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807203c9a66" />
+    <Key Name="name" Value="snd_TerrainWood" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainWood.ogg" />
+  </Section>
+  <Section Name="snd_TerrainFlesh">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807204c9a66" />
+    <Key Name="name" Value="snd_TerrainFlesh" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainFlesh.ogg" />
+  </Section>
+  <Section Name="snd_TerrainPlastic">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807205c9a66" />
+    <Key Name="name" Value="snd_TerrainPlastic" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainPlastic.ogg" />
+  </Section>
+  <Section Name="snd_TerrainRubber">
+    <Key Name="assetID" Value="be7295c0-a158-11e1-b3dd-0807206c9a66" />
+    <Key Name="name" Value="snd_TerrainRubber" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_TerrainRubber.ogg" />
+  </Section>
+</Nini>

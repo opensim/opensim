@@ -68,8 +68,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
             }
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -195,9 +195,9 @@ namespace OpenSim.Server.Handlers.UserAccounts
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] StoreAccount(Dictionary<string, object> request)
@@ -231,7 +231,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             int userLevel = 0;
             if (request.ContainsKey("UserLevel") && int.TryParse(request["UserLevel"].ToString(), out userLevel))
-                existingAccount.UserFlags = userLevel;
+                existingAccount.UserLevel = userLevel;
 
             int userFlags = 0;
             if (request.ContainsKey("UserFlags") && int.TryParse(request["UserFlags"].ToString(), out userFlags))
@@ -353,8 +353,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
         private byte[] ResultToBytes(Dictionary<string, object> result)
         {
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
     }
 }

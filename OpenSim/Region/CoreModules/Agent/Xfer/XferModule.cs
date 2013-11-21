@@ -35,9 +35,12 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Agent.Xfer
 {
-    public class XferModule : IRegionModule, IXfer
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XferModule")]
+    public class XferModule : INonSharedRegionModule, IXfer
     {
         private Scene m_scene;
         private Dictionary<string, FileData> NewFiles = new Dictionary<string, FileData>();
@@ -59,9 +62,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public int Count;
         }
        
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
@@ -69,8 +76,21 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             m_scene.RegisterModuleInterface<IXfer>(this);
         }
 
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
         {
+            m_scene.EventManager.OnNewClient -= NewClient;
+
+            m_scene.UnregisterModuleInterface<IXfer>(this);
+            m_scene = null;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
         }
 
         public void Close()
@@ -80,11 +100,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         public string Name
         {
             get { return "XferModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion

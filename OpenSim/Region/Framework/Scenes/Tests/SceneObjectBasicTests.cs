@@ -26,12 +26,16 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
@@ -41,8 +45,44 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Basic scene object tests (create, read and delete but not update).
     /// </summary>
     [TestFixture]
-    public class SceneObjectBasicTests
+    public class SceneObjectBasicTests : OpenSimTestCase
     {
+//        [TearDown]
+//        public void TearDown()
+//        {
+//            Console.WriteLine("TearDown");
+//            GC.Collect();
+//            Thread.Sleep(3000);
+//        }
+
+//        public class GcNotify
+//        {
+//            public static AutoResetEvent gcEvent = new AutoResetEvent(false);
+//            private static bool _initialized = false;
+//
+//            public static void Initialize()
+//            {
+//                if (!_initialized)
+//                {
+//                    _initialized = true;
+//                    new GcNotify();
+//                }
+//            }
+//
+//            private GcNotify(){}
+//
+//            ~GcNotify()
+//            {
+//                if (!Environment.HasShutdownStarted &&
+//                    !AppDomain.CurrentDomain.IsFinalizingForUnload())
+//                {
+//                    Console.WriteLine("GcNotify called");
+//                    gcEvent.Set();
+//                    new GcNotify();
+//                }
+//            }
+//        }
+
         /// <summary>
         /// Test adding an object to a scene.
         /// </summary>
@@ -51,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             int partsToTestCount = 3;
 
             SceneObjectGroup so
@@ -81,7 +121,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
 
             string obj1Name = "Alfred";
             string obj2Name = "Betty";
@@ -115,7 +155,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             int partsToTestCount = 3;
 
             SceneObjectGroup so
@@ -143,86 +183,27 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test deleting an object from a scene.
         /// </summary>
+        /// <remarks>
+        /// This is the most basic form of delete.  For all more sophisticated forms of derez (done asynchrnously
+        /// and where object can be taken to user inventory, etc.), see SceneObjectDeRezTests.
+        /// </remarks>
         [Test]
         public void TestDeleteSceneObject()
         {
             TestHelpers.InMethod();
-            
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
-            scene.DeleteSceneObject(part.ParentGroup, false);
-            
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+
+            TestScene scene = new SceneHelpers().SetupScene();
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene);
+
+            Assert.That(so.IsDeleted, Is.False);
+
+            scene.DeleteSceneObject(so, false);
+
+            Assert.That(so.IsDeleted, Is.True);
+
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
             Assert.That(retrievedPart, Is.Null);
         }
-        
-        /// <summary>
-        /// Test deleting an object asynchronously
-        /// </summary>
-        [Test]
-        public void TestDeleteSceneObjectAsync()
-        {
-            TestHelpers.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
-
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-
-            TestScene scene = SceneHelpers.SetupScene();
-
-            // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
-            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
-            sogd.Enabled = false;
-
-            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
-
-            IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
-            scene.DeRezObjects(client, new System.Collections.Generic.List<uint>() { part.LocalId }, UUID.Zero, DeRezAction.Delete, UUID.Zero);
-
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-
-            Assert.That(retrievedPart, Is.Not.Null);
-
-            sogd.InventoryDeQueueAndDelete();
-
-            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart2, Is.Null);
-        }
- 
-        /// <summary>
-        /// Test deleting an object asynchronously to user inventory.
-        /// </summary>
-        //[Test]
-        //public void TestDeleteSceneObjectAsyncToUserInventory()
-        //{
-        //    TestHelper.InMethod();
-        //    //log4net.Config.XmlConfigurator.Configure();
-            
-        //    UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-        //    string myObjectName = "Fred";
-            
-        //    TestScene scene = SceneSetupHelpers.SetupScene();
-        //    SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene, myObjectName);
-            
-        //    Assert.That(
-        //        scene.CommsManager.UserAdminService.AddUser(
-        //            "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-        //        Is.EqualTo(agentId));
-            
-        //    IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
-                                                
-        //    CachedUserInfo userInfo = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentId);
-        //    Assert.That(userInfo, Is.Not.Null);
-        //    Assert.That(userInfo.RootFolder, Is.Not.Null);
-            
-        //    SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
-            
-        //    // Check that we now have the taken part in our inventory
-        //    Assert.That(myObjectName, Is.EqualTo(userInfo.RootFolder.FindItemByPath(myObjectName).Name));
-            
-        //    // Check that the taken part has actually disappeared
-        //    SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-        //    Assert.That(retrievedPart, Is.Null);
-        //}
         
         /// <summary>
         /// Changing a scene object uuid changes the root part uuid.  This is a valid operation if the object is not

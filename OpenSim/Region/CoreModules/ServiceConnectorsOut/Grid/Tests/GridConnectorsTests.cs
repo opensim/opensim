@@ -31,11 +31,10 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using log4net.Config;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Nini.Config;
-
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid;
 using OpenSim.Region.Framework.Scenes;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -44,11 +43,15 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
 {
     [TestFixture]
-    public class GridConnectorsTests
+    public class GridConnectorsTests : OpenSimTestCase
     {
         LocalGridServicesConnector m_LocalConnector;
-        private void SetUp()
+
+        [SetUp]
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
@@ -69,7 +72,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
         [Test]
         public void TestRegisterRegion()
         {
-            SetUp();
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
 
             // Create 4 regions
             GridRegion r1 = new GridRegion();
@@ -191,7 +195,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             results = m_LocalConnector.GetHyperlinks(UUID.Zero);
             Assert.IsNotNull(results, "Retrieved GetHyperlinks list is null");
             Assert.That(results.Count, Is.EqualTo(0), "Retrieved linked regions collection is not the number expected");
-
         }
     }
 }

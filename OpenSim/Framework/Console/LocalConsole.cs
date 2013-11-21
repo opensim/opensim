@@ -296,6 +296,10 @@ namespace OpenSim.Framework.Console
                             matches[0].Groups["Category"].Value);
                     System.Console.Write("]:");
                 }
+                else
+                {
+                    outText = outText.Trim();
+                }
             }
 
             if (level == "error")
@@ -315,6 +319,8 @@ namespace OpenSim.Framework.Console
 
         public override void Output(string text, string level)
         {
+            FireOnOutput(text);
+
             lock (m_commandLine)
             {
                 if (m_cursorYPosition == -1)
@@ -410,6 +416,21 @@ namespace OpenSim.Framework.Console
                             break;
                         m_commandLine.Remove(m_cursorXPosition-1, 1);
                         m_cursorXPosition--;
+
+                        SetCursorLeft(0);
+                        m_cursorYPosition = SetCursorTop(m_cursorYPosition);
+
+                        if (m_echo)
+                            System.Console.Write("{0}{1} ", prompt, m_commandLine);
+                        else
+                            System.Console.Write("{0}", prompt);
+
+                        break;
+                    case ConsoleKey.Delete:
+                        if (m_cursorXPosition == m_commandLine.Length)
+                            break;
+
+                        m_commandLine.Remove(m_cursorXPosition, 1);
 
                         SetCursorLeft(0);
                         m_cursorYPosition = SetCursorTop(m_cursorYPosition);

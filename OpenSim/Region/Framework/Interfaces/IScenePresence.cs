@@ -38,27 +38,13 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <remarks>
     /// Interface is a work in progress.  Please feel free to add other required properties and methods.
     /// </remarks>
-    public interface IScenePresence : ISceneEntity
+    public interface IScenePresence : ISceneAgent
     {
-        /// <value>
-        /// The client controlling this presence
-        /// </value>
-        IClientAPI ControllingClient { get; }
-
         /// <summary>
-        /// What type of presence is this?  User, NPC, etc.
+        /// Copy of the script states while the agent is in transit. This state may
+        /// need to be placed back in case of transfer fail.
         /// </summary>
-        PresenceType PresenceType { get; }
-
-        /// <summary>
-        /// Avatar appearance data.
-        /// </summary>
-        /// <remarks>
-        // Because appearance setting is in a module, we actually need
-        // to give it access to our appearance directly, otherwise we
-        // get a synchronization issue.
-        /// </remarks>
-        AvatarAppearance Appearance { get; set; }
+        List<string> InTransitScriptStates { get; }
 
         /// <summary>
         /// The AttachmentsModule synchronizes on this to avoid race conditions between commands to add and remove attachments.
@@ -86,6 +72,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         List<SceneObjectGroup> GetAttachments(uint attachmentPoint);
 
+        /// <summary>
+        /// Does this avatar have any attachments?
+        /// </summary>
+        /// <returns></returns>
         bool HasAttachments();
 
         // Don't use these methods directly.  Instead, use the AttachmentsModule

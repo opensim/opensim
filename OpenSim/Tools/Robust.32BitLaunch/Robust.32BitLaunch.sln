@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C# Express 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.32BitLaunch", "Robust.32BitLaunch.csproj", "{595D67F3-B413-4A43-8568-5B5930E3B31D}"
 EndProject
 Global

@@ -86,7 +86,7 @@ namespace OpenSim.Services.MapImageService
                     {
                         Bitmap waterTile = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH);
                         FillImage(waterTile, m_Watercolor);
-                        waterTile.Save(m_WaterTileFile);
+                        waterTile.Save(m_WaterTileFile, ImageFormat.Jpeg);
                     }
                 }
             }

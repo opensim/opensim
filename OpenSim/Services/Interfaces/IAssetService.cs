@@ -68,7 +68,11 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="id">The asset id</param>
         /// <param name="sender">Represents the requester.  Passed back via the handler</param>
-        /// <param name="handler">The handler to call back once the asset has been retrieved</param>
+        /// <param name="handler">
+        /// The handler to call back once the asset has been retrieved.  This will be called back with a null AssetBase
+        /// if the asset could not be found for some reason (e.g. if it does not exist, if a remote asset service
+        /// was not contactable, if it is not in the database, etc.).
+        /// </param>
         /// <returns>True if the id was parseable, false otherwise</returns>
         bool Get(string id, Object sender, AssetRetrieved handler);
 

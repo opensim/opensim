@@ -48,24 +48,24 @@ namespace OpenSim.Services.Interfaces
     /// </summary>
     public interface IUserAgentService
     {
-        // called by login service only
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint clientIP, out string reason);
-        // called by simulators
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
+        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
         Dictionary<string, object> GetServerURLs(UUID userID);
+        Dictionary<string,object> GetUserInfo(UUID userID);
 
         string LocateUser(UUID userID);
         // Tries to get the universal user identifier for the targetUserId
         // on behalf of the userID
         string GetUUI(UUID userID, UUID targetUserID);
 
-        // Returns the local friends online
-        List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
-        //List<UUID> GetOnlineFriends(UUID userID, List<string> friends);
+        UUID GetUUID(String first, String last);
 
-        bool AgentIsComingHome(UUID sessionID, string thisGridExternalName);
+        // Returns the local friends online
+        [Obsolete]
+        List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
+
+        bool IsAgentComingHome(UUID sessionID, string thisGridExternalName);
         bool VerifyAgent(UUID sessionID, string token);
         bool VerifyClient(UUID sessionID, string reportedIP);
     }
@@ -78,6 +78,19 @@ namespace OpenSim.Services.Interfaces
     public interface IFriendsSimConnector
     {
         bool StatusNotify(UUID userID, UUID friendID, bool online);
+        bool LocalFriendshipOffered(UUID toID, GridInstantMessage im);
+        bool LocalFriendshipApproved(UUID userID, string userName, UUID friendID);
+    }
+
+    public interface IHGFriendsService
+    {
+        int GetFriendPerms(UUID userID, UUID friendID);
+        bool NewFriendship(FriendInfo finfo, bool verified);
+        bool DeleteFriendship(FriendInfo finfo, string secret);
+        bool FriendshipOffered(UUID from, string fromName, UUID to, string message);
+        bool ValidateFriendshipOffered(UUID fromID, UUID toID);
+        // Returns the local friends online
+        List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
     }
 
     public interface IInstantMessageSimConnector

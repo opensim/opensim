@@ -74,11 +74,18 @@ namespace OpenSim.Services.LLLoginService
         protected string m_GatekeeperURL;
         protected bool m_AllowRemoteSetLoginLevel;
         protected string m_MapTileURL;
+        protected string m_ProfileURL;
+        protected string m_OpenIDURL;
         protected string m_SearchURL;
         protected string m_Currency;
+        protected string m_ClassifiedFee;
+        protected string m_DestinationGuide;
+        protected string m_AvatarPicker;
 
         protected string m_AllowedClients;
         protected string m_DeniedClients;
+
+        protected string m_DSTZone;
 
         IConfig m_LoginServerConfig;
 //        IConfig m_ClientsConfig;
@@ -106,13 +113,21 @@ namespace OpenSim.Services.LLLoginService
             m_RequireInventory = m_LoginServerConfig.GetBoolean("RequireInventory", true);
             m_AllowRemoteSetLoginLevel = m_LoginServerConfig.GetBoolean("AllowRemoteSetLoginLevel", false);
             m_MinLoginLevel = m_LoginServerConfig.GetInt("MinLoginLevel", 0);
-            m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
+            m_GatekeeperURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
+                new string[] { "Startup", "Hypergrid", "LoginService" }, String.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
+            m_ProfileURL = m_LoginServerConfig.GetString("ProfileServerURL", string.Empty);
+            m_OpenIDURL = m_LoginServerConfig.GetString("OpenIDServerURL", String.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
             m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
+            m_ClassifiedFee = m_LoginServerConfig.GetString("ClassifiedFee", string.Empty);
+            m_DestinationGuide = m_LoginServerConfig.GetString ("DestinationGuide", string.Empty);
+            m_AvatarPicker = m_LoginServerConfig.GetString ("AvatarPicker", string.Empty);
 
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
+
+            m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
 
             // Clean up some of these vars
             if (m_MapTileURL != String.Empty)
@@ -236,6 +251,7 @@ namespace OpenSim.Services.LLLoginService
 
             m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}",
                 firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
+            
             try
             {
                 //
@@ -248,7 +264,9 @@ namespace OpenSim.Services.LLLoginService
 
                     if (!am.Success)
                     {
-                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client {0} is not allowed", clientVersion);
+                        m_log.InfoFormat(
+                            "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: client {2} is not allowed",
+                            firstName, lastName, clientVersion);
                         return LLFailedLoginResponse.LoginBlockedProblem;
                     }
                 }
@@ -260,7 +278,9 @@ namespace OpenSim.Services.LLLoginService
 
                     if (dm.Success)
                     {
-                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client {0} is denied", clientVersion);
+                        m_log.InfoFormat(
+                            "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: client {2} is denied",
+                            firstName, lastName, clientVersion);
                         return LLFailedLoginResponse.LoginBlockedProblem;
                     }
                 }
@@ -271,13 +291,16 @@ namespace OpenSim.Services.LLLoginService
                 UserAccount account = m_UserAccountService.GetUserAccount(scopeID, firstName, lastName);
                 if (account == null)
                 {
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: user not found");
+                    m_log.InfoFormat(
+                        "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: user not found", firstName, lastName);
                     return LLFailedLoginResponse.UserProblem;
                 }
 
                 if (account.UserLevel < m_MinLoginLevel)
                 {
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: login is blocked for user level {0}", account.UserLevel);
+                    m_log.InfoFormat(
+                        "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: user level is {2} but minimum login level is {3}",
+                        firstName, lastName, account.UserLevel, m_MinLoginLevel);
                     return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 
@@ -288,7 +311,8 @@ namespace OpenSim.Services.LLLoginService
                 {
                     if (account.ScopeID != scopeID && account.ScopeID != UUID.Zero)
                     {
-                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: user not found");
+                        m_log.InfoFormat(
+                            "[LLOGIN SERVICE]: Login failed, reason: user {0} {1} not found", firstName, lastName);
                         return LLFailedLoginResponse.UserProblem;
                     }
                 }
@@ -307,7 +331,9 @@ namespace OpenSim.Services.LLLoginService
                 UUID secureSession = UUID.Zero;
                 if ((token == string.Empty) || (token != string.Empty && !UUID.TryParse(token, out secureSession)))
                 {
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: authentication failed");
+                    m_log.InfoFormat(
+                        "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: authentication failed",
+                        firstName, lastName);
                     return LLFailedLoginResponse.UserProblem;
                 }
 
@@ -316,13 +342,18 @@ namespace OpenSim.Services.LLLoginService
                 //
                 if (m_RequireInventory && m_InventoryService == null)
                 {
-                    m_log.WarnFormat("[LLOGIN SERVICE]: Login failed, reason: inventory service not set up");
+                    m_log.WarnFormat(
+                        "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: inventory service not set up",
+                        firstName, lastName);
                     return LLFailedLoginResponse.InventoryProblem;
                 }
+
                 List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);
                 if (m_RequireInventory && ((inventorySkel == null) || (inventorySkel != null && inventorySkel.Count == 0)))
                 {
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: unable to retrieve user inventory");
+                    m_log.InfoFormat(
+                        "[LLOGIN SERVICE]: Login failed, for {0} {1}, reason: unable to retrieve user inventory",
+                        firstName, lastName);
                     return LLFailedLoginResponse.InventoryProblem;
                 }
 
@@ -336,9 +367,12 @@ namespace OpenSim.Services.LLLoginService
                 if (m_PresenceService != null)
                 {
                     success = m_PresenceService.LoginAgent(account.PrincipalID.ToString(), session, secureSession);
+
                     if (!success)
                     {
-                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: could not login presence");
+                        m_log.InfoFormat(
+                            "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: could not login presence",
+                            firstName, lastName);
                         return LLFailedLoginResponse.GridProblem;
                     }
                 }
@@ -371,8 +405,17 @@ namespace OpenSim.Services.LLLoginService
                 if (destination == null)
                 {
                     m_PresenceService.LogoutAgent(session);
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: destination not found");
+
+                    m_log.InfoFormat(
+                        "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: destination not found",
+                        firstName, lastName);
                     return LLFailedLoginResponse.GridProblem;
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[LLOGIN SERVICE]: Found destination {0}, endpoint {1} for {2} {3}",
+                        destination.RegionName, destination.ExternalEndPoint, firstName, lastName);
                 }
 
                 if (account.UserLevel >= 200)
@@ -397,7 +440,7 @@ namespace OpenSim.Services.LLLoginService
                 if (aCircuit == null)
                 {
                     m_PresenceService.LogoutAgent(session);
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed for {0} {1}, reason: {2}", firstName, lastName, reason);
                     return new LLFailedLoginResponse("key", reason, "false");
 
                 }
@@ -412,10 +455,15 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Finally, fill out the response and return it
                 //
-                LLLoginResponse response = new LLLoginResponse(account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_SearchURL, m_Currency);
+                LLLoginResponse response
+                    = new LLLoginResponse(
+                        account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
+                        where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
+                        m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone,
+                        m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee);
 
-                m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to client.");
+                m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
+
                 return response;
             }
             catch (Exception e)
@@ -427,11 +475,16 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        protected GridRegion FindDestination(UserAccount account, UUID scopeID, GridUserInfo pinfo, UUID sessionID, string startLocation, GridRegion home, out GridRegion gatekeeper, out string where, out Vector3 position, out Vector3 lookAt, out TeleportFlags flags)
+        protected GridRegion FindDestination(
+            UserAccount account, UUID scopeID, GridUserInfo pinfo, UUID sessionID, string startLocation,
+            GridRegion home, out GridRegion gatekeeper,
+            out string where, out Vector3 position, out Vector3 lookAt, out TeleportFlags flags)
         {
             flags = TeleportFlags.ViaLogin;
 
-            m_log.DebugFormat("[LLOGIN SERVICE]: FindDestination for start location {0}", startLocation);
+            m_log.DebugFormat(
+                "[LLOGIN SERVICE]: Finding destination matching start location {0} for {1}",
+                startLocation, account.Name);
 
             gatekeeper = null;
             where = "home";
@@ -465,6 +518,7 @@ namespace OpenSim.Services.LLLoginService
 
                     position = pinfo.HomePosition;
                     lookAt = pinfo.HomeLookAt;
+                    flags |= TeleportFlags.ViaHome;
                 }
                 
                 if (tryDefaults)
@@ -753,6 +807,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 circuitCode = (uint)Util.RandomClass.Next(); ;
                 aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position, clientIP.Address.ToString(), viewer, channel, mac, id0);
+                aCircuit.teleportFlags |= (uint)flags;
                 success = LaunchAgentIndirectly(gatekeeper, destination, aCircuit, clientIP, out reason);
                 if (!success && m_GridService != null)
                 {
@@ -878,7 +933,7 @@ namespace OpenSim.Services.LLLoginService
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)
         {
             m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
-            if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, clientIP, out reason))
+            if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, true, out reason))
                 return true;
             return false;
         }
@@ -887,16 +942,16 @@ namespace OpenSim.Services.LLLoginService
         private void RegisterCommands()
         {
             //MainConsole.Instance.Commands.AddCommand
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login level",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login level",
                     "login level <level>",
                     "Set the minimum user level to log in", HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login reset",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login reset",
                     "login reset",
                     "Reset the login level to allow all users",
                     HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login text",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login text",
                     "login text <text>",
                     "Set the text users will see on login", HandleLoginCommand);
 
@@ -914,14 +969,25 @@ namespace OpenSim.Services.LLLoginService
                     // or fixing critical issues
                     //
                     if (cmd.Length > 2)
-                        Int32.TryParse(cmd[2], out m_MinLoginLevel);
+                    {
+                        if (Int32.TryParse(cmd[2], out m_MinLoginLevel))
+                            MainConsole.Instance.OutputFormat("Set minimum login level to {0}", m_MinLoginLevel);
+                        else
+                            MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid login level", cmd[2]);
+                    }
                     break;
-                case "reset":
+
+                case "reset":                    
                     m_MinLoginLevel = 0;
+                    MainConsole.Instance.OutputFormat("Reset min login level to {0}", m_MinLoginLevel);
                     break;
+
                 case "text":
                     if (cmd.Length > 2)
+                    {
                         m_WelcomeMessage = cmd[2];
+                        MainConsole.Instance.OutputFormat("Login welcome message set to '{0}'", m_WelcomeMessage);
+                    }
                     break;
             }
         }

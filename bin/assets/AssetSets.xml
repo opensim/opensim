@@ -68,6 +68,12 @@
   <!---->
   
   <!---->
+  <Section Name="Collision Sounds AssetSet">
+    <Key Name="file" Value="CollisionSoundsAssetSet/CollisionSoundsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
   <Section Name="Textures AssetSet">
     <Key Name="file" Value="TexturesAssetSet/TexturesAssetSet.xml"/>
   </Section>

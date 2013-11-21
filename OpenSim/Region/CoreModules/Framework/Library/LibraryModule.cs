@@ -41,10 +41,13 @@ using OpenSim.Server.Base;
 
 using OpenMetaverse;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Framework.Library
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LibraryModule")]
     public class LibraryModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -173,7 +176,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 m_log.InfoFormat("[LIBRARY MODULE]: Loading library archive {0} ({1})...", iarFileName, simpleName);
                 simpleName = GetInventoryPathFromName(simpleName);
 
-                InventoryArchiveReadRequest archread = new InventoryArchiveReadRequest(m_MockScene, uinfo, simpleName, iarFileName, false);
+                InventoryArchiveReadRequest archread = new InventoryArchiveReadRequest(m_MockScene.InventoryService, m_MockScene.AssetService, m_MockScene.UserAccountService, uinfo, simpleName, iarFileName, false);
                 try
                 {
                     HashSet<InventoryNodeBase> nodes = archread.Execute();
@@ -182,7 +185,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                         // didn't find the subfolder with the given name; place it on the top
                         m_log.InfoFormat("[LIBRARY MODULE]: Didn't find {0} in library. Placing archive on the top level", simpleName);
                         archread.Close();
-                        archread = new InventoryArchiveReadRequest(m_MockScene, uinfo, "/", iarFileName, false);
+                        archread = new InventoryArchiveReadRequest(m_MockScene.InventoryService, m_MockScene.AssetService, m_MockScene.UserAccountService, uinfo, "/", iarFileName, false);
                         archread.Execute();
                     }
 

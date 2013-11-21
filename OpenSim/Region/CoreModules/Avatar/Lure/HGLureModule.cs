@@ -42,7 +42,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Lure
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGLureModule")]
     public class HGLureModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
@@ -65,7 +65,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 {
                     m_Enabled = true;
 
-                    m_ThisGridURL = config.Configs["Messaging"].GetString("Gatekeeper", string.Empty);
+                    m_ThisGridURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", 
+                        new string[] { "Startup", "Hypergrid", "Messaging" }, String.Empty);
+                    // Legacy. Remove soon!
+                    m_ThisGridURL = config.Configs["Messaging"].GetString("Gatekeeper", m_ThisGridURL);
                     m_log.DebugFormat("[LURE MODULE]: {0} enabled", Name);
                 }
             }
@@ -151,7 +154,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         void OnIncomingInstantMessage(GridInstantMessage im)
         {
-            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport)
+            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport 
+                || im.dialog == (byte)InstantMessageDialog.GodLikeRequestTeleport)
             {
                 UUID sessionID = new UUID(im.imSessionID);
 
@@ -186,7 +190,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     client.FirstName+" "+client.LastName, targetid,
                     (byte)InstantMessageDialog.RequestTeleport, false,
                     message, sessionID, false, presence.AbsolutePosition,
-                    new Byte[0]);
+                    new Byte[0], true);
             m.RegionID = client.Scene.RegionInfo.RegionID.Guid;
 
             m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", m.imSessionID, m.RegionID, m.message);
@@ -240,9 +244,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         {
                             ScenePresence sp = scene.GetScenePresence(client.AgentId);
                             IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
-                            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
-                            if (transferMod != null && sp != null && eq != null)
-                                transferMod.DoTeleport(sp, gatekeeper, finalDestination, im.Position + new Vector3(0.5f, 0.5f, 0f), Vector3.UnitX, teleportflags, eq);
+
+                            if (transferMod != null && sp != null)
+                                transferMod.DoTeleport(
+                                    sp, gatekeeper, finalDestination, im.Position + new Vector3(0.5f, 0.5f, 0f),
+                                    Vector3.UnitX, teleportflags);
                         }
                     }
                 }

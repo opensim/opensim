@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,210 +27,119 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-
+using System.Threading;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
-using OpenSim.Region.Framework.Scenes;
-
 using OpenMetaverse;
-using Nini.Config;
-using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
+    /// <summary>
+    /// Cache root and system inventory folders to reduce number of potentially remote inventory calls and associated holdups.
+    /// </summary>
     public class InventoryCache
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(
-            MethodBase.GetCurrentMethod().DeclaringType);
+        private const double CACHE_EXPIRATION_SECONDS = 3600.0; // 1 hour
 
-        protected BaseInventoryConnector m_Connector;
-        protected List<Scene> m_Scenes;
+        private static ExpiringCache<UUID, InventoryFolderBase> m_RootFolders = new ExpiringCache<UUID, InventoryFolderBase>();
+        private static ExpiringCache<UUID, Dictionary<AssetType, InventoryFolderBase>> m_FolderTypes = new ExpiringCache<UUID, Dictionary<AssetType, InventoryFolderBase>>();
+        private static ExpiringCache<UUID, InventoryCollection> m_Inventories = new ExpiringCache<UUID, InventoryCollection>();
 
-        // The cache proper
-        protected Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>> m_InventoryCache;
-
-        // A cache of userIDs --> ServiceURLs, for HGBroker only
-        protected Dictionary<UUID, string> m_InventoryURLs =
-                new Dictionary<UUID, string>();
-
-        public virtual void Init(IConfigSource source, BaseInventoryConnector connector)
+        public void Cache(UUID userID, InventoryFolderBase root)
         {
-            m_Scenes = new List<Scene>();
-            m_InventoryCache = new Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>>();
-            m_Connector = connector;
+            m_RootFolders.AddOrUpdate(userID, root, CACHE_EXPIRATION_SECONDS);
         }
 
-        public virtual void AddRegion(Scene scene)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
-            m_Scenes.Add(scene);
-            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
-            scene.EventManager.OnClientClosed += OnClientClosed;
-        }
-
-        public virtual void RemoveRegion(Scene scene)
-        {
-            if ((m_Scenes != null) && m_Scenes.Contains(scene))
-            {
-                m_Scenes.Remove(scene);
-            }
-        }
-
-        void OnMakeRootAgent(ScenePresence presence)
-        {
-            // Get system folders
-
-            // First check if they're here already
-            lock (m_InventoryCache)
-            {
-                if (m_InventoryCache.ContainsKey(presence.UUID))
-                {
-                    m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent, system folders for {0} {1} already in cache", presence.Firstname, presence.Lastname);
-                    return;
-                }
-            }
-
-            // If not, go get them and place them in the cache
-            Dictionary<AssetType, InventoryFolderBase> folders = CacheSystemFolders(presence.UUID);
-            CacheInventoryServiceURL(presence.Scene, presence.UUID);
-            
-            m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent in {0}, fetched system folders for {1} {2}: count {3}", 
-                presence.Scene.RegionInfo.RegionName, presence.Firstname, presence.Lastname, folders.Count);
-
-        }
-
-        void OnClientClosed(UUID clientID, Scene scene)
-        {
-            if (m_InventoryCache.ContainsKey(clientID)) // if it's still in cache
-            {
-                ScenePresence sp = null;
-                foreach (Scene s in m_Scenes)
-                {
-                    s.TryGetScenePresence(clientID, out sp);
-                    if ((sp != null) && !sp.IsChildAgent && (s != scene))
-                    {
-                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping system folders in cache",
-                            scene.RegionInfo.RegionName, clientID);
-                        return;
-                    }
-                }
-
-                m_log.DebugFormat(
-                    "[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders",
-                    scene.RegionInfo.RegionName, clientID);
-                DropCachedSystemFolders(clientID);
-                DropInventoryServiceURL(clientID);
-            }
-        }
-
-        /// <summary>
-        /// Cache a user's 'system' folders.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns>Folders cached</returns>
-        protected Dictionary<AssetType, InventoryFolderBase> CacheSystemFolders(UUID userID)
-        {
-            // If not, go get them and place them in the cache
-            Dictionary<AssetType, InventoryFolderBase> folders = m_Connector.GetSystemFolders(userID);
-
-            if (folders.Count > 0)
-                lock (m_InventoryCache)
-                    m_InventoryCache.Add(userID, folders);
-
-            return folders;
-        }
-
-        /// <summary>
-        /// Drop a user's cached 'system' folders
-        /// </summary>
-        /// <param name="userID"></param>
-        protected void DropCachedSystemFolders(UUID userID)
-        {
-            // Drop system folders
-            lock (m_InventoryCache)
-                if (m_InventoryCache.ContainsKey(userID))
-                    m_InventoryCache.Remove(userID);
-        }
-
-        /// <summary>
-        /// Get the system folder for a particular asset type
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
-        {
-            m_log.DebugFormat("[INVENTORY CACHE]: Getting folder for asset type {0} for user {1}", type, userID);
-            
-            Dictionary<AssetType, InventoryFolderBase> folders = null;
-            
-            lock (m_InventoryCache)
-            {
-                m_InventoryCache.TryGetValue(userID, out folders);
-
-                // In some situations (such as non-secured standalones), system folders can be requested without
-                // the user being logged in.  So we need to try caching them here if we don't already have them.
-                if (null == folders)
-                    CacheSystemFolders(userID);
-
-                m_InventoryCache.TryGetValue(userID, out folders);
-            }
-            
-            if ((folders != null) && folders.ContainsKey(type))
-            {
-                m_log.DebugFormat(
-                    "[INVENTORY CACHE]: Returning folder {0} as type {1} for {2}", folders[type], type, userID);
-                
-                return folders[type];
-            }
-            
-            m_log.WarnFormat("[INVENTORY CACHE]: Could not find folder for system type {0} for {1}", type, userID);
+            InventoryFolderBase root = null;
+            if (m_RootFolders.TryGetValue(userID, out root))
+                return root;
 
             return null;
         }
 
-        /// <summary>
-        /// Gets the user's inventory URL from its serviceURLs, if the user is foreign,
-        /// and sticks it in the cache
-        /// </summary>
-        /// <param name="userID"></param>
-        private void CacheInventoryServiceURL(Scene scene, UUID userID)
+        public void Cache(UUID userID, AssetType type, InventoryFolderBase folder)
         {
-            if (scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, userID) == null)
+            Dictionary<AssetType, InventoryFolderBase> ff = null;
+            if (!m_FolderTypes.TryGetValue(userID, out ff))
             {
-                // The user does not have a local account; let's cache its service URL
-                string inventoryURL = string.Empty;
-                ScenePresence sp = null;
-                scene.TryGetScenePresence(userID, out sp);
-                if (sp != null)
-                {
-                    AgentCircuitData aCircuit = scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                    if (aCircuit.ServiceURLs.ContainsKey("InventoryServerURI"))
-                    {
-                        inventoryURL = aCircuit.ServiceURLs["InventoryServerURI"].ToString();
-                        if (inventoryURL != null && inventoryURL != string.Empty)
-                        {
-                            inventoryURL = inventoryURL.Trim(new char[] { '/' });
-                            m_InventoryURLs.Add(userID, inventoryURL);
-                        }
-                    }
-                }
+                ff = new Dictionary<AssetType, InventoryFolderBase>();
+                m_FolderTypes.Add(userID, ff, CACHE_EXPIRATION_SECONDS);
+            }
+
+            // We need to lock here since two threads could potentially retrieve the same dictionary
+            // and try to add a folder for that type simultaneously.  Dictionary<>.Add() is not described as thread-safe in the SDK
+            // even if the folders are identical.
+            lock (ff)
+            {
+                if (!ff.ContainsKey(type))
+                    ff.Add(type, folder);
             }
         }
 
-        private void DropInventoryServiceURL(UUID userID)
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {
-            lock (m_InventoryURLs)
-                if (m_InventoryURLs.ContainsKey(userID))
-                    m_InventoryURLs.Remove(userID);
+            Dictionary<AssetType, InventoryFolderBase> ff = null;
+            if (m_FolderTypes.TryGetValue(userID, out ff))
+            {
+                InventoryFolderBase f = null;
+
+                lock (ff)
+                {
+                    if (ff.TryGetValue(type, out f))
+                        return f;
+                }
+            }
+
+            return null;
         }
 
-        public string GetInventoryServiceURL(UUID userID)
+        public void Cache(UUID userID, InventoryCollection inv)
         {
-            if (m_InventoryURLs.ContainsKey(userID))
-                return m_InventoryURLs[userID];
+            m_Inventories.AddOrUpdate(userID, inv, 120);
+        }
 
+        public InventoryCollection GetUserInventory(UUID userID)
+        {
+            InventoryCollection inv = null;
+            if (m_Inventories.TryGetValue(userID, out inv))
+                return inv;
+            return null;
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            InventoryCollection inv = null;
+            InventoryCollection c;
+            if (m_Inventories.TryGetValue(userID, out inv))
+            {
+                c = new InventoryCollection();
+                c.UserID = userID;
+
+                c.Folders = inv.Folders.FindAll(delegate(InventoryFolderBase f)
+                {
+                    return f.ParentID == folderID;
+                });
+                c.Items = inv.Items.FindAll(delegate(InventoryItemBase i)
+                {
+                    return i.Folder == folderID;
+                });
+                return c;
+            }
+            return null;
+        }
+
+        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
+        {
+            InventoryCollection inv = null;
+            if (m_Inventories.TryGetValue(userID, out inv))
+            {
+                List<InventoryItemBase> items = inv.Items.FindAll(delegate(InventoryItemBase i)
+                {
+                    return i.Folder == folderID;
+                });
+                return items;
+            }
             return null;
         }
     }

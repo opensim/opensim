@@ -97,9 +97,23 @@ namespace OpenSim.Services.Interfaces
         List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
 
         List<GridRegion> GetDefaultRegions(UUID scopeID);
+        List<GridRegion> GetDefaultHypergridRegions(UUID scopeID);
         List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y);
         List<GridRegion> GetHyperlinks(UUID scopeID);
 
+        /// <summary>
+        /// Get internal OpenSimulator region flags.
+        /// </summary>
+        /// <remarks>
+        /// See OpenSimulator.Framework.RegionFlags.  These are not returned in the GridRegion structure -
+        /// they currently need to be requested separately.  Possibly this should change to avoid multiple service calls
+        /// in some situations.
+        /// </remarks>
+        /// <returns>
+        /// The region flags.
+        /// </returns>
+        /// <param name='scopeID'></param>
+        /// <param name='regionID'></param>
         int GetRegionFlags(UUID scopeID, UUID regionID);
     }
 
@@ -124,7 +138,10 @@ namespace OpenSim.Services.Interfaces
                 if ( m_serverURI != string.Empty ) {
                     return m_serverURI;
                 } else {
-                    return "http://" + m_externalHostName + ":" + m_httpPort + "/";
+                    if (m_httpPort == 0)
+                        return "http://" + m_externalHostName + "/";
+                    else
+                        return "http://" + m_externalHostName + ":" + m_httpPort + "/";
                 }
             }
             set { 
@@ -190,6 +207,7 @@ namespace OpenSim.Services.Interfaces
         public UUID ScopeID = UUID.Zero;
 
         public UUID TerrainImage = UUID.Zero;
+        public UUID ParcelImage = UUID.Zero;
         public byte Access;
         public int  Maturity;
         public string RegionSecret = string.Empty;
@@ -236,6 +254,7 @@ namespace OpenSim.Services.Interfaces
             RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
             TerrainImage = ConvertFrom.RegionSettings.TerrainImageID;
+            ParcelImage = ConvertFrom.RegionSettings.ParcelImageID;
             Access = ConvertFrom.AccessLevel;
             Maturity = ConvertFrom.RegionSettings.Maturity;
             RegionSecret = ConvertFrom.regionSecret;
@@ -253,6 +272,7 @@ namespace OpenSim.Services.Interfaces
             RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
             TerrainImage = ConvertFrom.TerrainImage;
+            ParcelImage = ConvertFrom.ParcelImage;
             Access = ConvertFrom.Access;
             Maturity = ConvertFrom.Maturity;
             RegionSecret = ConvertFrom.RegionSecret;
@@ -281,7 +301,7 @@ namespace OpenSim.Services.Interfaces
 
         public override int GetHashCode()
         {
-            return RegionID.GetHashCode() ^ TerrainImage.GetHashCode();
+            return RegionID.GetHashCode() ^ TerrainImage.GetHashCode() ^ ParcelImage.GetHashCode();
         }
 
         #endregion
@@ -359,6 +379,7 @@ namespace OpenSim.Services.Interfaces
             kvp["serverURI"] = ServerURI;
             kvp["serverPort"] = InternalEndPoint.Port.ToString();
             kvp["regionMapTexture"] = TerrainImage.ToString();
+            kvp["parcelMapTexture"] = ParcelImage.ToString();
             kvp["access"] = Access.ToString();
             kvp["regionSecret"] = RegionSecret;
             kvp["owner_uuid"] = EstateOwner.ToString();
@@ -410,6 +431,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("regionMapTexture"))
                 UUID.TryParse((string)kvp["regionMapTexture"], out TerrainImage);
+
+            if (kvp.ContainsKey("parcelMapTexture"))
+                UUID.TryParse((string)kvp["parcelMapTexture"], out ParcelImage);
 
             if (kvp.ContainsKey("access"))
                 Access = Byte.Parse((string)kvp["access"]);

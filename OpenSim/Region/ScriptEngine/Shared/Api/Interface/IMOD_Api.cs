@@ -28,18 +28,28 @@
 using System.Collections;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
-using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
-using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
-using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
-using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
+using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public interface IMOD_Api
     {
+        // Invocation functions
+        void modInvokeN(string fname, params object[] parms);
+        LSL_String modInvokeS(string fname, params object[] parms);
+        LSL_Integer modInvokeI(string fname, params object[] parms);
+        LSL_Float modInvokeF(string fname, params object[] parms);
+        LSL_Key modInvokeK(string fname, params object[] parms);
+        LSL_Vector modInvokeV(string fname, params object[] parms);
+        LSL_Rotation modInvokeR(string fname, params object[] parms);
+        LSL_List modInvokeL(string fname, params object[] parms);
+        
         //Module functions
         string modSendCommand(string modules, string command, string k);
     }

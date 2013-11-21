@@ -84,16 +84,23 @@ namespace OpenSim.Region.Framework.Scenes
             if (neighbourService != null)
                 neighbour = neighbourService.HelloNeighbour(regionhandle, region);
             else
-                m_log.DebugFormat("[SCS]: No neighbour service provided for informing neigbhours of this region");
+                m_log.DebugFormat(
+                    "[SCENE COMMUNICATION SERVICE]: No neighbour service provided for region {0} to inform neigbhours of status",
+                    m_scene.Name);
 
             if (neighbour != null)
             {
-                m_log.DebugFormat("[INTERGRID]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_log.DebugFormat(
+                    "[SCENE COMMUNICATION SERVICE]: Region {0} successfully informed neighbour {1} at {2}-{3} that it is up",
+                    m_scene.Name, neighbour.RegionName, x / Constants.RegionSize, y / Constants.RegionSize);
+
                 m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
             else
             {
-                m_log.InfoFormat("[INTERGRID]: Failed to inform neighbour {0}-{1} that I'm here.", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_log.WarnFormat(
+                    "[SCENE COMMUNICATION SERVICE]: Region {0} failed to inform neighbour at {1}-{2} that it is up.",
+                    m_scene.Name, x / Constants.RegionSize, y / Constants.RegionSize);
             }
         }
 
@@ -101,8 +108,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
-            List<GridRegion> neighbours = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
-            m_log.DebugFormat("[INTERGRID]: Informing {0} neighbours that this region is up", neighbours.Count);
+            List<GridRegion> neighbours
+                = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
+
+            m_log.DebugFormat(
+                "[SCENE COMMUNICATION SERVICE]: Informing {0} neighbours that region {1} is up",
+                neighbours.Count, m_scene.Name);
+
             foreach (GridRegion n in neighbours)
             {
                 InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
@@ -156,16 +168,22 @@ namespace OpenSim.Region.Framework.Scenes
                         // that the region position is cached or performance will degrade
                         Utils.LongToUInts(regionHandle, out x, out y);
                         GridRegion dest = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-                        if (! simulatorList.Contains(dest.ServerURI))
+                        if (dest == null)
+                            continue;
+
+                        if (!simulatorList.Contains(dest.ServerURI))
                         {
                             // we havent seen this simulator before, add it to the list
                             // and send it an update
                             simulatorList.Add(dest.ServerURI);
+                            // Let move this to sync. Mono definitely does not like async networking.
+                            m_scene.SimulationService.UpdateAgent(dest, cAgentData);
 
-                            SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
-                            d.BeginInvoke(cAgentData, m_regionInfo.ScopeID, dest,
-                                          SendChildAgentDataUpdateCompleted,
-                                          d);
+                            // Leaving this here as a reminder that we tried, and it sucks.
+                            //SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
+                            //d.BeginInvoke(cAgentData, m_regionInfo.ScopeID, dest,
+                            //              SendChildAgentDataUpdateCompleted,
+                            //              d);
                         }
                     }
                 }
@@ -179,7 +197,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Closes a child agent on a given region
         /// </summary>
-        protected void SendCloseChildAgent(UUID agentID, ulong regionHandle)
+        protected void SendCloseChildAgent(UUID agentID, ulong regionHandle, string auth_token)
         {
             // let's do our best, but there's not much we can do if the neighbour doesn't accept.
 
@@ -190,10 +208,9 @@ namespace OpenSim.Region.Framework.Scenes
             GridRegion destination = m_scene.GridService.GetRegionByPosition(m_regionInfo.ScopeID, (int)x, (int)y);
 
             m_log.DebugFormat(
-                "[INTERGRID]: Sending close agent {0} to region at {1}-{2}",
-                agentID, destination.RegionCoordX, destination.RegionCoordY);
+                "[SCENE COMMUNICATION SERVICE]: Sending close agent ID {0} to {1}", agentID, destination.RegionName);
 
-            m_scene.SimulationService.CloseAgent(destination, agentID);
+            m_scene.SimulationService.CloseAgent(destination, agentID, auth_token);
         }
 
         /// <summary>
@@ -202,15 +219,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="regionslst"></param>
-        public void SendCloseChildAgentConnections(UUID agentID, List<ulong> regionslst)
+        public void SendCloseChildAgentConnections(UUID agentID, string auth_code, List<ulong> regionslst)
         {
-            Util.FireAndForget(delegate
+            foreach (ulong handle in regionslst)
             {
-                foreach (ulong handle in regionslst)
-                {
-                    SendCloseChildAgent(agentID, handle);
-                }
-            });
+                // We must take a copy here since handle is acts like a reference when used in an iterator.
+                // This leads to race conditions if directly passed to SendCloseChildAgent with more than one neighbour region.
+                ulong handleCopy = handle;
+                Util.FireAndForget((o) => { SendCloseChildAgent(agentID, handleCopy, auth_code); });
+            }
         }
        
         public List<GridRegion> RequestNamedRegions(string name, int maxNumber)

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,6 +40,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalNeighbourServicesConnector")]
     public class LocalNeighbourServicesConnector :
             ISharedRegionModule, INeighbourService
     {
@@ -125,13 +127,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
             uint x, y;
             Utils.LongToUInts(regionHandle, out x, out y);
 
-            m_log.DebugFormat("[NEIGHBOUR CONNECTOR]: HelloNeighbour from region {0} to region at {1}-{2}",
-                thisRegion.RegionName, x / Constants.RegionSize, y / Constants.RegionSize);
-
             foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
+                    m_log.DebugFormat("[LOCAL NEIGHBOUR SERVICE CONNECTOR]: HelloNeighbour from region {0} to neighbour {1} at {2}-{3}",
+                        thisRegion.RegionName, s.Name, x / Constants.RegionSize, y / Constants.RegionSize);
+
                     //m_log.Debug("[NEIGHBOUR CONNECTOR]: Found region to SendHelloNeighbour");
                     return s.IncomingHelloNeighbour(thisRegion);
                 }

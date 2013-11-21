@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Timers;
 using System.Text.RegularExpressions;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -95,6 +96,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// Save memory by setting low initial capacities. Minimizes impact in common cases of all regions using same interval, and instances hosting 1 ~ 4 regions.
     /// Also helps if you don't want AutoBackup at all.
     /// </remarks>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AutoBackupModule")]
     public class AutoBackupModule : ISharedRegionModule
     {
         private static readonly ILog m_log =

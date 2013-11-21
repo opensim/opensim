@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Timers;
 using System.Threading;
@@ -45,8 +46,8 @@ namespace OpenSim.Region.CoreModules.World.Region
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RestartModule")]
     public class RestartModule : INonSharedRegionModule, IRestartModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Scene m_Scene;
         protected Timer m_CountdownTimer = null;
@@ -66,21 +67,21 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_Scene = scene;
             
             scene.RegisterModuleInterface<IRestartModule>(this);
-            MainConsole.Instance.Commands.AddCommand("RestartModule",
+            MainConsole.Instance.Commands.AddCommand("Regions",
                     false, "region restart bluebox",
                     "region restart bluebox <message> <delta seconds>+",
                     "Schedule a region restart", 
                     "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a dismissable bluebox notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
                     HandleRegionRestart);
             
-            MainConsole.Instance.Commands.AddCommand("RestartModule",
+            MainConsole.Instance.Commands.AddCommand("Regions",
                     false, "region restart notice",
                     "region restart notice <message> <delta seconds>+",
                     "Schedule a region restart", 
                     "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a transient notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
                     HandleRegionRestart);
             
-            MainConsole.Instance.Commands.AddCommand("RestartModule",
+            MainConsole.Instance.Commands.AddCommand("Regions",
                     false, "region restart abort",
                     "region restart abort [<message>]",
                     "Abort a region restart", HandleRegionRestart);
@@ -202,18 +203,30 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         public void SetTimer(int intervalSeconds)
         {
-            m_CountdownTimer = new Timer();
-            m_CountdownTimer.AutoReset = false;
-            m_CountdownTimer.Interval = intervalSeconds * 1000;
-            m_CountdownTimer.Elapsed += OnTimer;
-            m_CountdownTimer.Start();
+            if (intervalSeconds > 0)
+            {
+                m_CountdownTimer = new Timer();
+                m_CountdownTimer.AutoReset = false;
+                m_CountdownTimer.Interval = intervalSeconds * 1000;
+                m_CountdownTimer.Elapsed += OnTimer;
+                m_CountdownTimer.Start();
+            }
+            else if (m_CountdownTimer != null)
+            {
+                m_CountdownTimer.Stop();
+                m_CountdownTimer = null;
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[RESTART MODULE]: Tried to set restart timer to {0} in {1}, which is not a valid interval", 
+                    intervalSeconds, m_Scene.Name);
+            }
         }
 
         private void OnTimer(object source, ElapsedEventArgs e)
         {
-            int nextInterval = DoOneNotice();
-
-            SetTimer(nextInterval);
+            SetTimer(DoOneNotice());
         }
 
         public void AbortRestart(string message)
@@ -263,6 +276,9 @@ namespace OpenSim.Region.CoreModules.World.Region
             List<int> times = new List<int>();
             for (int i = 4 ; i < args.Length ; i++)
                 times.Add(Convert.ToInt32(args[i]));
+
+            MainConsole.Instance.OutputFormat(
+                "Region {0} scheduled for restart in {1} seconds", m_Scene.Name, times.Sum());
 
             ScheduleRestart(UUID.Zero, args[3], times.ToArray(), notice);
         }

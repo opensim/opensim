@@ -57,9 +57,10 @@ namespace OpenSim.Region.OptionalModules
         
         public void Initialise(IConfigSource config)
         {
-            IConfig myConfig = config.Configs["Startup"];
+            //IConfig myConfig = config.Configs["Startup"];
 
-            string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+            string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
+                new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule"); 
 
             List<string> modules=new List<string>(permissionModules.Split(','));
 

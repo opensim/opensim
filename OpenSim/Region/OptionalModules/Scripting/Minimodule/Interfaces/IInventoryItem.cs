@@ -30,8 +30,7 @@ using OpenMetaverse;
 using OpenMetaverse.Assets;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
-{
-    
+{    
     /// <summary>
     /// This implements the methods needed to operate on individual inventory items.
     /// </summary>
@@ -39,6 +38,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         int Type { get; }
         UUID AssetID { get; }
-        T RetrieveAsset<T>() where T : Asset, new();
+        T RetrieveAsset<T>() where T : OpenMetaverse.Assets.Asset, new();
     }
 }

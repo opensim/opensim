@@ -38,12 +38,14 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Services.Connectors.SimianGrid
 {
     /// <summary>
     /// Permissions bitflags
     /// </summary>
+    /*
     [Flags]
     public enum PermissionMask : uint
     {
@@ -55,11 +57,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         Damage = 1 << 20,
         All = 0x7FFFFFFF
     }
+    */
 
     /// <summary>
     /// Connects avatar inventories to the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianInventoryServiceConnector")]
     public class SimianInventoryServiceConnector : IInventoryService, ISharedRegionModule
     {
         private static readonly ILog m_log =
@@ -92,7 +95,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianInventoryServiceConnector(string url)
         {
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + '/';
             m_serverUrl = url;
+
         }
 
         public void Initialise(IConfigSource source)
@@ -150,7 +156,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "OwnerID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -176,7 +182,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ChildrenOnly", "0" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 OSDArray items = (OSDArray)response["Items"];
@@ -238,7 +244,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ChildrenOnly", "1" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 OSDArray items = (OSDArray)response["Items"];
@@ -268,7 +274,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "OwnerID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Folder"] is OSDMap)
             {
                 OSDMap folder = (OSDMap)response["Folder"];
@@ -306,7 +312,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ChildrenOnly", "1" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 List<InventoryItemBase> items = GetItemsFromResponse((OSDArray)response["Items"]);
@@ -343,7 +349,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ChildrenOnly", "1" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 OSDArray items = (OSDArray)response["Items"];
@@ -377,7 +383,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ChildrenOnly", "1" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 OSDArray items = (OSDArray)response["Items"];
@@ -417,7 +423,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ChildrenOnly", "1" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 OSDArray items = (OSDArray)response["Items"];
@@ -448,7 +454,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ContentType", SLUtil.SLAssetTypeToContentType(folder.Type) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -512,7 +518,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     { "ItemID", itemID.ToString() }
                 };
 
-                OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+                OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
                 bool success = response["Success"].AsBoolean();
 
                 if (!success)
@@ -540,7 +546,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "FolderID", folder.ID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -617,7 +623,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ExtraData", OSDParser.SerializeJsonString(extraData) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -778,7 +784,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     invItem.CreationDate = item["CreationDate"].AsInteger();
                     invItem.CreatorId = item["CreatorID"].AsString();
                     invItem.CreatorData = item["CreatorData"].AsString();
-                    invItem.CreatorIdAsUuid = item["CreatorID"].AsUUID();
                     invItem.Description = item["Description"].AsString();
                     invItem.Folder = item["ParentID"].AsUUID();
                     invItem.ID = item["ID"].AsUUID();
@@ -842,7 +847,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Items", String.Join(",", itemIDs) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -880,7 +885,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_userServerUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_userServerUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDMap user = response["User"] as OSDMap;
@@ -911,7 +916,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Gestures", OSDParser.SerializeJsonString(gestures) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_userServerUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_userServerUrl, requestArgs);
             if (!response["Success"].AsBoolean())
             {
                 m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Failed to save active gestures for " + userID + ": " +

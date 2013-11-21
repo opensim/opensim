@@ -35,7 +35,17 @@ namespace OpenSim.Services.Interfaces
 {
     public interface ISimulationService
     {
-        IScene GetScene(ulong regionHandle);
+        /// <summary>
+        /// Retrieve the scene with the given region ID.
+        /// </summary>
+        /// <param name='regionId'>
+        /// Region identifier.
+        /// </param>
+        /// <returns>
+        /// The scene.
+        /// </returns>
+        IScene GetScene(UUID regionId);
+
         ISimulationService GetInnerService();
 
         #region Agents
@@ -65,8 +75,6 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         bool UpdateAgent(GridRegion destination, AgentPosition data);
 
-        bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent);
-
         bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason);
 
         /// <summary>
@@ -85,7 +93,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        bool CloseAgent(GridRegion destination, UUID id);
+        bool CloseAgent(GridRegion destination, UUID id, string auth_token);
 
         #endregion Agents
 
@@ -98,17 +106,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="sog"></param>
         /// <param name="isLocalCall"></param>
         /// <returns></returns>
-        bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall);
-
-        /// <summary>
-        /// Create an object from the user's inventory in the destination region. 
-        /// This message is used primarily by clients.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="userID"></param>
-        /// <param name="itemID"></param>
-        /// <returns></returns>
-        bool CreateObject(GridRegion destination, UUID userID, UUID itemID);
+        bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall);
 
         #endregion Objects
 

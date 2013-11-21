@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Basic scene object resize tests
     /// </summary>
     [TestFixture]
-    public class SceneObjectResizeTests
+    public class SceneObjectResizeTests : OpenSimTestCase
     {
         /// <summary>
         /// Test resizing an object
@@ -52,8 +52,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneHelpers.SetupScene();
-            SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene).ParentGroup;
+            Scene scene = new SceneHelpers().SetupScene();
+            SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene);
 
             g1.GroupResize(new Vector3(2, 3, 4));
 
@@ -62,8 +62,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(g1Post.RootPart.Scale.X, Is.EqualTo(2));
             Assert.That(g1Post.RootPart.Scale.Y, Is.EqualTo(3));
             Assert.That(g1Post.RootPart.Scale.Z, Is.EqualTo(4));
-
-            Assert.That(g1Post.RootPart.UndoCount, Is.EqualTo(1));
         }
 
         /// <summary>
@@ -75,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
 
             SceneObjectGroup g1 = SceneHelpers.CreateSceneObject(2, UUID.Zero);
             g1.RootPart.Scale = new Vector3(2, 3, 4);

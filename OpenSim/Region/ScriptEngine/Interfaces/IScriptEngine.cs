@@ -25,16 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
 using System;
-using OpenSim.Region.ScriptEngine.Shared;
+using System.Reflection;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenMetaverse;
-using Nini.Config;
 using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared;
 using Amib.Threading;
-using OpenSim.Framework;
+using log4net;
+using Nini.Config;
+using OpenMetaverse;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
@@ -42,10 +43,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// An interface for a script API module to communicate with
     /// the engine it's running under
     /// </summary>
-
-    public delegate void ScriptRemoved(UUID script);
-    public delegate void ObjectRemoved(UUID prim);
-
     public interface IScriptEngine
     {
         /// <summary>
@@ -56,9 +53,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         Scene World { get; }
 
         IScriptModule ScriptModule { get; }
-
-        event ScriptRemoved OnScriptRemoved;
-        event ObjectRemoved OnObjectRemoved;
 
         /// <summary>
         /// Post an event to a single script
@@ -83,6 +77,38 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         IConfigSource ConfigSource { get; }
         string ScriptEngineName { get; }
         string ScriptEnginePath { get; }
+
+        /// <summary>
+        /// Return the name of the class that will be used for all running scripts.
+        /// </summary>
+        /// <remarks>
+        /// Each class goes in its own assembly so we don't need to otherwise distinguish the class name.
+        /// </remarks>
+        string ScriptClassName { get; }
+
+        /// <summary>
+        /// Return the name of the base class that will be used for all running scripts.
+        /// </summary>
+        string ScriptBaseClassName { get; }
+
+        /// <summary>
+        /// Assemblies that need to be referenced when compiling scripts.
+        /// </summary>
+        /// <remarks>
+        /// These are currently additional to those always referenced by the compiler, BUT THIS MAY CHANGE IN THE 
+        /// FUTURE.
+        /// This can be null if there are no additional assemblies.
+        /// </remarks>
+        string[] ScriptReferencedAssemblies { get; }
+
+        /// <summary>
+        /// Parameters for the generated script's constructor.
+        /// </summary>
+        /// <remarks>
+        /// Can be null if there are no parameters
+        /// </remarks>
+        ParameterInfo[] ScriptBaseClassParameters { get; }
+
         IScriptApi GetApi(UUID itemID, string name);
     }
 }

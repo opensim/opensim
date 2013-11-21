@@ -32,6 +32,9 @@ using System.Reflection;
 using log4net;
 using NDesk.Options;
 using Nini.Config;
+using Mono.Addins;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -40,12 +43,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// <summary>
     /// This module loads and saves OpenSimulator region archives
     /// </summary>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ArchiverModule")]
     public class ArchiverModule : INonSharedRegionModule, IRegionArchiverModule
     {
         private static readonly ILog m_log = 
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
+        public Scene Scene { get; private set; }
+        public IRegionCombinerModule RegionCombinerModule { get; private set; }
 
         /// <value>
         /// The file used to load and save an opensimulator archive if no filename has been specified
@@ -70,13 +75,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
-            m_scene.RegisterModuleInterface<IRegionArchiverModule>(this);
+            Scene = scene;
+            Scene.RegisterModuleInterface<IRegionArchiverModule>(this);
             //m_log.DebugFormat("[ARCHIVER]: Enabled for region {0}", scene.RegionInfo.RegionName);
         }
 
         public void RegionLoaded(Scene scene)
         {
+            RegionCombinerModule = scene.RequestModuleInterface<IRegionCombinerModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -98,6 +104,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
+
+            // Send a message to the region ready module
+            /* bluewall* Disable this for the time being
+            IRegionReadyModule rready = m_scene.RequestModuleInterface<IRegionReadyModule>();
+
+            if (rready != null)
+            {
+                rready.OarLoadingAlert("load");
+            }
+            */
             
             List<string> mainParams = options.Parse(cmdparams);
           
@@ -105,7 +121,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //
 //            foreach (string param in mainParams)
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
-            
+
             if (mainParams.Count > 2)
             {
                 DearchiveRegion(mainParams[2], mergeOar, skipAssets, Guid.Empty);
@@ -125,21 +141,31 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> options = new Dictionary<string, object>();
 
             OptionSet ops = new OptionSet();
-//            ops.Add("v|version=", delegate(string v) { options["version"] = v; });
-            ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
+
+            // legacy argument [obsolete]
+            ops.Add("p|profile=", delegate(string v) { Console.WriteLine("\n WARNING: -profile option is obsolete and it will not work. Use -home instead.\n"); });
+            // preferred
+            ops.Add("h|home=", delegate(string v) { options["home"] = v; });
+
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
+            ops.Add("publish", v => options["wipe-owners"] = v != null);
             ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
+            ops.Add("all", delegate(string v) { options["all"] = v != null; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
+            string path;
             if (mainParams.Count > 2)
-            {
-                ArchiveRegion(mainParams[2], options);
-            }
+                path = mainParams[2];
             else
-            {
-                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, options);
-            }
+                path = DEFAULT_OAR_BACKUP_FILENAME;
+
+            // Not doing this right now as this causes some problems with auto-backup systems.  Maybe a force flag is
+            // needed
+//            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, path))
+//                return;
+
+            ArchiveRegion(path, options);
         }
         
         public void ArchiveRegion(string savePath, Dictionary<string, object> options)
@@ -150,9 +176,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void ArchiveRegion(string savePath, Guid requestId, Dictionary<string, object> options)
         {
             m_log.InfoFormat(
-                "[ARCHIVER]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
+                "[ARCHIVER]: Writing archive for region {0} to {1}", Scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequestPreparation(m_scene, savePath, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequest(Scene, savePath, requestId).ArchiveRegion(options);
         }
 
         public void ArchiveRegion(Stream saveStream)
@@ -167,7 +193,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequest(Scene, saveStream, requestId).ArchiveRegion(options);
         }
 
         public void DearchiveRegion(string loadPath)
@@ -178,9 +204,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
             m_log.InfoFormat(
-                "[ARCHIVER]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
+                "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(m_scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
         }
         
         public void DearchiveRegion(Stream loadStream)
@@ -190,7 +216,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
         public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Guid requestId)
         {
-            new ArchiveReadRequest(m_scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
         }
     }
 }

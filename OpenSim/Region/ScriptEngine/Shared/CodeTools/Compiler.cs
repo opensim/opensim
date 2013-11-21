@@ -31,10 +31,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.IO;
+using System.Text;
 using Microsoft.CSharp;
 //using Microsoft.JScript;
 using Microsoft.VisualBasic;
 using log4net;
+
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenMetaverse;
@@ -70,6 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private bool CompileWithDebugInformation;
         private Dictionary<string, bool> AllowedCompilers = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         private Dictionary<string, enumCompileType> LanguageMapping = new Dictionary<string, enumCompileType>(StringComparer.CurrentCultureIgnoreCase);
+        private bool m_insertCoopTerminationCalls;
 
         private string FilePrefix;
         private string ScriptEnginesPath = null;
@@ -93,20 +96,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private Dictionary<string, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>> m_lineMaps =
             new Dictionary<string, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>>();
 
+        public bool in_startup = true;
+
         public Compiler(IScriptEngine scriptEngine)
         {
-            m_scriptEngine = scriptEngine;;
+            m_scriptEngine = scriptEngine;
             ScriptEnginesPath = scriptEngine.ScriptEnginePath;
             ReadConfig();
         }
 
-        public bool in_startup = true;
         public void ReadConfig()
         {
             // Get some config
             WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", false);
             CompileWithDebugInformation = m_scriptEngine.Config.GetBoolean("CompileWithDebugInformation", true);
             bool DeleteScriptsOnStartup = m_scriptEngine.Config.GetBoolean("DeleteScriptsOnStartup", true);
+            m_insertCoopTerminationCalls = m_scriptEngine.Config.GetString("ScriptStopStrategy", "abort") == "co-op";
 
             // Get file prefix from scriptengine name and make it file system safe:
             FilePrefix = "CommonCompiler";
@@ -291,6 +296,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public void PerformScriptCompile(string Script, string asset, UUID ownerUUID,
             out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
+//            m_log.DebugFormat("[Compiler]: Compiling script\n{0}", Script);
+
+            IScriptModuleComms comms = m_scriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
+
             linemap = null;
             m_warnings.Clear();
 
@@ -357,6 +366,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (Script.StartsWith("//yp", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.yp;
 
+//            m_log.DebugFormat("[Compiler]: Compile language is {0}", language);
+
             if (!AllowedCompilers.ContainsKey(language.ToString()))
             {
                 // Not allowed to compile to this language!
@@ -378,7 +389,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (language == enumCompileType.lsl)
             {
                 // Its LSL, convert it to C#
-                LSL_Converter = (ICodeConverter)new CSCodeGenerator();
+                LSL_Converter = (ICodeConverter)new CSCodeGenerator(comms, m_insertCoopTerminationCalls);
                 compileScript = LSL_Converter.Convert(Script);
 
                 // copy converter warnings into our warnings.
@@ -403,21 +414,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 case enumCompileType.cs:
                 case enumCompileType.lsl:
-                    compileScript = CreateCSCompilerScript(compileScript);
+                    compileScript = CreateCSCompilerScript(
+                        compileScript, 
+                        m_scriptEngine.ScriptClassName, 
+                        m_scriptEngine.ScriptBaseClassName, 
+                        m_scriptEngine.ScriptBaseClassParameters);
                     break;
                 case enumCompileType.vb:
-                    compileScript = CreateVBCompilerScript(compileScript);
+                    compileScript = CreateVBCompilerScript(
+                        compileScript, m_scriptEngine.ScriptClassName, m_scriptEngine.ScriptBaseClassName);
                     break;
 //                case enumCompileType.js:
-//                    compileScript = CreateJSCompilerScript(compileScript);
+//                    compileScript = CreateJSCompilerScript(compileScript, m_scriptEngine.ScriptBaseClassName);
 //                    break;
                 case enumCompileType.yp:
-                    compileScript = CreateYPCompilerScript(compileScript);
+                    compileScript = CreateYPCompilerScript(
+                        compileScript, m_scriptEngine.ScriptClassName,m_scriptEngine.ScriptBaseClassName);
                     break;
             }
 
             assembly = CompileFromDotNetText(compileScript, language, asset, assembly);
-            return;
         }
 
         public string[] GetWarnings()
@@ -444,43 +460,60 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 //            return compileScript;
 //        }
 
-        private static string CreateCSCompilerScript(string compileScript)
+        private static string CreateCSCompilerScript(
+            string compileScript, string className, string baseClassName, ParameterInfo[] constructorParameters)
         {
-            compileScript = String.Empty +
-                "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
-                String.Empty + "namespace SecondLife { " +
-                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass { \r\n" +
-                @"public Script() { } " +
-                compileScript +
-                "} }\r\n";
+            compileScript = string.Format(    
+@"using OpenSim.Region.ScriptEngine.Shared; 
+using System.Collections.Generic;
+
+namespace SecondLife 
+{{ 
+    public class {0} : {1} 
+    {{
+        public {0}({2}) : base({3}) {{}}
+{4}
+    }}
+}}",
+                className,
+                baseClassName, 
+                constructorParameters != null 
+                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.ToString())) 
+                    : "", 
+                constructorParameters != null 
+                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.Name)) 
+                    : "", 
+                compileScript);
+
             return compileScript;
         }
 
-        private static string CreateYPCompilerScript(string compileScript)
+        private static string CreateYPCompilerScript(string compileScript, string className, string baseClassName)
         {
             compileScript = String.Empty +
                        "using OpenSim.Region.ScriptEngine.Shared.YieldProlog; " +
                         "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
                         String.Empty + "namespace SecondLife { " +
-                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass  { \r\n" +
+                        String.Empty + "public class " + className + " : " + baseClassName + " { \r\n" +
                         //@"public Script() { } " +
                         @"static OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP YP=null; " +
-                        @"public Script() {  YP= new OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP(); } " +
-
+                        @"public " + className + "() {  YP= new OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP(); } " +
                         compileScript +
                         "} }\r\n";
+
             return compileScript;
         }
 
-        private static string CreateVBCompilerScript(string compileScript)
+        private static string CreateVBCompilerScript(string compileScript, string className, string baseClassName)
         {
             compileScript = String.Empty +
                 "Imports OpenSim.Region.ScriptEngine.Shared: Imports System.Collections.Generic: " +
                 String.Empty + "NameSpace SecondLife:" +
-                String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass: " +
+                String.Empty + "Public Class " + className + ": Inherits " + baseClassName +
                 "\r\nPublic Sub New()\r\nEnd Sub: " +
                 compileScript +
                 ":End Class :End Namespace\r\n";
+
             return compileScript;
         }
 
@@ -491,6 +524,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>Filename to .dll assembly</returns>
         internal string CompileFromDotNetText(string Script, enumCompileType lang, string asset, string assembly)
         {
+//            m_log.DebugFormat("[Compiler]: Compiling to assembly\n{0}", Script);
+            
             string ext = "." + lang.ToString();
 
             // Output assembly name
@@ -531,13 +566,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             parameters.IncludeDebugInformation = true;
 
-            string rootPath =
-                Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            string rootPath = AppDomain.CurrentDomain.BaseDirectory;
 
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
                     "OpenSim.Region.ScriptEngine.Shared.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
                     "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
+            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
+                    "OpenMetaverseTypes.dll"));
+
+            if (m_scriptEngine.ScriptReferencedAssemblies != null)
+                Array.ForEach<string>(
+                    m_scriptEngine.ScriptReferencedAssemblies, 
+                    a => parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, a)));
 
             if (lang == enumCompileType.yp)
             {
@@ -569,6 +610,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                             results = CScodeProvider.CompileAssemblyFromSource(
                                 parameters, Script);
                         }
+
                         // Deal with an occasional segv in the compiler.
                         // Rarely, if ever, occurs twice in succession.
                         // Line # == 0 and no file name are indications that
@@ -576,7 +618,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         // error log.
                         if (results.Errors.Count > 0)
                         {
-                            if (!retried && (results.Errors[0].FileName == null || results.Errors[0].FileName == String.Empty) &&
+                            if (!retried && string.IsNullOrEmpty(results.Errors[0].FileName) &&
                                 results.Errors[0].Line == 0)
                             {
                                 // System.Console.WriteLine("retrying failed compilation");
@@ -606,28 +648,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                                         "language type \"" + lang.ToString() + "\"");
             }
 
-            // Check result
-            // Go through errors
+//            foreach (Type type in results.CompiledAssembly.GetTypes())
+//            {
+//                foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+//                {
+//                    m_log.DebugFormat("[COMPILER]: {0}.{1}", type.FullName, method.Name);
+//                }
+//            }
 
             //
             // WARNINGS AND ERRORS
             //
             bool hadErrors = false;
             string errtext = String.Empty;
-
             if (results.Errors.Count > 0)
             {
                 foreach (CompilerError CompErr in results.Errors)
                 {
                     string severity = CompErr.IsWarning ? "Warning" : "Error";
 
-                    KeyValuePair<int, int> lslPos;
+                    KeyValuePair<int, int> errorPos;
 
                     // Show 5 errors max, but check entire list for errors
 
                     if (severity == "Error")
                     {
-                        lslPos = FindErrorPosition(CompErr.Line, CompErr.Column, m_lineMaps[assembly]);
+                        // C# scripts will not have a linemap since theres no line translation involved.
+                        if (!m_lineMaps.ContainsKey(assembly))
+                            errorPos = new KeyValuePair<int, int>(CompErr.Line, CompErr.Column);
+                        else
+                            errorPos = FindErrorPosition(CompErr.Line, CompErr.Column, m_lineMaps[assembly]);
+
                         string text = CompErr.ErrorText;
 
                         // Use LSL type names
@@ -637,7 +688,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         // The Second Life viewer's script editor begins
                         // countingn lines and columns at 0, so we subtract 1.
                         errtext += String.Format("({0},{1}): {4} {2}: {3}\n",
-                                lslPos.Key - 1, lslPos.Value - 1,
+                                errorPos.Key - 1, errorPos.Value - 1,
                                 CompErr.ErrorNumber, text, severity);
                         hadErrors = true;
                     }
@@ -704,9 +755,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             string filetext = System.Convert.ToBase64String(data);
 
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-
-            Byte[] buf = enc.GetBytes(filetext);
+            Byte[] buf = Encoding.ASCII.GetBytes(filetext);
 
             FileStream sfs = File.Create(assembly + ".text");
             sfs.Write(buf, 0, buf.Length);
@@ -797,8 +846,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 mapstring += String.Format("{0},{1},{2},{3}\n", k.Key, k.Value, v.Key, v.Value);
             }
 
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-            Byte[] mapbytes = enc.GetBytes(mapstring);
+            Byte[] mapbytes = Encoding.ASCII.GetBytes(mapstring);
             FileStream mfs = File.Create(filename);
             mfs.Write(mapbytes, 0, mapbytes.Length);
             mfs.Close();

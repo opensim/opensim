@@ -29,42 +29,43 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using log4net;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
     public class ApiManager
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private Dictionary<string,Type> m_Apis = new Dictionary<string,Type>();
 
         public string[] GetApis()
         {
-            if (m_Apis.Count > 0)
+            if (m_Apis.Count <= 0)
             {
-                List<string> l = new List<string>(m_Apis.Keys);
-                return l.ToArray();
-            }
+                Assembly a = Assembly.GetExecutingAssembly();
 
-            Assembly a = Assembly.GetExecutingAssembly();
+                Type[] types = a.GetExportedTypes();
 
-            Type[] types = a.GetExportedTypes();
-
-            foreach (Type t in types)
-            {
-                string name = t.ToString();
-                int idx = name.LastIndexOf('.');
-                if (idx != -1)
-                    name = name.Substring(idx+1);
-
-                if (name.EndsWith("_Api"))
+                foreach (Type t in types)
                 {
-                    name = name.Substring(0, name.Length - 4);
-                    m_Apis[name] = t;
+                    string name = t.ToString();
+                    int idx = name.LastIndexOf('.');
+                    if (idx != -1)
+                        name = name.Substring(idx+1);
+
+                    if (name.EndsWith("_Api"))
+                    {
+                        name = name.Substring(0, name.Length - 4);
+                        m_Apis[name] = t;
+                    }
                 }
             }
 
-            List<string> ret = new List<string>(m_Apis.Keys);
-            return ret.ToArray();
+//            m_log.DebugFormat("[API MANAGER]: Found {0} apis", m_Apis.Keys.Count);
+
+            return new List<string>(m_Apis.Keys).ToArray();
         }
 
         public IScriptApi CreateApi(string api)

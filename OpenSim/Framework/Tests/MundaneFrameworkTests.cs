@@ -32,11 +32,12 @@ using OpenMetaverse.StructuredData;
 using System;
 using System.Globalization;
 using System.Threading;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class MundaneFrameworkTests
+    public class MundaneFrameworkTests : OpenSimTestCase
     {
         private bool m_RegionSettingsOnSaveEventFired;
         private bool m_RegionLightShareDataOnSaveEventFired;
@@ -99,7 +100,7 @@ namespace OpenSim.Framework.Tests
             cadu.AVHeight = Size1.Z;
 
             AgentPosition position2 = new AgentPosition();
-            position2.CopyFrom(cadu);
+            position2.CopyFrom(cadu, position1.SessionID);
 
             Assert.IsTrue(
                 position2.AgentID == position1.AgentID
@@ -227,10 +228,10 @@ namespace OpenSim.Framework.Tests
             es.AddEstateManager(UUID.Zero);
 
             es.AddEstateManager(bannedUserId);
-            Assert.IsTrue(es.IsEstateManager(bannedUserId), "bannedUserId should be EstateManager but isn't.");
+            Assert.IsTrue(es.IsEstateManagerOrOwner(bannedUserId), "bannedUserId should be EstateManager but isn't.");
 
             es.RemoveEstateManager(bannedUserId);
-            Assert.IsFalse(es.IsEstateManager(bannedUserId), "bannedUserID is estateManager but shouldn't be");
+            Assert.IsFalse(es.IsEstateManagerOrOwner(bannedUserId), "bannedUserID is estateManager but shouldn't be");
 
             Assert.IsFalse(es.HasAccess(bannedUserId), "bannedUserID has access but shouldn't");
 
@@ -302,10 +303,6 @@ namespace OpenSim.Framework.Tests
             Culture.SetCurrentCulture();
             Assert.That(Thread.CurrentThread.CurrentCulture.Name == ci.Name, "SetCurrentCulture failed to set thread culture to en-US");
 
-        }
-
-       
-
+        }     
     }
 }
-

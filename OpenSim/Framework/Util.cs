@@ -36,6 +36,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
@@ -44,6 +45,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Threading;
 using log4net;
+using log4net.Appender;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -52,16 +54,33 @@ using Amib.Threading;
 
 namespace OpenSim.Framework
 {
+    [Flags]
+    public enum PermissionMask : uint
+    { 
+        None = 0,
+        Transfer = 1 << 13,
+        Modify = 1 << 14,
+        Copy = 1 << 15,
+        Export = 1 << 16,
+        Move = 1 << 19,
+        Damage = 1 << 20,
+        // All does not contain Export, which is special and must be
+        // explicitly given
+        All = (1 << 13) | (1 << 14) | (1 << 15) | (1 << 19)
+    } 
+
     /// <summary>
     /// The method used by Util.FireAndForget for asynchronously firing events
     /// </summary>
     /// <remarks>
     /// None is used to execute the method in the same thread that made the call.  It should only be used by regression
     /// test code that relies on predictable event ordering.
+    /// RegressionTest is used by regression tests.  It fires the call synchronously and does not catch any exceptions.
     /// </remarks>
     public enum FireAndForgetMethod
     {
         None,
+        RegressionTest,
         UnsafeQueueUserWorkItem,
         QueueUserWorkItem,
         BeginInvoke,
@@ -70,24 +89,48 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
+    /// Class for delivering SmartThreadPool statistical information
+    /// </summary>
+    /// <remarks>
+    /// We do it this way so that we do not directly expose STP.
+    /// </remarks>
+    public class STPInfo
+    {
+        public string Name { get; set; }
+        public STPStartInfo STPStartInfo { get; set; }
+        public WIGStartInfo WIGStartInfo { get; set; }
+        public bool IsIdle { get; set; }
+        public bool IsShuttingDown { get; set; }       
+        public int MaxThreads { get; set; }
+        public int MinThreads { get; set; }
+        public int InUseThreads { get; set; }
+        public int ActiveThreads { get; set; }
+        public int WaitingCallbacks { get; set; }
+        public int MaxConcurrentWorkItems { get; set; }
+    }
+
+    /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
-    public class Util
+    public static class Util
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
+
         // Get a list of invalid file characters (OS dependent)
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
-        /// <summary>Thread pool used for Util.FireAndForget if
-        /// FireAndForgetMethod.SmartThreadPool is used</summary>
+
+        /// <summary>
+        /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
+        /// </summary>
         private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
-        private static readonly DateTime unixEpoch =
+        public static readonly DateTime UnixEpoch =
             DateTime.ParseExact("1970-01-01 00:00:00 +0", "yyyy-MM-dd hh:mm:ss z", DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
 
         private static readonly string rawUUIDPattern
@@ -97,6 +140,11 @@ namespace OpenSim.Framework
 
         public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
         public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
+
+        public static bool IsPlatformMono
+        {
+            get { return Type.GetType("Mono.Runtime") != null; }
+        }
 
         /// <summary>
         /// Gets the name of the directory where the current running executable
@@ -141,8 +189,8 @@ namespace OpenSim.Framework
             return lerp(y, lerp(x, a, b), lerp(x, c, d));
         }
 
-
         public static Encoding UTF8 = Encoding.UTF8;
+        public static Encoding UTF8NoBomEncoding = new UTF8Encoding(false);
 
         /// <value>
         /// Well known UUID for the blank texture used in the Linden SL viewer version 1.20 (and hopefully onwards) 
@@ -293,6 +341,25 @@ namespace OpenSim.Framework
                 x;
         }
 
+        // Clamp the maximum magnitude of a vector
+        public static Vector3 ClampV(Vector3 x, float max)
+        {
+            float lenSq = x.LengthSquared();
+            if (lenSq > (max * max))
+            {
+                x = x / x.Length() * max;
+            }
+
+            return x;
+        }
+
+        // Inclusive, within range test (true if equal to the endpoints)
+        public static bool InRange<T>(T x, T min, T max)
+            where T : IComparable<T>
+        {
+            return x.CompareTo(max) <= 0 && x.CompareTo(min) >= 0;
+        }
+
         public static uint GetNextXferID()
         {
             uint id = 0;
@@ -375,6 +442,50 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Is the platform Windows?
+        /// </summary>
+        /// <returns>true if so, false otherwise</returns>
+        public static bool IsWindows()
+        {
+            PlatformID platformId = Environment.OSVersion.Platform;
+
+            return (platformId == PlatformID.Win32NT
+                || platformId == PlatformID.Win32S
+                || platformId == PlatformID.Win32Windows
+                || platformId == PlatformID.WinCE);
+        }
+
+        public static bool LoadArchSpecificWindowsDll(string libraryName)
+        {
+            // We do this so that OpenSimulator on Windows loads the correct native library depending on whether
+            // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+            // will find it already loaded later on.
+            //
+            // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+            // controlled in config files.
+            string nativeLibraryPath;
+
+            if (Util.Is64BitProcess())
+                nativeLibraryPath = "lib64/" + libraryName;
+            else
+                nativeLibraryPath = "lib32/" + libraryName;
+
+            m_log.DebugFormat("[UTIL]: Loading native Windows library at {0}", nativeLibraryPath);
+
+            if (Util.LoadLibrary(nativeLibraryPath) == IntPtr.Zero)
+            {
+                m_log.ErrorFormat(
+                    "[UTIL]: Couldn't find native Windows library at {0}", nativeLibraryPath);
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public static bool IsEnvironmentSupported(ref string reason)
         {
             // Must have .NET 2.0 (Generics / libsl)
@@ -410,20 +521,18 @@ namespace OpenSim.Framework
 
         public static int ToUnixTime(DateTime stamp)
         {
-            TimeSpan t = stamp.ToUniversalTime() - unixEpoch;
-            return (int) t.TotalSeconds;
+            TimeSpan t = stamp.ToUniversalTime() - UnixEpoch;
+            return (int)t.TotalSeconds;
         }
 
         public static DateTime ToDateTime(ulong seconds)
         {
-            DateTime epoch = unixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         public static DateTime ToDateTime(int seconds)
         {
-            DateTime epoch = unixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         /// <summary>
@@ -481,6 +590,19 @@ namespace OpenSim.Framework
             int min = Math.Min(x, y);
 
             return (x + y - (min >> 1) - (min >> 2) + (min >> 4));
+        }
+
+        /// <summary>
+        /// Determines whether a point is inside a bounding box.
+        /// </summary>
+        /// <param name='v'></param>
+        /// <param name='min'></param>
+        /// <param name='max'></param>
+        /// <returns></returns>
+        public static bool IsInsideBox(Vector3 v, Vector3 min, Vector3 max)
+        {
+            return v.X >= min.X & v.Y >= min.Y && v.Z >= min.Z
+                && v.X <= max.X && v.Y <= max.Y && v.Z <= max.Z;
         }
 
         /// <summary>
@@ -734,9 +856,22 @@ namespace OpenSim.Framework
             return ".";
         }
 
+        public static string logFile()
+        {
+            foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
+            {
+                if (appender is FileAppender)
+                {
+                    return ((FileAppender)appender).File;
+                }
+            }
+
+            return "./OpenSim.log";
+        }
+
         public static string logDir()
         {
-            return ".";
+            return Path.GetDirectoryName(logFile());
         }
 
         // From: http://coercedcode.blogspot.com/2008/03/c-generate-unique-filenames-within.html
@@ -767,7 +902,7 @@ namespace OpenSim.Framework
             return FileName;
         }
 
-        // Nini (config) related Methods
+        #region Nini (config) related Methods
         public static IConfigSource ConvertDataRowToXMLConfig(DataRow row, string fileName)
         {
             if (!File.Exists(fileName))
@@ -790,6 +925,79 @@ namespace OpenSim.Framework
             }
         }
 
+        public static string GetConfigVarWithDefaultSection(IConfigSource config, string varname, string section)
+        {
+            // First, check the Startup section, the default section
+            IConfig cnf = config.Configs["Startup"];
+            if (cnf == null)
+                return string.Empty;
+            string val = cnf.GetString(varname, string.Empty);
+
+            // Then check for an overwrite of the default in the given section
+            if (!string.IsNullOrEmpty(section))
+            {
+                cnf = config.Configs[section];
+                if (cnf != null)
+                    val = cnf.GetString(varname, val);
+            }
+
+            return val;
+        }
+
+        /// <summary>
+        /// Gets the value of a configuration variable by looking into
+        /// multiple sections in order. The latter sections overwrite 
+        /// any values previously found.
+        /// </summary>
+        /// <typeparam name="T">Type of the variable</typeparam>
+        /// <param name="config">The configuration object</param>
+        /// <param name="varname">The configuration variable</param>
+        /// <param name="sections">Ordered sequence of sections to look at</param>
+        /// <returns></returns>
+        public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections)
+        {
+            return GetConfigVarFromSections<T>(config, varname, sections, default(T));
+        }
+
+        /// <summary>
+        /// Gets the value of a configuration variable by looking into
+        /// multiple sections in order. The latter sections overwrite 
+        /// any values previously found.
+        /// </summary>
+        /// <remarks>
+        /// If no value is found then the given default value is returned
+        /// </remarks>
+        /// <typeparam name="T">Type of the variable</typeparam>
+        /// <param name="config">The configuration object</param>
+        /// <param name="varname">The configuration variable</param>
+        /// <param name="sections">Ordered sequence of sections to look at</param>
+        /// <param name="val">Default value</param>
+        /// <returns></returns>
+        public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections, object val)
+        {
+            foreach (string section in sections)
+            {
+                IConfig cnf = config.Configs[section];
+                if (cnf == null)
+                    continue;
+
+                if (typeof(T) == typeof(String))
+                    val = cnf.GetString(varname, (string)val);
+                else if (typeof(T) == typeof(Boolean))
+                    val = cnf.GetBoolean(varname, (bool)val);
+                else if (typeof(T) == typeof(Int32))
+                    val = cnf.GetInt(varname, (int)val);
+                else if (typeof(T) == typeof(float))
+                    val = cnf.GetFloat(varname, (int)val);
+                else
+                    m_log.ErrorFormat("[UTIL]: Unhandled type {0}", typeof(T));
+            }
+
+            return (T)val;
+        }
+
+        #endregion
+
         public static float Clip(float x, float min, float max)
         {
             return Math.Min(Math.Max(x, min), max);
@@ -798,6 +1006,12 @@ namespace OpenSim.Framework
         public static int Clip(int x, int min, int max)
         {
             return Math.Min(Math.Max(x, min), max);
+        }
+
+        public static Vector3 Clip(Vector3 vec, float min, float max)
+        {
+            return new Vector3(Clip(vec.X, min, max), Clip(vec.Y, min, max),
+                Clip(vec.Z, min, max));
         }
 
         /// <summary>
@@ -951,6 +1165,38 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Copy data from one stream to another, leaving the read position of both streams at the beginning.
+        /// </summary>
+        /// <param name='inputStream'>
+        /// Input stream.  Must be seekable.
+        /// </param>
+        /// <exception cref='ArgumentException'>
+        /// Thrown if the input stream is not seekable.
+        /// </exception>
+        public static Stream Copy(Stream inputStream)
+        {
+            if (!inputStream.CanSeek)
+                throw new ArgumentException("Util.Copy(Stream inputStream) must receive an inputStream that can seek");
+
+            const int readSize = 256;
+            byte[] buffer = new byte[readSize];
+            MemoryStream ms = new MemoryStream();
+        
+            int count = inputStream.Read(buffer, 0, readSize);
+
+            while (count > 0)
+            {
+                ms.Write(buffer, 0, count);
+                count = inputStream.Read(buffer, 0, readSize);
+            }
+
+            ms.Position = 0;
+            inputStream.Position = 0;
+
+            return ms;
+        }
+
         public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
         {
             return SendXmlRpcCommand(url, methodName, args);
@@ -999,7 +1245,7 @@ namespace OpenSim.Framework
             byte[] bytes =
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
-                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle >> 56),
                 (byte)x, (byte)(x >> 8), 0, 0,
                 (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);
@@ -1010,7 +1256,7 @@ namespace OpenSim.Framework
             byte[] bytes =
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
-                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle >> 56),
                 (byte)x, (byte)(x >> 8), (byte)z, (byte)(z >> 8),
                 (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);
@@ -1083,7 +1329,7 @@ namespace OpenSim.Framework
                     ru = "OSX/Mono";
                 else
                 {
-                    if (Type.GetType("Mono.Runtime") != null)
+                    if (IsPlatformMono)
                         ru = "Win/Mono";
                     else
                         ru = "Win/.NET";
@@ -1187,8 +1433,7 @@ namespace OpenSim.Framework
 
         public static string Base64ToString(string str)
         {
-            UTF8Encoding encoder = new UTF8Encoding();
-            Decoder utf8Decode = encoder.GetDecoder();
+            Decoder utf8Decode = Encoding.UTF8.GetDecoder();
 
             byte[] todecode_byte = Convert.FromBase64String(str);
             int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
@@ -1457,6 +1702,27 @@ namespace OpenSim.Framework
             return data;
         }
 
+        /// <summary>
+        /// Used to trigger an early library load on Windows systems.
+        /// </summary>
+        /// <remarks>
+        /// Required to get 32-bit and 64-bit processes to automatically use the
+        /// appropriate native library.
+        /// </remarks>
+        /// <param name="dllToLoad"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr LoadLibrary(string dllToLoad);
+
+        /// <summary>
+        /// Determine whether the current process is 64 bit
+        /// </summary>
+        /// <returns>true if so, false if not</returns>
+        public static bool Is64BitProcess()
+        {
+            return IntPtr.Size == 8;
+        }
+
         #region FireAndForget Threading Pattern
 
         /// <summary>
@@ -1511,14 +1777,22 @@ namespace OpenSim.Framework
             FireAndForget(callback, null);
         }
 
-        public static void InitThreadPool(int maxThreads)
+        public static void InitThreadPool(int minThreads, int maxThreads)
         {
             if (maxThreads < 2)
                 throw new ArgumentOutOfRangeException("maxThreads", "maxThreads must be greater than 2");
+            if (minThreads > maxThreads || minThreads < 2)
+                throw new ArgumentOutOfRangeException("minThreads", "minThreads must be greater than 2 and less than or equal to maxThreads");
             if (m_ThreadPool != null)
                 throw new InvalidOperationException("SmartThreadPool is already initialized");
 
-            m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.ThreadPoolName = "Util";
+            startInfo.IdleTimeout = 2000;
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = minThreads;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
         public static int FireAndForgetCount()
@@ -1544,27 +1818,38 @@ namespace OpenSim.Framework
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
-            // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
-            // for decimals places but is read by a culture that treats commas as number seperators.
-            WaitCallback realCallback = delegate(object o)
-            {
-                Culture.SetCurrentCulture();
+            WaitCallback realCallback;
 
-                try
+            if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
+            {
+                // If we're running regression tests, then we want any exceptions to rise up to the test code.
+                realCallback = o => { Culture.SetCurrentCulture(); callback(o); };
+            }
+            else
+            {
+                // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
+                // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
+                // for decimals places but is read by a culture that treats commas as number seperators.
+                realCallback = o =>
                 {
-                    callback(o);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
-                        e.Message, e.StackTrace);
-                }
-            };
+                    Culture.SetCurrentCulture();
+
+                    try
+                    {
+                        callback(o);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
+                            e.Message, e.StackTrace);
+                    }
+                };
+            }
 
             switch (FireAndForgetMethod)
             {
+                case FireAndForgetMethod.RegressionTest:
                 case FireAndForgetMethod.None:
                     realCallback.Invoke(obj);
                     break;
@@ -1580,8 +1865,8 @@ namespace OpenSim.Framework
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
                     if (m_ThreadPool == null)
-                        m_ThreadPool = new SmartThreadPool(2000, 15, 2);
-                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { realCallback, obj });
+                        InitThreadPool(2, 15); 
+                    m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
                     break;
                 case FireAndForgetMethod.Thread:
                     Thread thread = new Thread(delegate(object o) { realCallback(o); });
@@ -1592,14 +1877,30 @@ namespace OpenSim.Framework
             }
         }
 
-        private static object SmartThreadPoolCallback(object o)
+        /// <summary>
+        /// Get information about the current state of the smart thread pool.
+        /// </summary>
+        /// <returns>
+        /// null if this isn't the pool being used for non-scriptengine threads.
+        /// </returns>
+        public static STPInfo GetSmartThreadPoolInfo()
         {
-            object[] array = (object[])o;
-            WaitCallback callback = (WaitCallback)array[0];
-            object obj = array[1];
+            if (m_ThreadPool == null)
+                return null;
 
-            callback(obj);
-            return null;
+            STPInfo stpi = new STPInfo();
+            stpi.Name = m_ThreadPool.Name;
+            stpi.STPStartInfo = m_ThreadPool.STPStartInfo;
+            stpi.IsIdle = m_ThreadPool.IsIdle;
+            stpi.IsShuttingDown = m_ThreadPool.IsShuttingdown;
+            stpi.MaxThreads = m_ThreadPool.MaxThreads;
+            stpi.MinThreads = m_ThreadPool.MinThreads;
+            stpi.InUseThreads = m_ThreadPool.InUseThreads;
+            stpi.ActiveThreads = m_ThreadPool.ActiveThreads;
+            stpi.WaitingCallbacks = m_ThreadPool.WaitingCallbacks;
+            stpi.MaxConcurrentWorkItems = m_ThreadPool.Concurrency;
+
+            return stpi;
         }
 
         #endregion FireAndForget Threading Pattern
@@ -1622,11 +1923,24 @@ namespace OpenSim.Framework
         /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
         /// 'EnvironmentTickCount()') and accounts for any wrapping.
         /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="prevValue"></param>
+        /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        public static Int32 EnvironmentTickCountSubtract(Int32 newValue, Int32 prevValue)
+        {
+            Int32 diff = newValue - prevValue;
+            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+        }
+
+        /// <summary>
+        /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
+        /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
+        /// 'EnvironmentTickCount()') and accounts for any wrapping.
+        /// </summary>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            Int32 diff = EnvironmentTickCount() - prevValue;
-            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
@@ -1651,13 +1965,20 @@ namespace OpenSim.Framework
         /// </summary>
         public static void PrintCallStack()
         {
-            StackTrace stackTrace = new StackTrace();           // get call stack
+            PrintCallStack(m_log.DebugFormat);
+        }
+
+        public delegate void DebugPrinter(string msg, params Object[] parm);
+        public static void PrintCallStack(DebugPrinter printer)
+        {
+            StackTrace stackTrace = new StackTrace(true);           // get call stack
             StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
 
             // write call stack method names
             foreach (StackFrame stackFrame in stackFrames)
             {
-                m_log.Debug(stackFrame.GetMethod().DeclaringType + "." + stackFrame.GetMethod().Name); // write method name
+                MethodBase mb = stackFrame.GetMethod();
+                printer("{0}.{1}:{2}", mb.DeclaringType, mb.Name, stackFrame.GetFileLineNumber()); // write method name
             }
         }
 
@@ -1790,14 +2111,15 @@ namespace OpenSim.Framework
         #region Universal User Identifiers
        /// <summary>
         /// </summary>
-        /// <param name="value">uuid[;endpoint[;name]]</param>
-        /// <param name="uuid"></param>
-        /// <param name="url"></param>
-        /// <param name="firstname"></param>
-        /// <param name="lastname"></param>
+        /// <param name="value">uuid[;endpoint[;first last[;secret]]]</param>
+        /// <param name="uuid">the uuid part</param>
+        /// <param name="url">the endpoint part (e.g. http://foo.com)</param>
+        /// <param name="firstname">the first name part (e.g. Test)</param>
+        /// <param name="lastname">the last name part (e.g User)</param>
+        /// <param name="secret">the secret part</param>
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
-            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "User"; secret = string.Empty;
+            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "UserUPUUI"; secret = string.Empty;
 
             string[] parts = value.Split(';');
             if (parts.Length >= 1)
@@ -1823,31 +2145,183 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        /// Produces a universal (HG) system-facing identifier given the information
         /// </summary>
         /// <param name="acircuit"></param>
-        /// <returns>uuid[;endpoint[;name]]</returns>
+        /// <returns>uuid[;homeURI[;first last]]</returns>
         public static string ProduceUserUniversalIdentifier(AgentCircuitData acircuit)
         {
             if (acircuit.ServiceURLs.ContainsKey("HomeURI"))
-            {
-                string agentsURI = acircuit.ServiceURLs["HomeURI"].ToString();
-                if (!agentsURI.EndsWith("/"))
-                    agentsURI += "/";
-
-                // This is ugly, but there's no other way, given that the name is changed
-                // in the agent circuit data for foreigners
-                if (acircuit.lastname.Contains("@"))
-                {
-                    string[] parts = acircuit.firstname.Split(new char[] { '.' });
-                    if (parts.Length == 2)
-                        return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
-                }
-                return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + acircuit.firstname + " " + acircuit.lastname;
-            }
+                return UniversalIdentifier(acircuit.AgentID, acircuit.firstname, acircuit.lastname, acircuit.ServiceURLs["HomeURI"].ToString());
             else
                 return acircuit.AgentID.ToString();
-        }        
+        }
+
+        /// <summary>
+        /// Produces a universal (HG) system-facing identifier given the information
+        /// </summary>
+        /// <param name="id">UUID of the user</param>
+        /// <param name="firstName">first name (e.g Test)</param>
+        /// <param name="lastName">last name (e.g. User)</param>
+        /// <param name="homeURI">homeURI (e.g. http://foo.com)</param>
+        /// <returns>a string of the form uuid[;homeURI[;first last]]</returns>
+        public static string UniversalIdentifier(UUID id, String firstName, String lastName, String homeURI)
+        {
+            string agentsURI = homeURI;
+            if (!agentsURI.EndsWith("/"))
+                agentsURI += "/";
+
+            // This is ugly, but there's no other way, given that the name is changed
+            // in the agent circuit data for foreigners
+            if (lastName.Contains("@"))
+            {
+                string[] parts = firstName.Split(new char[] { '.' });
+                if (parts.Length == 2)
+                    return id.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
+            }
+            return id.ToString() + ";" + agentsURI + ";" + firstName + " " + lastName;
+
+        }
+
+        /// <summary>
+        /// Produces a universal (HG) user-facing name given the information
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="homeURI"></param>
+        /// <returns>string of the form first.last @foo.com or first last</returns>
+        public static string UniversalName(String firstName, String lastName, String homeURI)
+        {
+            Uri uri = null;
+            try
+            {
+                uri = new Uri(homeURI);
+            }
+            catch (UriFormatException)
+            {
+                return firstName + " " + lastName;
+            }
+            return firstName + "." + lastName + " " + "@" + uri.Authority;
+        }
         #endregion
+
+        /// <summary>
+        /// Escapes the special characters used in "LIKE".
+        /// </summary>
+        /// <remarks>
+        /// For example: EscapeForLike("foo_bar%baz") = "foo\_bar\%baz"
+        /// </remarks>
+        public static string EscapeForLike(string str)
+        {
+            return str.Replace("_", "\\_").Replace("%", "\\%");
+        }
+    }
+
+    public class DoubleQueue<T> where T:class
+    {
+        private Queue<T> m_lowQueue = new Queue<T>();
+        private Queue<T> m_highQueue = new Queue<T>();
+
+        private object m_syncRoot = new object();
+        private Semaphore m_s = new Semaphore(0, 1);
+
+        public DoubleQueue()
+        {
+        }
+
+        public virtual int Count
+        {
+            get { return m_highQueue.Count + m_lowQueue.Count; }
+        }
+
+        public virtual void Enqueue(T data)
+        {
+            Enqueue(m_lowQueue, data);
+        }
+
+        public virtual void EnqueueLow(T data)
+        {
+            Enqueue(m_lowQueue, data);
+        }
+
+        public virtual void EnqueueHigh(T data)
+        {
+            Enqueue(m_highQueue, data);
+        }
+
+        private void Enqueue(Queue<T> q, T data)
+        {
+            lock (m_syncRoot)
+            {
+                q.Enqueue(data);
+                m_s.WaitOne(0);
+                m_s.Release();
+            }
+        }
+
+        public virtual T Dequeue()
+        {
+            return Dequeue(Timeout.Infinite);
+        }
+
+        public virtual T Dequeue(int tmo)
+        {
+            return Dequeue(TimeSpan.FromMilliseconds(tmo));
+        }
+
+        public virtual T Dequeue(TimeSpan wait)
+        {
+            T res = null;
+
+            if (!Dequeue(wait, ref res))
+                return null;
+
+            return res;
+        }
+
+        public bool Dequeue(int timeout, ref T res)
+        {
+            return Dequeue(TimeSpan.FromMilliseconds(timeout), ref res);
+        }
+
+        public bool Dequeue(TimeSpan wait, ref T res)
+        {
+            if (!m_s.WaitOne(wait))
+                return false;
+
+            lock (m_syncRoot)
+            {
+                if (m_highQueue.Count > 0)
+                    res = m_highQueue.Dequeue();
+                else if (m_lowQueue.Count > 0)
+                    res = m_lowQueue.Dequeue();
+
+                if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)
+                    return true;
+
+                try
+                {
+                    m_s.Release();
+                }
+                catch
+                {
+                }
+
+                return true;
+            }
+        }
+
+        public virtual void Clear()
+        {
+
+            lock (m_syncRoot)
+            {
+                // Make sure sem count is 0
+                m_s.WaitOne(0);
+
+                m_lowQueue.Clear();
+                m_highQueue.Clear();
+            }
+        }
     }
 }

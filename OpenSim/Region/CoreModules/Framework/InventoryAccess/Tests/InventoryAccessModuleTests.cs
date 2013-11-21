@@ -49,7 +49,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
 {
     [TestFixture]
-    public class InventoryAccessModuleTests
+    public class InventoryAccessModuleTests : OpenSimTestCase
     {      
         protected TestScene m_scene;
         protected BasicInventoryAccessModule m_iam;
@@ -57,15 +57,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         protected TestClient m_tc;
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_iam = new BasicInventoryAccessModule();
 
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
-            
-            m_scene = SceneHelpers.SetupScene();
+
+            SceneHelpers sceneHelpers = new SceneHelpers();
+            m_scene = sceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_iam);
             
             // Create user
@@ -76,7 +79,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = m_userId;
-            m_tc = new TestClient(acd, m_scene);            
+            m_tc = new TestClient(acd, m_scene);
         }
         
         [Test]
@@ -106,7 +109,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, m_userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, m_userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
             
@@ -156,7 +159,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, m_userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, m_userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
             

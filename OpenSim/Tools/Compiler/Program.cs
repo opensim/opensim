@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Microsoft.CSharp;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using System.CodeDom.Compiler;
@@ -201,12 +202,8 @@ namespace OpenSim.Tools.LSL.Compiler
             // Convert to base64
             //
             string filetext = System.Convert.ToBase64String(data);
-
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-
-            Byte[] buf = enc.GetBytes(filetext);
-
-            FileStream sfs = File.Create(OutFile+".text");
+            Byte[] buf = Encoding.ASCII.GetBytes(filetext);
+            FileStream sfs = File.Create(OutFile + ".text");
             sfs.Write(buf, 0, buf.Length);
             sfs.Close();
 
@@ -222,9 +219,9 @@ namespace OpenSim.Tools.LSL.Compiler
 //                }
 //            }
 
-            buf = enc.GetBytes(posmap);
+            buf = Encoding.ASCII.GetBytes(posmap);
 
-            FileStream mfs = File.Create(OutFile+".map");
+            FileStream mfs = File.Create(OutFile + ".map");
             mfs.Write(buf, 0, buf.Length);
             mfs.Close();
 

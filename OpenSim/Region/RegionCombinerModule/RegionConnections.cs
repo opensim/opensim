@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -49,17 +50,45 @@ namespace OpenSim.Region.RegionCombinerModule
         /// LargeLandChannel for combined region
         /// </summary>
         public ILandChannel RegionLandChannel;
+
+        /// <summary>
+        /// The x map co-ordinate for this region (where each co-ordinate is a Constants.RegionSize block).
+        /// </summary>
         public uint X;
+
+        /// <summary>
+        /// The y co-ordinate for this region (where each cor-odinate is a Constants.RegionSize block).
+        /// </summary>
         public uint Y;
-        public int XEnd;
-        public int YEnd;
+
+        /// <summary>
+        /// The X meters position of this connection.
+        /// </summary>
+        public uint PosX { get { return X * Constants.RegionSize; } }
+
+        /// <summary>
+        /// The Y meters co-ordinate of this connection.
+        /// </summary>
+        public uint PosY { get { return Y * Constants.RegionSize; } }
+
+        /// <summary>
+        /// The size of the megaregion in meters.
+        /// </summary>
+        public uint XEnd;
+
+        /// <summary>
+        /// The size of the megaregion in meters.
+        /// </summary>
+        public uint YEnd;
+
         public List<RegionData> ConnectedRegions;
         public RegionCombinerPermissionModule PermissionModule;
         public RegionCombinerClientEventForwarder ClientEventForwarder;
+
         public void UpdateExtents(Vector3 extents)
         {
-            XEnd = (int)extents.X;
-            YEnd = (int)extents.Y;
+            XEnd = (uint)extents.X;
+            YEnd = (uint)extents.Y;
         }
     }
 }

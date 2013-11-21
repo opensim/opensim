@@ -47,55 +47,170 @@ namespace OpenSim.Region.Framework.Scenes
         
         public delegate void OnFrameDelegate();
 
+        /// <summary>
+        /// Triggered on each sim frame.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Update"/>
+        /// Core uses it for things like Sun, Wind & Clouds
+        /// The MRM module also uses it.
+        /// </remarks>
         public event OnFrameDelegate OnFrame;
 
         public delegate void ClientMovement(ScenePresence client);
 
+        /// <summary>
+        /// Trigerred when an agent moves.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.HandleAgentUpdate"/>
+        /// prior to <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.TriggerScenePresenceUpdated"/>
+        /// </remarks>
         public event ClientMovement OnClientMovement;
+
+        public delegate void OnTerrainTaintedDelegate();
+
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.CoreModules.World.Terrain.CheckForTerrainUpdates"/>
+        /// after it determines that an update has been made.
+        /// </remarks>
+        public event OnTerrainTaintedDelegate OnTerrainTainted;
 
         public delegate void OnTerrainTickDelegate();
 
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.UpdateTerrain"/>
+        /// but is used by core solely to update the physics engine.
+        /// </remarks>
         public event OnTerrainTickDelegate OnTerrainTick;
 
         public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
 
+        /// <summary>
+        /// Triggered when a region is backed up/persisted to storage
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Backup"/>
+        /// and is fired before the persistence occurs.
+        /// </remarks>
         public event OnBackupDelegate OnBackup;
 
         public delegate void OnClientConnectCoreDelegate(IClientCore client);
 
+        /// <summary>
+        /// Triggered when a new client connects to the scene.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="TriggerOnNewClient"/>,
+        /// which checks if an instance of <see cref="OpenSim.Framework.IClientAPI"/>
+        /// also implements <see cref="OpenSim.Framework.Client.IClientCore"/> and as such,
+        /// is not triggered by <see cref="OpenSim.Region.OptionalModules.World.NPC">NPCs</see>.
+        /// </remarks>
         public event OnClientConnectCoreDelegate OnClientConnect;
 
         public delegate void OnNewClientDelegate(IClientAPI client);
         
         /// <summary>
-        /// Deprecated in favour of OnClientConnect.
-        /// Will be marked Obsolete after IClientCore has 100% of IClientAPI interfaces.
+        /// Triggered when a new client is added to the scene.
         /// </summary>
+        /// <remarks>
+        /// This is triggered for both child and root agent client connections.
+        ///
+        /// Triggered before OnClientLogin.
+        ///
+        /// This is triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
+        /// </remarks>
         public event OnNewClientDelegate OnNewClient;
 
         /// <summary>
         /// Fired if the client entering this sim is doing so as a new login
         /// </summary>
+        /// <remarks>
+        /// This is triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
+        /// </remarks>
         public event Action<IClientAPI> OnClientLogin;
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
+        /// <summary>
+        /// Triggered when a new presence is added to the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// </remarks>
         public event OnNewPresenceDelegate OnNewPresence;
 
         public delegate void OnRemovePresenceDelegate(UUID agentId);
 
+        /// <summary>
+        /// Triggered when a presence is removed from the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// 
+        /// Triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
+        /// </remarks>
         public event OnRemovePresenceDelegate OnRemovePresence;
 
         public delegate void OnParcelPrimCountUpdateDelegate();
 
+        /// <summary>
+        /// Triggered whenever the prim count may have been altered, or prior
+        /// to an action that requires the current prim count to be accurate.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountUpdate"/> in
+        /// <see cref="OpenSim.OpenSimBase.CreateRegion"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.EventManagerOnRequestParcelPrimCountUpdate"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ClientOnParcelObjectOwnerRequest"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.GetPrimsFree"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.UpdateLandSold"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.DeedToGroup"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.SendLandUpdateToClient"/>
+        /// </remarks>
         public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
 
         public delegate void OnParcelPrimCountAddDelegate(SceneObjectGroup obj);
 
+        /// <summary>
+        /// Triggered in response to <see cref="OnParcelPrimCountUpdate"/> for
+        /// objects that actually contribute to parcel prim count.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountAdd"/> in
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.EventManagerOnParcelPrimCountUpdate"/>
+        /// </remarks>
         public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
 
         public delegate void OnPluginConsoleDelegate(string[] args);
 
+        /// <summary>
+        /// Triggered after <see cref="OpenSim.IApplicationPlugin.PostInitialise"/>
+        /// has been called for all <see cref="OpenSim.IApplicationPlugin"/>
+        /// loaded via <see cref="OpenSim.OpenSimBase.LoadPlugins"/>.
+        /// Handlers for this event are typically used to parse the arguments
+        /// from <see cref="OnPluginConsoleDelegate"/> in order to process or
+        /// filter the arguments and pass them onto <see cref="OpenSim.Region.CoreModules.Framework.InterfaceCommander.Commander.ProcessConsoleCommand"/>
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnPluginConsole"/> in
+        /// <see cref="Scene.SendCommandToPlugins"/> via
+        /// <see cref="SceneManager.SendCommandToPluginModules"/> via
+        /// <see cref="OpenSim.OpenSimBase.HandleCommanderCommand"/> via
+        /// <see cref="OpenSim.OpenSimBase.AddPluginCommands"/> via
+        /// <see cref="OpenSim.OpenSimBase.StartupSpecific"/>
+        /// </remarks>
         public event OnPluginConsoleDelegate OnPluginConsole;
 
         /// <summary>
@@ -110,8 +225,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnSetRootAgentSceneDelegate(UUID agentID, Scene scene);
 
+        /// <summary>
+        /// Triggered before the grunt work for adding a root agent to a
+        /// scene has been performed (resuming attachment scripts, physics,
+        /// animations etc.)
+        /// </summary>
+        /// <remarks>
+        /// Triggered before <see cref="OnMakeRootAgent"/>
+        /// by <see cref="TriggerSetRootAgentScene"/>
+        /// in <see cref="ScenePresence.MakeRootAgent"/>
+        /// via <see cref="Scene.AgentCrossing"/>
+        /// and <see cref="ScenePresence.CompleteMovement"/>
+        /// </remarks>
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
+        /// <summary>
+        /// Triggered after parcel properties have been updated.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnParcelPropertiesUpdateRequest"/> in
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ClientOnParcelPropertiesUpdateRequest"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ProcessPropertiesUpdate"/>
+        /// </remarks>
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         /// <summary>
@@ -126,42 +261,156 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Fired when an object is touched/grabbed.
         /// </summary>
+        /// <remarks>
         /// The originalID is the local ID of the part that was actually touched.  The localID itself is always that of
         /// the root part.
+        /// Triggerd in response to <see cref="OpenSim.Framework.IClientAPI.OnGrabObject"/>
+        /// via <see cref="TriggerObjectGrab"/>
+        /// in <see cref="Scene.ProcessObjectGrab"/>
+        /// </remarks>
         public event ObjectGrabDelegate OnObjectGrab;
         public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         
+        /// <summary>
+        /// Triggered when an object is being touched/grabbed continuously.
+        /// </summary>
+        /// <remarks>
+        /// Triggered in response to <see cref="OpenSim.Framework.IClientAPI.OnGrabUpdate"/>
+        /// via <see cref="TriggerObjectGrabbing"/>
+        /// in <see cref="Scene.ProcessObjectGrabUpdate"/>
+        /// </remarks>
         public event ObjectGrabDelegate OnObjectGrabbing;
+
+        /// <summary>
+        /// Triggered when an object stops being touched/grabbed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered in response to <see cref="OpenSim.Framework.IClientAPI.OnDeGrabObject"/>
+        /// via <see cref="TriggerObjectDeGrab"/>
+        /// in <see cref="Scene.ProcessObjectDeGrab"/>
+        /// </remarks>
         public event ObjectDeGrabDelegate OnObjectDeGrab;
+
+        /// <summary>
+        /// Triggered when a script resets.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptReset"/>
+        /// in <see cref="Scene.ProcessScriptReset"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnScriptReset"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleScriptReset"/>
+        /// </remarks>
         public event ScriptResetDelegate OnScriptReset;
 
         public event OnPermissionErrorDelegate OnPermissionError;
 
         /// <summary>
-        /// Fired when a new script is created.
+        /// Fired when a script is run.
         /// </summary>
+        /// <remarks>
+        /// Occurs after OnNewScript.
+        /// Triggered by <see cref="TriggerRezScript"/>
+        /// in <see cref="SceneObjectPartInventory.CreateScriptInstance"/>
+        /// </remarks>
         public event NewRezScript OnRezScript;
         public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource);
 
         public delegate void RemoveScript(uint localID, UUID itemID);
+
+        /// <summary>
+        /// Triggered when a script is removed from an object.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerRemoveScript"/>
+        /// in <see cref="Scene.RemoveTaskInventory"/>,
+        /// <see cref="Scene.CreateAgentInventoryItemFromTask"/>,
+        /// <see cref="SceneObjectPartInventory.RemoveScriptInstance"/>,
+        /// <see cref="SceneObjectPartInventory.RemoveInventoryItem"/>
+        /// </remarks>
         public event RemoveScript OnRemoveScript;
 
         public delegate void StartScript(uint localID, UUID itemID);
+
+        /// <summary>
+        /// Triggered when a script starts.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerStartScript"/>
+        /// in <see cref="Scene.SetScriptRunning"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSetScriptRunning"/>,
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.HandleSetScriptRunning"/>
+        /// XXX: This is only triggered when it is the client that starts the script, not in other situations where
+        /// a script is started, unlike OnStopScript!
+        /// </remarks>
         public event StartScript OnStartScript;
 
         public delegate void StopScript(uint localID, UUID itemID);
+
+        /// <summary>
+        /// Triggered when a script stops.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerStopScript"/>,
+        /// in <see cref="SceneObjectPartInventory.CreateScriptInstance"/>,
+        /// <see cref="SceneObjectPartInventory.StopScriptInstance"/>,
+        /// <see cref="Scene.SetScriptRunning"/>
+        /// XXX: This is triggered when a sciprt is stopped for any reason, unlike OnStartScript!
+        /// </remarks>
         public event StopScript OnStopScript;
 
         public delegate bool SceneGroupMoved(UUID groupID, Vector3 delta);
+
+        /// <summary>
+        /// Triggered when an object is moved.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupMove"/>
+        /// in <see cref="SceneObjectGroup.UpdateGroupPosition"/>,
+        /// <see cref="SceneObjectGroup.GrabMovement"/>
+        /// </remarks>
         public event SceneGroupMoved OnSceneGroupMove;
 
         public delegate void SceneGroupGrabed(UUID groupID, Vector3 offset, UUID userID);
+
+        /// <summary>
+        /// Triggered when an object is grabbed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupGrab"/>
+        /// in <see cref="SceneObjectGroup.OnGrabGroup"/>
+        /// via <see cref="SceneObjectGroup.ObjectGrabHandler"/>
+        /// via <see cref="Scene.ProcessObjectGrab"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnGrabObject"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectGrab"/>
+        /// </remarks>
         public event SceneGroupGrabed OnSceneGroupGrab;
 
         public delegate bool SceneGroupSpinStarted(UUID groupID);
+
+        /// <summary>
+        /// Triggered when an object starts to spin.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupSpinStart"/>
+        /// in <see cref="SceneObjectGroup.SpinStart"/>
+        /// via <see cref="SceneGraph.SpinStart"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSpinStart"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectSpinStart"/>
+        /// </remarks>
         public event SceneGroupSpinStarted OnSceneGroupSpinStart;
 
         public delegate bool SceneGroupSpun(UUID groupID, Quaternion rotation);
+
+        /// <summary>
+        /// Triggered when an object is being spun.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupSpin"/>
+        /// in <see cref="SceneObjectGroup.SpinMovement"/>
+        /// via <see cref="SceneGraph.SpinObject"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSpinUpdate"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectSpinUpdate"/>
+        /// </remarks>
         public event SceneGroupSpun OnSceneGroupSpin;
 
         public delegate void LandObjectAdded(ILandObject newParcel);
@@ -173,6 +422,9 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID);
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
+        public delegate void AvatarAppearanceChange(ScenePresence avatar);
+        public event AvatarAppearanceChange OnAvatarAppearanceChange;
+
         public event Action<ScenePresence> OnSignificantClientMovement;
 
         public delegate void IncomingInstantMessage(GridInstantMessage message);
@@ -182,49 +434,303 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void ClientClosed(UUID clientID, Scene scene);
 
+        /// <summary>
+        /// Fired when a client is removed from a scene whether it's a child or a root agent.
+        /// </summary>
+        /// <remarks>
+        /// At the point of firing, the scene still contains the client's scene presence.
+        ///
+        /// This is triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
+        /// </remarks>
         public event ClientClosed OnClientClosed;
 
+        public delegate void NewScript(UUID clientID, SceneObjectPart part, UUID itemID);
+
         /// <summary>
-        /// This is fired when a scene object property that a script might be interested in (such as color, scale or
-        /// inventory) changes.  Only enough information is sent for the LSL changed event
-        /// (see http://lslwiki.net/lslwiki/wakka.php?wakka=changed)
+        /// Fired when a script is created.
         /// </summary>
+        /// <remarks>
+        /// Occurs before OnRezScript
+        /// Triggered by <see cref="TriggerNewScript"/>
+        /// in <see cref="Scene.RezScriptFromAgentInventory"/>,
+        /// <see cref="Scene.RezNewScript"/>
+        /// </remarks>
+        public event NewScript OnNewScript;
+
+        public delegate void ExtraSettingChangedDelegate(Scene scene, string name, string value);
+        public event ExtraSettingChangedDelegate OnExtraSettingChanged;
+
+        public virtual void TriggerNewScript(UUID clientID, SceneObjectPart part, UUID itemID)
+        {
+            NewScript handlerNewScript = OnNewScript;
+            if (handlerNewScript != null)
+            {
+                foreach (NewScript d in handlerNewScript.GetInvocationList())
+                {
+                    try
+                    {
+                        d(clientID, part, itemID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerNewScript failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public delegate void UpdateScript(UUID clientID, UUID itemId, UUID primId, bool isScriptRunning, UUID newAssetID);
+
+        /// <summary>
+        /// An indication that the script has changed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered after the scene receives a client's upload of an updated script and has stored it in an asset.
+        /// Triggered by <see cref="TriggerUpdateScript"/>
+        /// in <see cref="Scene.CapsUpdateTaskInventoryScriptAsset"/>
+        /// via <see cref="Scene.CapsUpdateTaskInventoryScriptAsset"/>
+        /// via <see cref="OpenSim.Region.ClientStack.Linden.BunchOfCaps.TaskScriptUpdated"/>
+        /// via <see cref="OpenSim.Region.ClientStack.Linden.TaskInventoryScriptUpdater.OnUpLoad"/>
+        /// via <see cref="OpenSim.Region.ClientStack.Linden.TaskInventoryScriptUpdater.uploaderCaps"/>
+        /// </remarks>
+        public event UpdateScript OnUpdateScript;
+        
+        public virtual void TriggerUpdateScript(UUID clientId, UUID itemId, UUID primId, bool isScriptRunning, UUID newAssetID)
+        {
+            UpdateScript handlerUpdateScript = OnUpdateScript;
+            if (handlerUpdateScript != null)
+            {
+                foreach (UpdateScript d in handlerUpdateScript.GetInvocationList())
+                {
+                    try
+                    {
+                        d(clientId, itemId, primId, isScriptRunning, newAssetID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerUpdateScript failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        } 
+
+        /// <summary>
+        /// Triggered when some scene object properties change.
+        /// </summary>
+        /// <remarks>
+        /// ScriptChangedEvent is fired when a scene object property that a script might be interested 
+        /// in (such as color, scale or inventory) changes.  Only enough information sent is for the LSL changed event.
+        /// This is not an indication that the script has changed (see OnUpdateScript for that). 
+        /// This event is sent to a script to tell it that some property changed on 
+        /// the object the script is in. See http://lslwiki.net/lslwiki/wakka.php?wakka=changed .
+        /// Triggered by <see cref="TriggerOnScriptChangedEvent"/>
+        /// in <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.TeleportAgentWithinRegion"/>,
+        /// <see cref="SceneObjectPart.TriggerScriptChangedEvent"/>
+        /// </remarks>
         public event ScriptChangedEvent OnScriptChangedEvent;
         public delegate void ScriptChangedEvent(uint localID, uint change);
 
         public delegate void ScriptControlEvent(UUID item, UUID avatarID, uint held, uint changed);
+
+        /// <summary>
+        /// Triggered when a script receives control input from an agent.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerControlEvent"/>
+        /// in <see cref="ScenePresence.SendControlsToScripts"/>
+        /// via <see cref="ScenePresence.HandleAgentUpdate"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnAgentUpdate"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleAgentUpdate"/>
+        /// </remarks>
         public event ScriptControlEvent OnScriptControlEvent;
 
+        public delegate void ScriptMovingStartEvent(uint localID);
+
+        /// <summary>
+        /// TODO: Should be triggered when a physics object starts moving.
+        /// </summary>
+        public event ScriptMovingStartEvent OnScriptMovingStartEvent;
+   
+        public delegate void ScriptMovingEndEvent(uint localID);
+
+        /// <summary>
+        /// TODO: Should be triggered when a physics object stops moving.
+        /// </summary>
+        public event ScriptMovingEndEvent OnScriptMovingEndEvent;
+
         public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
+
+        /// <summary>
+        /// Triggered when an object has arrived within a tolerance distance
+        /// of a motion target.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerAtTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
         public delegate void ScriptNotAtTargetEvent(uint localID);
+
+        /// <summary>
+        /// Triggered when an object has a motion target but has not arrived
+        /// within a tolerance distance.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerNotAtTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
         public delegate void ScriptAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion atrot);
+
+        /// <summary>
+        /// Triggered when an object has arrived within a tolerance rotation
+        /// of a rotation target.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerAtRotTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptAtRotTargetEvent OnScriptAtRotTargetEvent;
 
         public delegate void ScriptNotAtRotTargetEvent(uint localID);
+
+        /// <summary>
+        /// Triggered when an object has a rotation target but has not arrived
+        /// within a tolerance rotation.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerNotAtRotTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptNotAtRotTargetEvent OnScriptNotAtRotTargetEvent;
 
         public delegate void ScriptColliding(uint localID, ColliderArgs colliders);
+
+        /// <summary>
+        /// Triggered when a physical collision has started between a prim
+        /// and something other than the region terrain.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptCollidingStart"/>
+        /// in <see cref="SceneObjectPart.SendCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptColliderStart;
+
+        /// <summary>
+        /// Triggered when something that previously collided with a prim has
+        /// not stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// <seealso cref="OnScriptColliderStart"/>
+        /// Triggered by <see cref="TriggerScriptColliding"/>
+        /// in <see cref="SceneObjectPart.SendCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptColliding;
+
+        /// <summary>
+        /// Triggered when something that previously collided with a prim has
+        /// stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptCollidingEnd"/>
+        /// in <see cref="SceneObjectPart.SendCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptCollidingEnd;
+
+        /// <summary>
+        /// Triggered when a physical collision has started between an object
+        /// and the region terrain.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptLandCollidingStart"/>
+        /// in <see cref="SceneObjectPart.SendLandCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptLandColliderStart;
+
+        /// <summary>
+        /// Triggered when an object that previously collided with the region
+        /// terrain has not yet stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptLandColliding"/>
+        /// in <see cref="SceneObjectPart.SendLandCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptLandColliding;
+
+        /// <summary>
+        /// Triggered when an object that previously collided with the region
+        /// terrain has stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptLandCollidingEnd"/>
+        /// in <see cref="SceneObjectPart.SendLandCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptLandColliderEnd;
 
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
+
+        /// <summary>
+        /// Triggered when an agent has been made a child agent of a scene.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnMakeChildAgent"/>
+        /// in <see cref="ScenePresence.MakeChildAgent"/>
+        /// via <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.CrossAgentToNewRegionAsync"/>,
+        /// <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.DoTeleport"/>,
+        /// <see cref="OpenSim.Region.CoreModules.InterGrid.KillAUser.ShutdownNoLogout"/>
+        /// </remarks>
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
         public delegate void OnSaveNewWindlightProfileDelegate();
         public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionLightShareData wl, UUID user);
 
         /// <summary>
+        /// Triggered after the grunt work for adding a root agent to a
+        /// scene has been performed (resuming attachment scripts, physics,
+        /// animations etc.)
+        /// </summary>
+        /// <remarks>
         /// This event is on the critical path for transferring an avatar from one region to another.  Try and do
         /// as little work on this event as possible, or do work asynchronously.
-        /// </summary>
+        /// Triggered after <see cref="OnSetRootAgentScene"/>
+        /// by <see cref="TriggerOnMakeRootAgent"/>
+        /// in <see cref="ScenePresence.MakeRootAgent"/>
+        /// via <see cref="Scene.AgentCrossing"/>
+        /// and <see cref="ScenePresence.CompleteMovement"/>
+        /// </remarks>
         public event Action<ScenePresence> OnMakeRootAgent;
         
         public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
@@ -236,7 +742,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnIncomingSceneObjectDelegate OnIncomingSceneObject;
         public delegate void OnIncomingSceneObjectDelegate(SceneObjectGroup so);
 
-        public delegate void NewInventoryItemUploadComplete(UUID avatarID, UUID assetID, string name, int userlevel);
+        public delegate void NewInventoryItemUploadComplete(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel);
 
         public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
 
@@ -250,11 +756,19 @@ namespace OpenSim.Region.Framework.Scenes
         public event AvatarKillData OnAvatarKilled;
         public delegate void AvatarKillData(uint KillerLocalID, ScenePresence avatar);
 
-//        public delegate void ScriptTimerEvent(uint localID, double timerinterval);
+        /*
+        public delegate void ScriptTimerEvent(uint localID, double timerinterval);
+        /// <summary>
+        /// Used to be triggered when the LSL timer event fires.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerTimerEvent"/>
+        /// via <see cref="SceneObjectPart.handleTimerAccounting"/>
+        /// </remarks>
+        public event ScriptTimerEvent OnScriptTimerEvent;
+         */
 
-//        public event ScriptTimerEvent OnScriptTimerEvent;
-
-        public delegate void EstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
+        public delegate void EstateToolsSunUpdate(ulong regionHandle);
         public delegate void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID);
 
         public event EstateToolsSunUpdate OnEstateToolsSunUpdate;
@@ -262,12 +776,40 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Triggered when an object is added to the scene.
         /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerObjectAddedToScene"/>
+        /// in <see cref="Scene.AddNewSceneObject"/>,
+        /// <see cref="Scene.DuplicateObject"/>,
+        /// <see cref="Scene.doObjectDuplicateOnRay"/>
+        /// </remarks>
         public event Action<SceneObjectGroup> OnObjectAddedToScene;
+
+        /// <summary>
+        /// Delegate for <see cref="OnObjectBeingRemovedFromScene"/>
+        /// </summary>
+        /// <param name="obj">The object being removed from the scene</param>
+        public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
+
+        /// <summary>
+        /// Triggered when an object is placed into the physical scene (PhysicsActor created).
+        /// </summary>
+        public event Action<SceneObjectPart> OnObjectAddedToPhysicalScene;
+        /// <summary>
+        /// Triggered when an object is removed from the physical scene (PhysicsActor destroyed).
+        /// </summary>
+        /// <remarks>
+        /// Note: this is triggered just before the PhysicsActor is removed from the
+        /// physics engine so the receiver can do any necessary cleanup before its destruction.
+        /// </remarks>
+        public event Action<SceneObjectPart> OnObjectRemovedFromPhysicalScene;
 
         /// <summary>
         /// Triggered when an object is removed from the scene.
         /// </summary>
-        public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
+        /// <remarks>
+        /// Triggered by <see cref="TriggerObjectBeingRemovedFromScene"/>
+        /// in <see cref="Scene.DeleteSceneObject"/>
+        /// </remarks>
         public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
 
         public delegate void NoticeNoLandDataFromStorage();
@@ -283,6 +825,20 @@ namespace OpenSim.Region.Framework.Scenes
         public event RequestParcelPrimCountUpdate OnRequestParcelPrimCountUpdate;
 
         public delegate void ParcelPrimCountTainted();
+
+        /// <summary>
+        /// Triggered when the parcel prim count has been altered.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountTainted"/> in
+        /// <see cref="OpenSim.Region.CoreModules.Avatar.Attachments.AttachmentsModule.DetachSingleAttachmentToGround"/>,
+        /// <see cref="OpenSim.Region.CoreModules.Avatar.Attachments.AttachmentsModule.AttachToAgent"/>,
+        /// <see cref="Scene.DeleteSceneObject"/>,
+        /// <see cref="Scene.SelectPrim"/>,
+        /// <see cref="Scene.DeselectPrim"/>,
+        /// <see cref="SceneObjectGroup.UpdatePrimFlags"/>,
+        /// <see cref="SceneObjectGroup.AbsolutePosition"/>
+        /// </remarks>
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
         public event GetScriptRunning OnGetScriptRunning;
 
@@ -342,7 +898,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// the scripts may not have started yet
         /// Message is non empty string if there were problems loading the oar file
         /// </summary>
-        public delegate void OarFileLoaded(Guid guid, string message);
+        public delegate void OarFileLoaded(Guid guid, List<UUID> loadedScenes, string message);
         public event OarFileLoaded OnOarFileLoaded;
         
         /// <summary>
@@ -395,24 +951,94 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="copy"></param>
         /// <param name="original"></param>
         /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.SceneObjectPart.Copy"/>
+        /// </remarks>
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
+
+        public delegate void SceneObjectPartUpdated(SceneObjectPart sop, bool full);
+        public event SceneObjectPartUpdated OnSceneObjectPartUpdated;
+
+        public delegate void ScenePresenceUpdated(ScenePresence sp);
+        public event ScenePresenceUpdated OnScenePresenceUpdated;
 
         public delegate void RegionUp(GridRegion region);
         public event RegionUp OnRegionUp;
 
-        public delegate void LoginsEnabled(string regionName);
-        public event LoginsEnabled OnLoginsEnabled;
+        public delegate void RegionStarted(Scene scene);
+        public event RegionStarted OnRegionStarted;
+
+        public delegate void RegionHeartbeatStart(Scene scene);
+        public event RegionHeartbeatStart OnRegionHeartbeatStart;
+        public delegate void RegionHeartbeatEnd(Scene scene);
+        public event RegionHeartbeatEnd OnRegionHeartbeatEnd;
+
+        /// <summary>
+        /// Fired when logins to a region are enabled or disabled.
+        /// </summary>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        /// Fired
+        public event RegionLoginsStatusChange OnRegionLoginsStatusChange;
+        public delegate void RegionLoginsStatusChange(IScene scene);
+
+        /// <summary>
+        /// Fired when a region is considered ready for use.
+        /// </summary>
+        /// <remarks>
+        /// A region is considered ready when startup operations such as loading of scripts already on the region
+        /// have been completed.
+        /// </remarks>
+        public event Action<IScene> OnRegionReadyStatusChange;
 
         public delegate void PrimsLoaded(Scene s);
         public event PrimsLoaded OnPrimsLoaded;
+
+        public delegate void TeleportStart(IClientAPI client, GridRegion destination, GridRegion finalDestination, uint teleportFlags, bool gridLogout);
+
+        /// <summary>
+        /// Triggered when a teleport starts
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerTeleportStart"/>
+        /// in <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.CreateAgent"/>
+        /// and <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.HGEntityTransferModule.CreateAgent"/>
+        /// via <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.DoTeleport"/>
+        /// </remarks>
+        public event TeleportStart OnTeleportStart;
+
+        public delegate void TeleportFail(IClientAPI client, bool gridLogout);
+
+        /// <summary>
+        /// Trigered when a teleport fails.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerTeleportFail"/>
+        /// in <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.Fail"/>
+        /// via <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.DoTeleport"/>
+        /// </remarks>
+        public event TeleportFail OnTeleportFail;
+
+//        public delegate void GatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids);
+//
+//        /// <summary>
+//        /// Triggered when UUIDs referenced by a scene object are being gathered for archiving, hg transfer, etc.
+//        /// </summary>
+//        /// <remarks>
+//        /// The listener should add references to the IDictionary<UUID, AssetType> as appropriate.
+//        /// </remarks>
+//        public event GatherUuids OnGatherUuids;
 
         public class MoneyTransferArgs : EventArgs
         {
             public UUID sender;
             public UUID receiver;
 
-            // Always false. The SL protocol sucks.
+            /// <summary>
+            /// Always false. The SL protocol sucks.
+            /// </summary>
             public bool authenticated = false;
 
             public int amount;
@@ -469,8 +1095,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void LandBuy(Object sender, LandBuyArgs e);
 
+        /// <summary>
+        /// Triggered when an attempt to transfer grid currency occurs
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessMoneyTransferRequest"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientGridEvents"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientEvents"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/>
+        /// </remarks>
         public event MoneyTransferEvent OnMoneyTransfer;
+
+        /// <summary>
+        /// Triggered after after <see cref="OnValidateLandBuy"/>
+        /// </summary>
         public event LandBuy OnLandBuy;
+
+        /// <summary>
+        /// Triggered to allow or prevent a real estate transaction
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessParcelBuy"/>
+        /// <seealso cref="OpenSim.Region.OptionalModules.World.MoneyModule.SampleMoneyModule.ValidateLandBuy"/>
+        /// </remarks>
         public event LandBuy OnValidateLandBuy;
 
         public void TriggerOnAttach(uint localID, UUID itemID, UUID avatarID)
@@ -810,6 +1457,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerTerrainTainted()
+        {
+            OnTerrainTaintedDelegate handlerTerrainTainted = OnTerrainTainted;
+            if (handlerTerrainTainted != null)
+            {
+                foreach (OnTerrainTaintedDelegate d in handlerTerrainTainted.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerTerrainTainted failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {
             OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = OnParcelPrimCountAdd;
@@ -867,6 +1535,48 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerObjectBeingRemovedFromScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerObjectAddedToPhysicalScene(SceneObjectPart obj)
+        {
+            Action<SceneObjectPart> handler = OnObjectAddedToPhysicalScene;
+            if (handler != null)
+            {
+                foreach (Action<SceneObjectPart> d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectAddedToPhysicalScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerObjectRemovedFromPhysicalScene(SceneObjectPart obj)
+        {
+            Action<SceneObjectPart> handler = OnObjectRemovedFromPhysicalScene;
+            if (handler != null)
+            {
+                foreach (Action<SceneObjectPart> d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectRemovedFromPhysicalScene failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
                 }
@@ -1229,6 +1939,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerAvatarAppearanceChanged(ScenePresence avatar)
+        {
+            AvatarAppearanceChange handler = OnAvatarAppearanceChange;
+            if (handler != null)
+            {
+                foreach (AvatarAppearanceChange d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(avatar);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerAvatarAppearanceChanged failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
         public void TriggerIncomingInstantMessage(GridInstantMessage message)
         {
             IncomingInstantMessage handlerIncomingInstantMessage = OnIncomingInstantMessage;
@@ -1415,7 +2146,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnNewInventoryItemUploadComplete(UUID agentID, UUID AssetID, String AssetName, int userlevel)
+        public void TriggerOnNewInventoryItemUploadComplete(UUID agentID, AssetType type, UUID AssetID, String AssetName, int userlevel)
         {
             NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = OnNewInventoryItemUploadComplete;
             if (handlerNewInventoryItemUpdateComplete != null)
@@ -1424,7 +2155,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(agentID, AssetID, AssetName, userlevel);
+                        d(agentID, type, AssetID, AssetName, userlevel);
                     }
                     catch (Exception e)
                     {
@@ -1562,8 +2293,56 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerMovingStartEvent(uint localID)
+        {
+            ScriptMovingStartEvent handlerScriptMovingStartEvent = OnScriptMovingStartEvent;
+            if (handlerScriptMovingStartEvent != null)
+            {
+                foreach (ScriptMovingStartEvent d in handlerScriptMovingStartEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerMovingStartEvent failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerMovingEndEvent(uint localID)
+        {
+            ScriptMovingEndEvent handlerScriptMovingEndEvent = OnScriptMovingEndEvent;
+            if (handlerScriptMovingEndEvent != null)
+            {
+                foreach (ScriptMovingEndEvent d in handlerScriptMovingEndEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerMovingEndEvent failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
         public void TriggerRequestChangeWaterHeight(float height)
         {
+            if (height < 0)
+            {
+                // ignore negative water height
+                return;
+            }
+
             RequestChangeWaterHeight handlerRequestChangeWaterHeight = OnRequestChangeWaterHeight;
             if (handlerRequestChangeWaterHeight != null)
             {
@@ -1838,7 +2617,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // this lets us keep track of nasty script events like timer, etc.
+        /// <summary>
+        /// this lets us keep track of nasty script events like timer, etc.
+        /// </summary>
+        /// <param name="objLocalID"></param>
+        /// <param name="Interval"></param>
         public void TriggerTimerEvent(uint objLocalID, double Interval)
         {
             throw new NotImplementedException("TriggerTimerEvent was thought to be not used anymore and the registration for the event from scene object part has been commented out due to a memory leak");
@@ -1850,13 +2633,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Updates the system as to how the position of the sun should be handled.
+        /// Called when the sun's position parameters have changed in the Region and/or Estate
         /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="FixedTime">True if the Sun Position is fixed</param>
-        /// <param name="useEstateTime">True if the Estate Settings should be used instead of region</param>
-        /// <param name="FixedSunHour">The hour 0.0 <= FixedSunHour <= 24.0 at which the sun is fixed at. Sun Hour 0 is sun-rise, when Day/Night ratio is 1:1</param>
-        public void TriggerEstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float FixedSunHour)
+        /// <param name="regionHandle">The region that changed</param>
+        public void TriggerEstateToolsSunUpdate(ulong regionHandle)
         {
             EstateToolsSunUpdate handlerEstateToolsSunUpdate = OnEstateToolsSunUpdate;
             if (handlerEstateToolsSunUpdate != null)
@@ -1865,7 +2645,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(regionHandle, FixedTime, useEstateTime, FixedSunHour);
+                        d(regionHandle);
                     }
                     catch (Exception e)
                     {
@@ -1900,7 +2680,7 @@ namespace OpenSim.Region.Framework.Scenes
             return 6;
         }
 
-        public void TriggerOarFileLoaded(Guid requestId, string message)
+        public void TriggerOarFileLoaded(Guid requestId, List<UUID> loadedScenes, string message)
         {
             OarFileLoaded handlerOarFileLoaded = OnOarFileLoaded;
             if (handlerOarFileLoaded != null)
@@ -1909,7 +2689,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(requestId, message);
+                        d(requestId, loadedScenes, message);
                     }
                     catch (Exception e)
                     {
@@ -2194,6 +2974,48 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerSceneObjectPartUpdated(SceneObjectPart sop, bool full)
+        {
+            SceneObjectPartUpdated handler = OnSceneObjectPartUpdated;
+            if (handler != null)
+            {
+                foreach (SceneObjectPartUpdated d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sop, full);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSceneObjectPartUpdated failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerScenePresenceUpdated(ScenePresence sp)
+        {
+            ScenePresenceUpdated handler = OnScenePresenceUpdated;
+            if (handler != null)
+            {
+                foreach (ScenePresenceUpdated d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sp);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScenePresenceUpdated failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
         public void TriggerOnParcelPropertiesUpdateRequest(LandUpdateArgs args,
                         int local_id, IClientAPI remote_client)
         {
@@ -2237,21 +3059,105 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerLoginsEnabled (string regionName)
+        public void TriggerOnRegionStarted(Scene scene)
         {
-            LoginsEnabled handler = OnLoginsEnabled;
+            RegionStarted handler = OnRegionStarted;
 
-            if ( handler != null)
+            if (handler != null)
             {
-                foreach (LoginsEnabled d in handler.GetInvocationList())
+                foreach (RegionStarted d in handler.GetInvocationList())
                 {
                     try
                     {
-                        d(regionName);
+                        d(scene);
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for LoginsEnabled failed - continuing {0} - {1}",
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for RegionStarted failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerRegionHeartbeatStart(Scene scene)
+        {
+            RegionHeartbeatStart handler = OnRegionHeartbeatStart;
+
+            if (handler != null)
+            {
+                foreach (RegionHeartbeatStart d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionHeartbeatStart failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerRegionHeartbeatEnd(Scene scene)
+        {
+            RegionHeartbeatEnd handler = OnRegionHeartbeatEnd;
+
+            if (handler != null)
+            {
+                foreach (RegionHeartbeatEnd d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionHeartbeatEnd failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerRegionLoginsStatusChange(IScene scene)
+        {
+            RegionLoginsStatusChange handler = OnRegionLoginsStatusChange;
+
+            if (handler != null)
+            {
+                foreach (RegionLoginsStatusChange d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionLoginsStatusChange failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerRegionReadyStatusChange(IScene scene)
+        {
+            Action<IScene> handler = OnRegionReadyStatusChange;
+
+            if (handler != null)
+            {
+                foreach (Action<IScene> d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionReadyStatusChange failed - continuing {0} - {1}",
                             e.Message, e.StackTrace);
                     }
                 }
@@ -2278,5 +3184,89 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
+        public void TriggerTeleportStart(IClientAPI client, GridRegion destination, GridRegion finalDestination, uint teleportFlags, bool gridLogout)
+        {
+            TeleportStart handler = OnTeleportStart;
+
+            if (handler != null)
+            {
+                foreach (TeleportStart d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client, destination, finalDestination, teleportFlags, gridLogout);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TeleportStart failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerTeleportFail(IClientAPI client, bool gridLogout)
+        {
+            TeleportFail handler = OnTeleportFail;
+
+            if (handler != null)
+            {
+                foreach (TeleportFail d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client, gridLogout);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TeleportFail failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerExtraSettingChanged(Scene scene, string name, string val)
+        {
+            ExtraSettingChangedDelegate handler = OnExtraSettingChanged;
+
+            if (handler != null)
+            {
+                foreach (ExtraSettingChangedDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene, name, val);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for ExtraSettingChanged failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+//        public void TriggerGatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids)
+//        {
+//            GatherUuids handler = OnGatherUuids;
+//
+//            if (handler != null)
+//            {
+//                foreach (GatherUuids d in handler.GetInvocationList())
+//                {
+//                    try
+//                    {
+//                        d(sop, assetUuids);
+//                    }
+//                    catch (Exception e)
+//                    {
+//                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TriggerUuidGather failed - continuing {0} - {1}",
+//                            e.Message, e.StackTrace);
+//                    }
+//                }
+//            }
+//        }
     }
 }

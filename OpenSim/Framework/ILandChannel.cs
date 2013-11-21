@@ -56,6 +56,13 @@ namespace OpenSim.Region.Framework.Interfaces
         ILandObject GetLandObject(float x, float y);
 
         /// <summary>
+        /// Get the parcel at the specified point
+        /// </summary>
+        /// <param name="position">Vector where x and y components are between 0 and 256.  z component is ignored.</param>
+        /// <returns>Land object at the point supplied</returns>
+        ILandObject GetLandObject(Vector3 position);
+
+        /// <summary>
         /// Get the parcels near the specified point
         /// </summary>
         /// <param name="position"></param>

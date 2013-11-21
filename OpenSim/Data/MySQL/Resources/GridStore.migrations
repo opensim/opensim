@@ -94,3 +94,12 @@ BEGIN;
 alter table regions modify column regionName varchar(128) default NULL;
 
 COMMIT;
+
+:VERSION 9      # ------------
+
+BEGIN;
+
+alter table regions add column `parcelMapTexture` varchar(36) default NULL;
+
+COMMIT;
+

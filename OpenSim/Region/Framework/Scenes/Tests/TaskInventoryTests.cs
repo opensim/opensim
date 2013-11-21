@@ -50,15 +50,38 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Tests
 {
     [TestFixture]
-    public class TaskInventoryTests
+    public class TaskInventoryTests : OpenSimTestCase
     {
+        [Test]
+        public void TestAddTaskInventoryItem()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            Scene scene = new SceneHelpers().SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
+            SceneObjectPart sop1 = sog1.RootPart;
+
+            // Create an object embedded inside the first
+            UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
+            TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId, user1.PrincipalID);
+
+            TaskInventoryItem addedItem = sop1.Inventory.GetInventoryItem(taskSceneObjectItemId);
+            Assert.That(addedItem.ItemID, Is.EqualTo(taskSceneObjectItemId));
+            Assert.That(addedItem.OwnerID, Is.EqualTo(user1.PrincipalID));
+            Assert.That(addedItem.ParentID, Is.EqualTo(sop1.UUID));
+            Assert.That(addedItem.InvType, Is.EqualTo((int)InventoryType.Object));
+            Assert.That(addedItem.Type, Is.EqualTo((int)AssetType.Object));
+        }
+
         [Test]
         public void TestRezObjectFromInventoryItem()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
@@ -66,7 +89,7 @@ namespace OpenSim.Region.Framework.Tests
             // Create an object embedded inside the first
             UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
             TaskInventoryItem taskSceneObjectItem
-                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId);
+                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId, user1.PrincipalID);
 
             scene.AddSceneObject(sog1);
 
@@ -90,7 +113,7 @@ namespace OpenSim.Region.Framework.Tests
         }
 
         /// <summary>
-        /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
+        /// Test MoveTaskInventoryItem from a part inventory to a user inventory where the item has no parent folder assigned.
         /// </summary>
         /// <remarks>
         /// This should place it in the most suitable user folder.
@@ -101,14 +124,16 @@ namespace OpenSim.Region.Framework.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
+            TaskInventoryItem sopItem1
+                = TaskInventoryHelpers.AddNotecard(
+                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
 
             InventoryFolderBase folder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, folder.ID, sop1, sopItem1.ItemID);
@@ -119,20 +144,25 @@ namespace OpenSim.Region.Framework.Tests
         }
         
         /// <summary>
-        /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
+        /// Test MoveTaskInventoryItem from a part inventory to a user inventory where the item has no parent folder assigned.
         /// </summary>
+        /// <remarks>
         /// This should place it in the most suitable user folder.
+        /// </remarks>
         [Test]
         public void TestMoveTaskInventoryItemNoParent()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
+
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
+            TaskInventoryItem sopItem1
+                = TaskInventoryHelpers.AddNotecard(
+                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID);

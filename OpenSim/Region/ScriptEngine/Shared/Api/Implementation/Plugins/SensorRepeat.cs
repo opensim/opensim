@@ -26,10 +26,12 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-
+using log4net;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
@@ -38,30 +40,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 {
     public class SensorRepeat
     {
-        public AsyncCommandManager m_CmdManager;
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SensorRepeat(AsyncCommandManager CmdManager)
-        {
-            m_CmdManager = CmdManager;
-            maximumRange = CmdManager.m_ScriptEngine.Config.GetDouble("SensorMaxRange", 96.0d);
-            maximumToReturn = CmdManager.m_ScriptEngine.Config.GetInt("SensorMaxResults", 16);
-        }
-
-        private Object SenseLock = new Object();
-
-        private const int AGENT = 1;
-        private const int AGENT_BY_USERNAME = 0x10;
-        private const int ACTIVE = 2;
-        private const int PASSIVE = 4;
-        private const int SCRIPTED = 8;
-
-        private double maximumRange = 96.0;
-        private int maximumToReturn = 16;
-
-        //
-        // SenseRepeater and Sensors
-        //
-        private class SenseRepeatClass
+        /// <summary>
+        /// Used by one-off and repeated sensors
+        /// </summary>
+        public class SensorInfo
         {
             public uint localID;
             public UUID itemID;
@@ -74,7 +58,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             public double range;
             public double arc;
             public SceneObjectPart host;
+
+            public SensorInfo Clone()
+            {
+                return (SensorInfo)this.MemberwiseClone();
+            }
         }
+
+        public AsyncCommandManager m_CmdManager;
+
+        /// <summary>
+        /// Number of sensors active.
+        /// </summary>
+        public int SensorsCount
+        {
+            get
+            {
+                return SenseRepeaters.Count;
+            }
+        }
+
+        public SensorRepeat(AsyncCommandManager CmdManager)
+        {
+            m_CmdManager = CmdManager;
+            maximumRange = CmdManager.m_ScriptEngine.Config.GetDouble("SensorMaxRange", 96.0d);
+            maximumToReturn = CmdManager.m_ScriptEngine.Config.GetInt("SensorMaxResults", 16);
+            m_npcModule = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<INPCModule>();
+        }
+
+        private INPCModule m_npcModule;
+
+        private Object SenseLock = new Object();
+
+        private const int AGENT = 1;
+        private const int AGENT_BY_USERNAME = 0x10;
+        private const int NPC = 0x20;
+        private const int OS_NPC = 0x01000000;
+        private const int ACTIVE = 2;
+        private const int PASSIVE = 4;
+        private const int SCRIPTED = 8;
+
+        private double maximumRange = 96.0;
+        private int maximumToReturn = 16;
 
         //
         // Sensed entity
@@ -98,7 +123,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             public double distance;
         }
 
-        private List<SenseRepeatClass> SenseRepeaters = new List<SenseRepeatClass>();
+        /// <summary>
+        /// Sensors to process.
+        /// </summary>
+        /// <remarks>
+        /// Do not add or remove sensors from this list directly.  Instead, copy the list and substitute the updated
+        /// copy.  This is to avoid locking the list for the duration of the sensor sweep, which increases the danger
+        /// of deadlocks with future code updates.
+        ///
+        /// Always lock SenseRepeatListLock when updating this list.
+        /// </remarks>
+        private List<SensorInfo> SenseRepeaters = new List<SensorInfo>();
         private object SenseRepeatListLock = new object();
 
         public void SetSenseRepeatEvent(uint m_localID, UUID m_itemID,
@@ -107,11 +142,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             // Always remove first, in case this is a re-set
             UnSetSenseRepeaterEvents(m_localID, m_itemID);
+
             if (sec == 0) // Disabling timer
                 return;
 
             // Add to timer
-            SenseRepeatClass ts = new SenseRepeatClass();
+            SensorInfo ts = new SensorInfo();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
             ts.interval = sec;
@@ -126,9 +162,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             ts.host = host;
 
             ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+
+            AddSenseRepeater(ts);
+        }
+
+        private void AddSenseRepeater(SensorInfo senseRepeater)
+        {
             lock (SenseRepeatListLock)
             {
-                SenseRepeaters.Add(ts);
+                List<SensorInfo> newSenseRepeaters = new List<SensorInfo>(SenseRepeaters);
+                newSenseRepeaters.Add(senseRepeater);
+                SenseRepeaters = newSenseRepeaters;
             }
         }
 
@@ -137,39 +181,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             // Remove from timer
             lock (SenseRepeatListLock)
             {
-                List<SenseRepeatClass> NewSensors = new List<SenseRepeatClass>();
-                foreach (SenseRepeatClass ts in SenseRepeaters)
+                List<SensorInfo> newSenseRepeaters = new List<SensorInfo>();
+                foreach (SensorInfo ts in SenseRepeaters)
                 {
-                    if (ts.localID != m_localID && ts.itemID != m_itemID)
+                    if (ts.localID != m_localID || ts.itemID != m_itemID)
                     {
-                        NewSensors.Add(ts);
+                        newSenseRepeaters.Add(ts);
                     }
                 }
-                SenseRepeaters.Clear();
-                SenseRepeaters = NewSensors;
+
+                SenseRepeaters = newSenseRepeaters;
             }
         }
 
         public void CheckSenseRepeaterEvents()
         {
-            // Nothing to do here?
-            if (SenseRepeaters.Count == 0)
-                return;
-
-            lock (SenseRepeatListLock)
+            // Go through all timers
+            foreach (SensorInfo ts in SenseRepeaters)
             {
-                // Go through all timers
-                foreach (SenseRepeatClass ts in SenseRepeaters)
+                // Time has passed?
+                if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                 {
-                    // Time has passed?
-                    if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
-                    {
-                        SensorSweep(ts);
-                        // set next interval
-                        ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
-                    }
+                    SensorSweep(ts);
+                    // set next interval
+                    ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
                 }
-            } // lock
+            }
         }
 
         public void SenseOnce(uint m_localID, UUID m_itemID,
@@ -177,7 +214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                               double range, double arc, SceneObjectPart host)
         {
             // Add to timer
-            SenseRepeatClass ts = new SenseRepeatClass();
+            SensorInfo ts = new SensorInfo();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
             ts.interval = 0;
@@ -193,7 +230,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SensorSweep(ts);
         }
 
-        private void SensorSweep(SenseRepeatClass ts)
+        private void SensorSweep(SensorInfo ts)
         {
             if (ts.host == null)
             {
@@ -203,9 +240,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // Is the sensor type is AGENT and not SCRIPTED then include agents
-            if ((ts.type & (AGENT | AGENT_BY_USERNAME)) != 0 && (ts.type & SCRIPTED) == 0)
+            if ((ts.type & (AGENT | AGENT_BY_USERNAME | NPC | OS_NPC)) != 0 && (ts.type & SCRIPTED) == 0)
             {
-               sensedEntities.AddRange(doAgentSensor(ts));
+                sensedEntities.AddRange(doAgentSensor(ts));
             }
 
             // If SCRIPTED or PASSIVE or ACTIVE check objects
@@ -269,7 +306,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        private List<SensedEntity> doObjectSensor(SenseRepeatClass ts)
+        private List<SensedEntity> doObjectSensor(SensorInfo ts)
         {
             List<EntityBase> Entities;
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
@@ -291,7 +328,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
             SceneObjectPart SensePoint = ts.host;
 
-            Vector3 fromRegionPos = SensePoint.AbsolutePosition;
+            Vector3 fromRegionPos = SensePoint.GetWorldPosition();
 
             // pre define some things to avoid repeated definitions in the loop body
             Vector3 toRegionPos;
@@ -302,22 +339,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             float dy;
             float dz;
 
-            Quaternion q = SensePoint.RotationOffset;
+            Quaternion q = SensePoint.GetWorldRotation();
             if (SensePoint.ParentGroup.IsAttachment)
             {
-                // In attachments, the sensor cone always orients with the
+                // In attachments, rotate the sensor cone with the
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
+                // This will not include the rotation and position of the
+                // attachment point (e.g. your head when a sensor is in your
+                // hair attached to your scull. Your hair  will turn with
+                // your head but the sensor will stay with your (global)
+                // avatar rotation and position.
+                // Position of a sensor in a child prim attached to an avatar
+                // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation;
+
+                // Don't proceed if the avatar for this attachment has since been removed from the scene.
+                if (avatar == null)
+                    return sensedEntities;
+
+                q = avatar.GetWorldRotation() * q;
             }
-            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
+
+            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
 
             Vector3 ZeroVector = new Vector3(0, 0, 0);
 
-            bool nameSearch = (ts.name != null && ts.name != "");
+            bool nameSearch = !string.IsNullOrEmpty(ts.name);
 
             foreach (EntityBase ent in Entities)
             {
@@ -388,9 +438,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             try
                             {
                                 Vector3 diff = toRegionPos - fromRegionPos;
-                                LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
-                                double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
-                                double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
+                                double dot = LSL_Types.Vector3.Dot(forward_dir, diff);
+                                double mag_obj = LSL_Types.Vector3.Mag(diff);
                                 ang_obj = Math.Acos(dot / (mag_fwd * mag_obj));
                             }
                             catch
@@ -411,7 +460,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return sensedEntities;
         }
 
-        private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
+        private List<SensedEntity> doAgentSensor(SensorInfo ts)
         {
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
@@ -420,27 +469,74 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return sensedEntities;
 
             SceneObjectPart SensePoint = ts.host;
-            Vector3 fromRegionPos = SensePoint.AbsolutePosition;
+            Vector3 fromRegionPos = SensePoint.GetWorldPosition();
             
-            Quaternion q = SensePoint.RotationOffset;
+            Quaternion q = SensePoint.GetWorldRotation();
             if (SensePoint.ParentGroup.IsAttachment)
             {
-                // In attachments, the sensor cone always orients with the
+                // In attachments, rotate the sensor cone with the
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
+                // This will not include the rotation and position of the
+                // attachment point (e.g. your head when a sensor is in your
+                // hair attached to your scull. Your hair  will turn with
+                // your head but the sensor will stay with your (global)
+                // avatar rotation and position.
+                // Position of a sensor in a child prim attached to an avatar
+                // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation;
+
+                // Don't proceed if the avatar for this attachment has since been removed from the scene.
+                if (avatar == null)
+                    return sensedEntities;
+
+                q = avatar.GetWorldRotation() * q;
             }
 
-            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
+            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
             bool attached = (SensePoint.ParentGroup.AttachmentPoint != 0);
             Vector3 toRegionPos;
             double dis;
-
-            Action<ScenePresence> senseEntity = new Action<ScenePresence>(delegate(ScenePresence presence)
+            
+            Action<ScenePresence> senseEntity = new Action<ScenePresence>(presence =>
             {
+//                m_log.DebugFormat(
+//                    "[SENSOR REPEAT]: Inspecting scene presence {0}, type {1} on sensor sweep for {2}, type {3}",
+//                    presence.Name, presence.PresenceType, ts.name, ts.type);
+
+                if ((ts.type & NPC) == 0 && (ts.type & OS_NPC) == 0 && presence.PresenceType == PresenceType.Npc)
+                {
+                    INPC npcData = m_npcModule.GetNPC(presence.UUID, presence.Scene);
+                    if (npcData == null || !npcData.SenseAsAgent)
+                    {
+//                        m_log.DebugFormat(
+//                            "[SENSOR REPEAT]: Discarding NPC {0} from agent sense sweep for script item id {1}",
+//                            presence.Name, ts.itemID);
+                        return;
+                    }
+                }
+
+                if ((ts.type & AGENT) == 0)
+                {
+                    if (presence.PresenceType == PresenceType.User)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        INPC npcData = m_npcModule.GetNPC(presence.UUID, presence.Scene);
+                        if (npcData != null && npcData.SenseAsAgent)
+                        {
+//                            m_log.DebugFormat(
+//                                "[SENSOR REPEAT]: Discarding NPC {0} from non-agent sense sweep for script item id {1}",
+//                                presence.Name, ts.itemID);
+                            return;
+                        }
+                    }
+                }
+
                 if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)
                     return;
                 
@@ -451,6 +547,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 toRegionPos = presence.AbsolutePosition;
                 dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
+
+                // Disabled for now since all osNpc* methods check for appropriate ownership permission.
+                // Perhaps could be re-enabled as an NPC setting at some point since being able to make NPCs not
+                // sensed might be useful.
+//                if (presence.PresenceType == PresenceType.Npc && npcModule != null)
+//                {
+//                    UUID npcOwner = npcModule.GetOwner(presence.UUID);
+//                    if (npcOwner != UUID.Zero && npcOwner != SensePoint.OwnerID)
+//                        return;
+//                }
 
                 // are they in range
                 if (dis <= ts.range)
@@ -468,8 +574,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         double ang_obj = 0;
                         try
                         {
-                            Vector3 diff = toRegionPos - fromRegionPos;
-                            LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
+                            LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(
+                                toRegionPos - fromRegionPos);
                             double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
                             double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
                             ang_obj = Math.Acos(dot / (mag_fwd * mag_obj));
@@ -499,7 +605,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     return sensedEntities;
                 senseEntity(sp);
             }
-            else if (ts.name != null && ts.name != "")
+            else if (!string.IsNullOrEmpty(ts.name))
             {
                 ScenePresence sp;
                 // Try lookup by name will return if/when found
@@ -535,21 +641,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             List<Object> data = new List<Object>();
 
-            lock (SenseRepeatListLock)
+            foreach (SensorInfo ts in SenseRepeaters)
             {
-                foreach (SenseRepeatClass ts in SenseRepeaters)
+                if (ts.itemID == itemID)
                 {
-                    if (ts.itemID == itemID)
-                    {
-                        data.Add(ts.interval);
-                        data.Add(ts.name);
-                        data.Add(ts.keyID);
-                        data.Add(ts.type);
-                        data.Add(ts.range);
-                        data.Add(ts.arc);
-                    }
+                    data.Add(ts.interval);
+                    data.Add(ts.name);
+                    data.Add(ts.keyID);
+                    data.Add(ts.type);
+                    data.Add(ts.range);
+                    data.Add(ts.arc);
                 }
             }
+
             return data.ToArray();
         }
 
@@ -567,7 +671,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             while (idx < data.Length)
             {
-                SenseRepeatClass ts = new SenseRepeatClass();
+                SensorInfo ts = new SensorInfo();
 
                 ts.localID = localID;
                 ts.itemID = itemID;
@@ -583,9 +687,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.next =
                     DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
 
-                SenseRepeaters.Add(ts);
+                AddSenseRepeater(ts);
+                
                 idx += 6;
             }
         }
+
+        public List<SensorInfo> GetSensorInfo()
+        {
+            List<SensorInfo> retList = new List<SensorInfo>();
+
+            lock (SenseRepeatListLock)
+            {
+                foreach (SensorInfo i in SenseRepeaters)
+                    retList.Add(i.Clone());
+            }
+
+            return retList;
+        }           
     }
 }

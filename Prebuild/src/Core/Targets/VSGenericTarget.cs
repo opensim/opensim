@@ -1,4 +1,4 @@
-﻿#region BSD License
+#region BSD License
 /*
 Copyright (c) 2008 Matthew Holmes (matthew@wildfiregames.com), John Anderson (sontek@gmail.com)
 
@@ -25,6 +25,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using Prebuild.Core.Interfaces;
 using Prebuild.Core.Nodes;
@@ -42,6 +43,7 @@ namespace Prebuild.Core.Targets
 		#region Fields
 
 		readonly Dictionary<string, ToolInfo> tools = new Dictionary<string, ToolInfo>();
+//        NameValueCollection CopyFiles = new NameValueCollection();
 		Kernel kernel;
 		#endregion
 
@@ -168,7 +170,14 @@ namespace Prebuild.Core.Targets
 			#region Project File
 			using (ps)
 			{
-				ps.WriteLine("<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\" {0}>", GetToolsVersionXml(project.FrameworkVersion));
+                string targets = "";
+
+                if(project.Files.CopyFiles > 0)
+                    targets = "Build;CopyFiles";
+                else
+                    targets = "Build";
+
+				ps.WriteLine("<Project DefaultTargets=\"{0}\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\" {1}>", targets, GetToolsVersionXml(project.FrameworkVersion));
 				ps.WriteLine("	<PropertyGroup>");
 				ps.WriteLine("	  <ProjectType>Local</ProjectType>");
 				ps.WriteLine("	  <ProductVersion>{0}</ProductVersion>", ProductVersion);
@@ -333,9 +342,15 @@ namespace Prebuild.Core.Targets
 					}
 
 				}
-				
+
+
 				foreach (string filePath in project.Files)
 				{
+                    // Add the filePath with the destination as the key
+                    // will use it later to form the copy parameters with Include lists
+                    // for each destination
+                    if (project.Files.GetBuildAction(filePath) == BuildAction.Copy)
+                        continue;
 					//					if (file == "Properties\\Bind.Designer.cs")
 					//					{
 					//						Console.WriteLine("Wait a minute!");
@@ -446,7 +461,9 @@ namespace Prebuild.Core.Targets
 							ps.WriteLine("Include=\"{0}\">", file);
 
 							int last_period_index = file.LastIndexOf('.');
-							string short_file_name = file.Substring(0, last_period_index);
+                            string short_file_name = (last_period_index >= 0)
+                                ? file.Substring(0, last_period_index)
+                                : file;
 							string extension = Path.GetExtension(path);
 							// make this upper case, so that when File.Exists tests for the
 							// existence of a designer file on a case-sensitive platform,
@@ -501,8 +518,41 @@ namespace Prebuild.Core.Targets
 						}
 					}
 				}
+                ps.WriteLine("  </ItemGroup>");
 
-				ps.WriteLine("	</ItemGroup>");
+                /*
+                 * Copy Task
+                 *
+                */
+                if ( project.Files.CopyFiles > 0 ) {
+
+                    Dictionary<string, string> IncludeTags = new Dictionary<string, string>();
+                    int TagCount = 0;
+
+                    // Handle Copy tasks
+                    ps.WriteLine("  <ItemGroup>");
+                    foreach (string destPath in project.Files.Destinations)
+                    {
+                        string tag = "FilesToCopy_" + TagCount.ToString("0000");
+
+                        ps.WriteLine("    <{0} Include=\"{1}\" />", tag, String.Join(";", project.Files.SourceFiles(destPath)));
+                        IncludeTags.Add(destPath, tag);
+                        TagCount++;
+                    }
+
+                    ps.WriteLine("  </ItemGroup>");
+
+                    ps.WriteLine("  <Target Name=\"CopyFiles\">");
+
+                    foreach (string destPath in project.Files.Destinations)
+                    {
+                        ps.WriteLine("    <Copy SourceFiles=\"@({0})\" DestinationFolder=\"{1}\" />",
+                                          IncludeTags[destPath], destPath);
+                    }
+
+                    ps.WriteLine("  </Target>");
+                }
+
 				ps.WriteLine("	<Import Project=\"" + toolInfo.ImportProject + "\" />");
 				ps.WriteLine("	<PropertyGroup>");
 				ps.WriteLine("	  <PreBuildEvent>");

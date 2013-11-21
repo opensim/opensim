@@ -53,43 +53,24 @@ namespace OpenSim.Services.HypergridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected new IXInventoryData m_Database;
-
-        private string m_ProfileServiceURL;
+        private string m_HomeURL;
         private IUserAccountService m_UserAccountService;
 
         private UserAccountCache m_Cache;
 
-        public HGInventoryService(IConfigSource config)
-            : base(config)
+        public HGInventoryService(IConfigSource config, string configName)
+            : base(config, configName)
         {
             m_log.Debug("[HGInventory Service]: Starting");
-
-            string dllName = String.Empty;
-            string connString = String.Empty;
-            //string realm = "Inventory"; // OSG version doesn't use this
-
-            //
-            // Try reading the [DatabaseService] section, if it exists
-            //
-            IConfig dbConfig = config.Configs["DatabaseService"];
-            if (dbConfig != null)
-            {
-                if (dllName == String.Empty)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
-            }
+            if (configName != string.Empty)
+                m_ConfigName = configName;
 
             //
             // Try reading the [InventoryService] section, if it exists
             //
-            IConfig invConfig = config.Configs["HGInventoryService"];
+            IConfig invConfig = config.Configs[m_ConfigName];
             if (invConfig != null)
-            {
-                dllName = invConfig.GetString("StorageProvider", dllName);
-                connString = invConfig.GetString("ConnectionString", connString);
-                
+            {                
                 // realm = authConfig.GetString("Realm", realm);
                 string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
                 if (userAccountsDll == string.Empty)
@@ -100,21 +81,11 @@ namespace OpenSim.Services.HypergridService
                 if (m_UserAccountService == null)
                     throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
-                m_ProfileServiceURL = invConfig.GetString("ProfileServerURI", string.Empty);
+                m_HomeURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
+                    new string[] { "Startup", "Hypergrid", m_ConfigName }, String.Empty); 
 
                 m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
-
-            //
-            // We tried, but this doesn't exist. We can't proceed.
-            //
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
-
-            m_Database = LoadPlugin<IXInventoryData>(dllName,
-                    new Object[] {connString, String.Empty});
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
 
             m_log.Debug("[HG INVENTORY SERVICE]: Starting...");
         }
@@ -130,6 +101,12 @@ namespace OpenSim.Services.HypergridService
         {
             // NOGO for this inventory service
             return new List<InventoryFolderBase>();
+        }
+
+        public override InventoryCollection GetUserInventory(UUID userID)
+        {
+            // NOGO for this inventory service
+            return null;
         }
 
         public override InventoryFolderBase GetRootFolder(UUID principalID)
@@ -316,13 +293,14 @@ namespace OpenSim.Services.HypergridService
         public override InventoryItemBase GetItem(InventoryItemBase item)
         {
             InventoryItemBase it = base.GetItem(item);
+            if (it != null)
+            {
+                UserAccount user = m_Cache.GetUser(it.CreatorId);
 
-            UserAccount user = m_Cache.GetUser(it.CreatorId);
-
-            // Adjust the creator data
-            if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
-                it.CreatorData = m_ProfileServiceURL + "/" + it.CreatorId + ";" + user.FirstName + " " + user.LastName;
-
+                // Adjust the creator data
+                if (user != null && it != null && string.IsNullOrEmpty(it.CreatorData))
+                    it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
+            }
             return it;
         }
 

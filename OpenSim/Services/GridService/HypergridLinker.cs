@@ -79,7 +79,7 @@ namespace OpenSim.Services.GridService
             {
                 if (m_DefaultRegion == null)
                 {
-                    List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
+                    List<GridRegion> defs = m_GridService.GetDefaultHypergridRegions(m_ScopeID);
                     if (defs != null && defs.Count > 0)
                         m_DefaultRegion = defs[0];
                     else
@@ -102,50 +102,48 @@ namespace OpenSim.Services.GridService
 
         public HypergridLinker(IConfigSource config, GridService gridService, IRegionData db)
         {
-            IConfig modulesConfig = config.Configs["Modules"];
-			if (modulesConfig == null)
-				return;
+            IConfig gridConfig = config.Configs["GridService"];
+            if (gridConfig == null)
+                return;
 
-			if (modulesConfig.GetString("HypergridLinker", "") != "HypergridLinker")
-				return;
-
-            m_log.DebugFormat("[HYPERGRID LINKER]: Starting with db {0}", db.GetType());
+            if (!gridConfig.GetBoolean("HypergridLinker", false))
+                return;
 
             m_Database = db;
             m_GridService = gridService;
+            m_log.DebugFormat("[HYPERGRID LINKER]: Starting with db {0}", db.GetType());
 
-            IConfig gridConfig = config.Configs["GridService"];
-            if (gridConfig != null)
-            {
-                string assetService = gridConfig.GetString("AssetService", string.Empty);
+            string assetService = gridConfig.GetString("AssetService", string.Empty);
 
-                Object[] args = new Object[] { config };
+            Object[] args = new Object[] { config };
 
-                if (assetService != string.Empty)
-                    m_AssetService = ServerUtils.LoadPlugin<IAssetService>(assetService, args);
+            if (assetService != string.Empty)
+                m_AssetService = ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 
-                string scope = gridConfig.GetString("ScopeID", string.Empty);
-                if (scope != string.Empty)
-                    UUID.TryParse(scope, out m_ScopeID);
+            string scope = gridConfig.GetString("ScopeID", string.Empty);
+            if (scope != string.Empty)
+                UUID.TryParse(scope, out m_ScopeID);
 
 //                m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
-                m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
+            m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
 
-                m_ThisGatekeeper = gridConfig.GetString("Gatekeeper", string.Empty);
-                try
-                {
-                    m_ThisGatekeeperURI = new Uri(m_ThisGatekeeper);
-                }
-                catch
-                {
-                    m_log.WarnFormat("[HYPERGRID LINKER]: Malformed URL in [GridService], variable Gatekeeper = {0}", m_ThisGatekeeper);
-                }
-
-                m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
-
-                m_log.Debug("[HYPERGRID LINKER]: Loaded all services...");
+            m_ThisGatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
+                new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
+            // Legacy. Remove soon!
+            m_ThisGatekeeper = gridConfig.GetString("Gatekeeper", m_ThisGatekeeper);
+            try
+            {
+                m_ThisGatekeeperURI = new Uri(m_ThisGatekeeper);
             }
+            catch
+            {
+                m_log.WarnFormat("[HYPERGRID LINKER]: Malformed URL in [GridService], variable Gatekeeper = {0}", m_ThisGatekeeper);
+            }
+
+            m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
+
+            m_log.Debug("[HYPERGRID LINKER]: Loaded all services...");
 
             if (!string.IsNullOrEmpty(m_MapTileDirectory))
             {
@@ -392,11 +390,11 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[HYPERGRID LINKER]: Request to unlink {0}", mapName);
             GridRegion regInfo = null;
 
-            List<RegionData> regions = m_Database.Get(mapName, m_ScopeID);
+            List<RegionData> regions = m_Database.Get(Util.EscapeForLike(mapName), m_ScopeID);
             if (regions != null && regions.Count > 0)
             {
-                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);
-                if ((rflags & OpenSim.Data.RegionFlags.Hyperlink) != 0)
+                OpenSim.Framework.RegionFlags rflags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);
+                if ((rflags & OpenSim.Framework.RegionFlags.Hyperlink) != 0)
                 {
                     regInfo = new GridRegion(); 
                     regInfo.RegionID = regions[0].RegionID;
@@ -465,7 +463,7 @@ namespace OpenSim.Services.GridService
         private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
         {
             RegionData rdata = m_GridService.RegionInfo2RegionData(regionInfo);
-            int flags = (int)OpenSim.Data.RegionFlags.Hyperlink + (int)OpenSim.Data.RegionFlags.NoDirectLogin + (int)OpenSim.Data.RegionFlags.RegionOnline;
+            int flags = (int)OpenSim.Framework.RegionFlags.Hyperlink + (int)OpenSim.Framework.RegionFlags.NoDirectLogin + (int)OpenSim.Framework.RegionFlags.RegionOnline;
             rdata.Data["flags"] = flags.ToString();
 
             m_Database.Store(rdata);

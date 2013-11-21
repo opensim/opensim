@@ -226,7 +226,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                         break;
                     }
                 }
-
+                int z = 0;
                 try
                 {
                     if (gotMatch)
@@ -235,8 +235,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 finally
                 {
                     // Manually finalize all the iterators.
-                    for (int i = 0; i < nIterators; ++i)
-                        iterators[i].Dispose();
+                    for (z = 0; z < nIterators; ++z)
+                        iterators[z].Dispose();
                 }
             }
         }

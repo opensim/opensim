@@ -44,21 +44,22 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Framework.Capabilities;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "NewFileAgentInventoryVariablePriceModule")]
     public class NewFileAgentInventoryVariablePriceModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
 //        private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
         private bool m_enabled = true;
+        private int  m_levelUpload = 0;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
 
         public Type ReplaceableInterface
@@ -73,6 +74,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_enabled = meshConfig.GetBoolean("AllowMeshUpload", true);
+            m_levelUpload = meshConfig.GetInt("LevelUpload", 0);
         }
 
         public void AddRegion(Scene pScene)
@@ -97,7 +99,7 @@ namespace OpenSim.Region.ClientStack.Linden
         #endregion
 
 
-        #region IRegionModule Members
+        #region Region Module interface
 
        
 
@@ -114,51 +116,66 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID capID = UUID.Random();
 
 //            m_log.Debug("[NEW FILE AGENT INVENTORY VARIABLE PRICE]: /CAPS/" + capID);
-            caps.RegisterHandler("NewFileAgentInventoryVariablePrice",
-
-                    new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDNewFileAngentInventoryVariablePriceReplyResponse>("POST",
-                                                                                           "/CAPS/" + capID.ToString(),
-                                                                                           delegate(LLSDAssetUploadRequest req)
-                                                       {
-                                                           return NewAgentInventoryRequest(req,agentID);
-                                                       }));
-         
+            caps.RegisterHandler(
+                "NewFileAgentInventoryVariablePrice",
+                new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDNewFileAngentInventoryVariablePriceReplyResponse>(
+                    "POST",
+                    "/CAPS/" + capID.ToString(),
+                    req => NewAgentInventoryRequest(req, agentID),
+                    "NewFileAgentInventoryVariablePrice",
+                    agentID.ToString()));         
         }
 
         #endregion
 
         public LLSDNewFileAngentInventoryVariablePriceReplyResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest, UUID agentID)
         {
-
             //TODO:  The Mesh uploader uploads many types of content. If you're going to implement a Money based limit
-            // You need to be aware of this and 
-
+            // you need to be aware of this
 
             //if (llsdRequest.asset_type == "texture" ||
            //     llsdRequest.asset_type == "animation" ||
            //     llsdRequest.asset_type == "sound")
            // {
-                IClientAPI client = null;
+                // check user level
 
-                
-                IMoneyModule mm = m_scene.RequestModuleInterface<IMoneyModule>();
-                
-                if (mm != null)
+            ScenePresence avatar = null;
+            IClientAPI client = null;
+            m_scene.TryGetScenePresence(agentID, out avatar);
+
+            if (avatar != null)
+            {
+                client = avatar.ControllingClient;
+
+                if (avatar.UserLevel < m_levelUpload)
                 {
-                    if (m_scene.TryGetClient(agentID, out client))
-                    {
-                        if (!mm.UploadCovered(client, mm.UploadCharge))
-                        {
-                            if (client != null)
-                                client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                    if (client != null)
+                        client.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
 
-                            LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
-                            errorResponse.rsvp = "";
-                            errorResponse.state = "error";
-                            return errorResponse;
-                        }
-                    }
+                    LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
+                    errorResponse.rsvp = "";
+                    errorResponse.state = "error";
+                    return errorResponse;
                 }
+            }
+
+            // check funds
+            IMoneyModule mm = m_scene.RequestModuleInterface<IMoneyModule>();
+
+            if (mm != null)
+            {
+                if (!mm.UploadCovered(agentID, mm.UploadCharge))
+                {
+                    if (client != null)
+                        client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+
+                    LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
+                    errorResponse.rsvp = "";
+                    errorResponse.state = "error";
+                    return errorResponse;
+                }
+            }
+
            // }
 
             string assetName = llsdRequest.name;
@@ -172,8 +189,14 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                                   llsdRequest.asset_type, capsBase + uploaderPath, MainServer.Instance, m_dumpAssetsToFile);
+
             MainServer.Instance.AddStreamHandler(
-                new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                new BinaryStreamHandler(
+                    "POST",
+                    capsBase + uploaderPath,
+                    uploader.uploaderCaps,
+                    "NewFileAgentInventoryVariablePrice",
+                    agentID.ToString()));
 
             string protocol = "http://";
 
@@ -182,10 +205,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             string uploaderURL = protocol + m_scene.RegionInfo.ExternalHostName + ":" + MainServer.Instance.Port.ToString() + capsBase +
                                  uploaderPath;
-         
+
 
             LLSDNewFileAngentInventoryVariablePriceReplyResponse uploadResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
-           
             
             uploadResponse.rsvp = uploaderURL;
             uploadResponse.state = "upload";
@@ -203,6 +225,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                           pinventoryItem, pparentFolder, pdata,  pinventoryType,
                                           passetType,agentID);
                };
+
             return uploadResponse;
         }
 
@@ -210,6 +233,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType,UUID AgentID)
         {
+//            m_log.DebugFormat(
+//                "[NEW FILE AGENT INVENTORY VARIABLE PRICE MODULE]: Upload complete for {0}", inventoryItem);
+
             sbyte assType = 0;
             sbyte inType = 0;
 
@@ -259,13 +285,13 @@ namespace OpenSim.Region.ClientStack.Linden
             item.AssetType = assType;
             item.InvType = inType;
             item.Folder = parentFolder;
-            item.CurrentPermissions = (uint)PermissionMask.All;
+            item.CurrentPermissions
+                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
             item.BasePermissions = (uint)PermissionMask.All;
             item.EveryOnePermissions = 0;
             item.NextPermissions = (uint)PermissionMask.All;
             item.CreationDate = Util.UnixTimeSinceEpoch();
             m_scene.AddInventoryItem(item);
-            
         }
     }
 }

@@ -51,7 +51,7 @@ using OpenSim.Capabilities.Handlers;
 namespace OpenSim.Region.ClientStack.Linden
 {
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetTextureModule")]
     public class GetTextureModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log =
@@ -130,12 +130,18 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_URL == "localhost")
             {
 //                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
+                caps.RegisterHandler(
+                    "GetTexture",
+                    new GetTextureHandler("/CAPS/" + capID + "/", m_assetService, "GetTexture", agentID.ToString()));
             }
             else
             {
 //                m_log.DebugFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("GetTexture", m_URL);
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+                if (handler != null)
+                    handler.RegisterExternalUserCapsHandler(agentID,caps,"GetTexture",m_URL);
+                else
+                    caps.RegisterHandler("GetTexture", m_URL);
             }
         }
 

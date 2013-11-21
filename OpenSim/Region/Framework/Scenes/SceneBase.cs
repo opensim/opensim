@@ -51,6 +51,8 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Fields
+
+        public string Name { get { return RegionInfo.RegionName; } }
         
         public IConfigSource Config
         {
@@ -65,12 +67,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// All the region modules attached to this scene.
         /// </value>
-        public Dictionary<string, IRegionModule> Modules
-        {
-            get { return m_modules; }
-        }
-        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
-
         public Dictionary<string, IRegionModuleBase> RegionModules
         {
             get { return m_regionModules; }
@@ -103,6 +99,42 @@ namespace OpenSim.Region.Framework.Scenes
         private readonly Mutex _primAllocateMutex = new Mutex(false);
         
         protected readonly ClientManager m_clientManager = new ClientManager();
+
+        public bool LoginsEnabled
+        {
+            get
+            {
+                return m_loginsEnabled;
+            }
+
+            set
+            {
+                if (m_loginsEnabled != value)
+                {
+                    m_loginsEnabled = value;
+                    EventManager.TriggerRegionLoginsStatusChange(this);
+                }
+            }
+        }
+        private bool m_loginsEnabled;
+
+        public bool Ready
+        {
+            get
+            {
+                return m_ready;
+            }
+
+            set
+            {
+                if (m_ready != value)
+                {
+                    m_ready = value;
+                    EventManager.TriggerRegionReadyStatusChange(this);
+                }
+            }
+        }
+        private bool m_ready;
 
         public float TimeDilation
         {
@@ -146,12 +178,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        public SceneBase(RegionInfo regInfo)
+        {
+            RegionInfo = regInfo;
+        }
+
         #region Update Methods
 
         /// <summary>
-        /// Normally called once every frame/tick to let the world preform anything required (like running the physics simulation)
+        /// Called to update the scene loop by a number of frames and until shutdown.
         /// </summary>
-        public abstract void Update();
+        /// <param name="frames">
+        /// Number of frames to update.  Exits on shutdown even if there are frames remaining.
+        /// If -1 then updates until shutdown.
+        /// </param>
+        public abstract void Update(int frames);
 
         #endregion
 
@@ -175,8 +216,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Agent/Avatar
 
-        public abstract void AddNewClient(IClientAPI client, PresenceType type);
-        public abstract void RemoveClient(UUID agentID, bool closeChildAgents);
+        public abstract ISceneAgent AddNewAgent(IClientAPI client, PresenceType type);
+
+        public abstract bool CloseAgent(UUID agentID, bool force);
 
         public bool TryGetScenePresence(UUID agentID, out object scenePresence)
         {
@@ -191,6 +233,12 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Try to get a scene presence from the scene
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="scenePresence">null if there is no scene presence with the given agent id</param>
+        /// <returns>true if there was a scene presence with the given id, false otherwise.</returns>
         public abstract bool TryGetScenePresence(UUID agentID, out ScenePresence scenePresence);
 
         #endregion
@@ -199,17 +247,9 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         /// </summary>
         /// <returns></returns>
-        public virtual RegionInfo RegionInfo
-        {
-            get { return m_regInfo; }
-        }
+        public virtual RegionInfo RegionInfo { get; private set; }
 
         #region admin stuff
-
-        public virtual bool PresenceChildStatus(UUID avatarID)
-        {
-            return false;
-        }
         
         public abstract void OtherRegionUp(GridRegion otherRegion);
 
@@ -227,16 +267,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void Close()
         {
-            // Shut down all non shared modules.
-            foreach (IRegionModule module in Modules.Values)
-            {
-                if (!module.IsSharedModule)
-                {
-                    module.Close();
-                }
-            }
-            Modules.Clear();
-
             try
             {
                 EventManager.TriggerShutdown();
@@ -265,19 +295,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         #region Module Methods
-
-        /// <summary>
-        /// Add a module to this scene.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="module"></param>
-        public void AddModule(string name, IRegionModule module)
-        {
-            if (!Modules.ContainsKey(name))
-            {
-                Modules.Add(name, module);
-            }
-        }
 
         /// <summary>
         /// Add a region-module to this scene. TODO: This will replace AddModule in the future.
@@ -463,9 +480,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="shorthelp"></param>
         /// <param name="longhelp"></param>
         /// <param name="callback"></param>
-        public void AddCommand(object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        public void AddCommand(IRegionModuleBase module, string command, string shorthelp, string longhelp, CommandDelegate callback)
         {
-            AddCommand(mod, command, shorthelp, longhelp, string.Empty, callback);
+            AddCommand(module, command, shorthelp, longhelp, string.Empty, callback);
+        }
+
+        /// <summary>
+        /// Call this from a region module to add a command to the OpenSim console.
+        /// </summary>
+        /// <param name="mod">
+        /// The use of IRegionModuleBase is a cheap trick to get a different method signature,
+        /// though all new modules should be using interfaces descended from IRegionModuleBase anyway.
+        /// </param>
+        /// <param name="category">
+        /// Category of the command.  This is the section under which it will appear when the user asks for help
+        /// </param>
+        /// <param name="command"></param>
+        /// <param name="shorthelp"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="callback"></param>
+        public void AddCommand(
+            string category, IRegionModuleBase module, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        {
+            AddCommand(category, module, command, shorthelp, longhelp, string.Empty, callback);
         }
 
         /// <summary>
@@ -477,34 +514,42 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="longhelp"></param>
         /// <param name="descriptivehelp"></param>
         /// <param name="callback"></param>
+        public void AddCommand(IRegionModuleBase module, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
+        {
+            string moduleName = "";
+
+            if (module != null)
+                moduleName = module.Name;
+
+            AddCommand(moduleName, module, command, shorthelp, longhelp, descriptivehelp, callback);
+        }
+
+        /// <summary>
+        /// Call this from a region module to add a command to the OpenSim console.
+        /// </summary>
+        /// <param name="category">
+        /// Category of the command.  This is the section under which it will appear when the user asks for help
+        /// </param>
+        /// <param name="mod"></param>
+        /// <param name="command"></param>
+        /// <param name="shorthelp"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="descriptivehelp"></param>
+        /// <param name="callback"></param>
         public void AddCommand(
-            object mod, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
+            string category, IRegionModuleBase module, string command,
+            string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {
             if (MainConsole.Instance == null)
                 return;
 
-            string modulename = String.Empty;
             bool shared = false;
 
-            if (mod != null)
-            {
-                if (mod is IRegionModule)
-                {
-                    IRegionModule module = (IRegionModule)mod;
-                    modulename = module.Name;
-                    shared = module.IsSharedModule;
-                }
-                else if (mod is IRegionModuleBase)
-                {
-                    IRegionModuleBase module = (IRegionModuleBase)mod;
-                    modulename = module.Name;
-                    shared = mod is ISharedRegionModule;
-                }
-                else throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
-            }
+            if (module != null)
+                shared = module is ISharedRegionModule;
 
             MainConsole.Instance.Commands.AddCommand(
-                modulename, shared, command, shorthelp, longhelp, descriptivehelp, callback);
+                category, shared, command, shorthelp, longhelp, descriptivehelp, callback);
         }
 
         public virtual ISceneObject DeserializeObject(string representation)
@@ -515,6 +560,10 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual bool AllowScriptCrossings
         {
             get { return false; }
+        }
+
+        public virtual void Start()
+        {
         }
 
         public void Restart()

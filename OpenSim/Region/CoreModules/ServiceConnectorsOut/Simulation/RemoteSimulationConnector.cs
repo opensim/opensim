@@ -32,6 +32,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -46,11 +47,12 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteSimulationConnectorModule")]
     public class RemoteSimulationConnectorModule : ISharedRegionModule, ISimulationService
     {
-        private bool initialized = false;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool initialized = false;
         protected bool m_enabled = false;
         protected Scene m_aScene;
         // RemoteSimulationConnector does not care about local regions; it delegates that to the Local module
@@ -60,29 +62,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         protected bool m_safemode;
         protected IPAddress m_thisIP;
 
-        #region IRegionModule
+        #region Region Module interface
 
-        public virtual void Initialise(IConfigSource config)
+        public virtual void Initialise(IConfigSource configSource)
         {
-
-            IConfig moduleConfig = config.Configs["Modules"];
+            IConfig moduleConfig = configSource.Configs["Modules"];
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("SimulationServices", "");
                 if (name == Name)
                 {
-                    //IConfig userConfig = config.Configs["SimulationService"];
-                    //if (userConfig == null)
-                    //{
-                    //    m_log.Error("[AVATAR CONNECTOR]: SimulationService missing from OpenSim.ini");
-                    //    return;
-                    //}
+                    m_localBackend = new LocalSimulationConnectorModule();
+
+                    m_localBackend.InitialiseService(configSource);
 
                     m_remoteConnector = new SimulationServiceConnector();
 
                     m_enabled = true;
 
-                    m_log.Info("[SIMULATION CONNECTOR]: Remote simulation enabled");
+                    m_log.Info("[REMOTE SIMULATION CONNECTOR]: Remote simulation enabled.");
                 }
             }
         }
@@ -140,20 +138,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
         protected virtual void InitOnce(Scene scene)
-        {
-            m_localBackend = new LocalSimulationConnectorModule();
+        {            
             m_aScene = scene;
             //m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
             m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);
         }
 
-        #endregion /* IRegionModule */
+        #endregion
 
         #region IInterregionComms
 
-        public IScene GetScene(ulong handle)
+        public IScene GetScene(UUID regionId)
         {
-            return m_localBackend.GetScene(handle);
+            return m_localBackend.GetScene(regionId);
         }
 
         public ISimulationService GetInnerService()
@@ -192,7 +189,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
 
             // Try local first
-            if (m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_localBackend.UpdateAgent(destination, cAgentData);
 
             return m_remoteConnector.UpdateAgent(destination, cAgentData);
@@ -204,35 +201,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
 
             // Try local first
-            if (m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_localBackend.UpdateAgent(destination, cAgentData);
 
             return m_remoteConnector.UpdateAgent(destination, cAgentData);
-        }
-
-        public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
-        {
-            agent = null;
-
-            if (destination == null)
-                return false;
-
-            // Try local first
-            if (m_localBackend.RetrieveAgent(destination, id, out agent))
-                return true;
-
-            // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.RetrieveAgent(destination, id, out agent);
-
-            return false;
-
         }
 
         public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
             version = "Unknown";
+
             if (destination == null)
                 return false;
 
@@ -245,7 +224,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return m_remoteConnector.QueryAccess(destination, id, position, out version, out reason);
 
             return false;
-
         }
 
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
@@ -262,18 +240,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
 
-        public bool CloseAgent(GridRegion destination, UUID id)
+        public bool CloseAgent(GridRegion destination, UUID id, string auth_token)
         {
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.CloseAgent(destination, id))
+            if (m_localBackend.CloseAgent(destination, id, auth_token))
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.CloseAgent(destination, id);
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
+                return m_remoteConnector.CloseAgent(destination, id, auth_token);
             
             return false;
         }
@@ -282,32 +260,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
          * Object-related communications
          */
 
-        public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
+        public bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall)
         {
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.CreateObject(destination, sog, isLocalCall))
+            if (m_localBackend.CreateObject(destination, newPosition, sog, isLocalCall))
             {
                 //m_log.Debug("[REST COMMS]: LocalBackEnd SendCreateObject succeeded");
                 return true;
             }
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.CreateObject(destination, sog, isLocalCall);
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
+                return m_remoteConnector.CreateObject(destination, newPosition, sog, isLocalCall);
 
-            return false;
-        }
-
-        public bool CreateObject(GridRegion destination, UUID userID, UUID itemID)
-        {
-            // Not Implemented
             return false;
         }
 
         #endregion /* IInterregionComms */
-
     }
 }

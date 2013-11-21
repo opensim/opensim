@@ -29,6 +29,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -42,6 +43,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LandServiceInConnectorModule")]
     public class LandServiceInConnectorModule : ISharedRegionModule, ILandService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -51,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
         private IConfigSource m_Config;
         private List<Scene> m_Scenes = new List<Scene>();
 
-        #region IRegionModule interface
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {
@@ -75,7 +77,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
             if (!m_Enabled)
                 return;
 
-            m_log.Info("[LAND IN CONNECTOR]: Starting...");
+//            m_log.Info("[LAND IN CONNECTOR]: Starting...");
         }
 
         public void Close()

@@ -67,7 +67,7 @@ namespace OpenSim.Server.Handlers.Asset
             if (inventoryService == String.Empty)
                 throw new Exception("No InventoryService in config file");
 
-            Object[] args = new Object[] { config };
+            Object[] args = new Object[] { config, m_ConfigName };
             m_InventoryService =
                     ServerUtils.LoadPlugin<IInventoryService>(inventoryService, args);
 
@@ -87,8 +87,8 @@ namespace OpenSim.Server.Handlers.Asset
             m_InventoryService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -114,6 +114,8 @@ namespace OpenSim.Server.Handlers.Asset
                         return HandleCreateUserInventory(request);
                     case "GETINVENTORYSKELETON":
                         return HandleGetInventorySkeleton(request);
+                    case "GETUSERINVENTORY":
+                        return HandleGetUserInventory(request);
                     case "GETROOTFOLDER":
                         return HandleGetRootFolder(request);
                     case "GETFOLDERFORTYPE":
@@ -153,7 +155,7 @@ namespace OpenSim.Server.Handlers.Asset
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY HANDLER]: Exception {0}", e);
+                m_log.ErrorFormat("[XINVENTORY HANDLER]: Exception {0}", e.StackTrace);
             }
 
             return FailureResult();
@@ -215,9 +217,9 @@ namespace OpenSim.Server.Handlers.Asset
                 result["RESULT"] = "False";
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetInventorySkeleton(Dictionary<string,object> request)
@@ -243,9 +245,48 @@ namespace OpenSim.Server.Handlers.Asset
             result["FOLDERS"] = sfolders;
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetUserInventory(Dictionary<string, object> request)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+
+            InventoryCollection icoll = m_InventoryService.GetUserInventory(principal);
+            if (icoll != null)
+            {
+                Dictionary<string, object> folders = new Dictionary<string, object>();
+                int i = 0;
+                if (icoll.Folders != null)
+                {
+                    foreach (InventoryFolderBase f in icoll.Folders)
+                    {
+                        folders["folder_" + i.ToString()] = EncodeFolder(f);
+                        i++;
+                    }
+                    result["FOLDERS"] = folders;
+                }
+                if (icoll.Items != null)
+                {
+                    i = 0;
+                    Dictionary<string, object> items = new Dictionary<string, object>();
+                    foreach (InventoryItemBase it in icoll.Items)
+                    {
+                        items["item_" + i.ToString()] = EncodeItem(it);
+                        i++;
+                    }
+                    result["ITEMS"] = items;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetRootFolder(Dictionary<string,object> request)
@@ -259,9 +300,9 @@ namespace OpenSim.Server.Handlers.Asset
                 result["folder"] = EncodeFolder(rfolder);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetFolderForType(Dictionary<string,object> request)
@@ -276,9 +317,9 @@ namespace OpenSim.Server.Handlers.Asset
                 result["folder"] = EncodeFolder(folder);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetFolderContent(Dictionary<string,object> request)
@@ -293,28 +334,33 @@ namespace OpenSim.Server.Handlers.Asset
             if (icoll != null)
             {
                 Dictionary<string, object> folders = new Dictionary<string, object>();
-                int i = 0;
-                foreach (InventoryFolderBase f in icoll.Folders)
+                int i = 0; 
+                if (icoll.Folders != null)
                 {
-                    folders["folder_" + i.ToString()] = EncodeFolder(f);
-                    i++;
+                    foreach (InventoryFolderBase f in icoll.Folders)
+                    {
+                        folders["folder_" + i.ToString()] = EncodeFolder(f);
+                        i++;
+                    }
+                    result["FOLDERS"] = folders;
                 }
-                result["FOLDERS"] = folders;
-
-                i = 0;
-                Dictionary<string, object> items = new Dictionary<string, object>();
-                foreach (InventoryItemBase it in icoll.Items)
+                if (icoll.Items != null)
                 {
-                    items["item_" + i.ToString()] = EncodeItem(it);
-                    i++;
+                    i = 0;
+                    Dictionary<string, object> items = new Dictionary<string, object>();
+                    foreach (InventoryItemBase it in icoll.Items)
+                    {
+                        items["item_" + i.ToString()] = EncodeItem(it);
+                        i++;
+                    }
+                    result["ITEMS"] = items;
                 }
-                result["ITEMS"] = items;
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetFolderItems(Dictionary<string,object> request)
@@ -340,9 +386,9 @@ namespace OpenSim.Server.Handlers.Asset
             result["ITEMS"] = sitems;
             
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleAddFolder(Dictionary<string,object> request)
@@ -504,9 +550,9 @@ namespace OpenSim.Server.Handlers.Asset
                 result["item"] = EncodeItem(item);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetFolder(Dictionary<string,object> request)
@@ -521,9 +567,9 @@ namespace OpenSim.Server.Handlers.Asset
                 result["folder"] = EncodeFolder(folder);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetActiveGestures(Dictionary<string,object> request)
@@ -546,9 +592,9 @@ namespace OpenSim.Server.Handlers.Asset
             result["ITEMS"] = items;
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] HandleGetAssetPermissions(Dictionary<string,object> request)
@@ -563,11 +609,10 @@ namespace OpenSim.Server.Handlers.Asset
 
             result["RESULT"] = perms.ToString();
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
-        }
 
+            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
 
         private Dictionary<string, object> EncodeFolder(InventoryFolderBase f)
         {

@@ -27,18 +27,43 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    public delegate void ScriptRemoved(UUID script);
+    public delegate void ObjectRemoved(UUID prim);
+
     public interface IScriptModule: INonSharedRegionModule
     {
+        /// <summary>
+        /// Triggered when a script is removed from the script module.
+        /// </summary>
+        event ScriptRemoved OnScriptRemoved;
+
+        /// <summary>
+        /// Triggered when an object is removed via the script module.
+        /// </summary>
+        event ObjectRemoved OnObjectRemoved;
+
         string ScriptEngineName { get; }
 
         string GetXMLState(UUID itemID);
         bool SetXMLState(UUID itemID, string xml);
 
+        /// <summary>
+        /// Post a script event to a single script.
+        /// </summary>
+        /// <returns>true if the post suceeded, false if it did not</returns>
+        /// <param name='itemID'>The item ID of the script.</param>
+        /// <param name='name'>The name of the event.</param>
+        /// <param name='args'>
+        /// The arguments of the event.  These are in the order in which they appear.
+        /// e.g. for http_request this will be an object array of key request_id, string method, string body
+        /// </param>
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
+
         bool PostObjectEvent(UUID itemID, string name, Object[] args);
 
         /// <summary>
@@ -55,11 +80,36 @@ namespace OpenSim.Region.Framework.Interfaces
 
         ArrayList GetScriptErrors(UUID itemID);
 
+        bool HasScript(UUID itemID, out bool running);
+
+        /// <summary>
+        /// Returns true if a script is running.
+        /// </summary>
+        /// <param name="itemID">The item ID of the script.</param>
+        bool GetScriptState(UUID itemID);
+
         void SaveAllState();
 
         /// <summary>
         /// Starts the processing threads.
         /// </summary>
         void StartProcessing();
+
+        /// <summary>
+        /// Get the execution times of all scripts in the given array if they are currently running.
+        /// </summary>
+        /// <returns>
+        /// A float the value is a representative execution time in milliseconds of all scripts in that Array.
+        /// </returns>
+        float GetScriptExecutionTime(List<UUID> itemIDs);
+
+        /// <summary>
+        /// Get the execution times of all scripts in each object.
+        /// </summary>
+        /// <returns>
+        /// A dictionary where the key is the root object ID of a linkset
+        /// and the value is a representative execution time in milliseconds of all scripts in that linkset.
+        /// </returns>
+        Dictionary<uint, float> GetObjectScriptsExecutionTimes();
     }
 }

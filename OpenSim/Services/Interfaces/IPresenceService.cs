@@ -61,13 +61,49 @@ namespace OpenSim.Services.Interfaces
 
     public interface IPresenceService
     {
+        /// <summary>
+        /// Store session information.
+        /// </summary>
+        /// <returns>/returns>
+        /// <param name='userID'></param>
+        /// <param name='sessionID'></param>
+        /// <param name='secureSessionID'></param>
         bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID);
+
+        /// <summary>
+        /// Remove session information.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='sessionID'></param>
         bool LogoutAgent(UUID sessionID);
+
+        /// <summary>
+        /// Remove session information for all agents in the given region.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='regionID'></param>
         bool LogoutRegionAgents(UUID regionID);
 
+        /// <summary>
+        /// Update data for an existing session.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='sessionID'></param>
+        /// <param name='regionID'></param>
         bool ReportAgent(UUID sessionID, UUID regionID);
 
+        /// <summary>
+        /// Get session information for a given session ID.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='sessionID'></param>
         PresenceInfo GetAgent(UUID sessionID);
+
+        /// <summary>
+        /// Get session information for a collection of users.
+        /// </summary>
+        /// <returns>Session information for the users.</returns>
+        /// <param name='userIDs'></param>
         PresenceInfo[] GetAgents(string[] userIDs);
     }
 }

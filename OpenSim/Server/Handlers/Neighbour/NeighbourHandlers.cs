@@ -58,8 +58,8 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AuthenticationService = authentication;
         }
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
             Console.WriteLine("--- Get region --- " + path);
@@ -83,8 +83,8 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AllowForeignGuests = foreignGuests;
         }
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] result = new byte[0];
 
@@ -176,8 +176,8 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AuthenticationService = authentication;
         }
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
             httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
@@ -197,8 +197,8 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AuthenticationService = authentication;
         }
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
             httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;

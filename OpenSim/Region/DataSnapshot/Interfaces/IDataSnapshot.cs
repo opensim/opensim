@@ -32,6 +32,5 @@ namespace OpenSim.Region.DataSnapshot.Interfaces
     public interface IDataSnapshot
     {
         XmlDocument GetSnapshot(string regionName);
-        void MakeEverythingStale();
     }
 }

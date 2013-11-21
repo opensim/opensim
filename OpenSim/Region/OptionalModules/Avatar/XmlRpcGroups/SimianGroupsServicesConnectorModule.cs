@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
+using System.Threading;
 
 using Nwc.XmlRpc;
 
@@ -101,7 +102,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianGroupsServicesConnectorModule")]
     public class SimianGroupsServicesConnectorModule : ISharedRegionModule, IGroupsServicesConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -167,13 +168,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_debugEnabled = false;
 
+        private Dictionary<string, bool> m_pendingRequests = new Dictionary<string,bool>();
+        
         private ExpiringCache<string, OSDMap> m_memoryCache;
         private int m_cacheTimeout = 30;
 
         // private IUserAccountService m_accountService = null;
         
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public string Name
         {
@@ -209,8 +212,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
                 m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
-                if ((m_groupsServerURI == null) ||
-                    (m_groupsServerURI == string.Empty))
+                if (string.IsNullOrEmpty(m_groupsServerURI))
                 {
                     m_log.ErrorFormat("Please specify a valid Simian Server for GroupsServerURI in OpenSim.ini, [Groups]");
                     m_connectorEnabled = false;
@@ -435,7 +437,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return null;
                 }
             } 
-            else if ((groupName != null) && (groupName != string.Empty))
+            else if (!string.IsNullOrEmpty(groupName))
             {
                 if (!SimianGetFirstGenericEntry("Group", groupName, out groupID, out GroupInfoMap))
                 {
@@ -1348,6 +1350,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Immediately forward the request if the cache is disabled.
             if (m_cacheTimeout == 0)
             {
+                m_log.WarnFormat("[SIMIAN GROUPS CONNECTOR]: cache is disabled");
                 return WebUtil.PostToService(m_groupsServerURI, requestArgs);
             }
 
@@ -1355,6 +1358,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (requestArgs["RequestMethod"] == "RemoveGeneric"
                 || requestArgs["RequestMethod"] == "AddGeneric")
             {
+                m_log.WarnFormat("[SIMIAN GROUPS CONNECTOR]: clearing generics cache");
+                
                 // Any and all updates cause the cache to clear
                 m_memoryCache.Clear();
 
@@ -1366,18 +1371,67 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             // Create the cache key for the request and see if we have it cached
             string CacheKey = WebUtil.BuildQueryString(requestArgs);
-            OSDMap response = null;
-            if (!m_memoryCache.TryGetValue(CacheKey, out response))
-            {
-                // if it wasn't in the cache, pass the request to the Simian Grid Services
-                response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
 
-                // and cache the response
-                m_memoryCache.AddOrUpdate(CacheKey, response, TimeSpan.FromSeconds(m_cacheTimeout));
+            // This code uses a leader/follower pattern. On a cache miss, the request is added
+            // to a queue; the first thread to add it to the queue completes the request while
+            // follow on threads busy wait for the results, this situation seems to happen
+            // often when checking permissions
+            while (true)
+            {
+                OSDMap response = null;
+                bool firstRequest = false;
+
+                lock (m_memoryCache)
+                {
+                    if (m_memoryCache.TryGetValue(CacheKey, out response))
+                        return response;
+                    
+                    if (! m_pendingRequests.ContainsKey(CacheKey))
+                    {
+                        m_pendingRequests.Add(CacheKey,true);
+                        firstRequest = true;
+                    }
+                }
+                
+                if (firstRequest)
+                {
+                    // if it wasn't in the cache, pass the request to the Simian Grid Services
+                    try
+                    {
+                        response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.ErrorFormat("[SIMIAN GROUPS CONNECTOR]: request failed {0}", CacheKey);
+                    }
+                    
+                    // and cache the response
+                    lock (m_memoryCache)
+                    {
+                        m_memoryCache.AddOrUpdate(CacheKey, response, TimeSpan.FromSeconds(m_cacheTimeout));
+                        m_pendingRequests.Remove(CacheKey);
+                    }
+
+                    return response;
+                }
+
+                Thread.Sleep(50); // waiting for a web request to complete, 50msecs is reasonable
             }
 
-            // return cached response
-            return response;
+            // if (!m_memoryCache.TryGetValue(CacheKey, out response))
+            // {
+            //     m_log.WarnFormat("[SIMIAN GROUPS CONNECTOR]: query not in the cache");
+            //     Util.PrintCallStack();
+                
+            //     // if it wasn't in the cache, pass the request to the Simian Grid Services
+            //     response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+
+            //     // and cache the response
+            //     m_memoryCache.AddOrUpdate(CacheKey, response, TimeSpan.FromSeconds(m_cacheTimeout));
+            // }
+
+            // // return cached response
+            // return response;
         }
         #endregion
 

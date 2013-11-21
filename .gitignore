@@ -10,6 +10,12 @@
 *.pidb
 *.dll.build
 *.dll
+
+# Ignore .user and .suo files as these are user preference specific
+# http://stackoverflow.com/questions/72298/should-i-add-the-visual-studio-suo-and-user-files-to-source-control
+*.suo
+*.user
+
 *.VisualState.xml
 */*/obj
 */*/*/obj
@@ -26,9 +32,14 @@
 bin/Debug/*.dll
 bin/*.dll.mdb
 bin/*.db
+bin/*.db-journal
 bin/addin-db-*
 bin/*.dll
 bin/OpenSim.vshost.exe.config
+bin/OpenSim.32BitLaunch.vshost.exe.config
+bin/OpenSim.32BitLaunch.log
+UpgradeLog.XML
+_UpgradeReport_Files/
 bin/ScriptEngines/*-*-*-*-*
 bin/ScriptEngines/*.dll
 bin/ScriptEngines/*/*.dll
@@ -41,6 +52,8 @@ bin/Physics*
 bin/Terrain*
 bin/Regions/*
 bin/UserAssets
+bin/assetcache
+bin/maptiles
 bin/estate_settings.xml
 bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini
@@ -58,7 +71,7 @@ bin/crashes/
 Examples/*.dll
 OpenSim.build
 OpenSim.sln
-OpenSim.suo
+OpenSim.userprefs
 Prebuild/Prebuild.build
 Prebuild/Prebuild.sln
 TestResult.xml
@@ -87,3 +100,5 @@ OpenSim/Region/ScriptEngine/test-results/
 OpenSim/Tests/Common/test-results/
 OpenSim/Tests/test-results/
 test-results/
+doc/html
+doc/doxygen.error.log

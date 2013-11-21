@@ -29,11 +29,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Servers.Tests
 {
     [TestFixture]
-    public class VersionInfoTests
+    public class VersionInfoTests : OpenSimTestCase
     {
         [Test]
         public void TestVersionLength()

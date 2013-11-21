@@ -163,14 +163,18 @@ namespace OpenSim.Data.MSSQL
             if (asset.Name.Length > 64)
             {
                 assetName = asset.Name.Substring(0, 64);
-                m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
+                m_log.WarnFormat(
+                    "[ASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                    asset.Name, asset.ID, asset.Name.Length, assetName.Length);
             }
             
             string assetDescription = asset.Description;
             if (asset.Description.Length > 64)
             {
                 assetDescription = asset.Description.Substring(0, 64);
-                m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
+                m_log.WarnFormat(
+                    "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                    asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
             }
             
             using (SqlConnection conn = new SqlConnection(m_connectionString))

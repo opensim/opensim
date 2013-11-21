@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -59,6 +60,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         public face[] trns;
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageModule")]
     public class MapImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly ILog m_log =
@@ -75,42 +77,48 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         {
             bool drawPrimVolume = true;
             bool textureTerrain = false;
+            bool generateMaptiles = true;
+            Bitmap mapbmp;
 
-            try
-            {
-                IConfig startupConfig = m_config.Configs["Startup"];
-                drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", drawPrimVolume);
-                textureTerrain = startupConfig.GetBoolean("TextureOnMapTile", textureTerrain);
-            }
-            catch
-            {
-                m_log.Warn("[MAPTILE]: Failed to load StartupConfig");
-            }
+            string[] configSections = new string[] { "Map", "Startup" };
 
-            if (textureTerrain)
+            drawPrimVolume 
+                = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, drawPrimVolume);
+            textureTerrain 
+                = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, textureTerrain);
+            generateMaptiles 
+                = Util.GetConfigVarFromSections<bool>(m_config, "GenerateMaptiles", configSections, generateMaptiles);
+
+            if (generateMaptiles)
             {
-                terrainRenderer = new TexturedMapTileRenderer();
+                if (textureTerrain)
+                {
+                    terrainRenderer = new TexturedMapTileRenderer();
+                }
+                else
+                {
+                    terrainRenderer = new ShadedMapTileRenderer();
+                }
+
+                terrainRenderer.Initialise(m_scene, m_config);
+
+                mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                //long t = System.Environment.TickCount;
+                //for (int i = 0; i < 10; ++i) {
+                terrainRenderer.TerrainToBitmap(mapbmp);
+                //}
+                //t = System.Environment.TickCount - t;
+                //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+
+                if (drawPrimVolume)
+                {
+                    DrawObjectVolume(m_scene, mapbmp);
+                }
             }
             else
             {
-                terrainRenderer = new ShadedMapTileRenderer();
+                mapbmp = FetchTexture(m_scene.RegionInfo.RegionSettings.TerrainImageID);
             }
-            terrainRenderer.Initialise(m_scene, m_config);
-
-            Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            //long t = System.Environment.TickCount;
-            //for (int i = 0; i < 10; ++i) {
-            terrainRenderer.TerrainToBitmap(mapbmp);
-            //}
-            //t = System.Environment.TickCount - t;
-            //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
-
-
-            if (drawPrimVolume)
-            {
-                DrawObjectVolume(m_scene, mapbmp);
-            }
-
             return mapbmp;
         }
 
@@ -131,15 +139,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         #endregion
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {
             m_config = source;
 
-            IConfig startupConfig = m_config.Configs["Startup"];
-            if (startupConfig.GetString("MapImageModule", "MapImageModule") !=
-                    "MapImageModule")
+            if (Util.GetConfigVarFromSections<string>(
+                m_config, "MapImageModule", new string[] { "Startup", "Map" }, "MapImageModule") != "MapImageModule")
                 return;
 
             m_Enabled = true;
@@ -220,12 +227,55 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 //             }
 //         }
 
+        private Bitmap FetchTexture(UUID id)
+        {
+            AssetBase asset = m_scene.AssetService.Get(id.ToString());
+
+            if (asset != null)
+            {
+                m_log.DebugFormat("[MAPTILE]: Static map image texture {0} found for {1}", id, m_scene.Name);
+            }
+            else
+            {
+                m_log.WarnFormat("[MAPTILE]: Static map image texture {0} not found for {1}", id, m_scene.Name);
+                return null;
+            }
+
+            ManagedImage managedImage;
+            Image image;
+
+            try
+            {
+                if (OpenJPEG.DecodeToImage(asset.Data, out managedImage, out image))
+                    return new Bitmap(image);
+                else
+                    return null;
+            }
+            catch (DllNotFoundException)
+            {
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}", id);
+
+            }
+            catch (IndexOutOfRangeException)
+            {
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}", id);
+
+            }
+            catch (Exception)
+            {
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}", id);
+
+            }
+            return null;
+
+        }
+
         private Bitmap DrawObjectVolume(Scene whichScene, Bitmap mapbmp)
         {
             int tc = 0;
             double[,] hm = whichScene.Heightmap.GetDoubles();
             tc = Environment.TickCount;
-            m_log.Info("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
+            m_log.Debug("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
             EntityBase[] objs = whichScene.GetEntities();
             Dictionary<uint, DrawStruct> z_sort = new Dictionary<uint, DrawStruct>();
             //SortedList<float, RectangleDrawStruct> z_sort = new SortedList<float, RectangleDrawStruct>();
@@ -541,7 +591,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 g.Dispose();
             } // lock entities objs
 
-            m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (Environment.TickCount - tc) + " ms");
+            m_log.Debug("[MAPTILE]: Generating Maptile Step 2: Done in " + (Environment.TickCount - tc) + " ms");
             return mapbmp;
         }
 

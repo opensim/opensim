@@ -1,102 +1,69 @@
-// Ami Bar
-// amibar@gmail.com
-
 namespace Amib.Threading
 {
-    #region WorkItemInfo class
+	#region WorkItemInfo class
 
-    /// <summary>
-    /// Summary description for WorkItemInfo.
-    /// </summary>
-    public class WorkItemInfo
-    {
-        /// <summary>
-        /// Use the caller's security context
-        /// </summary>
-        private bool _useCallerCallContext;
+	/// <summary>
+	/// Summary description for WorkItemInfo.
+	/// </summary>
+	public class WorkItemInfo
+	{
+	    public WorkItemInfo()
+		{
+			UseCallerCallContext = SmartThreadPool.DefaultUseCallerCallContext;
+			UseCallerHttpContext = SmartThreadPool.DefaultUseCallerHttpContext;
+			DisposeOfStateObjects = SmartThreadPool.DefaultDisposeOfStateObjects;
+			CallToPostExecute = SmartThreadPool.DefaultCallToPostExecute;
+			PostExecuteWorkItemCallback = SmartThreadPool.DefaultPostExecuteWorkItemCallback;
+			WorkItemPriority = SmartThreadPool.DefaultWorkItemPriority;
+		}
 
-        /// <summary>
-        /// Use the caller's security context
-        /// </summary>
-        private bool _useCallerHttpContext;
+		public WorkItemInfo(WorkItemInfo workItemInfo)
+		{
+			UseCallerCallContext = workItemInfo.UseCallerCallContext;
+			UseCallerHttpContext = workItemInfo.UseCallerHttpContext;
+			DisposeOfStateObjects = workItemInfo.DisposeOfStateObjects;
+			CallToPostExecute = workItemInfo.CallToPostExecute;
+			PostExecuteWorkItemCallback = workItemInfo.PostExecuteWorkItemCallback;
+			WorkItemPriority = workItemInfo.WorkItemPriority;
+            Timeout = workItemInfo.Timeout;
+		}
 
-        /// <summary>
-        /// Dispose of the state object of a work item
-        /// </summary>
-        private bool _disposeOfStateObjects;
+	    /// <summary>
+	    /// Get/Set if to use the caller's security context
+	    /// </summary>
+	    public bool UseCallerCallContext { get; set; }
 
-        /// <summary>
-        /// The option to run the post execute
-        /// </summary>
-        private CallToPostExecute _callToPostExecute;
+	    /// <summary>
+	    /// Get/Set if to use the caller's HTTP context
+	    /// </summary>
+	    public bool UseCallerHttpContext { get; set; }
 
-        /// <summary>
-        /// A post execute callback to call when none is provided in 
-        /// the QueueWorkItem method.
-        /// </summary>
-        private PostExecuteWorkItemCallback _postExecuteWorkItemCallback;
-        
-        /// <summary>
-        /// The priority of the work item
-        /// </summary>
-        private WorkItemPriority _workItemPriority;
+	    /// <summary>
+	    /// Get/Set if to dispose of the state object of a work item
+	    /// </summary>
+	    public bool DisposeOfStateObjects { get; set; }
 
-        public WorkItemInfo()
-        {
-            _useCallerCallContext = SmartThreadPool.DefaultUseCallerCallContext;
-            _useCallerHttpContext = SmartThreadPool.DefaultUseCallerHttpContext;
-            _disposeOfStateObjects = SmartThreadPool.DefaultDisposeOfStateObjects;
-            _callToPostExecute = SmartThreadPool.DefaultCallToPostExecute;
-            _postExecuteWorkItemCallback = SmartThreadPool.DefaultPostExecuteWorkItemCallback;
-            _workItemPriority = SmartThreadPool.DefaultWorkItemPriority;
-        }
+	    /// <summary>
+	    /// Get/Set the run the post execute options
+	    /// </summary>
+        public CallToPostExecute CallToPostExecute { get; set; }
 
-        public WorkItemInfo(WorkItemInfo workItemInfo)
-        {
-            _useCallerCallContext = workItemInfo._useCallerCallContext;
-            _useCallerHttpContext = workItemInfo._useCallerHttpContext;
-            _disposeOfStateObjects = workItemInfo._disposeOfStateObjects;
-            _callToPostExecute = workItemInfo._callToPostExecute;
-            _postExecuteWorkItemCallback = workItemInfo._postExecuteWorkItemCallback;
-            _workItemPriority = workItemInfo._workItemPriority;
-        }
+	    /// <summary>
+	    /// Get/Set the post execute callback
+	    /// </summary>
+        public PostExecuteWorkItemCallback PostExecuteWorkItemCallback { get; set; }
 
-        public bool UseCallerCallContext
-        {
-            get { return _useCallerCallContext; }
-            set { _useCallerCallContext = value; }
-        }
+	    /// <summary>
+	    /// Get/Set the work item's priority
+	    /// </summary>
+	    public WorkItemPriority WorkItemPriority { get; set; }
 
-        public bool UseCallerHttpContext
-        {
-            get { return _useCallerHttpContext; }
-            set { _useCallerHttpContext = value; }
-        }
+	    /// <summary>
+	    /// Get/Set the work item's timout in milliseconds.
+        /// This is a passive timout. When the timout expires the work item won't be actively aborted!
+	    /// </summary>
+	    public long Timeout { get; set; }
+	}
 
-        public bool DisposeOfStateObjects
-        {
-            get { return _disposeOfStateObjects; }
-            set { _disposeOfStateObjects = value; }
-        }
-
-        public CallToPostExecute CallToPostExecute
-        {
-            get { return _callToPostExecute; }
-            set { _callToPostExecute = value; }
-        }
-
-        public PostExecuteWorkItemCallback PostExecuteWorkItemCallback
-        {
-            get { return _postExecuteWorkItemCallback; }
-            set { _postExecuteWorkItemCallback = value; }
-        }
-
-        public WorkItemPriority WorkItemPriority
-        {
-            get { return _workItemPriority; }
-            set { _workItemPriority = value; }
-        }
-    }
-
-    #endregion
+	#endregion
 }

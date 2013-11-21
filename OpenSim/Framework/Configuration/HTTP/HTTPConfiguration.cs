@@ -65,23 +65,27 @@ namespace OpenSim.Framework.Configuration.HTTP
                 byte[] buf = new byte[8192];
                 HttpWebRequest request =
                     (HttpWebRequest) WebRequest.Create(remoteConfigSettings.baseConfigURL + configFileName);
-                HttpWebResponse response = (HttpWebResponse) request.GetResponse();
-
-                Stream resStream = response.GetResponseStream();
-
-                string tempString = null;
-                int count = 0;
-
-                do
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    count = resStream.Read(buf, 0, buf.Length);
-                    if (count != 0)
+                    using (Stream resStream = response.GetResponseStream())
                     {
-                        tempString = Util.UTF8.GetString(buf, 0, count);
-                        sb.Append(tempString);
+                        string tempString = null;
+                        int count = 0;
+
+                        do
+                        {
+                            count = resStream.Read(buf, 0, buf.Length);
+                            if (count != 0)
+                            {
+                                tempString = Util.UTF8.GetString(buf, 0, count);
+                                sb.Append(tempString);
+                            }
+                        } 
+                        while (count > 0);
+
+                        LoadDataFromString(sb.ToString());
                     }
-                } while (count > 0);
-                LoadDataFromString(sb.ToString());
+                }
             }
             catch (WebException)
             {

@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -40,8 +41,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
-    public class HGAssetBroker :
-            ISharedRegionModule, IAssetService
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGAssetBroker")]
+    public class HGAssetBroker : ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -55,6 +56,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         private string m_LocalAssetServiceURI;
 
         private bool m_Enabled = false;
+
+        private AssetPermissions m_AssetPerms;
 
         public Type ReplaceableInterface 
         {
@@ -128,6 +131,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     if (m_LocalAssetServiceURI != string.Empty)
                         m_LocalAssetServiceURI = m_LocalAssetServiceURI.Trim('/');
 
+                    IConfig hgConfig = source.Configs["HGAssetService"];
+                    m_AssetPerms = new AssetPermissions(hgConfig); // it's ok if arg is null
+
                     m_Enabled = true;
                     m_log.Info("[HG ASSET CONNECTOR]: HG asset broker enabled");
                 }
@@ -149,7 +155,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             
             m_aScene = scene;
 
-            scene.RegisterModuleInterface<IAssetService>(this);
+            m_aScene.RegisterModuleInterface<IAssetService>(this);
         }
 
         public void RemoveRegion(Scene scene)
@@ -206,14 +212,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 asset = m_HGService.Get(id);
                 if (asset != null)
                 {
-                    // Now store it locally
-                    // For now, let me just do it for textures and scripts
-                    if (((AssetType)asset.Type == AssetType.Texture) ||
-                        ((AssetType)asset.Type == AssetType.LSLBytecode) ||
-                        ((AssetType)asset.Type == AssetType.LSLText))
-                    {
+                    // Now store it locally, if allowed
+                    if (m_AssetPerms.AllowedImport(asset.Type))
                         m_GridService.Store(asset);
-                    }
+                    else
+                        return null;
                 }
             }
             else
@@ -319,7 +322,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 // a copy of the local asset.
                 m_Cache.Cache(asset);
 
-            if (asset.Temporary || asset.Local)
+            if (asset.Local)
             {
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -328,7 +331,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             string id = string.Empty;
             if (IsHG(asset.ID))
-                id = m_HGService.Store(asset);
+            {
+                if (m_AssetPerms.AllowedExport(asset.Type))
+                    id = m_HGService.Store(asset);
+                else
+                    return String.Empty;
+            }
             else
                 id = m_GridService.Store(asset);
 
@@ -382,23 +390,5 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return result;
         }
 
-        #region IHyperAssetService
-
-        public string GetUserAssetServer(UUID userID)
-        {
-            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, userID);
-
-            if (account != null && account.ServiceURLs.ContainsKey("AssetServerURI") && account.ServiceURLs["AssetServerURI"] != null)
-                return account.ServiceURLs["AssetServerURI"].ToString();
-
-            return string.Empty;
-        }
-
-        public string GetSimAssetServer()
-        {
-            return m_LocalAssetServiceURI;
-        }
-
-        #endregion
     }
 }

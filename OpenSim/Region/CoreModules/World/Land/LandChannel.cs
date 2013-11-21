@@ -95,6 +95,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             return null;
         }
 
+        public ILandObject GetLandObject(Vector3 position)
+        {
+            return GetLandObject(position.X, position.Y);
+        }
+
         public ILandObject GetLandObject(int x, int y)
         {
             if (m_landManagementModule != null)

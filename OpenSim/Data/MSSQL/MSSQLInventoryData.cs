@@ -813,7 +813,7 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                using (SqlCommand command = new SqlCommand("DELETE FROM inventoryfolders WHERE folderID=@folderID", connection))
+                using (SqlCommand command = new SqlCommand("DELETE FROM inventoryfolders WHERE folderID=@folderID and type=-1", connection))
                 {
                     command.Parameters.Add(database.CreateParameter("folderID", folderID));
 

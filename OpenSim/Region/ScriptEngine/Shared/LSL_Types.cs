@@ -31,6 +31,11 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
 
+using OpenMetaverse;
+using OMV_Vector3 = OpenMetaverse.Vector3;
+using OMV_Vector3d = OpenMetaverse.Vector3d;
+using OMV_Quaternion = OpenMetaverse.Quaternion;
+
 namespace OpenSim.Region.ScriptEngine.Shared
 {
     [Serializable]
@@ -52,6 +57,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 x = (float)vector.x;
                 y = (float)vector.y;
                 z = (float)vector.z;
+            }
+
+            public Vector3(OMV_Vector3 vector)
+            {
+                x = vector.X;
+                y = vector.Y;
+                z = vector.Z;
+            }
+
+            public Vector3(OMV_Vector3d vector)
+            {
+                x = vector.X;
+                y = vector.Y;
+                z = vector.Z;
             }
 
             public Vector3(double X, double Y, double Z)
@@ -107,6 +126,26 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(Vector3 vec)
             {
                 return new list(new object[] { vec });
+            }
+
+            public static implicit operator OMV_Vector3(Vector3 vec)
+            {
+                return new OMV_Vector3((float)vec.x, (float)vec.y, (float)vec.z);
+            }
+
+            public static implicit operator Vector3(OMV_Vector3 vec)
+            {
+                return new Vector3(vec);
+            }
+
+            public static implicit operator OMV_Vector3d(Vector3 vec)
+            {
+                return new OMV_Vector3d(vec.x, vec.y, vec.z);
+            }
+
+            public static implicit operator Vector3(OMV_Vector3d vec)
+            {
+                return new Vector3(vec);
             }
 
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
@@ -322,6 +361,39 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     s = 1;
             }
 
+            public Quaternion(OMV_Quaternion rot)
+            {
+                x = rot.X;
+                y = rot.Y;
+                z = rot.Z;
+                s = rot.W;
+            }
+
+            #endregion
+
+            #region Methods
+            public Quaternion Normalize()
+            {
+                double length = Math.Sqrt(x * x + y * y + z * z + s * s);
+                if (length < float.Epsilon)
+                {
+                    x = 0;
+                    y = 0;
+                    z = 0;
+                    s = 1;
+                }
+                else
+                {
+
+                    double invLength = 1.0 / length;
+                    x *= invLength;
+                    y *= invLength;
+                    z *= invLength;
+                    s *= invLength;
+                }
+
+                return this;
+            }
             #endregion
 
             #region Overriders
@@ -366,6 +438,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(Quaternion r)
             {
                 return new list(new object[] { r });
+            }
+
+            public static implicit operator OMV_Quaternion(Quaternion rot)
+            {
+                // LSL quaternions can normalize to 0, normal Quaternions can't.
+                if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
+                    rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+                OMV_Quaternion omvrot = new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+                omvrot.Normalize();
+                return omvrot;
+            }
+
+            public static implicit operator Quaternion(OMV_Quaternion rot)
+            {
+                return new Quaternion(rot);
             }
 
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
@@ -482,21 +569,33 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 set {m_data = value; }
             }
-        // Function to obtain LSL type from an index. This is needed
-        // because LSL lists allow for multiple types, and safely
-        // iterating in them requires a type check.
+
+            /// <summary>
+            /// Obtain LSL type from an index.
+            /// </summary>
+            /// <remarks>
+            /// This is needed because LSL lists allow for multiple types, and safely
+            /// iterating in them requires a type check.
+            /// </remarks>
+            /// <returns></returns>
+            /// <param name='itemIndex'></param>
             public Type GetLSLListItemType(int itemIndex)
             {
                 return m_data[itemIndex].GetType();
             }
 
-        // Member functions to obtain item as specific types.
-        // For cases where implicit conversions would apply if items
-        // were not in a list (e.g. integer to float, but not float
-        // to integer) functions check for alternate types so as to
-        // down-cast from Object to the correct type.
-        // Note: no checks for item index being valid are performed
-
+            /// <summary>
+            /// Obtain float from an index.
+            /// </summary>
+            /// <remarks>
+            /// For cases where implicit conversions would apply if items
+            /// were not in a list (e.g. integer to float, but not float
+            /// to integer) functions check for alternate types so as to
+            /// down-cast from Object to the correct type.
+            /// Note: no checks for item index being valid are performed
+            /// </remarks>
+            /// <returns></returns>
+            /// <param name='itemIndex'></param>
             public LSL_Types.LSLFloat GetLSLFloatItem(int itemIndex)
             {
                 if (m_data[itemIndex] is LSL_Types.LSLInteger)
@@ -527,26 +626,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
             {
-              if (m_data[itemIndex] is LSL_Types.key)
-              {
-                return (LSL_Types.key)m_data[itemIndex];
-              }
-              else if (m_data[itemIndex] is String)
-              {
-                return new LSL_Types.LSLString((string)m_data[itemIndex]);
-              }
-              else if (m_data[itemIndex] is LSL_Types.LSLFloat)
-              {
-                  return new LSL_Types.LSLString((LSLFloat)m_data[itemIndex]);
-              }
-              else if (m_data[itemIndex] is LSL_Types.LSLInteger)
-              {
-                  return new LSL_Types.LSLString((LSLInteger)m_data[itemIndex]);
-              }
-              else
-              {
-                  return (LSL_Types.LSLString)m_data[itemIndex];
-              }
+                if (m_data[itemIndex] is LSL_Types.key)
+                {
+                    return (LSL_Types.key)m_data[itemIndex];
+                }
+                else
+                {
+                    return new LSL_Types.LSLString(m_data[itemIndex].ToString());
+                }
             }
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
@@ -560,17 +647,53 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else if (m_data[itemIndex] is LSL_Types.LSLString)
                     return new LSLInteger(m_data[itemIndex].ToString());
                 else
-                    throw new InvalidCastException();
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.LSLInteger).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
             {
-              return (LSL_Types.Vector3)m_data[itemIndex];
+                if (m_data[itemIndex] is LSL_Types.Vector3)
+                {
+                    return (LSL_Types.Vector3)m_data[itemIndex];
+                }
+                else if(m_data[itemIndex] is OpenMetaverse.Vector3)
+                {
+                    return new LSL_Types.Vector3(
+                            (OpenMetaverse.Vector3)m_data[itemIndex]);
+                }
+                else
+                {
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.Vector3).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
+                }
             }
 
             public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)
             {
-              return (LSL_Types.Quaternion)m_data[itemIndex];
+                if (m_data[itemIndex] is LSL_Types.Quaternion)
+                {
+                    return (LSL_Types.Quaternion)m_data[itemIndex];
+                }
+                else if(m_data[itemIndex] is OpenMetaverse.Quaternion)
+                {
+                    return new LSL_Types.Quaternion(
+                            (OpenMetaverse.Quaternion)m_data[itemIndex]);
+                }
+                else
+                {
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.Quaternion).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
+                }
             }
 
             public LSL_Types.key GetKeyItem(int itemIndex)
@@ -1064,7 +1187,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 list ret = new list();
                 double entry;
-                for (int i = 0; i < src.Data.Length - 1; i++)
+                for (int i = 0; i < src.Data.Length; i++)
                 {
                     if (double.TryParse(src.Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {

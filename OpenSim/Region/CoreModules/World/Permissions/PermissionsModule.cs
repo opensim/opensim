@@ -37,13 +37,18 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
+using Mono.Addins;
+using PermissionMask = OpenSim.Framework.PermissionMask;
+
 namespace OpenSim.Region.CoreModules.World.Permissions
 {
-    public class PermissionsModule : IRegionModule, IPermissionsModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "PermissionsModule")]
+    public class PermissionsModule : INonSharedRegionModule, IPermissionsModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
                 
         protected Scene m_scene;
+        protected bool m_Enabled;
 
         private InventoryFolderImpl m_libraryRootFolder;
         protected InventoryFolderImpl LibraryRootFolder
@@ -94,7 +99,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private bool m_RegionOwnerIsGod = false;
         private bool m_RegionManagerIsGod = false;
         private bool m_ParcelOwnerIsGod = false;
-        
+
+        private bool m_SimpleBuildPermissions = false;
+
         /// <value>
         /// The set of users that are allowed to create scripts.  This is only active if permissions are not being
         /// bypassed.  This overrides normal permissions.
@@ -112,43 +119,142 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private Dictionary<string, bool> GrantVB = new Dictionary<string, bool>();
         private Dictionary<string, bool> GrantJS = new Dictionary<string, bool>();
         private Dictionary<string, bool> GrantYP = new Dictionary<string, bool>();
+        
         private IFriendsModule m_friendsModule;
+        private IFriendsModule FriendsModule
+        {
+            get
+            {
+                if (m_friendsModule == null)
+                    m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                return m_friendsModule;
+            }
+        }
         private IGroupsModule m_groupsModule;
-        private IMoapModule m_moapModule;
+        private IGroupsModule GroupsModule
+        {
+            get
+            {
+                if (m_groupsModule == null)
+                    m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
+                return m_groupsModule;
+            }
+        }
 
+        private IMoapModule m_moapModule;
+        private IMoapModule MoapModule
+        {
+            get
+            {
+                if (m_moapModule == null)
+                    m_moapModule = m_scene.RequestModuleInterface<IMoapModule>();
+                return m_moapModule;
+            }
+        }
         #endregion
 
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            m_scene = scene;
-
-            IConfig myConfig = config.Configs["Startup"];
-
-            string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+            string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
+                new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
             List<string> modules = new List<string>(permissionModules.Split(','));
 
             if (!modules.Contains("DefaultPermissionsModule"))
                 return;
 
-            m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
-            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
-            m_propagatePermissions = myConfig.GetBoolean("propagate_permissions", true);
-            m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
-            m_RegionManagerIsGod = myConfig.GetBoolean("region_manager_is_god", false);
-            m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
-            
-            m_allowedScriptCreators 
-                = ParseUserSetConfigSetting(myConfig, "allowed_script_creators", m_allowedScriptCreators);
+            m_Enabled = true;
+
+            m_allowGridGods = Util.GetConfigVarFromSections<bool>(config, "allow_grid_gods",
+                new string[] { "Startup", "Permissions" }, false); 
+            m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(config, "serverside_object_permissions",
+                new string[] { "Startup", "Permissions" }, true); 
+            m_propagatePermissions = Util.GetConfigVarFromSections<bool>(config, "propagate_permissions",
+                new string[] { "Startup", "Permissions" }, true); 
+            m_RegionOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",
+                new string[] { "Startup", "Permissions" }, true); 
+            m_RegionManagerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",
+                new string[] { "Startup", "Permissions" }, false); 
+            m_ParcelOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "parcel_owner_is_god",
+                new string[] { "Startup", "Permissions" }, true);
+
+            m_SimpleBuildPermissions = Util.GetConfigVarFromSections<bool>(config, "simple_build_permissions",
+                new string[] { "Startup", "Permissions" }, false); 
+
+            m_allowedScriptCreators
+                = ParseUserSetConfigSetting(config, "allowed_script_creators", m_allowedScriptCreators);
             m_allowedScriptEditors
-                = ParseUserSetConfigSetting(myConfig, "allowed_script_editors", m_allowedScriptEditors);
+                = ParseUserSetConfigSetting(config, "allowed_script_editors", m_allowedScriptEditors);
 
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serverside_object_permissions = false in ini file so disabling all region service permission checks");
             else
                 m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
+
+            string grant = Util.GetConfigVarFromSections<string>(config, "GrantLSL",
+                new string[] { "Startup", "Permissions" }, string.Empty);
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
+                    string uuid = uuidl.Trim(" \t".ToCharArray());
+                    GrantLSL.Add(uuid, true);
+                }
+            }
+
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantCS",
+                new string[] { "Startup", "Permissions" }, string.Empty); 
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
+                    string uuid = uuidl.Trim(" \t".ToCharArray());
+                    GrantCS.Add(uuid, true);
+                }
+            }
+
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantVB",
+                new string[] { "Startup", "Permissions" }, string.Empty);
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
+                    string uuid = uuidl.Trim(" \t".ToCharArray());
+                    GrantVB.Add(uuid, true);
+                }
+            }
+
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantJS",
+                new string[] { "Startup", "Permissions" }, string.Empty);
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
+                    string uuid = uuidl.Trim(" \t".ToCharArray());
+                    GrantJS.Add(uuid, true);
+                }
+            }
+
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantYP",
+                new string[] { "Startup", "Permissions" }, string.Empty);
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
+                    string uuid = uuidl.Trim(" \t".ToCharArray());
+                    GrantYP.Add(uuid, true);
+                }
+            }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            m_scene = scene;
 
             scene.RegisterModuleInterface<IPermissionsModule>(this);
 
@@ -162,111 +268,97 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeedParcel += CanDeedParcel;
             m_scene.Permissions.OnDeedObject += CanDeedObject;
             m_scene.Permissions.OnIsGod += IsGod;
+            m_scene.Permissions.OnIsGridGod += IsGridGod;
             m_scene.Permissions.OnIsAdministrator += IsAdministrator;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
-            m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnEditObject += CanEditObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnEditParcelProperties += CanEditParcelProperties; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnDeleteObject += CanDeleteObject; 
+            m_scene.Permissions.OnEditObject += CanEditObject; 
+            m_scene.Permissions.OnEditParcelProperties += CanEditParcelProperties; 
             m_scene.Permissions.OnInstantMessage += CanInstantMessage;
-            m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; //FULLY IMPLEMENTED
-            m_scene.Permissions.OnMoveObject += CanMoveObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer; 
+            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; 
+            m_scene.Permissions.OnMoveObject += CanMoveObject; 
             m_scene.Permissions.OnObjectEntry += CanObjectEntry;
-            m_scene.Permissions.OnReturnObjects += CanReturnObjects; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnRezObject += CanRezObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnReturnObjects += CanReturnObjects; 
+            m_scene.Permissions.OnRezObject += CanRezObject; 
             m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
-            m_scene.Permissions.OnRunScript += CanRunScript; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnRunScript += CanRunScript; 
             m_scene.Permissions.OnCompileScript += CanCompileScript;
             m_scene.Permissions.OnSellParcel += CanSellParcel;
             m_scene.Permissions.OnTakeObject += CanTakeObject;
             m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
             m_scene.Permissions.OnTerraformLand += CanTerraformLand;
-            m_scene.Permissions.OnLinkObject += CanLinkObject; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnDelinkObject += CanDelinkObject; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnBuyLand += CanBuyLand; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnLinkObject += CanLinkObject; 
+            m_scene.Permissions.OnDelinkObject += CanDelinkObject; 
+            m_scene.Permissions.OnBuyLand += CanBuyLand; 
             
-            m_scene.Permissions.OnViewNotecard += CanViewNotecard; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnViewScript += CanViewScript; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnEditNotecard += CanEditNotecard; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnEditScript += CanEditScript; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnViewNotecard += CanViewNotecard; 
+            m_scene.Permissions.OnViewScript += CanViewScript; 
+            m_scene.Permissions.OnEditNotecard += CanEditNotecard; 
+            m_scene.Permissions.OnEditScript += CanEditScript; 
             
             m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory;
-            m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;
+            m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory; 
+            m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory; 
             m_scene.Permissions.OnResetScript += CanResetScript;
             
-            m_scene.Permissions.OnCreateUserInventory += CanCreateUserInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnCopyUserInventory += CanCopyUserInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnEditUserInventory += CanEditUserInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnCreateUserInventory += CanCreateUserInventory; 
+            m_scene.Permissions.OnCopyUserInventory += CanCopyUserInventory; 
+            m_scene.Permissions.OnEditUserInventory += CanEditUserInventory; 
+            m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; 
             
-            m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnTeleport += CanTeleport; 
             
             m_scene.Permissions.OnControlPrimMedia += CanControlPrimMedia;
             m_scene.Permissions.OnInteractWithPrimMedia += CanInteractWithPrimMedia;
 
-            m_scene.AddCommand(this, "bypass permissions",
+            m_scene.AddCommand("Users", this, "bypass permissions",
                     "bypass permissions <true / false>",
                     "Bypass permission checks",
                     HandleBypassPermissions);
 
-            m_scene.AddCommand(this, "force permissions",
+            m_scene.AddCommand("Users", this, "force permissions",
                     "force permissions <true / false>",
                     "Force permissions on or off",
                     HandleForcePermissions);
 
-            m_scene.AddCommand(this, "debug permissions",
+            m_scene.AddCommand("Debug", this, "debug permissions",
                     "debug permissions <true / false>",
-                    "Enable permissions debugging",
-                    HandleDebugPermissions);
+                    "Turn on permissions debugging",
+                    HandleDebugPermissions);                    
                     
-                    
-            string grant = myConfig.GetString("GrantLSL","");
-            if (grant.Length > 0) {
-                foreach (string uuidl in grant.Split(',')) {
-                    string uuid = uuidl.Trim(" \t".ToCharArray());
-                    GrantLSL.Add(uuid, true);
-                }
-            }
-
-            grant = myConfig.GetString("GrantCS","");
-            if (grant.Length > 0) {
-                foreach (string uuidl in grant.Split(',')) {
-                    string uuid = uuidl.Trim(" \t".ToCharArray());
-                    GrantCS.Add(uuid, true);
-                }
-            }
-
-            grant = myConfig.GetString("GrantVB","");
-            if (grant.Length > 0) {
-                foreach (string uuidl in grant.Split(',')) {
-                    string uuid = uuidl.Trim(" \t".ToCharArray());
-                    GrantVB.Add(uuid, true);
-                }
-            }
-
-            grant = myConfig.GetString("GrantJS", "");
-            if (grant.Length > 0)
-            {
-                foreach (string uuidl in grant.Split(','))
-                {
-                    string uuid = uuidl.Trim(" \t".ToCharArray());
-                    GrantJS.Add(uuid, true);
-                }
-            }
-
-            grant = myConfig.GetString("GrantYP", "");
-            if (grant.Length > 0)
-            {
-                foreach (string uuidl in grant.Split(','))
-                {
-                    string uuid = uuidl.Trim(" \t".ToCharArray());
-                    GrantYP.Add(uuid, true);
-                }
-            }
-
         }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            m_scene.UnregisterModuleInterface<IPermissionsModule>(this);
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "PermissionsModule"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        #endregion
+
+        #region Console command handlers
 
         public void HandleBypassPermissions(string module, string[] args)
         {
@@ -286,7 +378,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 m_bypassPermissions = val;
 
                 m_log.InfoFormat(
-                    "[PERMISSIONS]: Set permissions bypass to {0} for {1}", 
+                    "[PERMISSIONS]: Set permissions bypass to {0} for {1}",
                     m_bypassPermissions, m_scene.RegionInfo.RegionName);
             }
         }
@@ -339,39 +431,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
         }
 
-        public void PostInitialise()
-        {
-            m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-
-            if (m_friendsModule == null)
-                m_log.Warn("[PERMISSIONS]: Friends module not found, friend permissions will not work");
-
-            m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
-
-            if (m_groupsModule == null)
-                m_log.Warn("[PERMISSIONS]: Groups module not found, group permissions will not work");
-            
-            m_moapModule = m_scene.RequestModuleInterface<IMoapModule>();
-            
-            // This log line will be commented out when no longer required for debugging
-//            if (m_moapModule == null)
-//                m_log.Warn("[PERMISSIONS]: Media on a prim module not found, media on a prim permissions will not work");
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "PermissionsModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
         #endregion
 
         #region Helper Functions
@@ -385,15 +444,21 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_debugPermissions)
                 m_log.Debug("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
         }
-    
-        // Checks if the given group is active and if the user is a group member
-        // with the powers requested (powers = 0 for no powers check)
+
+        /// <summary>
+        /// Checks if the given group is active and if the user is a group member
+        /// with the powers requested (powers = 0 for no powers check)
+        /// </summary>
+        /// <param name="groupID"></param>
+        /// <param name="userID"></param>
+        /// <param name="powers"></param>
+        /// <returns></returns>
         protected bool IsGroupMember(UUID groupID, UUID userID, ulong powers)
         {
-            if (null == m_groupsModule)
+            if (null == GroupsModule)
                 return false;
 
-            GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, userID);
+            GroupMembershipData gmd = GroupsModule.GetMembershipData(groupID, userID);
 
             if (gmd != null)
             {
@@ -411,11 +476,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="settingName"></param>
         /// <param name="defaultValue">The default value for this attribute</param>
         /// <returns>The parsed value</returns>
-        private static UserSet ParseUserSetConfigSetting(IConfig config, string settingName, UserSet defaultValue)
+        private static UserSet ParseUserSetConfigSetting(IConfigSource config, string settingName, UserSet defaultValue)
         {
             UserSet userSet = defaultValue;
-            
-            string rawSetting = config.GetString(settingName, defaultValue.ToString());
+
+            string rawSetting = Util.GetConfigVarFromSections<string>(config, settingName, 
+                new string[] {"Startup", "Permissions"}, defaultValue.ToString()); 
             
             // Temporary measure to allow 'gods' to be specified in config for consistency's sake.  In the long term
             // this should disappear.
@@ -440,65 +506,73 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
 
         /// <summary>
-        /// Is the given user an administrator (in other words, a god)?
+        /// Is the user regarded as an administrator?
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
         protected bool IsAdministrator(UUID user)
         {
-            if (user == UUID.Zero) return false;
-        
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-            {
-                if (m_scene.RegionInfo.EstateSettings.EstateOwner == user && m_RegionOwnerIsGod)
-                    return true;
-            }
+            if (user == UUID.Zero)
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner == user && m_RegionOwnerIsGod)
+                return true;
             
             if (IsEstateManager(user) && m_RegionManagerIsGod)
                 return true;
+
+            if (IsGridGod(user, null))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Is the given user a God throughout the grid (not just in the current scene)?
+        /// </summary>
+        /// <param name="user">The user</param>
+        /// <param name="scene">Unused, can be null</param>
+        /// <returns></returns>
+        protected bool IsGridGod(UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (user == UUID.Zero) return false;
 
             if (m_allowGridGods)
             {
                 ScenePresence sp = m_scene.GetScenePresence(user);
                 if (sp != null)
-                {
-                    if (sp.UserLevel >= 200)
-                        return true;
-                    return false;
-                }
+                    return (sp.UserLevel >= 200);
 
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, user);
                 if (account != null)
-                {
-                    if (account.UserLevel >= 200)
-                        return true;
-                }
+                    return (account.UserLevel >= 200);
             }
 
             return false;
         }
 
-        protected bool IsFriendWithPerms(UUID user,UUID objectOwner)
+        protected bool IsFriendWithPerms(UUID user, UUID objectOwner)
         {            
             if (user == UUID.Zero)
                 return false;
 
-            if (m_friendsModule == null)
+            if (FriendsModule == null)
                 return false;
 
-            uint friendPerms = m_friendsModule.GetFriendPerms(user, objectOwner);
-            if ((friendPerms & (uint)FriendRights.CanModifyObjects) != 0)
-                return true;
-
-            return false;
+            int friendPerms = FriendsModule.GetRightsGrantedByFriend(user, objectOwner);
+            return (friendPerms & (int)FriendRights.CanModifyObjects) != 0;
         }
 
         protected bool IsEstateManager(UUID user)
         {
             if (user == UUID.Zero) return false;
         
-            return m_scene.RegionInfo.EstateSettings.IsEstateManager(user);
+            return m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(user);
         }
+
 #endregion
 
         public bool PropagatePermissions()
@@ -672,18 +746,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             bool permission = false;
             bool locked = false;
 
-            if (!m_scene.Entities.ContainsKey(objId))
-            {
-                return false;
-            }
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objId);
 
-            // If it's not an object, we cant edit it.
-            if ((!(m_scene.Entities[objId] is SceneObjectGroup)))
-            {
+            if (part == null)
                 return false;
-            }
 
-            SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objId];
+            SceneObjectGroup group = part.ParentGroup;
 
             UUID objectOwner = group.OwnerID;
             locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
@@ -702,7 +770,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             // Object owners should be able to edit their own content
             if (currentUser == objectOwner)
             {
-                permission = true;
+                // there is no way that later code can change this back to false
+                // so just return true immediately and short circuit the more
+                // expensive group checks
+                return true;
+                
+                //permission = true;
             }
             else if (group.IsAttachment)
             {
@@ -819,6 +892,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             {
                 permission = true;
             }
+
+            if (m_SimpleBuildPermissions &&
+                (parcel.LandData.Flags & (uint)ParcelFlags.UseAccessList) == 0 && parcel.IsInLandAccessList(user))
+                permission = true;
 
             return permission;
         }
@@ -966,16 +1043,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
-
-            // If we selected a sub-prim to edit, the objectID won't represent the object, but only a part.
-            // We have to check the permissions of the group, though.
-            if (part.ParentID != 0)
-            {
-                objectID = part.ParentUUID;
-                part = m_scene.GetSceneObjectPart(objectID);
-            }
 
             return GenericObjectPermission(editorID, objectID, false);
         }
@@ -1385,6 +1452,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             bool permission = false;
+
+//            m_log.DebugFormat("[PERMISSIONS MODULE]: Checking rez object at {0} in {1}", objectPosition, m_scene.Name);
 
             ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
             if (land == null) return false;
@@ -1904,14 +1973,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 //                "[PERMISSONS]: Performing CanControlPrimMedia check with agentID {0}, primID {1}, face {2}",
 //                agentID, primID, face);
             
-            if (null == m_moapModule)
+            if (null == MoapModule)
                 return false;
             
             SceneObjectPart part = m_scene.GetSceneObjectPart(primID);
             if (null == part)
                 return false;
             
-            MediaEntry me = m_moapModule.GetMediaEntry(part, face);
+            MediaEntry me = MoapModule.GetMediaEntry(part, face);
             
             // If there is no existing media entry then it can be controlled (in this context, created).
             if (null == me)
@@ -1930,14 +1999,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 //                "[PERMISSONS]: Performing CanInteractWithPrimMedia check with agentID {0}, primID {1}, face {2}",
 //                agentID, primID, face);
             
-            if (null == m_moapModule)
+            if (null == MoapModule)
                 return false;
             
             SceneObjectPart part = m_scene.GetSceneObjectPart(primID);
             if (null == part)
                 return false;
             
-            MediaEntry me = m_moapModule.GetMediaEntry(part, face);
+            MediaEntry me = MoapModule.GetMediaEntry(part, face);
             
             // If there is no existing media entry then it can be controlled (in this context, created).
             if (null == me)

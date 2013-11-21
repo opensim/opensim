@@ -54,8 +54,8 @@ namespace OpenSim.Server.Handlers.Asset
             m_AssetService = service;
         }
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] result = new byte[0];
 

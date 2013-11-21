@@ -145,7 +145,9 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 
                 // Even though we're registering for POST we're going to get GETS and UPDATES too
                 caps.RegisterHandler(
-                    "ObjectMedia", new RestStreamHandler("POST", omCapUrl, HandleObjectMediaMessage));
+                    "ObjectMedia",
+                    new RestStreamHandler(
+                        "POST", omCapUrl, HandleObjectMediaMessage, "ObjectMedia", agentID.ToString()));
             }
             
             string omuCapUrl = "/CAPS/" + UUID.Random();
@@ -157,7 +159,9 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 
                 // Even though we're registering for POST we're going to get GETS and UPDATES too
                 caps.RegisterHandler(
-                    "ObjectMediaNavigate", new RestStreamHandler("POST", omuCapUrl, HandleObjectMediaNavigateMessage));
+                    "ObjectMediaNavigate",
+                    new RestStreamHandler(
+                        "POST", omuCapUrl, HandleObjectMediaNavigateMessage, "ObjectMediaNavigate", agentID.ToString()));
             }
         }
         
@@ -293,7 +297,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// <param name="httpResponse"></param>
         /// <returns></returns>
         protected string HandleObjectMediaMessage(
-            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MOAP]: Got ObjectMedia path [{0}], raw request [{1}]", path, request);
          
@@ -474,7 +478,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// <param name="httpResponse">/param>
         /// <returns></returns>
         protected string HandleObjectMediaNavigateMessage(
-            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MOAP]: Got ObjectMediaNavigate request [{0}]", request);
             

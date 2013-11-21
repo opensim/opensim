@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,20 +39,19 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 {
-    public class InventoryTransferModule : IInventoryTransferModule, ISharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "InventoryTransferModule")]
+    public class InventoryTransferModule : ISharedRegionModule
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         private List<Scene> m_Scenelist = new List<Scene>();
-        private Dictionary<UUID, Scene> m_AgentRegions =
-                new Dictionary<UUID, Scene>();
 
-        private IMessageTransferModule m_TransferModule = null;
+        private IMessageTransferModule m_TransferModule;
         private bool m_Enabled = true;
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {
@@ -76,12 +76,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
             m_Scenelist.Add(scene);
 
-            scene.RegisterModuleInterface<IInventoryTransferModule>(this);
+//            scene.RegisterModuleInterface<IInventoryTransferModule>(this);
 
             scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnClientClosed += ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
         }
 
         public void RegionLoaded(Scene scene)
@@ -94,11 +92,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     m_log.Error("[INVENTORY TRANSFER]: No Message transfer module found, transfers will be local only");
                     m_Enabled = false;
 
-                    m_Scenelist.Clear();
-                    scene.EventManager.OnNewClient -= OnNewClient;
-                    scene.EventManager.OnClientClosed -= ClientLoggedOut;
+//                    m_Scenelist.Clear();
+//                    scene.EventManager.OnNewClient -= OnNewClient;
                     scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
-                    scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
                 }
             }
         }
@@ -106,9 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         public void RemoveRegion(Scene scene)
         {
             scene.EventManager.OnNewClient -= OnNewClient;
-            scene.EventManager.OnClientClosed -= ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
-            scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
             m_Scenelist.Remove(scene);
         }
 
@@ -137,11 +131,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             // Inventory giving is conducted via instant message
             client.OnInstantMessage += OnInstantMessage;
         }
-        
-        protected void OnSetRootAgentScene(UUID id, Scene scene)
-        {
-            m_AgentRegions[id] = scene;
-        }
 
         private Scene FindClientScene(UUID agentId)
         {
@@ -160,8 +149,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
 //            m_log.DebugFormat(
-//                "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
-//                (InstantMessageDialog)im.dialog, client.Name);
+//                "[INVENTORY TRANSFER]: {0} IM type received from client {1}. From={2} ({3}), To={4}", 
+//                (InstantMessageDialog)im.dialog, client.Name,
+//                im.fromAgentID, im.fromAgentName, im.toAgentID);
           
             Scene scene = FindClientScene(client.AgentId);
 
@@ -186,9 +176,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
                     
-                    m_log.DebugFormat("[INVENTORY TRANSFER]: Inserting original folder {0} "+
-                            "into agent {1}'s inventory",
-                            folderID, new UUID(im.toAgentID));
+                    m_log.DebugFormat(
+                        "[INVENTORY TRANSFER]: Inserting original folder {0} into agent {1}'s inventory",
+                        folderID, new UUID(im.toAgentID));
                     
                     InventoryFolderBase folderCopy 
                         = scene.GiveInventoryFolder(receipientID, client.AgentId, folderID, UUID.Zero);
@@ -211,7 +201,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
 
                     // HACK!!
-                    im.imSessionID = folderID.Guid;
+                    // Insert the ID of the copied folder into the IM so that we know which item to move to trash if it
+                    // is rejected.
+                    // XXX: This is probably a misuse of the session ID slot.
+                    im.imSessionID = copyID.Guid;
                 }
                 else
                 {
@@ -241,7 +234,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
 
                     // HACK!!
-                    im.imSessionID = itemID.Guid;
+                    // Insert the ID of the copied item into the IM so that we know which item to move to trash if it
+                    // is rejected.
+                    // XXX: This is probably a misuse of the session ID slot.
+                    im.imSessionID = copyID.Guid;
                 }
 
                 // Send the IM to the recipient. The item is already
@@ -297,7 +293,78 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         });
                 }
             }
-            else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+
+            // XXX: This code was placed here to try and accomodate RLV which moves given folders named #RLV/~<name>
+            // to the requested folder, which in this case is #RLV.  However, it is the viewer that appears to be 
+            // response from renaming the #RLV/~example folder to ~example.  For some reason this is not yet 
+            // happening, possibly because we are not sending the correct inventory update messages with the correct
+            // transaction IDs
+            else if (im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
+            {
+                UUID destinationFolderID = UUID.Zero;
+
+                if (im.binaryBucket != null && im.binaryBucket.Length >= 16)
+                {
+                    destinationFolderID = new UUID(im.binaryBucket, 0);
+                }
+
+                if (destinationFolderID != UUID.Zero)
+                {
+                    InventoryFolderBase destinationFolder = new InventoryFolderBase(destinationFolderID, client.AgentId);
+                    if (destinationFolder == null)
+                    {
+                        m_log.WarnFormat(
+                            "[INVENTORY TRANSFER]: TaskInventoryAccepted message from {0} in {1} specified folder {2} which does not exist",
+                            client.Name, scene.Name, destinationFolderID);
+
+                        return;
+                    }
+
+                    IInventoryService invService = scene.InventoryService;
+
+                    UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+
+                    InventoryItemBase item = new InventoryItemBase(inventoryID, client.AgentId);
+                    item = invService.GetItem(item);
+                    InventoryFolderBase folder = null;
+                    UUID? previousParentFolderID = null;
+
+                    if (item != null) // It's an item
+                    {
+                        previousParentFolderID = item.Folder;
+                        item.Folder = destinationFolderID;
+
+                        invService.DeleteItems(item.Owner, new List<UUID>() { item.ID });
+                        scene.AddInventoryItem(client, item);
+                    }
+                    else
+                    {
+                        folder = new InventoryFolderBase(inventoryID, client.AgentId);
+                        folder = invService.GetFolder(folder);
+
+                        if (folder != null) // It's a folder
+                        {
+                            previousParentFolderID = folder.ParentID;
+                            folder.ParentID = destinationFolderID;
+                            invService.MoveFolder(folder);
+                        }
+                    }
+
+                    // Tell client about updates to original parent and new parent (this should probably be factored with existing move item/folder code).
+                    if (previousParentFolderID != null)
+                    {
+                        InventoryFolderBase previousParentFolder
+                            = new InventoryFolderBase((UUID)previousParentFolderID, client.AgentId);
+                        previousParentFolder = invService.GetFolder(previousParentFolder);
+                        scene.SendInventoryUpdate(client, previousParentFolder, true, true);
+
+                        scene.SendInventoryUpdate(client, destinationFolder, true, true);
+                    }
+                }
+            }
+            else if (
+                im.dialog == (byte)InstantMessageDialog.InventoryDeclined
+                || im.dialog == (byte)InstantMessageDialog.TaskInventoryDeclined)
             {
                 // Here, the recipient is local and we can assume that the
                 // inventory is loaded. Courtesy of the above bulk update,
@@ -313,9 +380,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 InventoryItemBase item = new InventoryItemBase(inventoryID, client.AgentId);
                 item = invService.GetItem(item);
                 InventoryFolderBase folder = null;
+                UUID? previousParentFolderID = null;
                 
                 if (item != null && trashFolder != null)
                 {
+                    previousParentFolderID = item.Folder;
                     item.Folder = trashFolder.ID;
 
                     // Diva comment: can't we just update this item???
@@ -328,9 +397,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     folder = new InventoryFolderBase(inventoryID, client.AgentId);
                     folder = invService.GetFolder(folder);
-                    
+
                     if (folder != null & trashFolder != null)
                     {
+                        previousParentFolderID = folder.ParentID;
                         folder.ParentID = trashFolder.ID;
                         invService.MoveFolder(folder);
                     }
@@ -350,105 +420,88 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     client.SendAgentAlertMessage("Unable to delete "+
                             "received inventory" + reason, false);
                 }
-
-                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
-
-                if (user != null) // Local
+                // Tell client about updates to original parent and new parent (this should probably be factored with existing move item/folder code).
+                else if (previousParentFolderID != null)
                 {
-                    user.ControllingClient.SendInstantMessage(im);
+                    InventoryFolderBase previousParentFolder
+                        = new InventoryFolderBase((UUID)previousParentFolderID, client.AgentId);
+                    previousParentFolder = invService.GetFolder(previousParentFolder);
+                    scene.SendInventoryUpdate(client, previousParentFolder, true, true);
+
+                    scene.SendInventoryUpdate(client, trashFolder, true, true);
                 }
-                else
+
+                if (im.dialog == (byte)InstantMessageDialog.InventoryDeclined)
                 {
-                    if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
-                }
-            }
-        }
+                    ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
-        public bool NeedSceneCacheClear(UUID agentID, Scene scene)
-        {
-            if (!m_AgentRegions.ContainsKey(agentID))
-            {
-                // Since we can get here two ways, we need to scan
-                // the scenes here. This is somewhat more expensive
-                // but helps avoid a nasty bug
-                //
-
-                foreach (Scene s in m_Scenelist)
-                {
-                    ScenePresence presence;
-
-                    if (s.TryGetScenePresence(agentID, out presence))
+                    if (user != null) // Local
                     {
-                        // If the agent is in this scene, then we
-                        // are being called twice in a single
-                        // teleport. This is wasteful of cycles
-                        // but harmless due to this 2nd level check
-                        //
-                        // If the agent is found in another scene
-                        // then the list wasn't current
-                        //
-                        // If the agent is totally unknown, then what
-                        // are we even doing here??
-                        //
-                        if (s == scene)
-                        {
-                            //m_log.Debug("[INVTRANSFERMOD]: s == scene. Returning true in " + scene.RegionInfo.RegionName);
-                            return true;
-                        }
-                        else
-                        {
-                            //m_log.Debug("[INVTRANSFERMOD]: s != scene. Returning false in " + scene.RegionInfo.RegionName);
-                            return false;
-                        }
+                        user.ControllingClient.SendInstantMessage(im);
+                    }
+                    else
+                    {
+                        if (m_TransferModule != null)
+                            m_TransferModule.SendInstantMessage(im, delegate(bool success) { });
                     }
                 }
-                //m_log.Debug("[INVTRANSFERMOD]: agent not in scene. Returning true in " + scene.RegionInfo.RegionName);
-                return true;
             }
-
-            // The agent is left in current Scene, so we must be
-            // going to another instance
-            //
-            if (m_AgentRegions[agentID] == scene)
-            {
-                //m_log.Debug("[INVTRANSFERMOD]: m_AgentRegions[agentID] == scene. Returning true in " + scene.RegionInfo.RegionName);
-                m_AgentRegions.Remove(agentID);
-                return true;
-            }
-
-            // Another region has claimed the agent
-            //
-            //m_log.Debug("[INVTRANSFERMOD]: last resort. Returning false in " + scene.RegionInfo.RegionName);
-            return false;
-        }
-
-        public void ClientLoggedOut(UUID agentID, Scene scene)
-        {
-            if (m_AgentRegions.ContainsKey(agentID))
-                m_AgentRegions.Remove(agentID);
         }
 
         /// <summary>
         ///
         /// </summary>
-        /// <param name="msg"></param>
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        /// <param name="im"></param>
+        private void OnGridInstantMessage(GridInstantMessage im)
         {
+            // Check if it's a type of message that we should handle
+            if (!((im.dialog == (byte) InstantMessageDialog.InventoryOffered)
+                || (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
+                || (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+                || (im.dialog == (byte) InstantMessageDialog.TaskInventoryDeclined)))
+                return;
+
+            m_log.DebugFormat(
+                "[INVENTORY TRANSFER]: {0} IM type received from grid. From={1} ({2}), To={3}",
+                (InstantMessageDialog)im.dialog, im.fromAgentID, im.fromAgentName, im.toAgentID);
+
             // Check if this is ours to handle
             //
-            Scene scene = FindClientScene(new UUID(msg.toAgentID));
+            Scene scene = FindClientScene(new UUID(im.toAgentID));
 
             if (scene == null)
                 return;
 
             // Find agent to deliver to
             //
-            ScenePresence user = scene.GetScenePresence(new UUID(msg.toAgentID));
+            ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
-            // Just forward to local handling
-            OnInstantMessage(user.ControllingClient, msg);
+            if (user != null)
+            {
+                user.ControllingClient.SendInstantMessage(im);
 
+                if (im.dialog == (byte)InstantMessageDialog.InventoryOffered)
+                {
+                    AssetType assetType = (AssetType)im.binaryBucket[0];
+                    UUID inventoryID = new UUID(im.binaryBucket, 1);
+                
+                    IInventoryService invService = scene.InventoryService;
+                    InventoryNodeBase node = null;
+                    if (AssetType.Folder == assetType)
+                    {
+                        InventoryFolderBase folder = new InventoryFolderBase(inventoryID, new UUID(im.toAgentID));
+                        node = invService.GetFolder(folder);
+                    }
+                    else
+                    {
+                        InventoryItemBase item = new InventoryItemBase(inventoryID, new UUID(im.toAgentID));
+                        node = invService.GetItem(item);
+                    }
+
+                    if (node != null)
+                        user.ControllingClient.SendBulkUpdateInventory(node);
+                }
+            }
         }
     }
 }

@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
@@ -80,8 +81,32 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
     }
 
+    /// <summary>
+    /// Used to signal when the script is stopping in co-operation with the script engine 
+    /// (instead of through Thread.Abort()).
+    /// </summary>
+    [Serializable]
+    public class ScriptCoopStopException : Exception
+    {
+        public ScriptCoopStopException()
+        {
+        }
+
+        protected ScriptCoopStopException(
+                SerializationInfo info, 
+                StreamingContext context)
+        {
+        }
+    }
+
     public class DetectParams
     {
+        public const int AGENT = 1;
+        public const int ACTIVE = 2;
+        public const int PASSIVE = 4;
+        public const int SCRIPTED = 8;
+        public const int OS_NPC = 0x01000000;
+
         public DetectParams()
         {
             Key = UUID.Zero;
@@ -153,11 +178,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else
                 {
                     // Set the values from the touch data provided by the client
-                    touchST = new LSL_Types.Vector3(value.STCoord.X, value.STCoord.Y, value.STCoord.Z);
-                    touchUV = new LSL_Types.Vector3(value.UVCoord.X, value.UVCoord.Y, value.UVCoord.Z);
-                    touchNormal = new LSL_Types.Vector3(value.Normal.X, value.Normal.Y, value.Normal.Z);
-                    touchBinormal = new LSL_Types.Vector3(value.Binormal.X, value.Binormal.Y, value.Binormal.Z);
-                    touchPos = new LSL_Types.Vector3(value.Position.X, value.Position.Y, value.Position.Z);
+                    touchST = new LSL_Types.Vector3(value.STCoord);
+                    touchUV = new LSL_Types.Vector3(value.UVCoord);
+                    touchNormal = new LSL_Types.Vector3(value.Normal);
+                    touchBinormal = new LSL_Types.Vector3(value.Binormal);
+                    touchPos = new LSL_Types.Vector3(value.Position);
                     touchFace = value.FaceIndex;
                 }
             }
@@ -174,23 +199,33 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 Name = presence.Firstname + " " + presence.Lastname;
                 Owner = Key;
-                Position = new LSL_Types.Vector3(
-                        presence.AbsolutePosition.X,
-                        presence.AbsolutePosition.Y,
-                        presence.AbsolutePosition.Z);
+                Position = new LSL_Types.Vector3(presence.AbsolutePosition);
                 Rotation = new LSL_Types.Quaternion(
                         presence.Rotation.X,
                         presence.Rotation.Y,
                         presence.Rotation.Z,
                         presence.Rotation.W);
-                Velocity = new LSL_Types.Vector3(
-                        presence.Velocity.X,
-                        presence.Velocity.Y,
-                        presence.Velocity.Z);
+                Velocity = new LSL_Types.Vector3(presence.Velocity);
 
-                Type = 0x01; // Avatar
+                if (presence.PresenceType != PresenceType.Npc)
+                {
+                    Type = AGENT;
+                }
+                else
+                {
+                    Type = OS_NPC;
+
+                    INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+                    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+
+                    if (npcData.SenseAsAgent)
+                    {
+                        Type |= AGENT;
+                    }
+                }
+
                 if (presence.Velocity != Vector3.Zero)
-                    Type |= 0x02; // Active
+                    Type |= ACTIVE;
 
                 Group = presence.ControllingClient.ActiveGroupId;
 
@@ -205,29 +240,25 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Name = part.Name;
             Owner = part.OwnerID;
             if (part.Velocity == Vector3.Zero)
-                Type = 0x04; // Passive
+                Type = PASSIVE;
             else
-                Type = 0x02; // Passive
+                Type = ACTIVE;
 
             foreach (SceneObjectPart p in part.ParentGroup.Parts)
             {
                 if (p.Inventory.ContainsScripts())
                 {
-                    Type |= 0x08; // Scripted
+                    Type |= SCRIPTED; // Scripted
                     break;
                 }
             }
 
-            Position = new LSL_Types.Vector3(part.AbsolutePosition.X,
-                                             part.AbsolutePosition.Y,
-                                             part.AbsolutePosition.Z);
+            Position = new LSL_Types.Vector3(part.AbsolutePosition);
 
             Quaternion wr = part.ParentGroup.GroupRotation;
             Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
 
-            Velocity = new LSL_Types.Vector3(part.Velocity.X,
-                                             part.Velocity.Y,
-                                             part.Velocity.Z);
+            Velocity = new LSL_Types.Vector3(part.Velocity);
         }
     }
 

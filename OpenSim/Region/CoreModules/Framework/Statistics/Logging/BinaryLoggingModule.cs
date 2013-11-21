@@ -39,7 +39,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Avatar.Attachments
+namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BinaryLoggingModule")]
     public class BinaryLoggingModule : INonSharedRegionModule
@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             try
             {
                 IConfig statConfig = source.Configs["Statistics.Binary"];
-                if (statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
+                if (statConfig != null && statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
                 {
                     if (statConfig.Contains("collect_region_stats"))
                     {

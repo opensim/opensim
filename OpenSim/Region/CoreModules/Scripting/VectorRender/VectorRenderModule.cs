@@ -30,26 +30,35 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
+using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using Mono.Addins;
 
 //using Cairo;
 
 namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
-    public class VectorRenderModule : IRegionModule, IDynamicTextureRender
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "VectorRenderModule")]
+    public class VectorRenderModule : ISharedRegionModule, IDynamicTextureRender
     {
+        // These fields exist for testing purposes, please do not remove.
+//        private static bool s_flipper;
+//        private static byte[] s_asset1Data;
+//        private static byte[] s_asset2Data;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_name = "VectorRenderModule";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
+
         private Graphics m_graph;
         private string m_fontName = "Arial";
 
@@ -61,12 +70,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public string GetContentType()
         {
-            return ("vector");
+            return "vector";
         }
 
         public string GetName()
         {
-            return m_name;
+            return Name;
         }
 
         public bool SupportsAsynchronous()
@@ -74,14 +83,20 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             return true;
         }
 
-        public byte[] ConvertUrl(string url, string extraParams)
+//        public bool AlwaysIdenticalConversion(string bodyData, string extraParams)
+//        {
+//            string[] lines = GetLines(bodyData);
+//            return lines.Any((str, r) => str.StartsWith("Image"));
+//        }
+
+        public IDynamicTexture ConvertUrl(string url, string extraParams)
         {
             return null;
         }
 
-        public byte[] ConvertStream(Stream data, string extraParams)
+        public IDynamicTexture ConvertData(string bodyData, string extraParams)
         {
-            return null;
+            return Draw(bodyData, extraParams);
         }
 
         public bool AsyncConvertUrl(UUID id, string url, string extraParams)
@@ -91,55 +106,82 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
-            Draw(bodyData, id, extraParams);
+            if (m_textureManager == null)
+            {
+                m_log.Warn("[VECTORRENDERMODULE]: No texture manager. Can't function");
+                return false;
+            }
+            // XXX: This isn't actually being done asynchronously!
+            m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
+
             return true;
         }
 
         public void GetDrawStringSize(string text, string fontName, int fontSize, 
                                       out double xSize, out double ySize)
         {
-            Font myFont = new Font(fontName, fontSize);
-            SizeF stringSize = new SizeF();
-            lock (m_graph) {
-                stringSize = m_graph.MeasureString(text, myFont);
-                xSize = stringSize.Width;
-                ySize = stringSize.Height;
+            lock (this)
+            {
+                using (Font myFont = new Font(fontName, fontSize))
+                {
+                    SizeF stringSize = new SizeF();
+
+                    // XXX: This lock may be unnecessary.
+                    lock (m_graph)
+                    {
+                        stringSize = m_graph.MeasureString(text, myFont);
+                        xSize = stringSize.Width;
+                        ySize = stringSize.Height;
+                    }
+                }
             }
         }
 
-
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-
-            if (m_graph == null)
-            {
-                Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
-                m_graph = Graphics.FromImage(bitmap);
-            }
-
             IConfig cfg = config.Configs["VectorRender"];
             if (null != cfg)
             {
                 m_fontName = cfg.GetString("font_name", m_fontName);
             }
             m_log.DebugFormat("[VECTORRENDERMODULE]: using font \"{0}\" for text rendering.", m_fontName);
+
+            // We won't dispose of these explicitly since this module is only removed when the entire simulator
+            // is shut down.
+            Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
+            m_graph = Graphics.FromImage(bitmap);
         }
 
         public void PostInitialise()
         {
-            m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-            if (m_textureManager != null)
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_scene == null)
             {
-                m_textureManager.RegisterRender(GetContentType(), this);
+                m_scene = scene;
             }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_textureManager == null && m_scene == scene)
+            {
+                m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
+                if (m_textureManager != null)
+                {
+                    m_textureManager.RegisterRender(GetContentType(), this);
+                }
+            }
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
         }
 
         public void Close()
@@ -148,17 +190,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public string Name
         {
-            get { return m_name; }
+            get { return "VectorRenderModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion
 
-        private void Draw(string data, UUID id, string extraParams)
+        private IDynamicTexture Draw(string data, string extraParams)
         {
             // We need to cater for old scripts that didnt use extraParams neatly, they use either an integer size which represents both width and height, or setalpha
             // we will now support multiple comma seperated params in the form  width:256,height:512,alpha:255
@@ -299,53 +341,90 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
             }
 
-            Bitmap bitmap;
-            
-            if (alpha == 256)
-            {
-                bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-            }
-            else
-            {
-                bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            }
-
-            Graphics graph = Graphics.FromImage(bitmap);
-
-            // this is really just to save people filling the 
-            // background color in their scripts, only do when fully opaque
-            if (alpha >= 255)
-            {
-                graph.FillRectangle(new SolidBrush(bgColor), 0, 0, width, height); 
-            }
-
-            for (int w = 0; w < bitmap.Width; w++)
-            {
-                if (alpha <= 255) 
-                {
-                    for (int h = 0; h < bitmap.Height; h++)
-                    {
-                        bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
-                    }
-                }
-            }
-
-            GDIDraw(data, graph, altDataDelim);
-
-            byte[] imageJ2000 = new byte[0];
+            Bitmap bitmap = null;
+            Graphics graph = null;
+            bool reuseable = false;
 
             try
             {
-                imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
-                    e.Message, e.StackTrace);
-            }
+                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
+                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
+                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
+                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
+                // under lock.
+                lock (this)
+                {
+                    if (alpha == 256)
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+                    else
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+    
+                    graph = Graphics.FromImage(bitmap);
+        
+                    // this is really just to save people filling the 
+                    // background color in their scripts, only do when fully opaque
+                    if (alpha >= 255)
+                    {
+                        using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
+                        {
+                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
+                        }
+                    }
+        
+                    for (int w = 0; w < bitmap.Width; w++)
+                    {
+                        if (alpha <= 255) 
+                        {
+                            for (int h = 0; h < bitmap.Height; h++)
+                            {
+                                bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
+                            }
+                        }
+                    }
+        
+                    GDIDraw(data, graph, altDataDelim, out reuseable);
+                }
+    
+                byte[] imageJ2000 = new byte[0];
 
-            m_textureManager.ReturnData(id, imageJ2000);
+                // This code exists for testing purposes, please do not remove.
+//                if (s_flipper)
+//                    imageJ2000 = s_asset1Data;
+//                else
+//                    imageJ2000 = s_asset2Data;
+//
+//                s_flipper = !s_flipper;
+    
+                try
+                {
+                    imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
+                        e.Message, e.StackTrace);
+                }
+
+                return new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
+                    data, extraParams, imageJ2000, new Size(width, height), reuseable);
+            }
+            finally
+            {
+                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
+                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
+                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
+                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
+                // under lock.
+                lock (this)
+                {
+                    if (graph != null)
+                        graph.Dispose();
+    
+                    if (bitmap != null)
+                        bitmap.Dispose();
+                }
+            }
         }
         
         private int parseIntParam(string strInt)
@@ -403,241 +482,311 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         }
 */
 
-        private void GDIDraw(string data, Graphics graph, char dataDelim)
+        /// <summary>
+        /// Split input data into discrete command lines.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='data'></param>
+        /// <param name='dataDelim'></param>
+        private string[] GetLines(string data, char dataDelim)
         {
+            char[] lineDelimiter = { dataDelim };
+            return data.Split(lineDelimiter);
+        }
+
+        private void GDIDraw(string data, Graphics graph, char dataDelim, out bool reuseable)
+        {
+            reuseable = true;
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
-            Pen drawPen = new Pen(Color.Black, 7);
-            string fontName = m_fontName;
-            float fontSize = 14;
-            Font myFont = new Font(fontName, fontSize);
-            SolidBrush myBrush = new SolidBrush(Color.Black);
-            
-            char[] lineDelimiter = {dataDelim};
-            char[] partsDelimiter = {','};
-            string[] lines = data.Split(lineDelimiter);
+            Pen drawPen = null;
+            Font myFont = null;
+            SolidBrush myBrush = null;
 
-            foreach (string line in lines)
+            try
             {
-                string nextLine = line.Trim();
-                //replace with switch, or even better, do some proper parsing
-                if (nextLine.StartsWith("MoveTo"))
+                drawPen = new Pen(Color.Black, 7);
+                string fontName = m_fontName;
+                float fontSize = 14;
+                myFont = new Font(fontName, fontSize);
+                myBrush = new SolidBrush(Color.Black);
+
+                char[] partsDelimiter = {','};
+
+                foreach (string line in GetLines(data, dataDelim))
                 {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
-                    startPoint.X = (int) x;
-                    startPoint.Y = (int) y;
-                }
-                else if (nextLine.StartsWith("LineTo"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    graph.DrawLine(drawPen, startPoint, endPoint);
-                    startPoint.X = endPoint.X;
-                    startPoint.Y = endPoint.Y;
-                }
-                else if (nextLine.StartsWith("Text"))
-                {
-                    nextLine = nextLine.Remove(0, 4);
-                    nextLine = nextLine.Trim();
-                    graph.DrawString(nextLine, myFont, myBrush, startPoint);
-                }
-                else if (nextLine.StartsWith("Image"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    Image image = ImageHttpRequest(nextLine);
-                    if (image != null)
+                    string nextLine = line.Trim();
+
+//                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Processing line '{0}'", nextLine);
+
+                    //replace with switch, or even better, do some proper parsing
+                    if (nextLine.StartsWith("MoveTo"))
                     {
-                        graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
+                        startPoint.X = (int) x;
+                        startPoint.Y = (int) y;
                     }
-                    else
+                    else if (nextLine.StartsWith("LineTo"))
                     {
-                        graph.DrawString("URL couldn't be resolved or is", new Font(m_fontName,6), 
-                                         myBrush, startPoint);
-                        graph.DrawString("not an image. Please check URL.", new Font(m_fontName, 6), 
-                                         myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
+                        graph.DrawLine(drawPen, startPoint, endPoint);
+                        startPoint.X = endPoint.X;
+                        startPoint.Y = endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("Text"))
+                    {
+                        nextLine = nextLine.Remove(0, 4);
+                        nextLine = nextLine.Trim();
+                        graph.DrawString(nextLine, myFont, myBrush, startPoint);
+                    }
+                    else if (nextLine.StartsWith("Image"))
+                    {
+                        // We cannot reuse any generated texture involving fetching an image via HTTP since that image
+                        // can change.
+                        reuseable = false;
+
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
+
+                        using (Image image = ImageHttpRequest(nextLine))
+                        {
+                            if (image != null)
+                            {
+                                graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                            }
+                            else
+                            {
+                                using (Font errorFont = new Font(m_fontName,6))
+                                {
+                                    graph.DrawString("URL couldn't be resolved or is", errorFont,
+                                                     myBrush, startPoint);
+                                    graph.DrawString("not an image. Please check URL.", errorFont,
+                                                     myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                                }
+    
+                                graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                            }
+                        }
+
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("Rectangle"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 9, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
                         graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
                     }
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("Rectangle"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 9, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("FillRectangle"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 13, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    graph.FillRectangle(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("FillPolygon"))
-                {
-                    PointF[] points = null;
-                    GetParams(partsDelimiter, ref nextLine, 11, ref points);
-                    graph.FillPolygon(myBrush, points);
-                }
-                else if (nextLine.StartsWith("Polygon"))
-                {
-                    PointF[] points = null;
-                    GetParams(partsDelimiter, ref nextLine, 7, ref points);
-                    graph.DrawPolygon(drawPen, points);
-                }
-                else if (nextLine.StartsWith("Ellipse"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 7, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
-                    graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("FontSize"))
-                {
-                    nextLine = nextLine.Remove(0, 8);
-                    nextLine = nextLine.Trim();
-                    fontSize = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
-                    myFont = new Font(fontName, fontSize);
-                }
-                else if (nextLine.StartsWith("FontProp"))
-                {
-                    nextLine = nextLine.Remove(0, 8);
-                    nextLine = nextLine.Trim();
-
-                    string[] fprops = nextLine.Split(partsDelimiter);
-                    foreach (string prop in fprops)
+                    else if (nextLine.StartsWith("FillRectangle"))
                     {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 13, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
+                        graph.FillRectangle(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("FillPolygon"))
+                    {
+                        PointF[] points = null;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref points);
+                        graph.FillPolygon(myBrush, points);
+                    }
+                    else if (nextLine.StartsWith("Polygon"))
+                    {
+                        PointF[] points = null;
+                        GetParams(partsDelimiter, ref nextLine, 7, ref points);
+                        graph.DrawPolygon(drawPen, points);
+                    }
+                    else if (nextLine.StartsWith("Ellipse"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 7, ref x, ref y);
+                        endPoint.X = (int)x;
+                        endPoint.Y = (int)y;
+                        graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("FontSize"))
+                    {
+                        nextLine = nextLine.Remove(0, 8);
+                        nextLine = nextLine.Trim();
+                        fontSize = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
 
-                        switch (prop)
+                        myFont.Dispose();
+                        myFont = new Font(fontName, fontSize);
+                    }
+                    else if (nextLine.StartsWith("FontProp"))
+                    {
+                        nextLine = nextLine.Remove(0, 8);
+                        nextLine = nextLine.Trim();
+    
+                        string[] fprops = nextLine.Split(partsDelimiter);
+                        foreach (string prop in fprops)
                         {
-                            case "B":
-                                if (!(myFont.Bold))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Bold);
-                                break;
-                            case "I":
-                                if (!(myFont.Italic))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Italic);
-                                break;
-                            case "U":
-                                if (!(myFont.Underline))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Underline);
-                                break;
-                            case "S":
-                                if (!(myFont.Strikeout))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Strikeout);
-                                break;
-                            case "R":
-                                myFont = new Font(myFont, FontStyle.Regular);
-                                break;
+    
+                            switch (prop)
+                            {
+                                case "B":
+                                    if (!(myFont.Bold))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Bold);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "I":
+                                    if (!(myFont.Italic))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Italic);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "U":
+                                    if (!(myFont.Underline))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Underline);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "S":
+                                    if (!(myFont.Strikeout))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Strikeout);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "R":
+                                    // We need to place this newFont inside its own context so that the .NET compiler
+                                    // doesn't complain about a redefinition of an existing newFont, even though there is none
+                                    // The mono compiler doesn't produce this error.
+                                    {
+                                        Font newFont = new Font(myFont, FontStyle.Regular);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                            }
                         }
                     }
-                }
-                else if (nextLine.StartsWith("FontName"))
-                {
-                    nextLine = nextLine.Remove(0, 8);
-                    fontName = nextLine.Trim();
-                    myFont = new Font(fontName, fontSize);
-                }
-                else if (nextLine.StartsWith("PenSize"))
-                {
-                    nextLine = nextLine.Remove(0, 7);
-                    nextLine = nextLine.Trim();
-                    float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
-                    drawPen.Width = size;
-                }
-                else if (nextLine.StartsWith("PenCap"))
-                {
-                    bool start = true, end = true;
-                    nextLine = nextLine.Remove(0, 6);
-                    nextLine = nextLine.Trim();
-                    string[] cap = nextLine.Split(partsDelimiter);
-                    if (cap[0].ToLower() == "start")
-                        end = false;
-                    else if (cap[0].ToLower() == "end")
-                        start = false;
-                    else if (cap[0].ToLower() != "both")
-                        return;
-                    string type = cap[1].ToLower();
-                    
-                    if (end)
+                    else if (nextLine.StartsWith("FontName"))
                     {
-                        switch (type)
+                        nextLine = nextLine.Remove(0, 8);
+                        fontName = nextLine.Trim();
+                        myFont.Dispose();
+                        myFont = new Font(fontName, fontSize);
+                    }
+                    else if (nextLine.StartsWith("PenSize"))
+                    {
+                        nextLine = nextLine.Remove(0, 7);
+                        nextLine = nextLine.Trim();
+                        float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
+                        drawPen.Width = size;
+                    }
+                    else if (nextLine.StartsWith("PenCap"))
+                    {
+                        bool start = true, end = true;
+                        nextLine = nextLine.Remove(0, 6);
+                        nextLine = nextLine.Trim();
+                        string[] cap = nextLine.Split(partsDelimiter);
+                        if (cap[0].ToLower() == "start")
+                            end = false;
+                        else if (cap[0].ToLower() == "end")
+                            start = false;
+                        else if (cap[0].ToLower() != "both")
+                            return;
+                        string type = cap[1].ToLower();
+                        
+                        if (end)
                         {
-                            case "arrow":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-                                break;
-                            case "round":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
-                                break;
-                            case "diamond":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
-                                break;
-                            case "flat":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.Flat;
-                                break;
+                            switch (type)
+                            {
+                                case "arrow":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                    break;
+                                case "round":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                    break;
+                                case "diamond":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                    break;
+                                case "flat":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                    break;
+                            }
+                        }
+                        if (start)
+                        {
+                            switch (type)
+                            {
+                                case "arrow":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                    break;
+                                case "round":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                    break;
+                                case "diamond":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                    break;
+                                case "flat":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                    break;
+                            }
                         }
                     }
-                    if (start)
+                    else if (nextLine.StartsWith("PenColour") || nextLine.StartsWith("PenColor"))
                     {
-                        switch (type)
+                        nextLine = nextLine.Remove(0, 9);
+                        nextLine = nextLine.Trim();
+                        int hex = 0;
+    
+                        Color newColor;
+                        if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                         {
-                            case "arrow":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-                                break;
-                            case "round":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
-                                break;
-                            case "diamond":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
-                                break;
-                            case "flat":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.Flat;
-                                break;
+                            newColor = Color.FromArgb(hex);
                         }
+                        else
+                        {
+                            // this doesn't fail, it just returns black if nothing is found
+                            newColor = Color.FromName(nextLine);
+                        }
+
+                        myBrush.Color = newColor;
+                        drawPen.Color = newColor;
                     }
                 }
-                else if (nextLine.StartsWith("PenColour") || nextLine.StartsWith("PenColor"))
-                {
-                    nextLine = nextLine.Remove(0, 9);
-                    nextLine = nextLine.Trim();
-                    int hex = 0;
+            }
+            finally
+            {
+                if (drawPen != null)
+                    drawPen.Dispose();
 
-                    Color newColor;
-                    if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
-                    {
-                        newColor = Color.FromArgb(hex);
-                    }
-                    else
-                    {
-                        // this doesn't fail, it just returns black if nothing is found
-                        newColor = Color.FromName(nextLine);
-                    }
+                if (myFont != null)
+                    myFont.Dispose();
 
-                    myBrush.Color = newColor;
-                    drawPen.Color = newColor;
-                }
+                if (myBrush != null)
+                    myBrush.Dispose();
             }
         }
 
@@ -683,6 +832,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     float y = Convert.ToSingle(yVal, CultureInfo.InvariantCulture);
                     PointF point = new PointF(x, y);
                     points[i / 2] = point;
+
+//                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Got point {0}", points[i / 2]);
                 }
             }
         }
@@ -691,17 +842,22 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         {
             try
             {
-            WebRequest request = HttpWebRequest.Create(url);
-//Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
-//Ckrinke            Stream str = null;
-                HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
-                if (response.StatusCode == HttpStatusCode.OK)
+                WebRequest request = HttpWebRequest.Create(url);
+
+                using (HttpWebResponse response = (HttpWebResponse)(request).GetResponse())
                 {
-                    Bitmap image = new Bitmap(response.GetResponseStream());
-                    return image;
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (Stream s = response.GetResponseStream())
+                        {
+                            Bitmap image = new Bitmap(s);
+                            return image;
+                        }
+                    }
                 }
             }
             catch { }
+
             return null;
         }
     }

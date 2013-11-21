@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -37,6 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Lure
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LureModule")]
     public class LureModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
@@ -151,19 +153,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             Scene scene = (Scene)(client.Scene);
             ScenePresence presence = scene.GetScenePresence(client.AgentId);
 
+            // Round up Z co-ordinate rather than round-down by casting.  This stops tall avatars from being given
+            // a teleport Z co-ordinate by short avatars that drops them through or embeds them in thin floors on
+            // arrival.
+            //
+            // Ideally we would give the exact float position adjusting for the relative height of the two avatars
+            // but it looks like a float component isn't possible with a parcel ID.
             UUID dest = Util.BuildFakeParcelID(
                     scene.RegionInfo.RegionHandle,
                     (uint)presence.AbsolutePosition.X,
                     (uint)presence.AbsolutePosition.Y,
-                    (uint)presence.AbsolutePosition.Z);
+                    (uint)Math.Ceiling(presence.AbsolutePosition.Z));
 
-            m_log.DebugFormat("TP invite with message {0}", message);
+            m_log.DebugFormat("[LURE MODULE]: TP invite with message {0}, type {1}", message, lureType);
 
             GridInstantMessage m = new GridInstantMessage(scene, client.AgentId,
                     client.FirstName+" "+client.LastName, targetid,
                     (byte)InstantMessageDialog.RequestTeleport, false,
                     message, dest, false, presence.AbsolutePosition,
-                    new Byte[0]);
+                    new Byte[0], true);
                     
             if (m_TransferModule != null)
             {

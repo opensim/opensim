@@ -33,8 +33,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.Framework.Scenes
 {
     public class Border
-    {
-        
+    {       
         /// <summary>
         /// Line perpendicular to the Direction Cardinal.  Z value is the 
         /// </summary>
@@ -81,6 +80,10 @@ namespace OpenSim.Region.Framework.Scenes
             TriggerRegionY = triggerRegionY;
         }
 
+        /// <summary>
+        /// Tests to see if the given position would cross this border.
+        /// </summary>
+        /// <returns></returns>
         public bool TestCross(Vector3 position)
         {
             bool result = false;

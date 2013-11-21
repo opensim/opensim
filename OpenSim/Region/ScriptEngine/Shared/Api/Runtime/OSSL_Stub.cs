@@ -289,8 +289,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
+        #region Attachment commands
 
-        //Texture Draw functions
+        public void osForceAttachToAvatar(int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToAvatar(attachmentPoint);
+        }
+
+        public void osForceAttachToAvatarFromInventory(string itemName, int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToAvatarFromInventory(itemName, attachmentPoint);
+        }
+
+        public void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToOtherAvatarFromInventory(rawAvatarId, itemName, attachmentPoint);
+        }
+
+        public void osForceDetachFromAvatar()
+        {
+            m_OSSL_Functions.osForceDetachFromAvatar();
+        }
+
+        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
+        {
+            return m_OSSL_Functions.osGetNumberOfAttachments(avatar, attachmentPoints);
+        }
+
+        public void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int flags)
+        {
+            m_OSSL_Functions.osMessageAttachments(avatar, message, attachmentPoints, flags);
+        }
+
+        #endregion
+
+        // Texture Draw functions
 
         public string osMovePen(string drawList, int x, int y)
         {
@@ -387,6 +420,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetScriptEngineName();
         }
 
+        public string osGetPhysicsEngineType()
+        {
+            return m_OSSL_Functions.osGetPhysicsEngineType();
+        }
+
         public string osGetSimulatorVersion()
         {
            return m_OSSL_Functions.osGetSimulatorVersion();
@@ -395,6 +433,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public Hashtable osParseJSON(string JSON)
         {
             return m_OSSL_Functions.osParseJSON(JSON);
+        }
+        
+        public Object osParseJSONNew(string JSON)
+        {
+            return m_OSSL_Functions.osParseJSONNew(JSON);
         }
 
         public void osMessageObject(key objectUUID,string message)
@@ -447,6 +490,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetGridLoginURI();
         }
 
+        public string osGetGridHomeURI()
+        {
+            return m_OSSL_Functions.osGetGridHomeURI();
+        }
+
+        public string osGetGridGatekeeperURI()
+        {
+            return m_OSSL_Functions.osGetGridGatekeeperURI();
+        }
+
+        public string osGetGridCustom(string key)
+        {
+            return m_OSSL_Functions.osGetGridCustom(key);
+        }
+
         public LSL_String osFormatString(string str, LSL_List strings)
         {
             return m_OSSL_Functions.osFormatString(str, strings);
@@ -456,6 +514,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osMatchString(src, pattern, start);
         }
+
+        public LSL_String osReplaceString(string src, string pattern, string replace, int count, int start)
+        {
+            return m_OSSL_Functions.osReplaceString(src,pattern,replace,count,start);
+        }
+        
 
         // Information about data loaded into the region
         public string osLoadedCreationDate()
@@ -478,9 +542,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetLinkPrimitiveParams(linknumber, rules);
         }
 
+        public LSL_Integer osIsNpc(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osIsNpc(npc);
+        }
+
         public key osNpcCreate(string user, string name, vector position, key cloneFrom)
         {
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
+        }
+
+        public key osNpcCreate(string user, string name, vector position, key cloneFrom, int options)
+        {
+            return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom, options);
         }
 
         public key osNpcSaveAppearance(key npc, string notecard)
@@ -491,6 +565,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcLoadAppearance(key npc, string notecard)
         {
             m_OSSL_Functions.osNpcLoadAppearance(npc, notecard);
+        }
+
+        public LSL_Key osNpcGetOwner(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osNpcGetOwner(npc);
         }
 
         public vector osNpcGetPos(LSL_Key npc)
@@ -528,6 +607,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcSay(npc, message);
         }
 
+        public void osNpcSay(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcSay(npc, channel, message);
+        }
+
+
+        public void osNpcShout(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcShout(npc, channel, message);
+        }
+
         public void osNpcSit(LSL_Key npc, LSL_Key target, int options)
         {
             m_OSSL_Functions.osNpcSit(npc, target, options);
@@ -541,6 +631,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcRemove(key npc)
         {
             m_OSSL_Functions.osNpcRemove(npc);
+        }
+
+        public void osNpcPlayAnimation(LSL_Key npc, string animation)
+        {
+            m_OSSL_Functions.osNpcPlayAnimation(npc, animation);
+        }
+
+        public void osNpcStopAnimation(LSL_Key npc, string animation)
+        {
+            m_OSSL_Functions.osNpcStopAnimation(npc, animation);
+        }
+
+        public void osNpcWhisper(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcWhisper(npc, channel, message);
+        }
+
+        public void osNpcTouch(LSL_Key npcLSL_Key, LSL_Key object_key, LSL_Integer link_num)
+        {
+            m_OSSL_Functions.osNpcTouch(npcLSL_Key, object_key, link_num);
         }
 
         public LSL_Key osOwnerSaveAppearance(string notecard)
@@ -772,7 +882,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }
-        
+
+        public LSL_Float osGetHealth(string avatar)
+        {
+            return m_OSSL_Functions.osGetHealth(avatar);
+        }
+
         public void osCauseDamage(string avatar, double damage)
         {
             m_OSSL_Functions.osCauseDamage(avatar, damage);
@@ -811,6 +926,86 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String osUnixTimeToTimestamp(long time)
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
+        }
+
+        public LSL_String osGetInventoryDesc(string item)
+        {
+            return m_OSSL_Functions.osGetInventoryDesc(item);
+        }
+
+        public LSL_Integer osInviteToGroup(LSL_Key agentId)
+        {
+            return m_OSSL_Functions.osInviteToGroup(agentId);
+        }
+
+        public LSL_Integer osEjectFromGroup(LSL_Key agentId)
+        {
+            return m_OSSL_Functions.osEjectFromGroup(agentId);
+        }
+
+        public void osSetTerrainTexture(int level, LSL_Key texture)
+        {
+            m_OSSL_Functions.osSetTerrainTexture(level, texture);
+        }
+
+        public void osSetTerrainTextureHeight(int corner, double low, double high)
+        {
+            m_OSSL_Functions.osSetTerrainTextureHeight(corner, low, high);
+        }
+
+        public LSL_Integer osIsUUID(string thing)
+        {
+            return m_OSSL_Functions.osIsUUID(thing);
+        }
+
+        public LSL_Float osMin(double a, double b)
+        {
+            return m_OSSL_Functions.osMin(a, b);
+        }
+
+        public LSL_Float osMax(double a, double b)
+        {
+            return m_OSSL_Functions.osMax(a, b);
+        }
+
+        public LSL_Key osGetRezzingObject()
+        {
+            return m_OSSL_Functions.osGetRezzingObject();
+        }
+
+        public void osSetContentType(LSL_Key id, string type)
+        {
+            m_OSSL_Functions.osSetContentType(id,type);
+        }
+
+        public void osDropAttachment()
+        {
+            m_OSSL_Functions.osDropAttachment();
+        }
+
+        public void osForceDropAttachment()
+        {
+            m_OSSL_Functions.osForceDropAttachment();
+        }
+
+        public void osDropAttachmentAt(vector pos, rotation rot)
+        {
+            m_OSSL_Functions.osDropAttachmentAt(pos, rot);
+        }
+
+        public void osForceDropAttachmentAt(vector pos, rotation rot)
+        {
+            m_OSSL_Functions.osForceDropAttachmentAt(pos, rot);
+        }
+
+        public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
+        {
+            return m_OSSL_Functions.osListenRegex(channelID, name, ID, msg, regexBitfield);
+        }
+
+        public LSL_Integer osRegexIsMatch(string input, string pattern)
+        {
+            return m_OSSL_Functions.osRegexIsMatch(input, pattern);
         }
     }
 }

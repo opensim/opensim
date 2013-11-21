@@ -38,7 +38,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class UuidGathererTests
+    public class UuidGathererTests : OpenSimTestCase
     {
         protected IAssetService m_assetService;
         protected UuidGatherer m_uuidGatherer;
@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void Init()
         {
             // FIXME: We don't need a full scene here - it would be enough to set up the asset service.
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             m_assetService = scene.AssetService;
             m_uuidGatherer = new UuidGatherer(m_assetService);
         }

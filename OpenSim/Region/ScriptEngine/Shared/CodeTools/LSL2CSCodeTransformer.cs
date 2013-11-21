@@ -27,12 +27,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using Tools;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public class LSL2CSCodeTransformer
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private SYMBOL m_astRoot = null;
         private static Dictionary<string, string> m_datatypeLSL2OpenSim = null;
 
@@ -78,6 +82,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <param name="s">The current node to transform.</param>
         private void TransformNode(SYMBOL s)
         {
+//            m_log.DebugFormat("[LSL2CSCODETRANSFORMER]: Tranforming node {0}", s);
+
             // make sure to put type lower in the inheritance hierarchy first
             // ie: since IdentConstant and StringConstant inherit from Constant,
             // put IdentConstant and StringConstant before Constant
@@ -103,10 +109,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 // We need to check for that here.
                 if (null != s.kids[i])
                 {
+//                    m_log.Debug("[LSL2CSCODETRANSFORMER]: Moving down level");
+
                     if (!(s is Assignment || s is ArgumentDeclarationList) && s.kids[i] is Declaration)
                         AddImplicitInitialization(s, i);
 
                     TransformNode((SYMBOL) s.kids[i]);
+
+//                    m_log.Debug("[LSL2CSCODETRANSFORMER]: Moving up level");
                 }
             }
         }

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -35,7 +36,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -48,10 +49,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AppearanceInfoModule")]
     public class AppearanceInfoModule : ISharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
-        
-        protected Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        protected IAvatarFactoryModule m_avatarFactory;
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+//        private IAvatarFactoryModule m_avatarFactory;
         
         public string Name { get { return "Appearance Information Module"; } }        
         
@@ -90,48 +91,218 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
             
             lock (m_scenes)
-                m_scenes[scene.RegionInfo.RegionID] = scene; 
+                m_scenes[scene.RegionInfo.RegionID] = scene;
+
+            scene.AddCommand(
+                "Users", this, "show appearance",
+                "show appearance [<first-name> <last-name>]",
+                "Synonym for 'appearance show'",
+                HandleShowAppearanceCommand);
             
             scene.AddCommand(
-                this, "appearance show",
-                "appearance show",
+                "Users", this, "appearance show",
+                "appearance show [<first-name> <last-name>]",
                 "Show appearance information for each avatar in the simulator.",
-                "At the moment this actually just checks that we have all the required baked textures.  If not, then appearance is 'corrupt' and other avatars will continue to see a cloud.",
-                ShowAppearanceInfo);
+                "This command checks whether the simulator has all the baked textures required to display an avatar to other viewers.  "
+                    + "\nIf not, then appearance is 'corrupt' and other avatars will continue to see it as a cloud."
+                    + "\nOptionally, you can view just a particular avatar's appearance information."
+                    + "\nIn this case, the texture UUID for each bake type is also shown and whether the simulator can find the referenced texture.",
+                HandleShowAppearanceCommand);
 
             scene.AddCommand(
-                this, "appearance send",
-                "appearance send",
-                "Send appearance data for each avatar in the simulator to viewers.",
-                SendAppearance);
+                "Users", this, "appearance send",
+                "appearance send [<first-name> <last-name>]",
+                "Send appearance data for each avatar in the simulator to other viewers.",
+                "Optionally, you can specify that only a particular avatar's appearance data is sent.",
+                HandleSendAppearanceCommand);
+
+            scene.AddCommand(
+                "Users", this, "appearance rebake",
+                "appearance rebake <first-name> <last-name>",
+                "Send a request to the user's viewer for it to rebake and reupload its appearance textures.",
+                "This is currently done for all baked texture references previously received, whether the simulator can find the asset or not."
+                    + "\nThis will only work for texture ids that the viewer has already uploaded."
+                    + "\nIf the viewer has not yet sent the server any texture ids then nothing will happen"
+                    + "\nsince requests can only be made for ids that the client has already sent us",
+                HandleRebakeAppearanceCommand);
+
+            scene.AddCommand(
+                "Users", this, "appearance find",
+                "appearance find <uuid-or-start-of-uuid>",
+                "Find out which avatar uses the given asset as a baked texture, if any.",
+                "You can specify just the beginning of the uuid, e.g. 2008a8d.  A longer UUID must be in dashed format.",
+                HandleFindAppearanceCommand);
         }
 
-        private void SendAppearance(string module, string[] cmd)
+        private void HandleSendAppearanceCommand(string module, string[] cmd)
         {
+            if (cmd.Length != 2 && cmd.Length < 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance send [<first-name> <last-name>]");
+                return;
+            }
+
+            bool targetNameSupplied = false;
+            string optionalTargetFirstName = null;
+            string optionalTargetLastName = null;
+
+            if (cmd.Length >= 4)
+            {
+                targetNameSupplied = true;
+                optionalTargetFirstName = cmd[2];
+                optionalTargetLastName = cmd[3];
+            }
+
             lock (m_scenes)
             {
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachRootScenePresence(sp => scene.AvatarFactory.SendAppearance(sp.UUID));
+                    if (targetNameSupplied)
+                    {
+                        ScenePresence sp = scene.GetScenePresence(optionalTargetFirstName, optionalTargetLastName);
+                        if (sp != null && !sp.IsChildAgent)
+                        {
+                            MainConsole.Instance.OutputFormat(
+                                "Sending appearance information for {0} to all other avatars in {1}",
+                                sp.Name, scene.RegionInfo.RegionName);
+
+                            scene.AvatarFactory.SendAppearance(sp.UUID);
+                        }
+                    }
+                    else
+                    {
+                        scene.ForEachRootScenePresence(
+                            sp =>
+                            {
+                                MainConsole.Instance.OutputFormat(
+                                    "Sending appearance information for {0} to all other avatars in {1}",
+                                    sp.Name, scene.RegionInfo.RegionName);
+
+                                scene.AvatarFactory.SendAppearance(sp.UUID);
+                            }
+                        );
+                    }
                 }
             }
         }
 
-        protected void ShowAppearanceInfo(string module, string[] cmd)
-        {     
+        protected void HandleShowAppearanceCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 2 && cmd.Length < 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance show [<first-name> <last-name>]");
+                return;
+            }
+
+            bool targetNameSupplied = false;
+            string optionalTargetFirstName = null;
+            string optionalTargetLastName = null;
+
+            if (cmd.Length >= 4)
+            {
+                targetNameSupplied = true;
+                optionalTargetFirstName = cmd[2];
+                optionalTargetLastName = cmd[3];
+            }
+
             lock (m_scenes)
             {   
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachRootScenePresence(
-                        delegate(ScenePresence sp)
-                        {
-                            bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
+                    if (targetNameSupplied)
+                    {
+                        ScenePresence sp = scene.GetScenePresence(optionalTargetFirstName, optionalTargetLastName);
+                        if (sp != null && !sp.IsChildAgent)
+                            scene.AvatarFactory.WriteBakedTexturesReport(sp, MainConsole.Instance.OutputFormat);
+                    }
+                    else
+                    {
+                        scene.ForEachRootScenePresence(
+                            sp =>
+                            {
+                                bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
+                                MainConsole.Instance.OutputFormat(
+                                    "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "incomplete");
+                            }
+                        );
+                    }
+                }
+            }
+        }
+
+        private void HandleRebakeAppearanceCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance rebake <first-name> <last-name>");
+                return;
+            }
+
+            string firstname = cmd[2];
+            string lastname = cmd[3];
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    ScenePresence sp = scene.GetScenePresence(firstname, lastname);
+                    if (sp != null && !sp.IsChildAgent)
+                    {
+                        int rebakesRequested = scene.AvatarFactory.RequestRebake(sp, false);
+
+                        if (rebakesRequested > 0)
                             MainConsole.Instance.OutputFormat(
-                                "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
+                                "Requesting rebake of {0} uploaded textures for {1} in {2}",
+                                rebakesRequested, sp.Name, scene.RegionInfo.RegionName);
+                        else
+                            MainConsole.Instance.OutputFormat(
+                                "No texture IDs available for rebake request for {0} in {1}",
+                                sp.Name, scene.RegionInfo.RegionName);
+                    }
+                }
+            }
+        }
+
+        protected void HandleFindAppearanceCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance find <uuid-or-start-of-uuid>");
+                return;
+            }
+
+            string rawUuid = cmd[2];
+
+            HashSet<ScenePresence> matchedAvatars = new HashSet<ScenePresence>();
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    scene.ForEachRootScenePresence(
+                        sp =>
+                        {
+                            Dictionary<BakeType, Primitive.TextureEntryFace> bakedFaces = scene.AvatarFactory.GetBakedTextureFaces(sp.UUID);
+                            foreach (Primitive.TextureEntryFace face in bakedFaces.Values)
+                            {
+                                if (face != null && face.TextureID.ToString().StartsWith(rawUuid))
+                                    matchedAvatars.Add(sp);
+                            }
                         });
                 }
             }
-        }      
+
+            if (matchedAvatars.Count == 0)
+            {
+                MainConsole.Instance.OutputFormat("{0} did not match any baked avatar textures in use", rawUuid);
+            }
+            else
+            {
+                MainConsole.Instance.OutputFormat(
+                    "{0} matched {1}",
+                    rawUuid,
+                    string.Join(", ", matchedAvatars.ToList().ConvertAll<string>(sp => sp.Name).ToArray()));
+            }
+        }
     }
 }

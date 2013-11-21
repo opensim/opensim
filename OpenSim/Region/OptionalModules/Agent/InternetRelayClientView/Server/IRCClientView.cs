@@ -38,13 +38,14 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 {
     public delegate void OnIRCClientReadyDelegate(IRCClientView cv);
 
-    public class IRCClientView : IClientAPI, IClientCore, IClientIPEndpoint
+    public class IRCClientView : IClientAPI, IClientCore
     {
         public event OnIRCClientReadyDelegate OnIRCReady;
 
@@ -54,6 +55,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         private readonly Scene m_scene;
 
         private UUID m_agentID = UUID.Random();
+
+        public ISceneAgent SceneAgent { get; set; }
 
         private string m_username;
         private string m_nick;
@@ -68,7 +71,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             m_client = client;
             m_scene = scene;
 
-            Watchdog.StartThread(InternalLoop, "IRCClientView", ThreadPriority.Normal, false);
+            Watchdog.StartThread(InternalLoop, "IRCClientView", ThreadPriority.Normal, false, true);
         }
 
         private void SendServerCommand(string command)
@@ -547,6 +550,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             m_connected = false;
             m_client.Close();
+            SceneAgent = null;
         }
 
         public UUID SessionId
@@ -655,6 +659,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ModifyTerrain OnModifyTerrain;
         public event BakeTerrain OnBakeTerrain;
         public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateManageTelehub OnEstateManageTelehub;
+        public event CachedTextureRequest OnCachedTextureRequest;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
@@ -674,12 +680,14 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
+        public event TeleportCancel OnTeleportCancel;
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
         public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
+        public event UpdateAgent OnAgentCameraUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
@@ -880,6 +888,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Close()
         {
+            Close(false);
+        }
+
+        public void Close(bool force)
+        {
             Disconnect();
         }
 
@@ -890,13 +903,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Start()
         {
-            Scene.AddNewClient(this, PresenceType.User);
+            m_scene.AddNewAgent(this, PresenceType.User);
 
             // Mimicking LLClientView which gets always set appearance from client.
-            Scene scene = (Scene)Scene;
             AvatarAppearance appearance;
-            scene.GetAvatarAppearance(this, out appearance);
-            OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone());
+            m_scene.GetAvatarAppearance(this, out appearance);
+            OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone(), new List<CachedTextureRequestArg>());
         }
 
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
@@ -928,13 +940,18 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             
         }
+        
+        public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
+        {
 
+        }
+        
         public void SendStartPingCheck(byte seq)
         {
             
         }
 
-        public void SendKillObject(ulong regionHandle, List<uint> localID)
+        public void SendKillObject(List<uint> localID)
         {
             
         }
@@ -944,7 +961,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source, byte audible)
+        public void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
             if (audible > 0 && message.Length > 0)
                 IRC_SendChannelPrivmsg(fromName, message);
@@ -960,12 +978,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             // TODO
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, UUID invoice, List<string> message)
         {
 
         }
 
-        public void SendGenericMessage(string method, List<byte[]> message)
+        public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
             
         }
@@ -1039,7 +1057,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
-        public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
+        public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance, int transactionType, UUID sourceID, bool sourceIsGroup, UUID destID, bool destIsGroup, int amount, string item)
         {
             
         }
@@ -1179,11 +1197,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public bool AddMoney(int debit)
-        {
-            return true;
-        }
-
         public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition)
         {
             
@@ -1197,11 +1210,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendViewerTime(int phase)
         {
             
-        }
-
-        public UUID GetDefaultAnimation(string name)
-        {
-            return UUID.Zero;
         }
 
         public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, byte[] charterMember, string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL, UUID partnerID)
@@ -1239,7 +1247,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner)
+        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, uint covenantChanged, string abuseEmail, UUID estateOwner)
         {
             
         }
@@ -1249,7 +1257,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
+        public void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID)
         {
             
         }
@@ -1432,11 +1440,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             Disconnect();
         }
 
-        public EndPoint GetClientEP()
-        {
-            return null;
-        }
-
         public ClientInfo GetClientInfo()
         {
             return new ClientInfo();
@@ -1525,6 +1528,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendEventInfoReply(EventData info)
         {
             
+        }
+
+        public void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint)
+        {
+
         }
 
         public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
@@ -1622,23 +1630,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void KillEndDone()
-        {
-            
-        }
-
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
             return true;
-        }
-
-        #endregion
-
-        #region Implementation of IClientIPEndpoint
-
-        public IPAddress EndPoint
-        {
-            get { return ((IPEndPoint) m_client.Client.RemoteEndPoint).Address; }
         }
 
         #endregion
@@ -1679,12 +1673,17 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
-        public void StopFlying(ISceneEntity presence)
+        public void SendAgentTerseUpdate(ISceneEntity presence)
         {
         }
         
         public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
         {
         }
+
+        public void SendPartPhysicsProprieties(ISceneEntity entity)
+        {
+        }
+
     }
 }

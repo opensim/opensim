@@ -48,6 +48,8 @@ namespace OpenSim.Data.SQLite
 
         protected SQLiteFramework(string connectionString)
         {
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
         }
 
         //////////////////////////////////////////////////////////////
@@ -87,13 +89,6 @@ namespace OpenSim.Data.SQLite
 
                 return cmd.ExecuteReader();
             }
-        }
-
-        protected void CloseCommand(SqliteCommand cmd)
-        {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
         }
     }
 }

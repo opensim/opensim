@@ -57,8 +57,8 @@ namespace OpenSim.Server.Handlers.Grid
             m_GridService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -106,6 +106,9 @@ namespace OpenSim.Server.Handlers.Grid
                     case "get_default_regions":
                         return GetDefaultRegions(request);
 
+                    case "get_default_hypergrid_regions":
+                        return GetDefaultHypergridRegions(request);
+
                     case "get_fallback_regions":
                         return GetFallbackRegions(request);
 
@@ -116,7 +119,7 @@ namespace OpenSim.Server.Handlers.Grid
                         return GetRegionFlags(request);
                 }
                 
-                m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
+                m_log.DebugFormat("[GRID HANDLER]: unknown method request {0}", method);
             }
             catch (Exception e)
             {
@@ -226,10 +229,9 @@ namespace OpenSim.Server.Handlers.Grid
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
 
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionByUUID(Dictionary<string, object> request)
@@ -256,9 +258,9 @@ namespace OpenSim.Server.Handlers.Grid
                 result["result"] = rinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionByPosition(Dictionary<string, object> request)
@@ -289,9 +291,9 @@ namespace OpenSim.Server.Handlers.Grid
                 result["result"] = rinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionByName(Dictionary<string, object> request)
@@ -318,9 +320,9 @@ namespace OpenSim.Server.Handlers.Grid
                 result["result"] = rinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionsByName(Dictionary<string, object> request)
@@ -361,9 +363,9 @@ namespace OpenSim.Server.Handlers.Grid
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionRange(Dictionary<string, object> request)
@@ -410,9 +412,9 @@ namespace OpenSim.Server.Handlers.Grid
                 }
             }
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetDefaultRegions(Dictionary<string, object> request)
@@ -440,9 +442,39 @@ namespace OpenSim.Server.Handlers.Grid
                 }
             }
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] GetDefaultHypergridRegions(Dictionary<string, object> request)
+        {
+            //m_log.DebugFormat("[GRID HANDLER]: GetDefaultRegions");
+            UUID scopeID = UUID.Zero;
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region range");
+
+            List<GridRegion> rinfos = m_GridService.GetDefaultHypergridRegions(scopeID);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
+                result["result"] = "null";
+            else
+            {
+                int i = 0;
+                foreach (GridRegion rinfo in rinfos)
+                {
+                    Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
+                    result["region" + i] = rinfoDict;
+                    i++;
+                }
+            }
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetFallbackRegions(Dictionary<string, object> request)
@@ -481,9 +513,9 @@ namespace OpenSim.Server.Handlers.Grid
                 }
             }
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetHyperlinks(Dictionary<string, object> request)
@@ -511,9 +543,9 @@ namespace OpenSim.Server.Handlers.Grid
                 }
             }
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionFlags(Dictionary<string, object> request)
@@ -537,11 +569,10 @@ namespace OpenSim.Server.Handlers.Grid
             result["result"] = flags.ToString();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+            
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
-
 
         #endregion
 

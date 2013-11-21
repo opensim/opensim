@@ -101,20 +101,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             using (WebResponse resp = request.GetResponse())
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                Stream respStream = null;
-                try
-                {
-                    respStream = resp.GetResponseStream();
+
+                using (Stream respStream = resp.GetResponseStream())
                     deserial = (TResponse)deserializer.Deserialize(respStream);
-                }
-                catch { }
-                finally
-                {
-                    if (respStream != null)
-                        respStream.Close();
-                    resp.Close();
-                }
             }
+
             return deserial;
         }
     }
@@ -192,7 +183,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public delegate bool CheckIdentityMethod(string sid, string aid);
 
-    public class RestDeserialiseSecureHandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
+    public class RestDeserialiseSecureHandler<TRequest, TResponse> : BaseOutputStreamHandler, IStreamHandler
         where TRequest : new()
     {
         private static readonly ILog m_log
@@ -210,8 +201,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_method = method;
         }
 
-        public void Handle(string path, Stream request, Stream responseStream,
-                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override void ProcessRequest(string path, Stream request, Stream responseStream,
+                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             RestSessionObject<TRequest> deserial = default(RestSessionObject<TRequest>);
             bool fail = false;
@@ -246,7 +237,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public delegate bool CheckTrustedSourceMethod(IPEndPoint peer);
 
-    public class RestDeserialiseTrustedHandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
+    public class RestDeserialiseTrustedHandler<TRequest, TResponse> : BaseOutputStreamHandler, IStreamHandler
         where TRequest : new()
     {
         private static readonly ILog m_log
@@ -269,8 +260,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_method = method;
         }
 
-        public void Handle(string path, Stream request, Stream responseStream,
-                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override void ProcessRequest(string path, Stream request, Stream responseStream,
+                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             TRequest deserial = default(TRequest);
             bool fail = false;
@@ -301,6 +292,5 @@ namespace OpenSim.Framework.Servers.HttpServer
                 serializer.Serialize(xmlWriter, response);
             }
         }
-    }
-
+    }   
 }

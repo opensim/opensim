@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -38,6 +39,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteAssetServicesConnector")]
     public class RemoteAssetServicesConnector :
             AssetServicesConnector, ISharedRegionModule, IAssetService
     {

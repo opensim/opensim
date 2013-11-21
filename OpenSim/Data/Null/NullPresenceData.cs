@@ -110,7 +110,6 @@ namespace OpenSim.Data.Null
             return false;
         }
 
-
         public PresenceData[] Get(string field, string data)
         {
             if (Instance != this)
@@ -221,6 +220,14 @@ namespace OpenSim.Data.Null
                 return false;
 
             return true;
+        }
+
+        public bool VerifyAgent(UUID agentId, UUID secureSessionID)
+        {
+            if (Instance != this)
+                return Instance.VerifyAgent(agentId, secureSessionID);
+
+            return false;
         }
 
     }

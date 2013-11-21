@@ -25,10 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using log4net;
 using Nini.Config;
+
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -43,6 +46,38 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void JointDeactivated(PhysicsJoint joint);
     public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 
+    public enum RayFilterFlags : ushort
+    {
+        // the flags
+        water = 0x01,
+        land = 0x02,
+        agent = 0x04,
+        nonphysical = 0x08,
+        physical = 0x10,
+        phantom = 0x20,
+        volumedtc = 0x40,
+
+        // ray cast colision control (may only work for meshs)
+        ContactsUnImportant = 0x2000,
+        BackFaceCull = 0x4000,
+        ClosestHit = 0x8000,
+
+        // some combinations
+        LSLPhantom = phantom | volumedtc,
+        PrimsNonPhantom = nonphysical | physical,
+        PrimsNonPhantomAgents = nonphysical | physical | agent,
+
+        AllPrims = nonphysical | phantom | volumedtc | physical,
+        AllButLand = agent | nonphysical | physical | phantom | volumedtc,
+
+        ClosestAndBackCull = ClosestHit | BackFaceCull,
+
+        All = 0x3f
+    }
+
+    public delegate void RequestAssetDelegate(UUID assetID, AssetReceivedDelegate callback);
+    public delegate void AssetReceivedDelegate(AssetBase asset);
+
     /// <summary>
     /// Contact result from a raycast.
     /// </summary>
@@ -56,22 +91,31 @@ namespace OpenSim.Region.Physics.Manager
 
     public abstract class PhysicsScene
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Name of this scene.  Useful in debug messages to distinguish one OdeScene instance from another.
+        /// A unique identifying string for this instance of the physics engine.
+        /// Useful in debug messages to distinguish one OdeScene instance from another.
+        /// Usually set to include the region name that the physics engine is acting for.
         /// </summary>
         public string Name { get; protected set; }
 
+        /// <summary>
+        /// A string identifying the family of this physics engine. Most common values returned
+        /// are "OpenDynamicsEngine" and "BulletSim" but others are possible.
+        /// </summary>
+        public string EngineType { get; protected set; }
+
         // The only thing that should register for this event is the SceneGraph
         // Anything else could cause problems.
-
         public event physicsCrash OnPhysicsCrash;
 
         public static PhysicsScene Null
         {
             get { return new NullPhysicsScene(); }
         }
+
+        public RequestAssetDelegate RequestAssetMethod { get; set; }
 
         public virtual void TriggerPhysicsBasedRestart()
         {
@@ -124,6 +168,12 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid);
+
+        public virtual PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, byte shapetype, uint localid)
+        {
+            return AddPrimShape(primName, pbs, position, size, rotation, isPhysical, localid);
+        }
 
         public virtual float TimeDilation
         {
@@ -192,7 +242,21 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
+        /// <summary>
+        /// Perform a simulation of the current physics scene over the given timestep.
+        /// </summary>
+        /// <param name="timeStep"></param>
+        /// <returns>The number of frames simulated over that period.</returns>
         public abstract float Simulate(float timeStep);
+
+        /// <summary>
+        /// Get statistics about this scene.
+        /// </summary>
+        /// <remarks>This facility is currently experimental and subject to change.</remarks>
+        /// <returns>
+        /// A dictionary where the key is the statistic name.  If no statistics are supplied then returns null.
+        /// </returns>
+        public virtual Dictionary<string, float> GetStats() { return null; }
 
         public abstract void GetResults();
 
@@ -259,6 +323,23 @@ namespace OpenSim.Region.Physics.Manager
         public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
         {
             return new List<ContactResult>();
+        }
+
+        public virtual object RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)
+        {
+            return null;
+        }
+
+        public virtual bool SupportsRaycastWorldFiltered()
+        {
+            return false;
+        }
+
+        // Extendable interface for new, physics engine specific operations
+        public virtual object Extension(string pFunct, params object[] pParams)
+        {
+            // A NOP if the extension thing is not implemented by the physics engine
+            return null;
         }
     }
 }

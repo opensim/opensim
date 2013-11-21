@@ -37,10 +37,12 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 {
-    public class EmailModule : IRegionModule, IEmailModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EmailModule")]
+    public class EmailModule : ISharedRegionModule, IEmailModule
     {
         //
         // Log
@@ -64,37 +66,17 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private TimeSpan m_QueueTimeout = new TimeSpan(2, 0, 0); // 2 hours without llGetNextEmail drops the queue
         private string m_InterObjectHostname = "lsl.opensim.local";
 
+        private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
+
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes =
             new Dictionary<ulong, Scene>();
 
         private bool m_Enabled = false;
 
-        public void InsertEmail(UUID to, Email email)
-        {
-            // It's tempting to create the queue here.  Don't; objects which have
-            // not yet called GetNextEmail should have no queue, and emails to them
-            // should be silently dropped.
+        #region ISharedRegionModule
 
-            lock (m_MailQueues)
-            {
-                if (m_MailQueues.ContainsKey(to))
-                {
-                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
-                    {
-                        // fail silently
-                        return;
-                    }
-
-                    lock (m_MailQueues[to])
-                    {
-                        m_MailQueues[to].Add(email);
-                    }
-                }
-            }
-        }
-
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             m_Config = config;
             IConfig SMTPConfig;
@@ -127,35 +109,44 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
+                m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize);
             }
             catch (Exception e)
             {
-                m_log.Error("[EMAIL] DefaultEmailModule not configured: "+ e.Message);
+                m_log.Error("[EMAIL] DefaultEmailModule not configured: " + e.Message);
                 m_Enabled = false;
                 return;
             }
 
-            // It's a go!
-            if (m_Enabled)
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+        // It's a go!
+            lock (m_Scenes)
             {
-                lock (m_Scenes)
+                // Claim the interface slot
+                scene.RegisterModuleInterface<IEmailModule>(this);
+
+                // Add to scene list
+                if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
                 {
-                    // Claim the interface slot
-                    scene.RegisterModuleInterface<IEmailModule>(this);
-
-                    // Add to scene list
-                    if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
-                    {
-                        m_Scenes[scene.RegionInfo.RegionHandle] = scene;
-                    }
-                    else
-                    {
-                        m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
-                    }
+                    m_Scenes[scene.RegionInfo.RegionHandle] = scene;
                 }
-
-                m_log.Info("[EMAIL] Activated DefaultEmailModule");
+                else
+                {
+                    m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
+                }
             }
+
+            m_log.Info("[EMAIL] Activated DefaultEmailModule");
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
         }
 
         public void PostInitialise()
@@ -171,21 +162,39 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             get { return "DefaultEmailModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
-        /// <summary>
-        /// Delay function using thread in seconds
-        /// </summary>
-        /// <param name="seconds"></param>
-        private void DelayInSeconds(int delay)
+        public void RegionLoaded(Scene scene)
         {
-            delay = (int)((float)delay * 1000);
-            if (delay == 0)
-                return;
-            System.Threading.Thread.Sleep(delay);
+        }
+
+        #endregion
+
+        public void InsertEmail(UUID to, Email email)
+        {
+            // It's tempting to create the queue here.  Don't; objects which have
+            // not yet called GetNextEmail should have no queue, and emails to them
+            // should be silently dropped.
+
+            lock (m_MailQueues)
+            {
+                if (m_MailQueues.ContainsKey(to))
+                {
+                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
+                    {
+                        // fail silently
+                        return;
+                    }
+
+                    lock (m_MailQueues[to])
+                    {
+                        m_MailQueues[to].Add(email);
+                    }
+                }
+            }
         }
 
         private bool IsLocal(UUID objectID)
@@ -267,10 +276,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 m_log.Error("[EMAIL] REGEX Problem in EMail Address: "+address);
                 return;
             }
-            //FIXME:Check if subject + body = 4096 Byte
-            if ((subject.Length + body.Length) > 1024)
+            if ((subject.Length + body.Length) > m_MaxEmailSize)
             {
-                m_log.Error("[EMAIL] subject + body > 1024 Byte");
+                m_log.Error("[EMAIL] subject + body larger than limit of " + m_MaxEmailSize + " bytes");
                 return;
             }
 
@@ -345,10 +353,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     // TODO FIX
                 }
             }
-
-            //DONE: Message as Second Life style
-            //20 second delay - AntiSpam System - for now only 10 seconds
-            DelayInSeconds(10);
         }
 
         /// <summary>

@@ -62,5 +62,9 @@ namespace OpenSim.Region.UserStatistics
             return pModelResult["js"].ToString();
         }
 
+        public string RenderJson(Hashtable pModelResult) {
+            return "{}";
+        }
+
     }
 }

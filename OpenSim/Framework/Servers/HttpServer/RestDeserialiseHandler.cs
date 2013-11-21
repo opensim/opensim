@@ -33,19 +33,23 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public delegate TResponse RestDeserialiseMethod<TRequest, TResponse>(TRequest request);
 
-    public class RestDeserialiseHandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
+    public class RestDeserialiseHandler<TRequest, TResponse> : BaseOutputStreamHandler, IStreamHandler
         where TRequest : new()
     {
         private RestDeserialiseMethod<TRequest, TResponse> m_method;
 
         public RestDeserialiseHandler(string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method)
-            : base(httpMethod, path)
+            : this(httpMethod, path, method, null, null) {}
+
+        public RestDeserialiseHandler(
+            string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method, string name, string description)
+            : base(httpMethod, path, name, description)
         {
             m_method = method;
         }
 
-        public void Handle(string path, Stream request, Stream responseStream,
-                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override void ProcessRequest(string path, Stream request, Stream responseStream,
+                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             TRequest deserial;
             using (XmlTextReader xmlReader = new XmlTextReader(request))

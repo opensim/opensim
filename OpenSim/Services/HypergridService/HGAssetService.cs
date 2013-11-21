@@ -53,15 +53,17 @@ namespace OpenSim.Services.HypergridService
             LogManager.GetLogger(
             MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ProfileServiceURL;
+        private string m_HomeURL;
         private IUserAccountService m_UserAccountService;
 
         private UserAccountCache m_Cache;
 
-        public HGAssetService(IConfigSource config) : base(config)
+        private AssetPermissions m_AssetPerms;
+
+        public HGAssetService(IConfigSource config, string configName) : base(config, configName)
         {
             m_log.Debug("[HGAsset Service]: Starting");
-            IConfig assetConfig = config.Configs["HGAssetService"];
+            IConfig assetConfig = config.Configs[configName];
             if (assetConfig == null)
                 throw new Exception("No HGAssetService configuration");
 
@@ -74,9 +76,16 @@ namespace OpenSim.Services.HypergridService
             if (m_UserAccountService == null)
                 throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
-            m_ProfileServiceURL = assetConfig.GetString("ProfileServerURI", string.Empty);
+            // legacy configuration [obsolete]
+            m_HomeURL = assetConfig.GetString("ProfileServerURI", string.Empty);
+            // Preferred
+            m_HomeURL = assetConfig.GetString("HomeURI", m_HomeURL);
 
             m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
+
+            // Permissions
+            m_AssetPerms = new AssetPermissions(assetConfig);
+
         }
 
         #region IAssetService overrides
@@ -85,6 +94,9 @@ namespace OpenSim.Services.HypergridService
             AssetBase asset = base.Get(id);
 
             if (asset == null)
+                return null;
+
+            if (!m_AssetPerms.AllowedExport(asset.Type))
                 return null;
 
             if (asset.Metadata.Type == (sbyte)AssetType.Object)
@@ -109,15 +121,26 @@ namespace OpenSim.Services.HypergridService
 
         public override byte[] GetData(string id)
         {
-            byte[] data = base.GetData(id);
+            AssetBase asset = Get(id);
 
-            if (data == null)
+            if (asset == null)
                 return null;
 
-            return AdjustIdentifiers(data);
+            if (!m_AssetPerms.AllowedExport(asset.Type))
+                return null;
+
+            return asset.Data;
         }
 
         //public virtual bool Get(string id, Object sender, AssetRetrieved handler)
+
+        public override string Store(AssetBase asset)
+        {
+            if (!m_AssetPerms.AllowedImport(asset.Type))
+                return string.Empty;
+
+            return base.Store(asset);
+        }
 
         public override bool Delete(string id)
         {
@@ -134,13 +157,13 @@ namespace OpenSim.Services.HypergridService
 
             UserAccount creator = m_Cache.GetUser(meta.CreatorID);
             if (creator != null)
-                meta.CreatorID = m_ProfileServiceURL + "/" + meta.CreatorID + ";" + creator.FirstName + " " + creator.LastName;
+                meta.CreatorID = meta.CreatorID + ";" + m_HomeURL + "/" + creator.FirstName + " " + creator.LastName;
         }
 
         protected byte[] AdjustIdentifiers(byte[] data)
         {
             string xml = Utils.BytesToString(data);
-            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, m_ProfileServiceURL, m_Cache, UUID.Zero));
+            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, m_HomeURL, m_Cache, UUID.Zero));
         }
 
     }

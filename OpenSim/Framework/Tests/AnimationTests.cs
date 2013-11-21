@@ -38,7 +38,7 @@ using Animation = OpenSim.Framework.Animation;
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class AnimationTests
+    public class AnimationTests : OpenSimTestCase
     {
         private Animation anim1 = null;
         private Animation anim2 = null;
@@ -87,8 +87,6 @@ namespace OpenSim.Framework.Tests
             anim4.SequenceNum = anim2.SequenceNum;
             
             Assert.That(anim4.ObjectID == objUUID2 && anim4.AnimID == animUUID2 && anim4.SequenceNum == 1, "void constructor and manual field population failed to set the properties correctly.");
-             
-
         }
     }
 }

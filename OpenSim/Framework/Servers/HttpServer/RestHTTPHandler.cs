@@ -38,19 +38,25 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return m_dhttpMethod; }
         }
 
-        public override Hashtable Handle(string path, Hashtable request)
-        {
-
-            string param = GetParam(path);
-            request.Add("param", param);
-            request.Add("path", path);
-            return m_dhttpMethod(request);
-        }
-
         public RestHTTPHandler(string httpMethod, string path, GenericHTTPMethod dhttpMethod)
             : base(httpMethod, path)
         {
             m_dhttpMethod = dhttpMethod;
+        }
+
+        public RestHTTPHandler(
+            string httpMethod, string path, GenericHTTPMethod dhttpMethod, string name, string description)
+            : base(httpMethod, path, name, description)
+        {
+            m_dhttpMethod = dhttpMethod;
+        }
+
+        public override Hashtable Handle(string path, Hashtable request)
+        {
+            string param = GetParam(path);
+            request.Add("param", param);
+            request.Add("path", path);
+            return m_dhttpMethod(request);
         }
     }
 }

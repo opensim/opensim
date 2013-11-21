@@ -53,9 +53,8 @@ namespace OpenSim.Region.ClientStack
         protected ISimulationDataService m_simulationDataService;
         protected IEstateDataService m_estateDataService;
         protected ClientStackManager m_clientStackManager;
-        protected SceneManager m_sceneManager = new SceneManager();
 
-        public SceneManager SceneManager { get { return m_sceneManager; } }
+        public SceneManager SceneManager { get; protected set; }
         public NetworkServersInfo NetServersInfo { get { return m_networkServersInfo; } }
         public ISimulationDataService SimulationDataService { get { return m_simulationDataService; } }
         public IEstateDataService EstateDataService { get { return m_estateDataService; } }
@@ -77,6 +76,7 @@ namespace OpenSim.Region.ClientStack
 
         protected override void StartupSpecific()
         {
+            SceneManager = SceneManager.Instance;
             m_clientStackManager = CreateClientStackManager();
 
             Initialize();
@@ -94,24 +94,21 @@ namespace OpenSim.Region.ClientStack
             m_log.InfoFormat("[REGION SERVER]: Starting HTTP server on port {0}", m_httpServerPort);
             m_httpServer.Start();
 
+            MainServer.AddHttpServer(m_httpServer);
             MainServer.Instance = m_httpServer;
 
             // "OOB" Server
             if (m_networkServersInfo.ssl_listener)
             {
-                BaseHttpServer server = null;
-                server = new BaseHttpServer(
+                BaseHttpServer server = new BaseHttpServer(
                     m_networkServersInfo.https_port, m_networkServersInfo.ssl_listener, m_networkServersInfo.cert_path,
                     m_networkServersInfo.cert_pass);
-                // Add the server to m_Servers
-                if(server != null)
-                {
-                    m_log.InfoFormat("[REGION SERVER]: Starting HTTPS server on port {0}", server.Port);
-                    MainServer.AddHttpServer(server);
-                    server.Start();
-                }
-            }
 
+                m_log.InfoFormat("[REGION SERVER]: Starting HTTPS server on port {0}", server.Port);
+                MainServer.AddHttpServer(server);
+                server.Start();
+            }
+            
             base.StartupSpecific();
         }
 

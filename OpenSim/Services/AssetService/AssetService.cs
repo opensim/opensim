@@ -32,7 +32,6 @@ using System.Reflection;
 using Nini.Config;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
@@ -47,34 +46,22 @@ namespace OpenSim.Services.AssetService
 
         protected static AssetService m_RootInstance;
 
-        public AssetService(IConfigSource config) : base(config)
+        public AssetService(IConfigSource config)
+            : this(config, "AssetService")
+        {
+        }
+
+        public AssetService(IConfigSource config, string configName) : base(config, configName)
         {
             if (m_RootInstance == null)
             {
                 m_RootInstance = this;
 
-                MainConsole.Instance.Commands.AddCommand("kfs", false,
-                        "show digest",
-                        "show digest <ID>",
-                        "Show asset digest", HandleShowDigest);
-
-                MainConsole.Instance.Commands.AddCommand("kfs", false,
-                        "delete asset",
-                        "delete asset <ID>",
-                        "Delete asset from database", HandleDeleteAsset);
-                
-                MainConsole.Instance.Commands.AddCommand("kfs", false,
-                        "dump asset",
-                        "dump asset <ID>",
-                        "Dump asset to a file", 
-                        "The filename is the same as the ID given.", 
-                        HandleDumpAsset);
-
                 if (m_AssetLoader != null)
                 {
-                    IConfig assetConfig = config.Configs["AssetService"];
+                    IConfig assetConfig = config.Configs[m_ConfigName];
                     if (assetConfig == null)
-                        throw new Exception("No AssetService configuration");
+                        throw new Exception("No " + m_ConfigName + " configuration");
 
                     string loaderArgs = assetConfig.GetString("AssetLoaderArgs",
                             String.Empty);
@@ -83,7 +70,7 @@ namespace OpenSim.Services.AssetService
 
                     if (assetLoaderEnabled)
                     {
-                        m_log.DebugFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
+                        m_log.DebugFormat("[ASSET SERVICE]: Loading default asset set from {0}", loaderArgs);
 
                         m_AssetLoader.ForEachDefaultXmlAsset(
                             loaderArgs,
@@ -136,46 +123,32 @@ namespace OpenSim.Services.AssetService
         public virtual AssetMetadata GetMetadata(string id)
         {
 //            m_log.DebugFormat("[ASSET SERVICE]: Get asset metadata for {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
-                return null;
+            AssetBase asset = Get(id);
 
-            AssetBase asset = m_Database.GetAsset(assetID);
             if (asset != null)
                 return asset.Metadata;
-
-            return null;
+            else
+                return null;
         }
 
         public virtual byte[] GetData(string id)
         {
 //            m_log.DebugFormat("[ASSET SERVICE]: Get asset data for {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
+            AssetBase asset = Get(id);
+
+            if (asset != null)
+                return asset.Data;
+            else
                 return null;
-
-            AssetBase asset = m_Database.GetAsset(assetID);
-            return asset.Data;
         }
 
         public virtual bool Get(string id, Object sender, AssetRetrieved handler)
         {
             //m_log.DebugFormat("[AssetService]: Get asset async {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
-                return false;
-
-            AssetBase asset = m_Database.GetAsset(assetID);
-
-            //m_log.DebugFormat("[AssetService]: Got asset {0}", asset);
-            
-            handler(id, sender, asset);
+            handler(id, sender, Get(id));
 
             return true;
         }
@@ -204,125 +177,13 @@ namespace OpenSim.Services.AssetService
 
         public virtual bool Delete(string id)
         {
-            m_log.DebugFormat("[ASSET SERVICE]: Deleting asset {0}", id);
+//            m_log.DebugFormat("[ASSET SERVICE]: Deleting asset {0}", id);
+
             UUID assetID;
             if (!UUID.TryParse(id, out assetID))
                 return false;
 
-            AssetBase asset = m_Database.GetAsset(assetID);
-            if (asset == null)
-                return false;
-
-            if ((int)(asset.Flags & AssetFlags.Maptile) != 0)
-            {
-                return m_Database.Delete(id);
-            }
-            else
-                m_log.DebugFormat("[ASSET SERVICE]: Request to delete asset {0}, but flags are not Maptile", id);
-
-            return false;
-        }
-        
-        void HandleDumpAsset(string module, string[] args)
-        {
-            if (args.Length < 3)
-            {
-                MainConsole.Instance.Output("Usage is dump asset <ID>");
-                return;
-            }
-            
-            string rawAssetId = args[2];
-            UUID assetId;
-            
-            if (!UUID.TryParse(rawAssetId, out assetId))
-            {
-                MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
-                return;
-            }
-            
-            AssetBase asset = m_Database.GetAsset(assetId);
-            if (asset == null)
-            {                
-                MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
-                return;                
-            }
-            
-            string fileName = rawAssetId;
-            
-            using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
-            {
-                using (BinaryWriter bw = new BinaryWriter(fs))
-                {
-                    bw.Write(asset.Data);
-                }
-            }   
-            
-            MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
-        }
-
-        void HandleShowDigest(string module, string[] args)
-        {
-            if (args.Length < 3)
-            {
-                MainConsole.Instance.Output("Syntax: show digest <ID>");
-                return;
-            }
-
-            AssetBase asset = Get(args[2]);
-
-            if (asset == null || asset.Data.Length == 0)
-            {
-                MainConsole.Instance.Output("Asset not found");
-                return;
-            }
-
-            int i;
-
-            MainConsole.Instance.OutputFormat("Name: {0}", asset.Name);
-            MainConsole.Instance.OutputFormat("Description: {0}", asset.Description);
-            MainConsole.Instance.OutputFormat("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
-            MainConsole.Instance.OutputFormat("Content-type: {0}", asset.Metadata.ContentType);
-            MainConsole.Instance.OutputFormat("Flags: {0}", asset.Metadata.Flags);
-
-            for (i = 0 ; i < 5 ; i++)
-            {
-                int off = i * 16;
-                if (asset.Data.Length <= off)
-                    break;
-                int len = 16;
-                if (asset.Data.Length < off + len)
-                    len = asset.Data.Length - off;
-
-                byte[] line = new byte[len];
-                Array.Copy(asset.Data, off, line, 0, len);
-
-                string text = BitConverter.ToString(line);
-                MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
-            }
-        }
-
-        void HandleDeleteAsset(string module, string[] args)
-        {
-            if (args.Length < 3)
-            {
-                MainConsole.Instance.Output("Syntax: delete asset <ID>");
-                return;
-            }
-
-            AssetBase asset = Get(args[2]);
-
-            if (asset == null || asset.Data.Length == 0)
-            {
-                MainConsole.Instance.Output("Asset not found");
-                return;
-            }
-
-            Delete(args[2]);
-
-            //MainConsole.Instance.Output("Asset deleted");
-            // TODO: Implement this
-
-            MainConsole.Instance.Output("Asset deletion not supported by database");
+            return m_Database.Delete(id);
         }
     }
 }

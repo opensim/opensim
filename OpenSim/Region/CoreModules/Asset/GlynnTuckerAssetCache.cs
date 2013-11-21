@@ -31,6 +31,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using GlynnTucker.Cache;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -39,6 +40,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Asset
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GlynnTuckerAssetCache")]
     public class GlynnTuckerAssetCache : ISharedRegionModule, IImprovedAssetCache
     {
         private static readonly ILog m_log =

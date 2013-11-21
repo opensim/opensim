@@ -33,7 +33,7 @@ using OpenSim.Framework;
 namespace OpenSim.Region.RegionCombinerModule
 {
 
-    struct RegionCourseLocationStruct
+    struct RegionCoarseLocationStruct
     {
         public List<Vector3> Locations;
         public List<UUID> Uuids;

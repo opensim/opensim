@@ -46,6 +46,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Method called when all the necessary assets for an archive request have been received.
+        /// </summary>
+        public delegate void AssetsRequestCallback(
+            ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut);
+
         enum RequestState
         {
             Initial,
@@ -123,6 +129,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_options = options;
             m_repliesRequired = uuids.Count;
 
+            // FIXME: This is a really poor way of handling the timeout since it will always leave the original requesting thread
+            // hanging.  Need to restructure so an original request thread waits for a ManualResetEvent on asset received
+            // so we can properly abort that thread.  Or request all assets synchronously, though that would be a more
+            // radical change
             m_requestCallbackTimer = new System.Timers.Timer(TIMEOUT);
             m_requestCallbackTimer.AutoReset = false;
             m_requestCallbackTimer.Elapsed += new ElapsedEventHandler(OnRequestCallbackTimeout);
@@ -138,20 +148,26 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (m_repliesRequired == 0)
             {
                 m_requestState = RequestState.Completed;
-                PerformAssetsRequestCallback(null);
+                PerformAssetsRequestCallback(false);
                 return;
-            }
-            
-            foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
-            {
-                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
             }
 
             m_requestCallbackTimer.Enabled = true;
+
+            foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
+            {
+//                m_log.DebugFormat("[ARCHIVER]: Requesting asset {0}", kvp.Key);
+
+//                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
+                AssetBase asset = m_assetService.Get(kvp.Key.ToString());
+                PreAssetRequestCallback(kvp.Key.ToString(), kvp.Value, asset);
+            }
         }
 
         protected void OnRequestCallbackTimeout(object source, ElapsedEventArgs args)
         {
+            bool timedOut = true;
+
             try
             {
                 lock (this)
@@ -159,7 +175,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     // Take care of the possibilty that this thread started but was paused just outside the lock before
                     // the final request came in (assuming that such a thing is possible)
                     if (m_requestState == RequestState.Completed)
+                    {
+                        timedOut = false;
                         return;
+                    }
                     
                     m_requestState = RequestState.Aborted;
                 }
@@ -206,7 +225,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             finally
             {
-                m_assetsArchiver.ForceClose();
+                if (timedOut)
+                    Util.FireAndForget(PerformAssetsRequestCallback, true);
             }
         }
 
@@ -240,11 +260,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     
                     m_requestCallbackTimer.Stop();
                     
-                    if (m_requestState == RequestState.Aborted)
+                    if ((m_requestState == RequestState.Aborted) || (m_requestState == RequestState.Completed))
                     {
                         m_log.WarnFormat(
-                            "[ARCHIVER]: Received information about asset {0} after archive save abortion.  Ignoring.", 
-                            id);
+                            "[ARCHIVER]: Received information about asset {0} while in state {1}.  Ignoring.", 
+                            id, m_requestState);
 
                         return;
                     }
@@ -266,7 +286,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         m_notFoundAssetUuids.Add(new UUID(id));
                     }
         
-                    if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
+                    if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count >= m_repliesRequired)
                     {
                         m_requestState = RequestState.Completed;
                         
@@ -276,7 +296,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
-                        Util.FireAndForget(PerformAssetsRequestCallback);
+                        Util.FireAndForget(PerformAssetsRequestCallback, false);
                     }
                     else
                     {
@@ -297,9 +317,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             Culture.SetCurrentCulture();
 
+            Boolean timedOut = (Boolean)o;
+
             try
             {
-                m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids);
+                m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids, timedOut);
             }
             catch (Exception e)
             {
@@ -310,10 +332,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected AssetBase PostProcess(AssetBase asset)
         {
-            if (asset.Type == (sbyte)AssetType.Object && asset.Data != null && m_options.ContainsKey("profile"))
+            if (asset.Type == (sbyte)AssetType.Object && asset.Data != null && m_options.ContainsKey("home"))
             {
                 //m_log.DebugFormat("[ARCHIVER]: Rewriting object data for {0}", asset.ID);
-                string xml = ExternalRepresentationUtils.RewriteSOP(Utils.BytesToString(asset.Data), m_options["profile"].ToString(), m_userAccountService, m_scopeID);
+                string xml = ExternalRepresentationUtils.RewriteSOP(Utils.BytesToString(asset.Data), m_options["home"].ToString(), m_userAccountService, m_scopeID);
                 asset.Data = Utils.StringToBytes(xml);
             }
             return asset;

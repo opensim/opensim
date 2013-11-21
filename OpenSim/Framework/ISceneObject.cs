@@ -33,6 +33,12 @@ namespace OpenSim.Framework
     public interface ISceneObject
     {
         UUID UUID { get; }
+
+        /// <summary>
+        /// The owner of this object.
+        /// </summary>
+        UUID OwnerID { get; set; }
+
         ISceneObject CloneForNewScene();
         string ToXml2();
         string ExtraToXmlString();

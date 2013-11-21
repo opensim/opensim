@@ -56,23 +56,17 @@ namespace OpenSim.Data.SQLite
 
         public bool Delete(UUID principalID, string name)
         {
-            SqliteCommand cmd = new SqliteCommand();
-
-            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
-            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
-            cmd.Parameters.AddWithValue(":Name", name);
-
-            try
+            using (SqliteCommand cmd = new SqliteCommand())
             {
+                cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
+                cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
+                cmd.Parameters.AddWithValue(":Name", name);
+
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
                     return true;
+            }
 
-                return false;
-            }
-            finally
-            {
-                //CloseCommand(cmd);
-            }
+            return false;
         }
     }
 }

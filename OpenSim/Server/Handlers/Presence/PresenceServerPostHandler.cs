@@ -56,8 +56,8 @@ namespace OpenSim.Server.Handlers.Presence
             m_PresenceService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -199,9 +199,9 @@ namespace OpenSim.Server.Handlers.Presence
                 result["result"] = pinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetAgents(Dictionary<string, object> request)
@@ -240,12 +240,11 @@ namespace OpenSim.Server.Handlers.Presence
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+            
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
-        
         private byte[] SuccessResult()
         {
             XmlDocument doc = new XmlDocument();

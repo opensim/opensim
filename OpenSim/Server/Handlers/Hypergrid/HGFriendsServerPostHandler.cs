@@ -39,6 +39,7 @@ using System.Collections.Generic;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
@@ -49,19 +50,26 @@ namespace OpenSim.Server.Handlers.Hypergrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IFriendsService m_FriendsService;
         private IUserAgentService m_UserAgentService;
+        private IFriendsSimConnector m_FriendsLocalSimConnector;
+        private IHGFriendsService m_TheService;
 
-        public HGFriendsServerPostHandler(IFriendsService service, IUserAgentService uservice) :
+        public HGFriendsServerPostHandler(IHGFriendsService service, IUserAgentService uas, IFriendsSimConnector friendsConn) :
                 base("POST", "/hgfriends")
         {
-            m_FriendsService = service;
-            m_UserAgentService = uservice;
-            m_log.DebugFormat("[HGFRIENDS HANDLER]: HGFriendsServerPostHandler is On");
+            m_TheService = service;
+            m_UserAgentService = uas;
+            m_FriendsLocalSimConnector = friendsConn;
+
+            m_log.DebugFormat("[HGFRIENDS HANDLER]: HGFriendsServerPostHandler is On ({0})", 
+                (m_FriendsLocalSimConnector == null ? "robust" : "standalone"));
+
+            if (m_TheService == null)
+                m_log.ErrorFormat("[HGFRIENDS HANDLER]: TheService is null!");
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -90,8 +98,32 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
                     case "deletefriendship":
                         return DeleteFriendship(request);
+
+                        /* Same as inter-sim */
+                    case "friendship_offered":
+                        return FriendshipOffered(request);
+
+                    case "validate_friendship_offered":
+                        return ValidateFriendshipOffered(request);
+                        
+                    case "statusnotification":
+                        return StatusNotification(request);
+                    /*
+                    case "friendship_approved":
+                        return FriendshipApproved(request);
+                    
+                    case "friendship_denied":
+                        return FriendshipDenied(request);
+                    
+                    case "friendship_terminated":
+                        return FriendshipTerminated(request);
+                    
+                    case "grant_rights":
+                        return GrantRights(request);
+                        */
                 }
-                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
+                
+                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0}", method);
             }
             catch (Exception e)
             {
@@ -126,39 +158,20 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 return FailureResult();
             }
 
-            FriendInfo[] friendsInfo = m_FriendsService.GetFriends(principalID);
-            foreach (FriendInfo finfo in friendsInfo)
-            {
-                if (finfo.Friend.StartsWith(friendID.ToString()))
-                    return SuccessResult(finfo.TheirFlags.ToString());
-            }
+            int perms = m_TheService.GetFriendPerms(principalID, friendID);
+            if (perms < 0)
+                return FailureResult("Friend not found");
 
-            return FailureResult("Friend not found");
+            return SuccessResult(perms.ToString());
         }
 
         byte[] NewFriendship(Dictionary<string, object> request)
         {
-            if (!VerifyServiceKey(request))
-                return FailureResult();
+            bool verified = VerifyServiceKey(request);
 
-            // OK, can proceed
             FriendInfo friend = new FriendInfo(request);
-            UUID friendID;
-            string tmp = string.Empty;
-            if (!Util.ParseUniversalUserIdentifier(friend.Friend, out friendID, out tmp, out tmp, out tmp, out tmp))
-                return FailureResult();
 
-
-            m_log.DebugFormat("[HGFRIENDS HANDLER]: New friendship {0} {1}", friend.PrincipalID, friend.Friend);
-
-            // If the friendship already exists, return fail
-            FriendInfo[] finfos = m_FriendsService.GetFriends(friend.PrincipalID);
-            foreach (FriendInfo finfo in finfos)
-                if (finfo.Friend.StartsWith(friendID.ToString()))
-                    return FailureResult();
-
-            // the user needs to confirm when he gets home
-            bool success = m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, 0);
+            bool success = m_TheService.NewFriendship(friend, verified);
 
             if (success)
                 return SuccessResult();
@@ -174,23 +187,101 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 secret = request["SECRET"].ToString();
 
             if (secret == string.Empty)
-                return FailureResult();
+                return BoolResult(false);
 
-            FriendInfo[] finfos = m_FriendsService.GetFriends(friend.PrincipalID);
-            foreach (FriendInfo finfo in finfos)
+            bool success = m_TheService.DeleteFriendship(friend, secret);
+
+            return BoolResult(success);
+        }
+
+        byte[] FriendshipOffered(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+            string message = string.Empty;
+            string name = string.Empty;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+                return BoolResult(false);
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return BoolResult(false);
+
+            message = request["Message"].ToString();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return BoolResult(false);
+
+            if (request.ContainsKey("FromName"))
+                name = request["FromName"].ToString();
+
+            bool success = m_TheService.FriendshipOffered(fromID, name, toID, message);
+
+            return BoolResult(success);
+        }
+
+        byte[] ValidateFriendshipOffered(Dictionary<string, object> request)
+        {
+            FriendInfo friend = new FriendInfo(request);
+            UUID friendID = UUID.Zero;
+            if (!UUID.TryParse(friend.Friend, out friendID))
+                return BoolResult(false);
+
+            bool success = m_TheService.ValidateFriendshipOffered(friend.PrincipalID, friendID);
+
+            return BoolResult(success);
+        }
+
+        byte[] StatusNotification(Dictionary<string, object> request)
+        {
+            UUID principalID = UUID.Zero;
+            if (request.ContainsKey("userID"))
+                UUID.TryParse(request["userID"].ToString(), out principalID);
+            else
             {
-                // We check the secret here
-                if (finfo.Friend.StartsWith(friend.Friend) && finfo.Friend.EndsWith(secret))
-                {
-                    m_log.DebugFormat("[HGFRIENDS HANDLER]: Delete friendship {0} {1}", friend.PrincipalID, friend.Friend);
-                    m_FriendsService.Delete(friend.PrincipalID, finfo.Friend);
-                    m_FriendsService.Delete(finfo.Friend, friend.PrincipalID.ToString());
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no userID in request to notify");
+                return FailureResult();
+            }
 
-                    return SuccessResult();
+            bool online = true;
+            if (request.ContainsKey("online"))
+                Boolean.TryParse(request["online"].ToString(), out online);
+            else
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no online in request to notify");
+                return FailureResult();
+            }
+
+            List<string> friends = new List<string>();
+            int i = 0;
+            foreach (KeyValuePair<string, object> kvp in request)
+            {
+                if (kvp.Key.Equals("friend_" + i.ToString()))
+                {
+                    friends.Add(kvp.Value.ToString());
+                    i++;
                 }
             }
 
-            return FailureResult();
+            List<UUID> onlineFriends = m_TheService.StatusNotification(friends, principalID, online);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((onlineFriends == null) || ((onlineFriends != null) && (onlineFriends.Count == 0)))
+                result["RESULT"] = "NULL";
+            else
+            {
+                i = 0;
+                foreach (UUID f in onlineFriends)
+                {
+                    result["friend_" + i] = f.ToString();
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         #endregion
@@ -205,10 +296,15 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 return false;
             }
 
+            if (request["KEY"] == null || request["SESSIONID"] == null)
+                return false;
+
             string serviceKey = request["KEY"].ToString();
             string sessionStr = request["SESSIONID"].ToString();
+
             UUID sessionID;
-            UUID.TryParse(sessionStr, out sessionID);
+            if (!UUID.TryParse(sessionStr, out sessionID) || serviceKey == string.Empty)
+                return false;
 
             if (!m_UserAgentService.VerifyAgent(sessionID, serviceKey))
             {
@@ -256,7 +352,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             doc.AppendChild(rootElement);
 
-            XmlElement result = doc.CreateElement("", "Result", "");
+            XmlElement result = doc.CreateElement("", "RESULT", "");
             result.AppendChild(doc.CreateTextNode("Success"));
 
             rootElement.AppendChild(result);
@@ -289,7 +385,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             doc.AppendChild(rootElement);
 
-            XmlElement result = doc.CreateElement("", "Result", "");
+            XmlElement result = doc.CreateElement("", "RESULT", "");
             result.AppendChild(doc.CreateTextNode("Failure"));
 
             rootElement.AppendChild(result);
@@ -298,6 +394,28 @@ namespace OpenSim.Server.Handlers.Hypergrid
             message.AppendChild(doc.CreateTextNode(msg));
 
             rootElement.AppendChild(message);
+
+            return DocToBytes(doc);
+        }
+
+        private byte[] BoolResult(bool value)
+        {
+            XmlDocument doc = new XmlDocument();
+
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            doc.AppendChild(xmlnode);
+
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
+                    "");
+
+            doc.AppendChild(rootElement);
+
+            XmlElement result = doc.CreateElement("", "RESULT", "");
+            result.AppendChild(doc.CreateTextNode(value.ToString()));
+
+            rootElement.AppendChild(result);
 
             return DocToBytes(doc);
         }
@@ -312,6 +430,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             return ms.ToArray();
         }
+
 
         #endregion
     }

@@ -49,7 +49,7 @@ using OpenSim.Data.SQLite;
 namespace OpenSim.Data.Tests
 {
     [TestFixture(Description = "Asset store tests (SQLite)")]
-    public class SQLiteAssetTests : AssetTests<SqliteConnection, SQLiteAssetData>
+    public class SQLiteAssetTests :  AssetTests<SqliteConnection, SQLiteAssetData>
     {
     }
 

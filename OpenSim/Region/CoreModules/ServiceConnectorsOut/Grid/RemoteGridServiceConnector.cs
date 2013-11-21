@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -42,6 +43,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteGridServicesConnector")]
     public class RemoteGridServicesConnector : ISharedRegionModule, IGridService
     {
         private static readonly ILog m_log =
@@ -186,10 +188,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
-            GridRegion rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
+            bool inCache = false;
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, Util.UIntsToLong((uint)x, (uint)y), out inCache);
+            if (inCache)
+                return rinfo;
+
+            rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
             if (rinfo == null)
                 rinfo = m_RemoteGridService.GetRegionByPosition(scopeID, x, y);
 
+            m_RegionInfoCache.Cache(rinfo);
             return rinfo;
         }
 
@@ -258,6 +266,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (grinfo != null)
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetDefaultRegions {0} found {1} regions", name, grinfo.Count);
+                foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
+                    if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
+                        rinfo.Add(r);
+                }
+            }
+
+            return rinfo;
+        }
+
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            List<GridRegion> rinfo = m_LocalGridService.GetDefaultHypergridRegions(scopeID);
+            //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Local GetDefaultHypergridRegions {0} found {1} regions", name, rinfo.Count);
+            List<GridRegion> grinfo = m_RemoteGridService.GetDefaultHypergridRegions(scopeID);
+
+            if (grinfo != null)
+            {
+                //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetDefaultHypergridRegions {0} found {1} regions", name, grinfo.Count);
                 foreach (GridRegion r in grinfo)
                 {
                     m_RegionInfoCache.Cache(r);

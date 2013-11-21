@@ -56,8 +56,8 @@ namespace OpenSim.Server.Handlers.GridUser
             m_GridUserService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -88,6 +88,8 @@ namespace OpenSim.Server.Handlers.GridUser
                         return SetPosition(request);
                     case "getgriduserinfo":
                         return GetGridUserInfo(request);
+                    case "getgriduserinfos":
+                        return GetGridUserInfos(request);
                 }
                 m_log.DebugFormat("[GRID USER HANDLER]: unknown method request: {0}", method);
             }
@@ -115,10 +117,9 @@ namespace OpenSim.Server.Handlers.GridUser
             result["result"] = guinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
 
+            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] LoggedOut(Dictionary<string, object> request)
@@ -184,13 +185,53 @@ namespace OpenSim.Server.Handlers.GridUser
             GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(user);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = guinfo.ToKeyValuePairs();
+            if (guinfo != null)
+                result["result"] = guinfo.ToKeyValuePairs();
+            else
+                result["result"] = "null";
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
             //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
 
+        byte[] GetGridUserInfos(Dictionary<string, object> request)
+        {
+
+            string[] userIDs;
+
+            if (!request.ContainsKey("AgentIDs"))
+            {
+                m_log.DebugFormat("[GRID USER HANDLER]: GetGridUserInfos called without required uuids argument");
+                return FailureResult();
+            }
+
+            if (!(request["AgentIDs"] is List<string>))
+            {
+                m_log.DebugFormat("[GRID USER HANDLER]: GetGridUserInfos input argument was of unexpected type {0}", request["uuids"].GetType().ToString());
+                return FailureResult();
+            }
+
+            userIDs = ((List<string>)request["AgentIDs"]).ToArray();
+
+            GridUserInfo[] pinfos = m_GridUserService.GetGridUserInfo(userIDs);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((pinfos == null) || ((pinfos != null) && (pinfos.Length == 0)))
+                result["result"] = "null";
+            else
+            {
+                int i = 0;
+                foreach (GridUserInfo pinfo in pinfos)
+                {
+                    Dictionary<string, object> rinfoDict = pinfo.ToKeyValuePairs();
+                    result["griduser" + i] = rinfoDict;
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         private bool UnpackArgs(Dictionary<string, object> request, out string user, out UUID region, out Vector3 position, out Vector3 lookAt)

@@ -30,11 +30,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-
+using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
-using MySql.Data.MySqlClient;
+using RegionFlags = OpenSim.Framework.RegionFlags;
 
 namespace OpenSim.Data.MySQL
 {
@@ -162,17 +162,7 @@ namespace OpenSim.Data.MySQL
                         ret.sizeX = Convert.ToInt32(result["sizeX"]);
                         ret.sizeY = Convert.ToInt32(result["sizeY"]);
 
-                        if (m_ColumnNames == null)
-                        {
-                            m_ColumnNames = new List<string>();
-
-                            DataTable schemaTable = result.GetSchemaTable();
-                            foreach (DataRow row in schemaTable.Rows)
-                            {
-                                if (row["ColumnName"] != null)
-                                    m_ColumnNames.Add(row["ColumnName"].ToString());
-                            }
-                        }
+                        CheckColumnNames(result);
 
                         foreach (string s in m_ColumnNames)
                         {
@@ -187,7 +177,11 @@ namespace OpenSim.Data.MySQL
                             if (s == "locY")
                                 continue;
 
-                            ret.Data[s] = result[s].ToString();
+                            object value = result[s];
+                            if (value is DBNull)
+                                ret.Data[s] = null;
+                            else
+                                ret.Data[s] = result[s].ToString();
                         }
 
                         retList.Add(ret);
@@ -196,6 +190,23 @@ namespace OpenSim.Data.MySQL
             }
 
             return retList;
+        }
+
+        private void CheckColumnNames(IDataReader result)
+        {
+            if (m_ColumnNames != null)
+                return;
+
+            List<string> columnNames = new List<string>();
+
+            DataTable schemaTable = result.GetSchemaTable();
+            foreach (DataRow row in schemaTable.Rows)
+            {
+                if (row["ColumnName"] != null)
+                    columnNames.Add(row["ColumnName"].ToString());
+            }
+
+            m_ColumnNames = columnNames;
         }
 
         public bool Store(RegionData data)
@@ -299,6 +310,11 @@ namespace OpenSim.Data.MySQL
             return Get((int)RegionFlags.DefaultRegion, scopeID);
         }
 
+        public List<RegionData> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.DefaultHGRegion, scopeID);
+        }
+
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             List<RegionData> regions = Get((int)RegionFlags.FallbackRegion, scopeID);
@@ -318,11 +334,12 @@ namespace OpenSim.Data.MySQL
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
 
-            MySqlCommand cmd = new MySqlCommand(command);
-
-            cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-            return RunCommand(cmd);
+            using (MySqlCommand cmd = new MySqlCommand(command))
+            {
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+    
+                return RunCommand(cmd);
+            }
         }
     }
 }

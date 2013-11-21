@@ -36,17 +36,40 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IAttachmentsModule
     {
         /// <summary>
+        /// Copy attachment data from a ScenePresence into the AgentData structure for transmission to another simulator
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='ad'></param>
+        void CopyAttachments(IScenePresence sp, AgentData ad);
+
+        /// <summary>
+        /// Copy attachment data from an AgentData structure into a ScenePresence.
+        /// </summary>
+        /// <param name='ad'></param>
+        /// <param name='sp'></param>
+        void CopyAttachments(AgentData ad, IScenePresence sp);
+
+        /// <summary>
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
+        /// <remarks>
+        /// This is only actually necessary for viewers which do not have a current outfit folder (these viewers make
+        /// their own attachment calls on login) and agents which have attachments but no viewer (e.g. NPCs).
+        /// </remarks>
         /// <param name="sp"></param>
         void RezAttachments(IScenePresence sp);
 
         /// <summary>
-        /// Save the attachments that have change on this presence.
+        /// Derez the attachements for a scene presence that is closing.
         /// </summary>
-        /// <param name="sp"></param>
-        void SaveChangedAttachments(IScenePresence sp);
+        /// <remarks>
+        /// Attachment changes are saved.
+        /// </remarks>
+        /// <param name="sp">The presence closing</param>
+        /// <param name="saveChanged">Save changed attachments.</param>
+        /// <param name="saveAllScripted">Save attachments with scripts even if they haven't changed.</para>
+        void DeRezAttachments(IScenePresence sp);
 
         /// <summary>
         /// Delete all the presence's attachments from the scene
@@ -57,14 +80,16 @@ namespace OpenSim.Region.Framework.Interfaces
         void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
 
         /// <summary>
-        /// Attach an object to an avatar
+        /// Attach an object to an avatar.
         /// </summary>
         /// <param name="sp"></param>
         /// <param name="grp"></param>
         /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
+        /// <param name="addToInventory">If true then add object to user inventory</param>
+        /// <param name="append">Append to attachment point rather than replace.</param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
-        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent);
+        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent, bool addToInventory, bool append);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.
@@ -73,7 +98,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
         /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt);
+        SceneObjectGroup RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt);
 
         /// <summary>
         /// Rez multiple attachments from a user's inventory
@@ -90,11 +115,20 @@ namespace OpenSim.Region.Framework.Interfaces
         void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID);
 
         /// <summary>
-        /// Detach the given item so that it remains in the user's inventory.
+        /// Detach the given item to the ground at the specified coordinates & rotation
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="absolutePos"></param>
+        /// <param name="absoluteRot"></param>
+        void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID, Vector3 absolutePos, Quaternion absoluteRot);
+
+        /// <summary>
+        /// Detach the given attachment so that it remains in the user's inventory.
         /// </summary>
         /// <param name="sp">/param>
-        /// <param name="itemID"></param>
-        void DetachSingleAttachmentToInv(IScenePresence sp, UUID itemID);
+        /// <param name="grp">The attachment to detach.</param>
+        void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup grp);
         
         /// <summary>
         /// Update the position of an attachment.

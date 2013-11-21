@@ -57,8 +57,8 @@ namespace OpenSim.Server.Handlers.Friends
             m_FriendsService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -95,7 +95,8 @@ namespace OpenSim.Server.Handlers.Friends
                         return DeleteFriendString(request);
 
                 }
-                m_log.DebugFormat("[FRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
+
+                m_log.DebugFormat("[FRIENDS HANDLER]: unknown method request {0}", method);
             }
             catch (Exception e)
             {
@@ -103,7 +104,6 @@ namespace OpenSim.Server.Handlers.Friends
             }
 
             return FailureResult();
-
         }
 
         #region Method-specific handlers
@@ -152,10 +152,9 @@ namespace OpenSim.Server.Handlers.Friends
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[FRIENDS HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
 
+            //m_log.DebugFormat("[FRIENDS HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] StoreFriend(Dictionary<string, object> request)

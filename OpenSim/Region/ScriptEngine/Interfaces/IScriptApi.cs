@@ -26,18 +26,26 @@
  */
 
 using System;
+using System.Threading;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public interface IScriptApi
     {
-        //
-        // Each API has an identifier, which is used to load the
-        // proper runtime assembly at load time.
-        //
-        void Initialize(IScriptEngine engine, SceneObjectPart part, uint localID, UUID item);
+        /// <summary>
+        /// Initialize the API
+        /// </summary>
+        /// <remarks>
+        /// Each API has an identifier, which is used to load the proper runtime assembly at load time.
+        /// <param name='scriptEngine'>/param>
+        /// <param name='host'>/param>
+        /// <param name='item'>/param>
+        /// <param name='coopSleepHandle'>/param>
+        void Initialize(
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle);
     }
 }

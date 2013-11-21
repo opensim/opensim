@@ -112,6 +112,34 @@ namespace OpenSim.Data.Null
         {
             m_store.StoreRegionWindlightSettings(wl);
         }
+
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            return m_store.LoadRegionEnvironmentSettings(regionUUID);
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            m_store.StoreRegionEnvironmentSettings(regionUUID, settings);
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            m_store.RemoveRegionEnvironmentSettings(regionUUID);
+        }
+
+        public void SaveExtra(UUID regionID, string name, string value)
+        {
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -120,7 +148,7 @@ namespace OpenSim.Data.Null
     /// </summary>
     public class NullDataStore : ISimulationDataStore
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Dictionary<UUID, RegionSettings> m_regionSettings = new Dictionary<UUID, RegionSettings>();
         protected Dictionary<UUID, SceneObjectPart> m_sceneObjectParts = new Dictionary<UUID, SceneObjectPart>();
@@ -158,7 +186,25 @@ namespace OpenSim.Data.Null
         {
             //This connector doesn't support the windlight module yet
         }
-        
+
+        #region Environment Settings
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the Environment module yet
+            return string.Empty;
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            //This connector doesn't support the Environment module yet
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the Environment module yet
+        }
+        #endregion
+
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             RegionSettings rs = null;
@@ -177,9 +223,9 @@ namespace OpenSim.Data.Null
             // Therefore, we need to store parts rather than groups.
             foreach (SceneObjectPart prim in obj.Parts)
             {
-                m_log.DebugFormat(
-                    "[MOCK REGION DATA PLUGIN]: Storing part {0} {1} in object {2} {3} in region {4}", 
-                    prim.Name, prim.UUID, obj.Name, obj.UUID, regionUUID);
+//                m_log.DebugFormat(
+//                    "[MOCK REGION DATA PLUGIN]: Storing part {0} {1} in object {2} {3} in region {4}", 
+//                    prim.Name, prim.UUID, obj.Name, obj.UUID, regionUUID);
                             
                 m_sceneObjectParts[prim.UUID] = prim;
             }
@@ -193,9 +239,9 @@ namespace OpenSim.Data.Null
             {
                 if (part.ParentGroup.UUID == obj)
                 {
-                    m_log.DebugFormat(
-                        "[MOCK REGION DATA PLUGIN]: Removing part {0} {1} as part of object {2} from {3}", 
-                        part.Name, part.UUID, obj, regionUUID);
+//                    m_log.DebugFormat(
+//                        "[MOCK REGION DATA PLUGIN]: Removing part {0} {1} as part of object {2} from {3}", 
+//                        part.Name, part.UUID, obj, regionUUID);
                     m_sceneObjectParts.Remove(part.UUID);
                 }
             }
@@ -215,8 +261,8 @@ namespace OpenSim.Data.Null
             {
                 if (prim.IsRoot)
                 {
-                    m_log.DebugFormat(
-                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);
+//                    m_log.DebugFormat(
+//                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);
                     objects[prim.UUID] = new SceneObjectGroup(prim);
                 }
             }
@@ -240,9 +286,9 @@ namespace OpenSim.Data.Null
                     }
                     else
                     {
-                        m_log.WarnFormat(
-                            "[MOCK REGION DATA PLUGIN]: Database contains an orphan child prim {0} {1} in region {2} pointing to missing parent {3}.  This prim will not be loaded.",
-                            prim.Name, prim.UUID, regionUUID, prim.ParentUUID);
+//                        m_log.WarnFormat(
+//                            "[MOCK REGION DATA PLUGIN]: Database contains an orphan child prim {0} {1} in region {2} pointing to missing parent {3}.  This prim will not be loaded.",
+//                            prim.Name, prim.UUID, regionUUID, prim.ParentUUID);
                     }
                 }
             }
@@ -284,6 +330,19 @@ namespace OpenSim.Data.Null
 
         public void Shutdown()
         {
+        }
+
+        public void SaveExtra(UUID regionID, string name, string value)
+        {
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return null;
         }
     }
 }

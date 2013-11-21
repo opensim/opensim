@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -39,8 +40,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 {
-    public class LocalLandServicesConnector :
-            ISharedRegionModule, ILandService
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalLandServicesConnector")]
+    public class LocalLandServicesConnector : ISharedRegionModule, ILandService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

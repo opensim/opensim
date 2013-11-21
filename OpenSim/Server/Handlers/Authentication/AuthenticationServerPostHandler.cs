@@ -70,8 +70,8 @@ namespace OpenSim.Server.Handlers.Authentication
             }
         }
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string[] p = SplitParams(path);
 
@@ -321,8 +321,7 @@ namespace OpenSim.Server.Handlers.Authentication
         private byte[] ResultToBytes(Dictionary<string, object> result)
         {
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
     }
 }

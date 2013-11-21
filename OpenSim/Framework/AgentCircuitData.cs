@@ -99,6 +99,11 @@ namespace OpenSim.Framework
         public string lastname;
 
         /// <summary>
+        /// Agent's full name.
+        /// </summary>
+        public string Name { get { return string.Format("{0} {1}", firstname, lastname); } }
+
+        /// <summary>
         /// Random Unique GUID for this session.  Client gets this at login and it's
         /// only supposed to be disclosed over secure channels
         /// </summary>
@@ -123,7 +128,31 @@ namespace OpenSim.Framework
         /// <summary>
         /// Viewer's version string as reported by the viewer at login
         /// </summary>
-        public string Viewer;
+        private string m_viewerInternal;
+
+        /// <summary>
+        /// Viewer's version string
+        /// </summary>
+        public string Viewer
+        {
+            set { m_viewerInternal = value; }
+
+            // Try to return consistent viewer string taking into account
+            // that viewers have chaagned how version is reported
+            // See http://opensimulator.org/mantis/view.php?id=6851
+            get
+            {
+                // Old style version string contains viewer name followed by a space followed by a version number
+                if (m_viewerInternal == null || m_viewerInternal.Contains(" "))
+                {
+                    return m_viewerInternal;
+                }
+                else // New style version contains no spaces, just version number
+                {
+                    return Channel + " " + m_viewerInternal;
+                }
+            }
+        }
 
         /// <summary>
         /// The channel strinf sent by the viewer at login
@@ -296,7 +325,7 @@ namespace OpenSim.Framework
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
 
-            m_log.InfoFormat("[AGENTCIRCUITDATA]: agentid={0}, child={1}, startpos={2}", AgentID, child, startpos);
+            //m_log.InfoFormat("[AGENTCIRCUITDATA]: agentid={0}, child={1}, startpos={2}", AgentID, child, startpos);
             
             try
             {
@@ -311,7 +340,7 @@ namespace OpenSim.Framework
                 if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
                 {
                     Appearance.Unpack((OSDMap)args["packed_appearance"]);
-                    m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
+//                    m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
                 }
                 else
                 {

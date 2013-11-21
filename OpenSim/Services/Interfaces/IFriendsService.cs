@@ -36,7 +36,15 @@ namespace OpenSim.Services.Interfaces
     {
         public UUID PrincipalID;
         public string Friend;
+
+        /// <summary>
+        /// The permissions that this user has granted to the friend.
+        /// </summary>
         public int MyFlags;
+
+        /// <summary>
+        /// The permissions that the friend has granted to this user.
+        /// </summary>
         public int TheirFlags;
 
         public FriendInfo()
@@ -51,7 +59,7 @@ namespace OpenSim.Services.Interfaces
             Friend = string.Empty;
             if (kvp.ContainsKey("Friend") && kvp["Friend"] != null)
                 Friend = kvp["Friend"].ToString();
-            MyFlags = 0;
+            MyFlags = (int)FriendRights.None;
             if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
                 Int32.TryParse(kvp["MyFlags"].ToString(), out MyFlags);
             TheirFlags = 0;

@@ -223,50 +223,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
         {
-            XmlDocument doc = new XmlDocument();
-            XmlNode rootNode;
-
-            XmlTextReader reader = new XmlTextReader(new StringReader(xmlString));
-            reader.WhitespaceHandling = WhitespaceHandling.None;
-            doc.Load(reader);
-            reader.Close();
-            rootNode = doc.FirstChild;
-
-            // This is to deal with neighbouring regions that are still surrounding the group xml with the <scene>
-            // tag.  It should be possible to remove the first part of this if statement once we go past 0.5.9 (or
-            // when some other changes forces all regions to upgrade).
-            // This might seem rather pointless since prim crossing from this revision to an earlier revision remains
-            // broken.  But it isn't much work to accomodate the old format here.
-            if (rootNode.LocalName.Equals("scene"))
-            {
-                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
-                {
-                    // There is only ever one prim.  This oddity should be removeable post 0.5.9
-                    //return SceneObjectSerializer.FromXml2Format(aPrimNode.OuterXml);
-                    using (reader = new XmlTextReader(new StringReader(aPrimNode.OuterXml)))
-                    {
-                        SceneObjectGroup obj = new SceneObjectGroup();
-                        if (SceneObjectSerializer.Xml2ToSOG(reader, obj))
-                            return obj;
-
-                        return null;
-                    }
-                }
-
-                return null;
-            }
-            else
-            {
-                //return SceneObjectSerializer.FromXml2Format(rootNode.OuterXml);
-                using (reader = new XmlTextReader(new StringReader(rootNode.OuterXml)))
-                {
-                    SceneObjectGroup obj = new SceneObjectGroup();
-                    if (SceneObjectSerializer.Xml2ToSOG(reader, obj))
-                        return obj;
-
-                    return null;
-                }
-            }
+            return SceneObjectSerializer.FromXml2Format(xmlString);
         }
 
         /// <summary>
@@ -307,8 +264,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
-                SceneObjectGroup obj = CreatePrimFromXml2(scene, aPrimNode.OuterXml);
-                if (obj != null && startScripts)
+                SceneObjectGroup obj = DeserializeGroupFromXml2(aPrimNode.OuterXml);
+                if (startScripts)
                     sceneObjects.Add(obj);
             }
 
@@ -316,27 +273,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                  sceneObject.CreateScriptInstances(0, true, scene.DefaultScriptEngine, 0);
                  sceneObject.ResumeScripts();
-            }
-        }
-
-        /// <summary>
-        /// Create a prim from the xml2 representation.
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="xmlData"></param>
-        /// <returns>The scene object created.  null if the scene object already existed</returns>
-        protected static SceneObjectGroup CreatePrimFromXml2(Scene scene, string xmlData)
-        {
-            //SceneObjectGroup obj = SceneObjectSerializer.FromXml2Format(xmlData);
-            using (XmlTextReader reader = new XmlTextReader(new StringReader(xmlData)))
-            {
-                SceneObjectGroup obj = new SceneObjectGroup();
-                SceneObjectSerializer.Xml2ToSOG(reader, obj);
-
-                if (scene.AddRestoredSceneObject(obj, true, false))
-                    return obj;
-                else
-                    return null;
             }
         }
 

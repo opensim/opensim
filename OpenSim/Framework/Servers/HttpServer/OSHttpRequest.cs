@@ -39,7 +39,7 @@ using log4net;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public class OSHttpRequest
+    public class OSHttpRequest : IOSHttpRequest
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -107,7 +107,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool IsSecured
         {
-            get { return _context.Secured; }
+            get { return _context.IsSecured; }
         }
 
         public bool KeepAlive
@@ -173,7 +173,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return _whiteboard; }
         }
         private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
-
 
         public OSHttpRequest() {}
 

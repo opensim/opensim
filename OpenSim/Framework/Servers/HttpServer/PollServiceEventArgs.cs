@@ -28,12 +28,13 @@
 using System;
 using System.Collections;
 using OpenMetaverse;
+
 namespace OpenSim.Framework.Servers.HttpServer
 {
     public delegate void RequestMethod(UUID requestID, Hashtable request);
     public delegate bool HasEventsMethod(UUID requestID, UUID pId);
 
-    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId, string request);
+    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId);
 
     public delegate Hashtable NoEventsMethod(UUID requestID, UUID pId);
 
@@ -44,13 +45,42 @@ namespace OpenSim.Framework.Servers.HttpServer
         public NoEventsMethod NoEvents;
         public RequestMethod Request;
         public UUID Id;
-        public PollServiceEventArgs(RequestMethod pRequest, HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,UUID pId)
+        public int TimeOutms;
+        public EventType Type;    
+
+        public enum EventType : int
+        {
+            LongPoll = 0,
+            LslHttp = 1,
+            Inventory = 2
+        }
+
+        public string Url { get; set; }
+
+        /// <summary>
+        /// Number of requests received for this poll service.
+        /// </summary>
+        public int RequestsReceived { get; set; }
+
+        /// <summary>
+        /// Number of requests handled by this poll service.
+        /// </summary>
+        public int RequestsHandled { get; set; }
+
+        public PollServiceEventArgs(
+            RequestMethod pRequest,
+            string pUrl,
+            HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,
+            UUID pId, int pTimeOutms)
         {
             Request = pRequest;
+            Url = pUrl;
             HasEvents = pHasEvents;
             GetEvents = pGetEvents;
             NoEvents = pNoEvents;
             Id = pId;
+            TimeOutms = pTimeOutms;
+            Type = EventType.LongPoll;
         }
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.9.xsd" version="1.9">
-	<Solution name="Prebuild" version="2.0.4">
+	<Solution name="Prebuild" version="2.0.5">
 		<Configuration name="Debug">
 			<Options>
 				<CompilerDefines>DEBUG;TRACE</CompilerDefines>
@@ -31,13 +31,15 @@
 		         type="Exe"
 		         rootNamespace="Prebuild"
 		         startupObject="Prebuild.Prebuild"
-		         version="2.0.3"
+		         version="2.0.5"
+		         frameworkVersion="v3_5"
 		>
 			<Author>Matthew Holmes (matthew@wildfiregames.com)</Author>
 			<Author>Dan Moorehead (dan05a@gmail.com)</Author>
 			<Author>Dave Hudson (jendave@yahoo.com)</Author>
 			<Author>Rob Loach (http://robloach.net)</Author>
 			<Author>C.J. Adams-Collier (cjac@colliertech.org)</Author>
+			<Author>John Hurliman (john.hurliman@intel.com)</Author>
 			<Description>The Prebuild project generator</Description>
 			<Configuration name="Debug">
 				<Options>

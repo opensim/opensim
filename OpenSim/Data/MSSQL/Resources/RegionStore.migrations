@@ -1043,3 +1043,140 @@ FOR CreatorID
 ALTER TABLE primitems ALTER COLUMN CreatorID uniqueidentifier NOT NULL
 
 COMMIT
+
+:VERSION 29         #----------------- Region Covenant changed time
+
+BEGIN TRANSACTION
+
+ALTER TABLE regionsettings ADD covenant_datetime int NOT NULL default 0
+
+COMMIT
+
+:VERSION 30         #------------------Migrate creatorID storage to varchars instead of UUIDs for HG support
+
+BEGIN TRANSACTION
+
+EXECUTE sp_rename N'dbo.prims.creatorid', N'creatoridold', 'COLUMN'
+EXECUTE sp_rename N'dbo.primitems.creatorid', N'creatoridold', 'COLUMN'
+
+COMMIT
+
+:VERSION 31        #---------------------
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD CreatorID varchar(255)
+ALTER TABLE primitems ADD CreatorID varchar(255)
+
+COMMIT
+
+:VERSION 32        #---------------------
+
+BEGIN TRANSACTION
+
+UPDATE prims SET prims.CreatorID = CONVERT(varchar(255), creatoridold)
+UPDATE primitems SET primitems.CreatorID = CONVERT(varchar(255), creatoridold)
+
+COMMIT
+
+:VERSION 33       #---------------------
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims 
+ADD CONSTRAINT DF_prims_CreatorIDNew 
+DEFAULT '00000000-0000-0000-0000-000000000000' 
+FOR CreatorID
+
+ALTER TABLE prims ALTER COLUMN CreatorID varchar(255) NOT NULL
+
+ALTER TABLE primitems
+ADD CONSTRAINT DF_primitems_CreatorIDNew
+DEFAULT '00000000-0000-0000-0000-000000000000' 
+FOR CreatorID
+
+ALTER TABLE primitems ALTER COLUMN CreatorID varchar(255) NOT NULL
+
+COMMIT
+
+:VERSION 34		  #--------------- Telehub support
+
+BEGIN TRANSACTION
+
+CREATE TABLE [dbo].[Spawn_Points](
+	[RegionUUID] [uniqueidentifier] NOT NULL,
+	[Yaw] [float] NOT NULL,
+	[Pitch] [float] NOT NULL,
+	[Distance] [float] NOT NULL,
+	PRIMARY KEY CLUSTERED 
+	(
+		[RegionUUID] ASC
+	)WITH (PAD_INDEX  = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+ALTER TABLE regionsettings ADD TelehubObject uniqueidentifier NOT NULL  DEFAULT '00000000-0000-0000-0000-000000000000';
+
+COMMIT
+
+:VERSION 35       #---------------- Parcels for sale
+
+BEGIN TRANSACTION
+
+ALTER TABLE regionsettings ADD parcel_tile_ID uniqueidentifier NOT NULL  DEFAULT '00000000-0000-0000-0000-000000000000';
+
+COMMIT
+
+:VERSION 36       #---------------- Timed bans/access
+
+BEGIN TRANSACTION
+
+ALTER TABLE landaccesslist ADD Expires integer NOT NULL  DEFAULT 0;
+
+COMMIT
+
+:VERSION 37       #---------------- Environment Settings
+
+BEGIN TRANSACTION
+
+CREATE TABLE [dbo].[regionenvironment](
+	[region_id] [uniqueidentifier] NOT NULL,
+	[llsd_settings] [varchar](max) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+ PRIMARY KEY CLUSTERED
+(
+	[region_id] ASC
+)WITH (PAD_INDEX  = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+COMMIT
+
+:VERSION 38       #---------------- Dynamic attributes
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD DynAttrs TEXT;
+
+COMMIT
+
+:VERSION 39       #---------------- Extra physics params
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD `PhysicsShapeType` tinyint(4) NOT NULL default '0';
+ALTER TABLE prims ADD `Density` double NOT NULL default '1000';
+ALTER TABLE prims ADD `GravityModifier` double NOT NULL default '1';
+ALTER TABLE prims ADD `Friction` double NOT NULL default '0.6';
+ALTER TABLE prims ADD `Restitution` double NOT NULL default '0.5';
+
+COMMIT
+
+:VERSION 40       #---------------- Save Attachment info
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD AttachedPosX float(53) default 0.0;
+ALTER TABLE prims ADD AttachedPosY float(53) default 0.0;
+ALTER TABLE prims ADD AttachedPosZ float(53) default 0.0;
+ALTER TABLE primshapes ADD LastAttachPoint int not null default 0;
+
+COMMIT
+

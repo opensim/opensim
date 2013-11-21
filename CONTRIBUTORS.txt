@@ -1,5 +1,5 @@
-The following people have contributed to OpenSim (Thank you 
-for your effort!)
+   <<<>>>>The following people have contributed to OpenSim (Thank you 
+for your effort!) 
 
 = Current OpenSim Developers (in very rough order of appearance) =
 These folks represent the current core team for OpenSim, and are the
@@ -7,7 +7,7 @@ people that make the day to day of OpenSim happen.
 
 * justincc (OSVW Consulting, justincc.org)
 * chi11ken (Genkii)
-* dahlia
+* dahlia 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
 * Dan Lake (Intel)
@@ -16,7 +16,7 @@ people that make the day to day of OpenSim happen.
 * BlueWall (James Hughes)
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Snoopy Pfeffer
-* Richard Adams (Intel)
+* Robert Adams (Intel)
 
 = Core Developers Following the White Rabbit =
 Core developers who have temporarily (we hope) gone chasing the white rabbit. 
@@ -58,45 +58,58 @@ where we are today.
 
 
 = Additional OpenSim Contributors =
-These folks have contributed code patches to OpenSim to help make it
+These folks have contributed code patches or content to OpenSimulator to help make it
 what it is today.  
 
 * aduffy70
 * A_Biondi
 * alex_carnell
 * Alan Webb (IBM)
+* Aleric
+* Allen Kerensky
 * BigFootAg
 * BlueWall Slade
 * brianw/Sir_Ahzz
 * CharlieO
 * ChrisDown
 * Chris Yeoh (IBM)
+* controlbreak
 * coyled
 * Daedius
-* Dong Jun Lan (IBM)
-* DoranZemlja
 * daTwitch 
 * devalnor-#708
 * dmiles (Daxtron Labs)
+* Dong Jun Lan (IBM)
+* DoranZemlja
+* dr0b3rts
 * dslake (Intel)
 * FredoChaplin
+* Garmin Kawaguichi
 * Gerhard
 * Godfrey
+* Greg C.
 * Grumly57
 * GuduleLapointe
 * Ewe Loon
+* Fernando Oliveira
 * Fly-Man
 * Flyte Xevious
+* Garmin Kawaguichi
+* Gryc Ueusp
+* Hiro Lecker
+* Iain Oliver
 * Imaze Rhiano
 * Intimidated
 * Jeremy Bongio (IBM)
 * jhurliman
 * John R Sohn (XenReborn)
 * jonc
+* Jon Cundill
 * Junta Kohime
 * Kayne
 * Kevin Cozens
 * kinoc (Daxtron Labs)
+* Kira
 * Kitto Flora
 * KittyLiu
 * Kurt Taylor (IBM)
@@ -105,6 +118,7 @@ what it is today.
 * M.Igarashi
 * maimedleech
 * Mana Janus
+* MarcelEdward
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
@@ -134,18 +148,25 @@ what it is today.
 * Ruud Lathorp
 * SachaMagne
 * Salahzar Stenvaag
+* satguru p srivastava
 * sempuki
 * SignpostMarv
 * SpotOn3D
+* Stefan_Boom / stoehr
 * Strawberry Fride
+* Talun
+* TechplexEngineer (Blake Bourque)
+* TBG Renfold
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * tyre
+* Vegaslon <vegaslon@gmail.com>
 * VikingErik
 * Vytek
 * webmage (IBM)
 * Xantor
 * Y. Nitta
+* YoshikoFazuku
 * YZh
 * Zackary Geers aka Kunnis Basiat
 * Zha Ewry
@@ -170,12 +191,14 @@ what it is today.
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
+* Aurora-Sim (http://aurora-sim.org)
 * SQLite (Public Domain)
 * XmlRpcCS (http://xmlrpccs.sf.net/)
 * MySQL, Inc. (MySQL Connector/NET)
 * NUnit (http://www.nunit.org)
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
+* Erwin Coumans (Bullet)
 * Prebuild (http://sourceforge.net/projects/dnpb/)
 * LibOpenMetaverse (http://lib.openmetaverse.org/)
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)

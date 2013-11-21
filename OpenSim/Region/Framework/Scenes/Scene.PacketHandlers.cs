@@ -38,8 +38,20 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
+        /// <summary>
+        /// Send chat to listeners.
+        /// </summary>
+        /// <param name='message'></param>
+        /// <param name='type'>/param>
+        /// <param name='channel'></param>
+        /// <param name='fromPos'></param>
+        /// <param name='fromName'></param>
+        /// <param name='fromID'></param>
+        /// <param name='targetID'></param>
+        /// <param name='fromAgent'></param>
+        /// <param name='broadcast'></param>
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
-                               UUID fromID, bool fromAgent, bool broadcast)
+                               UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
             OSChatMessage args = new OSChatMessage();
 
@@ -63,14 +75,24 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             args.From = fromName;
-            //args.
+            args.TargetUUID = targetID;
+
+//            m_log.DebugFormat(
+//                "[SCENE]: Sending message {0} on channel {1}, type {2} from {3}, broadcast {4}",
+//                args.Message.Replace("\n", "\\n"), args.Channel, args.Type, fromName, broadcast);
 
             if (broadcast)
                 EventManager.TriggerOnChatBroadcast(this, args);
             else
                 EventManager.TriggerOnChatFromWorld(this, args);
         }
-        
+
+        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                               UUID fromID, bool fromAgent, bool broadcast)
+        {
+            SimChat(message, type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, broadcast);
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -108,6 +130,19 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, true);
         }
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="fromPos"></param>
+        /// <param name="fromName"></param>
+        /// <param name="fromAgentID"></param>
+        /// <param name="targetID"></param>
+        public void SimChatToAgent(UUID targetID, byte[] message, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
+        {
+            SimChat(message, ChatTypeEnum.Say, 0, fromPos, fromName, fromID, targetID, fromAgent, false);
+        }
 
         /// <summary>
         /// Invoked when the client requests a prim.
@@ -116,18 +151,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            EntityBase[] entityList = GetEntities();
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup)ent).LocalId == primLocalID)
-                    {
-                        ((SceneObjectGroup)ent).SendFullUpdateToClient(remoteClient);
-                        return;
-                    }
-                }
-            }
+            SceneObjectGroup sog = GetGroupByPrim(primLocalID);
+
+            if (sog != null)
+                sog.SendFullUpdateToClient(remoteClient);
         }
 
         /// <summary>
@@ -137,45 +164,65 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            EntityBase[] entityList = GetEntities();
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup) ent).LocalId == primLocalID)
-                    {
-                        ((SceneObjectGroup) ent).SendPropertiesToClient(remoteClient);
-                        ((SceneObjectGroup) ent).IsSelected = true;
-                        // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                        if (Permissions.CanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) 
-                            || Permissions.CanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
-                        {
-                            EventManager.TriggerParcelPrimCountTainted();
-                        }
-                        break;
-                    }
-                    else 
-                    {
-                        // We also need to check the children of this prim as they
-                        // can be selected as well and send property information
-                        bool foundPrim = false;
-                        
-                        SceneObjectGroup sog = ent as SceneObjectGroup;
+            SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
-                        SceneObjectPart[] partList = sog.Parts;
-                        foreach (SceneObjectPart part in partList)
-                        {
-                            if (part.LocalId == primLocalID) 
-                            {
-                                part.SendPropertiesToClient(remoteClient);
-                                foundPrim = true;
-                                break;
-                            }
-                        }
-                            
-                        if (foundPrim) 
-                            break;
-                   }
+            if (null == part)
+                return;
+
+            if (part.IsRoot)
+            {
+                SceneObjectGroup sog = part.ParentGroup;
+                sog.SendPropertiesToClient(remoteClient);
+                sog.IsSelected = true;
+
+                // A prim is only tainted if it's allowed to be edited by the person clicking it.
+                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                {
+                    EventManager.TriggerParcelPrimCountTainted();
+                }
+            }
+            else
+            {
+                 part.SendPropertiesToClient(remoteClient);
+            }
+        }
+
+        /// <summary>
+        /// Handle the update of an object's user group.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="groupID"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="Garbage"></param>
+        private void HandleObjectGroupUpdate(
+            IClientAPI remoteClient, UUID groupID, uint objectLocalID, UUID Garbage)
+        {
+            if (m_groupsModule == null)
+                return;
+
+            // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
+            // reasonable for a UUID.Zero group.
+            if (groupID != UUID.Zero)
+            {
+                GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, remoteClient.AgentId);
+    
+                if (gmd == null)
+                {
+//                    m_log.WarnFormat(
+//                        "[GROUPS]: User {0} is not a member of group {1} so they can't update {2} to this group",
+//                        remoteClient.Name, GroupID, objectLocalID);
+    
+                    return;
+                }
+            }
+
+            SceneObjectGroup so = ((Scene)remoteClient.Scene).GetGroupByPrim(objectLocalID);
+            if (so != null)
+            {
+                if (so.OwnerID == remoteClient.AgentId)
+                {
+                    so.SetGroup(groupID, remoteClient);
                 }
             }
         }
@@ -197,25 +244,20 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.ParentGroup.RootPart.LocalId != part.LocalId)
                 return;
 
-            bool isAttachment = false;
-            
             // This is wrong, wrong, wrong. Selection should not be
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
             //
             part.ParentGroup.IsSelected = false;
             
-            if (part.ParentGroup.IsAttachment)
-                isAttachment = true;
-            else
-                part.ParentGroup.ScheduleGroupForFullUpdate();
+            part.ParentGroup.ScheduleGroupForFullUpdate();
 
             // If it's not an attachment, and we are allowed to move it,
             // then we might have done so. If we moved across a parcel
             // boundary, we will need to recount prims on the parcels.
             // For attachments, that makes no sense.
             //
-            if (!isAttachment)
+            if (!part.ParentGroup.IsAttachment)
             {
                 if (Permissions.CanEditObject(
                         part.UUID, remoteClient.AgentId) 
@@ -250,174 +292,81 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            EntityBase[] EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            
+            if (part == null)
+                return;
+
+            SceneObjectGroup obj = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
-            foreach (EntityBase ent in EntityList)
+            // Currently only grab/touch for the single prim
+            // the client handles rez correctly
+            obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
+    
+            // If the touched prim handles touches, deliver it
+            // If not, deliver to root prim
+            if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
+                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+
+            // Deliver to the root prim if the touched prim doesn't handle touches
+            // or if we're meant to pass on touches anyway. Don't send to root prim
+            // if prim touched is the root prim as we just did it
+            if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
+                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
             {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-                    if (obj != null)
-                    {
-                        // Is this prim part of the group
-                        if (obj.HasChildPrim(localID))
-                        {
-                            // Currently only grab/touch for the single prim
-                            // the client handles rez correctly
-                            obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
-
-                            SceneObjectPart part = obj.GetChildPart(localID);
-
-                            // If the touched prim handles touches, deliver it
-                            // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch_start) != 0) 
-                                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
-                            // Deliver to the root prim if the touched prim doesn't handle touches
-                            // or if we're meant to pass on touches anyway. Don't send to root prim
-                            // if prim touched is the root prim as we just did it
-                            if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
-                                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
-                            {
-                                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
-                            }
-
-                            return;
-                        }
-                    }
-                }
+                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
         }
 
-        public virtual void ProcessObjectGrabUpdate(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
+        public virtual void ProcessObjectGrabUpdate(
+            UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            EntityBase[] EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(objectID);
+            if (part == null)
+                return;
+
+            SceneObjectGroup obj = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
-            foreach (EntityBase ent in EntityList)
+            // If the touched prim handles touches, deliver it
+            // If not, deliver to root prim
+            if ((part.ScriptEvents & scriptEvents.touch) != 0)
+                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+            // Deliver to the root prim if the touched prim doesn't handle touches
+            // or if we're meant to pass on touches anyway. Don't send to root prim
+            // if prim touched is the root prim as we just did it
+            if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
+                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
             {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-                    if (obj != null)
-                    {
-                        // Is this prim part of the group
-                        if (obj.HasChildPrim(objectID))
-                        {
-                            SceneObjectPart part = obj.GetChildPart(objectID);
-
-                            // If the touched prim handles touches, deliver it
-                            // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch) != 0)
-                                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
-                            // Deliver to the root prim if the touched prim doesn't handle touches
-                            // or if we're meant to pass on touches anyway. Don't send to root prim
-                            // if prim touched is the root prim as we just did it
-                            if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
-                                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
-                            {
-                                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
-                            }
-
-                            return;
-                        }
-                    }
-                }
+                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
-         }
+        }
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            EntityBase[] EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if (part == null)
+                return;
+
+            SceneObjectGroup obj = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
-            foreach (EntityBase ent in EntityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-
-                    // Is this prim part of the group
-                    if (obj.HasChildPrim(localID))
-                    {
-                        SceneObjectPart part=obj.GetChildPart(localID);
-                        if (part != null)
-                        {
-                            // If the touched prim handles touches, deliver it
-                            // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
-                                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
-                            else
-                                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
-
-                            return;
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-
-        public void ProcessAvatarPickerRequest(IClientAPI client, UUID avatarID, UUID RequestID, string query)
-        {
-            //EventManager.TriggerAvatarPickerRequest();
-
-            List<UserAccount> accounts = UserAccountService.GetUserAccounts(RegionInfo.ScopeID, query);
-
-            if (accounts == null)
-                return;
-
-            AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
-            // TODO: don't create new blocks if recycling an old packet
-
-            AvatarPickerReplyPacket.DataBlock[] searchData =
-                new AvatarPickerReplyPacket.DataBlock[accounts.Count];
-            AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
-
-            agentData.AgentID = avatarID;
-            agentData.QueryID = RequestID;
-            replyPacket.AgentData = agentData;
-            //byte[] bytes = new byte[AvatarResponses.Count*32];
-
-            int i = 0;
-            foreach (UserAccount item in accounts)
-            {
-                UUID translatedIDtem = item.PrincipalID;
-                searchData[i] = new AvatarPickerReplyPacket.DataBlock();
-                searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Utils.StringToBytes((string) item.FirstName);
-                searchData[i].LastName = Utils.StringToBytes((string) item.LastName);
-                i++;
-            }
-            if (accounts.Count == 0)
-            {
-                searchData = new AvatarPickerReplyPacket.DataBlock[0];
-            }
-            replyPacket.Data = searchData;
-
-            AvatarPickerReplyAgentDataArgs agent_data = new AvatarPickerReplyAgentDataArgs();
-            agent_data.AgentID = replyPacket.AgentData.AgentID;
-            agent_data.QueryID = replyPacket.AgentData.QueryID;
-
-            List<AvatarPickerReplyDataArgs> data_args = new List<AvatarPickerReplyDataArgs>();
-            for (i = 0; i < replyPacket.Data.Length; i++)
-            {
-                AvatarPickerReplyDataArgs data_arg = new AvatarPickerReplyDataArgs();
-                data_arg.AvatarID = replyPacket.Data[i].AvatarID;
-                data_arg.FirstName = replyPacket.Data[i].FirstName;
-                data_arg.LastName = replyPacket.Data[i].LastName;
-                data_args.Add(data_arg);
-            }
-            client.SendAvatarPickerReply(agent_data, data_args);
+            // If the touched prim handles touches, deliver it
+            // If not, deliver to root prim
+            if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
+                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
+            else
+                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
         }
 
         public void ProcessScriptReset(IClientAPI remoteClient, UUID objectID,
@@ -436,6 +385,7 @@ namespace OpenSim.Region.Framework.Scenes
         void ProcessViewerEffect(IClientAPI remoteClient, List<ViewerEffectEventHandlerArg> args)
         {
             // TODO: don't create new blocks if recycling an old packet
+            bool discardableEffects = true;
             ViewerEffectPacket.EffectBlock[] effectBlockArray = new ViewerEffectPacket.EffectBlock[args.Count];
             for (int i = 0; i < args.Count; i++)
             {
@@ -447,17 +397,34 @@ namespace OpenSim.Region.Framework.Scenes
                 effect.Type = args[i].Type;
                 effect.TypeData = args[i].TypeData;
                 effectBlockArray[i] = effect;
+
+                if ((EffectType)effect.Type != EffectType.LookAt && (EffectType)effect.Type != EffectType.Beam)
+                    discardableEffects = false;
+
+                //m_log.DebugFormat("[YYY]: VE {0} {1} {2}", effect.AgentID, effect.Duration, (EffectType)effect.Type);
             }
 
-            ForEachClient(
-                delegate(IClientAPI client)
+            ForEachScenePresence(sp =>
                 {
-                    if (client.AgentId != remoteClient.AgentId)
-                        client.SendViewerEffect(effectBlockArray);
-                }
-            );
+                    if (sp.ControllingClient.AgentId != remoteClient.AgentId)
+                    {
+                        if (!discardableEffects ||
+                            (discardableEffects && ShouldSendDiscardableEffect(remoteClient, sp)))
+                        {
+                            //m_log.DebugFormat("[YYY]: Sending to {0}", sp.UUID);
+                            sp.ControllingClient.SendViewerEffect(effectBlockArray);
+                        }
+                        //else
+                        //    m_log.DebugFormat("[YYY]: Not sending to {0}", sp.UUID);
+                    }
+                });
         }
-        
+
+        private bool ShouldSendDiscardableEffect(IClientAPI thisClient, ScenePresence other)
+        {
+            return Vector3.Distance(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 10;
+        }
+
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
         /// </summary>
@@ -484,6 +451,7 @@ namespace OpenSim.Region.Framework.Scenes
             // can be handled transparently).
             InventoryFolderImpl fold = null;
             if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+            {
                 if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
                 {
                     remoteClient.SendInventoryFolderDetails(
@@ -491,6 +459,7 @@ namespace OpenSim.Region.Framework.Scenes
                         fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
                     return;
                 }
+            }
 
             // We're going to send the reply async, because there may be
             // an enormous quantity of packets -- basically the entire inventory!
@@ -511,64 +480,6 @@ namespace OpenSim.Region.Framework.Scenes
             SendInventoryDelegate d = (SendInventoryDelegate)iar.AsyncState;
             d.EndInvoke(iar);
         }
-
-        /// <summary>
-        /// Handle the caps inventory descendents fetch.
-        ///
-        /// Since the folder structure is sent to the client on login, I believe we only need to handle items.
-        /// Diva comment 8/13/2009: what if someone gave us a folder in the meantime??
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="folderID"></param>
-        /// <param name="ownerID"></param>
-        /// <param name="fetchFolders"></param>
-        /// <param name="fetchItems"></param>
-        /// <param name="sortOrder"></param>
-        /// <returns>null if the inventory look up failed</returns>
-        public InventoryCollection HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
-                                                   bool fetchFolders, bool fetchItems, int sortOrder, out int version)
-        {
-            m_log.DebugFormat(
-                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
-                fetchFolders, fetchItems, folderID, agentID);
-
-            // FIXME MAYBE: We're not handling sortOrder!
-
-            // TODO: This code for looking in the folder for the library should be folded back into the
-            // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
-            // can be handled transparently).
-            InventoryFolderImpl fold;
-            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
-                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
-                {
-                    version = 0;
-                    InventoryCollection ret = new InventoryCollection();
-                    ret.Folders = new List<InventoryFolderBase>();
-                    ret.Items = fold.RequestListOfItems();
-
-                    return ret;
-                }
-
-            InventoryCollection contents = new InventoryCollection();
-
-            if (folderID != UUID.Zero)
-            {
-                contents = InventoryService.GetFolderContent(agentID, folderID); 
-                InventoryFolderBase containingFolder = new InventoryFolderBase();
-                containingFolder.ID = folderID;
-                containingFolder.Owner = agentID;
-                containingFolder = InventoryService.GetFolder(containingFolder);
-                version = containingFolder.Version;
-            }
-            else
-            {
-                // Lost itemsm don't really need a version
-                version = 1;
-            }
-
-            return contents;
-
-        }
         
         /// <summary>
         /// Handle an inventory folder creation request from the client.
@@ -585,7 +496,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!InventoryService.AddFolder(folder))
             {
                 m_log.WarnFormat(
-                     "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
+                     "[AGENT INVENTORY]: Failed to create folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
         }
@@ -643,14 +554,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
+
         /// <summary>
         /// This should delete all the items and folders in the given directory.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
-
-        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
-
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
             PurgeFolderDelegate d = PurgeFolderAsync;
@@ -663,7 +573,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[AGENT INVENTORY]: Exception on purge folder for user {0}: {1}", remoteClient.AgentId, e.Message);
             }
         }
-
 
         private void PurgeFolderAsync(UUID userID, UUID folderID)
         {

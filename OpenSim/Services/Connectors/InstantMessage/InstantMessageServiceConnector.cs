@@ -123,6 +123,7 @@ namespace OpenSim.Services.Connectors.InstantMessage
             gim["position_z"] = msg.Position.Z.ToString();
             gim["region_id"] = msg.RegionID.ToString();
             gim["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket, Base64FormattingOptions.None);
+            gim["region_id"] = new UUID(msg.RegionID).ToString();
 
             return gim;
         }

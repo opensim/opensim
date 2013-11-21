@@ -150,12 +150,5 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", m_assetsWritten);
         }
 
-        /// <summary>
-        /// Only call this if you need to force a close on the underlying writer.
-        /// </summary>
-        public void ForceClose()
-        {
-            m_archiveWriter.Close();
-        }
     }
 }

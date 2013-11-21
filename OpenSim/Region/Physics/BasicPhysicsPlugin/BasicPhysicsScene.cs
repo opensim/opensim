@@ -34,15 +34,25 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 {
+    /// <summary>
+    /// This is an incomplete extremely basic physics implementation
+    /// </summary>
+    /// <remarks>
+    /// Not useful for anything at the moment apart from some regression testing in other components where some form
+    /// of physics plugin is needed.
+    /// </remarks>
     public class BasicScene : PhysicsScene
     {
         private List<BasicActor> _actors = new List<BasicActor>();
+        private List<BasicPhysicsPrim> _prims = new List<BasicPhysicsPrim>();
         private float[] _heightMap;
 
         //protected internal string sceneIdentifier;
 
-        public BasicScene(string _sceneIdentifier)
+        public BasicScene(string engineType, string _sceneIdentifier)
         {
+            EngineType = engineType;
+            Name = EngineType + "/" + _sceneIdentifier;
             //sceneIdentifier = _sceneIdentifier;
         }
 
@@ -50,43 +60,40 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
         }
 
-        public override void Dispose()
-        {
+        public override void Dispose() {}
 
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
+        {
+            BasicPhysicsPrim prim = new BasicPhysicsPrim(primName, localid, position, size, rotation, pbs);
+            prim.IsPhysical = isPhysical;
+
+            _prims.Add(prim);
+
+            return prim;
         }
+
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
         {
-            BasicActor act = new BasicActor();
+            BasicActor act = new BasicActor(size);
             act.Position = position;
             act.Flying = isFlying;
             _actors.Add(act);
             return act;
         }
 
-        public override void RemovePrim(PhysicsActor prim)
+        public override void RemovePrim(PhysicsActor actor)
         {
+            BasicPhysicsPrim prim = (BasicPhysicsPrim)actor;
+            if (_prims.Contains(prim))
+                _prims.Remove(prim);
         }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-            BasicActor act = (BasicActor) actor;
+            BasicActor act = (BasicActor)actor;
             if (_actors.Contains(act))
-            {
                 _actors.Remove(act);
-            }
-        }
-
-/*
-        public override PhysicsActor AddPrim(Vector3 position, Vector3 size, Quaternion rotation)
-        {
-            return null;
-        }
-*/
-
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
-        {
-            return null;
         }
 
         public override void AddPhysicsActorTaint(PhysicsActor prim)
@@ -95,6 +102,8 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override float Simulate(float timeStep)
         {
+//            Console.WriteLine("Simulating");
+
             float fps = 0;
             for (int i = 0; i < _actors.Count; ++i)
             {
@@ -102,8 +111,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 Vector3 actorPosition = actor.Position;
                 Vector3 actorVelocity = actor.Velocity;
 
-                actorPosition.X += actor.Velocity.X*timeStep;
-                actorPosition.Y += actor.Velocity.Y*timeStep;
+//                Console.WriteLine(
+//                    "Processing actor {0}, starting pos {1}, starting vel {2}", i, actorPosition, actorVelocity);
+
+                actorPosition.X += actor.Velocity.X * timeStep;
+                actorPosition.Y += actor.Velocity.Y * timeStep;
 
                 if (actor.Position.Y < 0)
                 {

@@ -37,6 +37,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using RegionFlags = OpenSim.Framework.RegionFlags;
 
 namespace OpenSim.Data.MSSQL
 {
@@ -312,6 +313,11 @@ namespace OpenSim.Data.MSSQL
         public List<RegionData> GetDefaultRegions(UUID scopeID)
         {
             return Get((int)RegionFlags.DefaultRegion, scopeID);
+        }
+
+        public List<RegionData> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.DefaultHGRegion, scopeID);
         }
 
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)

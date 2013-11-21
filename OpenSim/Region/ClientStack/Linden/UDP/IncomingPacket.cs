@@ -39,16 +39,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public sealed class IncomingPacket
     {
         /// <summary>Client this packet came from</summary>
-        public LLUDPClient Client;
+        public LLClientView Client;
+
         /// <summary>Packet data that has been received</summary>
         public Packet Packet;
 
         /// <summary>
-        /// Default constructor
+        /// No arg constructor.
+        /// </summary>
+        public IncomingPacket() {}
+
+        /// <summary>
+        /// Constructor
         /// </summary>
         /// <param name="client">Reference to the client this packet came from</param>
         /// <param name="packet">Packet data</param>
-        public IncomingPacket(LLUDPClient client, Packet packet)
+        public IncomingPacket(LLClientView client, Packet packet)
         {
             Client = client;
             Packet = packet;

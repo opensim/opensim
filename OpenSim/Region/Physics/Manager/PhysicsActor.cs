@@ -147,6 +147,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract Vector3 Size { get; set; }
 
+        public virtual byte PhysicsShapeType { get; set; }
+
         public abstract PrimitiveBaseShape Shape { set; }
 
         uint m_baseLocalID;
@@ -218,9 +220,11 @@ namespace OpenSim.Region.Physics.Manager
                 handler(e);
         }
 
-        public virtual void SetMaterial (int material)
-        {
-        }
+        public virtual void SetMaterial (int material) { }
+        public virtual float Density { get; set; }
+        public virtual float GravModifier { get; set; }
+        public virtual float Friction { get; set; }
+        public virtual float Restitution { get; set; }
 
         /// <summary>
         /// Position of this actor.
@@ -250,18 +254,27 @@ namespace OpenSim.Region.Physics.Manager
         public abstract Vector3 CenterOfMass { get; }
 
         /// <summary>
-        /// Velocity of this actor.
+        /// The desired velocity of this actor.
         /// </summary>
         /// <remarks>
         /// Setting this provides a target velocity for physics scene updates.
-        /// Getting this returns the velocity calculated by physics scene updates, using factors such as target velocity,
-        /// time to accelerate and collisions.
+        /// Getting this returns the last set target. Fetch Velocity to get the current velocity.
         /// </remarks>
+        protected Vector3 m_targetVelocity;
+        public virtual Vector3 TargetVelocity
+        {
+            get { return m_targetVelocity; }
+            set {
+                m_targetVelocity = value;
+                Velocity = m_targetVelocity;
+            }
+        }
+
         public abstract Vector3 Velocity { get; set; }
 
         public abstract Vector3 Torque { get; set; }
         public abstract float CollisionScore { get; set;}
-        public abstract Vector3 Acceleration { get; }
+        public abstract Vector3 Acceleration { get; set; }
         public abstract Quaternion Orientation { get; set; }
         public abstract int PhysicsActorType { get; set; }
         public abstract bool IsPhysical { get; set; }
@@ -300,6 +313,13 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void SubscribeEvents(int ms);
         public abstract void UnSubscribeEvents();
         public abstract bool SubscribedEvents();
+
+        // Extendable interface for new, physics engine specific operations
+        public virtual object Extension(string pFunct, params object[] pParams)
+        {
+            // A NOP of the physics engine does not implement this feature
+            return null;
+        }
     }
 
     public class NullPhysicsActor : PhysicsActor
@@ -458,6 +478,7 @@ namespace OpenSim.Region.Physics.Manager
         public override Vector3 Acceleration
         {
             get { return Vector3.Zero; }
+            set { }
         }
 
         public override bool IsPhysical

@@ -53,11 +53,13 @@ namespace OpenSim.Region.Framework.Interfaces
                                   UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
                                   uint timeStamp, bool offline, int parentEstateID, Vector3 position,
                                   uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket);
-        void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID toAgent, bool canVoiceChat, 
+        void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
                                                bool isModerator, bool textMute);
         void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID);
         OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
         OSD BuildEvent(string eventName, OSD eventBody);
+        void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
+
     }
 }

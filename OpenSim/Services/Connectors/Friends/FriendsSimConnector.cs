@@ -43,7 +43,17 @@ namespace OpenSim.Services.Connectors.Friends
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected virtual string ServicePath()
+        {
+            return "friends";
+        }
+
         public bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message)
+        {
+            return FriendshipOffered(region, userID, friendID, message, String.Empty);
+        }
+
+        public virtual bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message, string userName)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
@@ -53,9 +63,10 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["FromID"] = userID.ToString();
             sendData["ToID"] = friendID.ToString();
             sendData["Message"] = message;
+            if (userName != String.Empty)
+                sendData["FromName"] = userName;
 
             return Call(region, sendData);
-
         }
 
         public bool FriendshipApproved(GridRegion region, UUID userID, string userName, UUID friendID)
@@ -117,7 +128,7 @@ namespace OpenSim.Services.Connectors.Friends
             return Call(region, sendData);
         }
 
-        public bool StatusNotify(GridRegion region, UUID userID, UUID friendID, bool online)
+        public bool StatusNotify(GridRegion region, UUID userID, string friendID, bool online)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
@@ -125,7 +136,7 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["METHOD"] = "status";
 
             sendData["FromID"] = userID.ToString();
-            sendData["ToID"] = friendID.ToString();
+            sendData["ToID"] = friendID;
             sendData["Online"] = online.ToString();
 
             return Call(region, sendData);
@@ -138,13 +149,15 @@ namespace OpenSim.Services.Connectors.Friends
             if (region == null)
                 return false;
 
-            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: region: {0}", region.ExternalHostName + ":" + region.HttpPort);
+            string path = ServicePath();
+            if (!region.ServerURI.EndsWith("/"))
+                path = "/" + path;
+            string uri = region.ServerURI + path;
+//            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: calling {0}", uri);
+
             try
             {
-                string url = "http://" + region.ExternalHostName + ":" + region.HttpPort;
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        url + "/friends",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -165,7 +178,7 @@ namespace OpenSim.Services.Connectors.Friends
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim: {0}", e.ToString());
+                m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim at {0}: {1}", uri, e.Message);
             }
 
             return false;

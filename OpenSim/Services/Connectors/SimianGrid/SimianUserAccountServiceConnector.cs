@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects user account data (creating new users, looking up existing 
     /// users) to the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianUserAccountServiceConnector")]
     public class SimianUserAccountServiceConnector : IUserAccountService, ISharedRegionModule
     {
         private const double CACHE_EXPIRATION_SECONDS = 120.0;
@@ -165,7 +165,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "NameQuery", query }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDArray array = response["Users"] as OSDArray;
@@ -204,7 +204,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "AccessLevel", data.UserLevel.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             
             if (response["Success"].AsBoolean())
             {
@@ -219,7 +219,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     { "UserTitle", data.UserTitle }
                 };
 
-                response = WebUtil.PostToService(m_serverUrl, requestArgs);
+                response = SimianGrid.PostToService(m_serverUrl, requestArgs);
                 bool success = response["Success"].AsBoolean();
 
                 if (success)
@@ -252,7 +252,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             string lookupValue = (requestArgs.Count > 1) ? requestArgs[1] : "(Unknown)";
 //            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Looking up user account with query: " + lookupValue);
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDMap user = response["User"] as OSDMap;
@@ -287,6 +287,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
             account.UserFlags = response["UserFlags"].AsInteger();
             account.UserLevel = response["AccessLevel"].AsInteger();
             account.UserTitle = response["UserTitle"].AsString();
+            account.LocalToGrid = true;
+            if (response.ContainsKey("LocalToGrid"))
+                account.LocalToGrid = (response["LocalToGrid"].AsString() == "true" ? true : false);
+                
             GetFirstLastName(response["Name"].AsString(), out account.FirstName, out account.LastName);
 
             // Cache the user account info

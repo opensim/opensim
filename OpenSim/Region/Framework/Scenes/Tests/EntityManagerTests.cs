@@ -41,11 +41,11 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture, LongRunning]
-    public class EntityManagerTests
+    public class EntityManagerTests : OpenSimTestCase
     {
         static public Random random;
         SceneObjectGroup found;
-        Scene scene = SceneHelpers.SetupScene();
+        Scene scene = new SceneHelpers().SetupScene();
 
         [Test]
         public void T010_AddObjects()

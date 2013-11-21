@@ -74,16 +74,26 @@ namespace OpenSim.Framework.RegionLoader.Web
 
                     try
                     {
-                        HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
-                        m_log.Debug("[WEBLOADER]: Downloading region information...");
-                        StreamReader reader = new StreamReader(webResponse.GetResponseStream());
                         string xmlSource = String.Empty;
-                        string tempStr = reader.ReadLine();
-                        while (tempStr != null)
+
+                        using (HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse())
                         {
-                            xmlSource = xmlSource + tempStr;
-                            tempStr = reader.ReadLine();
+                            m_log.Debug("[WEBLOADER]: Downloading region information...");
+
+                            using (Stream s = webResponse.GetResponseStream())
+                            {
+                                using (StreamReader reader = new StreamReader(s))
+                                {
+                                    string tempStr = reader.ReadLine();
+                                    while (tempStr != null)
+                                    {
+                                        xmlSource = xmlSource + tempStr;
+                                        tempStr = reader.ReadLine();
+                                    }
+                                }
+                            }
                         }
+
                         m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
                                     xmlSource.Length);
                         XmlDocument xmlDoc = new XmlDocument();
@@ -107,17 +117,24 @@ namespace OpenSim.Framework.RegionLoader.Web
                     }
                     catch (WebException ex)
                     {
-                        if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotFound)
+                        using (HttpWebResponse response = (HttpWebResponse)ex.Response)
                         {
-                            if (!allowRegionless)
+                            if (response.StatusCode == HttpStatusCode.NotFound)
+                            {
+                                if (!allowRegionless)
+                                    throw ex;
+                            }
+                            else
+                            {
                                 throw ex;
+                            }
                         }
-                        else
-                            throw ex;
                     }
 
                     if (regionCount > 0 | allowRegionless)
+                    {
                         return regionInfos;
+                    }
                     else
                     {
                         m_log.Error("[WEBLOADER]: No region configs were available.");

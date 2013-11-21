@@ -1,0 +1,20 @@
+README
+
+This directory does not currently contain any OpenSimulator user level documentation.  Such
+documentation can be found at
+
+http://opensimulator.org
+
+instead.
+
+Rather, this directory can contain source-code documentation as generated via the doxygen package.
+
+To do this, either execute
+
+doxygen doxygen.conf 
+
+on the command line or run the target
+
+nant doxygen
+
+if you have nant installed.

@@ -33,7 +33,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class UtilTests
+    public class UtilTests : OpenSimTestCase
     {
         [Test]
         public void VectorOperationTests()
@@ -214,16 +214,13 @@ namespace OpenSim.Framework.Tests
 
             for (int i = 0; i < contenttypes.Length; i++)
             {
-                if (SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == 18)
-                {
-                    Assert.That(contenttypes[i] == "image/tga");
-                }
+                int expected;
+                if (contenttypes[i] == "image/tga")
+                    expected = 12;  // if we know only the content-type "image/tga", then we assume the asset type is TextureTGA; not ImageTGA
                 else
-                {
-                    Assert.That(SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == assettypes[i],
-                                "Expecting {0} but got {1}", assettypes[i],
-                                SLUtil.ContentTypeToSLAssetType(contenttypes[i]));
-                }
+                    expected = assettypes[i];
+                Assert.AreEqual(expected, SLUtil.ContentTypeToSLAssetType(contenttypes[i]),
+                            String.Format("Incorrect AssetType mapped from Content-Type {0}", contenttypes[i]));
             }
 
             int[] inventorytypes = new int[] {-1,0,1,2,3,6,7,8,9,10,15,17,18,20};
@@ -237,7 +234,7 @@ namespace OpenSim.Framework.Tests
                                                "application/vnd.ll.primitive",
                                                "application/vnd.ll.notecard",
                                                "application/vnd.ll.folder",
-                                               "application/octet-stream",
+                                               "application/vnd.ll.rootfolder",
                                                "application/vnd.ll.lsltext",
                                                "image/x-j2c",
                                                "application/vnd.ll.primitive",
@@ -247,7 +244,8 @@ namespace OpenSim.Framework.Tests
         
             for (int i=0;i<inventorytypes.Length;i++)
             {
-                Assert.That(SLUtil.SLInvTypeToContentType(inventorytypes[i]) == invcontenttypes[i], "Expected {0}, Got {1}", invcontenttypes[i], SLUtil.SLInvTypeToContentType(inventorytypes[i]));
+                Assert.AreEqual(invcontenttypes[i], SLUtil.SLInvTypeToContentType(inventorytypes[i]),
+                    String.Format("Incorrect Content-Type mapped from InventoryType {0}", inventorytypes[i]));
             }
 
             invcontenttypes = new string[]
@@ -280,8 +278,91 @@ namespace OpenSim.Framework.Tests
 
             for (int i = 0; i < invtypes.Length; i++)
             {
-                Assert.That(SLUtil.ContentTypeToSLInvType(invcontenttypes[i]) == invtypes[i], "Expected {0}, Got {1}", invtypes[i], SLUtil.ContentTypeToSLInvType(invcontenttypes[i]));
+                Assert.AreEqual(invtypes[i], SLUtil.ContentTypeToSLInvType(invcontenttypes[i]),
+                    String.Format("Incorrect InventoryType mapped from Content-Type {0}", invcontenttypes[i]));
             }
+        }
+
+        [Test]
+        public void FakeParcelIDTests()
+        {
+            byte[] hexBytes8 = { 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10 };
+            byte[] hexBytes16 = {
+                        0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87,
+                        0x77, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f };
+            UInt64 var64Bit = (UInt64)0xfedcba9876543210;
+
+            //Region handle is for location 255000,256000.
+            ulong regionHandle1 = 1095216660736000;
+            uint  x1 = 100;
+            uint  y1 = 200;
+            uint  z1 = 22;
+            ulong regionHandle2;
+            uint  x2, y2, z2;
+            UUID fakeParcelID1, fakeParcelID2, uuid;
+
+            ulong bigInt64 = Util.BytesToUInt64Big(hexBytes8);
+            Assert.AreEqual(var64Bit, bigInt64,
+                    "BytesToUint64Bit conversion of 8 bytes to UInt64 failed.");
+
+            //Test building and decoding using some typical input values
+            fakeParcelID1 = Util.BuildFakeParcelID(regionHandle1, x1, y1);
+            Util.ParseFakeParcelID(fakeParcelID1, out regionHandle2, out x2, out y2);
+            Assert.AreEqual(regionHandle1, regionHandle2,
+                    "region handle decoded from FakeParcelID wth X/Y failed.");
+            Assert.AreEqual(x1, x2,
+                    "X coordinate decoded from FakeParcelID wth X/Y failed.");
+            Assert.AreEqual(y1, y2,
+                    "Y coordinate decoded from FakeParcelID wth X/Y failed.");
+
+            fakeParcelID1 = Util.BuildFakeParcelID(regionHandle1, x1, y1, z1);
+            Util.ParseFakeParcelID(fakeParcelID1, out regionHandle2, out x2, out y2, out z2);
+            Assert.AreEqual(regionHandle1, regionHandle2,
+                    "region handle decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(x1, x2,
+                    "X coordinate decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(y1, y2,
+                    "Y coordinate decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(z1, z2,
+                    "Z coordinate decoded from FakeParcelID with X/Y/Z failed.");
+
+            //Do some more extreme tests to check the encoding and decoding
+            x1 = 0x55aa;
+            y1 = 0x9966;
+            z1 = 0x5a96;
+
+            fakeParcelID1 = Util.BuildFakeParcelID(var64Bit, x1, y1);
+            Util.ParseFakeParcelID(fakeParcelID1, out regionHandle2, out x2, out y2);
+            Assert.AreEqual(var64Bit, regionHandle2,
+                    "region handle decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(x1, x2,
+                    "X coordinate decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(y1, y2,
+                    "Y coordinate decoded from FakeParcelID with X/Y/Z failed.");
+
+            fakeParcelID1 = Util.BuildFakeParcelID(var64Bit, x1, y1, z1);
+            Util.ParseFakeParcelID(fakeParcelID1, out regionHandle2, out x2, out y2, out z2);
+            Assert.AreEqual(var64Bit, regionHandle2,
+                    "region handle decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(x1, x2,
+                    "X coordinate decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(y1, y2,
+                    "Y coordinate decoded from FakeParcelID with X/Y/Z failed.");
+            Assert.AreEqual(z1, z2,
+                    "Z coordinate decoded from FakeParcelID with X/Y/Z failed.");
+
+
+            x1 = 64;
+            y1 = 192;
+            fakeParcelID1 = Util.BuildFakeParcelID(regionHandle1, x1, y1);
+            Util.FakeParcelIDToGlobalPosition(fakeParcelID1, out x2, out y2);
+            Assert.AreEqual(255000+x1, x2,
+                    "Global X coordinate decoded from regionHandle failed.");
+            Assert.AreEqual(256000+y1, y2,
+                    "Global Y coordinate decoded from regionHandle failed.");
+
+            uuid = new UUID("00dd0700-00d1-0700-3800-000032000000");
+            Util.FakeParcelIDToGlobalPosition(uuid, out x2, out y2);
         }
     }
 }

@@ -210,7 +210,6 @@ namespace OpenSim.Data.MySQL
             }
 
             LoadBanList(es);
-
             es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
             es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
             es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");

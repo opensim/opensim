@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Scene presence tests
     /// </summary>
     [TestFixture]
-    public class SceneTests
+    public class SceneTests : OpenSimTestCase
     {
         /// <summary>
         /// Very basic scene update test.  Should become more elaborate with time.
@@ -60,10 +60,27 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
-            scene.Update();
+            Scene scene = new SceneHelpers().SetupScene();
+            scene.Update(1);
             
             Assert.That(scene.Frame, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestShutdownScene()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = new SceneHelpers().SetupScene();
+            scene.Close();
+
+            Assert.That(scene.ShuttingDown, Is.True);
+            Assert.That(scene.Active, Is.False);
+
+            // Trying to update a shutdown scene should result in no update
+            scene.Update(1);
+
+            Assert.That(scene.Frame, Is.EqualTo(0));
         }
     }
 }

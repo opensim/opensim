@@ -168,6 +168,12 @@ namespace OpenSim.Services.LLLoginService
         // Web map
         private string mapTileURL;
 
+        // Web Profiles
+        private string profileURL;
+
+        // OpenID
+        private string openIDURL;
+
         private string searchURL;
 
         // Error Flags
@@ -184,6 +190,7 @@ namespace OpenSim.Services.LLLoginService
         private BuddyList m_buddyList = null;
 
         private string currency;
+        private string classifiedFee;
 
         static LLLoginResponse()
         {
@@ -220,7 +227,8 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency)
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
+            string DSTZone, string destinationsURL, string avatarsURL, string classifiedFee)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -237,8 +245,15 @@ namespace OpenSim.Services.LLLoginService
             BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
             MapTileURL = mapTileURL;
+            ProfileURL = profileURL;
+            OpenIDURL = openIDURL;
+            DestinationsURL = destinationsURL;
+            AvatarsURL = avatarsURL;
+
             SearchURL = searchURL;
             Currency = currency;
+            ClassifiedFee = classifiedFee;
+
 
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
@@ -246,7 +261,45 @@ namespace OpenSim.Services.LLLoginService
             FillOutRegionData(destination);
 
             FillOutSeedCap(aCircuit, destination, clientIP);
-            
+
+            switch (DSTZone)
+            {
+                case "none":
+                    DST = "N";
+                    break;
+                case "local":
+                    DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    break;
+                default:
+                    TimeZoneInfo dstTimeZone = null;
+                    string[] tzList = DSTZone.Split(';');
+
+                    foreach (string tzName in tzList)
+                    {
+                        try
+                        {
+                            dstTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzName);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                        break;
+                    }
+
+                    if (dstTimeZone == null)
+                    {
+                        m_log.WarnFormat(
+                            "[LLOGIN RESPONSE]: No valid timezone found for DST in {0}, falling back to system time.", tzList);
+                        DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    }
+                    else
+                    {
+                        DST = dstTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    }
+                
+                    break;
+            }
         }
 
         private void FillOutInventoryData(List<InventoryFolderBase> invSkel, ILibraryService libService)
@@ -340,7 +393,31 @@ namespace OpenSim.Services.LLLoginService
 
         private void SetDefaultValues()
         {
-            DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+            TimeZoneInfo gridTimeZone;
+
+            // Disabled for now pending making timezone a config value, which can at some point have a default of
+            // a ; separated list of possible timezones.
+            // The problem here is that US/Pacific (or even the Olsen America/Los_Angeles) is not universal across
+            // windows, mac and various distributions of linux, introducing another element of consistency.
+            // The server operator needs to be able to control this setting
+//            try
+//            {
+//                // First try to fetch DST from Pacific Standard Time, because this is
+//                // the one expected by the viewer. "US/Pacific" is the string to search 
+//                // on linux and mac, and should work also on Windows (to confirm)
+//                gridTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Pacific");
+//            }
+//            catch (Exception e)
+//            {
+//                m_log.WarnFormat(
+//                    "[TIMEZONE]: {0} Falling back to system time. System time should be set to Pacific Standard Time to provide the expected time",
+//                    e.Message);
+
+                gridTimeZone = TimeZoneInfo.Local;
+//            }
+
+            DST = gridTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+
             StipendSinceLogin = "N";
             Gendered = "Y";
             EverLoggedIn = "Y";
@@ -384,9 +461,12 @@ namespace OpenSim.Services.LLLoginService
             InitialOutfitHash["gender"] = "female";
             initialOutfit.Add(InitialOutfitHash);
             mapTileURL = String.Empty;
+            profileURL = String.Empty;
+            openIDURL = String.Empty;
             searchURL = String.Empty;
 
             currency = String.Empty;
+            ClassifiedFee = "0";
         }
 
 
@@ -456,6 +536,19 @@ namespace OpenSim.Services.LLLoginService
                 if (mapTileURL != String.Empty)
                     responseData["map-server-url"] = mapTileURL;
 
+                if (profileURL != String.Empty)
+                    responseData["profile-server-url"] = profileURL;
+
+                if (DestinationsURL != String.Empty)
+                    responseData["destination_guide_url"] = DestinationsURL;
+
+                if (AvatarsURL != String.Empty)
+                    responseData["avatar_picker_url"] = AvatarsURL;
+
+                // We need to send an openid_token back in the response too
+                if (openIDURL != String.Empty)
+                    responseData["openid_url"] = openIDURL;
+
                 if (m_buddyList != null)
                 {
                     responseData["buddy-list"] = m_buddyList.ToArray();
@@ -466,6 +559,9 @@ namespace OpenSim.Services.LLLoginService
                     // responseData["real_currency"] = currency;
                     responseData["currency"] = currency;
                 }
+                
+                if (ClassifiedFee != String.Empty)
+                    responseData["classified_fee"] = ClassifiedFee;
 
                 responseData["login"] = "true";
 
@@ -561,8 +657,17 @@ namespace OpenSim.Services.LLLoginService
                 if (mapTileURL != String.Empty)
                     map["map-server-url"] = OSD.FromString(mapTileURL);
 
+                if (profileURL != String.Empty)
+                    map["profile-server-url"] = OSD.FromString(profileURL);
+
+                if (openIDURL != String.Empty)
+                    map["openid_url"] = OSD.FromString(openIDURL);
+
                 if (searchURL != String.Empty)
                     map["search"] = OSD.FromString(searchURL);
+
+                if (ClassifiedFee != String.Empty)
+                    map["classified_fee"] = OSD.FromString(ClassifiedFee);
 
                 if (m_buddyList != null)
                 {
@@ -933,6 +1038,18 @@ namespace OpenSim.Services.LLLoginService
             set { mapTileURL = value; }
         }
 
+        public string ProfileURL
+        {
+            get { return profileURL; }
+            set { profileURL = value; }
+        }
+
+        public string OpenIDURL
+        {
+            get { return openIDURL; }
+            set { openIDURL = value; }
+        }
+
         public string SearchURL
         {
             get { return searchURL; }
@@ -955,6 +1072,22 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return currency; }
             set { currency = value; }
+        }
+
+        public string ClassifiedFee
+        {
+            get { return classifiedFee; }
+            set { classifiedFee = value; }
+        }
+
+        public string DestinationsURL
+        {
+            get; set;
+        }
+
+        public string AvatarsURL
+        {
+            get; set;
         }
 
         #endregion

@@ -194,8 +194,6 @@ namespace OpenSim.Framework.Tests
 
             resp = agentCircuitManager.AuthenticateSession(SessionId2, AgentId2, circuitcode2);
             Assert.That(!resp.Authorised);
-
         }
-
     }
 }

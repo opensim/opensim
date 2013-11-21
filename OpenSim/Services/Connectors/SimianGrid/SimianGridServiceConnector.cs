@@ -101,7 +101,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
-            Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, 4096.0);
+            Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
             OSDMap extraData = new OSDMap
             {
@@ -129,7 +129,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ExtraData", OSDParser.SerializeJsonString(extraData) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
                 return String.Empty;
             else
@@ -145,7 +145,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Enabled", "0" }
             };
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -192,7 +192,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request region with uuid {0}",regionID.ToString());
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] uuid request successful {0}",response["Name"].AsString());
@@ -220,7 +220,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request grid at {0}",position.ToString());
             
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] position request successful {0}",response["Name"].AsString());
@@ -261,7 +261,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request regions with name {0}",name);
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] found regions with name {0}",name);
@@ -286,7 +286,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             List<GridRegion> foundRegions = new List<GridRegion>();
 
             Vector3d minPosition = new Vector3d(xmin, ymin, 0.0);
-            Vector3d maxPosition = new Vector3d(xmax, ymax, 4096.0);
+            Vector3d maxPosition = new Vector3d(xmax, ymax, Constants.RegionHeight);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -299,7 +299,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             //m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request regions by range {0} to {1}",minPosition.ToString(),maxPosition.ToString());
             
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 OSDArray array = response["Scenes"] as OSDArray;
@@ -330,6 +330,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return new List<GridRegion>(0);
         }
 
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            // TODO: Allow specifying the default grid location
+            return GetDefaultRegions(scopeID);
+        }
+
         public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             GridRegion defRegion = GetNearestRegion(new Vector3d(x, y, 0.0), true);
@@ -341,26 +347,54 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public List<GridRegion> GetHyperlinks(UUID scopeID)
         {
-            // Hypergrid/linked regions are not supported
-            return new List<GridRegion>();
+            List<GridRegion> foundRegions = new List<GridRegion>();
+
+            NameValueCollection requestArgs = new NameValueCollection
+            {
+                { "RequestMethod", "GetScenes" },
+                { "HyperGrid", "true" },
+                { "Enabled", "1" }
+            };
+
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
+            if (response["Success"].AsBoolean())
+            {
+                // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] found regions with name {0}",name);
+
+                OSDArray array = response["Scenes"] as OSDArray;
+                if (array != null)
+                {
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        GridRegion region = ResponseToGridRegion(array[i] as OSDMap);
+                        if (region != null)
+                            foundRegions.Add(region);
+                    }
+                }
+            }
+
+            return foundRegions;
         }
-        
+
         public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
-            const int REGION_ONLINE = 4;
-
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "GetScene" },
                 { "SceneID", regionID.ToString() }
             };
 
-            // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request region flags for {0}",regionID.ToString());
+            m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request region flags for {0}",regionID.ToString());
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
-                return response["Enabled"].AsBoolean() ? REGION_ONLINE : 0;
+                OSDMap extraData = response["ExtraData"] as OSDMap;
+                int enabled = response["Enabled"].AsBoolean() ? (int)OpenSim.Framework.RegionFlags.RegionOnline : 0;
+                int hypergrid = extraData["HyperGrid"].AsBoolean() ? (int)OpenSim.Framework.RegionFlags.Hyperlink : 0;
+                int flags =  enabled | hypergrid;
+                m_log.DebugFormat("[SGGC] enabled - {0} hg - {1} flags - {2}", enabled, hypergrid, flags);
+                return flags;
             }
             else
             {
@@ -382,7 +416,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (onlyEnabled)
                 requestArgs["Enabled"] = "1";
 
-            OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 return ResponseToGridRegion(response);
@@ -411,24 +445,27 @@ namespace OpenSim.Services.Connectors.SimianGrid
             Vector3d minPosition = response["MinPosition"].AsVector3d();
             region.RegionLocX = (int)minPosition.X;
             region.RegionLocY = (int)minPosition.Y;
+            
+            if ( ! extraData["HyperGrid"] ) {
+                Uri httpAddress = response["Address"].AsUri();
+                region.ExternalHostName = httpAddress.Host;
+                region.HttpPort = (uint)httpAddress.Port;
 
-            Uri httpAddress = response["Address"].AsUri();
-            region.ExternalHostName = httpAddress.Host;
-            region.HttpPort = (uint)httpAddress.Port;
+                IPAddress internalAddress;
+                IPAddress.TryParse(extraData["InternalAddress"].AsString(), out internalAddress);
+                if (internalAddress == null)
+                    internalAddress = IPAddress.Any;
 
-            region.ServerURI = extraData["ServerURI"].AsString();
-
-            IPAddress internalAddress;
-            IPAddress.TryParse(extraData["InternalAddress"].AsString(), out internalAddress);
-            if (internalAddress == null)
-                internalAddress = IPAddress.Any;
-
-            region.InternalEndPoint = new IPEndPoint(internalAddress, extraData["InternalPort"].AsInteger());
-            region.TerrainImage = extraData["MapTexture"].AsUUID();
-            region.Access = (byte)extraData["Access"].AsInteger();
-            region.RegionSecret = extraData["RegionSecret"].AsString();
-            region.EstateOwner = extraData["EstateOwner"].AsUUID();
-            region.Token = extraData["Token"].AsString();
+                region.InternalEndPoint = new IPEndPoint(internalAddress, extraData["InternalPort"].AsInteger());
+                region.TerrainImage = extraData["MapTexture"].AsUUID();
+                region.Access = (byte)extraData["Access"].AsInteger();
+                region.RegionSecret = extraData["RegionSecret"].AsString();
+                region.EstateOwner = extraData["EstateOwner"].AsUUID();
+                region.Token = extraData["Token"].AsString();
+                region.ServerURI = extraData["ServerURI"].AsString();
+            } else {
+                region.ServerURI = response["Address"];
+            }
 
             return region;
         }

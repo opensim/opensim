@@ -32,13 +32,14 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.OdePlugin;
+using OpenSim.Tests.Common;
 using log4net;
 using System.Reflection;
 
 namespace OpenSim.Region.Physics.OdePlugin.Tests
 {
     [TestFixture]
-    public class ODETestClass
+    public class ODETestClass : OpenSimTestCase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

@@ -89,5 +89,11 @@ namespace OpenSim.Data.MSSQL
                 return DoQuery(cmd);
             }
         }
+
+        public FriendsData[] GetFriends(Guid principalID)
+        {
+            return GetFriends(principalID.ToString());
+        }
+ 
     }
 }

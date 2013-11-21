@@ -31,6 +31,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public abstract class BaseRequestHandler
     {
+        public int RequestsReceived { get; protected set; }
+
+        public int RequestsHandled { get; protected set; }
+
         public virtual string ContentType
         {
             get { return "application/xml"; }
@@ -45,8 +49,16 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private readonly string m_path;
 
-        protected BaseRequestHandler(string httpMethod, string path)
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
+
+        protected BaseRequestHandler(string httpMethod, string path) : this(httpMethod, path, null, null) {}
+
+        protected BaseRequestHandler(string httpMethod, string path, string name, string description)
         {
+            Name = name;
+            Description = description;
             m_httpMethod = httpMethod;
             m_path = path;
         }

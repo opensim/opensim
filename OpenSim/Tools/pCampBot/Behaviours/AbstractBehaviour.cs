@@ -35,6 +35,11 @@ namespace pCampBot
 {
     public class AbstractBehaviour : IBehaviour
     {
+        /// <summary>
+        /// Abbreviated name of this behaviour. 
+        /// </summary>
+        public string AbbreviatedName { get; protected set; }
+
         public string Name { get; protected set; }
 
         public Bot Bot { get; protected set; }
@@ -45,5 +50,7 @@ namespace pCampBot
         {
             Bot = bot;
         }
+
+        public virtual void Close() {}
     }
 }

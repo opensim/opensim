@@ -33,7 +33,7 @@ using OpenSim.Region.ScriptEngine.Shared;
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     [TestFixture]
-    public class LSL_TypesTestLSLInteger
+    public class LSL_TypesTestLSLInteger : OpenSimTestCase
     {
         private Dictionary<double, int> m_doubleIntSet;
         private Dictionary<string, int> m_stringIntSet;
@@ -79,6 +79,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLFloatToLSLInteger()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLInteger testInteger;
 
             foreach (KeyValuePair<double, int> number in m_doubleIntSet)
@@ -94,6 +96,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastStringToLSLInteger()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLInteger testInteger;
 
             foreach (KeyValuePair<string, int> number in m_stringIntSet)
@@ -109,6 +113,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLStringToLSLInteger()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLInteger testInteger;
 
             foreach (KeyValuePair<string, int> number in m_stringIntSet)
@@ -124,6 +130,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastBooleanToLSLInteger()
         {
+            TestHelpers.InMethod();
+            
             LSL_Types.LSLInteger testInteger;
 
             testInteger = (1 == 0);

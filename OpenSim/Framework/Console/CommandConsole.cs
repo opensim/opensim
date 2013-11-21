@@ -29,8 +29,10 @@ using System;
 using System.Xml;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
@@ -39,6 +41,8 @@ namespace OpenSim.Framework.Console
 {
     public class Commands : ICommands
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Encapsulates a command that can be invoked from the console
         /// </summary>
@@ -75,11 +79,23 @@ namespace OpenSim.Framework.Console
             public List<CommandDelegate> fn;
         }
 
+        public const string GeneralHelpText
+            = "To enter an argument that contains spaces, surround the argument with double quotes.\nFor example, show object name \"My long object name\"\n";
+
+        public const string ItemHelpText
+= @"For more information, type 'help all' to get a list of all commands, 
+  or type help <item>' where <item> is one of the following:";
+
         /// <value>
         /// Commands organized by keyword in a tree
         /// </value>
         private Dictionary<string, object> tree =
                 new Dictionary<string, object>();
+
+        /// <summary>
+        /// Commands organized by module
+        /// </summary>
+        private Dictionary<string, List<CommandInfo>> m_modulesCommands = new Dictionary<string, List<CommandInfo>>();
 
         /// <summary>
         /// Get help for the given help string
@@ -94,16 +110,47 @@ namespace OpenSim.Framework.Console
             // Remove initial help keyword
             helpParts.RemoveAt(0);
 
+            help.Add(""); // Will become a newline.
+
             // General help
             if (helpParts.Count == 0)
             {
-                help.AddRange(CollectHelp(tree));
-                help.Sort();
+                help.Add(GeneralHelpText);
+                help.Add(ItemHelpText);
+                help.AddRange(CollectModulesHelp(tree));
+            }
+            else if (helpParts.Count == 1 && helpParts[0] == "all")
+            {
+                help.AddRange(CollectAllCommandsHelp());
             }
             else
             {
                 help.AddRange(CollectHelp(helpParts));
             }
+
+            help.Add(""); // Will become a newline.
+
+            return help;
+        }
+
+        /// <summary>
+        /// Collects the help from all commands and return in alphabetical order.
+        /// </summary>
+        /// <returns></returns>
+        private List<string> CollectAllCommandsHelp()
+        {
+            List<string> help = new List<string>();
+
+            lock (m_modulesCommands)
+            {
+                foreach (List<CommandInfo> commands in m_modulesCommands.Values)
+                {
+                    var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
+                    help.AddRange(ourHelpText);
+                }
+            }
+
+            help.Sort();
 
             return help;
         }
@@ -117,6 +164,13 @@ namespace OpenSim.Framework.Console
         {
             string originalHelpRequest = string.Join(" ", helpParts.ToArray());
             List<string> help = new List<string>();
+
+            // Check modules first to see if we just need to display a list of those commands
+            if (TryCollectModuleHelp(originalHelpRequest, help))
+            {
+                help.Insert(0, ItemHelpText);
+                return help;
+            }
             
             Dictionary<string, object> dict = tree;
             while (helpParts.Count > 0)
@@ -143,14 +197,11 @@ namespace OpenSim.Framework.Console
 
                 string descriptiveHelp = commandInfo.descriptive_help;
 
-                // If we do have some descriptive help then insert a spacing line before and after for readability.
+                // If we do have some descriptive help then insert a spacing line before for readability.
                 if (descriptiveHelp != string.Empty)
                     help.Add(string.Empty);
                 
                 help.Add(commandInfo.descriptive_help);
-
-                if (descriptiveHelp != string.Empty)
-                    help.Add(string.Empty);
             }
             else
             {
@@ -160,25 +211,63 @@ namespace OpenSim.Framework.Console
             return help;
         }
 
-        private List<string> CollectHelp(Dictionary<string, object> dict)
+        /// <summary>
+        /// Try to collect help for the given module if that module exists.
+        /// </summary>
+        /// <param name="moduleName"></param>
+        /// <param name="helpText">/param>
+        /// <returns>true if there was the module existed, false otherwise.</returns>
+        private bool TryCollectModuleHelp(string moduleName, List<string> helpText)
         {
-            List<string> result = new List<string>();
-
-            foreach (KeyValuePair<string, object> kvp in dict)
+            lock (m_modulesCommands)
             {
-                if (kvp.Value is Dictionary<string, Object>)
+                foreach (string key in m_modulesCommands.Keys)
                 {
-                    result.AddRange(CollectHelp((Dictionary<string, Object>)kvp.Value));
+                    // Allow topic help requests to succeed whether they are upper or lowercase.
+                    if (moduleName.ToLower() == key.ToLower())
+                    {
+                        List<CommandInfo> commands = m_modulesCommands[key];
+                        var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
+                        ourHelpText.Sort();
+                        helpText.AddRange(ourHelpText);
+
+                        return true;
+                    }
                 }
-                else
-                {
-                    if (((CommandInfo)kvp.Value).long_help != String.Empty)
-                        result.Add(((CommandInfo)kvp.Value).help_text+" - "+
-                                ((CommandInfo)kvp.Value).long_help);
-                }
+
+                return false;
             }
-            return result;
         }
+
+        private List<string> CollectModulesHelp(Dictionary<string, object> dict)
+        {
+            lock (m_modulesCommands)
+            {
+                List<string> helpText = new List<string>(m_modulesCommands.Keys);
+                helpText.Sort();
+                return helpText;
+            }
+        }
+
+//        private List<string> CollectHelp(Dictionary<string, object> dict)
+//        {
+//            List<string> result = new List<string>();
+//
+//            foreach (KeyValuePair<string, object> kvp in dict)
+//            {
+//                if (kvp.Value is Dictionary<string, Object>)
+//                {
+//                    result.AddRange(CollectHelp((Dictionary<string, Object>)kvp.Value));
+//                }
+//                else
+//                {
+//                    if (((CommandInfo)kvp.Value).long_help != String.Empty)
+//                        result.Add(((CommandInfo)kvp.Value).help_text+" - "+
+//                                ((CommandInfo)kvp.Value).long_help);
+//                }
+//            }
+//            return result;
+//        }
         
         /// <summary>
         /// Add a command to those which can be invoked from the console.
@@ -211,21 +300,19 @@ namespace OpenSim.Framework.Console
 
             Dictionary<string, Object> current = tree;
             
-            foreach (string s in parts)
+            foreach (string part in parts)
             {
-                if (current.ContainsKey(s))
+                if (current.ContainsKey(part))
                 {
-                    if (current[s] is Dictionary<string, Object>)
-                    {
-                        current = (Dictionary<string, Object>)current[s];
-                    }
+                    if (current[part] is Dictionary<string, Object>)
+                        current = (Dictionary<string, Object>)current[part];
                     else
                         return;
                 }
                 else
                 {
-                    current[s] = new Dictionary<string, Object>();
-                    current = (Dictionary<string, Object>)current[s];
+                    current[part] = new Dictionary<string, Object>();
+                    current = (Dictionary<string, Object>)current[part];
                 }
             }
 
@@ -249,6 +336,24 @@ namespace OpenSim.Framework.Console
             info.fn = new List<CommandDelegate>();
             info.fn.Add(fn);
             current[String.Empty] = info;
+
+            // Now add command to modules dictionary
+            lock (m_modulesCommands)
+            {
+                List<CommandInfo> commands;
+                if (m_modulesCommands.ContainsKey(module))
+                {
+                    commands = m_modulesCommands[module];
+                }
+                else
+                {
+                    commands = new List<CommandInfo>();
+                    m_modulesCommands[module] = commands;
+                }
+
+//                m_log.DebugFormat("[COMMAND CONSOLE]: Adding to category {0} command {1}", module, command);
+                commands.Add(info);
+            }
         }
 
         public string[] FindNextOption(string[] cmd, bool term)
@@ -531,6 +636,11 @@ namespace OpenSim.Framework.Console
 
     public class Parser
     {
+        // If an unquoted portion ends with an element matching this regex
+        // and the next element contains a space, then we have stripped
+        // embedded quotes that should not have been stripped
+        private static Regex optionRegex = new Regex("^--[a-zA-Z0-9-]+=$");
+
         public static string[] Parse(string text)
         {
             List<string> result = new List<string>();
@@ -544,10 +654,38 @@ namespace OpenSim.Framework.Console
                 if (index % 2 == 0)
                 {
                     string[] words = unquoted[index].Split(new char[] {' '});
+
+                    bool option = false;
                     foreach (string w in words)
                     {
                         if (w != String.Empty)
+                        {
+                            if (optionRegex.Match(w) == Match.Empty)
+                                option = false;
+                            else
+                                option = true;
                             result.Add(w);
+                        }
+                    }
+                    // The last item matched the regex, put the quotes back
+                    if (option)
+                    {
+                        // If the line ended with it, don't do anything
+                        if (index < (unquoted.Length - 1))
+                        {
+                            // Get and remove the option name
+                            string optionText = result[result.Count - 1];
+                            result.RemoveAt(result.Count - 1);
+
+                            // Add the quoted value back
+                            optionText += "\"" + unquoted[index + 1] + "\"";
+
+                            // Push the result into our return array
+                            result.Add(optionText);
+
+                            // Skip the already used value
+                            index++;
+                        }
                     }
                 }
                 else
@@ -565,7 +703,9 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class CommandConsole : ConsoleBase, ICommandConsole
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public event OnOutputDelegate OnOutput;
 
         public ICommands Commands { get; private set; }
 
@@ -573,8 +713,9 @@ namespace OpenSim.Framework.Console
         {
             Commands = new Commands();
 
-            Commands.AddCommand("console", false, "help", "help [<command>]", 
-                    "Get general command list or more detailed help on a specific command", Help);
+            Commands.AddCommand(
+                "Help", false, "help", "help [<item>]",
+                "Display help on a particular command or on a list of commands in a category", Help);
         }
 
         private void Help(string module, string[] cmd)
@@ -585,12 +726,19 @@ namespace OpenSim.Framework.Console
                 Output(s);
         }
 
+        protected void FireOnOutput(string text)
+        {
+            OnOutputDelegate onOutput = OnOutput;
+            if (onOutput != null)
+                onOutput(text);
+        }
+
         /// <summary>
         /// Display a command prompt on the console and wait for user input
         /// </summary>
         public void Prompt()
         {
-            string line = ReadLine(m_defaultPrompt + "# ", true, true);
+            string line = ReadLine(DefaultPrompt + "# ", true, true);
 
             if (line != String.Empty)
                 Output("Invalid command");

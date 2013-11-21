@@ -33,6 +33,7 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -42,6 +43,7 @@ using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "PresenceModule")]
     public class PresenceModule : ISharedRegionModule, IPresenceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(

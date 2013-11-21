@@ -62,8 +62,8 @@ namespace OpenSim.Capabilities.Handlers
             if (m_AssetService == null)
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
-            server.AddStreamHandler(new GetTextureHandler("/CAPS/GetTexture/" /*+ UUID.Random() */, m_AssetService));
+            server.AddStreamHandler(
+                new GetTextureHandler("/CAPS/GetTexture/" /*+ UUID.Random() */, m_AssetService, "GetTexture", null));
         }
-
     }
 }

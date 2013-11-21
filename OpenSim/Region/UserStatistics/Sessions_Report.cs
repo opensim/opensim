@@ -278,6 +278,11 @@ TD.align_top { vertical-align: top; }
             public DateTime start_time;
         }
 
+        public string RenderJson(Hashtable pModelResult)
+        {
+            return "{}";
+        }
         #endregion
     }
+
 }

@@ -99,12 +99,12 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
 
             m_log.Info("[LOAD REGIONS PLUGIN]: Loading specific shared modules...");
-            m_log.Info("[LOAD REGIONS PLUGIN]: DynamicTextureModule...");
-            m_openSim.ModuleLoader.LoadDefaultSharedModule(new DynamicTextureModule());
-            m_log.Info("[LOAD REGIONS PLUGIN]: LoadImageURLModule...");
-            m_openSim.ModuleLoader.LoadDefaultSharedModule(new LoadImageURLModule());
-            m_log.Info("[LOAD REGIONS PLUGIN]: XMLRPCModule...");
-            m_openSim.ModuleLoader.LoadDefaultSharedModule(new XMLRPCModule());
+            //m_log.Info("[LOAD REGIONS PLUGIN]: DynamicTextureModule...");
+            //m_openSim.ModuleLoader.LoadDefaultSharedModule(new DynamicTextureModule());
+            //m_log.Info("[LOAD REGIONS PLUGIN]: LoadImageURLModule...");
+            //m_openSim.ModuleLoader.LoadDefaultSharedModule(new LoadImageURLModule());
+            //m_log.Info("[LOAD REGIONS PLUGIN]: XMLRPCModule...");
+            //m_openSim.ModuleLoader.LoadDefaultSharedModule(new XMLRPCModule());
 //            m_log.Info("[LOADREGIONSPLUGIN]: AssetTransactionModule...");
 //            m_openSim.ModuleLoader.LoadDefaultSharedModule(new AssetTransactionModule());
             m_log.Info("[LOAD REGIONS PLUGIN]: Done.");
@@ -115,6 +115,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 Environment.Exit(1);
             }
 
+            List<IScene> createdScenes = new List<IScene>();
+
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
                 IScene scene;
@@ -122,22 +124,25 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                             Thread.CurrentThread.ManagedThreadId.ToString() +
                             ")");
                 
-                m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
+                bool changed = m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
+
                 m_openSim.CreateRegion(regionsToLoad[i], true, out scene);
-                regionsToLoad[i].EstateSettings.Save();
-                
-                if (scene != null)
-                {
-                    m_newRegionCreatedHandler = OnNewRegionCreated;
-                    if (m_newRegionCreatedHandler != null)
-                    {
-                        m_newRegionCreatedHandler(scene);
-                    }
-                }
+                createdScenes.Add(scene);
+
+                if (changed)
+                    regionsToLoad[i].EstateSettings.Save();
             }
 
-            m_openSim.ModuleLoader.PostInitialise();
-            m_openSim.ModuleLoader.ClearCache();
+            foreach (IScene scene in createdScenes)
+            {
+                scene.Start();
+
+                m_newRegionCreatedHandler = OnNewRegionCreated;
+                if (m_newRegionCreatedHandler != null)
+                {
+                    m_newRegionCreatedHandler(scene);
+                }
+            }
         }
 
         public void Dispose()

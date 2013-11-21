@@ -46,6 +46,7 @@ namespace pCampBot
 
         public PhysicsBehaviour()
         {
+            AbbreviatedName = "p";
             Name = "Physics";
             talkarray = readexcuses();
         }
@@ -75,6 +76,12 @@ namespace pCampBot
             string randomf = talkarray[Bot.Random.Next(talkarray.Length)];
             if (talkarray.Length > 1 && randomf.Length > 1)
                 Bot.Client.Self.Chat(randomf, 0, ChatType.Normal);
+        }
+
+        public override void Close()
+        {
+            if (Bot.ConnectionState == ConnectionState.Connected)
+                Bot.Client.Self.Jump(false);
         }
 
         private string[] readexcuses()

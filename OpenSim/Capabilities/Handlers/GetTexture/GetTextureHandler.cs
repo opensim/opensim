@@ -58,13 +58,13 @@ namespace OpenSim.Capabilities.Handlers
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
 
-        public GetTextureHandler(string path, IAssetService assService) :
-                base("GET", path)
+        public GetTextureHandler(string path, IAssetService assService, string name, string description)
+            : base("GET", path, name, description)
         {
             m_assetService = assService;
         }
 
-        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
@@ -77,7 +77,6 @@ namespace OpenSim.Capabilities.Handlers
             {
                 m_log.Error("[GETTEXTURE]: Cannot fetch texture " + textureStr + " without an asset service");
                 httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                return null;
             }
 
             UUID textureID;
@@ -86,7 +85,7 @@ namespace OpenSim.Capabilities.Handlers
 //                m_log.DebugFormat("[GETTEXTURE]: Received request for texture id {0}", textureID);
                 
                 string[] formats;
-                if (format != null && format != string.Empty)
+                if (!string.IsNullOrEmpty(format))
                 {
                     formats = new string[1] { format.ToLower() };
                 }
@@ -111,7 +110,10 @@ namespace OpenSim.Capabilities.Handlers
                 m_log.Warn("[GETTEXTURE]: Failed to parse a texture_id from GetTexture request: " + httpRequest.Url);
             }
 
-            httpResponse.Send();
+//            m_log.DebugFormat(
+//                "[GETTEXTURE]: For texture {0} sending back response {1}, data length {2}",
+//                textureID, httpResponse.StatusCode, httpResponse.ContentLength);
+
             return null;
         }
 
@@ -123,7 +125,7 @@ namespace OpenSim.Capabilities.Handlers
         /// <param name="textureID"></param>
         /// <param name="format"></param>
         /// <returns>False for "caller try another codec"; true otherwise</returns>
-        private bool FetchTexture(OSHttpRequest httpRequest, OSHttpResponse httpResponse, UUID textureID, string format)
+        private bool FetchTexture(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID textureID, string format)
         {
 //            m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
             AssetBase texture;
@@ -161,7 +163,7 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (texture == null)
                 {
-                    //m_log.DebugFormat("[GETTEXTURE]: texture was not in the cache");
+//                    m_log.DebugFormat("[GETTEXTURE]: texture was not in the cache");
 
                     // Fetch locally or remotely. Misses return a 404
                     texture = m_assetService.Get(textureID.ToString());
@@ -187,6 +189,7 @@ namespace OpenSim.Capabilities.Handlers
 
                             newTexture.Flags = AssetFlags.Collectable;
                             newTexture.Temporary = true;
+                            newTexture.Local = true;
                             m_assetService.Store(newTexture);
                             WriteTextureData(httpRequest, httpResponse, newTexture, format);
                             return true;
@@ -195,7 +198,7 @@ namespace OpenSim.Capabilities.Handlers
                }
                else // it was on the cache
                {
-                   //m_log.DebugFormat("[GETTEXTURE]: texture was in the cache");
+//                   m_log.DebugFormat("[GETTEXTURE]: texture was in the cache");
                    WriteTextureData(httpRequest, httpResponse, texture, format);
                    return true;
                }
@@ -207,10 +210,10 @@ namespace OpenSim.Capabilities.Handlers
             return true;
         }
 
-        private void WriteTextureData(OSHttpRequest request, OSHttpResponse response, AssetBase texture, string format)
+        private void WriteTextureData(IOSHttpRequest request, IOSHttpResponse response, AssetBase texture, string format)
         {
             string range = request.Headers.GetOne("Range");
-            //m_log.DebugFormat("[GETTEXTURE]: Range {0}", range);
+
             if (!String.IsNullOrEmpty(range)) // JP2's only
             {
                 // Range request
@@ -221,24 +224,58 @@ namespace OpenSim.Capabilities.Handlers
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
                     {
-                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
-                        return;
+//                        m_log.DebugFormat(
+//                            "[GETTEXTURE]: Client requested range for texture {0} starting at {1} but texture has end of {2}",
+//                            texture.ID, start, texture.Data.Length);
+
+                        // Stricly speaking, as per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html, we should be sending back
+                        // Requested Range Not Satisfiable (416) here.  However, it appears that at least recent implementations
+                        // of the Linden Lab viewer (3.2.1 and 3.3.4 and probably earlier), a viewer that has previously
+                        // received a very small texture  may attempt to fetch bytes from the server past the
+                        // range of data that it received originally.  Whether this happens appears to depend on whether
+                        // the viewer's estimation of how large a request it needs to make for certain discard levels
+                        // (http://wiki.secondlife.com/wiki/Image_System#Discard_Level_and_Mip_Mapping), chiefly discard
+                        // level 2.  If this estimate is greater than the total texture size, returning a RequestedRangeNotSatisfiable
+                        // here will cause the viewer to treat the texture as bad and never display the full resolution
+                        // However, if we return PartialContent (or OK) instead, the viewer will display that resolution.
+
+//                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
+//                        response.AddHeader("Content-Range", String.Format("bytes */{0}", texture.Data.Length));
+//                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
+                        response.ContentType = texture.Metadata.ContentType;
                     }
+                    else
+                    {
+                        // Handle the case where no second range value was given.  This is equivalent to requesting
+                        // the rest of the entity.
+                        if (end == -1)
+                            end = int.MaxValue;
 
-                    end = Utils.Clamp(end, 0, texture.Data.Length - 1);
-                    start = Utils.Clamp(start, 0, end);
-                    int len = end - start + 1;
+                        end = Utils.Clamp(end, 0, texture.Data.Length - 1);
+                        start = Utils.Clamp(start, 0, end);
+                        int len = end - start + 1;
 
-                    //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
+//                        m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
-                    if (len < texture.Data.Length)
+                        // Always return PartialContent, even if the range covered the entire data length
+                        // We were accidentally sending back 404 before in this situation
+                        // https://issues.apache.org/bugzilla/show_bug.cgi?id=51878 supports sending 206 even if the
+                        // entire range is requested, and viewer 3.2.2 (and very probably earlier) seems fine with this.
+                        //
+                        // We also do not want to send back OK even if the whole range was satisfiable since this causes
+                        // HTTP textures on at least Imprudence 1.4.0-beta2 to never display the final texture quality.
+//                        if (end > maxEnd)
+//                            response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+//                        else
                         response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
 
-                    response.ContentLength = len;
-                    response.ContentType = texture.Metadata.ContentType;
-                    response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
-
-                    response.Body.Write(texture.Data, start, len);
+                        response.ContentLength = len;
+                        response.ContentType = texture.Metadata.ContentType;
+                        response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
+    
+                        response.Body.Write(texture.Data, start, len);
+                    }
                 }
                 else
                 {
@@ -257,24 +294,60 @@ namespace OpenSim.Capabilities.Handlers
                     response.ContentType = "image/" + format;
                 response.Body.Write(texture.Data, 0, texture.Data.Length);
             }
+
+//            if (response.StatusCode < 200 || response.StatusCode > 299)
+//                m_log.WarnFormat(
+//                    "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
+//                    texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
+//            else
+//                m_log.DebugFormat(
+//                    "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
+//                    texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
         }
 
+        /// <summary>
+        /// Parse a range header.
+        /// </summary>
+        /// <remarks>
+        /// As per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html,
+        /// this obeys range headers with two values (e.g. 533-4165) and no second value (e.g. 533-).
+        /// Where there is no value, -1 is returned.
+        /// FIXME: Need to cover the case where only a second value is specified (e.g. -4165), probably by returning -1
+        /// for start.</remarks>
+        /// <returns></returns>
+        /// <param name='header'></param>
+        /// <param name='start'>Start of the range.  Undefined if this was not a number.</param>
+        /// <param name='end'>End of the range.  Will be -1 if no end specified.  Undefined if there was a raw string but this was not a number.</param>
         private bool TryParseRange(string header, out int start, out int end)
         {
+            start = end = 0;
+
             if (header.StartsWith("bytes="))
             {
                 string[] rangeValues = header.Substring(6).Split('-');
+
                 if (rangeValues.Length == 2)
                 {
-                    if (Int32.TryParse(rangeValues[0], out start) && Int32.TryParse(rangeValues[1], out end))
+                    if (!Int32.TryParse(rangeValues[0], out start))
+                        return false;
+
+                    string rawEnd = rangeValues[1];
+
+                    if (rawEnd == "")
+                    {
+                        end = -1;
                         return true;
+                    }
+                    else if (Int32.TryParse(rawEnd, out end))
+                    {
+                        return true;
+                    }
                 }
             }
 
             start = end = 0;
             return false;
         }
-
 
         private byte[] ConvertTextureData(AssetBase texture, string format)
         {
@@ -350,7 +423,5 @@ namespace OpenSim.Capabilities.Handlers
             }
             return null;
         }
-
-
     }
 }

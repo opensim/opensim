@@ -80,7 +80,7 @@ namespace OpenSim.Services.Interfaces
 
         }
 
-        public Dictionary<string, object> ToKeyValuePairs()
+        public virtual Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
             result["UserID"] = UserID;
@@ -96,7 +96,6 @@ namespace OpenSim.Services.Interfaces
             result["Online"] = Online.ToString();
             result["Login"] = Login.ToString();
             result["Logout"] = Logout.ToString();
-
             
             return result;
         }
@@ -131,5 +130,6 @@ namespace OpenSim.Services.Interfaces
         bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
         
         GridUserInfo GetGridUserInfo(string userID);
+        GridUserInfo[] GetGridUserInfo(string[] userID);
     }
 }

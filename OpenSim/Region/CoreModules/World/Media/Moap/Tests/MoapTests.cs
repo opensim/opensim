@@ -44,16 +44,18 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
 {
     [TestFixture]
-    public class MoapTests
+    public class MoapTests : OpenSimTestCase
     {
         protected TestScene m_scene;
         protected MoapModule m_module;
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_module = new MoapModule();
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_module);            
         }        
         
@@ -63,7 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
             TestHelpers.InMethod();           
 //            log4net.Config.XmlConfigurator.Configure();
             
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
             MediaEntry me = new MediaEntry();            
             
             m_module.SetMediaEntry(part, 1, me);
@@ -88,7 +90,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
             
             string homeUrl = "opensimulator.org";            
             
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
             MediaEntry me = new MediaEntry() { HomeURL = homeUrl };            
             
             m_module.SetMediaEntry(part, 1, me);

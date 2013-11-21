@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Reflection;
 using System.Net;
 using System.IO;
@@ -43,7 +44,8 @@ using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-namespace OpenSim.Region.OptionalModules.Simian
+//namespace OpenSim.Region.OptionalModules.Simian
+namespace OpenSim.Services.Connectors.SimianGrid
 {
     /// <summary>
     /// </summary>
@@ -196,67 +198,84 @@ namespace OpenSim.Region.OptionalModules.Simian
                 }
             }
 
-            List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
-            {
-                new MultipartForm.Parameter("X", scene.RegionInfo.RegionLocX.ToString()),
-                new MultipartForm.Parameter("Y", scene.RegionInfo.RegionLocY.ToString()),
-                new MultipartForm.File("Tile", "tile.png", "image/png", pngData)
-            };
-
-            string errorMessage = null;
-            int tickstart = Util.EnvironmentTickCount();
-
-            // Make the remote storage request
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl);
-                request.Timeout = 20000;
-                request.ReadWriteTimeout = 5000;
-
-                using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
+            NameValueCollection requestArgs = new NameValueCollection
                 {
-                    using (Stream responseStream = response.GetResponseStream())
-                    {
-                        string responseStr = responseStream.GetStreamString();
-                        OSD responseOSD = OSDParser.Deserialize(responseStr);
-                        if (responseOSD.Type == OSDType.Map)
-                        {
-                            OSDMap responseMap = (OSDMap)responseOSD;
-                            if (responseMap["Success"].AsBoolean())
-                                return;
-
-                            errorMessage = "Upload failed: " + responseMap["Message"].AsString();
-                        }
-                        else
-                        {
-                            errorMessage = "Response format was invalid:\n" + responseStr;
-                        }
-                    }
-                }
-            }
-            catch (WebException we)
+                        { "RequestMethod", "xAddMapTile" },
+                        { "X", scene.RegionInfo.RegionLocX.ToString() },
+                        { "Y", scene.RegionInfo.RegionLocY.ToString() },
+                        { "ContentType", "image/png" },
+                        { "EncodedData", System.Convert.ToBase64String(pngData) }
+                };
+                            
+            OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
+            if (! response["Success"].AsBoolean())
             {
-                errorMessage = we.Message;
-                if (we.Status == WebExceptionStatus.ProtocolError)
-                {
-                    HttpWebResponse webResponse = (HttpWebResponse)we.Response;
-                    errorMessage = String.Format("[{0}] {1}",
-                                                 webResponse.StatusCode,webResponse.StatusDescription);
-                }
-            }
-            catch (Exception ex)
-            {
-                errorMessage = ex.Message;
-            }
-            finally
-            {
-                // This just dumps a warning for any operation that takes more than 100 ms
-                int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-                m_log.DebugFormat("[SIMIAN MAPTILE]: map tile uploaded in {0}ms",tickdiff);
+                m_log.WarnFormat("[SIMIAN MAPTILE] failed to store map tile; {0}",response["Message"].AsString());
+                return;
             }
 
-            m_log.WarnFormat("[SIMIAN MAPTILE]: Failed to store {0} byte tile for {1}: {2}",
-                             pngData.Length, scene.RegionInfo.RegionName, errorMessage);
+            // List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
+            // {
+            //     new MultipartForm.Parameter("X", scene.RegionInfo.RegionLocX.ToString()),
+            //     new MultipartForm.Parameter("Y", scene.RegionInfo.RegionLocY.ToString()),
+            //     new MultipartForm.File("Tile", "tile.png", "image/png", pngData)
+            // };
+
+            // string errorMessage = null;
+            // int tickstart = Util.EnvironmentTickCount();
+
+            // // Make the remote storage request
+            // try
+            // {
+            //     HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl);
+            //     request.Timeout = 20000;
+            //     request.ReadWriteTimeout = 5000;
+
+            //     using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
+            //     {
+            //         using (Stream responseStream = response.GetResponseStream())
+            //         {
+            //             string responseStr = responseStream.GetStreamString();
+            //             OSD responseOSD = OSDParser.Deserialize(responseStr);
+            //             if (responseOSD.Type == OSDType.Map)
+            //             {
+            //                 OSDMap responseMap = (OSDMap)responseOSD;
+            //                 if (responseMap["Success"].AsBoolean())
+            //                     return;
+
+            //                 errorMessage = "Upload failed: " + responseMap["Message"].AsString();
+            //             }
+            //             else
+            //             {
+            //                 errorMessage = "Response format was invalid:\n" + responseStr;
+            //             }
+            //         }
+            //     }
+            // }
+            // catch (WebException we)
+            // {
+            //     errorMessage = we.Message;
+            //     if (we.Status == WebExceptionStatus.ProtocolError)
+            //     {
+            //         HttpWebResponse webResponse = (HttpWebResponse)we.Response;
+            //         errorMessage = String.Format("[{0}] {1}",
+            //                                      webResponse.StatusCode,webResponse.StatusDescription);
+            //     }
+            // }
+            // catch (Exception ex)
+            // {
+            //     errorMessage = ex.Message;
+            // }
+            // finally
+            // {
+            //     // This just dumps a warning for any operation that takes more than 100 ms
+            //     int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+            //     m_log.DebugFormat("[SIMIAN MAPTILE]: map tile uploaded in {0}ms",tickdiff);
+            // }
+
+            // m_log.WarnFormat("[SIMIAN MAPTILE]: Failed to store {0} byte tile for {1}: {2}",
+            //                  pngData.Length, scene.RegionInfo.RegionName, errorMessage);
+
         }
     }
 }

@@ -52,15 +52,25 @@ namespace OpenSim.Server.Handlers.Hypergrid
 //                MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserAgentService m_HomeUsersService;
+        public IUserAgentService HomeUsersService
+        {
+            get { return m_HomeUsersService; }
+        }
+
         private string[] m_AuthorizedCallers;
 
         private bool m_VerifyCallers = false;
 
         public UserAgentServerConnector(IConfigSource config, IHttpServer server) :
-                this(config, server, null)
+            this(config, server, (IFriendsSimConnector)null)
         {            
         }
 
+        public UserAgentServerConnector(IConfigSource config, IHttpServer server, string configName) :
+            this(config, server)
+        {
+        }
+        
         public UserAgentServerConnector(IConfigSource config, IHttpServer server, IFriendsSimConnector friendsConnector) :
                 base(config, server, String.Empty)
         {
@@ -91,12 +101,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             server.AddXmlRPCHandler("status_notification", StatusNotification, false);
             server.AddXmlRPCHandler("get_online_friends", GetOnlineFriends, false);
+            server.AddXmlRPCHandler("get_user_info", GetUserInfo, false);
             server.AddXmlRPCHandler("get_server_urls", GetServerURLs, false);
 
             server.AddXmlRPCHandler("locate_user", LocateUser, false);
             server.AddXmlRPCHandler("get_uui", GetUUI, false);
+            server.AddXmlRPCHandler("get_uuid", GetUUID, false);
 
-            server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
+            server.AddStreamHandler(new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy));
         }
 
         public XmlRpcResponse GetHomeRegion(XmlRpcRequest request, IPEndPoint remoteClient)
@@ -143,7 +155,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             UUID.TryParse(sessionID_str, out sessionID);
             string gridName = (string)requestData["externalName"];
 
-            bool success = m_HomeUsersService.AgentIsComingHome(sessionID, gridName);
+            bool success = m_HomeUsersService.IsAgentComingHome(sessionID, gridName);
 
             Hashtable hash = new Hashtable();
             hash["result"] = success.ToString();
@@ -215,6 +227,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        [Obsolete]
         public XmlRpcResponse StatusNotification(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable hash = new Hashtable();
@@ -259,6 +272,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        [Obsolete]
         public XmlRpcResponse GetOnlineFriends(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable hash = new Hashtable();
@@ -296,6 +310,38 @@ namespace OpenSim.Server.Handlers.Hypergrid
             response.Value = hash;
             return response;
 
+        }
+
+        public XmlRpcResponse GetUserInfo(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            // This needs checking!
+            if (requestData.ContainsKey("userID"))
+            {
+                string userID_str = (string)requestData["userID"];
+                UUID userID = UUID.Zero;
+                UUID.TryParse(userID_str, out userID);
+
+                //int userFlags = m_HomeUsersService.GetUserFlags(userID);
+                Dictionary<string,object> userInfo = m_HomeUsersService.GetUserInfo(userID);
+                if (userInfo.Count > 0)
+                {
+                    foreach (KeyValuePair<string, object> kvp in userInfo)
+                    {
+                        hash[kvp.Key] = kvp.Value;
+                    }
+                }
+                else
+                {
+                    hash["result"] = "failure";
+                }
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
         }
 
         public XmlRpcResponse GetServerURLs(XmlRpcRequest request, IPEndPoint remoteClient)
@@ -376,8 +422,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         /// <summary>
-        /// Locates the user.
-        /// This is a sensitive operation, only authorized IP addresses can perform it.
+        /// Returns the UUI of a user given a UUID.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="remoteClient"></param>
@@ -408,8 +453,32 @@ namespace OpenSim.Server.Handlers.Hypergrid
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;
-
         }
 
+        /// <summary>
+        /// Gets the UUID of a user given First name, Last name.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        public XmlRpcResponse GetUUID(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            if (requestData.ContainsKey("first") && requestData.ContainsKey("last"))
+            {
+                string first = (string)requestData["first"];
+                string last = (string)requestData["last"];
+                UUID uuid = m_HomeUsersService.GetUUID(first, last);
+                hash["UUID"] = uuid.ToString();
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+        }
     }
 }

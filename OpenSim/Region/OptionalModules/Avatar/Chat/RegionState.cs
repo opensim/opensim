@@ -41,49 +41,71 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
     internal class RegionState
     {
-
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly OpenMetaverse.Vector3 CenterOfRegion = new OpenMetaverse.Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 20);
-        private const  int DEBUG_CHANNEL = 2147483647;
+        private const int DEBUG_CHANNEL = 2147483647;
 
-        private static int _idk_         = 0;
+        private static int _idk_ = 0;
 
         // Runtime variables; these values are assigned when the
         // IrcState is created and remain constant thereafter.
 
-        internal string Region               = String.Empty;
-        internal string Host                 = String.Empty;
-        internal string LocX                 = String.Empty;
-        internal string LocY                 = String.Empty;
-        internal string IDK                  = String.Empty;
+        internal string Region = String.Empty;
+        internal string Host = String.Empty;
+        internal string LocX = String.Empty;
+        internal string LocY = String.Empty;
+        internal string IDK = String.Empty;
 
         // System values - used only be the IRC classes themselves
 
-        internal ChannelState cs             = null; // associated IRC configuration
-        internal Scene scene                 = null; // associated scene
-        internal IConfig config              = null; // configuration file reference
-        internal bool enabled                = true; 
- 
+        internal ChannelState cs = null; // associated IRC configuration
+        internal Scene scene = null; // associated scene
+        internal IConfig config = null; // configuration file reference
+        internal bool enabled = true;
+
+        //AgentAlert
+        internal bool showAlert = false;
+        internal string alertMessage = String.Empty;
+        internal IDialogModule dialogModule = null;
+
         // This list is used to keep track of who is here, and by
         // implication, who is not.
 
-        internal List<IClientAPI> clients    = new List<IClientAPI>();
+        internal List<IClientAPI> clients = new List<IClientAPI>();
 
         // Setup runtime variable values
 
         public RegionState(Scene p_scene, IConfig p_config)
         {
-
-            scene  = p_scene;
+            scene = p_scene;
             config = p_config;
 
             Region = scene.RegionInfo.RegionName;
-            Host   = scene.RegionInfo.ExternalHostName;
-            LocX   = Convert.ToString(scene.RegionInfo.RegionLocX);
-            LocY   = Convert.ToString(scene.RegionInfo.RegionLocY);
-            IDK    = Convert.ToString(_idk_++);
+            Host = scene.RegionInfo.ExternalHostName;
+            LocX = Convert.ToString(scene.RegionInfo.RegionLocX);
+            LocY = Convert.ToString(scene.RegionInfo.RegionLocY);
+            IDK = Convert.ToString(_idk_++);
+
+            showAlert = config.GetBoolean("alert_show", false);
+            string alertServerInfo = String.Empty;
+
+            if (showAlert)
+            {
+                bool showAlertServerInfo = config.GetBoolean("alert_show_serverinfo", true);
+
+                if (showAlertServerInfo)
+                    alertServerInfo = String.Format("\nServer: {0}\nPort: {1}\nChannel: {2}\n\n",
+                        config.GetString("server", ""), config.GetString("port", ""), config.GetString("channel", ""));
+
+                string alertPreMessage = config.GetString("alert_msg_pre", "This region is linked to Irc.");
+                string alertPostMessage = config.GetString("alert_msg_post", "Everything you say in public chat can be listened.");
+
+                alertMessage = String.Format("{0}\n{1}{2}", alertPreMessage, alertServerInfo, alertPostMessage);
+
+                dialogModule = scene.RequestModuleInterface<IDialogModule>();
+            }
 
             // OpenChannel conditionally establishes a connection to the
             // IRC server. The request will either succeed, or it will
@@ -93,9 +115,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             // Connect channel to world events
 
-            scene.EventManager.OnChatFromWorld  += OnSimChat;
+            scene.EventManager.OnChatFromWorld += OnSimChat;
             scene.EventManager.OnChatFromClient += OnSimChat;
-            scene.EventManager.OnMakeRootAgent  += OnMakeRootAgent;
+            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
 
             m_log.InfoFormat("[IRC-Region {0}] Initialization complete", Region);
@@ -106,8 +128,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         ~RegionState()
         {
-          if (cs != null)
-              cs.RemoveRegion(this);
+            if (cs != null)
+                cs.RemoveRegion(this);
         }
 
         // Called by PostInitialize after all regions have been created
@@ -138,7 +160,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
                 if (clients.Contains(client))
                 {
-                    if (enabled && (cs.irc.Enabled) && (cs.irc.Connected) && (cs.ClientReporting)) 
+                    if (enabled && (cs.irc.Enabled) && (cs.irc.Connected) && (cs.ClientReporting))
                     {
                         m_log.InfoFormat("[IRC-Region {0}]: {1} has left", Region, client.Name);
                         //Check if this person is excluded from IRC
@@ -147,7 +169,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                             cs.irc.PrivMsg(cs.NoticeMessageFormat, cs.irc.Nick, Region, String.Format("{0} has left", client.Name));
                         }
                     }
-                    client.OnLogout           -= OnClientLoggedOut;
+                    client.OnLogout -= OnClientLoggedOut;
                     client.OnConnectionClosed -= OnClientLoggedOut;
                     clients.Remove(client);
                 }
@@ -171,13 +193,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
                 if (clients.Contains(client))
                 {
-                    if (enabled && (cs.irc.Enabled) && (cs.irc.Connected) && (cs.ClientReporting)) 
+                    if (enabled && (cs.irc.Enabled) && (cs.irc.Connected) && (cs.ClientReporting))
                     {
                         string clientName = String.Format("{0} {1}", presence.Firstname, presence.Lastname);
                         m_log.DebugFormat("[IRC-Region {0}] {1} has left", Region, clientName);
                         cs.irc.PrivMsg(cs.NoticeMessageFormat, cs.irc.Nick, Region, String.Format("{0} has left", clientName));
                     }
-                    client.OnLogout           -= OnClientLoggedOut;
+                    client.OnLogout -= OnClientLoggedOut;
                     client.OnConnectionClosed -= OnClientLoggedOut;
                     clients.Remove(client);
                 }
@@ -195,14 +217,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         private void OnMakeRootAgent(ScenePresence presence)
         {
-
             IClientAPI client = presence.ControllingClient;
 
             try
             {
                 if (!clients.Contains(client))
                 {
-                    client.OnLogout           += OnClientLoggedOut;
+                    client.OnLogout += OnClientLoggedOut;
                     client.OnConnectionClosed += OnClientLoggedOut;
                     clients.Add(client);
                     if (enabled && (cs.irc.Enabled) && (cs.irc.Connected) && (cs.ClientReporting))
@@ -216,17 +237,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         }
                     }
                 }
+
+                if (dialogModule != null && showAlert)
+                    dialogModule.SendAlertToUser(client, alertMessage, true);
             }
             catch (Exception ex)
             {
                 m_log.ErrorFormat("[IRC-Region {0}]: MakeRootAgent exception: {1}", Region, ex.Message);
                 m_log.Debug(ex);
             }
-
         }
 
         // This handler detects chat events int he virtual world.
-
         public void OnSimChat(Object sender, OSChatMessage msg)
         {
 
@@ -317,14 +339,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         // that evident.
 
                         default:
-                            m_log.DebugFormat("[IRC-Region {0}] Forwarding unrecognized command to IRC : {1}", 
+                            m_log.DebugFormat("[IRC-Region {0}] Forwarding unrecognized command to IRC : {1}",
                                             Region, msg.Message);
                             cs.irc.Send(msg.Message);
                             break;
                     }
                 }
                 catch (Exception ex)
-                { 
+                {
                     m_log.WarnFormat("[IRC-Region {0}] error processing in-world command channel input: {1}",
                                     Region, ex.Message);
                     m_log.Debug(ex);
@@ -366,7 +388,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             m_log.DebugFormat("[IRC-Region {0}] heard on channel {1} : {2}", Region, msg.Channel, msg.Message);
 
-            if (null != avatar && cs.RelayChat && (msg.Channel == 0 || msg.Channel == DEBUG_CHANNEL)) 
+            if (null != avatar && cs.RelayChat && (msg.Channel == 0 || msg.Channel == DEBUG_CHANNEL))
             {
                 string txt = msg.Message;
                 if (txt.StartsWith("/me "))
@@ -376,13 +398,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 return;
             }
 
-            if (null == avatar && cs.RelayPrivateChannels && null != cs.AccessPassword && 
+            if (null == avatar && cs.RelayPrivateChannels && null != cs.AccessPassword &&
                 msg.Channel == cs.RelayChannelOut)
             {
                 Match m = cs.AccessPasswordRegex.Match(msg.Message);
                 if (null != m)
                 {
-                    m_log.DebugFormat("[IRC] relaying message from {0}: {1}", m.Groups["avatar"].ToString(), 
+                    m_log.DebugFormat("[IRC] relaying message from {0}: {1}", m.Groups["avatar"].ToString(),
                                       m.Groups["message"].ToString());
                     cs.irc.PrivMsg(cs.PrivateMessageFormat, m.Groups["avatar"].ToString(),
                                    scene.RegionInfo.RegionName, m.Groups["message"].ToString());

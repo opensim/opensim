@@ -31,12 +31,14 @@ using System.Reflection;
 
 using log4net;
 using OpenMetaverse;
+using Mono.Addins;
 
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.World.Wind;
 
 namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 {
+    [Extension(Path = "/OpenSim/WindModule", NodeName = "WindModel", Id = "ConfigurableWind")]
     class ConfigurableWind : Mono.Addins.TypeExtensionNode, IWindModelPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

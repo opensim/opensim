@@ -51,14 +51,14 @@ using ExtraParamType = OpenMetaverse.ExtraParamType;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UploadObjectAssetModule")]
     public class UploadObjectAssetModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
 
         public Type ReplaceableInterface
@@ -92,7 +92,7 @@ namespace OpenSim.Region.ClientStack.Linden
         #endregion
 
 
-        #region IRegionModule Members
+        #region Region Module interface
 
 
 
@@ -106,12 +106,15 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID capID = UUID.Random();
 
 //            m_log.Debug("[UPLOAD OBJECT ASSET MODULE]: /CAPS/" + capID);
-            caps.RegisterHandler("UploadObjectAsset",
-                                 new RestHTTPHandler("POST", "/CAPS/OA/" + capID + "/",
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return ProcessAdd(m_dhttpMethod, agentID, caps);
-                                                       }));
+            caps.RegisterHandler(
+                "UploadObjectAsset",
+                new RestHTTPHandler(
+                    "POST",
+                    "/CAPS/OA/" + capID + "/",
+                    httpMethod => ProcessAdd(httpMethod, agentID, caps),
+                    "UploadObjectAsset",
+                    agentID.ToString()));
+
             /*
                    caps.RegisterHandler("NewFileAgentInventoryVariablePrice",
 
@@ -274,6 +277,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 pbs.ProfileEnd = (ushort) obj.ProfileEnd;
                 pbs.Scale = obj.Scale;
                 pbs.State = (byte) 0;
+                pbs.LastAttachPoint = (byte) 0;
                 SceneObjectPart prim = new SceneObjectPart();
                 prim.UUID = UUID.Random();
                 prim.CreatorID = AgentId;
@@ -330,7 +334,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 grp.AbsolutePosition = obj.Position;
                 prim.RotationOffset = obj.Rotation;
                 
-                grp.IsAttachment = false;
                 // Required for linking
                 grp.RootPart.ClearUpdateSchedule();
                 
@@ -339,7 +342,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_scene.AddSceneObject(grp);
                     grp.AbsolutePosition = obj.Position;
                 }
-
+                
                 allparts[i] = grp;
             }
 

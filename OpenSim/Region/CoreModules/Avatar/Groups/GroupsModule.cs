@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -34,9 +35,12 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.Groups
 {
-    public class GroupsModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GroupsModule")]
+    public class GroupsModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -55,9 +59,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
         private static GroupMembershipData osGroup =
                 new GroupMembershipData();
 
-        #region IRegionModule Members
+        private bool m_Enabled = false;
 
-        public void Initialise(Scene scene, IConfigSource config)
+        #region ISharedRegionModule Members
+
+        public void Initialise(IConfigSource config)
         {
             IConfig groupsConfig = config.Configs["Groups"];
 
@@ -67,15 +73,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             }
             else
             {
-                if (!groupsConfig.GetBoolean("Enabled", false))
+                m_Enabled = groupsConfig.GetBoolean("Enabled", false);
+                if (!m_Enabled)
                 {
                     m_log.Info("[GROUPS]: Groups disabled in configuration");
                     return;
                 }
 
                 if (groupsConfig.GetString("Module", "Default") != "Default")
+                {
+                    m_Enabled = false;
                     return;
+                }
             }
+
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
 
             lock (m_SceneList)
             {
@@ -96,7 +113,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
-            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
+            //            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            lock (m_SceneList)
+            {
+                if (m_SceneList.Contains(scene))
+                    m_SceneList.Remove(scene);
+            }
+
+            scene.EventManager.OnNewClient -= OnNewClient;
+            scene.EventManager.OnClientClosed -= OnClientClosed;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
         }
 
         public void PostInitialise()
@@ -105,6 +141,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
 
         public void Close()
         {
+            if (!m_Enabled)
+                return;
+
 //            m_log.Debug("[GROUPS]: Shutting down group module.");
             
             lock (m_ClientMap)
@@ -123,9 +162,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             get { return "GroupsModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion
@@ -133,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
         private void OnNewClient(IClientAPI client)
         {
             // Subscribe to instant messages
-            client.OnInstantMessage += OnInstantMessage;
+//            client.OnInstantMessage += OnInstantMessage;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
             client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             lock (m_ClientMap)
@@ -171,15 +210,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                                              ActiveGroupTitle);
         }
 
-        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
-        {
-        }
+//        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+//        {
+//        }
 
-        private void OnGridInstantMessage(GridInstantMessage msg)
-        {
-            // Trigger the above event handler
-            OnInstantMessage(null, msg);
-        }
+//        private void OnGridInstantMessage(GridInstantMessage msg)
+//        {
+//            // Trigger the above event handler
+//            OnInstantMessage(null, msg);
+//        }
 
         private void HandleUUIDGroupNameRequest(UUID id,IClientAPI remote_client)
         {

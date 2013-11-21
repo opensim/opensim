@@ -56,10 +56,28 @@ namespace OpenSim.Framework
 
     public interface IScene
     {
+        /// <summary>
+        /// The name of this scene.
+        /// </summary>
+        string Name { get; }
+
         RegionInfo RegionInfo { get; }
         RegionStatus RegionStatus { get; set; }
 
         IConfigSource Config { get; }
+
+        /// <summary>
+        /// Are logins enabled on this simulator?
+        /// </summary>
+        bool LoginsEnabled { get; set; }
+
+        /// <summary>
+        /// Is this region ready for use?
+        /// </summary>
+        /// <remarks>
+        /// This does not mean that logins are enabled, merely that they can be.
+        /// </remarks>
+        bool Ready { get; set; }
 
         float TimeDilation { get; }
 
@@ -68,37 +86,28 @@ namespace OpenSim.Framework
         event restart OnRestart;
 
         /// <summary>
-        /// Register the new client with the scene.  The client starts off as a child agent - the later agent crossing
-        /// will promote it to a root agent.
+        /// Add a new agent with an attached client.  All agents except initial login clients will starts off as a child agent
+        /// - the later agent crossing will promote it to a root agent.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="type">The type of agent to add.</param>
-        void AddNewClient(IClientAPI client, PresenceType type);
+        /// <returns>
+        /// The scene agent if the new client was added or if an agent that already existed.</returns>
+        ISceneAgent AddNewAgent(IClientAPI client, PresenceType type);
 
         /// <summary>
-        /// Remove the given client from the scene.
+        /// Tell a single agent to disconnect from the region.
         /// </summary>
         /// <param name="agentID"></param>
-        /// <param name="closeChildAgents">Close the neighbour child agents associated with this client.</param>
-        void RemoveClient(UUID agentID, bool closeChildAgents);
+        /// <param name="force">
+        /// Force the agent to close even if it might be in the middle of some other operation.  You do not want to
+        /// force unless you are absolutely sure that the agent is dead and a normal close is not working.
+        /// </param>
+        bool CloseAgent(UUID agentID, bool force);
 
         void Restart();
-        //RegionInfo OtherRegionUp(RegionInfo thisRegion);
 
         string GetSimulatorVersion();
-
-        /// <summary>
-        /// Is the agent denoted by the given agentID a child presence in this scene?
-        /// </summary>
-        /// 
-        /// Used by ClientView when a 'kick everyone' or 'estate message' occurs
-        /// 
-        /// <param name="avatarID">AvatarID to lookup</param>
-        /// <returns>true if the presence is a child agent, false if the presence is a root exception</returns>
-        /// <exception cref="System.NullReferenceException">
-        /// Thrown if the agent does not exist.
-        /// </exception>
-        bool PresenceChildStatus(UUID agentId);
 
         bool TryGetScenePresence(UUID agentID, out object scenePresence);
 
@@ -129,5 +138,10 @@ namespace OpenSim.Framework
         ISceneObject DeserializeObject(string representation);
 
         bool CheckClient(UUID agentID, System.Net.IPEndPoint ep);
+
+        /// <summary>
+        /// Start the scene and associated scripts within it.
+        /// </summary>
+        void Start();
     }
 }

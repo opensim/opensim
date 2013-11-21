@@ -107,15 +107,13 @@ namespace OpenSim
                     }
                     else
                     {
-                        m_log.ErrorFormat("Master ini file {0} not found", masterFilePath);
+                        m_log.ErrorFormat("Master ini file {0} not found", Path.GetFullPath(masterFilePath));
                         Environment.Exit(1);
                     }
                 }
             }
 
-
-            string iniFileName =
-                    startupConfig.GetString("inifile", "OpenSim.ini");
+            string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");
 
             if (IsUri(iniFileName))
             {
@@ -131,8 +129,7 @@ namespace OpenSim
                 if (!File.Exists(Application.iniFilePath))
                 {
                     iniFileName = "OpenSim.xml";
-                    Application.iniFilePath = Path.GetFullPath(
-                            Path.Combine(Util.configDir(), iniFileName));
+                    Application.iniFilePath = Path.GetFullPath(Path.Combine(Util.configDir(), iniFileName));
                 }
 
                 if (File.Exists(Application.iniFilePath))
@@ -142,15 +139,12 @@ namespace OpenSim
                 }
             }
 
-            string iniDirName =
-                    startupConfig.GetString("inidirectory", "config");
-            string iniDirPath =
-                    Path.Combine(Util.configDir(), iniDirName);
+            string iniDirName = startupConfig.GetString("inidirectory", "config");
+            string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
 
             if (Directory.Exists(iniDirPath))
             {
-                m_log.InfoFormat("Searching folder {0} for config ini files",
-                        iniDirPath);
+                m_log.InfoFormat("Searching folder {0} for config ini files", iniDirPath);
 
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
@@ -172,7 +166,6 @@ namespace OpenSim
             if (sources.Count == 0)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
-                m_log.FatalFormat("[CONFIG]: Did you copy the OpenSimDefaults.ini.example file to OpenSimDefaults.ini?");
                 Environment.Exit(1);
             }
 
@@ -195,7 +188,6 @@ namespace OpenSim
             // Make sure command line options take precedence
             m_config.Source.Merge(argvSource);
 
-
             IConfig enVars = m_config.Source.Configs["Environment"];
 
             if( enVars != null )
@@ -209,9 +201,9 @@ namespace OpenSim
 
                 envConfigSource.LoadEnv();
                 m_config.Source.Merge(envConfigSource);
-                m_config.Source.ExpandKeyValues();
             }
 
+            m_config.Source.ExpandKeyValues();
 
             ReadConfigSettings();
 
@@ -345,10 +337,7 @@ namespace OpenSim
                 config.Set("physics", "OpenDynamicsEngine");
                 config.Set("meshing", "Meshmerizer");
                 config.Set("physical_prim", true);
-                config.Set("see_into_this_sim_from_neighbor", true);
                 config.Set("serverside_object_permissions", true);
-                config.Set("storage_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
@@ -380,7 +369,6 @@ namespace OpenSim
             {
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
-                m_configSettings.StorageDll = startupConfig.GetString("storage_plugin");
 
                 m_configSettings.ClientstackDll 
                     = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");

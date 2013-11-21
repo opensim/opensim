@@ -193,17 +193,13 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override Vector3 Acceleration
         {
             get { return _acceleration; }
+            set { _acceleration = value; }
         }
 
         public override bool Kinematic
         {
             get { return true; }
             set { }
-        }
-
-        public void SetAcceleration(Vector3 accel)
-        {
-            _acceleration = accel;
         }
 
         public override void AddForce(Vector3 force, bool pushforce)

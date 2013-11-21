@@ -42,8 +42,8 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Profile
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class BasicProfileModule : ISharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BasicProfileModule")]
+    public class BasicProfileModule : IProfileModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -57,22 +57,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
         public void Initialise(IConfigSource config)
         {
-            if (config.Configs["Profile"] != null)
-            {
-                if (config.Configs["Profile"].GetString("Module", string.Empty) != "BasicProfileModule")
-                    return;
-            }
+            if(config.Configs["UserProfiles"] != null)
+                return;
 
             m_log.DebugFormat("[PROFILE MODULE]: Basic Profile Module enabled");
             m_Enabled = true;
-
         }
 
         public void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
-
+            
             lock (m_Scenes)
             {
                 if (!m_Scenes.Contains(scene))
@@ -80,6 +76,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
                     m_Scenes.Add(scene);
                     // Hook up events
                     scene.EventManager.OnNewClient += OnNewClient;
+                    scene.RegisterModuleInterface<IProfileModule>(this);
                 }
             }
         }
@@ -116,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
         public Type ReplaceableInterface
         {
-            get { return null; }
+            get { return typeof(IProfileModule); }
         }
 
         #endregion
@@ -148,7 +145,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
             string skillsText = String.Empty;
             string languages = String.Empty;
 
-            Byte[] charterMember = Utils.StringToBytes("Avatar");
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, avatarID);
+
+            string name = "Avatar";
+            int created = 0;
+            if (account != null)
+            {
+                name = account.FirstName + " " + account.LastName;
+                created = account.Created;
+            }
+            Byte[] charterMember = Utils.StringToBytes(name);
 
             profileUrl = "No profile data";
             aboutText = string.Empty;
@@ -158,7 +164,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
             partner = UUID.Zero;
 
             remoteClient.SendAvatarProperties(avatarID, aboutText,
-                        Util.ToDateTime(0).ToString(
+                        Util.ToDateTime(created).ToString(
                                 "M/d/yyyy", CultureInfo.InvariantCulture),
                         charterMember, firstLifeAboutText,
                         (uint)(0 & 0xff),

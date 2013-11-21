@@ -28,9 +28,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
+using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -38,54 +41,38 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
 
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
+
+using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
-    class UserData
-    {
-        public UUID Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string HomeURL { get; set; }
-        public Dictionary<string, object> ServerURLs { get; set; }
-    }
-
-    public class UserManagementModule : ISharedRegionModule, IUserManagement
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]
+    public class UserManagementModule : ISharedRegionModule, IUserManagement, IPeople
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_Scenes = new List<Scene>();
+        protected bool m_Enabled;
+        protected List<Scene> m_Scenes = new List<Scene>();
 
+        protected IServiceThrottleModule m_ServiceThrottle;
         // The cache
-        Dictionary<UUID, UserData> m_UserCache = new Dictionary<UUID, UserData>();
+        protected Dictionary<UUID, UserData> m_UserCache = new Dictionary<UUID, UserData>();
 
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
         {
-            //m_Enabled = config.Configs["Modules"].GetBoolean("LibraryModule", m_Enabled);
-            //if (m_Enabled)
-            //{
-            //    IConfig libConfig = config.Configs["LibraryService"];
-            //    if (libConfig != null)
-            //    {
-            //        string dllName = libConfig.GetString("LocalServiceModule", string.Empty);
-            //        m_log.Debug("[LIBRARY MODULE]: Library service dll is " + dllName);
-            //        if (dllName != string.Empty)
-            //        {
-            //            Object[] args = new Object[] { config };
-            //            m_Library = ServerUtils.LoadPlugin<ILibraryService>(dllName, args);
-            //        }
-            //    }
-            //}
-            MainConsole.Instance.Commands.AddCommand("grid", true,
-                "show names",
-                "show names",
-                "Show the bindings between user UUIDs and user names",
-                String.Empty,
-                HandleShowUsers);
+            string umanmod = config.Configs["Modules"].GetString("UserManagementModule", Name);
+            if (umanmod == Name)
+            {
+                m_Enabled = true;
+                Init();
+                m_log.DebugFormat("[USER MANAGEMENT MODULE]: {0} is enabled", Name);
+            }
         }
 
         public bool IsSharedModule
@@ -93,9 +80,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             get { return true; }
         }
 
-        public string Name
+        public virtual string Name
         {
-            get { return "UserManagement Module"; }
+            get { return "BasicUserManagementModule"; }
         }
 
         public Type ReplaceableInterface
@@ -105,21 +92,30 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddRegion(Scene scene)
         {
-            m_Scenes.Add(scene);
+            if (m_Enabled)
+            {
+                m_Scenes.Add(scene);
 
-            scene.RegisterModuleInterface<IUserManagement>(this);
-            scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
-            scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
+                scene.RegisterModuleInterface<IUserManagement>(this);
+                scene.RegisterModuleInterface<IPeople>(this);
+                scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
+                scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
-            scene.UnregisterModuleInterface<IUserManagement>(this);
-            m_Scenes.Remove(scene);
+            if (m_Enabled)
+            {
+                scene.UnregisterModuleInterface<IUserManagement>(this);
+                m_Scenes.Remove(scene);
+            }
         }
 
         public void RegionLoaded(Scene s)
         {
+            if (m_Enabled && m_ServiceThrottle == null)
+                m_ServiceThrottle = s.RequestModuleInterface<IServiceThrottleModule>();
         }
 
         public void PostInitialise()
@@ -146,31 +142,155 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             s.ForEachSOG(delegate(SceneObjectGroup sog) { CacheCreators(sog); });
         }
 
-
         void EventManager_OnNewClient(IClientAPI client)
         {
+            client.OnConnectionClosed += new Action<IClientAPI>(HandleConnectionClosed);
             client.OnNameFromUUIDRequest += new UUIDNameRequest(HandleUUIDNameRequest);
+            client.OnAvatarPickerRequest += new AvatarPickerRequest(HandleAvatarPickerRequest);
         }
 
-        void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
+        void HandleConnectionClosed(IClientAPI client)
         {
+            client.OnNameFromUUIDRequest -= new UUIDNameRequest(HandleUUIDNameRequest);
+            client.OnAvatarPickerRequest -= new AvatarPickerRequest(HandleAvatarPickerRequest);
+        }
+
+        void HandleUUIDNameRequest(UUID uuid, IClientAPI client)
+        {
+//            m_log.DebugFormat(
+//                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}", 
+//                uuid, remote_client.Name);
+
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
             {
-                remote_client.SendNameReply(uuid, "Mr", "OpenSim");
+                client.SendNameReply(uuid, "Mr", "OpenSim");
             }
             else
             {
-                string[] names = GetUserNames(uuid);
-                if (names.Length == 2)
+                string[] names = new string[2];
+                if (TryGetUserNamesFromCache(uuid, names))
                 {
-                    //m_log.DebugFormat("[XXX] HandleUUIDNameRequest {0} is {1} {2}", uuid, names[0], names[1]);
-                    remote_client.SendNameReply(uuid, names[0], names[1]);
+                    client.SendNameReply(uuid, names[0], names[1]);
+                    return;
                 }
 
+                // Not found in cache, queue continuation
+                m_ServiceThrottle.Enqueue("name", uuid.ToString(),  delegate
+                {
+                    //m_log.DebugFormat("[YYY]: Name request {0}", uuid);
+
+                    // As least upto September 2013, clients permanently cache UUID -> Name bindings.  Some clients
+                    // appear to clear this when the user asks it to clear the cache, but others may not.
+                    //
+                    // So to avoid clients
+                    // (particularly Hypergrid clients) permanently binding "Unknown User" to a given UUID, we will 
+                    // instead drop the request entirely.
+                    if (TryGetUserNames(uuid, names))
+                        client.SendNameReply(uuid, names[0], names[1]);
+//                    else
+//                        m_log.DebugFormat(
+//                            "[USER MANAGEMENT MODULE]: No bound name for {0} found, ignoring request from {1}", 
+//                            uuid, client.Name);
+                });
             }
         }
 
+        public void HandleAvatarPickerRequest(IClientAPI client, UUID avatarID, UUID RequestID, string query)
+        {
+            //EventManager.TriggerAvatarPickerRequest();
+
+            m_log.DebugFormat("[USER MANAGEMENT MODULE]: HandleAvatarPickerRequest for {0}", query);
+
+            List<UserData> users = GetUserData(query, 500, 1);
+
+            AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
+            // TODO: don't create new blocks if recycling an old packet
+
+            AvatarPickerReplyPacket.DataBlock[] searchData =
+                new AvatarPickerReplyPacket.DataBlock[users.Count];
+            AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
+
+            agentData.AgentID = avatarID;
+            agentData.QueryID = RequestID;
+            replyPacket.AgentData = agentData;
+            //byte[] bytes = new byte[AvatarResponses.Count*32];
+
+            int i = 0;
+            foreach (UserData item in users)
+            {
+                UUID translatedIDtem = item.Id;
+                searchData[i] = new AvatarPickerReplyPacket.DataBlock();
+                searchData[i].AvatarID = translatedIDtem;
+                searchData[i].FirstName = Utils.StringToBytes((string)item.FirstName);
+                searchData[i].LastName = Utils.StringToBytes((string)item.LastName);
+                i++;
+            }
+            if (users.Count == 0)
+            {
+                searchData = new AvatarPickerReplyPacket.DataBlock[0];
+            }
+            replyPacket.Data = searchData;
+
+            AvatarPickerReplyAgentDataArgs agent_data = new AvatarPickerReplyAgentDataArgs();
+            agent_data.AgentID = replyPacket.AgentData.AgentID;
+            agent_data.QueryID = replyPacket.AgentData.QueryID;
+
+            List<AvatarPickerReplyDataArgs> data_args = new List<AvatarPickerReplyDataArgs>();
+            for (i = 0; i < replyPacket.Data.Length; i++)
+            {
+                AvatarPickerReplyDataArgs data_arg = new AvatarPickerReplyDataArgs();
+                data_arg.AvatarID = replyPacket.Data[i].AvatarID;
+                data_arg.FirstName = replyPacket.Data[i].FirstName;
+                data_arg.LastName = replyPacket.Data[i].LastName;
+                data_args.Add(data_arg);
+            }
+            client.SendAvatarPickerReply(agent_data, data_args);
+        }
+
+        protected virtual void AddAdditionalUsers(string query, List<UserData> users)
+        {
+        }
+
         #endregion Event Handlers
+
+        #region IPeople
+
+        public List<UserData> GetUserData(string query, int page_size, int page_number)
+        {
+            // search the user accounts service
+            List<UserAccount> accs = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
+
+            List<UserData> users = new List<UserData>();
+            if (accs != null)
+            {
+                foreach (UserAccount acc in accs)
+                {
+                    UserData ud = new UserData();
+                    ud.FirstName = acc.FirstName;
+                    ud.LastName = acc.LastName;
+                    ud.Id = acc.PrincipalID;
+                    users.Add(ud);
+                }
+            }
+
+            // search the local cache
+            lock (m_UserCache)
+            {
+                foreach (UserData data in m_UserCache.Values)
+                {
+                    if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
+                        (data.FirstName.ToLower().StartsWith(query.ToLower()) || data.LastName.ToLower().StartsWith(query.ToLower())))
+                        users.Add(data);
+                }
+            }
+
+            AddAdditionalUsers(query, users);
+
+            return users;
+
+        }
+
+        #endregion IPeople
 
         private void CacheCreators(SceneObjectGroup sog)
         {
@@ -185,26 +305,56 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
-        private string[] GetUserNames(UUID uuid)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <param name="names">Caller please provide a properly instantiated array for names, string[2]</param>
+        /// <returns></returns>
+        private bool TryGetUserNames(UUID uuid, string[] names)
         {
-            string[] returnstring = new string[2];
+            if (names == null)
+                names = new string[2];
 
+            if (TryGetUserNamesFromCache(uuid, names))
+                return true;
+
+            if (TryGetUserNamesFromServices(uuid, names))
+                return true;
+
+            return false;
+        }
+
+        private bool TryGetUserNamesFromCache(UUID uuid, string[] names)
+        {
             lock (m_UserCache)
             {
                 if (m_UserCache.ContainsKey(uuid))
                 {
-                    returnstring[0] = m_UserCache[uuid].FirstName;
-                    returnstring[1] = m_UserCache[uuid].LastName;
-                    return returnstring;
+                    names[0] = m_UserCache[uuid].FirstName;
+                    names[1] = m_UserCache[uuid].LastName;
+
+                    return true;
                 }
             }
 
+            return false;
+        }
+
+        /// <summary>
+        /// Try to get the names bound to the given uuid, from the services.
+        /// </summary>
+        /// <returns>True if the name was found, false if not.</returns>
+        /// <param name='uuid'></param>
+        /// <param name='names'>The array of names if found.  If not found, then names[0] = "Unknown" and names[1] = "User"</param>
+        private bool TryGetUserNamesFromServices(UUID uuid, string[] names)
+        {
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, uuid);
 
             if (account != null)
             {
-                returnstring[0] = account.FirstName;
-                returnstring[1] = account.LastName;
+                names[0] = account.FirstName;
+                names[1] = account.LastName;
 
                 UserData user = new UserData();
                 user.FirstName = account.FirstName;
@@ -212,31 +362,82 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
                 lock (m_UserCache)
                     m_UserCache[uuid] = user;
+
+                return true;
             }
             else
             {
-                returnstring[0] = "Unknown";
-                returnstring[1] = "User";
-            }
+                // Let's try the GridUser service
+                GridUserInfo uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
+                if (uInfo != null)
+                {
+                    string url, first, last, tmp;
+                    UUID u;
+                    if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                    {
+                        AddUser(uuid, first, last, url);
 
-            return returnstring;
+                        if (m_UserCache.ContainsKey(uuid))
+                        {
+                            names[0] = m_UserCache[uuid].FirstName;
+                            names[1] = m_UserCache[uuid].LastName;
+
+                            return true;
+                        }
+                    }
+                    else
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
+                }
+                else
+                {
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
+                }
+
+                names[0] = "Unknown";
+                names[1] = "UserUMMTGUN9";
+
+                return false;
+            }
         }
 
         #region IUserManagement
 
+        public UUID GetUserIdByName(string name)
+        {
+            string[] parts = name.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+                throw new Exception("Name must have 2 components");
+
+            return GetUserIdByName(parts[0], parts[1]);
+        }
+
+        public UUID GetUserIdByName(string firstName, string lastName)
+        {
+            // TODO: Optimize for reverse lookup if this gets used by non-console commands.
+            lock (m_UserCache)
+            {
+                foreach (UserData user in m_UserCache.Values)
+                {
+                    if (user.FirstName == firstName && user.LastName == lastName)
+                        return user.Id;
+                }
+            }
+
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
+
+            if (account != null)
+                return account.PrincipalID;
+
+            return UUID.Zero;
+        }
+
         public string GetUserName(UUID uuid)
         {
-            //m_log.DebugFormat("[XXX] GetUserName {0}", uuid);
-            string[] names = GetUserNames(uuid);
-            if (names.Length == 2)
-            {
-                string firstname = names[0];
-                string lastname = names[1];
+            string[] names = new string[2];
+            TryGetUserNames(uuid, names);
 
-                return firstname + " " + lastname;
+            return names[0] + " " + names[1];
 
-            }
-            return "(hippos)";
         }
 
         public string GetUserHomeURL(UUID userID)
@@ -265,11 +466,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return userdata.ServerURLs[serverType].ToString();
                 }
 
-                if (userdata.HomeURL != null && userdata.HomeURL != string.Empty)
+                if (!string.IsNullOrEmpty(userdata.HomeURL))
                 {
-                    m_log.DebugFormat(
-                        "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
-                        serverType, userdata.HomeURL, userID);
+                    //m_log.DebugFormat(
+                    //    "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
+                    //    serverType, userdata.HomeURL, userID);
 
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
                     userdata.ServerURLs = uConn.GetServerURLs(userID);
@@ -283,13 +484,19 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserUUI(UUID userID)
         {
-            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, userID);
-            if (account != null)
-                return userID.ToString();
-
             UserData ud;
             lock (m_UserCache)
                 m_UserCache.TryGetValue(userID, out ud);
+
+            if (ud == null) // It's not in the cache
+            {
+                string[] names = new string[2];
+                // This will pull the data from either UserAccounts or GridUser
+                // and stick it into the cache
+                TryGetUserNamesFromServices(userID, names);
+                lock (m_UserCache)
+                    m_UserCache.TryGetValue(userID, out ud);
+            }
 
             if (ud != null)
             {
@@ -322,25 +529,48 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             user.Id = uuid;
             user.FirstName = first;
             user.LastName = last;
-            // user.ProfileURL = we should initialize this to the default
 
             AddUserInternal(user);
         }
 
-        public void AddUser(UUID uuid, string first, string last, string profileURL)
+        public void AddUser(UUID uuid, string first, string last, string homeURL)
         {
-            AddUser(uuid, profileURL + ";" + first + " " + last);
+            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
+            if (homeURL == string.Empty)
+                return;
+
+            AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 
         public void AddUser(UUID id, string creatorData)
         {
-            lock (m_UserCache)
-            {
-                if (m_UserCache.ContainsKey(id))
-                    return;
-            }
+            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
 
-//            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, craetorData {1}", id, creatorData);
+            UserData oldUser;
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(id, out oldUser);
+
+            if (oldUser != null)
+            {
+                if (string.IsNullOrEmpty(creatorData))
+                {
+                    //ignore updates without creator data
+                    return;
+                }
+
+                //try update unknown users, but don't update anyone else
+                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
+                {
+                    lock (m_UserCache)
+                        m_UserCache.Remove(id);
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
+                }
+                else
+                {
+                    //we have already a valid user within the cache
+                    return;
+                }
+            }
 
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
 
@@ -353,7 +583,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 UserData user = new UserData();
                 user.Id = id;
 
-                if (creatorData != null && creatorData != string.Empty)
+                if (!string.IsNullOrEmpty(creatorData))
                 {
                     //creatorData = <endpoint>;<name>
 
@@ -372,15 +602,20 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             user.LastName = "@unknown";
                         }
                     }
+
                     if (parts.Length >= 2)
                         user.FirstName = parts[1].Replace(' ', '.');
                 }
                 else
                 {
+                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
+                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
+                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
+                    // disappeared.
                     user.FirstName = "Unknown";
-                    user.LastName = "User";
+                    user.LastName = "UserUMMAU4";
                 }
-
+                
                 AddUserInternal(user);
             }
         }
@@ -390,63 +625,95 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             lock (m_UserCache)
                 m_UserCache[user.Id] = user;
 
-//            m_log.DebugFormat(
-//                "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
-//                user.Id, user.FirstName, user.LastName, user.HomeURL);
+            //m_log.DebugFormat(
+            //    "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
+            //    user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
-        //public void AddUser(UUID uuid, string userData)
-        //{
-        //    if (m_UserCache.ContainsKey(uuid))
-        //        return;
+        public bool IsLocalGridUser(UUID uuid)
+        {
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, uuid);
+            if (account == null || (account != null && !account.LocalToGrid))
+                return false;
 
-        //    UserData user = new UserData();
-        //    user.Id = uuid;
-
-        //    // userData = <profile url>;<name>
-        //    string[] parts = userData.Split(';');
-        //    if (parts.Length >= 1)
-        //        user.ProfileURL = parts[0].Trim();
-        //    if (parts.Length >= 2)
-        //    {
-        //        string[] name = parts[1].Trim().Split(' ');
-        //        if (name.Length >= 1)
-        //            user.FirstName = name[0];
-        //        if (name.Length >= 2)
-        //            user.LastName = name[1];
-        //        else
-        //            user.LastName = "?";
-        //    }
-
-        //    lock (m_UserCache)
-        //        m_UserCache.Add(uuid, user);
-
-        //    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
-
-        //}
+            return true;
+        }
 
         #endregion IUserManagement
 
-        private void HandleShowUsers(string module, string[] cmd)
+        protected void Init()
         {
-            lock (m_UserCache)
+            AddUser(UUID.Zero, "Unknown", "User");
+            RegisterConsoleCmds();
+        }
+
+        protected void RegisterConsoleCmds()
+        {
+            MainConsole.Instance.Commands.AddCommand("Users", true,
+                "show name",
+                "show name <uuid>",
+                "Show the bindings between a single user UUID and a user name",
+                String.Empty,
+                HandleShowUser);
+
+            MainConsole.Instance.Commands.AddCommand("Users", true,
+                "show names",
+                "show names",
+                "Show the bindings between user UUIDs and user names",
+                String.Empty,
+                HandleShowUsers);
+        }
+
+        private void HandleShowUser(string module, string[] cmd)
+        {
+            if (cmd.Length < 3)
             {
-                if (m_UserCache.Count == 0)
-                {
-                    MainConsole.Instance.Output("No users not found");
-                    return;
-                }
-    
-                MainConsole.Instance.Output("UUID                                 User Name");
-                MainConsole.Instance.Output("-----------------------------------------------------------------------------");
-                foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
-                {
-                    MainConsole.Instance.Output(String.Format("{0} {1} {2}",
-                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName));
-                }
-    
+                MainConsole.Instance.OutputFormat("Usage: show name <uuid>");
                 return;
             }
+
+            UUID userId;
+            if (!ConsoleUtil.TryParseConsoleUuid(MainConsole.Instance, cmd[2], out userId))
+                return;
+
+            string[] names;
+
+            UserData ud;
+
+            lock (m_UserCache)
+            {
+                if (!m_UserCache.TryGetValue(userId, out ud))
+                {
+                    MainConsole.Instance.OutputFormat("No name known for user with id {0}", userId);
+                    return;
+                }
+            }
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("UUID", 36);
+            cdt.AddColumn("Name", 30);
+            cdt.AddColumn("HomeURL", 40);
+            cdt.AddRow(userId, string.Format("{0} {1}", ud.FirstName, ud.LastName), ud.HomeURL);
+
+            MainConsole.Instance.Output(cdt.ToString());
         }
+
+        private void HandleShowUsers(string module, string[] cmd)
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("UUID", 36);
+            cdt.AddColumn("Name", 30);
+            cdt.AddColumn("HomeURL", 40);
+
+            lock (m_UserCache)
+            {
+                foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
+                    cdt.AddRow(kvp.Key, string.Format("{0} {1}", kvp.Value.FirstName, kvp.Value.LastName), kvp.Value.HomeURL);
+            }
+
+            MainConsole.Instance.Output(cdt.ToString());
+        }
+
     }
+
 }

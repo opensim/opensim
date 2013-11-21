@@ -66,13 +66,14 @@ namespace OpenSim.Capabilities.Handlers
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
             GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
-            IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(),
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return gmeshHandler.ProcessGetMesh(m_dhttpMethod, UUID.Zero, null);
-                                                       });
+            IRequestHandler reqHandler
+                = new RestHTTPHandler(
+                    "GET",
+                    "/CAPS/" + UUID.Random(),
+                    httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
+                    "GetMesh",
+                    null);
             server.AddStreamHandler(reqHandler);
         }
-
     }
 }

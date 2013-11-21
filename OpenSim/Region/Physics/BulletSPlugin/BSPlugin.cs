@@ -32,6 +32,14 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
+    /// <summary>
+    /// Entry for a port of Bullet (http://bulletphysics.org/) to OpenSim.
+    /// This module interfaces to an unmanaged C++ library which makes the
+    /// actual calls into the Bullet physics engine.
+    /// The unmanaged library is found in opensim-libs::trunk/unmanaged/BulletSim/.
+    /// The unmanaged library is compiled and linked statically with Bullet
+    /// to create BulletSim.dll and libBulletSim.so (for both 32 and 64 bit).
+    /// </summary>
 public class BSPlugin : IPhysicsPlugin
 {
     //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -51,7 +59,7 @@ public class BSPlugin : IPhysicsPlugin
     {
         if (_mScene == null)
         {
-            _mScene = new BSScene(sceneIdentifier);
+            _mScene = new BSScene(GetName(), sceneIdentifier);
         }
         return (_mScene);
     }

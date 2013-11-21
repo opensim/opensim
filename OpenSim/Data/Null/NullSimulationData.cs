@@ -76,6 +76,38 @@ namespace OpenSim.Data.Null
             //This connector doesn't support the windlight module yet
         }
 
+        #region Environment Settings
+
+        private Dictionary<UUID, string> EnvironmentSettings = new Dictionary<UUID, string>();
+
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            lock (EnvironmentSettings)
+            {
+                if (EnvironmentSettings.ContainsKey(regionUUID))
+                    return EnvironmentSettings[regionUUID];
+            }
+            return string.Empty;
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            lock (EnvironmentSettings)
+            {
+                EnvironmentSettings[regionUUID] = settings;
+            }
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            lock (EnvironmentSettings)
+            {
+                if (EnvironmentSettings.ContainsKey(regionUUID))
+                    EnvironmentSettings.Remove(regionUUID);
+            }
+        }
+        #endregion
+
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             RegionSettings rs = new RegionSettings();
@@ -132,6 +164,19 @@ namespace OpenSim.Data.Null
 
         public void Shutdown()
         {
+        }
+
+        public void SaveExtra(UUID regionID, string name, string value)
+        {
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return null;
         }
     }
 }

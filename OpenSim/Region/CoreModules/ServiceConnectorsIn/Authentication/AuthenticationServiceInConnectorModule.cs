@@ -29,6 +29,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -41,6 +42,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AuthenticationServiceInConnectorModule")]
     public class AuthenticationServiceInConnectorModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -49,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication
         private IConfigSource m_Config;
         bool m_Registered = false;
 
-        #region IRegionModule interface
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

@@ -52,13 +52,82 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from a user's root folder
         /// </summary>
-        ///
+        /// <remarks>
         /// This method does not handle paths that contain multiple delimitors
         ///
         /// FIXME: We have no way of distinguishing folders with the same path
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </remarks>
+        /// <param name="inventoryService">
+        /// Inventory service to query
+        /// </param>
+        /// <param name="userId">
+        /// User id to search
+        /// </param>
+        /// <param name="path">
+        /// The path to the required folder.
+        /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
+        /// </param>
+        /// <returns>The folder found.  Please note that if there are multiple folders with the same name then an 
+        /// unspecified one will be returned.  If no such folder eixsts then null is returned</returns>
+        public static InventoryFolderBase FindFolderByPath(
+            IInventoryService inventoryService, UUID userId, string path)
+        {
+            List<InventoryFolderBase> folders = FindFoldersByPath(inventoryService, userId, path);
+
+            if (folders.Count == 0)
+                return null;
+            else
+                return folders[0];
+        }
+
+        /// <summary>
+        /// Find a folder given a PATH_DELIMITER delimited path starting from a given folder
+        /// </summary>
+        /// <remarks>
+        /// This method does not handle paths that contain multiple delimitors
         ///
+        /// FIXME: We have no way of distinguishing folders with the same path
+        ///
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </remarks>
+        /// <param name="inventoryService">
+        /// Inventory service to query
+        /// </param>
+        /// <param name="startFolder">
+        /// The folder from which the path starts
+        /// </param>
+        /// <param name="path">
+        /// The path to the required folder.
+        /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
+        /// </param>
+        /// <returns>The folder found.  Please note that if there are multiple folders with the same name then an 
+        /// unspecified one will be returned.  If no such folder eixsts then null is returned</returns>
+        public static InventoryFolderBase FindFolderByPath(
+            IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
+        {
+            if (null == startFolder)
+                return null;
+
+            List<InventoryFolderBase> folders = FindFoldersByPath(inventoryService, startFolder, path);
+
+            if (folders.Count == 0)
+                return null;
+            else
+                return folders[0];
+        }
+
+        /// <summary>
+        /// Find a set of folders given a PATH_DELIMITER delimited path starting from a user's root folder
+        /// </summary>
+        /// <remarks>
+        /// This method does not handle paths that contain multiple delimitors
+        ///
+        /// FIXME: We have no way of distinguishing folders with the same path
+        ///
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </remarks>
         /// <param name="inventoryService">
         /// Inventory service to query
         /// </param>
@@ -70,7 +139,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>An empty list if the folder is not found, otherwise a list of all folders that match the name</returns>
-        public static List<InventoryFolderBase> FindFolderByPath(
+        public static List<InventoryFolderBase> FindFoldersByPath(
             IInventoryService inventoryService, UUID userId, string path)
         {
             InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
@@ -78,19 +147,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (null == rootFolder)
                 return new List<InventoryFolderBase>();
 
-            return FindFolderByPath(inventoryService, rootFolder, path);
+            return FindFoldersByPath(inventoryService, rootFolder, path);
         }
         
         /// <summary>
-        /// Find a folder given a PATH_DELIMITER delimited path starting from this folder
+        /// Find a set of folders given a PATH_DELIMITER delimited path starting from this folder
         /// </summary>
-        ///
+        /// <remarks>
         /// This method does not handle paths that contain multiple delimitors
         ///
         /// FIXME: We have no way of distinguishing folders with the same path.
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
-        ///
+        /// </remarks>
         /// <param name="inventoryService">
         /// Inventory service to query
         /// </param>
@@ -102,7 +171,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>An empty list if the folder is not found, otherwise a list of all folders that match the name</returns>
-        public static List<InventoryFolderBase> FindFolderByPath(
+        public static List<InventoryFolderBase> FindFoldersByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
         {
             List<InventoryFolderBase> foundFolders = new List<InventoryFolderBase>();
@@ -133,12 +202,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
 
+//            m_log.DebugFormat(
+//                "Found {0} folders in {1} for {2}", contents.Folders.Count, startFolder.Name, startFolder.Owner);
+
             foreach (InventoryFolderBase folder in contents.Folders)
             {
                 if (folder.Name == components[0])
                 {
                     if (components.Length > 1)
-                        foundFolders.AddRange(FindFolderByPath(inventoryService, folder, components[1]));
+                        foundFolders.AddRange(FindFoldersByPath(inventoryService, folder, components[1]));
                     else
                         foundFolders.Add(folder);
                 }

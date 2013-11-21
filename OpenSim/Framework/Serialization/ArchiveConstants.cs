@@ -53,6 +53,11 @@ namespace OpenSim.Framework.Serialization
         public const string INVENTORY_PATH = "inventory/";
 
         /// <value>
+        /// Path for regions in a multi-region archive
+        /// </value>
+        public const string REGIONS_PATH = "regions/";
+
+        /// <value>
         /// Path for the prims file
         /// </value>
         public const string OBJECTS_PATH = "objects/";
@@ -147,6 +152,11 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.jp2"]              = (sbyte)AssetType.Texture;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "trashfolder.txt"]          = (sbyte)AssetType.TrashFolder;
+        }
+
+        public static string CreateOarLandDataPath(LandData ld)
+        {
+            return string.Format("{0}{1}.xml", ArchiveConstants.LANDDATA_PATH, ld.GlobalID);
         }
 
         /// <summary>

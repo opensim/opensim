@@ -39,13 +39,9 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 using Mono.Addins;
 
-[assembly: Addin("RegionCombinerModule", "0.1")]
-[assembly: AddinDependency("OpenSim", "0.5")]
 namespace OpenSim.Region.RegionCombinerModule
 {
-
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class RegionCombinerModule : ISharedRegionModule
+    public class RegionCombinerModule : ISharedRegionModule, IRegionCombinerModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -59,19 +55,34 @@ namespace OpenSim.Region.RegionCombinerModule
             get { return null; }
         }
 
+        /// <summary>
+        /// Is this module enabled?
+        /// </summary>
+        private bool m_combineContiguousRegions = false;
+
+        /// <summary>
+        /// This holds the root regions for the megaregions.
+        /// </summary>
+        /// <remarks>
+        /// Usually there is only ever one megaregion (and hence only one entry here).
+        /// </remarks>
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
-        private bool enabledYN = false;
+
+        /// <summary>
+        /// The scenes that comprise the megaregion.
+        /// </summary>
         private Dictionary<UUID, Scene> m_startingScenes = new Dictionary<UUID, Scene>();
 
         public void Initialise(IConfigSource source)
         {
             IConfig myConfig = source.Configs["Startup"];
-            enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
-            //enabledYN = true;
-            if (enabledYN)
-                MainConsole.Instance.Commands.AddCommand("RegionCombinerModule", false, "fix-phantoms",
-                    "Fix phantom objects", "Fixes phantom objects after an import to megaregions", FixPhantoms);
-            }
+            m_combineContiguousRegions = myConfig.GetBoolean("CombineContiguousRegions", false);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
+                "Fixes phantom objects after an import to a megaregion or a change from a megaregion back to normal regions",
+                FixPhantoms);
+        }
 
         public void Close()
         {
@@ -79,20 +90,48 @@ namespace OpenSim.Region.RegionCombinerModule
 
         public void AddRegion(Scene scene)
         {
+            if (m_combineContiguousRegions)
+                scene.RegisterModuleInterface<IRegionCombinerModule>(this);
         }
 
         public void RemoveRegion(Scene scene)
         {
+            lock (m_startingScenes)
+                m_startingScenes.Remove(scene.RegionInfo.originRegionID);
         }
 
         public void RegionLoaded(Scene scene)
         {
-            if (enabledYN)
+            lock (m_startingScenes)
+                m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
+
+            if (m_combineContiguousRegions)
             {
                 RegionLoadedDoWork(scene);
 
                 scene.EventManager.OnNewPresence += NewPresence;
             }
+        }
+
+        public bool IsRootForMegaregion(UUID regionId)
+        {
+            lock (m_regions)
+                return m_regions.ContainsKey(regionId);
+        }
+
+        public Vector2 GetSizeOfMegaregion(UUID regionId)
+        {
+            lock (m_regions)
+            {
+                if (m_regions.ContainsKey(regionId))
+                {
+                    RegionConnections rootConn = m_regions[regionId];
+
+                    return new Vector2((float)rootConn.XEnd, (float)rootConn.YEnd);
+                }
+            }
+
+            throw new Exception(string.Format("Region with id {0} not found", regionId));
         }
 
         private void NewPresence(ScenePresence presence)
@@ -169,7 +208,6 @@ namespace OpenSim.Region.RegionCombinerModule
                 {
                     return;
                 }
-
             }
         }
 
@@ -181,8 +219,6 @@ namespace OpenSim.Region.RegionCombinerModule
                 return;
             // 
 */
-            lock (m_startingScenes)
-                m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
 
             // Give each region a standard set of non-infinite borders
             Border northBorder = new Border();
@@ -205,24 +241,21 @@ namespace OpenSim.Region.RegionCombinerModule
             westBorder.CrossDirection = Cardinals.W;
             scene.WestBorders[0] = westBorder;
 
-
-
-            RegionConnections regionConnections = new RegionConnections();
-            regionConnections.ConnectedRegions = new List<RegionData>();
-            regionConnections.RegionScene = scene;
-            regionConnections.RegionLandChannel = scene.LandChannel;
-            regionConnections.RegionId = scene.RegionInfo.originRegionID;
-            regionConnections.X = scene.RegionInfo.RegionLocX;
-            regionConnections.Y = scene.RegionInfo.RegionLocY;
-            regionConnections.XEnd = (int)Constants.RegionSize;
-            regionConnections.YEnd = (int)Constants.RegionSize;
-
+            RegionConnections newConn = new RegionConnections();
+            newConn.ConnectedRegions = new List<RegionData>();
+            newConn.RegionScene = scene;
+            newConn.RegionLandChannel = scene.LandChannel;
+            newConn.RegionId = scene.RegionInfo.originRegionID;
+            newConn.X = scene.RegionInfo.RegionLocX;
+            newConn.Y = scene.RegionInfo.RegionLocY;
+            newConn.XEnd = (int)Constants.RegionSize;
+            newConn.YEnd = (int)Constants.RegionSize;
 
             lock (m_regions)
             {
                 bool connectedYN = false;
 
-                foreach (RegionConnections conn in m_regions.Values)
+                foreach (RegionConnections rootConn in m_regions.Values)
                 {
                     #region commented
                     /*
@@ -382,44 +415,33 @@ namespace OpenSim.Region.RegionCombinerModule
                         */
                     #endregion
 
-                    // If we're one region over +x y
+                    // If we're one region over +x y (i.e. root region is to the west)
                     //xxx
                     //xxy
                     //xxx
-
-
-                    if ((((int)conn.X * (int)Constants.RegionSize) + conn.XEnd
-                        >= (regionConnections.X * (int)Constants.RegionSize))
-                        && (((int)conn.Y * (int)Constants.RegionSize)
-                        >= (regionConnections.Y * (int)Constants.RegionSize)))
+                    if (rootConn.PosX + rootConn.XEnd >= newConn.PosX && rootConn.PosY >= newConn.PosY)
                     {
-                        connectedYN = DoWorkForOneRegionOverPlusXY(conn, regionConnections, scene);
+                        connectedYN = DoWorkForOneRegionOverPlusXY(rootConn, newConn, scene);
                         break;
                     }
 
-                    // If we're one region over x +y
+                    // If we're one region over x +y (i.e. root region is to the south)
                     //xyx
                     //xxx
                     //xxx
-                    if ((((int)conn.X * (int)Constants.RegionSize)
-                        >= (regionConnections.X * (int)Constants.RegionSize))
-                        && (((int)conn.Y * (int)Constants.RegionSize) + conn.YEnd
-                        >= (regionConnections.Y * (int)Constants.RegionSize)))
+                    if (rootConn.PosX >= newConn.PosX && rootConn.PosY + rootConn.YEnd >= newConn.PosY)
                     {
-                        connectedYN = DoWorkForOneRegionOverXPlusY(conn, regionConnections, scene);
+                        connectedYN = DoWorkForOneRegionOverXPlusY(rootConn, newConn, scene);
                         break;
                     }
 
-                    // If we're one region over +x +y
+                    // If we're one region over +x +y (i.e. root region is to the south-west)
                     //xxy
                     //xxx
                     //xxx
-                    if ((((int)conn.X * (int)Constants.RegionSize) + conn.YEnd
-                        >= (regionConnections.X * (int)Constants.RegionSize))
-                        && (((int)conn.Y * (int)Constants.RegionSize) + conn.YEnd
-                        >= (regionConnections.Y * (int)Constants.RegionSize)))
+                    if (rootConn.PosX + rootConn.XEnd >= newConn.PosX && rootConn.PosY + rootConn.YEnd >= newConn.PosY)
                     {
-                        connectedYN = DoWorkForOneRegionOverPlusXPlusY(conn, regionConnections, scene);
+                        connectedYN = DoWorkForOneRegionOverPlusXPlusY(rootConn, newConn, scene);
                         break;
 
                     }
@@ -428,66 +450,63 @@ namespace OpenSim.Region.RegionCombinerModule
                 // If !connectYN means that this region is a root region
                 if (!connectedYN)
                 {
-                    DoWorkForRootRegion(regionConnections, scene);
-
+                    DoWorkForRootRegion(newConn, scene);
                 }
             }
+
             // Set up infinite borders around the entire AABB of the combined ConnectedRegions
             AdjustLargeRegionBounds();
         }
 
-        private bool DoWorkForOneRegionOverPlusXY(RegionConnections conn, RegionConnections regionConnections, Scene scene)
+        private bool DoWorkForOneRegionOverPlusXY(RegionConnections rootConn, RegionConnections newConn, Scene scene)
         {
             Vector3 offset = Vector3.Zero;
-            offset.X = (((regionConnections.X * (int)Constants.RegionSize)) -
-                        ((conn.X * (int)Constants.RegionSize)));
-            offset.Y = (((regionConnections.Y * (int)Constants.RegionSize)) -
-                        ((conn.Y * (int)Constants.RegionSize)));
+            offset.X = newConn.PosX - rootConn.PosX;
+            offset.Y = newConn.PosY - rootConn.PosY;
 
             Vector3 extents = Vector3.Zero;
-            extents.Y = conn.YEnd;
-            extents.X = conn.XEnd + regionConnections.XEnd;
+            extents.Y = rootConn.YEnd;
+            extents.X = rootConn.XEnd + newConn.XEnd;
 
-            conn.UpdateExtents(extents);
+            rootConn.UpdateExtents(extents);
 
-            m_log.DebugFormat("Scene: {0} to the west of Scene{1} Offset: {2}. Extents:{3}",
-                              conn.RegionScene.RegionInfo.RegionName,
-                              regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Root region {0} is to the west of region {1}, Offset: {2}, Extents: {3}",
+                rootConn.RegionScene.RegionInfo.RegionName,
+                newConn.RegionScene.RegionInfo.RegionName, offset, extents);
 
             scene.BordersLocked = true;
-            conn.RegionScene.BordersLocked = true;
+            rootConn.RegionScene.BordersLocked = true;
 
             RegionData ConnectedRegion = new RegionData();
             ConnectedRegion.Offset = offset;
             ConnectedRegion.RegionId = scene.RegionInfo.originRegionID;
             ConnectedRegion.RegionScene = scene;
-            conn.ConnectedRegions.Add(ConnectedRegion);
+            rootConn.ConnectedRegions.Add(ConnectedRegion);
 
             // Inform root region Physics about the extents of this region
-            conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
+            rootConn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
 
             // Inform Child region that it needs to forward it's terrain to the root region
-            scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
+            scene.PhysicsScene.Combine(rootConn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
             // Extend the borders as appropriate
-            lock (conn.RegionScene.EastBorders)
-                conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+            lock (rootConn.RegionScene.EastBorders)
+                rootConn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
-            lock (conn.RegionScene.NorthBorders)
-                conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+            lock (rootConn.RegionScene.NorthBorders)
+                rootConn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
-            lock (conn.RegionScene.SouthBorders)
-                conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+            lock (rootConn.RegionScene.SouthBorders)
+                rootConn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
             lock (scene.WestBorders)
             {
-
-
-                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocX - conn.RegionScene.RegionInfo.RegionLocX) * (int)Constants.RegionSize); //auto teleport West
+                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocX - rootConn.RegionScene.RegionInfo.RegionLocX) * (int)Constants.RegionSize); //auto teleport West
 
                 // Trigger auto teleport to root region
-                scene.WestBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
-                scene.WestBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                scene.WestBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
+                scene.WestBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
             }
 
             // Reset Terrain..  since terrain loads before we get here, we need to load 
@@ -496,56 +515,58 @@ namespace OpenSim.Region.RegionCombinerModule
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
 
             // Unlock borders
-            conn.RegionScene.BordersLocked = false;
+            rootConn.RegionScene.BordersLocked = false;
             scene.BordersLocked = false;
 
             // Create a client event forwarder and add this region's events to the root region.
-            if (conn.ClientEventForwarder != null)
-                conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
+            if (rootConn.ClientEventForwarder != null)
+                rootConn.ClientEventForwarder.AddSceneToEventForwarding(scene);
 
             return true;
         }
 
-        private bool DoWorkForOneRegionOverXPlusY(RegionConnections conn, RegionConnections regionConnections, Scene scene)
+        private bool DoWorkForOneRegionOverXPlusY(RegionConnections rootConn, RegionConnections newConn, Scene scene)
         {
             Vector3 offset = Vector3.Zero;
-            offset.X = (((regionConnections.X * (int)Constants.RegionSize)) -
-                        ((conn.X * (int)Constants.RegionSize)));
-            offset.Y = (((regionConnections.Y * (int)Constants.RegionSize)) -
-                        ((conn.Y * (int)Constants.RegionSize)));
+            offset.X = newConn.PosX - rootConn.PosX;
+            offset.Y = newConn.PosY - rootConn.PosY;
 
             Vector3 extents = Vector3.Zero;
-            extents.Y = regionConnections.YEnd + conn.YEnd;
-            extents.X = conn.XEnd;
-            conn.UpdateExtents(extents);
+            extents.Y = newConn.YEnd + rootConn.YEnd;
+            extents.X = rootConn.XEnd;
+            rootConn.UpdateExtents(extents);
 
             scene.BordersLocked = true;
-            conn.RegionScene.BordersLocked = true;
+            rootConn.RegionScene.BordersLocked = true;
 
             RegionData ConnectedRegion = new RegionData();
             ConnectedRegion.Offset = offset;
             ConnectedRegion.RegionId = scene.RegionInfo.originRegionID;
             ConnectedRegion.RegionScene = scene;
-            conn.ConnectedRegions.Add(ConnectedRegion);
+            rootConn.ConnectedRegions.Add(ConnectedRegion);
 
-            m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
-                             conn.RegionScene.RegionInfo.RegionName,
-                             regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Root region {0} is to the south of region {1}, Offset: {2}, Extents: {3}",
+                rootConn.RegionScene.RegionInfo.RegionName,
+                newConn.RegionScene.RegionInfo.RegionName, offset, extents);
 
-            conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
-            scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
+            rootConn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
+            scene.PhysicsScene.Combine(rootConn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
-            lock (conn.RegionScene.NorthBorders)
-                conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-            lock (conn.RegionScene.EastBorders)
-                conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-            lock (conn.RegionScene.WestBorders)
-                conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+            lock (rootConn.RegionScene.NorthBorders)
+                rootConn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+
+            lock (rootConn.RegionScene.EastBorders)
+                rootConn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+            lock (rootConn.RegionScene.WestBorders)
+                rootConn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
             lock (scene.SouthBorders)
             {
-                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocY - conn.RegionScene.RegionInfo.RegionLocY) * (int)Constants.RegionSize); //auto teleport south
-                scene.SouthBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
-                scene.SouthBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocY - rootConn.RegionScene.RegionInfo.RegionLocY) * (int)Constants.RegionSize); //auto teleport south
+                scene.SouthBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
+                scene.SouthBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
             }
 
             // Reset Terrain..  since terrain normally loads first.
@@ -554,83 +575,91 @@ namespace OpenSim.Region.RegionCombinerModule
             //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
 
             scene.BordersLocked = false;
-            conn.RegionScene.BordersLocked = false;
-            if (conn.ClientEventForwarder != null)
-                conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
+            rootConn.RegionScene.BordersLocked = false;
+
+            if (rootConn.ClientEventForwarder != null)
+                rootConn.ClientEventForwarder.AddSceneToEventForwarding(scene);
+
             return true;
         }
 
-        private bool DoWorkForOneRegionOverPlusXPlusY(RegionConnections conn, RegionConnections regionConnections, Scene scene)
+        private bool DoWorkForOneRegionOverPlusXPlusY(RegionConnections rootConn, RegionConnections newConn, Scene scene)
         {
             Vector3 offset = Vector3.Zero;
-            offset.X = (((regionConnections.X * (int)Constants.RegionSize)) -
-                        ((conn.X * (int)Constants.RegionSize)));
-            offset.Y = (((regionConnections.Y * (int)Constants.RegionSize)) -
-                        ((conn.Y * (int)Constants.RegionSize)));
+            offset.X = newConn.PosX - rootConn.PosX;
+            offset.Y = newConn.PosY - rootConn.PosY;
 
             Vector3 extents = Vector3.Zero;
-            extents.Y = regionConnections.YEnd + conn.YEnd;
-            extents.X = regionConnections.XEnd + conn.XEnd;
-            conn.UpdateExtents(extents);
+
+            // We do not want to inflate the extents for regions strictly to the NE of the root region, since this
+            // would double count regions strictly to the north and east that have already been added.
+//            extents.Y = regionConnections.YEnd + conn.YEnd;
+//            extents.X = regionConnections.XEnd + conn.XEnd;
+//            conn.UpdateExtents(extents);
+
+            extents.Y = rootConn.YEnd;
+            extents.X = rootConn.XEnd;
 
             scene.BordersLocked = true;
-            conn.RegionScene.BordersLocked = true;
+            rootConn.RegionScene.BordersLocked = true;
 
             RegionData ConnectedRegion = new RegionData();
             ConnectedRegion.Offset = offset;
             ConnectedRegion.RegionId = scene.RegionInfo.originRegionID;
             ConnectedRegion.RegionScene = scene;
 
-            conn.ConnectedRegions.Add(ConnectedRegion);
+            rootConn.ConnectedRegions.Add(ConnectedRegion);
 
-            m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
-                             conn.RegionScene.RegionInfo.RegionName,
-                             regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Region {0} is to the southwest of Scene {1}, Offset: {2}, Extents: {3}",
+                rootConn.RegionScene.RegionInfo.RegionName,
+                newConn.RegionScene.RegionInfo.RegionName, offset, extents);
 
-            conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
-            scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
-            lock (conn.RegionScene.NorthBorders)
+            rootConn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
+            scene.PhysicsScene.Combine(rootConn.RegionScene.PhysicsScene, offset, Vector3.Zero);
+
+            lock (rootConn.RegionScene.NorthBorders)
             {
-                if (conn.RegionScene.NorthBorders.Count == 1)// &&  2)
+                if (rootConn.RegionScene.NorthBorders.Count == 1)// &&  2)
                 {
                     //compound border
                     // already locked above
-                    conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                    rootConn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
-                    lock (conn.RegionScene.EastBorders)
-                        conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                    lock (conn.RegionScene.WestBorders)
-                        conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                    lock (rootConn.RegionScene.EastBorders)
+                        rootConn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+                    lock (rootConn.RegionScene.WestBorders)
+                        rootConn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
                 }
             }
 
             lock (scene.SouthBorders)
             {
-                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocY - conn.RegionScene.RegionInfo.RegionLocY) * (int)Constants.RegionSize); //auto teleport south
-                scene.SouthBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
-                scene.SouthBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                scene.SouthBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocY - rootConn.RegionScene.RegionInfo.RegionLocY) * (int)Constants.RegionSize); //auto teleport south
+                scene.SouthBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
+                scene.SouthBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
             }
 
-            lock (conn.RegionScene.EastBorders)
+            lock (rootConn.RegionScene.EastBorders)
             {
-                if (conn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
+                if (rootConn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
                 {
+                    rootConn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
-                    conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                    lock (conn.RegionScene.NorthBorders)
-                        conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                    lock (conn.RegionScene.SouthBorders)
-                        conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                    lock (rootConn.RegionScene.NorthBorders)
+                        rootConn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
-
+                    lock (rootConn.RegionScene.SouthBorders)
+                        rootConn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
                 }
             }
 
             lock (scene.WestBorders)
             {
-                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocX - conn.RegionScene.RegionInfo.RegionLocX) * (int)Constants.RegionSize); //auto teleport West
-                scene.WestBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
-                scene.WestBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                scene.WestBorders[0].BorderLine.Z = (int)((scene.RegionInfo.RegionLocX - rootConn.RegionScene.RegionInfo.RegionLocX) * (int)Constants.RegionSize); //auto teleport West
+                scene.WestBorders[0].TriggerRegionX = rootConn.RegionScene.RegionInfo.RegionLocX;
+                scene.WestBorders[0].TriggerRegionY = rootConn.RegionScene.RegionInfo.RegionLocY;
             }
 
             /*
@@ -649,56 +678,60 @@ namespace OpenSim.Region.RegionCombinerModule
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
             //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
             scene.BordersLocked = false;
-            conn.RegionScene.BordersLocked = false;
+            rootConn.RegionScene.BordersLocked = false;
 
-            if (conn.ClientEventForwarder != null)
-                conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
+            if (rootConn.ClientEventForwarder != null)
+                rootConn.ClientEventForwarder.AddSceneToEventForwarding(scene);
 
             return true;
 
             //scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset,extents);
-
         }
 
-        private void DoWorkForRootRegion(RegionConnections regionConnections, Scene scene)
+        private void DoWorkForRootRegion(RegionConnections rootConn, Scene scene)
         {
+            m_log.DebugFormat("[REGION COMBINER MODULE]: Adding root region {0}", scene.RegionInfo.RegionName);
+
             RegionData rdata = new RegionData();
             rdata.Offset = Vector3.Zero;
             rdata.RegionId = scene.RegionInfo.originRegionID;
             rdata.RegionScene = scene;
             // save it's land channel
-            regionConnections.RegionLandChannel = scene.LandChannel;
+            rootConn.RegionLandChannel = scene.LandChannel;
 
             // Substitue our landchannel
             RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata, scene.LandChannel,
-                                                            regionConnections.ConnectedRegions);
+                                                            rootConn.ConnectedRegions);
+
             scene.LandChannel = lnd;
+
             // Forward the permissions modules of each of the connected regions to the root region
             lock (m_regions)
             {
-                foreach (RegionData r in regionConnections.ConnectedRegions)
+                foreach (RegionData r in rootConn.ConnectedRegions)
                 {
-                    ForwardPermissionRequests(regionConnections, r.RegionScene);
+                    ForwardPermissionRequests(rootConn, r.RegionScene);
                 }
+
+                // Create the root region's Client Event Forwarder
+                rootConn.ClientEventForwarder = new RegionCombinerClientEventForwarder(rootConn);
+    
+                // Sets up the CoarseLocationUpdate forwarder for this root region
+                scene.EventManager.OnNewPresence += SetCoarseLocationDelegate;
+    
+                // Adds this root region to a dictionary of regions that are connectable
+                m_regions.Add(scene.RegionInfo.originRegionID, rootConn);
             }
-            // Create the root region's Client Event Forwarder
-            regionConnections.ClientEventForwarder = new RegionCombinerClientEventForwarder(regionConnections);
-
-            // Sets up the CoarseLocationUpdate forwarder for this root region
-            scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
-
-            // Adds this root region to a dictionary of regions that are connectable
-            m_regions.Add(scene.RegionInfo.originRegionID, regionConnections);
         }
 
-        private void SetCourseLocationDelegate(ScenePresence presence)
+        private void SetCoarseLocationDelegate(ScenePresence presence)
         {
-            presence.SetSendCourseLocationMethod(SendCourseLocationUpdates);
+            presence.SetSendCoarseLocationMethod(SendCoarseLocationUpdates);
         }
 
         // This delegate was refactored for non-combined regions.
         // This combined region version will not use the pre-compiled lists of locations and ids
-        private void SendCourseLocationUpdates(UUID sceneId, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
+        private void SendCoarseLocationUpdates(UUID sceneId, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
             RegionConnections connectiondata = null; 
             lock (m_regions)
@@ -711,45 +744,28 @@ namespace OpenSim.Region.RegionCombinerModule
 
             List<Vector3> CoarseLocations = new List<Vector3>();
             List<UUID> AvatarUUIDs = new List<UUID>();
+
             connectiondata.RegionScene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.UUID != presence.UUID)
                 {
-                    if (sp.ParentID != 0)
-                    {
-                        // sitting avatar
-                        SceneObjectPart sop = connectiondata.RegionScene.GetSceneObjectPart(sp.ParentID);
-                        if (sop != null)
-                        {
-                            CoarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
-                            AvatarUUIDs.Add(sp.UUID);
-                        }
-                        else
-                        {
-                            // we can't find the parent..  ! arg!
-                            CoarseLocations.Add(sp.AbsolutePosition);
-                            AvatarUUIDs.Add(sp.UUID);
-                        }
-                    }
-                    else
-                    {
-                        CoarseLocations.Add(sp.AbsolutePosition);
-                        AvatarUUIDs.Add(sp.UUID);
-                    }
+                    CoarseLocations.Add(sp.AbsolutePosition);
+                    AvatarUUIDs.Add(sp.UUID);
                 }
             });
-            DistributeCourseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
+
+            DistributeCoarseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
         }
 
-        private void DistributeCourseLocationUpdates(List<Vector3> locations, List<UUID> uuids, 
+        private void DistributeCoarseLocationUpdates(List<Vector3> locations, List<UUID> uuids, 
                                                      RegionConnections connectiondata, ScenePresence rootPresence)
         {
             RegionData[] rdata = connectiondata.ConnectedRegions.ToArray();
             //List<IClientAPI> clients = new List<IClientAPI>();
-            Dictionary<Vector2, RegionCourseLocationStruct> updates = new Dictionary<Vector2, RegionCourseLocationStruct>();
+            Dictionary<Vector2, RegionCoarseLocationStruct> updates = new Dictionary<Vector2, RegionCoarseLocationStruct>();
             
             // Root Region entry
-            RegionCourseLocationStruct rootupdatedata = new RegionCourseLocationStruct();
+            RegionCoarseLocationStruct rootupdatedata = new RegionCoarseLocationStruct();
             rootupdatedata.Locations = new List<Vector3>();
             rootupdatedata.Uuids = new List<UUID>();
             rootupdatedata.Offset = Vector2.Zero;
@@ -763,7 +779,7 @@ namespace OpenSim.Region.RegionCombinerModule
             foreach (RegionData regiondata in rdata)
             {
                 Vector2 offset = new Vector2(regiondata.Offset.X, regiondata.Offset.Y);
-                RegionCourseLocationStruct updatedata = new RegionCourseLocationStruct();
+                RegionCoarseLocationStruct updatedata = new RegionCoarseLocationStruct();
                 updatedata.Locations = new List<Vector3>();
                 updatedata.Uuids = new List<UUID>();
                 updatedata.Offset = offset;
@@ -789,7 +805,7 @@ namespace OpenSim.Region.RegionCombinerModule
                 if (!updates.ContainsKey(offset))
                 {
                     // This shouldn't happen
-                    RegionCourseLocationStruct updatedata = new RegionCourseLocationStruct();
+                    RegionCoarseLocationStruct updatedata = new RegionCoarseLocationStruct();
                     updatedata.Locations = new List<Vector3>();
                     updatedata.Uuids = new List<UUID>();
                     updatedata.Offset = offset;
@@ -962,6 +978,7 @@ namespace OpenSim.Region.RegionCombinerModule
                     return true;
                 }
             }
+
             oborder = null;
             return false;
         }
@@ -971,14 +988,19 @@ namespace OpenSim.Region.RegionCombinerModule
             pPosition = pPosition/(int) Constants.RegionSize;
             int OffsetX = (int) pPosition.X;
             int OffsetY = (int) pPosition.Y;
-            foreach (RegionConnections regConn in m_regions.Values)
+
+            lock (m_regions)
             {
-                foreach (RegionData reg in regConn.ConnectedRegions)
+                foreach (RegionConnections regConn in m_regions.Values)
                 {
-                    if (reg.Offset.X == OffsetX && reg.Offset.Y == OffsetY)
-                        return reg;
+                    foreach (RegionData reg in regConn.ConnectedRegions)
+                    {
+                        if (reg.Offset.X == OffsetX && reg.Offset.Y == OffsetY)
+                            return reg;
+                    }
                 }
             }
+
             return new RegionData();
         }
 
@@ -1034,18 +1056,19 @@ namespace OpenSim.Region.RegionCombinerModule
         }
 
         #region console commands
+
         public void FixPhantoms(string module, string[] cmdparams)
         {
-        List<Scene> scenes = new List<Scene>(m_startingScenes.Values);
+            List<Scene> scenes = new List<Scene>(m_startingScenes.Values);
+
             foreach (Scene s in scenes)
             {
-                s.ForEachSOG(delegate(SceneObjectGroup e)
-                {
-                    e.AbsolutePosition = e.AbsolutePosition;
-                }
-                );
+                MainConsole.Instance.OutputFormat("Fixing phantoms for {0}", s.RegionInfo.RegionName);
+                
+                s.ForEachSOG(so => so.AbsolutePosition = so.AbsolutePosition);
             }
         }
+
         #endregion
     }
 }

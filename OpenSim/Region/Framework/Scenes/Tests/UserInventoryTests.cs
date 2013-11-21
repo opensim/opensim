@@ -50,15 +50,47 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Tests
 {
     [TestFixture]
-    public class UserInventoryTests
+    public class UserInventoryTests : OpenSimTestCase
     {
+        [Test]
+        public void TestCreateInventoryFolders()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            // For this test both folders will have the same name which is legal in SL user inventories.
+            string foldersName = "f1";
+
+            Scene scene = new SceneHelpers().SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
+
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName, false);
+
+            List<InventoryFolderBase> oneFolder
+                = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, foldersName);
+
+            Assert.That(oneFolder.Count, Is.EqualTo(1));
+            InventoryFolderBase firstRetrievedFolder = oneFolder[0];
+            Assert.That(firstRetrievedFolder.Name, Is.EqualTo(foldersName));
+
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName, false);
+
+            List<InventoryFolderBase> twoFolders
+                = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, foldersName);
+
+            Assert.That(twoFolders.Count, Is.EqualTo(2));
+            Assert.That(twoFolders[0].Name, Is.EqualTo(foldersName));
+            Assert.That(twoFolders[1].Name, Is.EqualTo(foldersName));
+            Assert.That(twoFolders[0].ID, Is.Not.EqualTo(twoFolders[1].ID));
+        }
+
         [Test]
         public void TestGiveInventoryItem()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));
             InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "item1", user1.PrincipalID);
@@ -83,13 +115,13 @@ namespace OpenSim.Region.Framework.Tests
         public void TestGiveInventoryFolder()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));
             InventoryFolderBase folder1
-                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, "folder1");
+                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, "folder1", false);
 
             scene.GiveInventoryFolder(user2.PrincipalID, user1.PrincipalID, folder1.ID, UUID.Zero);
 

@@ -29,7 +29,9 @@ using log4net;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Reflection;
+using System.Web;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
@@ -42,6 +44,24 @@ namespace OpenSim.Services.Connectors
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Dictionary<IAssetService, object> m_endpointSerializer = new Dictionary<IAssetService, object>();
+        private object EndPointLock(IAssetService connector)
+        {
+            lock (m_endpointSerializer)
+            {
+                object eplock = null;
+
+                if (! m_endpointSerializer.TryGetValue(connector, out eplock))
+                {
+                    eplock = new object();
+                    m_endpointSerializer.Add(connector, eplock);
+                    // m_log.WarnFormat("[WEB UTIL] add a new host to end point serializer {0}",endpoint);
+                }
+
+                return eplock;
+            }
+        }
 
         private Dictionary<string, IAssetService> m_connectors = new Dictionary<string, IAssetService>();
 
@@ -73,11 +93,26 @@ namespace OpenSim.Services.Connectors
             if (Uri.TryCreate(id, UriKind.Absolute, out assetUri) &&
                     assetUri.Scheme == Uri.UriSchemeHttp)
             {
-                url = "http://" + assetUri.Authority;
-                assetID = assetUri.LocalPath.Trim(new char[] {'/'});
+                // Simian
+                if (assetUri.Query != string.Empty)
+                {
+                    NameValueCollection qscoll = HttpUtility.ParseQueryString(assetUri.Query);
+                    assetID = qscoll["id"];
+                    if (assetID != null)
+                        url = id.Replace(assetID, ""); // Malformed again, as simian expects
+                    else
+                        url = id; // !!! best effort
+                }
+                else // robust
+                {
+                    url = "http://" + assetUri.Authority;
+                    assetID = assetUri.LocalPath.Trim(new char[] { '/' });
+                }
+
                 return true;
             }
 
+            m_log.DebugFormat("[HG ASSET SERVICE]: Malformed URL {0}", id);
             return false;
         }
 
@@ -180,7 +215,8 @@ namespace OpenSim.Services.Connectors
                 IAssetService connector = GetConnector(url);
                 // Restore the assetID to a simple UUID
                 asset.ID = assetID;
-                return connector.Store(asset);
+                lock (EndPointLock(connector))
+                    return connector.Store(asset);
             }
 
             return String.Empty;

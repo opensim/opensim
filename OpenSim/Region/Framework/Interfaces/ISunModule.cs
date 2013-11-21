@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface ISunModule : IRegionModule
+    public interface ISunModule : INonSharedRegionModule
     {
         double GetSunParameter(string param);
 

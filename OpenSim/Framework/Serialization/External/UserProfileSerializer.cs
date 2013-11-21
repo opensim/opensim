@@ -33,8 +33,11 @@ using OpenSim.Framework;
 namespace OpenSim.Framework.Serialization.External
 {
     /// <summary>
-    /// Serialize and deserialize region settings as an external format.
+    /// Serialize and deserialize user profiles as an external format.
     /// </summary>
+    /// <remarks>
+    /// Currently UNUSED.
+    /// </remarks>
     public class UserProfileSerializer
     {
         public const int MAJOR_VERSION = 0;

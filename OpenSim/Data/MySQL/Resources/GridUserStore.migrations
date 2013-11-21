@@ -17,3 +17,8 @@ CREATE TABLE `GridUser` (
 ) ENGINE=InnoDB;
 
 COMMIT;
+
+:VERSION 2         # -------------------------- 
+BEGIN;
+
+COMMIT;

@@ -35,11 +35,12 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 {
     [TestFixture]
-    public class SerialiserTests
+    public class SerialiserTests : OpenSimTestCase
     {
         private string xml = @"
         <SceneObjectGroup>
@@ -103,6 +104,127 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                         <FlexiSoftness>0</FlexiSoftness>
                         <FlexiTension>0</FlexiTension>
                         <FlexiDrag>0</FlexiDrag>
+                        <FlexiGravity>0</FlexiGravity>
+                        <FlexiWind>0</FlexiWind>
+                        <FlexiForceX>0</FlexiForceX>
+                        <FlexiForceY>0</FlexiForceY>
+                        <FlexiForceZ>0</FlexiForceZ>
+                        <LightColorR>0</LightColorR>
+                        <LightColorG>0</LightColorG>
+                        <LightColorB>0</LightColorB>
+                        <LightColorA>1</LightColorA>
+                        <LightRadius>0</LightRadius>
+                        <LightCutoff>0</LightCutoff>
+                        <LightFalloff>0</LightFalloff>
+                        <LightIntensity>1</LightIntensity>
+                        <FlexiEntry>false</FlexiEntry>
+                        <LightEntry>false</LightEntry>
+                        <SculptEntry>false</SculptEntry>
+                    </Shape>
+                    <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
+                    <UpdateFlag>0</UpdateFlag>
+                    <SitTargetOrientation><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientation>
+                    <SitTargetPosition><X>0</X><Y>0</Y><Z>0</Z></SitTargetPosition>
+                    <SitTargetPositionLL><X>0</X><Y>0</Y><Z>0</Z></SitTargetPositionLL>
+                    <SitTargetOrientationLL><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientationLL>
+                    <ParentID>0</ParentID>
+                    <CreationDate>1211330445</CreationDate>
+                    <Category>0</Category>
+                    <SalePrice>0</SalePrice>
+                    <ObjectSaleType>0</ObjectSaleType>
+                    <OwnershipCost>0</OwnershipCost>
+                    <GroupID><Guid>00000000-0000-0000-0000-000000000000</Guid></GroupID>
+                    <OwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></OwnerID>
+                    <LastOwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></LastOwnerID>
+                    <BaseMask>2147483647</BaseMask>
+                    <OwnerMask>2147483647</OwnerMask>
+                    <GroupMask>0</GroupMask>
+                    <EveryoneMask>0</EveryoneMask>
+                    <NextOwnerMask>2147483647</NextOwnerMask>
+                    <Flags>None</Flags>
+                    <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
+                    <CollisionSoundVolume>0</CollisionSoundVolume>
+                    <DynAttrs>
+                        <llsd>
+                            <map>
+                                <key>MyNamespace</key>
+                                <map>                                
+                                    <key>MyStore</key>
+                                    <map>   
+                                        <key>the answer</key>
+                                        <integer>42</integer>
+                                    </map>
+                                </map>
+                            </map>
+                        </llsd>
+                    </DynAttrs>
+                </SceneObjectPart>
+            </RootPart>
+            <OtherParts />
+        </SceneObjectGroup>";
+
+        private string badFloatsXml = @"
+        <SceneObjectGroup>
+            <RootPart>
+                <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+                    <AllowedDrop>false</AllowedDrop>
+                    <CreatorID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></CreatorID>
+                    <FolderID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></FolderID>
+                    <InventorySerial>1</InventorySerial>
+                    <TaskInventory />
+                    <ObjectFlags>0</ObjectFlags>
+                    <UUID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></UUID>
+                    <LocalId>2698615125</LocalId>
+                    <Name>NaughtyPrim</Name>
+                    <Material>0</Material>
+                    <PassTouches>false</PassTouches>
+                    <RegionHandle>1099511628032000</RegionHandle>
+                    <ScriptAccessPin>0</ScriptAccessPin>
+                    <GroupPosition><X>147.23</X><Y>92.698</Y><Z>22.78084</Z></GroupPosition>
+                    <OffsetPosition><X>0</X><Y>0</Y><Z>0</Z></OffsetPosition>
+                    <RotationOffset><X>-4.371139E-08</X><Y>-1</Y><Z>-4.371139E-08</Z><W>0</W></RotationOffset>
+                    <Velocity><X>0</X><Y>0</Y><Z>0</Z></Velocity>
+                    <RotationalVelocity><X>0</X><Y>0</Y><Z>0</Z></RotationalVelocity>
+                    <AngularVelocity><X>0</X><Y>0</Y><Z>0</Z></AngularVelocity>
+                    <Acceleration><X>0</X><Y>0</Y><Z>0</Z></Acceleration>
+                    <Description />
+                    <Color />
+                    <Text />
+                    <SitName />
+                    <TouchName />
+                    <LinkNum>0</LinkNum>
+                    <ClickAction>0</ClickAction>
+                    <Shape>
+                        <ProfileCurve>1</ProfileCurve>
+                        <TextureEntry>AAAAAAAAERGZmQAAAAAABQCVlZUAAAAAQEAAAABAQAAAAAAAAAAAAAAAAAAAAA==</TextureEntry>
+                        <ExtraParams>AA==</ExtraParams>
+                        <PathBegin>0</PathBegin>
+                        <PathCurve>16</PathCurve>
+                        <PathEnd>0</PathEnd>
+                        <PathRadiusOffset>0</PathRadiusOffset>
+                        <PathRevolutions>0</PathRevolutions>
+                        <PathScaleX>100</PathScaleX>
+                        <PathScaleY>100</PathScaleY>
+                        <PathShearX>0</PathShearX>
+                        <PathShearY>0</PathShearY>
+                        <PathSkew>0</PathSkew>
+                        <PathTaperX>0</PathTaperX>
+                        <PathTaperY>0</PathTaperY>
+                        <PathTwist>0</PathTwist>
+                        <PathTwistBegin>0</PathTwistBegin>
+                        <PCode>9</PCode>
+                        <ProfileBegin>0</ProfileBegin>
+                        <ProfileEnd>0</ProfileEnd>
+                        <ProfileHollow>0</ProfileHollow>
+                        <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
+                        <State>0</State>
+                        <ProfileShape>Square</ProfileShape>
+                        <HollowShape>Same</HollowShape>
+                        <SculptTexture><Guid>00000000-0000-0000-0000-000000000000</Guid></SculptTexture>
+                        <SculptType>0</SculptType><SculptData />
+                        <FlexiSoftness>0</FlexiSoftness>
+                        <FlexiTension>0,5</FlexiTension>
+                        <FlexiDrag>yo mamma</FlexiDrag>
                         <FlexiGravity>0</FlexiGravity>
                         <FlexiWind>0</FlexiWind>
                         <FlexiForceX>0</FlexiForceX>
@@ -224,6 +346,20 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 <EveryoneMask>0</EveryoneMask>
                 <NextOwnerMask>2147483647</NextOwnerMask>
                 <Flags>None</Flags>
+                <DynAttrs>
+                    <llsd>
+                        <map>
+                            <key>MyNamespace</key>
+                            <map>                                
+                                <key>MyStore</key>
+                                <map>   
+                                    <key>last words</key>
+                                    <string>Rosebud</string>
+                                </map>
+                            </map>
+                        </map>
+                    </llsd>
+                </DynAttrs>
                 <SitTargetAvatar><UUID>00000000-0000-0000-0000-000000000000</UUID></SitTargetAvatar>
             </SceneObjectPart>
             <OtherParts />
@@ -236,7 +372,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         public void Init()
         {
             m_serialiserModule = new SerialiserModule();
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_serialiserModule);
         }
 
@@ -252,6 +388,34 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
             Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
             Assert.That(rootPart.Name, Is.EqualTo("PrimMyRide"));
+            OSDMap store = rootPart.DynAttrs.GetStore("MyNamespace", "MyStore");
+            Assert.AreEqual(42, store["the answer"].AsInteger());
+
+            // TODO: Check other properties
+        }
+
+        [Test]
+        public void TestDeserializeBadFloatsXml()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(badFloatsXml);
+            SceneObjectPart rootPart = so.RootPart;
+
+            Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
+            Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
+            Assert.That(rootPart.Name, Is.EqualTo("NaughtyPrim"));
+
+            // This terminates the deserialization earlier if couldn't be parsed.
+            // TODO: Need to address this
+            Assert.That(rootPart.GroupPosition.X, Is.EqualTo(147.23f));
+
+            Assert.That(rootPart.Shape.PathCurve, Is.EqualTo(16));
+
+            // Defaults for bad parses
+            Assert.That(rootPart.Shape.FlexiTension, Is.EqualTo(0));
+            Assert.That(rootPart.Shape.FlexiDrag, Is.EqualTo(0));
 
             // TODO: Check other properties
         }
@@ -276,6 +440,15 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             rp.CreatorID = rpCreatorId;
             rp.Shape = shape;
 
+            string daNamespace = "MyNamespace";
+            string daStoreName = "MyStore";
+            string daKey = "foo";
+            string daValue = "bar";
+            OSDMap myStore = new OSDMap();
+            myStore.Add(daKey, daValue);
+            rp.DynAttrs = new DAMap();
+            rp.DynAttrs.SetStore(daNamespace, daStoreName, myStore);
+
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
             // Need to add the object to the scene so that the request to get script state succeeds
@@ -291,6 +464,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             UUID uuid = UUID.Zero;
             string name = null;
             UUID creatorId = UUID.Zero;
+            DAMap daMap = null;
 
             while (xtr.Read() && xtr.Name != "SceneObjectPart")
             {
@@ -316,6 +490,10 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                         creatorId = UUID.Parse(xtr.ReadElementString("UUID"));
                         xtr.ReadEndElement();
                         break;
+                    case "DynAttrs":
+                        daMap = new DAMap();
+                        daMap.ReadXml(xtr);
+                        break;
                 }
             }
 
@@ -329,6 +507,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(uuid, Is.EqualTo(rpUuid));
             Assert.That(name, Is.EqualTo(rpName));
             Assert.That(creatorId, Is.EqualTo(rpCreatorId));
+            Assert.NotNull(daMap);
+            Assert.AreEqual(daValue, daMap.GetStore(daNamespace, daStoreName)[daKey].AsString());
         }
 
         [Test]
@@ -343,6 +523,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));
             Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("b46ef588-411e-4a8b-a284-d7dcfe8e74ef")));
             Assert.That(rootPart.Name, Is.EqualTo("PrimFun"));
+            OSDMap store = rootPart.DynAttrs.GetStore("MyNamespace", "MyStore");
+            Assert.AreEqual("Rosebud", store["last words"].AsString());
 
             // TODO: Check other properties
         }
@@ -367,6 +549,15 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             rp.CreatorID = rpCreatorId;
             rp.Shape = shape;
 
+            string daNamespace = "MyNamespace";
+            string daStoreName = "MyStore";
+            string daKey = "foo";
+            string daValue = "bar";
+            OSDMap myStore = new OSDMap();
+            myStore.Add(daKey, daValue);
+            rp.DynAttrs = new DAMap();
+            rp.DynAttrs.SetStore(daNamespace, daStoreName, myStore);
+
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
             // Need to add the object to the scene so that the request to get script state succeeds
@@ -383,6 +574,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             UUID uuid = UUID.Zero;
             string name = null;
             UUID creatorId = UUID.Zero;
+            DAMap daMap = null;
 
             while (xtr.Read() && xtr.Name != "SceneObjectPart")
             {
@@ -404,6 +596,10 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                         creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
                         xtr.ReadEndElement();
                         break;
+                    case "DynAttrs":
+                        daMap = new DAMap();
+                        daMap.ReadXml(xtr);
+                        break;
                 }
             }
 
@@ -416,6 +612,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(uuid, Is.EqualTo(rpUuid));
             Assert.That(name, Is.EqualTo(rpName));
             Assert.That(creatorId, Is.EqualTo(rpCreatorId));
+            Assert.NotNull(daMap);
+            Assert.AreEqual(daValue, daMap.GetStore(daNamespace, daStoreName)[daKey].AsString());
         }
     }
 }

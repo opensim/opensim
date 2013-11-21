@@ -1,0 +1,24 @@
+﻿:VERSION 1         # -------------------------- 
+
+BEGIN;
+
+CREATE TABLE `im_offline` (
+  `ID` MEDIUMINT NOT NULL AUTO_INCREMENT,
+  `PrincipalID` char(36) NOT NULL default '',
+  `Message` text NOT NULL,
+  `TMStamp` timestamp NOT NULL,
+  PRIMARY KEY  (`ID`),
+  KEY `PrincipalID` (`PrincipalID`)
+) ENGINE=MyISAM;
+
+COMMIT;
+
+:VERSION 2         # -------------------------- 
+
+BEGIN;
+
+INSERT INTO `im_offline` SELECT * from `diva_im_offline`;
+DROP TABLE `diva_im_offline`;
+DELETE FROM `migrations` WHERE name='diva_im_Store';
+
+COMMIT;

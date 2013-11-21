@@ -36,7 +36,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     {
         UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish, UUID founderID);
         void UpdateGroup(UUID RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
+
+        /// <summary>
+        /// Get the group record.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='RequestingAgentID'>The UUID of the user making the request.</param>
+        /// <param name='GroupID'>
+        /// The ID of the record to retrieve.  
+        /// GroupName may be specified instead, in which case this parameter will be UUID.Zero
+        /// </param>
+        /// <param name='GroupName'>
+        /// The name of the group to retrieve.
+        /// GroupID may be specified instead, in which case this parmeter will be null.
+        /// </param>
         GroupRecord GetGroupRecord(UUID RequestingAgentID, UUID GroupID, string GroupName);
+       
         List<DirGroupsReplyData> FindGroups(UUID RequestingAgentID, string search);
         List<GroupMembersData> GetGroupMembers(UUID RequestingAgentID, UUID GroupID);
 

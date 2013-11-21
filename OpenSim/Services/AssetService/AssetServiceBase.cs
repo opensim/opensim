@@ -39,16 +39,25 @@ namespace OpenSim.Services.AssetService
     {
         protected IAssetDataPlugin m_Database = null;
         protected IAssetLoader m_AssetLoader = null;
+        protected string m_ConfigName = "AssetService";
 
-        public AssetServiceBase(IConfigSource config) : base(config)
+        public AssetServiceBase(IConfigSource config)
+            : this(config, "AssetService")
         {
+        }
+
+        public AssetServiceBase(IConfigSource config, string configName) : base(config)
+        {
+            if (configName != string.Empty)
+                m_ConfigName = configName;
+
             string dllName = String.Empty;
             string connString = String.Empty;
 
             //
-            // Try reading the [AssetService] section first, if it exists
+            // Try reading the [AssetService] section, if it exists
             //
-            IConfig assetConfig = config.Configs["AssetService"];
+            IConfig assetConfig = config.Configs[m_ConfigName];
             if (assetConfig != null)
             {
                 dllName = assetConfig.GetString("StorageProvider", dllName);
@@ -75,7 +84,7 @@ namespace OpenSim.Services.AssetService
 
             m_Database = LoadPlugin<IAssetDataPlugin>(dllName);
             if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
+                throw new Exception(string.Format("Could not find a storage interface in the module {0}", dllName));
 
             m_Database.Initialise(connString);
 
@@ -87,7 +96,7 @@ namespace OpenSim.Services.AssetService
                 m_AssetLoader = LoadPlugin<IAssetLoader>(loaderName);
 
                 if (m_AssetLoader == null)
-                    throw new Exception("Asset loader could not be loaded");
+                    throw new Exception(string.Format("Asset loader could not be loaded from {0}", loaderName));
             }
         }
     }

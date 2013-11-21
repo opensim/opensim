@@ -33,6 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using RegionFlags = OpenMetaverse.RegionFlags;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
@@ -56,6 +57,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
 
+        protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
+        protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
+
         public bool[,] LandBitmap
         {
             get { return m_landBitmap; }
@@ -77,14 +81,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             set { m_landData = value; }
         }
-        
+
         public IPrimCounts PrimCounts { get; set; }
 
         public UUID RegionUUID
         {
             get { return m_scene.RegionInfo.RegionID; }
         }
-        
+
         public Vector3 StartPoint
         {
             get
@@ -97,11 +101,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                             return new Vector3(x * 4, y * 4, 0);
                     }
                 }
-                
+
                 return new Vector3(-1, -1, -1);
             }
-        }        
-        
+        }
+
         public Vector3 EndPoint
         {
             get
@@ -112,15 +116,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (LandBitmap[x, y])
                         {
-                            return new Vector3(x * 4, y * 4, 0);
-                        }                        
+                            return new Vector3(x * 4 + 4, y * 4 + 4, 0);
+                        }
                     }
-                }   
-                
+                }
+
                 return new Vector3(-1, -1, -1);
             }
         }
-                
+
         #region Constructors
 
         public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
@@ -224,13 +228,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (estateModule != null)
                 regionFlags = estateModule.GetRegionFlags();
 
-            // In a perfect world, this would have worked.
-            //
-//            if ((landData.Flags & (uint)ParcelFlags.AllowLandmark) != 0)
-//                regionFlags |=  (uint)RegionFlags.AllowLandmark;
-//            if (landData.OwnerID == remote_client.AgentId)
-//                regionFlags |=  (uint)RegionFlags.AllowSetHome;
-
             int seq_id;
             if (snap_selection && (sequence_id == 0))
             {
@@ -272,7 +269,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.AllowGroupScripts |
                         ParcelFlags.CreateGroupObjects |
                         ParcelFlags.AllowAPrimitiveEntry |
-                        ParcelFlags.AllowGroupObjectEntry);
+                        ParcelFlags.AllowGroupObjectEntry |
+                        ParcelFlags.AllowFly);
             }
 
             if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandSetSale))
@@ -416,15 +414,65 @@ namespace OpenSim.Region.CoreModules.World.Land
             return false;
         }
 
+        public bool HasGroupAccess(UUID avatar)
+        {
+            if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
+            {
+                ScenePresence sp;
+                if (!m_scene.TryGetScenePresence(avatar, out sp))
+                {
+                    bool isMember;
+                    if (m_groupMemberCache.TryGetValue(avatar, out isMember))
+                    {
+                        m_groupMemberCache.Update(avatar, isMember, m_groupMemberCacheTimeout);
+                        return isMember;
+                    }
+
+                    IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (groupsModule == null)
+                        return false;
+
+                    GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
+                    if (membership == null || membership.Length == 0)
+                    {
+                        m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                        return false;
+                    }
+
+                    foreach (GroupMembershipData d in membership)
+                    {
+                        if (d.GroupID == LandData.GroupID)
+                        {
+                            m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
+                            return true;
+                        }
+                    }
+                    m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                    return false;
+                }
+
+                return sp.ControllingClient.IsGroupMember(LandData.GroupID);
+            }
+            return false;
+        }
+
         public bool IsBannedFromLand(UUID avatar)
         {
-            if (m_scene.Permissions.CanEditParcelProperties(avatar, this, 0))
+            ExpireAccessList();
+
+            if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(avatar))
+                return false;
+
+            if (avatar == LandData.OwnerID)
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
                 if (LandData.ParcelAccessList.FindIndex(
-                        delegate(ParcelManager.ParcelAccessEntry e)
+                        delegate(LandAccessEntry e)
                         {
                             if (e.AgentID == avatar && e.Flags == AccessList.Ban)
                                 return true;
@@ -439,23 +487,39 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            if (m_scene.Permissions.CanEditParcelProperties(avatar, this, 0))
+            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
                 return false;
 
-            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
+            if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(avatar))
+                return false;
+
+            if (avatar == LandData.OwnerID)
+                return false;
+
+            if (HasGroupAccess(avatar))
+                return false;
+
+            return !IsInLandAccessList(avatar);
+        }
+
+        public bool IsInLandAccessList(UUID avatar)
+        {
+            ExpireAccessList();
+
+            if (LandData.ParcelAccessList.FindIndex(
+                    delegate(LandAccessEntry e)
+                    {
+                        if (e.AgentID == avatar && e.Flags == AccessList.Access)
+                            return true;
+                        return false;
+                    }) == -1)
             {
-                if (LandData.ParcelAccessList.FindIndex(
-                        delegate(ParcelManager.ParcelAccessEntry e)
-                        {
-                            if (e.AgentID == avatar && e.Flags == AccessList.Access)
-                                return true;
-                            return false;
-                        }) == -1)
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+            return true;
         }
 
         public void SendLandUpdateToClient(IClientAPI remote_client)
@@ -511,19 +575,24 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region AccessList Functions
 
-        public List<UUID>  CreateAccessListArrayByFlag(AccessList flag)
+        public List<LandAccessEntry>  CreateAccessListArrayByFlag(AccessList flag)
         {
-            List<UUID> list = new List<UUID>();
-            foreach (ParcelManager.ParcelAccessEntry entry in LandData.ParcelAccessList)
+            ExpireAccessList();
+
+            List<LandAccessEntry> list = new List<LandAccessEntry>();
+            foreach (LandAccessEntry entry in LandData.ParcelAccessList)
             {
                 if (entry.Flags == flag)
-                {
-                   list.Add(entry.AgentID);
-                }
+                   list.Add(entry);
             }
             if (list.Count == 0)
             {
-                list.Add(UUID.Zero);
+                LandAccessEntry e = new LandAccessEntry();
+                e.AgentID = UUID.Zero;
+                e.Flags = 0;
+                e.Expires = 0;
+
+                list.Add(e);
             }
 
             return list;
@@ -535,20 +604,20 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (flags == (uint) AccessList.Access || flags == (uint) AccessList.Both)
             {
-                List<UUID> avatars = CreateAccessListArrayByFlag(AccessList.Access);
-                remote_client.SendLandAccessListData(avatars,(uint) AccessList.Access,LandData.LocalID);
+                List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Access);
+                remote_client.SendLandAccessListData(accessEntries,(uint) AccessList.Access,LandData.LocalID);
             }
 
             if (flags == (uint) AccessList.Ban || flags == (uint) AccessList.Both)
             {
-                List<UUID> avatars = CreateAccessListArrayByFlag(AccessList.Ban);
-                remote_client.SendLandAccessListData(avatars, (uint)AccessList.Ban, LandData.LocalID);
+                List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Ban);
+                remote_client.SendLandAccessListData(accessEntries, (uint)AccessList.Ban, LandData.LocalID);
             }
         }
 
         public void UpdateAccessList(uint flags, UUID transactionID,
                 int sequenceID, int sections,
-                List<ParcelManager.ParcelAccessEntry> entries,
+                List<LandAccessEntry> entries,
                 IClientAPI remote_client)
         {
             LandData newData = LandData.Copy();
@@ -558,16 +627,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 m_listTransactions[flags] = transactionID;
 
-                List<ParcelManager.ParcelAccessEntry> toRemove =
-                        new List<ParcelManager.ParcelAccessEntry>();
+                List<LandAccessEntry> toRemove =
+                        new List<LandAccessEntry>();
 
-                foreach (ParcelManager.ParcelAccessEntry entry in newData.ParcelAccessList)
+                foreach (LandAccessEntry entry in newData.ParcelAccessList)
                 {
                     if (entry.Flags == (AccessList)flags)
                         toRemove.Add(entry);
                 }
 
-                foreach (ParcelManager.ParcelAccessEntry entry in toRemove)
+                foreach (LandAccessEntry entry in toRemove)
                 {
                     newData.ParcelAccessList.Remove(entry);
                 }
@@ -582,13 +651,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
-            foreach (ParcelManager.ParcelAccessEntry entry in entries)
+            foreach (LandAccessEntry entry in entries)
             {
-                ParcelManager.ParcelAccessEntry temp =
-                        new ParcelManager.ParcelAccessEntry();
+                LandAccessEntry temp =
+                        new LandAccessEntry();
 
                 temp.AgentID = entry.AgentID;
-                temp.Time = entry.Time;
+                temp.Expires = entry.Expires;
                 temp.Flags = (AccessList)flags;
 
                 newData.ParcelAccessList.Add(temp);
@@ -651,9 +720,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             int ty = min_y * 4;
             if (ty > ((int)Constants.RegionSize - 1))
                 ty = ((int)Constants.RegionSize - 1);
+
             LandData.AABBMin =
-                new Vector3((float) (min_x * 4), (float) (min_y * 4),
-                              (float) m_scene.Heightmap[tx, ty]);
+                new Vector3(
+                    (float)(min_x * 4), (float)(min_y * 4), m_scene != null ? (float)m_scene.Heightmap[tx, ty] : 0);
 
             tx = max_x * 4;
             if (tx > ((int)Constants.RegionSize - 1))
@@ -661,9 +731,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             ty = max_y * 4;
             if (ty > ((int)Constants.RegionSize - 1))
                 ty = ((int)Constants.RegionSize - 1);
-            LandData.AABBMax =
-                new Vector3((float) (max_x * 4), (float) (max_y * 4),
-                              (float) m_scene.Heightmap[tx, ty]);
+
+            LandData.AABBMax 
+                = new Vector3(
+                    (float)(max_x * 4), (float)(max_y * 4), m_scene != null ? (float)m_scene.Heightmap[tx, ty] : 0);
+
             LandData.Area = tempArea;
         }
 
@@ -1094,7 +1166,32 @@ namespace OpenSim.Region.CoreModules.World.Land
             LandData.MusicURL = url;
             SendLandUpdateToAvatarsOverMe();
         }
-        
+
+        /// <summary>
+        /// Get the music url for this land parcel
+        /// </summary>
+        /// <returns>The music url.</returns>
+        public string GetMusicUrl()
+        {
+            return LandData.MusicURL;
+        }
+
         #endregion
+
+        private void ExpireAccessList()
+        {
+            List<LandAccessEntry> delete = new List<LandAccessEntry>();
+
+            foreach (LandAccessEntry entry in LandData.ParcelAccessList)
+            {
+                if (entry.Expires != 0 && entry.Expires < Util.UnixTimeSinceEpoch())
+                    delete.Add(entry);
+            }
+            foreach (LandAccessEntry entry in delete)
+                LandData.ParcelAccessList.Remove(entry);
+
+            if (delete.Count > 0)
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
+        }
     }
 }

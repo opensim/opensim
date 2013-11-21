@@ -137,7 +137,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if (fh.Client.IsLoggingOut)
+                if (!fh.Client.IsActive)
                     continue;
 
 //                m_log.DebugFormat(

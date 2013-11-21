@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             string dirName = myDomain.FriendlyName;
             string ScriptEnginesPath = myDomain.SetupInformation.PrivateBinPath;
 
-            string[] pathList = new string[] {"bin", ScriptEnginesPath,
+            string[] pathList = new string[] {"", "bin", ScriptEnginesPath,
                                               Path.Combine(ScriptEnginesPath, dirName)};
 
             string assemblyName = args.Name;
@@ -55,6 +55,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 string path = Path.Combine(Directory.GetCurrentDirectory(),
                         Path.Combine(s, assemblyName))+".dll";
+
+//                    Console.WriteLine("Trying to resolve {0}", path);
 
                 if (File.Exists(path))
                     return Assembly.LoadFrom(path);

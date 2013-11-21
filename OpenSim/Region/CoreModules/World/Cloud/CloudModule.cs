@@ -27,15 +27,17 @@
 
 using System;
 using System.Collections.Generic;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules
+namespace OpenSim.Region.CoreModules.World
 {
-    public class CloudModule : ICloudModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CloudModule")]
+    public class CloudModule : ICloudModule, INonSharedRegionModule
     {
 //        private static readonly log4net.ILog m_log 
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -48,7 +50,7 @@ namespace OpenSim.Region.CoreModules
         private float m_cloudDensity = 1.0F;
         private float[] cloudCover = new float[16 * 16];
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             IConfig cloudConfig = config.Configs["Cloud"];
 
@@ -59,21 +61,40 @@ namespace OpenSim.Region.CoreModules
                 m_frameUpdateRate = cloudConfig.GetInt("cloud_update_rate", 1000);
             }
 
-            if (m_enabled)
-            {
+        }
 
-                m_scene = scene;
+        public void AddRegion(Scene scene)
+        {
+            if (!m_enabled)
+                return;
 
-                scene.EventManager.OnNewClient += CloudsToClient;
-                scene.RegisterModuleInterface<ICloudModule>(this);
-                scene.EventManager.OnFrame += CloudUpdate;
+            m_scene = scene;
 
-                GenerateCloudCover();
+            scene.EventManager.OnNewClient += CloudsToClient;
+            scene.RegisterModuleInterface<ICloudModule>(this);
+            scene.EventManager.OnFrame += CloudUpdate;
 
-                m_ready = true;
+            GenerateCloudCover();
 
-            }
+            m_ready = true;
+        }
 
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_enabled)
+                return;
+
+            m_ready = false;
+            //  Remove our hooks
+            m_scene.EventManager.OnNewClient -= CloudsToClient;
+            m_scene.EventManager.OnFrame -= CloudUpdate;
+            m_scene.UnregisterModuleInterface<ICloudModule>(this);
+
+            m_scene = null;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
         }
 
         public void PostInitialise()
@@ -82,13 +103,6 @@ namespace OpenSim.Region.CoreModules
 
         public void Close()
         {
-            if (m_enabled)
-            {
-                m_ready = false;
-                //  Remove our hooks
-                m_scene.EventManager.OnNewClient -= CloudsToClient;
-                m_scene.EventManager.OnFrame -= CloudUpdate;
-            }
         }
 
         public string Name
@@ -96,11 +110,10 @@ namespace OpenSim.Region.CoreModules
             get { return "CloudModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
-
 
         public float CloudCover(int x, int y, int z)
         {

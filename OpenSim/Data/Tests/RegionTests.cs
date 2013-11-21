@@ -244,10 +244,10 @@ namespace OpenSim.Data.Tests
             SceneObjectPart[] newparts = newsog.Parts;
             Assert.That(newparts.Length,Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
             
-            Assert.That(newsog.HasChildPrim(tmp0), "Assert.That(newsog.HasChildPrim(tmp0))");
-            Assert.That(newsog.HasChildPrim(tmp1), "Assert.That(newsog.HasChildPrim(tmp1))");
-            Assert.That(newsog.HasChildPrim(tmp2), "Assert.That(newsog.HasChildPrim(tmp2))");
-            Assert.That(newsog.HasChildPrim(tmp3), "Assert.That(newsog.HasChildPrim(tmp3))");
+            Assert.That(newsog.ContainsPart(tmp0), "Assert.That(newsog.ContainsPart(tmp0))");
+            Assert.That(newsog.ContainsPart(tmp1), "Assert.That(newsog.ContainsPart(tmp1))");
+            Assert.That(newsog.ContainsPart(tmp2), "Assert.That(newsog.ContainsPart(tmp2))");
+            Assert.That(newsog.ContainsPart(tmp3), "Assert.That(newsog.ContainsPart(tmp3))");
         }
         
         [Test]
@@ -632,7 +632,6 @@ namespace OpenSim.Data.Tests
                 .IgnoreProperty(x=>x.RegionUUID)
                 .IgnoreProperty(x=>x.Scene)
                 .IgnoreProperty(x=>x.Parts)
-                .IgnoreProperty(x=>x.PassCollision)
                 .IgnoreProperty(x=>x.RootPart));
         }
 
@@ -685,7 +684,7 @@ namespace OpenSim.Data.Tests
             SceneObjectGroup sog = GetMySOG("object1");
             InventoryItemBase i = NewItem(item1, zero, zero, itemname1, zero);
 
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
             
@@ -762,7 +761,7 @@ namespace OpenSim.Data.Tests
             i.CreationDate = creationd;
             
             SceneObjectGroup sog = GetMySOG("object1");
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, id);
             
             Assert.That(t.Name, Is.EqualTo(name), "Assert.That(t.Name, Is.EqualTo(name))");
@@ -807,10 +806,10 @@ namespace OpenSim.Data.Tests
             
             SceneObjectGroup sog = FindSOG("object1", region1);
 
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib1, zero), Is.True);
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib2, zero), Is.True);
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib3, zero), Is.True);
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib4, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib1, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib2, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib3, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib4, zero), Is.True);
             
             TaskInventoryItem t1 = sog.GetInventoryItem(sog.RootPart.LocalId, i1);
             Assert.That(t1.Name, Is.EqualTo(ib1.Name), "Assert.That(t1.Name, Is.EqualTo(ib1.Name))");
@@ -1070,8 +1069,6 @@ namespace OpenSim.Data.Tests
             regionInfo.RegionLocX = 0;
             regionInfo.RegionLocY = 0;
 
-            Scene scene = new Scene(regionInfo);
-
             SceneObjectPart sop = new SceneObjectPart();
             sop.Name = name;
             sop.Description = name;
@@ -1082,7 +1079,7 @@ namespace OpenSim.Data.Tests
             sop.Shape = PrimitiveBaseShape.Default;
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
-            sog.SetScene(scene);
+//            sog.SetScene(scene);
 
             return sog;
         }

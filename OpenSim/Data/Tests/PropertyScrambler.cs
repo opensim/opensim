@@ -34,6 +34,7 @@ using System.Text;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Data.Tests
 {
@@ -158,7 +159,7 @@ namespace OpenSim.Data.Tests
     }
 
     [TestFixture]
-    public class PropertyScramblerTests
+    public class PropertyScramblerTests : OpenSimTestCase
     {
         [Test]
         public void TestScramble()

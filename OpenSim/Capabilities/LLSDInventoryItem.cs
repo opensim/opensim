@@ -37,8 +37,8 @@ namespace OpenSim.Framework.Capabilities
         public UUID asset_id;
         public UUID item_id;
         public LLSDPermissions permissions;
-        public string type;
-        public string inv_type;
+        public int type;
+        public int inv_type;
         public int flags;
 
         public LLSDSaleInfo sale_info;
@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Capabilities
     public class LLSDSaleInfo
     {
         public int sale_price;
-        public string sale_type;
+        public int sale_type;
     }
 
     [OSDMap]
@@ -94,5 +94,12 @@ namespace OpenSim.Framework.Capabilities
         public OSDArray items = new OSDArray();
         public UUID owner_id; 
         public int version;
+    }
+
+    [OSDMap]
+    public class LLSDFetchInventory
+    {
+        public UUID agent_id;
+        public OSDArray items = new OSDArray();
     }
 }

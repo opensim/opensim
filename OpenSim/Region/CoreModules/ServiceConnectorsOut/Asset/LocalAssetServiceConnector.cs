@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalAssetServicesConnector")]
     public class LocalAssetServicesConnector : ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -73,13 +75,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return;
                     }
 
-                    string serviceDll = assetConfig.GetString("LocalServiceModule",
-                            String.Empty);
+                    string serviceDll = assetConfig.GetString("LocalServiceModule", String.Empty);
 
                     if (serviceDll == String.Empty)
                     {
                         m_log.Error("[LOCAL ASSET SERVICES CONNECTOR]: No LocalServiceModule named in section AssetService");
                         return;
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Loading asset service at {0}", serviceDll);
                     }
 
                     Object[] args = new Object[] { source };
@@ -170,6 +175,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public AssetBase GetCached(string id)
         {
+//            m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Cache request for {0}", id);
+
             if (m_Cache != null)
                 return m_Cache.Get(id);
 
@@ -199,8 +206,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         public byte[] GetData(string id)
         {
 //            m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Requesting data for asset {0}", id);
-            
-            AssetBase asset = m_Cache.Get(id);
+
+            AssetBase asset = null;
+
+            if (m_Cache != null)
+                asset = m_Cache.Get(id);
 
             if (asset != null)
                 return asset.Data;
@@ -248,7 +258,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (m_Cache != null)
                 m_Cache.Cache(asset);
             
-            if (asset.Temporary || asset.Local)
+            if (asset.Local)
             {
 //                m_log.DebugFormat(
 //                    "[LOCAL ASSET SERVICE CONNECTOR]: Returning asset {0} {1} without querying database since status Temporary = {2}, Local = {3}",

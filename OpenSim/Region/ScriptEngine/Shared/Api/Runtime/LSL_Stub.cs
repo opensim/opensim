@@ -369,6 +369,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llFrand(mag);
         }
 
+        public LSL_Key llGenerateKey()
+        {
+            return m_LSL_Functions.llGenerateKey();
+        }
+
         public LSL_Vector llGetAccel()
         {
             return m_LSL_Functions.llGetAccel();
@@ -382,6 +387,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String llGetAgentLanguage(string id)
         {
             return m_LSL_Functions.llGetAgentLanguage(id);
+        }
+
+        public LSL_List llGetAgentList(LSL_Integer scope, LSL_List options)
+        {
+            return m_LSL_Functions.llGetAgentList(scope, options);
         }
 
         public LSL_Vector llGetAgentSize(string id)
@@ -539,6 +549,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetLinkNumber();
         }
 
+        public LSL_Integer llGetLinkNumberOfSides(int link)
+        {
+            return m_LSL_Functions.llGetLinkNumberOfSides(link);
+        }
+
+        public void llSetKeyframedMotion(LSL_List frames, LSL_List options)
+        {
+            m_LSL_Functions.llSetKeyframedMotion(frames, options);
+        }
+
         public LSL_Integer llGetListEntryType(LSL_List src, int index)
         {
             return m_LSL_Functions.llGetListEntryType(src, index);
@@ -562,6 +582,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Float llGetMass()
         {
             return m_LSL_Functions.llGetMass();
+        }
+
+        public LSL_Integer llGetMemoryLimit()
+        {
+            return m_LSL_Functions.llGetMemoryLimit();
         }
 
         public void llGetNextEmail(string address, string subject)
@@ -647,6 +672,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer llGetParcelMaxPrims(LSL_Vector pos, int sim_wide)
         {
             return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide);
+        }
+
+        public LSL_String llGetParcelMusicURL()
+        {
+            return m_LSL_Functions.llGetParcelMusicURL();
         }
 
         public LSL_Integer llGetParcelPrimCount(LSL_Vector pos, int category, int sim_wide)
@@ -749,6 +779,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetSimulatorHostname();
         }
 
+        public LSL_Integer llGetSPMaxMemory()
+        {
+            return m_LSL_Functions.llGetSPMaxMemory();
+        }
+
         public LSL_Integer llGetStartParameter()
         {
             return m_LSL_Functions.llGetStartParameter();
@@ -814,6 +849,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetUnixTime();
         }
 
+        public LSL_Integer llGetUsedMemory()
+        {
+            return m_LSL_Functions.llGetUsedMemory();
+        }
+
         public LSL_Vector llGetVel()
         {
             return m_LSL_Functions.llGetVel();
@@ -834,9 +874,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llGiveInventoryList(destination, category, inventory);
         }
 
-        public LSL_Integer llGiveMoney(string destination, int amount)
+        public void llGiveMoney(string destination, int amount)
         {
-            return m_LSL_Functions.llGiveMoney(destination, amount);
+            m_LSL_Functions.llGiveMoney(destination, amount);
+        }
+
+        public LSL_String llTransferLindenDollars(string destination, int amount)
+        {
+            return m_LSL_Functions.llTransferLindenDollars(destination, amount);
         }
 
         public void llGodLikeRezObject(string inventory, LSL_Vector pos)
@@ -917,6 +962,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String llRequestDisplayName(string id)
         {
             return m_LSL_Functions.llRequestDisplayName(id);
+        }
+
+        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            return m_LSL_Functions.llCastRay(start, end, options);
         }
 
         public void llLinkParticleSystem(int linknum, LSL_List rules)
@@ -1047,6 +1097,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llLoopSoundSlave(string sound, double volume)
         {
             m_LSL_Functions.llLoopSoundSlave(sound, volume);
+        }
+
+        public LSL_Integer llManageEstateAccess(int action, string avatar)
+        {
+            return m_LSL_Functions.llManageEstateAccess(action, avatar);
         }
 
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
@@ -1408,6 +1463,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llScriptDanger(pos);
         }
 
+        public void llScriptProfiler(LSL_Integer flags)
+        {
+            m_LSL_Functions.llScriptProfiler(flags);
+        }
+
         public LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             return m_LSL_Functions.llSendRemoteData(channel, dest, idata, sdata);
@@ -1448,6 +1508,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetCameraEyeOffset(offset);
         }
 
+        public void llSetLinkCamera(LSL_Integer link, LSL_Vector eye, LSL_Vector at)
+        {
+            m_LSL_Functions.llSetLinkCamera(link, eye, at);
+        }
+
         public void llSetCameraParams(LSL_List rules)
         {
             m_LSL_Functions.llSetCameraParams(rules);
@@ -1463,6 +1528,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetColor(color, face);
         }
 
+        public void llSetContentType(LSL_Key id, LSL_Integer type)
+        {
+            m_LSL_Functions.llSetContentType(id, type);
+        }
+
         public void llSetDamage(double damage)
         {
             m_LSL_Functions.llSetDamage(damage);
@@ -1476,6 +1546,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local)
         {
             m_LSL_Functions.llSetForceAndTorque(force, torque, local);
+        }
+
+        public void llSetVelocity(LSL_Vector force, int local)
+        {
+            m_LSL_Functions.llSetVelocity(force, local);
+        }
+
+        public void llSetAngularVelocity(LSL_Vector force, int local)
+        {
+            m_LSL_Functions.llSetAngularVelocity(force, local);
         }
 
         public void llSetHoverHeight(double height, int water, double tau)
@@ -1516,6 +1596,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_LSL_Functions.llSetLocalRot(rot);
+        }
+
+        public LSL_Integer llSetMemoryLimit(LSL_Integer limit)
+        {
+            return m_LSL_Functions.llSetMemoryLimit(limit);
         }
 
         public void llSetObjectDesc(string desc)
@@ -1561,6 +1646,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetPrimURL(string url)
         {
             m_LSL_Functions.llSetPrimURL(url);
+        }
+
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            return m_LSL_Functions.llSetRegionPos(pos);
         }
 
         public void llSetRemoteScriptAccessPin(int pin)
@@ -1673,6 +1763,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSitTarget(offset, rot);
         }
 
+        public void llLinkSitTarget(LSL_Integer link, LSL_Vector offset, LSL_Rotation rot)
+        {
+            m_LSL_Functions.llLinkSitTarget(link, offset, rot);
+        }
+
         public void llSleep(double sec)
         {
             m_LSL_Functions.llSleep(sec);
@@ -1778,6 +1873,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llTargetRemove(number);
         }
 
+        public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_LSL_Functions.llTeleportAgent(agent, simname, pos, lookAt);
+        }
+
+        public void llTeleportAgentGlobalCoords(string agent, LSL_Vector global, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_LSL_Functions.llTeleportAgentGlobalCoords(agent, global, pos, lookAt);
+        }
+
         public void llTeleportAgentHome(string agent)
         {
             m_LSL_Functions.llTeleportAgentHome(agent);
@@ -1867,15 +1972,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llGetPrimMediaParams(face, rules);
         }
-        
+
+        public LSL_List llGetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules)
+        {
+            return m_LSL_Functions.llGetLinkMedia(link, face, rules);
+        }
+
         public LSL_Integer llSetPrimMediaParams(int face, LSL_List rules)
         {
             return m_LSL_Functions.llSetPrimMediaParams(face, rules);
         }
-        
+
+        public LSL_Integer llSetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules)
+        {
+            return m_LSL_Functions.llSetLinkMedia(link, face, rules);
+        }
+
         public LSL_Integer llClearPrimMedia(LSL_Integer face)
         {
             return m_LSL_Functions.llClearPrimMedia(face);
+        }
+
+        public LSL_Integer llClearLinkMedia(LSL_Integer link, LSL_Integer face)
+        {
+            return m_LSL_Functions.llClearLinkMedia(link, face);
         }
 
         public void print(string str)

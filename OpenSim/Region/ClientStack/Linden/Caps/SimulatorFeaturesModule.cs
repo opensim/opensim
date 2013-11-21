@@ -53,11 +53,13 @@ namespace OpenSim.Region.ClientStack.Linden
     /// NOTE: Part of this code was adapted from the Aurora project, specifically
     /// the normal part of the response in the capability handler.
     /// </remarks>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimulatorFeaturesModule")]
     public class SimulatorFeaturesModule : ISharedRegionModule, ISimulatorFeaturesModule
     {
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
 
         private Scene m_scene;
 
@@ -66,8 +68,8 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </summary>
         private OSDMap m_features = new OSDMap();
 
-        private string m_MapImageServerURL = string.Empty;
         private string m_SearchURL = string.Empty;
+        private bool m_ExportSupported = false;
 
         #region ISharedRegionModule Members
 
@@ -75,16 +77,10 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             IConfig config = source.Configs["SimulatorFeatures"];
             if (config != null)
-            {
-                m_MapImageServerURL = config.GetString("MapImageServerURI", string.Empty);
-                if (m_MapImageServerURL != string.Empty)
-                {
-                    m_MapImageServerURL = m_MapImageServerURL.Trim();
-                    if (!m_MapImageServerURL.EndsWith("/"))
-                        m_MapImageServerURL = m_MapImageServerURL + "/";
-                }
-    
+            {    
                 m_SearchURL = config.GetString("SearchServerURI", string.Empty);
+
+                m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
             }
 
             AddDefaultFeatures();
@@ -94,6 +90,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             m_scene = s;
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+
+            m_scene.RegisterModuleInterface<ISimulatorFeaturesModule>(this);
         }
 
         public void RemoveRegion(Scene s)
@@ -142,19 +140,25 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["PhysicsShapeTypes"] = typesMap;
     
                 // Extra information for viewers that want to use it
-                OSDMap gridServicesMap = new OSDMap();
-                if (m_MapImageServerURL != string.Empty)
-                    gridServicesMap["map-server-url"] = m_MapImageServerURL;
+                // TODO: Take these out of here into their respective modules, like map-server-url
+                OSDMap extrasMap = new OSDMap();
                 if (m_SearchURL != string.Empty)
-                    gridServicesMap["search"] = m_SearchURL;
-                m_features["GridServices"] = gridServicesMap;
+                    extrasMap["search-server-url"] = m_SearchURL;
+                if (m_ExportSupported)
+                    extrasMap["ExportSupported"] = true;
+
+                if (extrasMap.Count > 0)
+                    m_features["OpenSimExtras"] = extrasMap;
+
             }
         }
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
             IRequestHandler reqHandler
-                = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), HandleSimulatorFeaturesRequest);
+                = new RestHTTPHandler(
+                    "GET", "/CAPS/" + UUID.Random(),
+                    x => { return HandleSimulatorFeaturesRequest(x, agentID); }, "SimulatorFeatures", agentID.ToString());
 
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
         }
@@ -183,9 +187,25 @@ namespace OpenSim.Region.ClientStack.Linden
                 return new OSDMap(m_features);
         }
 
-        private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod)
+        private OSDMap DeepCopy()
+        {
+            // This isn't the cheapest way of doing this but the rate
+            // of occurrence is low (on sim entry only) and it's a sure
+            // way to get a true deep copy.
+            OSD copy = OSDParser.DeserializeLLSDXml(OSDParser.SerializeLLSDXmlString(m_features));
+
+            return (OSDMap)copy;
+        }
+
+        private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod, UUID agentID)
         {
 //            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+
+            OSDMap copy = DeepCopy();
+
+            SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
+            if (handlerOnSimulatorFeaturesRequest != null)
+                handlerOnSimulatorFeaturesRequest(agentID, ref copy);
 
             //Send back data
             Hashtable responsedata = new Hashtable();
@@ -193,8 +213,7 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
 
-            lock (m_features)
-                responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(m_features);
+            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(copy);
 
             return responsedata;
         }

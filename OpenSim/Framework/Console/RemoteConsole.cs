@@ -100,6 +100,7 @@ namespace OpenSim.Framework.Console
                 m_LineNumber++;
                 m_Scrollback.Add(String.Format("{0}", m_LineNumber)+":"+level+":"+text);
             }
+            FireOnOutput(text.Trim());
             System.Console.WriteLine(text.Trim());
         }
 
@@ -232,9 +233,8 @@ namespace OpenSim.Framework.Console
 
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
-            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpPoll,
-                    new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents,
-                    sessionID));
+            m_Server.AddPollServiceHTTPHandler(
+                uri, new PollServiceEventArgs(null, uri, HasEvents, GetEvents, NoEvents, sessionID,25000)); // 25 secs timeout
 
             XmlDocument xmldoc = new XmlDocument();
             XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
@@ -264,11 +264,6 @@ namespace OpenSim.Framework.Console
             reply = CheckOrigin(reply);
 
             return reply;
-        }
-
-        private Hashtable HandleHttpPoll(Hashtable request)
-        {
-            return new Hashtable();
         }
 
         private Hashtable HandleHttpCloseSession(Hashtable request)
@@ -430,7 +425,7 @@ namespace OpenSim.Framework.Console
             return false;
         }
 
-        private Hashtable GetEvents(UUID RequestID, UUID sessionID, string request)
+        private Hashtable GetEvents(UUID RequestID, UUID sessionID)
         {
             ConsoleConnection c = null;
 

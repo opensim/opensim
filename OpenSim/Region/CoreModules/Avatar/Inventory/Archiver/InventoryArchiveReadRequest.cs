@@ -67,10 +67,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         protected bool m_merge;
 
-        /// <value>
-        /// We only use this to request modules
-        /// </value>
-        protected Scene m_scene;
+        protected IInventoryService m_InventoryService;
+        protected IAssetService m_AssetService;
+        protected IUserAccountService m_UserAccountService;
 
         /// <value>
         /// The stream from which the inventory archive will be loaded.
@@ -118,9 +117,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();        
 
         public InventoryArchiveReadRequest(
-            Scene scene, UserAccount userInfo, string invPath, string loadPath, bool merge)
+            IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
             : this(
-                scene,
+                inv,
+                assets,
+                uacc,
                 userInfo,
                 invPath,
                 new GZipStream(ArchiveHelpers.GetStream(loadPath), CompressionMode.Decompress),
@@ -129,9 +130,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public InventoryArchiveReadRequest(
-            Scene scene, UserAccount userInfo, string invPath, Stream loadStream, bool merge)
+            IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, Stream loadStream, bool merge)
         {
-            m_scene = scene;
+            m_InventoryService = inv;
+            m_AssetService = assets;
+            m_UserAccountService = uacc;
             m_merge = merge;
             m_userInfo = userInfo;
             m_invPath = invPath;
@@ -161,8 +164,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 string filePath = "ERROR";
                
                 List<InventoryFolderBase> folderCandidates
-                    = InventoryArchiveUtils.FindFolderByPath(
-                        m_scene.InventoryService, m_userInfo.PrincipalID, m_invPath);
+                    = InventoryArchiveUtils.FindFoldersByPath(
+                        m_InventoryService, m_userInfo.PrincipalID, m_invPath);
     
                 if (folderCandidates.Count == 0)
                 {
@@ -296,8 +299,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         // iar name and try to find that instead.
                         string plainPath = ArchiveConstants.ExtractPlainPathFromIarPath(archivePath);
                         List<InventoryFolderBase> folderCandidates
-                            = InventoryArchiveUtils.FindFolderByPath(
-                                m_scene.InventoryService, m_userInfo.PrincipalID, plainPath);
+                            = InventoryArchiveUtils.FindFoldersByPath(
+                                m_InventoryService, m_userInfo.PrincipalID, plainPath);
             
                         if (folderCandidates.Count != 0)
                         {
@@ -380,7 +383,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     = new InventoryFolderBase(
                         newFolderId, newFolderName, m_userInfo.PrincipalID, 
                         (short)AssetType.Unknown, destFolder.ID, 1);
-                m_scene.InventoryService.AddFolder(destFolder);
+                m_InventoryService.AddFolder(destFolder);
 
                 // Record that we have now created this folder
                 iarPathExisting += rawDirsToCreate[i] + "/";
@@ -406,23 +409,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // Don't use the item ID that's in the file
             item.ID = UUID.Random();
 
-            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.UserAccountService);
+            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_UserAccountService);
             if (UUID.Zero != ospResolvedId) // The user exists in this grid
             {
 //                m_log.DebugFormat("[INVENTORY ARCHIVER]: Found creator {0} via OSPA resolution", ospResolvedId);
                 
-                item.CreatorIdAsUuid = ospResolvedId;
+//                item.CreatorIdAsUuid = ospResolvedId;
 
                 // Don't preserve the OSPA in the creator id (which actually gets persisted to the
                 // database).  Instead, replace with the UUID that we found.
                 item.CreatorId = ospResolvedId.ToString();
-
                 item.CreatorData = string.Empty;
             }
-            else if (item.CreatorData == null || item.CreatorData == String.Empty)
+            else if (string.IsNullOrEmpty(item.CreatorData))
             {
                 item.CreatorId = m_userInfo.PrincipalID.ToString();
-                item.CreatorIdAsUuid = new UUID(item.CreatorId);
+//                item.CreatorIdAsUuid = new UUID(item.CreatorId);
             }
 
             item.Owner = m_userInfo.PrincipalID;
@@ -437,7 +439,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // relying on native tar tools.
             m_creatorIdForAssetId[item.AssetID] = item.CreatorIdAsUuid;
 
-            m_scene.AddInventoryItem(item);
+            if (!m_InventoryService.AddItem(item))
+                m_log.WarnFormat("[INVENTORY ARCHIVER]: Unable to save item {0} in folder {1}", item.Name, item.Folder);
         
             return item;
         }
@@ -488,17 +491,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         {
 //                            m_log.DebugFormat(
 //                                "[INVENTORY ARCHIVER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
+
+                            if (coa.Objects.Count == 0)
+                            {
+                                m_log.WarnFormat(
+                                    "[INVENTORY ARCHIVE READ REQUEST]: Aborting load of coalesced object from asset {0} as it has zero loaded components", 
+                                    assetId);
+                                return false;
+                            }
                             
                             sceneObjects.AddRange(coa.Objects);
                         }
                         else
                         {
-                            sceneObjects.Add(SceneObjectSerializer.FromOriginalXmlFormat(xmlData));
+                            SceneObjectGroup deserializedObject = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+
+                            if (deserializedObject != null)
+                            {
+                                sceneObjects.Add(deserializedObject);
+                            }
+                            else
+                            {
+                                m_log.WarnFormat(
+                                    "[INVENTORY ARCHIVE READ REQUEST]: Aborting load of object from asset {0} as deserialization failed", 
+                                    assetId);
+
+                                return false;
+                            }
                         }
                         
                         foreach (SceneObjectGroup sog in sceneObjects)
                             foreach (SceneObjectPart sop in sog.Parts)
-                                if (sop.CreatorData == null || sop.CreatorData == "")
+                                if (string.IsNullOrEmpty(sop.CreatorData))
                                     sop.CreatorID = m_creatorIdForAssetId[assetId];
 
                         if (coa != null)
@@ -513,7 +537,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 AssetBase asset = new AssetBase(assetId, "From IAR", assetType, UUID.Zero.ToString());
                 asset.Data = data;
 
-                m_scene.AssetService.Store(asset);
+                m_AssetService.Store(asset);
 
                 return true;
             }

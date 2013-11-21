@@ -77,6 +77,9 @@ namespace OpenSim.Data.SQLite
             {
                 m_Initialized = true;
 
+                if (Util.IsWindows())
+                    Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
                 if (dbconnect == string.Empty)
                 {
                     dbconnect = "URI=file:inventoryStore.db,version=3";

@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
     /// <remarks>
     /// </remarks>
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageServiceModule")]
     public class MapImageServiceModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
@@ -75,7 +75,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         public void Close() { }
         public void PostInitialise() { }
 
-        
         ///<summary>
         ///
         ///</summary>
@@ -131,14 +130,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         ///<summary>
         ///
         ///</summary>
-
-
-        ///<summary>
-        ///
-        ///</summary>
         public void AddRegion(Scene scene)
         {
-            if (! m_enabled)
+            if (!m_enabled)
                 return;
 
             // Every shared region module has to maintain an indepedent list of
@@ -146,7 +140,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
-            scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
+            scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) UploadMapTile(s); };
         }
 
         ///<summary>
@@ -162,13 +156,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         }
 
         #endregion ISharedRegionModule
-
-        void EventManager_OnPrimsLoaded(Scene s)
-        {
-            UploadMapTile(s);
-        }
-
-
+        
         ///<summary>
         ///
         ///</summary>
@@ -217,6 +205,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
 
             using (Image mapTile = tileGenerator.CreateMapTile())
             {
+                // XXX: The MapImageModule will return a null if the user has chosen not to create map tiles and there
+                // is no static map tile.
+                if (mapTile == null)
+                    return;
+
                 using (MemoryStream stream = new MemoryStream())
                 {
                     mapTile.Save(stream, ImageFormat.Jpeg);

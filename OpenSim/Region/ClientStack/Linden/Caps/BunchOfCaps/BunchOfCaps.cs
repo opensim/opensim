@@ -49,14 +49,13 @@ using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
     public delegate void UpLoadedAsset(
     string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
     byte[] data, string inventoryType, string assetType);
-
-    public delegate void UploadedBakedTexture(UUID assetID, byte[] data);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -96,10 +95,12 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
         //        private static readonly string m_fetchInventoryPath = "0006/";
+        private static readonly string m_copyFromNotecardPath = "0007/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
-        private static readonly string m_uploadBakedTexturePath = "0010/";// This is in the LandManagementModule.
-
-
+        private static readonly string m_getObjectPhysicsDataPath = "0101/";
+        /* 0102 - 0103 RESERVED */
+        private static readonly string m_UpdateAgentInformationPath = "0500/";
+        
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
@@ -113,6 +114,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
+        private int m_levelUpload = 0;
 
         public BunchOfCaps(Scene scene, Caps caps)
         {
@@ -123,7 +125,15 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 IConfig sconfig = config.Configs["Startup"];
                 if (sconfig != null)
-                    m_persistBakedTextures = sconfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
+                {
+                    m_levelUpload = sconfig.GetInt("LevelUpload", 0);
+                }
+
+                IConfig appearanceConfig = config.Configs["Appearance"];
+                if (appearanceConfig != null)
+                {
+                    m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
+                }
             }
 
             m_assetService = m_Scene.AssetService;
@@ -134,7 +144,6 @@ namespace OpenSim.Region.ClientStack.Linden
             AddNewInventoryItem = m_Scene.AddUploadedInventoryItem;
             ItemUpdatedCall = m_Scene.CapsUpdateInventoryItemAsset;
             TaskScriptUpdatedCall = m_Scene.CapsUpdateTaskInventoryScriptAsset;
-            CAPSFetchInventoryDescendents = m_Scene.HandleFetchInventoryDescendentsCAPS;
             GetClient = m_Scene.SceneGraph.GetControllingClient;
         }
 
@@ -154,19 +163,22 @@ namespace OpenSim.Region.ClientStack.Linden
             try
             {
                 // the root of all evil
-                m_HostCapsObj.RegisterHandler("SEED", new RestStreamHandler("POST", capsBase + m_requestPath, SeedCapRequest));
-                m_log.DebugFormat(
-                    "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_HostCapsObj.AgentID);
+                m_HostCapsObj.RegisterHandler(
+                    "SEED", new RestStreamHandler("POST", capsBase + m_requestPath, SeedCapRequest, "SEED", null));
+
+//                m_log.DebugFormat(
+//                    "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_HostCapsObj.AgentID);
 
                 //m_capsHandlers["MapLayer"] =
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
                 //                                                                GetMapLayer);
-                IRequestHandler req = new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
+                IRequestHandler req
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory, "UpdateScript", null);
+
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
-                m_HostCapsObj.RegisterHandler("UploadBakedTexture", new RestStreamHandler("POST", capsBase + m_uploadBakedTexturePath, UploadBakedTexture));
-
             }
             catch (Exception e)
             {
@@ -179,13 +191,37 @@ namespace OpenSim.Region.ClientStack.Linden
             try
             {
                 // I don't think this one works...
-                m_HostCapsObj.RegisterHandler("NewFileAgentInventory", new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
-                                                                                           capsBase + m_newInventory,
-                                                                                           NewAgentInventoryRequest));
-                IRequestHandler req = new RestStreamHandler("POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory);
+                m_HostCapsObj.RegisterHandler(
+                    "NewFileAgentInventory",
+                    new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>(
+                        "POST",
+                        capsBase + m_newInventory,
+                        NewAgentInventoryRequest,
+                        "NewFileAgentInventory",
+                        null));
+
+                IRequestHandler req
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory, "Update*", null);
+
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
+
+                IRequestHandler getObjectPhysicsDataHandler 
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData, "GetObjectPhysicsData", null);
+                m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
+
+                IRequestHandler UpdateAgentInformationHandler
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation, "UpdateAgentInformation", null);
+                m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
+
+                m_HostCapsObj.RegisterHandler(
+                    "CopyInventoryFromNotecard",
+                    new RestStreamHandler(
+                        "POST", capsBase + m_copyFromNotecardPath, CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null));
              
                 // As of RC 1.22.9 of the Linden client this is
                 // supported
@@ -229,22 +265,27 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
         public string SeedCapRequest(string request, string path, string param,
-                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-//            m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
+            m_log.DebugFormat(
+                "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, m_HostCapsObj.AgentID);
 
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
-                m_log.DebugFormat("[CAPS]: Unauthorized CAPS client");
+                m_log.WarnFormat(
+                    "[CAPS]: Unauthorized CAPS client {0} from {1}",
+                    m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint);
+
                 return string.Empty;
             }
 
-            Hashtable caps = m_HostCapsObj.CapsHandlers.CapsDetails;
-            // Add the external too
-            foreach (KeyValuePair<string, string> kvp in m_HostCapsObj.ExternalCapsHandlers)
-                caps[kvp.Key] = kvp.Value;
+            OSDArray capsRequested = (OSDArray)OSDParser.DeserializeLLSDXml(request);
+            List<string> validCaps = new List<string>();
 
-            string result = LLSDHelpers.SerialiseLLSDReply(caps);
+            foreach (OSD c in capsRequested)
+                validCaps.Add(c.AsString());
+
+            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
 
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
 
@@ -261,11 +302,11 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
         public string ScriptTaskInventory(string request, string path, string param,
-                                          OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                          IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             try
             {
-                m_log.Debug("[CAPS]: ScriptTaskInventory Request in region: " + m_regionName);
+//                m_log.Debug("[CAPS]: ScriptTaskInventory Request in region: " + m_regionName);
                 //m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
 
                 Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
@@ -285,7 +326,9 @@ namespace OpenSim.Region.ClientStack.Linden
                         m_dumpAssetsToFile);
                 uploader.OnUpLoad += TaskScriptUpdated;
 
-                m_HostCapsObj.HttpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                m_HostCapsObj.HttpListener.AddStreamHandler(
+                    new BinaryStreamHandler(
+                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "TaskInventoryScriptUpdater", null));
 
                 string protocol = "http://";
 
@@ -331,74 +374,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        /// Handle a request from the client for a Uri to upload a baked texture.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <param name="httpRequest"></param>
-        /// <param name="httpResponse"></param>
-        /// <returns>The upload response if the request is successful, null otherwise.</returns>
-        public string UploadBakedTexture(string request, string path,
-                string param, OSHttpRequest httpRequest,
-                OSHttpResponse httpResponse)
-        {
-            try
-            {
-//                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " + m_regionName);
-
-                string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
-                string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
-
-                BakedTextureUploader uploader =
-                    new BakedTextureUploader(capsBase + uploaderPath, m_HostCapsObj.HttpListener);
-                uploader.OnUpLoad += BakedTextureUploaded;
-
-                m_HostCapsObj.HttpListener.AddStreamHandler(
-                        new BinaryStreamHandler("POST", capsBase + uploaderPath,
-                        uploader.uploaderCaps));
-
-                string protocol = "http://";
-
-                if (m_HostCapsObj.SSLCaps)
-                    protocol = "https://";
-
-                string uploaderURL = protocol + m_HostCapsObj.HostName + ":" +
-                        m_HostCapsObj.Port.ToString() + capsBase + uploaderPath;
-
-                LLSDAssetUploadResponse uploadResponse =
-                        new LLSDAssetUploadResponse();
-                uploadResponse.uploader = uploaderURL;
-                uploadResponse.state = "upload";
-
-                return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CAPS]: " + e.ToString());
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Called when a baked texture has been successfully uploaded by a client.
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="data"></param>
-        public void BakedTextureUploaded(UUID assetID, byte[] data)
-        {
-            //            m_log.WarnFormat("[CAPS]: Received baked texture {0}", assetID.ToString());
-
-            AssetBase asset;
-            asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_HostCapsObj.AgentID.ToString());
-            asset.Data = data;
-            asset.Temporary = true;
-            asset.Local = !m_persistBakedTextures; // Local assets aren't persisted, non-local are
-            m_assetService.Store(asset);
-        }
-
-        /// <summary>
         /// Called when new asset data for an agent inventory item update has been uploaded.
         /// </summary>
         /// <param name="itemID">Item to update</param>
@@ -428,21 +403,37 @@ namespace OpenSim.Region.ClientStack.Linden
                 llsdRequest.asset_type == "animation" ||
                 llsdRequest.asset_type == "sound")
             {
+                ScenePresence avatar = null;
                 IClientAPI client = null;
-                IScene scene = null;
-                if (GetClient != null)
-                {
-                    client = GetClient(m_HostCapsObj.AgentID);
-                    scene = client.Scene;
+                m_Scene.TryGetScenePresence(m_HostCapsObj.AgentID, out avatar);
 
-                    IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
+                // check user level
+                if (avatar != null)
+                {
+                    client = avatar.ControllingClient;
+
+                    if (avatar.UserLevel < m_levelUpload)
+                    {
+                        if (client != null)
+                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
+
+                        LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                        errorResponse.uploader = "";
+                        errorResponse.state = "error";
+                        return errorResponse;
+                    }
+                }
+
+                // check funds
+                if (client != null)
+                {
+                    IMoneyModule mm = m_Scene.RequestModuleInterface<IMoneyModule>();
 
                     if (mm != null)
                     {
-                        if (!mm.UploadCovered(client, mm.UploadCharge))
+                        if (!mm.UploadCovered(client.AgentId, mm.UploadCharge))
                         {
-                            if (client != null)
-                                client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
 
                             LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                             errorResponse.uploader = "";
@@ -464,8 +455,14 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                                   llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
+
             m_HostCapsObj.HttpListener.AddStreamHandler(
-                new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                new BinaryStreamHandler(
+                    "POST",
+                    capsBase + uploaderPath,
+                    uploader.uploaderCaps,
+                    "NewAgentInventoryRequest",
+                    m_HostCapsObj.AgentID.ToString()));
 
             string protocol = "http://";
 
@@ -493,7 +490,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                           string assetType)
         {
             m_log.DebugFormat(
-                "Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
+                "[BUNCH OF CAPS]: Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
                 assetID, inventoryItem, inventoryType, assetType);
 
             sbyte assType = 0;
@@ -631,7 +628,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
 
                     prim.Scale = scale;
-                    prim.OffsetPosition = position;
+                    //prim.OffsetPosition = position;
                     rotations.Add(rotation);
                     positions.Add(position);
                     prim.UUID = UUID.Random();
@@ -655,25 +652,40 @@ namespace OpenSim.Region.ClientStack.Linden
                         grp.AddPart(prim);
                 }
 
-                // Fix first link number
+                Vector3 rootPos = positions[0];
+
                 if (grp.Parts.Length > 1)
+                {
+                    // Fix first link number
                     grp.RootPart.LinkNum++;
 
-                Vector3 rootPos = positions[0];
-                grp.AbsolutePosition = rootPos;
-                for (int i = 0; i < positions.Count; i++)
+                    Quaternion rootRotConj = Quaternion.Conjugate(rotations[0]);
+                    Quaternion tmprot;
+                    Vector3 offset;
+
+                    // fix children rotations and positions
+                    for (int i = 1; i < rotations.Count; i++)
+                    {
+                        tmprot = rotations[i];
+                        tmprot = rootRotConj * tmprot;
+
+                        grp.Parts[i].RotationOffset = tmprot;
+
+                        offset = positions[i] - rootPos;
+
+                        offset *= rootRotConj;
+                        grp.Parts[i].OffsetPosition = offset;
+                    }
+
+                    grp.AbsolutePosition = rootPos;
+                    grp.UpdateGroupRotationR(rotations[0]);
+                }
+                else
                 {
-                    Vector3 offset = positions[i] - rootPos;
-                    grp.Parts[i].OffsetPosition = offset;
+                    grp.AbsolutePosition = rootPos;
+                    grp.UpdateGroupRotationR(rotations[0]);
                 }
 
-                for (int i = 0; i < rotations.Count; i++)
-                {
-                    if (i != 0)
-                        grp.Parts[i].RotationOffset = rotations[i];
-                }
-
-                grp.UpdateGroupRotationR(rotations[0]);
                 data = ASCIIEncoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(grp));
             }
 
@@ -696,8 +708,13 @@ namespace OpenSim.Region.ClientStack.Linden
             item.AssetType = assType;
             item.InvType = inType;
             item.Folder = parentFolder;
-            item.CurrentPermissions = (uint)PermissionMask.All;
-            item.BasePermissions = (uint)PermissionMask.All;
+
+            // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
+            // (owner) permissions.  This becomes a problem if next permissions are changed.
+            item.CurrentPermissions
+                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
+
+            item.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
             item.EveryOnePermissions = 0;
             item.NextPermissions = (uint)PermissionMask.All;
             item.CreationDate = Util.UnixTimeSinceEpoch();
@@ -758,7 +775,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="param"></param>
         /// <returns></returns>
         public string NoteCardAgentInventory(string request, string path, string param,
-                                             OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName + "\n" + request);
             //m_log.Debug("[CAPS]: NoteCardAgentInventory Request is: " + request);
@@ -776,7 +793,8 @@ namespace OpenSim.Region.ClientStack.Linden
             uploader.OnUpLoad += ItemUpdated;
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
-                new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                new BinaryStreamHandler(
+                    "POST", capsBase + uploaderPath, uploader.uploaderCaps, "NoteCardAgentInventory", null));
 
             string protocol = "http://";
 
@@ -795,6 +813,122 @@ namespace OpenSim.Region.ClientStack.Linden
             //                             LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
+        }
+
+        /// <summary>
+        /// Called by the CopyInventoryFromNotecard caps handler.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        public string CopyInventoryFromNotecard(string request, string path, string param,
+                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            Hashtable response = new Hashtable();
+            response["int_response_code"] = 404;
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["str_response_string"] = "";
+
+            try
+            {
+                OSDMap content = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+                UUID objectID = content["object-id"].AsUUID();
+                UUID notecardID = content["notecard-id"].AsUUID();
+                UUID folderID = content["folder-id"].AsUUID();
+                UUID itemID = content["item-id"].AsUUID();
+
+                //  m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, FolderID:{0}, ItemID:{1}, NotecardID:{2}, ObjectID:{3}", folderID, itemID, notecardID, objectID);
+
+                if (objectID != UUID.Zero)
+                {
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(objectID);
+                    if (part != null)
+                    {
+//                        TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
+                        if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, m_HostCapsObj.AgentID))
+                        {
+                            return LLSDHelpers.SerialiseLLSDReply(response);
+                        }
+                    }
+                }
+
+                InventoryItemBase item = null;
+                InventoryItemBase copyItem = null;
+                IClientAPI client = null;
+
+                m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
+                item = m_Scene.InventoryService.GetItem(new InventoryItemBase(itemID));
+                if (item != null)
+                {
+                    copyItem = m_Scene.GiveInventoryItem(m_HostCapsObj.AgentID, item.Owner, itemID, folderID);
+                    if (copyItem != null && client != null)
+                    {
+                        m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, ItemID:{0}, FolderID:{1}", copyItem.ID, copyItem.Folder);
+                        client.SendBulkUpdateInventory(copyItem);
+                    }
+                }
+                else
+                {
+                    m_log.ErrorFormat("[CAPS]: CopyInventoryFromNotecard - Failed to retrieve item {0} from notecard {1}", itemID, notecardID);
+                    if (client != null)
+                        client.SendAlertMessage("Failed to retrieve item");
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[CAPS]: CopyInventoryFromNotecard : {0}", e.ToString());
+            }
+
+            response["int_response_code"] = 200;
+            return LLSDHelpers.SerialiseLLSDReply(response);
+        }
+
+        public string GetObjectPhysicsData(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+            OSDArray object_ids = (OSDArray)req["object_ids"];
+
+            for (int i = 0 ; i < object_ids.Count ; i++)
+            {
+                UUID uuid = object_ids[i].AsUUID();
+
+                SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
+                if (obj != null)
+                {
+                    OSDMap object_data = new OSDMap();
+
+                    object_data["PhysicsShapeType"] = obj.PhysicsShapeType;
+                    object_data["Density"] = obj.Density;
+                    object_data["Friction"] = obj.Friction;
+                    object_data["Restitution"] = obj.Restitution;
+                    object_data["GravityMultiplier"] = obj.GravityModifier;
+
+                    resp[uuid.ToString()] = object_data;
+                }
+            }
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            return response;
+        }
+
+        public string UpdateAgentInformation(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+//            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+
+            OSDMap accessPrefs = new OSDMap();
+            accessPrefs["max"] = "A";
+
+            resp["access_prefs"] = accessPrefs;
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            return response; 
         }
     }
 
@@ -1067,6 +1201,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // XXX Maybe this should be some meaningful error packet
             return null;
         }
+
         ///Left this in and commented in case there are unforseen issues
         //private void SaveAssetToFile(string filename, byte[] data)
         //{
@@ -1090,53 +1225,4 @@ namespace OpenSim.Region.ClientStack.Linden
             fs.Close();
         }
     }
-
-    public class BakedTextureUploader
-    {
-        public event UploadedBakedTexture OnUpLoad;
-        private UploadedBakedTexture handlerUpLoad = null;
-
-        private string uploaderPath = String.Empty;
-        private UUID newAssetID;
-        private IHttpServer httpListener;
-
-        public BakedTextureUploader(string path, IHttpServer httpServer)
-        {
-            newAssetID = UUID.Random();
-            uploaderPath = path;
-            httpListener = httpServer;
-            //                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
-        }
-
-        /// <summary>
-        /// Handle raw uploaded baked texture data.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public string uploaderCaps(byte[] data, string path, string param)
-        {
-            handlerUpLoad = OnUpLoad;
-            if (handlerUpLoad != null)
-            {
-                Util.FireAndForget(delegate(object o) { handlerUpLoad(newAssetID, data); });
-            }
-
-            string res = String.Empty;
-            LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
-            uploadComplete.new_asset = newAssetID.ToString();
-            uploadComplete.new_inventory_item = UUID.Zero;
-            uploadComplete.state = "complete";
-
-            res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
-
-            httpListener.RemoveStreamHandler("POST", uploaderPath);
-
-            //                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
-
-            return res;
-        }
-    }
-
 }

@@ -31,48 +31,57 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using log4net.Config;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
+using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using ArchiveConstants = OpenSim.Framework.Serialization.ArchiveConstants;
 using TarArchiveReader = OpenSim.Framework.Serialization.TarArchiveReader;
 using TarArchiveWriter = OpenSim.Framework.Serialization.TarArchiveWriter;
 using RegionSettings = OpenSim.Framework.RegionSettings;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
     [TestFixture]
-    public class ArchiverTests
+    public class ArchiverTests : OpenSimTestCase
     {
         private Guid m_lastRequestId;
         private string m_lastErrorMessage;
 
+        protected SceneHelpers m_sceneHelpers;
         protected TestScene m_scene;
         protected ArchiverModule m_archiverModule;
+        protected SerialiserModule m_serialiserModule;
 
         protected TaskInventoryItem m_soundItem;
         
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_archiverModule = new ArchiverModule();
-            SerialiserModule serialiserModule = new SerialiserModule();
+            m_serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
 
-            m_scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, m_archiverModule, serialiserModule, terrainModule);
+            m_sceneHelpers = new SceneHelpers();
+            m_scene = m_sceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, m_archiverModule, m_serialiserModule, terrainModule);
         }
-        
-        private void LoadCompleted(Guid requestId, string errorMessage)
+
+        private void LoadCompleted(Guid requestId, List<UUID> loadedScenes, string errorMessage)
         {
             lock (this)
             {
@@ -102,9 +111,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
             Vector3 groupPosition = new Vector3(10, 20, 30);
             Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
-            Vector3 offsetPosition = new Vector3(5, 10, 15);
+//            Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
+            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, Vector3.Zero) { Name = partName };
         }
 
         protected SceneObjectPart CreateSceneObjectPart2()
@@ -118,6 +127,53 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
         }
+       
+        private void CreateTestObjects(Scene scene, out SceneObjectGroup sog1, out SceneObjectGroup sog2, out UUID ncAssetUuid)
+        {
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            sog1 = new SceneObjectGroup(part1);
+            scene.AddNewSceneObject(sog1, false);
+
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
+            ncAssetUuid = UUID.Random();
+            UUID ncItemUuid = UUID.Random();
+            AssetBase ncAsset
+                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+            m_scene.AssetService.Store(ncAsset);
+
+            TaskInventoryItem ncItem
+                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
+            SceneObjectPart part2 = CreateSceneObjectPart2();
+            sog2 = new SceneObjectGroup(part2);
+            part2.Inventory.AddInventoryItem(ncItem, true);
+
+            scene.AddNewSceneObject(sog2, false);
+        }
+
+        private static void CreateSoundAsset(TarArchiveWriter tar, Assembly assembly, string soundDataResourceName, out byte[] soundData, out UUID soundUuid)
+        {
+            using (Stream resource = assembly.GetManifestResourceStream(soundDataResourceName))
+            {
+                using (BinaryReader br = new BinaryReader(resource))
+                {
+                    // FIXME: Use the inspector instead
+                    soundData = br.ReadBytes(99999999);
+                    soundUuid = UUID.Parse("00000000-0000-0000-0000-000000000001");
+                    string soundAssetFileName
+                       = ArchiveConstants.ASSETS_PATH + soundUuid
+                            + ArchiveConstants.ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV];
+                    tar.WriteFile(soundAssetFileName, soundData);
+
+                    /*
+                    AssetBase soundAsset = AssetHelpers.CreateAsset(soundUuid, soundData);
+                    scene.AssetService.Store(soundAsset);
+                    asset1FileName = ArchiveConstants.ASSETS_PATH + soundUuid + ".wav";
+                    */
+                }
+            }
+        }
 
         /// <summary>
         /// Test saving an OpenSim Region Archive.
@@ -128,26 +184,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            SceneObjectPart part1 = CreateSceneObjectPart1();
-            SceneObjectGroup sog1 = new SceneObjectGroup(part1);
-            m_scene.AddNewSceneObject(sog1, false);
-
-            SceneObjectPart part2 = CreateSceneObjectPart2();
-            
-            AssetNotecard nc = new AssetNotecard();
-            nc.BodyText = "Hello World!";
-            nc.Encode();
-            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
-            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
-            AssetBase ncAsset 
-                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
-            m_scene.AssetService.Store(ncAsset);
-            SceneObjectGroup sog2 = new SceneObjectGroup(part2);
-            TaskInventoryItem ncItem 
-                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
-            part2.Inventory.AddInventoryItem(ncItem, true);
-            
-            m_scene.AddNewSceneObject(sog2, false);
+            SceneObjectGroup sog1;
+            SceneObjectGroup sog2;
+            UUID ncAssetUuid;
+            CreateTestObjects(m_scene, out sog1, out sog2, out ncAssetUuid);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             m_scene.EventManager.OnOarFileSaved += SaveCompleted;
@@ -186,7 +226,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
             
             ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
-            arr.LoadControlFile(filePath, data);
+            arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
             
             Assert.That(arr.ControlFileLoaded, Is.True);        
             
@@ -248,9 +288,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Dictionary<string, Object> options = new Dictionary<string, Object>();
             options.Add("noassets", true);
             m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
-            //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
-            //while (assetServer.HasWaitingRequests())
-            //    assetServer.ProcessNextRequest();
 
             // Don't wait for completion - with --noassets save oar happens synchronously
 //                Monitor.Wait(this, 60000);
@@ -273,7 +310,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
             
             ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
-            arr.LoadControlFile(filePath, data);
+            arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
             
             Assert.That(arr.ControlFileLoaded, Is.True);        
             
@@ -312,11 +349,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             // Also check that direct entries which will also have a file entry containing that directory doesn't 
             // upset load
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
-            
+
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
-
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
             SceneObjectPart part1 = CreateSceneObjectPart1();
 
             part1.SitTargetOrientation = new Quaternion(0.2f, 0.3f, 0.4f, 0.5f);
@@ -339,31 +375,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(soundDataResourceName, Is.Not.Null);
 
             byte[] soundData;
-            Console.WriteLine("Loading " + soundDataResourceName);
-            using (Stream resource = assembly.GetManifestResourceStream(soundDataResourceName))
-            {
-                using (BinaryReader br = new BinaryReader(resource))
-                {
-                    // FIXME: Use the inspector insteadthere are so many forums and lists already, though admittedly none of them are suitable for cross virtual-enivornemnt discussion
-                    soundData = br.ReadBytes(99999999);
-                    UUID soundUuid = UUID.Parse("00000000-0000-0000-0000-000000000001");
-                    string soundAssetFileName 
-                       = ArchiveConstants.ASSETS_PATH + soundUuid 
-                            + ArchiveConstants.ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV];
-                    tar.WriteFile(soundAssetFileName, soundData);
-                    
-                    /*
-                    AssetBase soundAsset = AssetHelpers.CreateAsset(soundUuid, soundData);
-                    scene.AssetService.Store(soundAsset);
-                    asset1FileName = ArchiveConstants.ASSETS_PATH + soundUuid + ".wav";
-                    */
-                    
-                    TaskInventoryItem item1 
-                        = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid, Name = soundItemName };
-                    part1.Inventory.AddInventoryItem(item1, true);
-                }
-            }
-            
+            UUID soundUuid;
+            CreateSoundAsset(tar, assembly, soundDataResourceName, out soundData, out soundUuid);
+
+            TaskInventoryItem item1
+                = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid, Name = soundItemName };
+            part1.Inventory.AddInventoryItem(item1, true);
             m_scene.AddNewSceneObject(object1, false);
 
             string object1FileName = string.Format(
@@ -385,28 +402,206 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             
             Assert.That(m_lastErrorMessage, Is.Null);
 
-            SceneObjectPart object1PartLoaded = m_scene.GetSceneObjectPart(part1.Name);
+            TestLoadedRegion(part1, soundItemName, soundData);
+        }
 
-            Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
-            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1.Name), "object1 names not identical");
-            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal");
-            Assert.That(
-                object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
-            Assert.That(
-                object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
-            Assert.That(object1PartLoaded.SitTargetOrientation, Is.EqualTo(part1.SitTargetOrientation));
-            Assert.That(object1PartLoaded.SitTargetPosition, Is.EqualTo(part1.SitTargetPosition));
+        /// <summary>
+        /// Test loading an OpenSim Region Archive where the scene object parts are not ordered by link number (e.g.
+        /// 2 can come after 3).
+        /// </summary>
+        [Test]
+        public void TestLoadOarUnorderedParts()
+        {
+            TestHelpers.InMethod();
 
-            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
-            Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
-            AssetBase loadedSoundAsset = m_scene.AssetService.Get(loadedSoundItem.AssetID.ToString());
-            Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
-            Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
+            UUID ownerId = TestHelpers.ParseTail(0xaaaa);
 
-            Assert.Greater(m_scene.LandChannel.AllParcels().Count, 0, "incorrect number of parcels");
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
 
-            // Temporary
-            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ownerId, "obj1-", 0x11);
+            SceneObjectPart sop2
+                = SceneHelpers.CreateSceneObjectPart("obj1-Part2", TestHelpers.ParseTail(0x12), ownerId);
+            SceneObjectPart sop3
+                = SceneHelpers.CreateSceneObjectPart("obj1-Part3", TestHelpers.ParseTail(0x13), ownerId);
+
+            // Add the parts so they will be written out in reverse order to the oar
+            sog1.AddPart(sop3);
+            sop3.LinkNum = 3;
+            sog1.AddPart(sop2);
+            sop2.LinkNum = 2;
+
+            tar.WriteFile(
+                ArchiveConstants.CreateOarObjectPath(sog1.Name, sog1.UUID, sog1.AbsolutePosition),
+                SceneObjectSerializer.ToXml2Format(sog1));
+
+            tar.Close();
+
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+
+            lock (this)
+            {
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_archiverModule.DearchiveRegion(archiveReadStream);
+            }
+
+            Assert.That(m_lastErrorMessage, Is.Null);
+
+            SceneObjectPart part2 = m_scene.GetSceneObjectPart("obj1-Part2");
+            Assert.That(part2.LinkNum, Is.EqualTo(2));
+
+            SceneObjectPart part3 = m_scene.GetSceneObjectPart("obj1-Part3");
+            Assert.That(part3.LinkNum, Is.EqualTo(3));
+        }
+
+        /// <summary>
+        /// Test loading an OpenSim Region Archive saved with the --publish option.
+        /// </summary>
+        [Test]
+        public void TestLoadPublishedOar()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            SceneObjectGroup sog1 = new SceneObjectGroup(part1);
+            m_scene.AddNewSceneObject(sog1, false);
+
+            SceneObjectPart part2 = CreateSceneObjectPart2();
+            
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
+            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
+            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+            AssetBase ncAsset 
+                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+            m_scene.AssetService.Store(ncAsset);
+            SceneObjectGroup sog2 = new SceneObjectGroup(part2);
+            TaskInventoryItem ncItem 
+                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
+            part2.Inventory.AddInventoryItem(ncItem, true);
+            
+            m_scene.AddNewSceneObject(sog2, false);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_scene.EventManager.OnOarFileSaved += SaveCompleted;
+
+            Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
+            
+            lock (this)
+            {
+                m_archiverModule.ArchiveRegion(
+                    archiveWriteStream, requestId, new Dictionary<string, Object>() { { "wipe-owners", Boolean.TrueString } });
+                
+                Monitor.Wait(this, 60000);
+            }
+            
+            Assert.That(m_lastRequestId, Is.EqualTo(requestId));
+
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+
+            {
+                UUID estateOwner = TestHelpers.ParseTail(0x4747);
+                UUID objectOwner = TestHelpers.ParseTail(0x15);
+
+                // Reload to new scene
+                ArchiverModule archiverModule = new ArchiverModule();
+                SerialiserModule serialiserModule = new SerialiserModule();
+                TerrainModule terrainModule = new TerrainModule();
+
+                SceneHelpers m_sceneHelpers2 = new SceneHelpers();
+                TestScene scene2 = m_sceneHelpers2.SetupScene();
+                SceneHelpers.SetupSceneModules(scene2, archiverModule, serialiserModule, terrainModule);
+
+                // Make sure there's a valid owner for the owner we saved (this should have been wiped if the code is
+                // behaving correctly
+                UserAccountHelpers.CreateUserWithInventory(scene2, objectOwner);
+
+                scene2.RegionInfo.EstateSettings.EstateOwner = estateOwner;
+
+                lock (this)
+                {
+                    scene2.EventManager.OnOarFileLoaded += LoadCompleted;
+                    archiverModule.DearchiveRegion(archiveReadStream);
+                }
+
+                Assert.That(m_lastErrorMessage, Is.Null);
+
+                SceneObjectGroup loadedSog = scene2.GetSceneObjectGroup(part1.Name);
+                Assert.That(loadedSog.OwnerID, Is.EqualTo(estateOwner));
+                Assert.That(loadedSog.LastOwnerID, Is.EqualTo(estateOwner));
+            }
+        }
+
+        /// <summary>
+        /// Test OAR loading where the land parcel is group deeded.
+        /// </summary>
+        /// <remarks>
+        /// In this situation, the owner ID is set to the group ID.
+        /// </remarks>
+        [Test]
+        public void TestLoadOarDeededLand()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID landID = TestHelpers.ParseTail(0x10);
+
+            MockGroupsServicesConnector groupsService = new MockGroupsServicesConnector();
+
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Groups");            
+            config.Set("Enabled", true);
+            config.Set("Module", "GroupsModule");            
+            config.Set("DebugEnabled", true);
+            SceneHelpers.SetupSceneModules(
+                m_scene, configSource, new object[] { new GroupsModule(), groupsService, new LandManagementModule() });
+
+            // Create group in scene for loading
+            // FIXME: For now we'll put up with the issue that we'll get a group ID that varies across tests.
+            UUID groupID 
+                = groupsService.CreateGroup(UUID.Zero, "group1", "", true, UUID.Zero, 3, true, true, true, UUID.Zero);
+
+            // Construct OAR
+            MemoryStream oarStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(oarStream);
+
+            tar.WriteDir(ArchiveConstants.LANDDATA_PATH);
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+
+            LandObject lo = new LandObject(groupID, true, null);
+            lo.SetLandBitmap(lo.BasicFullRegionLandBitmap());
+            LandData ld = lo.LandData;
+            ld.GlobalID = landID;
+
+            string ldPath = ArchiveConstants.CreateOarLandDataPath(ld);
+            tar.WriteFile(ldPath, LandDataSerializer.Serialize(ld, null));
+            tar.Close();
+
+            oarStream = new MemoryStream(oarStream.ToArray());
+
+            // Load OAR
+            lock (this)
+            {
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_archiverModule.DearchiveRegion(oarStream);
+            }
+
+            ILandObject rLo = m_scene.LandChannel.GetLandObject(16, 16);
+            LandData rLd = rLo.LandData;
+
+            Assert.That(rLd.GlobalID, Is.EqualTo(landID));
+            Assert.That(rLd.OwnerID, Is.EqualTo(groupID));
+            Assert.That(rLd.GroupID, Is.EqualTo(groupID));
+            Assert.That(rLd.IsGroupOwned, Is.EqualTo(true));
         }
 
         /// <summary>
@@ -424,7 +619,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
             RegionSettings rs = new RegionSettings();
             rs.AgentLimit = 17;
@@ -457,6 +652,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.TerrainTexture4 = UUID.Parse("00000000-0000-0000-0000-000000000080");
             rs.UseEstateSun = true;
             rs.WaterHeight = 23;
+            rs.TelehubObject = UUID.Parse("00000000-0000-0000-0000-111111111111");
+            rs.AddSpawnPoint(SpawnPoint.Parse("1,-2,0.33"));
 
             tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs));
             
@@ -503,6 +700,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedRs.TerrainTexture4, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000080")));
             Assert.That(loadedRs.UseEstateSun, Is.True);
             Assert.That(loadedRs.WaterHeight, Is.EqualTo(23));
+            Assert.AreEqual(UUID.Zero, loadedRs.TelehubObject); // because no object was found with the original UUID
+            Assert.AreEqual(0, loadedRs.SpawnPoints().Count);
         }
         
         /// <summary>
@@ -530,7 +729,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 SerialiserModule serialiserModule = new SerialiserModule();
                 TerrainModule terrainModule = new TerrainModule();
 
-                Scene scene = SceneHelpers.SetupScene();
+                Scene scene = m_sceneHelpers.SetupScene();
                 SceneHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
 
                 m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
@@ -565,6 +764,278 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 Assert.That(object2PartMerged.Name, Is.EqualTo(part2.Name), "object2 names not identical after merge");
                 Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2.GroupPosition), "object2 group position not equal after merge");
             }
+        }
+
+        /// <summary>
+        /// Test saving a multi-region OAR.
+        /// </summary>
+        [Test]
+        public void TestSaveMultiRegionOar()
+        {
+            TestHelpers.InMethod();
+
+            // Create test regions
+
+            int WIDTH = 2;
+            int HEIGHT = 2;
+
+            List<Scene> scenes = new List<Scene>();
+
+            // Maps (Directory in OAR file -> scene)
+            Dictionary<string, Scene> regionPaths = new Dictionary<string, Scene>();
+
+            // Maps (Scene -> expected object paths)
+            Dictionary<UUID, List<string>> expectedPaths = new Dictionary<UUID, List<string>>();
+
+            // List of expected assets
+            List<UUID> expectedAssets = new List<UUID>();
+
+            for (uint y = 0; y < HEIGHT; y++)
+            {
+                for (uint x = 0; x < WIDTH; x++)
+                {
+                    Scene scene;
+                    if (x == 0 && y == 0)
+                    {
+                        scene = m_scene;   // this scene was already created in SetUp()
+                    }
+                    else
+                    {
+                        scene = m_sceneHelpers.SetupScene(string.Format("Unit test region {0}", (y * WIDTH) + x + 1), UUID.Random(), 1000 + x, 1000 + y);
+                        SceneHelpers.SetupSceneModules(scene, new ArchiverModule(), m_serialiserModule, new TerrainModule());
+                    }
+                    scenes.Add(scene);
+
+                    string dir = String.Format("{0}_{1}_{2}", x + 1, y + 1, scene.RegionInfo.RegionName.Replace(" ", "_"));
+                    regionPaths[dir] = scene;
+
+                    SceneObjectGroup sog1;
+                    SceneObjectGroup sog2;
+                    UUID ncAssetUuid;
+                    
+                    CreateTestObjects(scene, out sog1, out sog2, out ncAssetUuid);
+
+                    expectedPaths[scene.RegionInfo.RegionID] = new List<string>();
+                    expectedPaths[scene.RegionInfo.RegionID].Add(ArchiveHelpers.CreateObjectPath(sog1));
+                    expectedPaths[scene.RegionInfo.RegionID].Add(ArchiveHelpers.CreateObjectPath(sog2));
+
+                    expectedAssets.Add(ncAssetUuid);
+                }
+            }
+
+            // Save OAR
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_scene.EventManager.OnOarFileSaved += SaveCompleted;
+
+            Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
+
+            Dictionary<string, Object> options = new Dictionary<string, Object>();
+            options.Add("all", true);
+
+            lock (this)
+            {
+                m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
+                Monitor.Wait(this, 60000);
+            }
+
+
+            // Check that the OAR contains the expected data
+            Assert.That(m_lastRequestId, Is.EqualTo(requestId));
+
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+
+            Dictionary<UUID, List<string>> foundPaths = new Dictionary<UUID, List<string>>();
+            List<UUID> foundAssets = new List<UUID>();
+
+            foreach (Scene scene in scenes)
+            {
+                foundPaths[scene.RegionInfo.RegionID] = new List<string>();
+            }
+
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+
+            byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
+            Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
+
+            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
+            arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
+
+            Assert.That(arr.ControlFileLoaded, Is.True);
+
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+                if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                {
+                    // Assets are shared, so this file doesn't belong to any specific region.
+                    string fileName = filePath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
+                    if (fileName.EndsWith("_notecard.txt"))
+                        foundAssets.Add(UUID.Parse(fileName.Substring(0, fileName.Length - "_notecard.txt".Length)));
+                }
+                else
+                {
+                    // This file belongs to one of the regions. Find out which one.
+                    Assert.IsTrue(filePath.StartsWith(ArchiveConstants.REGIONS_PATH));
+                    string[] parts = filePath.Split(new Char[] { '/' }, 3);
+                    Assert.AreEqual(3, parts.Length);
+                    string regionDirectory = parts[1];
+                    string relativePath = parts[2];
+                    Scene scene = regionPaths[regionDirectory];
+
+                    if (relativePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                    {
+                        foundPaths[scene.RegionInfo.RegionID].Add(relativePath);
+                    }
+                }
+            }
+
+            Assert.AreEqual(scenes.Count, foundPaths.Count);
+            foreach (Scene scene in scenes)
+            {
+                Assert.That(foundPaths[scene.RegionInfo.RegionID], Is.EquivalentTo(expectedPaths[scene.RegionInfo.RegionID]));
+            }
+
+            Assert.That(foundAssets, Is.EquivalentTo(expectedAssets));
+        }
+
+        /// <summary>
+        /// Test loading a multi-region OAR.
+        /// </summary>
+        [Test]
+        public void TestLoadMultiRegionOar()
+        {
+            TestHelpers.InMethod();
+
+            // Create an ArchiveScenesGroup with the regions in the OAR. This is needed to generate the control file.
+
+            int WIDTH = 2;
+            int HEIGHT = 2;
+
+            for (uint y = 0; y < HEIGHT; y++)
+            {
+                for (uint x = 0; x < WIDTH; x++)
+                {
+                    Scene scene;
+                    if (x == 0 && y == 0)
+                    {
+                        scene = m_scene;   // this scene was already created in SetUp()
+                    }
+                    else
+                    {
+                        scene = m_sceneHelpers.SetupScene(string.Format("Unit test region {0}", (y * WIDTH) + x + 1), UUID.Random(), 1000 + x, 1000 + y);
+                        SceneHelpers.SetupSceneModules(scene, new ArchiverModule(), m_serialiserModule, new TerrainModule());
+                    }
+                }
+            }
+
+            ArchiveScenesGroup scenesGroup = new ArchiveScenesGroup();
+            m_sceneHelpers.SceneManager.ForEachScene(delegate(Scene scene)
+            {
+                scenesGroup.AddScene(scene);
+            });
+            scenesGroup.CalcSceneLocations();
+
+            // Generate the OAR file
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+
+            ArchiveWriteRequest writeRequest = new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty);
+            writeRequest.MultiRegionFormat = true;
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH, writeRequest.CreateControlFile(scenesGroup));
+
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            part1.SitTargetOrientation = new Quaternion(0.2f, 0.3f, 0.4f, 0.5f);
+            part1.SitTargetPosition = new Vector3(1, 2, 3);
+
+            SceneObjectGroup object1 = new SceneObjectGroup(part1);
+
+            // Let's put some inventory items into our object
+            string soundItemName = "sound-item1";
+            UUID soundItemUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
+            Type type = GetType();
+            Assembly assembly = type.Assembly;
+            string soundDataResourceName = null;
+            string[] names = assembly.GetManifestResourceNames();
+            foreach (string name in names)
+            {
+                if (name.EndsWith(".Resources.test-sound.wav"))
+                    soundDataResourceName = name;
+            }
+            Assert.That(soundDataResourceName, Is.Not.Null);
+
+            byte[] soundData;
+            UUID soundUuid;
+            CreateSoundAsset(tar, assembly, soundDataResourceName, out soundData, out soundUuid);
+
+            TaskInventoryItem item1
+                = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid, Name = soundItemName };
+            part1.Inventory.AddInventoryItem(item1, true);
+            m_scene.AddNewSceneObject(object1, false);
+
+            string object1FileName = string.Format(
+                "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
+                part1.Name,
+                Math.Round(part1.GroupPosition.X), Math.Round(part1.GroupPosition.Y), Math.Round(part1.GroupPosition.Z),
+                part1.UUID);
+            string path = "regions/1_1_Unit_test_region/" + ArchiveConstants.OBJECTS_PATH + object1FileName;
+            tar.WriteFile(path, SceneObjectSerializer.ToXml2Format(object1));
+
+            tar.Close();
+
+            
+            // Delete the current objects, to test that they're loaded from the OAR and didn't
+            // just remain in the scene.
+            m_sceneHelpers.SceneManager.ForEachScene(delegate(Scene scene)
+            {
+                scene.DeleteAllSceneObjects();
+            });
+
+            // Create a "hole", to test that that the corresponding region isn't loaded from the OAR
+            m_sceneHelpers.SceneManager.CloseScene(SceneManager.Instance.Scenes[1]);
+
+
+            // Check thay the OAR file contains the expected data
+
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+
+            lock (this)
+            {
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_archiverModule.DearchiveRegion(archiveReadStream);
+            }
+
+            Assert.That(m_lastErrorMessage, Is.Null);
+
+            Assert.AreEqual(3, m_sceneHelpers.SceneManager.Scenes.Count);
+
+            TestLoadedRegion(part1, soundItemName, soundData);
+        }
+
+        private void TestLoadedRegion(SceneObjectPart part1, string soundItemName, byte[] soundData)
+        {
+            SceneObjectPart object1PartLoaded = m_scene.GetSceneObjectPart(part1.Name);
+
+            Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
+            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1.Name), "object1 names not identical");
+            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal");
+            Assert.That(
+                object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
+            Assert.That(
+                object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
+            Assert.That(object1PartLoaded.SitTargetOrientation, Is.EqualTo(part1.SitTargetOrientation));
+            Assert.That(object1PartLoaded.SitTargetPosition, Is.EqualTo(part1.SitTargetPosition));
+
+            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
+            Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
+            AssetBase loadedSoundAsset = m_scene.AssetService.Get(loadedSoundItem.AssetID.ToString());
+            Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
+            Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
+
+            Assert.Greater(m_scene.LandChannel.AllParcels().Count, 0, "incorrect number of parcels");
         }
     }
 }

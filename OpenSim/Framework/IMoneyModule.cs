@@ -36,9 +36,10 @@ namespace OpenSim.Framework
                 int amount);
 
         int GetBalance(UUID agentID);
-        bool UploadCovered(IClientAPI client, int amount);
-        bool AmountCovered(IClientAPI client, int amount);
-        void ApplyCharge(UUID agentID, int amount, string text);
+        bool UploadCovered(UUID agentID, int amount);
+        bool AmountCovered(UUID agentID, int amount);
+        void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type);
+        void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type, string extraData);
         void ApplyUploadCharge(UUID agentID, int amount, string text);
 
         int UploadCharge { get; }

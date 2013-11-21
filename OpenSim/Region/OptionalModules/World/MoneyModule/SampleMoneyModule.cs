@@ -49,13 +49,13 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
     /// (such as land transfers).  There is no money code here!  Use FORGE as an example for money code.
     /// Demo Economy/Money Module.  This is a purposely crippled module!
     ///  // To land transfer you need to add:
-    /// -helperuri <ADDRESS TO THIS SERVER>
+    /// -helperuri http://serveraddress:port/
     /// to the command line parameters you use to start up your client
     /// This commonly looks like -helperuri http://127.0.0.1:9000/
     ///
     /// </summary>
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SampleMoneyModule")]
     public class SampleMoneyModule : IMoneyModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -116,10 +116,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         }
 
         /// <summary>
-        /// Startup
+        /// Called on startup so the module can be configured.
         /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="config"></param>
+        /// <param name="config">Configuration source.</param>
         public void Initialise(IConfigSource config)
         {
             m_gConfig = config;
@@ -192,9 +191,14 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
-        public void ApplyCharge(UUID agentID, int amount, string text)
+        public void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type, string extraData)
         {
         }
+
+        public void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type)
+        {
+        }
+
         public void ApplyUploadCharge(UUID agentID, int amount, string text)
         {
         }
@@ -323,7 +327,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     client.SendAlertMessage(e.Message + " ");
                 }
 
-                client.SendMoneyBalance(TransactionID, true, new byte[0], returnfunds);
+                client.SendMoneyBalance(TransactionID, true, new byte[0], returnfunds, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
             }
             else
             {
@@ -386,12 +390,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             {
                 if (sender != null)
                 {
-                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID));
+                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID), 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
                 }
 
                 if (receiver != null)
                 {
-                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID));
+                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID), 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
                 }
             }
         }
@@ -674,9 +678,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         }
 
         /// <summary>
-        /// When the client closes the connection we remove their accounting info from memory to free up resources.
+        /// When the client closes the connection we remove their accounting
+        /// info from memory to free up resources.
         /// </summary>
-        /// <param name="AgentID"></param>
+        /// <param name="AgentID">UUID of agent</param>
+        /// <param name="scene">Scene the agent was connected to.</param>
+        /// <see cref="OpenSim.Region.Framework.Scenes.EventManager.ClientClosed"/>
         public void ClientClosed(UUID AgentID, Scene scene)
         {
             
@@ -686,19 +693,14 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// Event called Economy Data Request handler.
         /// </summary>
         /// <param name="agentId"></param>
-        public void EconomyDataRequestHandler(UUID agentId)
+        public void EconomyDataRequestHandler(IClientAPI user)
         {
-            IClientAPI user = LocateClientObject(agentId);
+            Scene s = (Scene)user.Scene;
 
-            if (user != null)
-            {
-                Scene s = LocateSceneClientIn(user.AgentId);
-
-                user.SendEconomyData(EnergyEfficiency, s.RegionInfo.ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
-                                     PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
-                                     PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
-                                     TeleportMinPrice, TeleportPriceExponent);
-            }
+            user.SendEconomyData(EnergyEfficiency, s.RegionInfo.ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
+                                 PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
+                                 PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
+                                 TeleportMinPrice, TeleportPriceExponent);
         }
 
         private void ValidateLandBuy(Object osender, EventManager.LandBuyArgs e)
@@ -775,11 +777,11 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
-        public bool UploadCovered(IClientAPI client, int amount)
+        public bool UploadCovered(UUID agentID, int amount)
         {
             return true;
         }
-        public bool AmountCovered(IClientAPI client, int amount)
+        public bool AmountCovered(UUID agentID, int amount)
         {
             return true;
         }

@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -38,7 +39,8 @@ namespace OpenSim.Region.Framework.Scenes
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private readonly DoubleDictionary<UUID, uint, EntityBase> m_entities = new DoubleDictionary<UUID, uint, EntityBase>();
+        private readonly DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase> m_entities 
+            = new DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase>();
 
         public int Count
         {

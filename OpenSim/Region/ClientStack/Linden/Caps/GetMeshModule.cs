@@ -47,7 +47,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetMeshModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log =
@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_Enabled = true;
         private string m_URL;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public Type ReplaceableInterface
         {
@@ -120,11 +120,13 @@ namespace OpenSim.Region.ClientStack.Linden
             {
 //                m_log.DebugFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
-                IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(),
-                                                           delegate(Hashtable m_dhttpMethod)
-                                                           {
-                                                               return gmeshHandler.ProcessGetMesh(m_dhttpMethod, UUID.Zero, null);
-                                                           });
+                IRequestHandler reqHandler
+                    = new RestHTTPHandler(
+                        "GET",
+                        "/CAPS/" + UUID.Random(),
+                        httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
+                        "GetMesh",
+                        agentID.ToString());
 
                 caps.RegisterHandler("GetMesh", reqHandler);
             }

@@ -52,9 +52,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT = 1;
         public const int AGENT_BY_LEGACY_NAME = 1;
         public const int AGENT_BY_USERNAME = 0x10;
+        public const int NPC = 0x20;
         public const int ACTIVE = 2;
         public const int PASSIVE = 4;
         public const int SCRIPTED = 8;
+        public const int OS_NPC = 0x01000000;
 
         public const int CONTROL_FWD = 1;
         public const int CONTROL_BACK = 2;
@@ -104,6 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PSYS_PART_TARGET_POS_MASK = 64;
         public const int PSYS_PART_TARGET_LINEAR_MASK = 128;
         public const int PSYS_PART_EMISSIVE_MASK = 256;
+        public const int PSYS_PART_RIBBON_MASK = 1024;
         public const int PSYS_PART_FLAGS = 0;
         public const int PSYS_PART_START_COLOR = 1;
         public const int PSYS_PART_START_ALPHA = 2;
@@ -127,6 +130,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PSYS_SRC_OMEGA = 21;
         public const int PSYS_SRC_ANGLE_BEGIN = 22;
         public const int PSYS_SRC_ANGLE_END = 23;
+        public const int PSYS_PART_BLEND_FUNC_SOURCE = 24;
+        public const int PSYS_PART_BLEND_FUNC_DEST = 25;
+        public const int PSYS_PART_START_GLOW = 26;
+        public const int PSYS_PART_END_GLOW = 27;
+        public const int PSYS_PART_BF_ONE = 0;
+        public const int PSYS_PART_BF_ZERO = 1;
+        public const int PSYS_PART_BF_DEST_COLOR = 2;
+        public const int PSYS_PART_BF_SOURCE_COLOR = 3;
+        public const int PSYS_PART_BF_ONE_MINUS_DEST_COLOR = 4;
+        public const int PSYS_PART_BF_ONE_MINUS_SOURCE_COLOR = 5;
+        public const int PSYS_PART_BF_SOURCE_ALPHA = 7;
+        public const int PSYS_PART_BF_ONE_MINUS_SOURCE_ALPHA = 9;
         public const int PSYS_SRC_PATTERN_DROP = 1;
         public const int PSYS_SRC_PATTERN_EXPLODE = 2;
         public const int PSYS_SRC_PATTERN_ANGLE = 4;
@@ -224,6 +239,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_BELLY = 28;
         public const int ATTACH_RPEC = 29;
         public const int ATTACH_LPEC = 30;
+        public const int ATTACH_LEFT_PEC = 29; // Same value as ATTACH_RPEC, see https://jira.secondlife.com/browse/SVC-580
+        public const int ATTACH_RIGHT_PEC = 30; // Same value as ATTACH_LPEC, see https://jira.secondlife.com/browse/SVC-580
         public const int ATTACH_HUD_CENTER_2 = 31;
         public const int ATTACH_HUD_TOP_RIGHT = 32;
         public const int ATTACH_HUD_TOP_CENTER = 33;
@@ -232,6 +249,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_HUD_BOTTOM_LEFT = 36;
         public const int ATTACH_HUD_BOTTOM = 37;
         public const int ATTACH_HUD_BOTTOM_RIGHT = 38;
+
+        #region osMessageAttachments constants
+
+        /// <summary>
+        /// Instructs osMessageAttachements to send the message to attachments
+        ///     on every point.
+        /// </summary>
+        /// <remarks>
+        /// One might expect this to be named OS_ATTACH_ALL, but then one might
+        ///     also expect functions designed to attach or detach or get
+        ///     attachments to work with it too. Attaching a no-copy item to
+        ///     many attachments could be dangerous.
+        /// when combined with OS_ATTACH_MSG_INVERT_POINTS, will prevent the
+        ///     message from being sent.
+        /// if combined with OS_ATTACH_MSG_OBJECT_CREATOR or
+        ///     OS_ATTACH_MSG_SCRIPT_CREATOR, could result in no message being
+        ///     sent- this is expected behaviour.
+        /// </remarks>
+        public const int OS_ATTACH_MSG_ALL = -65535;
+
+        /// <summary>
+        /// Instructs osMessageAttachements to invert how the attachment points
+        ///     list should be treated (e.g. go from inclusive operation to
+        ///     exclusive operation).
+        /// </summary>
+        /// <remarks>
+        /// This might be used if you want to deliver a message to one set of
+        ///     attachments and a different message to everything else. With
+        ///     this flag, you only need to build one explicit list for both calls.
+        /// </remarks>
+        public const int OS_ATTACH_MSG_INVERT_POINTS = 1;
+
+        /// <summary>
+        /// Instructs osMessageAttachments to only send the message to
+        ///     attachments with a CreatorID that matches the host object CreatorID
+        /// </summary>
+        /// <remarks>
+        /// This would be used if distributed in an object vendor/updater server.
+        /// </remarks>
+        public const int OS_ATTACH_MSG_OBJECT_CREATOR = 2;
+
+        /// <summary>
+        /// Instructs osMessageAttachments to only send the message to
+        ///     attachments with a CreatorID that matches the sending script CreatorID
+        /// </summary>
+        /// <remarks>
+        /// This might be used if the script is distributed independently of a
+        ///     containing object.
+        /// </remarks>
+        public const int OS_ATTACH_MSG_SCRIPT_CREATOR = 4;
+
+        #endregion
 
         public const int LAND_LEVEL = 0;
         public const int LAND_RAISE = 1;
@@ -299,6 +368,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int HTTP_MIMETYPE = 1;
         public const int HTTP_BODY_MAXLENGTH = 2;
         public const int HTTP_VERIFY_CERT = 3;
+        public const int HTTP_VERBOSE_THROTTLE = 4;
+        public const int HTTP_CUSTOM_HEADER = 5;
+        public const int HTTP_PRAGMA_NO_CACHE = 6;
+
+        // llSetContentType
+        public const int CONTENT_TYPE_TEXT = 0; //text/plain
+        public const int CONTENT_TYPE_HTML = 1; //text/html
+        public const int CONTENT_TYPE_XML = 2; //application/xml
+        public const int CONTENT_TYPE_XHTML = 3; //application/xhtml+xml
+        public const int CONTENT_TYPE_ATOM = 4; //application/atom+xml
+        public const int CONTENT_TYPE_JSON = 5; //application/json
+        public const int CONTENT_TYPE_LLSD = 6; //application/llsd+xml
+        public const int CONTENT_TYPE_FORM = 7; //application/x-www-form-urlencoded
+        public const int CONTENT_TYPE_RSS = 8; //application/rss+xml
 
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;
@@ -322,7 +405,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_DESC = 28;
         public const int PRIM_ROT_LOCAL = 29;
         public const int PRIM_OMEGA = 32;
+        public const int PRIM_POS_LOCAL = 33;
         public const int PRIM_LINK_TARGET = 34;
+        public const int PRIM_SLICE = 35;
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
 
@@ -376,6 +461,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCULPT_TYPE_TORUS = 2;
         public const int PRIM_SCULPT_TYPE_PLANE = 3;
         public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
+        public const int PRIM_SCULPT_FLAG_INVERT = 64;
+        public const int PRIM_SCULPT_FLAG_MIRROR = 128;
+
+        public const int PROFILE_NONE = 0;
+        public const int PROFILE_SCRIPT_MEMORY = 1;
 
         public const int MASK_BASE = 0;
         public const int MASK_OWNER = 1;
@@ -430,6 +520,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int REGION_FLAG_ALLOW_DIRECT_TELEPORT = 0x100000;          // region allows direct teleports
         public const int REGION_FLAG_RESTRICT_PUSHOBJECT = 0x400000;            // region restricts llPushObject
 
+        //llManageEstateAccess
+        public const int ESTATE_ACCESS_ALLOWED_AGENT_ADD = 0;
+        public const int ESTATE_ACCESS_ALLOWED_AGENT_REMOVE = 1;
+        public const int ESTATE_ACCESS_ALLOWED_GROUP_ADD = 2;
+        public const int ESTATE_ACCESS_ALLOWED_GROUP_REMOVE = 3;
+        public const int ESTATE_ACCESS_BANNED_AGENT_ADD = 4;
+        public const int ESTATE_ACCESS_BANNED_AGENT_REMOVE = 5;
+
         public static readonly LSLInteger PAY_HIDE = new LSLInteger(-1);
         public static readonly LSLInteger PAY_DEFAULT = new LSLInteger(-2);
 
@@ -467,6 +565,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int DEBUG_CHANNEL = 0x7FFFFFFF;
         public const int PUBLIC_CHANNEL = 0x00000000;
 
+        // Constants for llGetObjectDetails
+        public const int OBJECT_UNKNOWN_DETAIL = -1;
         public const int OBJECT_NAME = 1;
         public const int OBJECT_DESC = 2;
         public const int OBJECT_POS = 3;
@@ -475,6 +575,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_OWNER = 6;
         public const int OBJECT_GROUP = 7;
         public const int OBJECT_CREATOR = 8;
+        public const int OBJECT_RUNNING_SCRIPT_COUNT = 9;
+        public const int OBJECT_TOTAL_SCRIPT_COUNT = 10;
+        public const int OBJECT_SCRIPT_MEMORY = 11;
+        public const int OBJECT_SCRIPT_TIME = 12;
+        public const int OBJECT_PRIM_EQUIVALENCE = 13;
+        public const int OBJECT_SERVER_COST = 14;
+        public const int OBJECT_STREAMING_COST = 15;
+        public const int OBJECT_PHYSICS_COST = 16;
+        public const int OBJECT_CHARACTER_TIME = 17;
+        public const int OBJECT_ROOT = 18;
+        public const int OBJECT_ATTACHED_POINT = 19;
+        public const int OBJECT_PATHFINDING_TYPE = 20;
+        public const int OBJECT_PHYSICS = 21;
+        public const int OBJECT_PHANTOM = 22;
+        public const int OBJECT_TEMP_ON_REZ = 23;
+
+        // Pathfinding types
+        public const int OPT_OTHER = -1;
+        public const int OPT_LEGACY_LINKSET = 0;
+        public const int OPT_AVATAR = 1;
+        public const int OPT_CHARACTER = 2;
+        public const int OPT_WALKABLE = 3;
+        public const int OPT_STATIC_OBSTACLE = 4;
+        public const int OPT_MATERIAL_VOLUME = 5;
+        public const int OPT_EXCLUSION_VOLUME = 6;
+
+        // for llGetAgentList
+        public const int AGENT_LIST_PARCEL = 1;
+        public const int AGENT_LIST_PARCEL_OWNER = 2;
+        public const int AGENT_LIST_REGION = 4;
 
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
@@ -526,12 +656,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CLICK_ACTION_OPEN = 4;
         public const int CLICK_ACTION_PLAY = 5;
         public const int CLICK_ACTION_OPEN_MEDIA = 6;
+        public const int CLICK_ACTION_ZOOM = 7;
 
         // constants for the llDetectedTouch* functions
         public const int TOUCH_INVALID_FACE = -1;
         public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
-        
+
         // constants for llGetPrimMediaParams/llSetPrimMediaParams
         public const int PRIM_MEDIA_ALT_IMAGE_ENABLE = 0;
         public const int PRIM_MEDIA_CONTROLS = 1;
@@ -548,15 +679,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_MEDIA_WHITELIST = 12;
         public const int PRIM_MEDIA_PERMS_INTERACT = 13;
         public const int PRIM_MEDIA_PERMS_CONTROL = 14;
-        
+
         public const int PRIM_MEDIA_CONTROLS_STANDARD = 0;
         public const int PRIM_MEDIA_CONTROLS_MINI = 1;
-        
+
         public const int PRIM_MEDIA_PERM_NONE = 0;
         public const int PRIM_MEDIA_PERM_OWNER = 1;
         public const int PRIM_MEDIA_PERM_GROUP = 2;
         public const int PRIM_MEDIA_PERM_ANYONE = 4;
-        
+
+        public const int PRIM_PHYSICS_SHAPE_TYPE = 30;
+        public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
+        public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
+        public const int PRIM_PHYSICS_SHAPE_NONE = 1;
+
+        public const int PRIM_PHYSICS_MATERIAL = 31;
+        public const int DENSITY = 1;
+        public const int FRICTION = 2;
+        public const int RESTITUTION = 4;
+        public const int GRAVITY_MULTIPLIER = 8;
+
         // extra constants for llSetPrimMediaParams
         public static readonly LSLInteger LSL_STATUS_OK = new LSLInteger(0);
         public static readonly LSLInteger LSL_STATUS_MALFORMED_PARAMS = new LSLInteger(1000);
@@ -573,7 +715,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string TEXTURE_PLYWOOD = "89556747-24cb-43ed-920b-47caed15465f";
         public const string TEXTURE_TRANSPARENT = "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903";
         public const string TEXTURE_MEDIA = "8b5fec65-8d8d-9dc5-cda8-8fdf2716e361";
-        
+
         // Constants for osGetRegionStats
         public const int STATS_TIME_DILATION = 0;
         public const int STATS_SIM_FPS = 1;
@@ -601,26 +743,56 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OS_NPC_FLY = 0;
         public const int OS_NPC_NO_FLY = 1;
         public const int OS_NPC_LAND_AT_TARGET = 2;
+        public const int OS_NPC_RUNNING = 4;
 
         public const int OS_NPC_SIT_NOW = 0;
+
+        public const int OS_NPC_CREATOR_OWNED = 0x1;
+        public const int OS_NPC_NOT_OWNED = 0x2;
+        public const int OS_NPC_SENSE_AS_AGENT = 0x4;
 
         public const string URL_REQUEST_GRANTED = "URL_REQUEST_GRANTED";
         public const string URL_REQUEST_DENIED = "URL_REQUEST_DENIED";
 
-        public static readonly LSLInteger RC_REJECT_TYPES = 2;
-        public static readonly LSLInteger RC_DATA_FLAGS = 4;
-        public static readonly LSLInteger RC_MAX_HITS = 8;
-        public static readonly LSLInteger RC_DETECT_PHANTOM = 16;
+        public static readonly LSLInteger RC_REJECT_TYPES = 0;
+        public static readonly LSLInteger RC_DETECT_PHANTOM = 1;
+        public static readonly LSLInteger RC_DATA_FLAGS = 2;
+        public static readonly LSLInteger RC_MAX_HITS = 3;
 
-        public static readonly LSLInteger RC_REJECT_AGENTS = 2;
-        public static readonly LSLInteger RC_REJECT_PHYSICAL = 4;
-        public static readonly LSLInteger RC_REJECT_NONPHYSICAL = 8;
-        public static readonly LSLInteger RC_REJECT_LAND = 16;
+        public static readonly LSLInteger RC_REJECT_AGENTS = 1;
+        public static readonly LSLInteger RC_REJECT_PHYSICAL = 2;
+        public static readonly LSLInteger RC_REJECT_NONPHYSICAL = 4;
+        public static readonly LSLInteger RC_REJECT_LAND = 8;
 
-        public static readonly LSLInteger RC_GET_NORMAL = 2;
-        public static readonly LSLInteger RC_GET_ROOT_KEY = 4;
-        public static readonly LSLInteger RC_GET_LINK_NUM = 8;
+        public static readonly LSLInteger RC_GET_NORMAL = 1;
+        public static readonly LSLInteger RC_GET_ROOT_KEY = 2;
+        public static readonly LSLInteger RC_GET_LINK_NUM = 4;
 
-        public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 1;
+        public static readonly LSLInteger RCERR_UNKNOWN = -1;
+        public static readonly LSLInteger RCERR_SIM_PERF_LOW = -2;
+        public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 3;
+
+        public const int KFM_MODE = 1;
+        public const int KFM_LOOP = 1;
+        public const int KFM_REVERSE = 3;
+        public const int KFM_FORWARD = 0;
+        public const int KFM_PING_PONG = 2;
+        public const int KFM_DATA = 2;
+        public const int KFM_TRANSLATION = 2;
+        public const int KFM_ROTATION = 1;
+        public const int KFM_COMMAND = 0;
+        public const int KFM_CMD_PLAY = 0;
+        public const int KFM_CMD_STOP = 1;
+        public const int KFM_CMD_PAUSE = 2;
+
+        /// <summary>
+        /// process name parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_NAME = 0x1;
+
+        /// <summary>
+        /// process message parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
     }
 }

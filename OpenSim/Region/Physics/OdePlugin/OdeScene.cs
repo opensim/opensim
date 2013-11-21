@@ -30,20 +30,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.IO;
-using System.Diagnostics;
 using log4net;
 using Nini.Config;
 using Ode.NET;
+using OpenMetaverse;
 #if USE_DRAWSTUFF
 using Drawstuff.NET;
 #endif 
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -54,15 +55,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         End = 2
     }
 
-    public struct sCollisionData
-    {
-        public uint ColliderLocalId;
-        public uint CollidedWithLocalId;
-        public int NumberOfCollisions;
-        public int CollisionType;
-        public int StatusIndicator;
-        public int lastframe;
-    }
+//    public struct sCollisionData
+//    {
+//        public uint ColliderLocalId;
+//        public uint CollidedWithLocalId;
+//        public int NumberOfCollisions;
+//        public int CollisionType;
+//        public int StatusIndicator;
+//        public int lastframe;
+//    }
 
     [Flags]
     public enum CollisionCategories : int
@@ -105,18 +106,175 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly ILog m_log;
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
+        /// <summary>
+        /// Provide a sync object so that only one thread calls d.Collide() at a time across all OdeScene instances.
+        /// </summary>
+        /// <remarks>
+        /// With ODE as of r1755 (though also tested on r1860), only one thread can call d.Collide() at a
+        /// time, even where physics objects are in entirely different ODE worlds.  This is because generating contacts
+        /// uses a static cache at the ODE level.
+        ///
+        /// Without locking, simulators running multiple regions will eventually crash with a native stack trace similar
+        /// to
+        ///
+        /// mono() [0x489171]
+        /// mono() [0x4d154f]
+        /// /lib/x86_64-linux-gnu/libpthread.so.0(+0xfc60) [0x7f6ded592c60]
+        /// .../opensim/bin/libode-x86_64.so(_ZN6Opcode11OBBCollider8_CollideEPKNS_14AABBNoLeafNodeE+0xd7a) [0x7f6dd822628a]
+        ///
+        /// ODE provides an experimental option to cache in thread local storage but compiling ODE with this option
+        /// causes OpenSimulator to immediately crash with a native stack trace similar to
+        ///
+        /// mono() [0x489171]
+        /// mono() [0x4d154f]
+        /// /lib/x86_64-linux-gnu/libpthread.so.0(+0xfc60) [0x7f03c9849c60]
+        /// .../opensim/bin/libode-x86_64.so(_Z12dCollideCCTLP6dxGeomS0_iP12dContactGeomi+0x92) [0x7f03b44bcf82]
+        /// </remarks>
+        internal static Object UniversalColliderSyncObject = new Object();
+
+        /// <summary>
+        /// Is stats collecting enabled for this ODE scene?
+        /// </summary>
+        public bool CollectStats { get; set; }
+
+        /// <summary>
+        /// Statistics for this scene.
+        /// </summary>
+        private Dictionary<string, float> m_stats = new Dictionary<string, float>();
+
+        /// <summary>
+        /// Stat name for total number of avatars in this ODE scene.
+        /// </summary>
+        public const string ODETotalAvatarsStatName = "ODETotalAvatars";
+
+        /// <summary>
+        /// Stat name for total number of prims in this ODE scene.
+        /// </summary>
+        public const string ODETotalPrimsStatName = "ODETotalPrims";
+
+        /// <summary>
+        /// Stat name for total number of prims with active physics in this ODE scene.
+        /// </summary>
+        public const string ODEActivePrimsStatName = "ODEActivePrims";
+
+        /// <summary>
+        /// Stat name for the total time spent in ODE frame processing.
+        /// </summary>
+        /// <remarks>
+        /// A sanity check for the main scene loop physics time.
+        /// </remarks>
+        public const string ODETotalFrameMsStatName = "ODETotalFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent processing avatar taints per frame
+        /// </summary>
+        public const string ODEAvatarTaintMsStatName = "ODEAvatarTaintFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent processing prim taints per frame
+        /// </summary>
+        public const string ODEPrimTaintMsStatName = "ODEPrimTaintFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent calculating avatar forces per frame.
+        /// </summary>
+        public const string ODEAvatarForcesFrameMsStatName = "ODEAvatarForcesFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent calculating prim forces per frame
+        /// </summary>
+        public const string ODEPrimForcesFrameMsStatName = "ODEPrimForcesFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent fulfilling raycasting requests per frame
+        /// </summary>
+        public const string ODERaycastingFrameMsStatName = "ODERaycastingFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent in native code that actually steps through the simulation.
+        /// </summary>
+        public const string ODENativeStepFrameMsStatName = "ODENativeStepFrameMS";
+
+        /// <summary>
+        /// Stat name for the number of milliseconds that ODE spends in native space collision code.
+        /// </summary>
+        public const string ODENativeSpaceCollisionFrameMsStatName = "ODENativeSpaceCollisionFrameMS";
+
+        /// <summary>
+        /// Stat name for milliseconds that ODE spends in native geom collision code.
+        /// </summary>
+        public const string ODENativeGeomCollisionFrameMsStatName = "ODENativeGeomCollisionFrameMS";
+
+        /// <summary>
+        /// Time spent in collision processing that is not spent in native space or geom collision code.
+        /// </summary>
+        public const string ODEOtherCollisionFrameMsStatName = "ODEOtherCollisionFrameMS";
+
+        /// <summary>
+        /// Stat name for time spent notifying listeners of collisions
+        /// </summary>
+        public const string ODECollisionNotificationFrameMsStatName = "ODECollisionNotificationFrameMS";
+
+        /// <summary>
+        /// Stat name for milliseconds spent updating avatar position and velocity
+        /// </summary>
+        public const string ODEAvatarUpdateFrameMsStatName = "ODEAvatarUpdateFrameMS";
+
+        /// <summary>
+        /// Stat name for the milliseconds spent updating prim position and velocity
+        /// </summary>
+        public const string ODEPrimUpdateFrameMsStatName = "ODEPrimUpdateFrameMS";
+
+        /// <summary>
+        /// Stat name for avatar collisions with another entity.
+        /// </summary>
+        public const string ODEAvatarContactsStatsName = "ODEAvatarContacts";
+
+        /// <summary>
+        /// Stat name for prim collisions with another entity.
+        /// </summary>
+        public const string ODEPrimContactsStatName = "ODEPrimContacts";
+
+        /// <summary>
+        /// Used to hold tick numbers for stat collection purposes.
+        /// </summary>
+        private int m_nativeCollisionStartTick;
+
+        /// <summary>
+        /// A messy way to tell if we need to avoid adding a collision time because this was already done in the callback.
+        /// </summary>
+        private bool m_inCollisionTiming;
+
+        /// <summary>
+        /// A temporary holder for the number of avatar collisions in a frame, so we can work out how many object
+        /// collisions occured using the _perloopcontact if stats collection is enabled.
+        /// </summary>
+        private int m_tempAvatarCollisionsThisFrame;
+
+        /// <summary>
+        /// Used in calculating physics frame time dilation
+        /// </summary>
+        private int tickCountFrameRun;
+
+        /// <summary>
+        /// Used in calculating physics frame time dilation
+        /// </summary>
+        private int latertickcount;
+
         private Random fluidRandomizer = new Random(Environment.TickCount);
 
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
 
-        private float ODE_STEPSIZE = 0.020f;
+        private float ODE_STEPSIZE = 0.0178f;
         private float metersInSpace = 29.9f;
         private float m_timeDilation = 1.0f;
 
         public float gravityx = 0f;
         public float gravityy = 0f;
         public float gravityz = -9.8f;
+
+        public float AvatarTerminalVelocity { get; set; }
 
         private float contactsurfacelayer = 0.001f;
 
@@ -132,7 +290,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private readonly IntPtr contactgroup;
 
-        internal IntPtr LandGeom;
         internal IntPtr WaterGeom;
 
         private float nmTerrainContactFriction = 255.0f;
@@ -153,10 +310,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float avPIDP = 1400f;
         private float avCapRadius = 0.37f;
         private float avStandupTensor = 2000000f;
-        private bool avCapsuleTilted = true; // true = old compatibility mode with leaning capsule; false = new corrected mode
-        public bool IsAvCapsuleTilted { get { return avCapsuleTilted; } set { avCapsuleTilted = value; } }
+
+        /// <summary>
+        /// true = old compatibility mode with leaning capsule; false = new corrected mode
+        /// </summary>
+        /// <remarks>
+        /// Even when set to false, the capsule still tilts but this is done in a different way.
+        /// </remarks>
+        public bool IsAvCapsuleTilted { get; private set; }
+
         private float avDensity = 80f;
-        private float avHeightFudgeFactor = 0.52f;
+//        private float avHeightFudgeFactor = 0.52f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
         private float minimumGroundFlightOffset = 3f;
@@ -172,6 +336,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int geomContactPointsStartthrottle = 3;
         public int geomUpdatesPerThrottledUpdate = 15;
+        private const int avatarExpectedContacts = 3;
 
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
@@ -205,27 +370,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
 
         /// <summary>
-        /// Used to lock on manipulation of _taintedPrimL and _taintedPrimH
+        /// Prims that the simulator has created/deleted/updated and so need updating in ODE.
         /// </summary>
-        private readonly Object _taintedPrimLock = new Object();
-
-        /// <summary>
-        /// List of tainted prims.
-        /// </summary>
-        /// <remarks>
-        /// A tainted prim is one that has taints to process before performing any other operations.  The list is
-        /// cleared after processing.
-        /// </remarks>
-        private readonly List<OdePrim> _taintedPrimL = new List<OdePrim>();
-
-        /// <summary>
-        /// HashSet of tainted prims.
-        /// </summary>
-        /// <remarks>
-        /// A tainted prim is one that has taints to process before performing any other operations.  The hashset is
-        /// cleared after processing.
-        /// </remarks>
-        private readonly HashSet<OdePrim> _taintedPrimH = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _taintedPrims = new HashSet<OdePrim>();
 
         /// <summary>
         /// Record a character that has taints to be processed.
@@ -240,12 +387,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// A dictionary of actors that should receive collision events.
         /// </summary>
-        private readonly Dictionary<uint, PhysicsActor> _collisionEventPrim = new Dictionary<uint, PhysicsActor>();
+        private readonly Dictionary<uint, PhysicsActor> m_collisionEventActors = new Dictionary<uint, PhysicsActor>();
 
         /// <summary>
         /// A dictionary of collision event changes that are waiting to be processed.
         /// </summary>
-        private readonly Dictionary<uint, PhysicsActor> _collisionEventPrimChanges = new Dictionary<uint, PhysicsActor>();
+        private readonly Dictionary<uint, PhysicsActor> m_collisionEventActorsChanges = new Dictionary<uint, PhysicsActor>();
 
         /// <summary>
         /// Maps a unique geometry id (a memory location) to a physics actor name.
@@ -316,7 +463,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int m_physicsiterations = 10;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private readonly PhysicsActor PANull = new NullPhysicsActor();
-        private float step_time = 0.0f;
+//        private float step_time = 0.0f;
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
 //Ckrinke        private int ms = 0;
         public IntPtr world;
@@ -328,9 +475,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdePrim cp1;
         private OdeCharacter cc2;
         private OdePrim cp2;
-        private int tickCountFrameRun;
-        
-        private int latertickcount=0;
+        private int p1ExpectedPoints = 0;
+        private int p2ExpectedPoints = 0;
         //private int cStartStop = 0;
         //private string cDictKey = "";
 
@@ -345,6 +491,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         internal Object OdeLock = new Object();
 
+        private bool _worldInitialized = false;
+
         public IMesher mesher;
 
         private IConfigSource m_config;
@@ -352,6 +500,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool physics_logging = false;
         public int physics_logging_interval = 0;
         public bool physics_logging_append_existing_logfile = false;
+
+        private bool avplanted = false;
+        private bool av_av_collisions_off = false;
 
         public d.Vector3 xyz = new d.Vector3(128.1640f, 128.3079f, 25.7600f);
         public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
@@ -375,11 +526,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
         /// <param value="name">Name of the scene.  Useful in debug messages.</param>
-        public OdeScene(string name)
+        public OdeScene(string engineType, string name)
         {
             m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
 
             Name = name;
+            EngineType = engineType;
 
             nearCallback = near;
             triCallback = TriCallback;
@@ -391,11 +543,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             space = d.HashSpaceCreate(IntPtr.Zero);
 
             contactgroup = d.JointGroupCreate(0);
-            //contactgroup
 
             d.WorldSetAutoDisableFlag(world, false);
+
             #if USE_DRAWSTUFF
-            
             Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
             viewthread.Start();
             #endif
@@ -424,6 +575,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
+            InitializeExtraStats();
+
             mesher = meshmerizer;
             m_config = config;
             // Defaults
@@ -448,9 +601,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                 IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
                 if (physicsconfig != null)
                 {
+                    CollectStats = physicsconfig.GetBoolean("collect_stats", false);
+
                     gravityx = physicsconfig.GetFloat("world_gravityx", 0f);
                     gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
                     gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
+
+                    float avatarTerminalVelocity = physicsconfig.GetFloat("avatar_terminal_velocity", 54f);
+                    AvatarTerminalVelocity = Util.Clamp<float>(avatarTerminalVelocity, 0, 255f);
+                    if (AvatarTerminalVelocity != avatarTerminalVelocity)
+                    {
+                        m_log.WarnFormat(
+                            "[ODE SCENE]: avatar_terminal_velocity of {0} is invalid.  Clamping to {1}",
+                            avatarTerminalVelocity, AvatarTerminalVelocity);
+                    }
 
                     worldHashspaceLow = physicsconfig.GetInt("world_hashspace_size_low", -4);
                     worldHashspaceHigh = physicsconfig.GetInt("world_hashspace_size_high", 128);
@@ -475,19 +639,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                     mAvatarObjectContactFriction = physicsconfig.GetFloat("m_avatarobjectcontact_friction", 75f);
                     mAvatarObjectContactBounce = physicsconfig.GetFloat("m_avatarobjectcontact_bounce", 0.1f);
 
-                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", 0.020f);
+                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
                     m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
 
                     avDensity = physicsconfig.GetFloat("av_density", 80f);
-                    avHeightFudgeFactor = physicsconfig.GetFloat("av_height_fudge_factor", 0.52f);
+//                    avHeightFudgeFactor = physicsconfig.GetFloat("av_height_fudge_factor", 0.52f);
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
-                    avCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", false);
+                    avplanted = physicsconfig.GetBoolean("av_planted", false);
+                    av_av_collisions_off = physicsconfig.GetBoolean("av_av_collisions_off", false);
+
+                    IsAvCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", false);
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", 80);
 
-                    geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
+                    geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 5);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
                     geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
 
@@ -502,6 +669,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
                     m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", false);
+                    
+                    
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
@@ -719,6 +888,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     staticPrimspace[i, j] = IntPtr.Zero;
                 }
             }
+
+            _worldInitialized = true;
         }
 
 //        internal void waitForSpaceUnlock(IntPtr space)
@@ -740,6 +911,62 @@ namespace OpenSim.Region.Physics.OdePlugin
         #region Collision Detection
 
         /// <summary>
+        /// Collides two geometries.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='geom1'></param>
+        /// <param name='geom2'>/param>
+        /// <param name='maxContacts'></param>
+        /// <param name='contactsArray'></param>
+        /// <param name='contactGeomSize'></param>
+        private int CollideGeoms(
+            IntPtr geom1, IntPtr geom2, int maxContacts, Ode.NET.d.ContactGeom[] contactsArray, int contactGeomSize)
+        {
+            int count;
+
+            lock (OdeScene.UniversalColliderSyncObject)
+            {
+                // We do this inside the lock so that we don't count any delay in acquiring it
+                if (CollectStats)
+                    m_nativeCollisionStartTick = Util.EnvironmentTickCount();
+
+                count = d.Collide(geom1, geom2, maxContacts, contactsArray, contactGeomSize);
+            }
+
+            // We do this outside the lock so that any waiting threads aren't held up, though the effect is probably
+            // negligable
+            if (CollectStats)
+                m_stats[ODENativeGeomCollisionFrameMsStatName]
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionStartTick);
+
+            return count;
+        }
+
+        /// <summary>
+        /// Collide two spaces or a space and a geometry.
+        /// </summary>
+        /// <param name='space1'></param>
+        /// <param name='space2'>/param>
+        /// <param name='data'></param>
+        private void CollideSpaces(IntPtr space1, IntPtr space2, IntPtr data)
+        {
+            if (CollectStats)
+            {
+                m_inCollisionTiming = true;
+                m_nativeCollisionStartTick = Util.EnvironmentTickCount();
+            }
+
+            d.SpaceCollide2(space1, space2, data, nearCallback);
+
+            if (CollectStats && m_inCollisionTiming)
+            {
+                m_stats[ODENativeSpaceCollisionFrameMsStatName]
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionStartTick);
+                m_inCollisionTiming = false;
+            }
+        }
+
+        /// <summary>
         /// This is our near callback.  A geometry is near a body
         /// </summary>
         /// <param name="space">The space that contains the geoms.  Remember, spaces are also geoms</param>
@@ -747,6 +974,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="g2">another geometry or space</param>
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
+            if (CollectStats && m_inCollisionTiming)
+            {
+                m_stats[ODENativeSpaceCollisionFrameMsStatName]
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionStartTick);
+                m_inCollisionTiming = false;
+            }
+
 //            m_log.DebugFormat("[PHYSICS]: Colliding {0} and {1} in {2}", g1, g2, space);
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
 
@@ -764,11 +998,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // contact points in the space
                 try
                 {
-                    d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                    CollideSpaces(g1, g2, IntPtr.Zero);
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.Warn("[ODE SCENE]: Unable to collide test a space");
+                    m_log.Error("[ODE SCENE]: Unable to collide test a space");
                     return;
                 }
                 //Colliding a space or a geom with a space or a geom. so drill down
@@ -807,6 +1041,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Figure out how many contact points we have
             int count = 0;
+
             try
             {
                 // Colliding Geom To Geom
@@ -818,7 +1053,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
 
-                count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
+                count = CollideGeoms(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
+
+                // All code after this is only relevant if we have any collisions
+                if (count <= 0)
+                    return;
+
                 if (count > contacts.Length)
                     m_log.Error("[ODE SCENE]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
             }
@@ -830,13 +1070,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ODE SCENE]: Unable to collide test an object: {0}", e.Message);
+                m_log.ErrorFormat("[ODE SCENE]: Unable to collide test an object: {0}", e.Message);
                 return;
             }
 
             PhysicsActor p1;
             PhysicsActor p2;
-
+            
+            p1ExpectedPoints = 0;
+            p2ExpectedPoints = 0;
+            
             if (!actor_name_map.TryGetValue(g1, out p1))
             {
                 p1 = PANull;
@@ -893,9 +1136,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 switch (p1.PhysicsActorType)
                 {
                     case (int)ActorTypes.Agent:
+                        p1ExpectedPoints = avatarExpectedContacts;
                         p2.CollidingObj = true;
                         break;
                     case (int)ActorTypes.Prim:
+                        if (p1 != null && p1 is OdePrim)
+                            p1ExpectedPoints = ((OdePrim) p1).ExpectedCollisionContacts;
+
                         if (p2.Velocity.LengthSquared() > 0.0f)
                             p2.CollidingObj = true;
                         break;
@@ -1070,6 +1317,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if ((p1 is OdePrim) && (((OdePrim)p1).m_isVolumeDetect))
                     skipThisContact = true;   // No collision on volume detect prims
 
+                if (av_av_collisions_off)
+                    if ((p1 is OdeCharacter) && (p2 is OdeCharacter))
+                        skipThisContact = true;
+
                 if (!skipThisContact && (p2 is OdePrim) && (((OdePrim)p2).m_isVolumeDetect))
                     skipThisContact = true;   // No collision on volume detect prims
 
@@ -1086,14 +1337,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     _perloopContact.Add(curContact);
 
-                    // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
                     {
-                        // If we're moving
                         if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
                             (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                         {
-                            // Use the movement terrain contact
+                            p2ExpectedPoints = avatarExpectedContacts;
+                            // Avatar is moving on terrain, use the movement terrain contact
                             AvatarMovementTerrainContact.geom = curContact;
 
                             if (m_global_contactcount < maxContactsbeforedeath)
@@ -1106,7 +1356,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                             {
-                                // Use the non moving terrain contact
+                                p2ExpectedPoints = avatarExpectedContacts;
+                                // Avatar is standing on terrain, use the non moving terrain contact
                                 TerrainContact.geom = curContact;
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
@@ -1130,9 +1381,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     }
 
                                     if (p2 is OdePrim)
-                                        material = ((OdePrim)p2).m_material;
-
+                                    {
+                                        material = ((OdePrim) p2).m_material;
+                                        p2ExpectedPoints = ((OdePrim)p2).ExpectedCollisionContacts;
+                                    }
+                                   
+                                    // Unnessesary because p1 is defined above
+                                    //if (p1 is OdePrim)
+                                    // { 
+                                    //     p1ExpectedPoints = ((OdePrim)p1).ExpectedCollisionContacts;
+                                    // }
                                     //m_log.DebugFormat("Material: {0}", material);
+
                                     m_materialContacts[material, movintYN].geom = curContact;
 
                                     if (m_global_contactcount < maxContactsbeforedeath)
@@ -1153,7 +1413,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     int material = (int)Material.Wood;
 
                                     if (p2 is OdePrim)
+                                    {
                                         material = ((OdePrim)p2).m_material;
+                                        p2ExpectedPoints = ((OdePrim)p2).ExpectedCollisionContacts;
+                                    }
 
                                     //m_log.DebugFormat("Material: {0}", material);
                                     m_materialContacts[material, movintYN].geom = curContact;
@@ -1201,13 +1464,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        // we're colliding with prim or avatar
-                        // check if we're moving
                         if ((p2.PhysicsActorType == (int)ActorTypes.Agent))
                         {
+                            p2ExpectedPoints = avatarExpectedContacts;
                             if ((Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                             {
-                                // Use the Movement prim contact
+                                // Avatar is moving on a prim, use the Movement prim contact
                                 AvatarMovementprimContact.geom = curContact;
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
@@ -1218,9 +1480,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                // Use the non movement contact
+                                // Avatar is standing still on a prim, use the non movement contact
                                 contact.geom = curContact;
-                                _perloopContact.Add(curContact);
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
@@ -1235,7 +1496,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             int material = (int)Material.Wood;
 
                             if (p2 is OdePrim)
+                            {
                                 material = ((OdePrim)p2).m_material;
+                                p2ExpectedPoints = ((OdePrim)p2).ExpectedCollisionContacts;
+                            }
                             
                             //m_log.DebugFormat("Material: {0}", material);
                             m_materialContacts[material, 0].geom = curContact;
@@ -1256,8 +1520,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 collision_accounting_events(p1, p2, maxDepthContact);
-
-                if (count > geomContactPointsStartthrottle)
+                
+                if (count > ((p1ExpectedPoints + p2ExpectedPoints) * 0.25) + (geomContactPointsStartthrottle))
                 {
                     // If there are more then 3 contact points, it's likely
                     // that we've got a pile of objects, so ...
@@ -1288,8 +1552,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f)
                         && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f)
-                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f))
-                        && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
                         {
@@ -1318,7 +1581,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //d.GeomGetAABB(contactGeom.g2, out aabb2);
                     //d.GeomGetAABB(contactGeom.g1, out aabb1);
                     //aabb1.
-                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
                         {
@@ -1328,7 +1591,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 break;
                             }
                         }
-                        //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+                        //m_log.DebugFormat("[Collision]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
                         //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
                     }
                 }
@@ -1544,18 +1807,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
                 
-                // test the avatar's geometry for collision with the space
+                // Test the avatar's geometry for collision with the space
                 // This will return near and the space that they are the closest to
                 // And we'll run this again against the avatar and the space segment
                 // This will return with a bunch of possible objects in the space segment
                 // and we'll run it again on all of them.
                 try
                 {
-                    d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
+                    CollideSpaces(space, chr.Shell, IntPtr.Zero);
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.WarnFormat("[ODE SCENE]: Unable to space collide {0}", Name);
+                    m_log.ErrorFormat("[ODE SCENE]: Unable to space collide {0}", Name);
                 }
                 
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
@@ -1564,6 +1827,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //chr.Position.Z = terrainheight + 10.0f;
                 //forcedZ = true;
                 //}
+            }
+
+            if (CollectStats)
+            {
+                m_tempAvatarCollisionsThisFrame = _perloopContact.Count;
+                m_stats[ODEAvatarContactsStatsName] += m_tempAvatarCollisionsThisFrame;
             }
 
             List<OdePrim> removeprims = null;
@@ -1577,7 +1846,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (space != IntPtr.Zero && chr.prim_geom != IntPtr.Zero && chr.m_taintremove == false)
                             {
-                                d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                CollideSpaces(space, chr.prim_geom, IntPtr.Zero);
                             }
                             else
                             {
@@ -1586,16 +1855,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     removeprims = new List<OdePrim>();
                                 }
                                 removeprims.Add(chr);
-                                m_log.Debug("[ODE SCENE]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
+                                m_log.Error(
+                                    "[ODE SCENE]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
                             }
                         }
                     }
                     catch (AccessViolationException)
                     {
-                        m_log.Warn("[ODE SCENE]: Unable to space collide");
+                        m_log.Error("[ODE SCENE]: Unable to space collide");
                     }
                 }
             }
+
+            if (CollectStats)
+                m_stats[ODEPrimContactsStatName] += _perloopContact.Count - m_tempAvatarCollisionsThisFrame;
 
             if (removeprims != null)
             {
@@ -1678,8 +1951,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 //            m_log.DebugFormat("[PHYSICS]: Adding {0} {1} to collision event reporting", obj.SOPName, obj.LocalID);
             
-            lock (_collisionEventPrimChanges)
-                _collisionEventPrimChanges[obj.LocalID] = obj;
+            lock (m_collisionEventActorsChanges)
+                m_collisionEventActorsChanges[obj.LocalID] = obj;
         }
 
         /// <summary>
@@ -1690,8 +1963,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 //            m_log.DebugFormat("[PHYSICS]: Removing {0} {1} from collision event reporting", obj.SOPName, obj.LocalID);
 
-            lock (_collisionEventPrimChanges)
-                _collisionEventPrimChanges[obj.LocalID] = null;
+            lock (m_collisionEventActorsChanges)
+                m_collisionEventActorsChanges[obj.LocalID] = null;
         }
 
         #region Add/Remove Entities
@@ -1706,26 +1979,35 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdeCharacter newAv
                 = new OdeCharacter(
                     avName, this, pos, size, avPIDD, avPIDP,
-                    avCapRadius, avStandupTensor, avDensity, avHeightFudgeFactor,
+                    avCapRadius, avStandupTensor, avDensity,
                     avMovementDivisorWalk, avMovementDivisorRun);
 
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
-            
+            newAv.m_avatarplanted = avplanted;
+
             return newAv;
         }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
-            //m_log.Debug("[PHYSICS]:ODELOCK");
+//            m_log.DebugFormat(
+//                "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2}",
+//                actor.Name, actor.LocalID, Name);
+
             ((OdeCharacter) actor).Destroy();
         }
 
         internal void AddCharacter(OdeCharacter chr)
         {
+            chr.m_avatarplanted = avplanted;
             if (!_characters.Contains(chr))
             {
                 _characters.Add(chr);
+
+//                m_log.DebugFormat(
+//                    "[ODE SCENE]: Adding physics character {0} {1} to physics scene {2}.  Count now {3}",
+//                    chr.Name, chr.LocalID, Name, _characters.Count);
 
                 if (chr.bad)
                     m_log.ErrorFormat("[ODE SCENE]: Added BAD actor {0} to characters list", chr.m_uuid);
@@ -1741,11 +2023,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void RemoveCharacter(OdeCharacter chr)
         {
             if (_characters.Contains(chr))
+            {
                 _characters.Remove(chr);
+
+//                m_log.DebugFormat(
+//                    "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2}.  Count now {3}",
+//                    chr.Name, chr.LocalID, Name, _characters.Count);
+            }
             else
+            {
                 m_log.ErrorFormat(
                     "[ODE SCENE]: Tried to remove character {0} {1} but they are not in the list!",
                     chr.Name, chr.LocalID);
+            }
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
@@ -1783,7 +2073,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-//            m_log.DebugFormat("[ODE SCENE]: Adding physics actor to {0} {1}", primName, localid);
+//            m_log.DebugFormat("[ODE SCENE]: Adding physics prim {0} {1} to physics scene {2}", primName, localid, Name);
 
             return AddPrim(primName, position, size, rotation, pbs, isPhysical, localid);
         }
@@ -2183,7 +2473,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         internal void RemovePrimThreadLocked(OdePrim prim)
         {
-//Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);
+//            m_log.DebugFormat("[ODE SCENE]: Removing physical prim {0} {1}", prim.Name, prim.LocalID);
+
             lock (prim)
             {
                 RemoveCollisionEventReporting(prim);
@@ -2622,49 +2913,41 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (actor is OdePrim)
             {
                 OdePrim taintedprim = ((OdePrim)actor);
-                lock (_taintedPrimLock)
-                {
-                    if (!(_taintedPrimH.Contains(taintedprim))) 
-                    {
-#if SPAM
-Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
-#endif
-                        _taintedPrimH.Add(taintedprim);                    // HashSet for searching
-                        _taintedPrimL.Add(taintedprim);                    // List for ordered readout
-                    }
-                }
+                lock (_taintedPrims)
+                    _taintedPrims.Add(taintedprim);
             }
             else if (actor is OdeCharacter)
             {
                 OdeCharacter taintedchar = ((OdeCharacter)actor);
                 lock (_taintedActors)
                 {
-                    if (!(_taintedActors.Contains(taintedchar)))
-                    {
-                        _taintedActors.Add(taintedchar);
-                        if (taintedchar.bad)
-                            m_log.DebugFormat("[ODE SCENE]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
-                    }
+                    _taintedActors.Add(taintedchar);
+                    if (taintedchar.bad)
+                        m_log.ErrorFormat("[ODE SCENE]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
                 }
             }
         }
 
         /// <summary>
         /// This is our main simulate loop
+        /// </summary>
+        /// <remarks>
         /// It's thread locked by a Mutex in the scene.
         /// It holds Collisions, it instructs ODE to step through the physical reactions
         /// It moves the objects around in memory
         /// It calls the methods that report back to the object owners.. (scenepresence, SceneObjectGroup)
-        /// </summary>
+        /// </remarks>
         /// <param name="timeStep"></param>
-        /// <returns></returns>
+        /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
+            if (!_worldInitialized) return 11f;
+
+            int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
+            int tempTick = 0, tempTick2 = 0;
+
             if (framecount >= int.MaxValue)
                 framecount = 0;
-
-            //if (m_worldOffset != Vector3.Zero)
-            //    return 0;
 
             framecount++;
 
@@ -2673,7 +2956,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             float timeLeft = timeStep;
 
             //m_log.Info(timeStep.ToString());
-//            step_time += timeStep;
+//            step_time += timeSte
 //            
 //            // If We're loaded down by something else,
 //            // or debugging with the Visual Studio project on pause
@@ -2694,17 +2977,17 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             // We change _collisionEventPrimChanges to avoid locking _collisionEventPrim itself and causing potential
             // deadlock if the collision event tries to lock something else later on which is already locked by a
             // caller that is adding or removing the collision event.
-            lock (_collisionEventPrimChanges)
+            lock (m_collisionEventActorsChanges)
             {
-                foreach (KeyValuePair<uint, PhysicsActor> kvp in _collisionEventPrimChanges)
+                foreach (KeyValuePair<uint, PhysicsActor> kvp in m_collisionEventActorsChanges)
                 {
                     if (kvp.Value == null)
-                        _collisionEventPrim.Remove(kvp.Key);
+                        m_collisionEventActors.Remove(kvp.Key);
                     else
-                        _collisionEventPrim[kvp.Key] = kvp.Value;
+                        m_collisionEventActors[kvp.Key] = kvp.Value;
                 }
 
-                _collisionEventPrimChanges.Clear();
+                m_collisionEventActorsChanges.Clear();
             }
 
             if (SupportsNINJAJoints)
@@ -2739,21 +3022,27 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     try
                     {
+                        if (CollectStats)
+                            tempTick = Util.EnvironmentTickCount();
+
                         lock (_taintedActors)
                         {
-                            if (_taintedActors.Count > 0)
-                            {
-                                foreach (OdeCharacter character in _taintedActors)
-                                    character.ProcessTaints();
+                            foreach (OdeCharacter character in _taintedActors)
+                                character.ProcessTaints();
 
-                                if (_taintedActors.Count > 0)
-                                    _taintedActors.Clear();
-                            }
+                            _taintedActors.Clear();
                         }
 
-                        lock (_taintedPrimLock)
+                        if (CollectStats)
                         {
-                            foreach (OdePrim prim in _taintedPrimL)
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEAvatarTaintMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
+                        }
+
+                        lock (_taintedPrims)
+                        {
+                            foreach (OdePrim prim in _taintedPrims)
                             {
                                 if (prim.m_taintremove)
                                 {
@@ -2778,12 +3067,14 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             if (SupportsNINJAJoints)
                                 SimulatePendingNINJAJoints();
 
-                            if (_taintedPrimL.Count > 0)
-                            {
-//Console.WriteLine("Simulate calls Clear of _taintedPrim list");
-                                _taintedPrimH.Clear();
-                                _taintedPrimL.Clear();
-                            }
+                            _taintedPrims.Clear();
+                        }
+
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEPrimTaintMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
                         }
 
                         // Move characters
@@ -2794,11 +3085,22 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         {
                             foreach (OdeCharacter actor in defects)
                             {
+                                m_log.ErrorFormat(
+                                    "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2} due to defect found when moving",
+                                    actor.Name, actor.LocalID, Name);
+
                                 RemoveCharacter(actor);
                                 actor.DestroyOdeStructures();
                             }
 
                             defects.Clear();
+                        }
+
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEAvatarForcesFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
                         }
 
                         // Move other active objects
@@ -2808,15 +3110,36 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             prim.Move(timeStep);
                         }
 
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEPrimForcesFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
+                        }
+
                         //if ((framecount % m_randomizeWater) == 0)
                            // randomizeWater(waterlevel);
 
                         //int RayCastTimeMS = m_rayCastManager.ProcessQueuedRequests();
                         m_rayCastManager.ProcessQueuedRequests();
 
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODERaycastingFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
+                        }
+
                         collision_optimized();
 
-                        foreach (PhysicsActor obj in _collisionEventPrim.Values)
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEOtherCollisionFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
+                        }
+
+                        foreach (PhysicsActor obj in m_collisionEventActors.Values)
                         {
 //                                m_log.DebugFormat("[PHYSICS]: Assessing {0} {1} for collision events", obj.SOPName, obj.LocalID);
 
@@ -2840,8 +3163,19 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 //                                "[PHYSICS]: Collision contacts to process this frame = {0}", m_global_contactcount);
 
                         m_global_contactcount = 0;
-                        
+
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODECollisionNotificationFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
+                        }
+
                         d.WorldQuickStep(world, ODE_STEPSIZE);
+
+                        if (CollectStats)
+                            m_stats[ODENativeStepFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
+
                         d.JointGroupEmpty(contactgroup);
                     }
                     catch (Exception e)
@@ -2852,10 +3186,13 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     timeLeft -= ODE_STEPSIZE;
                 }
 
+                if (CollectStats)
+                    tempTick = Util.EnvironmentTickCount();
+
                 foreach (OdeCharacter actor in _characters)
                 {
                     if (actor.bad)
-                        m_log.WarnFormat("[ODE SCENE]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                        m_log.ErrorFormat("[ODE SCENE]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
                     actor.UpdatePositionAndVelocity(defects);
                 }
@@ -2864,11 +3201,22 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     foreach (OdeCharacter actor in defects)
                     {
+                        m_log.ErrorFormat(
+                            "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2} due to defect found when updating position and velocity",
+                            actor.Name, actor.LocalID, Name);
+
                         RemoveCharacter(actor);
                         actor.DestroyOdeStructures();
                     }
 
                     defects.Clear();
+                }
+
+                if (CollectStats)
+                {
+                    tempTick2 = Util.EnvironmentTickCount();
+                    m_stats[ODEAvatarUpdateFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                    tempTick = tempTick2;
                 }
 
                 //if (timeStep < 0.2f)
@@ -2883,6 +3231,9 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             SimulateActorPendingJoints(prim);
                     }
                 }
+
+                if (CollectStats)
+                    m_stats[ODEPrimUpdateFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
 
                 //DumpJointInfo();
 
@@ -2905,7 +3256,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
 
-                latertickcount = Util.EnvironmentTickCount() - tickCountFrameRun;
+                latertickcount = Util.EnvironmentTickCountSubtract(tickCountFrameRun);
 
                 // OpenSimulator above does 10 fps.  10 fps = means that the main thread loop and physics
                 // has a max of 100 ms to run theoretically.
@@ -2923,6 +3274,9 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 }
 
                 tickCountFrameRun = Util.EnvironmentTickCount();
+
+                if (CollectStats)
+                    m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
             }
 
             return fps;
@@ -3158,7 +3512,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
         public override bool IsThreaded
         {
             // for now we won't be multithreaded
-            get { return (false); }
+            get { return false; }
         }
 
         #region ODE Specific Terrain Fixes
@@ -3446,7 +3800,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
         private void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
             int startTime = Util.EnvironmentTickCount();
-            m_log.DebugFormat("[ODE SCENE]: Setting terrain for {0}", Name);
+            m_log.DebugFormat("[ODE SCENE]: Setting terrain for {0} with offset {1}", Name, pOffset);
 
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
@@ -3560,7 +3914,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, (pOffset.X + ((int)Constants.RegionSize * 0.5f)) - 1, (pOffset.Y + ((int)Constants.RegionSize * 0.5f)) - 1, 0);
+                d.GeomSetPosition(GroundGeom, (pOffset.X + ((int)Constants.RegionSize * 0.5f)), (pOffset.Y + ((int)Constants.RegionSize * 0.5f)), 0);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
@@ -3710,6 +4064,8 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
         public override void Dispose()
         {
+            _worldInitialized = false;
+
             m_rayCastManager.Dispose();
             m_rayCastManager = null;
 
@@ -3730,30 +4086,24 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 d.WorldDestroy(world);
                 //d.CloseODE();
             }
+
         }
 
         public override Dictionary<uint, float> GetTopColliders()
         {
-            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
-            int cnt = 0;
+            Dictionary<uint, float> topColliders;
+
             lock (_prims)
             {
-                foreach (OdePrim prm in _prims)
-                {
-                    if (prm.CollisionScore > 0)
-                    {
-                        returncolliders.Add(prm.LocalID, prm.CollisionScore);
-                        cnt++;
-                        prm.CollisionScore = 0f;
-                        if (cnt > 25)
-                        {
-                            break;
-                        }
-                    }
-                }
+                List<OdePrim> orderedPrims = new List<OdePrim>(_prims);
+                orderedPrims.OrderByDescending(p => p.CollisionScore);
+                topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
+
+                foreach (OdePrim p in _prims)
+                    p.CollisionScore = 0;
             }
 
-            return returncolliders;
+            return topColliders;
         }
 
         public override bool SupportsRayCast()
@@ -3923,5 +4273,52 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             ds.SetViewpoint(ref xyz, ref hpr);
         }
 #endif
+
+        public override Dictionary<string, float> GetStats()
+        {
+            if (!CollectStats)
+                return null;
+
+            Dictionary<string, float> returnStats;
+
+            lock (OdeLock)
+            {
+                returnStats = new Dictionary<string, float>(m_stats);
+
+                // FIXME: This is a SUPER DUMB HACK until we can establish stats that aren't subject to a division by
+                // 3 from the SimStatsReporter.
+                returnStats[ODETotalAvatarsStatName] = _characters.Count * 3;
+                returnStats[ODETotalPrimsStatName] = _prims.Count * 3;
+                returnStats[ODEActivePrimsStatName] = _activeprims.Count * 3;
+
+                InitializeExtraStats();
+            }
+
+            returnStats[ODEOtherCollisionFrameMsStatName]
+                = returnStats[ODEOtherCollisionFrameMsStatName]
+                    - returnStats[ODENativeSpaceCollisionFrameMsStatName]
+                    - returnStats[ODENativeGeomCollisionFrameMsStatName];
+
+            return returnStats;
+        }
+
+        private void InitializeExtraStats()
+        {
+            m_stats[ODETotalFrameMsStatName] = 0;
+            m_stats[ODEAvatarTaintMsStatName] = 0;
+            m_stats[ODEPrimTaintMsStatName] = 0;
+            m_stats[ODEAvatarForcesFrameMsStatName] = 0;
+            m_stats[ODEPrimForcesFrameMsStatName] = 0;
+            m_stats[ODERaycastingFrameMsStatName] = 0;
+            m_stats[ODENativeStepFrameMsStatName] = 0;
+            m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
+            m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
+            m_stats[ODEOtherCollisionFrameMsStatName] = 0;
+            m_stats[ODECollisionNotificationFrameMsStatName] = 0;
+            m_stats[ODEAvatarContactsStatsName] = 0;
+            m_stats[ODEPrimContactsStatName] = 0;
+            m_stats[ODEAvatarUpdateFrameMsStatName] = 0;
+            m_stats[ODEPrimUpdateFrameMsStatName] = 0;
+        }
     }
 }

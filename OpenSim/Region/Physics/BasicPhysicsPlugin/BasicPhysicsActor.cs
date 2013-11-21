@@ -36,16 +36,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 {
     public class BasicActor : PhysicsActor
     {
-        private Vector3 _position;
-        private Vector3 _velocity;
-        private Vector3 _acceleration;
         private Vector3 _size;
-        private Vector3 m_rotationalVelocity;
-        private bool flying;
-        private bool iscolliding;
 
-        public BasicActor()
+        public BasicActor(Vector3 size)
         {
+            Size = size;
         }
 
         public override int PhysicsActorType
@@ -54,11 +49,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
-        public override Vector3 RotationalVelocity
-        {
-            get { return m_rotationalVelocity; }
-            set { m_rotationalVelocity = value; }
-        }
+        public override Vector3 RotationalVelocity { get; set; }
 
         public override bool SetAlwaysRun
         {
@@ -104,17 +95,9 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
-        public override bool Flying
-        {
-            get { return flying; }
-            set { flying = value; }
-        }
+        public override bool Flying { get; set; }
 
-        public override bool IsColliding
-        {
-            get { return iscolliding; }
-            set { iscolliding = value; }
-        }
+        public override bool IsColliding { get; set; }
 
         public override bool CollidingGround
         {
@@ -133,11 +116,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return false; }
         }
 
-        public override Vector3 Position
-        {
-            get { return _position; }
-            set { _position = value; }
-        }
+        public override Vector3 Position { get; set; }
 
         public override Vector3 Size
         {
@@ -205,11 +184,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return Vector3.Zero; }
         }
 
-        public override Vector3 Velocity
-        {
-            get { return _velocity; }
-            set { _velocity = value; }
-        }
+        public override Vector3 Velocity { get; set; }
 
         public override Vector3 Torque
         {
@@ -229,10 +204,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { }
         }
 
-        public override Vector3 Acceleration
-        {
-            get { return _acceleration; }
-        }
+        public override Vector3 Acceleration { get; set; }
 
         public override bool Kinematic
         {
@@ -250,11 +222,6 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override void LockAngularMotion(Vector3 axis)
         {
-        }
-
-        public void SetAcceleration(Vector3 accel)
-        {
-            _acceleration = accel;
         }
 
         public override void AddForce(Vector3 force, bool pushforce)

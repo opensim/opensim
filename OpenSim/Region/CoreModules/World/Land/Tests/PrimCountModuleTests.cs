@@ -41,7 +41,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.World.Land.Tests
 {
     [TestFixture]
-    public class PrimCountModuleTests
+    public class PrimCountModuleTests : OpenSimTestCase
     {
         protected UUID m_userId = new UUID("00000000-0000-0000-0000-100000000000");
         protected UUID m_groupId = new UUID("00000000-0000-0000-8888-000000000000");        
@@ -60,11 +60,13 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         protected ILandObject m_lo2;        
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_pcm = new PrimCountModule();
             LandManagementModule lmm = new LandManagementModule();
-            m_scene = SceneHelpers.SetupScene();            
+            m_scene = new SceneHelpers().SetupScene();            
             SceneHelpers.SetupSceneModules(m_scene, lmm, m_pcm);             
                         
             int xParcelDivider = (int)Constants.RegionSize - 1;

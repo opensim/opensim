@@ -54,8 +54,13 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private IInstantMessage m_IMService;
 
         public InstantMessageServerConnector(IConfigSource config, IHttpServer server) :
-                this(config, server, null)
+            this(config, server, (IInstantMessageSimConnector)null)
         {            
+        }
+
+        public InstantMessageServerConnector(IConfigSource config, IHttpServer server, string configName) :
+            this(config, server)
+        {
         }
 
         public InstantMessageServerConnector(IConfigSource config, IHttpServer server, IInstantMessageSimConnector simConnector) :

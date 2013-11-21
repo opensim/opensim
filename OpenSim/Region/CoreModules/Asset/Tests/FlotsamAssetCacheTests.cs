@@ -35,7 +35,6 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
-using Flotsam.RegionModules.AssetCache;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
@@ -48,14 +47,16 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
     /// At the moment we're only test the in-memory part of the FlotsamAssetCache.  This is a considerable weakness.
     /// </summary>
     [TestFixture]
-    public class FlotsamAssetCacheTests
+    public class FlotsamAssetCacheTests : OpenSimTestCase
     {
         protected TestScene m_scene;
         protected FlotsamAssetCache m_cache;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource config = new IniConfigSource();
 
             config.AddConfig("Modules");
@@ -65,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             config.Configs["AssetCache"].Set("MemoryCacheEnabled", "true");
 
             m_cache = new FlotsamAssetCache();
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_cache);
         }
 

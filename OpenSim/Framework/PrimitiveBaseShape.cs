@@ -105,6 +105,7 @@ namespace OpenSim.Framework
         private ushort _profileHollow;
         private Vector3 _scale;
         private byte _state;
+        private byte _lastattach;
         private ProfileShape _profileShape;
         private HollowShape _hollowShape;
 
@@ -192,18 +193,7 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape()
         {
-            PCode = (byte) PCodeEnum.Primitive;
-            ExtraParams = new byte[1];
-            m_textureEntry = DEFAULT_TEXTURE;
-        }
-
-        public PrimitiveBaseShape(bool noShape)
-        {
-            if (noShape)
-                return;
-
             PCode = (byte)PCodeEnum.Primitive;
-            ExtraParams = new byte[1];
             m_textureEntry = DEFAULT_TEXTURE;
         }
 
@@ -216,9 +206,9 @@ namespace OpenSim.Framework
 //            m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: Creating from {0}", prim.ID);
 
             PCode = (byte)prim.PrimData.PCode;
-            ExtraParams = new byte[1];
 
             State = prim.PrimData.State;
+            LastAttachPoint = prim.PrimData.State;
             PathBegin = Primitive.PackBeginCut(prim.PrimData.PathBegin);
             PathEnd = Primitive.PackEndCut(prim.PrimData.PathEnd);
             PathScaleX = Primitive.PackPathScale(prim.PrimData.PathScaleX);
@@ -241,10 +231,17 @@ namespace OpenSim.Framework
 
             m_textureEntry = prim.Textures.GetBytes();
 
-            SculptEntry = (prim.Sculpt.Type != OpenMetaverse.SculptType.None);
-            SculptData = prim.Sculpt.GetBytes();
-            SculptTexture = prim.Sculpt.SculptTexture;
-            SculptType = (byte)prim.Sculpt.Type;
+            if (prim.Sculpt != null)
+            {
+                SculptEntry = (prim.Sculpt.Type != OpenMetaverse.SculptType.None);
+                SculptData = prim.Sculpt.GetBytes();
+                SculptTexture = prim.Sculpt.SculptTexture;
+                SculptType = (byte)prim.Sculpt.Type;
+            }
+            else 
+            {  
+                SculptType = (byte)OpenMetaverse.SculptType.None;
+            }
         }
 
         [XmlIgnore]
@@ -336,9 +333,9 @@ namespace OpenSim.Framework
             _scale = new Vector3(side, side, side);
         }
 
-        public void SetHeigth(float heigth)
+        public void SetHeigth(float height)
         {
-            _scale.Z = heigth;
+            _scale.Z = height;
         }
 
         public void SetRadius(float radius)
@@ -588,6 +585,15 @@ namespace OpenSim.Framework
             }
         }
 
+        public byte LastAttachPoint {
+            get {
+                return _lastattach;
+            }
+            set {
+                _lastattach = value;
+            }
+        }
+
         public ProfileShape ProfileShape {
             get {
                 return _profileShape;
@@ -627,6 +633,8 @@ namespace OpenSim.Framework
             }
         }
 
+        // This is only used at runtime. For sculpties this holds the texture data, and for meshes
+        // the mesh data.
         public byte[] SculptData
         {
             get
@@ -1152,14 +1160,13 @@ namespace OpenSim.Framework
 
         public void ReadSculptData(byte[] data, int pos)
         {
-            byte[] SculptTextureUUID = new byte[16];
-            UUID SculptUUID = UUID.Zero;
-            byte SculptTypel = data[16+pos];
+            UUID SculptUUID;
+            byte SculptTypel;
 
-            if (data.Length+pos >= 17)
+            if (data.Length-pos >= 17)
             {
                 _sculptEntry = true;
-                SculptTextureUUID = new byte[16];
+                byte[] SculptTextureUUID = new byte[16];
                 SculptTypel = data[16 + pos];
                 Array.Copy(data, pos, SculptTextureUUID,0, 16);
                 SculptUUID = new UUID(SculptTextureUUID, 0);

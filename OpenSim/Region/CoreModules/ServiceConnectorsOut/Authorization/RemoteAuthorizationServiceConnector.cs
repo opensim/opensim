@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -39,6 +40,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteAuthorizationServicesConnector")]
     public class RemoteAuthorizationServicesConnector :
             AuthorizationServicesConnector, ISharedRegionModule, IAuthorizationService
     {

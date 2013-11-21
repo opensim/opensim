@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using log4net;
@@ -38,39 +39,53 @@ namespace OpenSim.Region.ClientStack
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Type plugin;
-        private Assembly pluginAssembly;
+        private List<Type> plugin = new List<Type>();
+        private List<Assembly> pluginAssembly = new List<Assembly>();
 
-        public ClientStackManager(string dllName) 
+        public ClientStackManager(string pDllName) 
         {
-            m_log.Info("[CLIENTSTACK]: Attempting to load " + dllName);
-
-            try
+            List<string> clientstacks = new List<string>();
+            if (pDllName.Contains(","))
             {
-                plugin = null;
-                pluginAssembly = Assembly.LoadFrom(dllName);
+                clientstacks = new List<string>(pDllName.Split(','));
+            }
+            else
+            {
+                clientstacks.Add(pDllName);
+            }
+            foreach (string dllName in clientstacks)
+            {
+                m_log.Info("[CLIENTSTACK]: Attempting to load " + dllName);
 
-                foreach (Type pluginType in pluginAssembly.GetTypes())
+                try
                 {
-                    if (pluginType.IsPublic)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IClientNetworkServer", true);
+                    //plugin = null;
+                    Assembly itemAssembly = Assembly.LoadFrom(dllName);
+                    pluginAssembly.Add(itemAssembly);
 
-                        if (typeInterface != null)
+                    foreach (Type pluginType in itemAssembly.GetTypes())
+                    {
+                        if (pluginType.IsPublic)
                         {
-                            m_log.Info("[CLIENTSTACK]: Added IClientNetworkServer Interface");
-                            plugin = pluginType;
-                            return;
+                            Type typeInterface = pluginType.GetInterface("IClientNetworkServer", true);
+
+                            if (typeInterface != null)
+                            {
+                                m_log.Info("[CLIENTSTACK]: Added IClientNetworkServer Interface");
+                                plugin.Add(pluginType);
+                                break;
+                            }
                         }
                     }
                 }
-            } catch (ReflectionTypeLoadException e)
-            {
-                foreach (Exception e2 in e.LoaderExceptions)
+                catch (ReflectionTypeLoadException e)
                 {
-                    m_log.Error(e2.ToString());
+                    foreach (Exception e2 in e.LoaderExceptions)
+                    {
+                        m_log.Error(e2.ToString());
+                    }
+                    throw e;
                 }
-                throw e;
             }
         }
         
@@ -84,11 +99,11 @@ namespace OpenSim.Region.ClientStack
         /// <param name="assetCache"></param>
         /// <param name="authenticateClass"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateServer(
+        public List<IClientNetworkServer> CreateServers(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port,
             AgentCircuitManager authenticateClass)
         {
-            return CreateServer(
+            return CreateServers(
                 _listenIP, ref port, proxyPortOffset, allow_alternate_port, null, authenticateClass);
         }
 
@@ -105,20 +120,24 @@ namespace OpenSim.Region.ClientStack
         /// <param name="assetCache"></param>
         /// <param name="authenticateClass"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateServer(
+        public List<IClientNetworkServer> CreateServers(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource,
             AgentCircuitManager authenticateClass)
         {
+            List<IClientNetworkServer> servers = new List<IClientNetworkServer>();
             if (plugin != null)
             {
-                IClientNetworkServer server =
-                    (IClientNetworkServer)Activator.CreateInstance(pluginAssembly.GetType(plugin.ToString()));
-                
-                server.Initialise(
-                    _listenIP, ref port, proxyPortOffset, allow_alternate_port, 
-                    configSource, authenticateClass);
-                
-                return server;
+                for (int i = 0; i < plugin.Count; i++)
+                {
+                    IClientNetworkServer server =
+                        (IClientNetworkServer) Activator.CreateInstance(pluginAssembly[i].GetType(plugin[i].ToString()));
+
+                    server.Initialise(
+                        _listenIP, ref port, proxyPortOffset, allow_alternate_port,
+                        configSource, authenticateClass);
+                    servers.Add(server);
+                }
+                return servers;
             }
             
             m_log.Error("[CLIENTSTACK]: Couldn't initialize a new server");

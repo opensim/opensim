@@ -48,7 +48,7 @@ using OpenSim.Server.Handlers.Hypergrid;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGMessageTransferModule")]
     public class HGMessageTransferModule : ISharedRegionModule, IMessageTransferModule, IInstantMessageSimConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -180,10 +180,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
 //            m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
             // Is the user a local user?
-            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, toAgentID);
             string url = string.Empty;
             bool foreigner = false;
-            if (account == null) // foreign user
+            if (UserManagementModule != null && !UserManagementModule.IsLocalGridUser(toAgentID)) // foreign user
             {
                 url = UserManagementModule.GetUserServerURL(toAgentID, "IMServerURI");
                 foreigner = true;

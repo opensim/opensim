@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -35,67 +37,12 @@ namespace OpenSim.Framework
     /// </summary>
     public class TaskInventoryItem : ICloneable
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// XXX This should really be factored out into some constants class.
         /// </summary>
         private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
-
-        /// <summary>
-        /// Inventory types
-        /// </summary>
-        public static string[] InvTypes = new string[]
-            {
-                "texture",
-                "sound",
-                "calling_card",
-                "landmark",
-                String.Empty,
-                String.Empty,
-                "object",
-                "notecard",
-                String.Empty,
-                String.Empty,
-                "lsl_text",
-                String.Empty,
-                String.Empty,
-                "bodypart",
-                String.Empty,
-                "snapshot",
-                String.Empty,
-                String.Empty,
-                "wearable",
-                "animation",
-                "gesture"
-            };
-
-        /// <summary>
-        /// Asset types
-        /// </summary>
-        public static string[] Types = new string[]
-            {
-                "texture",
-                "sound",
-                "callcard",
-                "landmark",
-                "clothing", // Deprecated
-                "clothing",
-                "object",
-                "notecard",
-                "category",
-                "root",
-                "lsltext",
-                "lslbyte",
-                "txtr_tga",
-                "bodypart",
-                "trash",
-                "snapshot",
-                "lstndfnd",
-                "snd_wav",
-                "img_tga",
-                "jpeg",
-                "animatn",
-                "gesture"
-            };
 
         private UUID _assetID = UUID.Zero;
 
@@ -122,6 +69,7 @@ namespace OpenSim.Framework
         private int _permsMask;
         private int _type = 0;
         private UUID _oldID;
+        private UUID _loadedID = UUID.Zero;
 
         private bool _ownerChanged = false;
 
@@ -176,7 +124,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                if (_creatorData != null && _creatorData != string.Empty)
+                if (!string.IsNullOrEmpty(_creatorData))
                     return _creatorID.ToString() + ';' + _creatorData;
                 else
                     return _creatorID.ToString();
@@ -288,6 +236,15 @@ namespace OpenSim.Framework
             }
         }
 
+        public UUID LoadedItemID {
+            get {
+                return _loadedID;
+            }
+            set {
+                _loadedID = value;
+            }
+        }
+
         public UUID LastOwnerID {
             get {
                 return _lastOwnerID;
@@ -378,14 +335,28 @@ namespace OpenSim.Framework
             }
         }
 
-        public bool OwnerChanged {
-            get {
+        public bool OwnerChanged
+        {
+            get
+            {
                 return _ownerChanged;
             }
-            set {
+            set
+            {
                 _ownerChanged = value;
+//                m_log.DebugFormat(
+//                    "[TASK INVENTORY ITEM]: Owner changed set {0} for {1} {2} owned by {3}",
+//                    _ownerChanged, Name, ItemID, OwnerID);
             }
         }
+
+        /// <summary>
+        /// This used ONLY during copy. It can't be relied on at other times!
+        /// </summary>
+        /// <remarks>
+        /// For true script running status, use IEntityInventory.TryGetScriptInstanceRunning() for now.
+        /// </remarks>
+        public bool ScriptRunning { get; set; }
 
         // See ICloneable
 
@@ -404,6 +375,7 @@ namespace OpenSim.Framework
         /// <param name="partID">The new part ID to which this item belongs</param>
         public void ResetIDs(UUID partID)
         {
+            LoadedItemID = OldItemID;
             OldItemID = ItemID;
             ItemID = UUID.Random();
             ParentPartID = partID;
@@ -412,6 +384,7 @@ namespace OpenSim.Framework
 
         public TaskInventoryItem()
         {
+            ScriptRunning = true;
             CreationDate = (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
     }

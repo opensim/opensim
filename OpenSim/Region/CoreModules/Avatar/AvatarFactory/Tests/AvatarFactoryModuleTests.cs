@@ -39,7 +39,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
     [TestFixture]
-    public class AvatarFactoryModuleTests
+    public class AvatarFactoryModuleTests : OpenSimTestCase
     {
         /// <summary>
         /// Only partial right now since we don't yet test that it's ended up in the avatar appearance service.
@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             UUID userId = TestHelpers.ParseTail(0x1);
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, afm);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
 
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             CoreAssetCache assetCache = new CoreAssetCache();
             
             AvatarFactoryModule afm = new AvatarFactoryModule();
-            TestScene scene = SceneHelpers.SetupScene(assetCache);
+            TestScene scene = new SceneHelpers(assetCache).SetupScene();
             SceneHelpers.SetupSceneModules(scene, afm);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
 

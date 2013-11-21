@@ -27,13 +27,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
+using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-
-using OpenMetaverse;
-using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
@@ -66,7 +64,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             scene.EventManager.OnNewClient -= OnNewClient;
 
             m_PresenceService.LogoutRegionAgents(scene.RegionInfo.RegionID);
-
         }
 
         public void OnMakeRootAgent(ScenePresence sp)
@@ -82,22 +79,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public void OnConnectionClose(IClientAPI client)
         {
-            if (client.IsLoggingOut)
+            if (client != null && client.SceneAgent != null && !client.SceneAgent.IsChildAgent)
             {
-                object sp = null;
-                if (client.Scene.TryGetScenePresence(client.AgentId, out sp))
-                {
-                    if (sp is ScenePresence)
-                    {
-                        if (((ScenePresence)sp).IsChildAgent)
-                            return;
-                    }
-                }
-
 //                m_log.DebugFormat("[PRESENCE DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
                 m_PresenceService.LogoutAgent(client.SessionId);
             }
-
         }
     }
 }

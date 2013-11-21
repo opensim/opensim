@@ -56,8 +56,8 @@ namespace OpenSim.Server.Handlers.Avatar
             m_AvatarService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
@@ -121,8 +121,7 @@ namespace OpenSim.Server.Handlers.Avatar
 
                 string xmlString = ServerUtils.BuildXmlResponse(result);
 
-                UTF8Encoding encoding = new UTF8Encoding();
-                return encoding.GetBytes(xmlString);
+                return Util.UTF8NoBomEncoding.GetBytes(xmlString);
             }
 
             return FailureResult();
@@ -137,6 +136,8 @@ namespace OpenSim.Server.Handlers.Avatar
 
             if (!UUID.TryParse(request["UserID"].ToString(), out user))
                 return FailureResult();
+
+            RemoveRequestParamsNotForStorage(request);
 
             AvatarData avatar = new AvatarData(request);
             if (m_AvatarService.SetAvatar(user, avatar))
@@ -154,10 +155,24 @@ namespace OpenSim.Server.Handlers.Avatar
             if (!UUID.TryParse(request["UserID"].ToString(), out user))
                 return FailureResult();
 
+            RemoveRequestParamsNotForStorage(request);
+
             if (m_AvatarService.ResetAvatar(user))
                 return SuccessResult();
 
             return FailureResult();
+        }
+
+        /// <summary>
+        /// Remove parameters that were used to invoke the method and should not in themselves be persisted.
+        /// </summary>
+        /// <param name='request'></param>
+        private void RemoveRequestParamsNotForStorage(Dictionary<string, object> request)
+        {
+            request.Remove("VERSIONMAX");
+            request.Remove("VERSIONMIN");
+            request.Remove("METHOD");
+            request.Remove("UserID");
         }
         
         byte[] SetItems(Dictionary<string, object> request)
@@ -173,6 +188,8 @@ namespace OpenSim.Server.Handlers.Avatar
 
             if (!(request["Names"] is List<string> || request["Values"] is List<string>))
                 return FailureResult();
+
+            RemoveRequestParamsNotForStorage(request);
 
             List<string> _names = (List<string>)request["Names"];
             names = _names.ToArray();

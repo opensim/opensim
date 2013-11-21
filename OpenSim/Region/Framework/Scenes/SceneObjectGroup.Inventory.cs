@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using System.Collections.Generic;
 using System.Xml;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -54,20 +55,38 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
-        public void CreateScriptInstances(int startParam, bool postOnRez,
-                string engine, int stateSource)
+        /// <param name="startParam"></param>
+        /// <param name="postOnRez"></param>
+        /// <param name="engine"></param>
+        /// <param name="stateSource"></param>
+        /// <returns>
+        /// Number of scripts that were valid for starting.  This does not guarantee that all these scripts
+        /// were actually started, but just that the start could be attempt (e.g. the asset data for the script could be found)
+        /// </returns>
+        public int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
         {
+            int scriptsStarted = 0;
+
+            if (m_scene == null)
+            {
+                m_log.DebugFormat("[PRIM INVENTORY]: m_scene is null. Unable to create script instances");
+                return 0;
+            }
+
             // Don't start scripts if they're turned off in the region!
             if (!m_scene.RegionInfo.RegionSettings.DisableScripts)
             {
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
-                    parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
+                    scriptsStarted
+                        += parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
             }
+
+            return scriptsStarted;
         }
 
         /// <summary>
-        /// Stop the scripts contained in all the prims in this group
+        /// Stop and remove the scripts contained in all the prims in this group
         /// </summary>
         /// <param name="sceneObjectBeingDeleted">
         /// Should be true if these scripts are being removed because the scene
@@ -81,15 +100,22 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Stop the scripts contained in all the prims in this group
+        /// </summary>
+        public void StopScriptInstances()
+        {
+            Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => p.Inventory.StopScriptInstances());
+        }
+
+        /// <summary>
         /// Add an inventory item from a user's inventory to a prim in this scene object.
         /// </summary>
-        /// <param name="remoteClient">The client adding the item.</param>
+        /// <param name="agentID">The agent adding the item.</param>
         /// <param name="localID">The local ID of the part receiving the add.</param>
         /// <param name="item">The user inventory item being added.</param>
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID,
-                                     InventoryItemBase item, UUID copyItemID)
+        public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID)
         {
 //            m_log.DebugFormat(
 //                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}", 
@@ -97,7 +123,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
 
-            SceneObjectPart part = GetChildPart(localID);
+            SceneObjectPart part = GetPart(localID);
             if (part != null)
             {
                 TaskInventoryItem taskItem = new TaskInventoryItem();
@@ -111,9 +137,7 @@ namespace OpenSim.Region.Framework.Scenes
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
 
-                if (remoteClient != null &&
-                        remoteClient.AgentId != part.OwnerID &&
-                        m_scene.Permissions.PropagatePermissions())
+                if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
                 {
                     taskItem.BasePermissions = item.BasePermissions &
                             item.NextPermissions;
@@ -148,11 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                taskItem.SaleType = item.SaleType;
                 taskItem.CreationDate = (uint)item.CreationDate;
 
-                bool addFromAllowedDrop = false;
-                if (remoteClient != null) 
-                {
-                    addFromAllowedDrop = remoteClient.AgentId != part.OwnerID;
-                }
+                bool addFromAllowedDrop = agentID != part.OwnerID;
 
                 part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
 
@@ -177,7 +197,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the item does not exist</returns>
         public TaskInventoryItem GetInventoryItem(uint primID, UUID itemID)
         {
-            SceneObjectPart part = GetChildPart(primID);
+            SceneObjectPart part = GetPart(primID);
             if (part != null)
             {
                 return part.Inventory.GetInventoryItem(itemID);
@@ -201,7 +221,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>false if the item did not exist, true if the update occurred succesfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
-            SceneObjectPart part = GetChildPart(item.ParentPartID);
+            SceneObjectPart part = GetPart(item.ParentPartID);
             if (part != null)
             {
                 part.Inventory.UpdateInventoryItem(item);
@@ -221,7 +241,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int RemoveInventoryItem(uint localID, UUID itemID)
         {
-            SceneObjectPart part = GetChildPart(localID);
+            SceneObjectPart part = GetPart(localID);
             if (part != null)
             {
                 int type = part.Inventory.RemoveInventoryItem(itemID);
@@ -272,6 +292,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ApplyNextOwnerPermissions()
         {
+//            m_log.DebugFormat("[PRIM INVENTORY]: Applying next owner permissions to {0} {1}", Name, UUID);
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].ApplyNextOwnerPermissions();

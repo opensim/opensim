@@ -45,7 +45,7 @@ namespace OpenSim.Region.ClientStack.Linden
     /// <summary>
     /// MeshUploadFlag capability. This is required for uploading Mesh.
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MeshUploadFlagModule")]
     public class MeshUploadFlagModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log =
@@ -57,7 +57,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public bool Enabled { get; private set; }
 
         private Scene m_scene;
-        private UUID m_agentID;
 
         #region ISharedRegionModule Members
 
@@ -117,24 +116,27 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), MeshUploadFlag);
+            IRequestHandler reqHandler
+                = new RestHTTPHandler(
+                    "GET", "/CAPS/" + UUID.Random(), ht => MeshUploadFlag(ht, agentID), "MeshUploadFlag", agentID.ToString());
+
             caps.RegisterHandler("MeshUploadFlag", reqHandler);
-	        m_agentID = agentID;
+
         }
 
-        private Hashtable MeshUploadFlag(Hashtable mDhttpMethod)
+        private Hashtable MeshUploadFlag(Hashtable mDhttpMethod, UUID agentID)
         {
 //            m_log.DebugFormat("[MESH UPLOAD FLAG MODULE]: MeshUploadFlag request");
 
             OSDMap data = new OSDMap();
-    	    ScenePresence sp = m_scene.GetScenePresence(m_agentID);
+    	    ScenePresence sp = m_scene.GetScenePresence(agentID);
     	    data["username"] = sp.Firstname + "." + sp.Lastname;
     	    data["display_name_next_update"] = new OSDDate(DateTime.Now);
     	    data["legacy_first_name"] = sp.Firstname;
     	    data["mesh_upload_status"] = "valid";
     	    data["display_name"] = sp.Firstname + " " + sp.Lastname;
     	    data["legacy_last_name"] = sp.Lastname;
-    	    data["id"] = m_agentID;
+    	    data["id"] = agentID;
     	    data["is_display_name_default"] = true;
 
             //Send back data

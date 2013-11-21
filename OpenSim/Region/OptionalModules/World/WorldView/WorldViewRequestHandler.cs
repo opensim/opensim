@@ -55,8 +55,8 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             m_WorldViewModule = fmodule;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream requestData,
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             httpResponse.ContentType = "image/jpeg";
 
