@@ -264,9 +264,10 @@ namespace pCampBot
                 newClient.Throttle.Total = 400000;
             }
 
-            newClient.Network.LoginProgress += this.Network_LoginProgress;
-            newClient.Network.SimConnected += this.Network_SimConnected;
-            newClient.Network.Disconnected += this.Network_OnDisconnected;
+            newClient.Network.LoginProgress += Network_LoginProgress;
+            newClient.Network.SimConnected += Network_SimConnected;
+            newClient.Network.SimDisconnected += Network_SimDisconnected;
+            newClient.Network.Disconnected += Network_OnDisconnected;
             newClient.Objects.ObjectUpdate += Objects_NewPrim;
 
             Client = newClient;
@@ -276,7 +277,7 @@ namespace pCampBot
         //add additional steps and/or things the bot should do
         private void Action()
         {
-            while (ConnectionState != ConnectionState.Disconnecting)
+            while (ConnectionState == ConnectionState.Connected)
             {
                 lock (Behaviours)
                 {
@@ -583,7 +584,13 @@ namespace pCampBot
         public void Network_SimConnected(object sender, SimConnectedEventArgs args)
         {
             m_log.DebugFormat(
-                "[BOT]: Bot {0} connected to {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
+                "[BOT]: Bot {0} connected to region {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
+        }
+
+        public void Network_SimDisconnected(object sender, SimDisconnectedEventArgs args)
+        {
+            m_log.DebugFormat(
+                "[BOT]: Bot {0} disconnected from region {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
         }
 
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
@@ -591,7 +598,7 @@ namespace pCampBot
             ConnectionState = ConnectionState.Disconnected;
 
             m_log.DebugFormat(
-                "[BOT]: Bot {0} disconnected reason {1}, message {2}", Name, args.Reason, args.Message);
+                "[BOT]: Bot {0} disconnected from grid, reason {1}, message {2}", Name, args.Reason, args.Message);
 
 //            m_log.ErrorFormat("Fired Network_OnDisconnected");
 

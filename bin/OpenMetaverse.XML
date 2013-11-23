@@ -7557,6 +7557,9 @@
         <member name="T:OpenMetaverse.Packets.MapBlockReplyPacket.DataBlock">
             <exclude/>
         </member>
+        <member name="T:OpenMetaverse.Packets.MapBlockReplyPacket.SizeBlock">
+            <exclude/>
+        </member>
         <member name="T:OpenMetaverse.Packets.MapItemRequestPacket">
             <exclude/>
         </member>
@@ -9154,6 +9157,13 @@
             <param name="height">new height</param>
         </member>
         <member name="M:OpenMetaverse.Imaging.ManagedImage.ExportRaw">
+            <summary>
+            Create a byte array containing 32-bit RGBA data with a bottom-left
+            origin, suitable for feeding directly into OpenGL
+            </summary>
+            <returns>A byte array containing raw texture data</returns>
+        </member>
+        <member name="M:OpenMetaverse.Imaging.ManagedImage.ExportBitmap">
             <summary>
             Create a byte array containing 32-bit RGBA data with a bottom-left
             origin, suitable for feeding directly into OpenGL
@@ -11537,6 +11547,26 @@
             <summary>A <see langword="float"/> that represents the ending Y size of the particle</summary>
             <remarks>Minimum value is 0, maximum value is 4</remarks>
         </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.PartStartGlow">
+            <summary>A <see langword="float"/> that represents the start glow value</summary>
+            <remarks>Minimum value is 0, maximum value is 1</remarks>
+        </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.PartEndGlow">
+            <summary>A <see langword="float"/> that represents the end glow value</summary>
+            <remarks>Minimum value is 0, maximum value is 1</remarks>
+        </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.BlendFuncSource">
+            <summary>OpenGL blend function to use at particle source</summary>
+        </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.BlendFuncDest">
+            <summary>OpenGL blend function to use at particle destination</summary>
+        </member>
+        <member name="M:OpenMetaverse.Primitive.ParticleSystem.IsLegacyCompatible">
+            <summary>
+            Can this particle system be packed in a legacy compatible way
+            </summary>
+            <returns>True if the particle system doesn't use new particle system features</returns>
+        </member>
         <member name="M:OpenMetaverse.Primitive.ParticleSystem.#ctor(System.Byte[],System.Int32)">
             <summary>
             Decodes a byte[] array into a ParticleSystem Object
@@ -11610,6 +11640,15 @@
         </member>
         <member name="F:OpenMetaverse.Primitive.ParticleSystem.ParticleDataFlags.Beam">
             <summary>used for point/grab/touch</summary>
+        </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.ParticleDataFlags.Ribbon">
+            <summary>continuous ribbon particle</summary>
+        </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.ParticleDataFlags.DataGlow">
+            <summary>particle data contains glow</summary>
+        </member>
+        <member name="F:OpenMetaverse.Primitive.ParticleSystem.ParticleDataFlags.DataBlend">
+            <summary>particle data contains blend functions</summary>
         </member>
         <member name="T:OpenMetaverse.Primitive.ParticleSystem.ParticleFlags">
             <summary>
@@ -12034,6 +12073,17 @@
             <param name="callback">The callback to fire when the simulator responds with the asset data</param>
         </member>
         <member name="M:OpenMetaverse.AssetManager.RequestAsset(OpenMetaverse.UUID,OpenMetaverse.AssetType,System.Boolean,OpenMetaverse.SourceType,OpenMetaverse.UUID,OpenMetaverse.AssetManager.AssetReceivedCallback)">
+            <summary>
+            Request an asset download
+            </summary>
+            <param name="assetID">Asset UUID</param>
+            <param name="type">Asset type, must be correct for the transfer to succeed</param>
+            <param name="priority">Whether to give this transfer an elevated priority</param>
+            <param name="sourceType">Source location of the requested asset</param>
+            <param name="transactionID">UUID of the transaction</param>
+            <param name="callback">The callback to fire when the simulator responds with the asset data</param>
+        </member>
+        <member name="M:OpenMetaverse.AssetManager.RequestAsset(OpenMetaverse.UUID,OpenMetaverse.UUID,OpenMetaverse.UUID,OpenMetaverse.AssetType,System.Boolean,OpenMetaverse.SourceType,OpenMetaverse.UUID,OpenMetaverse.AssetManager.AssetReceivedCallback)">
             <summary>
             Request an asset download
             </summary>
@@ -18501,7 +18551,11 @@
             </summary>
             <returns>True on success, otherwise false</returns>
         </member>
-        <member name="M:OpenMetaverse.AppearanceManager.DecodeWearableParams(OpenMetaverse.AppearanceManager.WearableData)">
+        <member name="M:OpenMetaverse.AppearanceManager.DecodeWearableParams(OpenMetaverse.AppearanceManager.WearableData,OpenMetaverse.AppearanceManager.TextureData[]@)">
+            <summary>
+            Populates textures and visual params from a decoded asset
+            </summary>
+            <param name="wearable">Wearable to decode</param>
             <summary>
             Populates textures and visual params from a decoded asset
             </summary>
@@ -18984,6 +19038,9 @@
         <member name="P:OpenMetaverse.InventoryNode.Data">
             <summary></summary>
         </member>
+        <member name="P:OpenMetaverse.InventoryNode.Tag">
+            <summary>User data</summary>
+        </member>
         <member name="P:OpenMetaverse.InventoryNode.Parent">
             <summary></summary>
         </member>
@@ -19145,6 +19202,15 @@
             <summary>
             Region protocol flags
             </summary>
+        </member>
+        <member name="F:OpenMetaverse.RegionProtocols.None">
+            <summary>Nothing special</summary>
+        </member>
+        <member name="F:OpenMetaverse.RegionProtocols.AgentAppearanceService">
+            <summary>Region supports Server side Appearance</summary>
+        </member>
+        <member name="F:OpenMetaverse.RegionProtocols.SelfAppearanceSupport">
+            <summary>Viewer supports Server side Appearance</summary>
         </member>
         <member name="T:OpenMetaverse.SimAccess">
             <summary>
@@ -21475,6 +21541,11 @@
             Constants for the archiving module
             </summary>
         </member>
+        <member name="F:OpenMetaverse.Assets.ArchiveConstants.LANDDATA_PATH">
+            <value>
+              Path for region settings.
+            </value>
+        </member>
         <member name="F:OpenMetaverse.Assets.ArchiveConstants.CONTROL_FILE_PATH">
             <summary>
             The location of the archive control file
@@ -23667,6 +23738,58 @@
             Serializes the message
             </summary>
             <returns>OSD containting the messaage</returns>
+        </member>
+        <member name="T:OpenMetaverse.Parallel">
+            <summary>
+            Provides helper methods for parallelizing loops
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Action{System.Int32})">
+            <summary>
+            Executes a for loop in which iterations may run in parallel
+            </summary>
+            <param name="fromInclusive">The loop will be started at this index</param>
+            <param name="toExclusive">The loop will be terminated before this index is reached</param>
+            <param name="body">Method body to run for each iteration of the loop</param>
+        </member>
+        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Int32,System.Action{System.Int32})">
+            <summary>
+            Executes a for loop in which iterations may run in parallel
+            </summary>
+            <param name="threadCount">The number of concurrent execution threads to run</param>
+            <param name="fromInclusive">The loop will be started at this index</param>
+            <param name="toExclusive">The loop will be terminated before this index is reached</param>
+            <param name="body">Method body to run for each iteration of the loop</param>
+        </member>
+        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>
+            Executes a foreach loop in which iterations may run in parallel
+            </summary>
+            <typeparam name="T">Object type that the collection wraps</typeparam>
+            <param name="enumerable">An enumerable collection to iterate over</param>
+            <param name="body">Method body to run for each object in the collection</param>
+        </member>
+        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Int32,System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>
+            Executes a foreach loop in which iterations may run in parallel
+            </summary>
+            <typeparam name="T">Object type that the collection wraps</typeparam>
+            <param name="threadCount">The number of concurrent execution threads to run</param>
+            <param name="enumerable">An enumerable collection to iterate over</param>
+            <param name="body">Method body to run for each object in the collection</param>
+        </member>
+        <member name="M:OpenMetaverse.Parallel.Invoke(System.Action[])">
+            <summary>
+            Executes a series of tasks in parallel
+            </summary>
+            <param name="actions">A series of method bodies to execute</param>
+        </member>
+        <member name="M:OpenMetaverse.Parallel.Invoke(System.Int32,System.Action[])">
+            <summary>
+            Executes a series of tasks in parallel
+            </summary>
+            <param name="threadCount">The number of concurrent execution threads to run</param>
+            <param name="actions">A series of method bodies to execute</param>
         </member>
         <member name="F:OpenMetaverse.InventorySortOrder.ByName">
             <summary>Sort by name</summary>

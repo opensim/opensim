@@ -824,7 +824,7 @@ namespace OpenSim.Data.PGSQL
 
         public void StoreRegionWindlightSettings(RegionLightShareData wl)
         {
-            string sql = @"select count (region_id) from regionwindlight where ""region_id"" = :region_id ;";
+            string sql = @"select region_id from regionwindlight where ""region_id"" = :region_id limit 1;";
             bool exists = false;
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             {
@@ -832,7 +832,8 @@ namespace OpenSim.Data.PGSQL
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("region_id", wl.regionID.ToString() ));
-                    exists = cmd.ExecuteNonQuery() > 0;
+                    NpgsqlDataReader dr = cmd.ExecuteReader();
+                    exists = dr.Read();
                 }
             }
             if (exists)
@@ -975,7 +976,7 @@ namespace OpenSim.Data.PGSQL
                 conn.Open();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    cmd.Parameters.Add(_Database.CreateParameter("region_id", wl.regionID));
+                    cmd.Parameters.Add(_Database.CreateParameter("region_id", wl.regionID.ToString()));
                     cmd.Parameters.Add(_Database.CreateParameter("water_color_r", wl.waterColor.X));
                     cmd.Parameters.Add(_Database.CreateParameter("water_color_g", wl.waterColor.Y));
                     cmd.Parameters.Add(_Database.CreateParameter("water_color_b", wl.waterColor.Z));
@@ -993,7 +994,7 @@ namespace OpenSim.Data.PGSQL
                     cmd.Parameters.Add(_Database.CreateParameter("big_wave_direction_y", wl.bigWaveDirection.Y));
                     cmd.Parameters.Add(_Database.CreateParameter("little_wave_direction_x", wl.littleWaveDirection.X));
                     cmd.Parameters.Add(_Database.CreateParameter("little_wave_direction_y", wl.littleWaveDirection.Y));
-                    cmd.Parameters.Add(_Database.CreateParameter("normal_map_texture", wl.normalMapTexture));
+                    cmd.Parameters.Add(_Database.CreateParameter("normal_map_texture", wl.normalMapTexture.ToString()));
                     cmd.Parameters.Add(_Database.CreateParameter("horizon_r", wl.horizon.X));
                     cmd.Parameters.Add(_Database.CreateParameter("horizon_g", wl.horizon.Y));
                     cmd.Parameters.Add(_Database.CreateParameter("horizon_b", wl.horizon.Z));

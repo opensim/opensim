@@ -618,7 +618,7 @@ namespace SecondLife
                         // error log.
                         if (results.Errors.Count > 0)
                         {
-                            if (!retried && (results.Errors[0].FileName == null || results.Errors[0].FileName == String.Empty) &&
+                            if (!retried && string.IsNullOrEmpty(results.Errors[0].FileName) &&
                                 results.Errors[0].Line == 0)
                             {
                                 // System.Console.WriteLine("retrying failed compilation");

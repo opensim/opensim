@@ -827,11 +827,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         {
             string requrl = String.Format(m_vivoxChannelPath, m_vivoxServer, "create", channelId, m_authToken);
 
-            if (parent != null && parent != String.Empty)
+            if (!string.IsNullOrEmpty(parent))
             {
                 requrl = String.Format("{0}&chan_parent={1}", requrl, parent);
             }
-            if (description != null && description != String.Empty)
+            if (!string.IsNullOrEmpty(description))
             {
                 requrl = String.Format("{0}&chan_desc={1}", requrl, description);
             }
@@ -867,7 +867,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             //     requrl = String.Format("{0}&chan_parent={1}", requrl, parent);
             // }
 
-            if (description != null && description != String.Empty)
+            if (!string.IsNullOrEmpty(description))
             {
                 requrl = String.Format("{0}&chan_desc={1}", requrl, description);
             }
@@ -1053,7 +1053,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         private XmlElement VivoxDeleteChannel(string parent, string channelid)
         {
             string requrl = String.Format(m_vivoxChannelDel, m_vivoxServer, "delete", channelid, m_authToken);
-            if (parent != null && parent != String.Empty)
+            if (!string.IsNullOrEmpty(parent))
             {
                 requrl = String.Format("{0}&chan_parent={1}", requrl, parent);
             }

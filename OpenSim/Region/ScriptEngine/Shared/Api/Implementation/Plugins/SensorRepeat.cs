@@ -368,7 +368,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             Vector3 ZeroVector = new Vector3(0, 0, 0);
 
-            bool nameSearch = (ts.name != null && ts.name != "");
+            bool nameSearch = !string.IsNullOrEmpty(ts.name);
 
             foreach (EntityBase ent in Entities)
             {
@@ -608,7 +608,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     return sensedEntities;
                 senseEntity(sp);
             }
-            else if (ts.name != null && ts.name != "")
+            else if (!string.IsNullOrEmpty(ts.name))
             {
                 ScenePresence sp;
                 // Try lookup by name will return if/when found

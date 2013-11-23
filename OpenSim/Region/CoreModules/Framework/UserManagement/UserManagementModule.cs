@@ -466,7 +466,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return userdata.ServerURLs[serverType].ToString();
                 }
 
-                if (userdata.HomeURL != null && userdata.HomeURL != string.Empty)
+                if (!string.IsNullOrEmpty(userdata.HomeURL))
                 {
                     //m_log.DebugFormat(
                     //    "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
@@ -552,7 +552,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (oldUser != null)
             {
-                if (creatorData == null || creatorData == String.Empty)
+                if (string.IsNullOrEmpty(creatorData))
                 {
                     //ignore updates without creator data
                     return;

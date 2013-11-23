@@ -421,7 +421,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 item.CreatorId = ospResolvedId.ToString();
                 item.CreatorData = string.Empty;
             }
-            else if (item.CreatorData == null || item.CreatorData == String.Empty)
+            else if (string.IsNullOrEmpty(item.CreatorData))
             {
                 item.CreatorId = m_userInfo.PrincipalID.ToString();
 //                item.CreatorIdAsUuid = new UUID(item.CreatorId);
@@ -522,7 +522,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         
                         foreach (SceneObjectGroup sog in sceneObjects)
                             foreach (SceneObjectPart sop in sog.Parts)
-                                if (sop.CreatorData == null || sop.CreatorData == "")
+                                if (string.IsNullOrEmpty(sop.CreatorData))
                                     sop.CreatorID = m_creatorIdForAssetId[assetId];
 
                         if (coa != null)

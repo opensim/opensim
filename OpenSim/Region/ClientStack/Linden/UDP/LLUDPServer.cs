@@ -134,6 +134,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "IncomingPacketsResentCount",
+                    "Number of inbound packets that clients indicate are resends.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingPacketsResentCount,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "OutgoingUDPSendsCount",
                     "Number of UDP sends performed",
                     "",
@@ -320,6 +333,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Record how many packets have been sent
         /// </summary>
         internal int PacketsSentCount { get; set; }
+
+        /// <summary>
+        /// Record how many incoming packets are indicated as resends by clients.
+        /// </summary>
+        internal int IncomingPacketsResentCount { get; set; }
 
         /// <summary>
         /// Record how many inbound packets could not be recognized as LLUDP packets.
@@ -1505,6 +1523,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion ACK Sending
 
             #region Incoming Packet Accounting
+
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            if (packet.Header.Resent)
+                IncomingPacketsResentCount++;
 
             // Check the archive of received reliable packet IDs to see whether we already received this packet
             if (packet.Header.Reliable && !udpClient.PacketArchive.TryEnqueue(packet.Header.Sequence))

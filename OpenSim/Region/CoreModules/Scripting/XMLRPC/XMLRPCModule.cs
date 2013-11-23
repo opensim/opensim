@@ -677,7 +677,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             // if not, use as method name
             UUID parseUID;
             string mName = "llRemoteData";
-            if ((Channel != null) && (Channel != ""))
+            if (!string.IsNullOrEmpty(Channel))
                 if (!UUID.TryParse(Channel, out parseUID))
                     mName = Channel;
                 else

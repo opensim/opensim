@@ -721,7 +721,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static string[] GetPreferredImageTypes(string accept)
         {
-            if (accept == null || accept == string.Empty)
+            if (string.IsNullOrEmpty(accept))
                 return new string[0];
 
             string[] types = accept.Split(new char[] { ',' });
