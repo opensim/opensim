@@ -2314,8 +2314,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
                 // being sat upon.
-                offset += part.OffsetPosition;
-
                 ControllingClient.SendSitResponse(
                     part.ParentGroup.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
