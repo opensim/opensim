@@ -2591,7 +2591,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //Quaternion result = (sitTargetOrient * vq) * nq;
 
                     m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT + part.OffsetPosition;
-                    Rotation = sitTargetOrient;
+                    Rotation = part.RotationOffset * sitTargetOrient;
                     ParentPosition = part.AbsolutePosition;
                 }
                 else
