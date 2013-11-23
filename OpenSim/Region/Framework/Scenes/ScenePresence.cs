@@ -2312,10 +2312,8 @@ namespace OpenSim.Region.Framework.Scenes
                 cameraEyeOffset = part.GetCameraEyeOffset();
                 forceMouselook = part.GetForceMouselook();
 
-                // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
-                // being sat upon.
                 ControllingClient.SendSitResponse(
-                    part.ParentGroup.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+                    part.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
                 m_requestedSitTargetUUID = part.UUID;
 
@@ -2594,10 +2592,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
-                    // being sat upon.
-                    m_pos -= part.GroupPosition;
-
+                    m_pos -= part.AbsolutePosition;
                     ParentPosition = part.AbsolutePosition;
 
 //                        m_log.DebugFormat(

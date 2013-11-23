@@ -5218,13 +5218,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.NameValue = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
                 data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
             update.ObjectData = objectData;
-
-            SceneObjectPart parentPart = data.ParentPart;
-            if (parentPart != null)
-                update.ParentID = parentPart.ParentGroup.LocalId;
-            else
-                update.ParentID = 0;
-
+            update.ParentID = data.ParentID;
             update.PathCurve = 16;
             update.PathScaleX = 100;
             update.PathScaleY = 100;
