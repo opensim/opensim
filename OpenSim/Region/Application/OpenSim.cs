@@ -766,7 +766,7 @@ namespace OpenSim
                             foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
                                 MainConsole.Instance.OutputFormat("New Region Module (Shared): {0}", module.Name);
 
-                            foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
+                            foreach (IRegionModuleBase module in nonSharedModules.OrderBy(m => m.Name))
                                 MainConsole.Instance.OutputFormat("New Region Module (Non-Shared): {0}", module.Name);
                         }
                     );

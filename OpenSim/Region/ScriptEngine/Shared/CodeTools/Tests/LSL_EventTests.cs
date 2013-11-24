@@ -36,29 +36,212 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     public class LSL_EventTests : OpenSimTestCase
     {
+        CSCodeGenerator m_cg = new CSCodeGenerator();
+
+        [Test]
+        public void TestBadEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestCompile("default { bad() {} }", true);
+        }
+
+        [Test]
+        public void TestMovingEndEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("moving_end");
+        }
+
+        [Test]
+        public void TestMovingStartEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("moving_start");
+        }
+
+        [Test]
+        public void TestNoSensorEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("no_sensor");
+        }
+
+        [Test]
+        public void TestNotAtRotTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("not_at_rot_target");
+        }
+
+        [Test]
+        public void TestNotAtTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("not_at_target");
+        }
+
         [Test]
         public void TestStateEntryEvent()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            CSCodeGenerator cg = new CSCodeGenerator();
-            cg.Convert("default { state_entry() {} }");
+            TestVoidArgEvent("state_entry");
+        }
 
+        [Test]
+        public void TestStateExitEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("state_exit");
+        }
+
+        [Test]
+        public void TestTimerEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVoidArgEvent("timer");
+        }
+
+        private void TestVoidArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "() {} }", false);
+            TestCompile("default { " + eventName + "(integer n) {} }", true);
+        }
+
+        [Test]
+        public void TestChangedEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("changed");
+        }  
+
+        [Test]
+        public void TestCollisionEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("collision");
+        }  
+
+        [Test]
+        public void TestCollisionStartEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("collision_start");
+        }  
+
+        [Test]
+        public void TestCollisionEndEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("collision_end");
+        }  
+
+        [Test]
+        public void TestOnRezEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("on_rez");
+        }  
+
+        [Test]
+        public void TestRunTimePermissionsEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("run_time_permissions");
+        }  
+
+        [Test]
+        public void TestSensorEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("sensor");
+        }  
+
+        [Test]
+        public void TestTouchEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("touch");
+        }  
+
+        [Test]
+        public void TestTouchStartEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("touch_start");
+        }            
+
+        [Test]
+        public void TestTouchEndEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntArgEvent("touch_end");
+        }           
+
+        private void TestIntArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(integer n) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(integer n, integer o) {{}} }", true);
+        }
+
+        private void TestCompile(string script, bool expectException)
+        {
+            bool gotException = false;
+            Exception ge = null;
+
+            try
             {
-                bool gotException = false;
-
-                try
-                {
-                    cg.Convert("default { state_entry(integer n) {} }");
-                }
-                catch (Exception )
-                {
-                    gotException = true;
-                }
-
-                Assert.That(gotException, Is.True);
+                m_cg.Convert(script);
             }
+            catch (Exception e)
+            {
+                gotException = true;
+                ge = e;
+            }
+
+            Assert.That(
+                gotException, 
+                Is.EqualTo(expectException), 
+                "Failed on {0}, exception {1}", script, ge != null ? ge.ToString() : "n/a");
         }
     }
 }

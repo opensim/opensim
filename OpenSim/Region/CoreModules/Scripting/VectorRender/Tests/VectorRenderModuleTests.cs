@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
             TestHelpers.InMethod();
 
             string dtText
-                = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://localhost/shouldnotexist.png";
+                = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://0.0.0.0/shouldnotexist.png";
 
             SetupScene(false);
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
@@ -307,7 +307,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
             TestHelpers.InMethod();
 
             string dtText
-                = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://localhost/shouldnotexist.png";
+                = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://0.0.0.0/shouldnotexist.png";
 
             SetupScene(true);
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
