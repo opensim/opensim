@@ -355,11 +355,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
 //            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
 
+            Dictionary<SceneObjectGroup, KeyframeMotion> group2Keyframe = new Dictionary<SceneObjectGroup, KeyframeMotion>();
+
             foreach (SceneObjectGroup objectGroup in objlist)
             {
                 if (objectGroup.RootPart.KeyframeMotion != null)
-                    objectGroup.RootPart.KeyframeMotion.Stop();
-                objectGroup.RootPart.KeyframeMotion = null;
+                {
+                    objectGroup.RootPart.KeyframeMotion.Pause();
+                    group2Keyframe.Add(objectGroup, objectGroup.RootPart.KeyframeMotion);
+                    objectGroup.RootPart.KeyframeMotion = null;
+                }
+
 //                Vector3 inventoryStoredPosition = new Vector3
 //                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
 //                                  ? 250
@@ -475,6 +481,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
                     }
                 }
+            }
+
+            // Restore KeyframeMotion
+            foreach (SceneObjectGroup objectGroup in group2Keyframe.Keys)
+            {
+                objectGroup.RootPart.KeyframeMotion = group2Keyframe[objectGroup];
+                objectGroup.RootPart.KeyframeMotion.Start();
             }
 
             // This is a hook to do some per-asset post-processing for subclasses that need that
