@@ -116,6 +116,16 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Log every invocation of a thread using the threadpool.
+        /// </summary>
+        public static bool LogThreadPool { get; set; }
+
+        static Util()
+        {
+            LogThreadPool = false;
+        }
+
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
 
@@ -1887,9 +1897,16 @@ namespace OpenSim.Framework
             }
         }
 
+        
+        private static long nextThreadFuncNum = 0;
+        private static long numQueuedThreadFuncs = 0;
+        private static long numRunningThreadFuncs = 0;
+
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             WaitCallback realCallback;
+
+            long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
 
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
@@ -1903,49 +1920,117 @@ namespace OpenSim.Framework
                 // for decimals places but is read by a culture that treats commas as number seperators.
                 realCallback = o =>
                 {
-                    Culture.SetCurrentCulture();
+                    long numQueued1 = Interlocked.Decrement(ref numQueuedThreadFuncs);
+                    long numRunning1 = Interlocked.Increment(ref numRunningThreadFuncs);
 
                     try
                     {
+                        if (LogThreadPool)
+                            m_log.DebugFormat("Run threadfunc {0} (Queued {1}, Running {2})", threadFuncNum, numQueued1, numRunning1);
+
+                        Culture.SetCurrentCulture();
+
                         callback(o);
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat(
-                            "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
-                            e.Message, e.StackTrace);
+                        m_log.Error("[UTIL]: FireAndForget thread terminated with error ", e);
+                    }
+                    finally
+                    {
+                        Interlocked.Decrement(ref numRunningThreadFuncs);
+                        if (LogThreadPool)
+                            m_log.Debug("Exit threadfunc " + threadFuncNum);
                     }
                 };
             }
 
-            switch (FireAndForgetMethod)
+            long numQueued = Interlocked.Increment(ref numQueuedThreadFuncs);
+            try
             {
-                case FireAndForgetMethod.RegressionTest:
-                case FireAndForgetMethod.None:
-                    realCallback.Invoke(obj);
-                    break;
-                case FireAndForgetMethod.UnsafeQueueUserWorkItem:
-                    ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
-                    break;
-                case FireAndForgetMethod.QueueUserWorkItem:
-                    ThreadPool.QueueUserWorkItem(realCallback, obj);
-                    break;
-                case FireAndForgetMethod.BeginInvoke:
-                    FireAndForgetWrapper wrapper = FireAndForgetWrapper.Instance;
-                    wrapper.FireAndForget(realCallback, obj);
-                    break;
-                case FireAndForgetMethod.SmartThreadPool:
-                    if (m_ThreadPool == null)
-                        InitThreadPool(2, 15); 
-                    m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
-                    break;
-                case FireAndForgetMethod.Thread:
-                    Thread thread = new Thread(delegate(object o) { realCallback(o); });
-                    thread.Start(obj);
-                    break;
-                default:
-                    throw new NotImplementedException();
+                if (LogThreadPool)
+                    m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}",
+                        threadFuncNum, numQueued, numRunningThreadFuncs, GetFireAndForgetStackTrace(true));
+
+                switch (FireAndForgetMethod)
+                {
+                    case FireAndForgetMethod.RegressionTest:
+                    case FireAndForgetMethod.None:
+                        realCallback.Invoke(obj);
+                        break;
+                    case FireAndForgetMethod.UnsafeQueueUserWorkItem:
+                        ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
+                        break;
+                    case FireAndForgetMethod.QueueUserWorkItem:
+                        ThreadPool.QueueUserWorkItem(realCallback, obj);
+                        break;
+                    case FireAndForgetMethod.BeginInvoke:
+                        FireAndForgetWrapper wrapper = FireAndForgetWrapper.Instance;
+                        wrapper.FireAndForget(realCallback, obj);
+                        break;
+                    case FireAndForgetMethod.SmartThreadPool:
+                        if (m_ThreadPool == null)
+                            InitThreadPool(2, 15);
+                        m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
+                        break;
+                    case FireAndForgetMethod.Thread:
+                        Thread thread = new Thread(delegate(object o) { realCallback(o); });
+                        thread.Start(obj);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
+            catch (Exception)
+            {
+                Interlocked.Decrement(ref numQueuedThreadFuncs);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Returns a stack trace for a thread added using FireAndForget().
+        /// </summary>
+        /// <param name="full">True: return full stack trace; False: return only the first frame</param>
+        private static string GetFireAndForgetStackTrace(bool full)
+        {
+            string src = Environment.StackTrace;
+            string[] lines = src.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            
+            StringBuilder dest = new StringBuilder(src.Length);
+
+            bool started = false;
+            bool first = true;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+
+                if (!started)
+                {
+                    // Skip the initial stack frames, because they're of no interest for debugging
+                    if (line.Contains("StackTrace") || line.Contains("FireAndForget"))
+                        continue;
+                    started = true;
+                }
+
+                if (first)
+                {
+                    line = line.TrimStart();
+                    first = false;
+                }
+
+                bool last = (i == lines.Length - 1) || !full;
+                if (last)
+                    dest.Append(line);
+                else
+                    dest.AppendLine(line);
+
+                if (!full)
+                    break;
+            }
+
+            return dest.ToString();
         }
 
         /// <summary>
