@@ -2277,16 +2277,15 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = part.SitTargetPosition;
                 sitOrientation = part.SitTargetOrientation;
 
-//                m_log.DebugFormat("Old sit orient {0}", sitOrientation);
-                if (part.IsRoot)
-                    sitOrientation = sitOrientation;
-                else
+                if (!part.IsRoot)
+                {
+                    //                m_log.DebugFormat("Old sit orient {0}", sitOrientation);
                     sitOrientation = part.RotationOffset * sitOrientation;
-//                m_log.DebugFormat("New sit orient {0}", sitOrientation);
-
+                    //                m_log.DebugFormat("New sit orient {0}", sitOrientation);
 //                m_log.DebugFormat("Old sit offset {0}", offset);
-                offset = offset * sitOrientation;
+                    offset = offset * part.RotationOffset;
 //                m_log.DebugFormat("New sit offset {0}", offset);
+                }
 
                 canSit = true;
             }
@@ -2604,19 +2603,22 @@ namespace OpenSim.Region.Framework.Scenes
                     //Quaternion result = (sitTargetOrient * vq) * nq;
 
                     Vector3 newPos = sitTargetPos + SIT_TARGET_ADJUSTMENT;
+                    Quaternion newRot;
 
                     if (part.IsRoot)
-                        Rotation = sitTargetOrient;
+                    {
+                        newRot = sitTargetOrient;
+                    }
                     else
-                        Rotation = part.RotationOffset * sitTargetOrient;
-
-//                    m_log.DebugFormat("Old offset2 {0}", newPos);
-                    newPos = newPos * Rotation;
-//                    m_log.DebugFormat("New offset2 {0}", newPos);
+                    {
+                        newPos = newPos * part.RotationOffset;
+                        newRot = part.RotationOffset * sitTargetOrient;
+                    }
 
                     newPos += part.OffsetPosition;
 
                     m_pos = newPos;
+                    Rotation = newRot;
                     ParentPosition = part.AbsolutePosition;
                 }
                 else
