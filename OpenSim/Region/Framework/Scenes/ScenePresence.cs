@@ -2267,7 +2267,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sitAvatarHeight = PhysicsActor.Size.Z;
 
             bool canSit = false;
-            Vector3 pos = part.AbsolutePosition + offset;
 
             if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
             {
@@ -2277,10 +2276,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                 offset = part.SitTargetPosition;
                 sitOrientation = part.SitTargetOrientation;
+
+//                m_log.DebugFormat("Old sit orient {0}", sitOrientation);
+                if (part.IsRoot)
+                    sitOrientation = sitOrientation;
+                else
+                    sitOrientation = part.RotationOffset * sitOrientation;
+//                m_log.DebugFormat("New sit orient {0}", sitOrientation);
+
+//                m_log.DebugFormat("Old sit offset {0}", offset);
+                offset = offset * sitOrientation;
+//                m_log.DebugFormat("New sit offset {0}", offset);
+
                 canSit = true;
             }
             else
             {
+                Vector3 pos = part.AbsolutePosition + offset;
+
                 if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
                 {
 //                    m_log.DebugFormat(
@@ -2590,8 +2603,20 @@ namespace OpenSim.Region.Framework.Scenes
 
                     //Quaternion result = (sitTargetOrient * vq) * nq;
 
-                    m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT + part.OffsetPosition;
-                    Rotation = part.RotationOffset * sitTargetOrient;
+                    Vector3 newPos = sitTargetPos + SIT_TARGET_ADJUSTMENT;
+
+                    if (part.IsRoot)
+                        Rotation = sitTargetOrient;
+                    else
+                        Rotation = part.RotationOffset * sitTargetOrient;
+
+//                    m_log.DebugFormat("Old offset2 {0}", newPos);
+                    newPos = newPos * Rotation;
+//                    m_log.DebugFormat("New offset2 {0}", newPos);
+
+                    newPos += part.OffsetPosition;
+
+                    m_pos = newPos;
                     ParentPosition = part.AbsolutePosition;
                 }
                 else
