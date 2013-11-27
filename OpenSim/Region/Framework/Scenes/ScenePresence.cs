@@ -499,6 +499,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
+//                    m_log.DebugFormat("[SCENE PRESENCE]: Fetching abs pos where PhysicsActor == null and parent part {0} for {1}", Name, Scene.Name);
                     // Obtain the correct position of a seated avatar.
                     // In addition to providing the correct position while
                     // the avatar is seated, this value will also
@@ -515,14 +516,14 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart sitPart = ParentPart;
 
                     if (sitPart != null)
-                        return sitPart.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
+                        return sitPart.AbsolutePosition;
                 }
                 
                 return m_pos;
             }
             set
             {
-//                m_log.DebugFormat("[SCENE PRESENCE]: Setting position of {0} in {1} to {2}", Name, Scene.Name, value);
+//                m_log.DebugFormat("[SCENE PRESENCE]: Setting position of {0} to {1} in {2}", Name, value, Scene.Name);
 //                Util.PrintCallStack();
 
                 if (PhysicsActor != null)
@@ -2174,8 +2175,6 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE PRESENCE]: StandUp() for {0}", Name);
 
             SitGround = false;
-            if (PhysicsActor == null)
-                AddToPhysicalScene(false);
 
             if (ParentID != 0)
             {
@@ -2198,11 +2197,53 @@ namespace OpenSim.Region.Framework.Scenes
                 ParentPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
-                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
-                ParentPosition = Vector3.Zero;
-
                 ParentID = 0;
                 ParentPart = null;
+
+                Quaternion standRotation;
+
+                if (part.SitTargetAvatar == UUID)
+                {
+                    standRotation = part.GetWorldRotation();
+
+                    if (!part.IsRoot)
+                        standRotation = standRotation * part.SitTargetOrientation;
+//                        standRotation = part.RotationOffset * part.SitTargetOrientation;
+//                    else
+//                        standRotation = part.SitTargetOrientation;
+
+                }
+                else
+                {
+                    standRotation = Rotation;
+                }
+
+                //Vector3 standPos = ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                //Vector3 standPos = ParentPosition;
+
+//                Vector3 standPositionAdjustment 
+//                    = part.SitTargetPosition + new Vector3(0.5f, 0f, m_sitAvatarHeight / 2f);
+                Vector3 adjustmentForSitPosition = part.SitTargetPosition * part.GetWorldRotation();
+
+                // XXX: This is based on the physics capsule sizes.  Need to find a better way to read this rather than
+                // hardcoding here.
+                Vector3 adjustmentForSitPose = new Vector3(0.74f, 0f, 0f) * standRotation;
+
+                Vector3 standPos = ParentPosition + adjustmentForSitPosition + adjustmentForSitPose;
+
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
+                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
+
+                Rotation = standRotation;
+                AbsolutePosition = standPos;
+                ParentPosition = Vector3.Zero;
+
+                // We need to wait until we have calculated proper stand positions before sitting up the physical 
+                // avatar to avoid race conditions.
+                if (PhysicsActor == null)
+                    AddToPhysicalScene(false);
+
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
@@ -2859,6 +2900,7 @@ namespace OpenSim.Region.Framework.Scenes
                 lastTerseUpdateToAllClientsTick = currentTick;
                 lastPositionSentToAllClients = OffsetPosition;
 
+//                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
                 m_scene.ForEachClient(SendTerseUpdateToClient);
             }
             TriggerScenePresenceUpdated();
