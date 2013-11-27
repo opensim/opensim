@@ -67,7 +67,7 @@ namespace OpenSim.Framework
         // All does not contain Export, which is special and must be
         // explicitly given
         All = (1 << 13) | (1 << 14) | (1 << 15) | (1 << 19)
-    } 
+    }
 
     /// <summary>
     /// The method used by Util.FireAndForget for asynchronously firing events
@@ -109,6 +109,15 @@ namespace OpenSim.Framework
         public int MaxConcurrentWorkItems { get; set; }
     }
 
+    [Flags]
+    public enum DebugFlagsEnum : uint
+    {
+        None = 0,
+
+        // Log every invocation of a thread using the threadpool
+        LogThreadPool = 0x01
+    }
+
     /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
@@ -117,13 +126,13 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Log every invocation of a thread using the threadpool.
+        /// Flags that enable additional debugging.
         /// </summary>
-        public static bool LogThreadPool { get; set; }
+        public static DebugFlagsEnum DebugFlags { get; set; }
 
         static Util()
         {
-            LogThreadPool = false;
+            DebugFlags = DebugFlagsEnum.None;
         }
 
         private static uint nextXferID = 5000;
@@ -1907,7 +1916,7 @@ namespace OpenSim.Framework
         {
             WaitCallback realCallback;
 
-            bool loggingEnabled = LogThreadPool;
+            bool loggingEnabled = (DebugFlags & DebugFlagsEnum.LogThreadPool) != 0;
             
             long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
 
