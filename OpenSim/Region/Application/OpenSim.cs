@@ -512,9 +512,12 @@ namespace OpenSim
 
         private void HandleRotateScene(string module, string[] args)
         {
-            string usage = "Usage: rotate scene <angle in degrees>";
+            string usage = "Usage: rotate scene <angle in degrees> [centerX centerY] (centerX and centerY are optional and default to Constants.RegionSize / 2";
 
-            if (args.Length != 3)
+            float centerX = Constants.RegionSize * 0.5f;
+            float centerY = Constants.RegionSize * 0.5f;
+
+            if (args.Length < 3 || args.Length == 4)
             {
                 MainConsole.Instance.Output(usage);
                 return;
@@ -523,6 +526,14 @@ namespace OpenSim
             float angle = (float)(Convert.ToSingle(args[2]) / 180.0 * Math.PI);
             OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, angle);
 
+            if (args.Length > 4)
+            {
+                centerX = Convert.ToSingle(args[3]);
+                centerY = Convert.ToSingle(args[4]);
+            }
+
+            Vector3 center = new Vector3(centerX, centerY, 0.0f);
+
             SceneManager.ForEachSelectedScene(delegate(Scene scene) 
             {
                 scene.ForEachSOG(delegate(SceneObjectGroup sog)
@@ -530,9 +541,9 @@ namespace OpenSim
                     if (sog.AttachmentPoint == 0)
                     {
                         sog.RootPart.UpdateRotation(rot * sog.GroupRotation);
-                        Vector3 offset = sog.AbsolutePosition - new Vector3(128.0f, 128.0f, 0.0f);
+                        Vector3 offset = sog.AbsolutePosition - center;
                         offset *= rot;
-                        sog.UpdateGroupPosition(new Vector3(128.0f, 128.0f, 0.0f) + offset);
+                        sog.UpdateGroupPosition(center + offset);
                     }
                 });
             });
