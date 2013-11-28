@@ -46,6 +46,7 @@ using CoolHTTPListener = HttpServer.HttpListener;
 using HttpListener=System.Net.HttpListener;
 using LogPrio=HttpServer.LogPrio;
 using OpenSim.Framework.Monitoring;
+using System.IO.Compression;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -690,6 +691,23 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (buffer != null)
                 {
+                    if (WebUtil.DebugLevel >= 5)
+                    {
+                        string output = System.Text.Encoding.UTF8.GetString(buffer);
+
+                        if (WebUtil.DebugLevel >= 6)
+                        {
+                            // Always truncate binary blobs. We don't have a ContentType, so detect them using the request name.
+                            if ((requestHandler != null && requestHandler.Name == "GetMesh"))
+                            {
+                                if (output.Length > WebUtil.MaxRequestDiagLength)
+                                    output = output.Substring(0, WebUtil.MaxRequestDiagLength) + "...";
+                            }
+                        }
+
+                        WebUtil.LogResponseDetail(output);
+                    }
+
                     if (!response.SendChunked && response.ContentLength64 <= 0)
                         response.ContentLength64 = buffer.LongLength;
 
@@ -743,7 +761,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (tickdiff > 3000 && requestHandler != null && requestHandler.Name != "GetTexture")
                 {
                     m_log.InfoFormat(
-                        "[BASE HTTP SERVER]: Slow handling of {0} {1} {2} {3} {4} from {5} took {6}ms",
+                        "[LOGHTTP] Slow handling of {0} {1} {2} {3} {4} from {5} took {6}ms",
                         RequestNumber,
                         requestMethod,
                         uriString,
@@ -755,7 +773,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 else if (DebugLevel >= 4)
                 {
                     m_log.DebugFormat(
-                        "[BASE HTTP SERVER]: HTTP IN {0} :{1} took {2}ms",
+                        "[LOGHTTP] HTTP IN {0} :{1} took {2}ms",
                         RequestNumber,
                         Port,
                         tickdiff);
@@ -766,7 +784,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToStreamHandler(OSHttpRequest request, IRequestHandler requestHandler)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: HTTP IN {0} :{1} stream handler {2} {3} {4} {5} from {6}",
+                "[LOGHTTP] HTTP IN {0} :{1} stream handler {2} {3} {4} {5} from {6}",
                 RequestNumber,
                 Port,
                 request.HttpMethod,
@@ -782,7 +800,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToContentTypeHandler(OSHttpRequest request)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
+                "[LOGHTTP] HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
                 RequestNumber,
                 Port,
                 string.IsNullOrEmpty(request.ContentType) ? "not set" : request.ContentType,
@@ -797,7 +815,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToXmlRpcHandler(OSHttpRequest request)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: HTTP IN {0} :{1} assumed generic XMLRPC request {2} {3} from {4}",
+                "[LOGHTTP] HTTP IN {0} :{1} assumed generic XMLRPC request {2} {3} from {4}",
                 RequestNumber,
                 Port,
                 request.HttpMethod,
@@ -810,26 +828,32 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void LogIncomingInDetail(OSHttpRequest request)
         {
-            using (StreamReader reader = new StreamReader(Util.Copy(request.InputStream), Encoding.UTF8))
+            if (request.ContentType == "application/octet-stream")
+                return; // never log these; they're just binary data
+
+            Stream inputStream = Util.Copy(request.InputStream);
+
+            if (request.ContentType == "application/x-gzip")
+                inputStream = new GZipStream(inputStream, System.IO.Compression.CompressionMode.Decompress);
+
+            using (StreamReader reader = new StreamReader(inputStream, Encoding.UTF8))
             {
                 string output;
 
                 if (DebugLevel == 5)
                 {
-                    const int sampleLength = 80;
-                    char[] sampleChars = new char[sampleLength + 3];
-                    reader.Read(sampleChars, 0, sampleLength);
-                    sampleChars[80] = '.';
-                    sampleChars[81] = '.';
-                    sampleChars[82] = '.';
-                    output = new string(sampleChars);
+                    char[] chars = new char[WebUtil.MaxRequestDiagLength + 1];  // +1 so we know to add "..." only if needed
+                    int len = reader.Read(chars, 0, WebUtil.MaxRequestDiagLength + 1);
+                    output = new string(chars, 0, Math.Min(len, WebUtil.MaxRequestDiagLength));
+                    if (len > WebUtil.MaxRequestDiagLength)
+                        output += "...";
                 }
                 else
                 {
                     output = reader.ReadToEnd();
                 }
 
-                m_log.DebugFormat("[BASE HTTP SERVER]: {0}", output.Replace("\n", @"\n"));
+                m_log.DebugFormat("[LOGHTTP] {0}", Util.BinaryToASCII(output));
             }
         }
 

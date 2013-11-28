@@ -89,8 +89,9 @@ namespace OpenSim.Framework
         /// <remarks>
         /// This is to truncate any really large post data, such as an asset.  In theory, the first section should
         /// give us useful information about the call (which agent it relates to if applicable, etc.).
+        /// This is also used to truncate messages when using DebugLevel 5.
         /// </remarks>
-        public const int MaxRequestDiagLength = 100;
+        public const int MaxRequestDiagLength = 200;
 
         /// <summary>
         /// Dictionary of end points
@@ -165,35 +166,54 @@ namespace OpenSim.Framework
 
         public static void LogOutgoingDetail(Stream outputStream)
         {
+            LogOutgoingDetail("", outputStream);
+        }
+
+        public static void LogOutgoingDetail(string context, Stream outputStream)
+        {
             using (StreamReader reader = new StreamReader(Util.Copy(outputStream), Encoding.UTF8))
             {
                 string output;
 
                 if (DebugLevel == 5)
                 {
-                    const int sampleLength = 80;
-                    char[] sampleChars = new char[sampleLength];
-                    reader.Read(sampleChars, 0, sampleLength);
-                    output = new string(sampleChars);
+                    char[] chars = new char[WebUtil.MaxRequestDiagLength + 1];  // +1 so we know to add "..." only if needed
+                    int len = reader.Read(chars, 0, WebUtil.MaxRequestDiagLength + 1);
+                    output = new string(chars, 0, len);
                 }
                 else
                 {
                     output = reader.ReadToEnd();
                 }
 
-                LogOutgoingDetail(output);
+                LogOutgoingDetail(context, output);
             }
         }
 
         public static void LogOutgoingDetail(string output)
         {
+            LogOutgoingDetail("", output);
+        }
+
+        public static void LogOutgoingDetail(string context, string output)
+        {
             if (DebugLevel == 5)
             {
-                output = output.Substring(0, 80);
-                output = output + "...";
+                if (output.Length > MaxRequestDiagLength)
+                    output = output.Substring(0, MaxRequestDiagLength) + "...";
             }
 
-            m_log.DebugFormat("[WEB UTIL]: {0}", output.Replace("\n", @"\n"));
+            m_log.DebugFormat("[LOGHTTP]: {0}{1}", context, Util.BinaryToASCII(output));
+        }
+
+        public static void LogResponseDetail(Stream inputStream)
+        {
+            LogOutgoingDetail("RESPONSE: ", inputStream);
+        }
+
+        public static void LogResponseDetail(string input)
+        {
+            LogOutgoingDetail("RESPONSE: ", input);
         }
 
         private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed)
@@ -202,7 +222,7 @@ namespace OpenSim.Framework
 
             if (DebugLevel >= 3)
                 m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} ServiceOSD {1} {2} (timeout {3}, compressed {4})",
+                    "[LOGHTTP]: HTTP OUT {0} ServiceOSD {1} {2} (timeout {3}, compressed {4})",
                     reqnum, method, url, timeout, compressed);
 
             string errorMessage = "unknown error";
@@ -268,7 +288,9 @@ namespace OpenSim.Framework
                         using (StreamReader reader = new StreamReader(responseStream))
                         {
                             string responseStr = reader.ReadToEnd();
-                            // m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
+                            // m_log.DebugFormat("[LOGHTTP]: <{0}> response is <{1}>",reqnum,responseStr);
+                            if (WebUtil.DebugLevel >= 5)
+                                WebUtil.LogResponseDetail(responseStr);
                             return CanonicalizeResults(responseStr);
                         }
                     }
@@ -292,7 +314,7 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[LOGHTTP]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         method,
                         url,
@@ -303,12 +325,12 @@ namespace OpenSim.Framework
                             : "");
                 else if (DebugLevel >= 4)
                     m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                        "[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
                         reqnum, tickdiff, tickdata);
             }
            
             m_log.DebugFormat(
-                "[WEB UTIL]: ServiceOSD request {0} {1} {2} FAILED: {3}", reqnum, url, method, errorMessage);
+                "[LOGHTTP]: ServiceOSD request {0} {1} {2} FAILED: {3}", reqnum, url, method, errorMessage);
 
             return ErrorResponseMap(errorMessage);
         }
@@ -387,7 +409,7 @@ namespace OpenSim.Framework
 
             if (DebugLevel >= 3)
                 m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} ServiceForm {1} {2} (timeout {3})",
+                    "[LOGHTTP]: HTTP OUT {0} ServiceForm {1} {2} (timeout {3})",
                     reqnum, method, url, timeout);
             
             string errorMessage = "unknown error";
@@ -431,6 +453,8 @@ namespace OpenSim.Framework
                         using (StreamReader reader = new StreamReader(responseStream))
                         {
                             string responseStr = reader.ReadToEnd();
+                            if (WebUtil.DebugLevel >= 5)
+                                WebUtil.LogResponseDetail(responseStr);
                             OSD responseOSD = OSDParser.Deserialize(responseStr);
 
                             if (responseOSD.Type == OSDType.Map)
@@ -457,7 +481,7 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceForm request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[LOGHTTP]: Slow ServiceForm request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         method,
                         url,
@@ -468,11 +492,11 @@ namespace OpenSim.Framework
                             : "");
                 else if (DebugLevel >= 4)
                     m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                        "[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
                         reqnum, tickdiff, tickdata);
             }
 
-            m_log.WarnFormat("[WEB UTIL]: ServiceForm request {0} {1} {2} failed: {2}", reqnum, method, url, errorMessage);
+            m_log.WarnFormat("[LOGHTTP]: ServiceForm request {0} {1} {2} failed: {2}", reqnum, method, url, errorMessage);
 
             return ErrorResponseMap(errorMessage);
         }
@@ -753,7 +777,7 @@ namespace OpenSim.Framework
 
             if (WebUtil.DebugLevel >= 3)
                 m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} AsynchronousRequestObject {1} {2}",
+                    "[LOGHTTP]: HTTP OUT {0} AsynchronousRequestObject {1} {2}",
                     reqnum, verb, requestUrl);
 
             int tickstart = Util.EnvironmentTickCount();
@@ -793,14 +817,15 @@ namespace OpenSim.Framework
 
                     int length = (int)buffer.Length;
                     request.ContentLength = length;
+                    byte[] data = buffer.ToArray();
 
                     if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail(buffer);
+                        WebUtil.LogOutgoingDetail(System.Text.Encoding.UTF8.GetString(data));
 
                     request.BeginGetRequestStream(delegate(IAsyncResult res)
                     {
                         using (Stream requestStream = request.EndGetRequestStream(res))
-                            requestStream.Write(buffer.ToArray(), 0, length);
+                            requestStream.Write(data, 0, length);
 
                         // capture how much time was spent writing
                         tickdata = Util.EnvironmentTickCountSubtract(tickstart);
@@ -812,7 +837,11 @@ namespace OpenSim.Framework
                                 try
                                 {
                                     using (Stream respStream = response.GetResponseStream())
+                                    {
+                                        if (WebUtil.DebugLevel >= 5)
+                                            WebUtil.LogResponseDetail(respStream);
                                         deserial = (TResponse)deserializer.Deserialize(respStream);
+                                    }
                                 }
                                 catch (System.InvalidOperationException)
                                 {
@@ -837,7 +866,11 @@ namespace OpenSim.Framework
                                 try
                                 {
                                     using (Stream respStream = response.GetResponseStream())
+                                    {
+                                        if (WebUtil.DebugLevel >= 5)
+                                            WebUtil.LogResponseDetail(respStream);
                                         deserial = (TResponse)deserializer.Deserialize(respStream);
+                                    }
                                 }
                                 catch (System.InvalidOperationException)
                                 {
@@ -907,7 +940,7 @@ namespace OpenSim.Framework
                     }
 
                     m_log.InfoFormat(
-                        "[ASYNC REQUEST]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[LOGHTTP]: [ASYNC REQUEST]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         verb,
                         requestUrl,
@@ -918,7 +951,7 @@ namespace OpenSim.Framework
                 else if (WebUtil.DebugLevel >= 4)
                 {
                     m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                        "[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
                         reqnum, tickdiff, tickdata);
                 }
             }
@@ -951,7 +984,7 @@ namespace OpenSim.Framework
 
             if (WebUtil.DebugLevel >= 3)
                 m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} SynchronousRestForms {1} {2}",
+                    "[LOGHTTP]: HTTP OUT {0} SynchronousRestForms {1} {2}",
                     reqnum, verb, requestUrl);
 
             int tickstart = Util.EnvironmentTickCount();
@@ -978,15 +1011,16 @@ namespace OpenSim.Framework
 
                     length = (int)obj.Length;
                     request.ContentLength = length;
+                    byte[] data = buffer.ToArray();
 
                     if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail(buffer);
+                        WebUtil.LogOutgoingDetail(System.Text.Encoding.UTF8.GetString(data));
 
                     Stream requestStream = null;
                     try
                     {
                         requestStream = request.GetRequestStream();
-                        requestStream.Write(buffer.ToArray(), 0, length);
+                        requestStream.Write(data, 0, length);
                     }
                     catch (Exception e)
                     {
@@ -1036,7 +1070,7 @@ namespace OpenSim.Framework
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
                 m_log.InfoFormat(
-                    "[FORMS]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[LOGHTTP]: [FORMS]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
                     requestUrl,
@@ -1045,8 +1079,11 @@ namespace OpenSim.Framework
                     obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
             else if (WebUtil.DebugLevel >= 4)
                 m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                    "[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
                     reqnum, tickdiff, tickdata);
+
+            if (WebUtil.DebugLevel >= 5)
+                WebUtil.LogResponseDetail(respstring);
 
             return respstring;
         }
@@ -1089,7 +1126,7 @@ namespace OpenSim.Framework
 
             if (WebUtil.DebugLevel >= 3)
                 m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} SynchronousRestObject {1} {2}",
+                    "[LOGHTTP]: HTTP OUT {0} SynchronousRestObject {1} {2}",
                     reqnum, verb, requestUrl);
 
             int tickstart = Util.EnvironmentTickCount();
@@ -1126,14 +1163,15 @@ namespace OpenSim.Framework
 
                     int length = (int)buffer.Length;
                     request.ContentLength = length;
+                    byte[] data = buffer.ToArray();
 
                     if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail(buffer);
+                        WebUtil.LogOutgoingDetail(System.Text.Encoding.UTF8.GetString(data));
 
                     try
                     {
                         using (Stream requestStream = request.GetRequestStream())
-                            requestStream.Write(buffer.ToArray(), 0, length);
+                            requestStream.Write(data, 0, length);
                     }
                     catch (Exception e)
                     {
@@ -1159,7 +1197,21 @@ namespace OpenSim.Framework
                             using (Stream respStream = resp.GetResponseStream())
                             {
                                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                                deserial = (TResponse)deserializer.Deserialize(respStream);
+
+                                if (WebUtil.DebugLevel >= 5)
+                                {
+                                    byte[] data = new byte[resp.ContentLength];
+                                    Util.ReadStream(respStream, data);
+                                
+                                    WebUtil.LogResponseDetail(System.Text.Encoding.UTF8.GetString(data));
+
+                                    using (MemoryStream temp = new MemoryStream(data))
+                                        deserial = (TResponse)deserializer.Deserialize(temp);
+                                }
+                                else
+                                {
+                                    deserial = (TResponse)deserializer.Deserialize(respStream);
+                                }
                             }
                         }
                         else
@@ -1210,7 +1262,7 @@ namespace OpenSim.Framework
                     }
 
                     m_log.InfoFormat(
-                        "[SynchronousRestObjectRequester]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[LOGHTTP]: [SynchronousRestObjectRequester]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         verb,
                         requestUrl,
@@ -1221,7 +1273,7 @@ namespace OpenSim.Framework
                 else if (WebUtil.DebugLevel >= 4)
                 {
                     m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                        "[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
                         reqnum, tickdiff, tickdata);
                 }
             }

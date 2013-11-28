@@ -1510,6 +1510,46 @@ namespace OpenSim.Framework
             return result;
         }
 
+        public static void BinaryToASCII(char[] chars)
+        {
+            for (int i = 0; i < chars.Length; i++)
+            {
+                char ch = chars[i];
+                if (ch < 32 || ch > 127)
+                    chars[i] = '.';
+            }
+        }
+
+        public static string BinaryToASCII(string src)
+        {
+            char[] chars = src.ToCharArray();
+            BinaryToASCII(chars);
+            return new String(chars);
+        }
+
+        /// <summary>
+        /// Reads a known number of bytes from a stream.
+        /// Throws EndOfStreamException if the stream doesn't contain enough data.
+        /// </summary>
+        /// <param name="stream">The stream to read data from</param>
+        /// <param name="data">The array to write bytes into. The array
+        /// will be completely filled from the stream, so an appropriate
+        /// size must be given.</param>
+        public static void ReadStream(Stream stream, byte[] data)
+        {
+            int offset = 0;
+            int remaining = data.Length;
+
+            while (remaining > 0)
+            {
+                int read = stream.Read(data, offset, remaining);
+                if (read <= 0)
+                    throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
+                remaining -= read;
+                offset += read;
+            }
+        }
+
         public static Guid GetHashGuid(string data, string salt)
         {
             byte[] hash = ComputeMD5Hash(data + salt);
