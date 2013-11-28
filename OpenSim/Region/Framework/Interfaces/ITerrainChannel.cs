@@ -37,6 +37,8 @@ namespace OpenSim.Region.Framework.Interfaces
 
         double this[int x, int y] { get; set; }
 
+        float GetHeightAtXYZ(float x, float y, float z);
+
         // Return the packaged terrain data for passing into lower levels of communication
         TerrainData GetTerrainData();
 

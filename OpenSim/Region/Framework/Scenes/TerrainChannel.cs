@@ -156,7 +156,11 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.this[x,y]
         public double this[int x, int y]
         {
-            get { return (double)m_terrainData[x, y]; }
+            get {
+                if (x < 0 || x >= Width || y < 0 || y >= Height)
+                    return 0;
+                return (double)m_terrainData[x, y];
+            }
             set
             {
                 if (Double.IsNaN(value) || Double.IsInfinity(value))
@@ -164,6 +168,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_terrainData[x, y] = (float)value;
             }
+        }
+
+        // ITerrainChannel.GetHieghtAtXYZ(x, y, z)
+        public float GetHeightAtXYZ(float x, float y, float z)
+        {
+            if (x < 0 || x >= Width || y < 0 || y >= Height)
+                return 0;
+            return m_terrainData[(int)x, (int)y];
         }
 
         // ITerrainChannel.Tainted()
