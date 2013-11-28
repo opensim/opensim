@@ -206,7 +206,7 @@ namespace OpenSim.Data.PGSQL
 
                     DataTable schemaTable = result.GetSchemaTable();
                     foreach (DataRow row in schemaTable.Rows)
-                        m_ColumnNames.Add(row["ColumnName"].ToString());
+                        m_ColumnNames.Add(row["column_name"].ToString());
                 }
 
                 foreach (string s in m_ColumnNames)
@@ -376,7 +376,7 @@ namespace OpenSim.Data.PGSQL
 
         private List<RegionData> Get(int regionFlags, UUID scopeID)
         {
-            string sql = "SELECT * FROM " + m_Realm + " WHERE (flags & " + regionFlags.ToString() + ") <> 0";
+            string sql = "SELECT * FROM " + m_Realm + " WHERE (\"flags\" & " + regionFlags.ToString() + ") <> 0";
             if (scopeID != UUID.Zero)
                 sql += " AND \"ScopeID\" = :scopeID";
 

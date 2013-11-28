@@ -105,7 +105,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_scene.LoginLock = true;
                 m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
 
-                m_log.InfoFormat("[RegionReady]: Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
+                // Warn level because the region cannot be used while logins are disabled
+                m_log.WarnFormat("[RegionReady]: Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
 
                 if (m_uri != string.Empty)
                 {
@@ -215,7 +216,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
                 //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
-                m_log.InfoFormat(
+                // Warn level because the region cannot be used while logins are disabled
+                m_log.WarnFormat(
                     "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
             }
 
