@@ -69,7 +69,7 @@ namespace OpenSim.Services.Connectors
         public virtual GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
             uint x = 0, y = 0;
-            Utils.LongToUInts(regionHandle, out x, out y);
+            Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
             GridRegion regInfo = m_GridService.GetRegionByPosition(thisRegion.ScopeID, (int)x, (int)y);
             if ((regInfo != null) &&
                 // Don't remote-call this instance; that's a startup hickup

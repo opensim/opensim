@@ -186,10 +186,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
+        // Get a region given its base coordinates.
+        // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
+        //     be the base coordinate of the region.
+        // The coordinates are world coords (meters), NOT region units.
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             bool inCache = false;
-            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, Util.UIntsToLong((uint)x, (uint)y), out inCache);
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, Util.RegionWorldLocToHandle((uint)x, (uint)y), out inCache);
             if (inCache)
                 return rinfo;
 

@@ -78,7 +78,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 uint xpos = 0, ypos = 0;
-                Utils.LongToUInts(regionHandle, out xpos, out ypos);
+                Util.RegionHandleToWorldLoc(regionHandle, out xpos, out ypos);
                 GridRegion info = m_GridService.GetRegionByPosition(scopeID, (int)xpos, (int)ypos);
                 if (info != null) // just to be sure
                 {

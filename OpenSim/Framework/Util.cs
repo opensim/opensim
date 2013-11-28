@@ -336,6 +336,7 @@ namespace OpenSim.Framework
         // Regions are identified with a 'handle' made up of its region coordinates packed into a ulong.
         // Several places rely on the ability to extract a region's location from its handle.
         // Note the location is in 'world coordinates' (see below).
+        // Region handles are based on the lowest coordinate of the region so trim the passed x,y to be the regions 0,0.
         public static ulong RegionWorldLocToHandle(uint X, uint Y)
         {
             return Utils.UIntsToLong(X, Y);

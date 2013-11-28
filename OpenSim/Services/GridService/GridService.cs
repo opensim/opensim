@@ -347,6 +347,11 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
+        // Get a region given its base coordinates.
+        // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
+        //     be the base coordinate of the region.
+        // The snapping is technically unnecessary but is harmless because regions are always
+        //     multiples of the legacy region size (256).
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;

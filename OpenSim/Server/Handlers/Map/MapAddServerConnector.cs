@@ -116,9 +116,9 @@ namespace OpenSim.Server.Handlers.MapImage
                     httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
                     return FailureResult("Bad request.");
                 }
-                int x = 0, y = 0;
-                Int32.TryParse(request["X"].ToString(), out x);
-                Int32.TryParse(request["Y"].ToString(), out y);
+                uint x = 0, y = 0;
+                UInt32.TryParse(request["X"].ToString(), out x);
+                UInt32.TryParse(request["Y"].ToString(), out y);
 
                 m_log.DebugFormat("[MAP ADD SERVER CONNECTOR]: Received map data for region at {0}-{1}", x, y);
 
@@ -130,7 +130,7 @@ namespace OpenSim.Server.Handlers.MapImage
                 if (m_GridService != null)
                 {
                     System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
-                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, x * (int)Constants.RegionSize, y * (int)Constants.RegionSize);
+                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc(x), (int)Util.RegionToWorldLoc(y));
                     if (r != null)
                     {
                         if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
@@ -151,7 +151,7 @@ namespace OpenSim.Server.Handlers.MapImage
                 byte[] data = Convert.FromBase64String(request["DATA"].ToString());
 
                 string reason = string.Empty;
-                bool result = m_MapService.AddMapTile(x, y, data, out reason);
+                bool result = m_MapService.AddMapTile((int)x, (int)y, data, out reason);
 
                 if (result)
                     return SuccessResult();
