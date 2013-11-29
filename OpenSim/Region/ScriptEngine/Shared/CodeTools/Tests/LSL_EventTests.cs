@@ -213,7 +213,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("touch_end");
-        }           
+        }  
+
+        [Test]
+        public void TestLandCollisionEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVectorArgEvent("land_collision");
+        }
+
+        [Test]
+        public void TestLandCollisionStartEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVectorArgEvent("land_collision_start");
+        }
+
+        [Test]
+        public void TestLandCollisionEndEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestVectorArgEvent("land_collision_end");
+        }
+
 
         private void TestIntArgEvent(string eventName)
         {
@@ -221,6 +249,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestCompile("default { " + eventName + "{{}} }", true);
             TestCompile("default { " + eventName + "(string s) {{}} }", true);
             TestCompile("default { " + eventName + "(integer n, integer o) {{}} }", true);
+        }
+
+        private void TestVectorArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(vector v) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(vector v, vector w) {{}} }", true);
         }
 
         private void TestCompile(string script, bool expectException)
