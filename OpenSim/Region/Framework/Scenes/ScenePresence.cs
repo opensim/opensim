@@ -2232,9 +2232,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Vector3 standPos = ParentPosition + adjustmentForSitPosition + adjustmentForSitPose;
 
-                m_log.DebugFormat(
-                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
-                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
+//                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
 
                 Rotation = standRotation;
                 AbsolutePosition = standPos;
