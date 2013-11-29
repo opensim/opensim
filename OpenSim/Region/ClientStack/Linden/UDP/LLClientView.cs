@@ -5079,6 +5079,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 ScenePresence presence = (ScenePresence)entity;
 
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+
                 attachPoint = presence.State;
                 collisionPlane = presence.CollisionPlane;
                 position = presence.OffsetPosition;
@@ -5198,6 +5201,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(ScenePresence data)
         {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending full update to {0} with position {1} in {2}", Name, data.OffsetPosition, m_scene.Name);
+
             byte[] objectData = new byte[76];
 
             data.CollisionPlane.ToBytes(objectData, 0);
@@ -5218,7 +5224,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.NameValue = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
                 data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
             update.ObjectData = objectData;
-            update.ParentID = data.ParentID;
+
+            SceneObjectPart parentPart = data.ParentPart;
+            if (parentPart != null)
+                update.ParentID = parentPart.ParentGroup.LocalId;
+            else
+                update.ParentID = 0;
+
             update.PathCurve = 16;
             update.PathScaleX = 100;
             update.PathScaleY = 100;
@@ -12643,6 +12655,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (p is ScenePresence)
             {
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Immediately sending terse agent update for {0} to {1} in {2}", 
+//                    p.Name, Name, Scene.Name);
+
                 // It turns out to get the agent to stop flying, you have to feed it stop flying velocities
                 // There's no explicit message to send the client to tell it to stop flying..   it relies on the
                 // velocity, collision plane and avatar height
