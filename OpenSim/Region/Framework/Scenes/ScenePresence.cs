@@ -516,7 +516,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart sitPart = ParentPart;
 
                     if (sitPart != null)
-                        return sitPart.AbsolutePosition;
+                        return sitPart.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
                 }
                 
                 return m_pos;
