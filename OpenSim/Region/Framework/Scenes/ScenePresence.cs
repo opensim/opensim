@@ -2174,11 +2174,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: StandUp() for {0}", Name);
 
+            bool satOnObject = IsSatOnObject;
+            SceneObjectPart part = ParentPart;
             SitGround = false;
 
-            if (ParentID != 0)
+            if (satOnObject)
             {
-                SceneObjectPart part = ParentPart;
                 TaskInventoryDictionary taskIDict = part.TaskInventory;
                 if (taskIDict != null)
                 {
@@ -2238,19 +2239,21 @@ namespace OpenSim.Region.Framework.Scenes
                 Rotation = standRotation;
                 AbsolutePosition = standPos;
                 ParentPosition = Vector3.Zero;
+            }
 
-                // We need to wait until we have calculated proper stand positions before sitting up the physical 
-                // avatar to avoid race conditions.
-                if (PhysicsActor == null)
-                    AddToPhysicalScene(false);
+            // We need to wait until we have calculated proper stand positions before sitting up the physical 
+            // avatar to avoid race conditions.
+            if (PhysicsActor == null)
+                AddToPhysicalScene(false);
 
+            if (satOnObject)
+            {
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
                 part.RemoveSittingAvatar(UUID);
 
-                if (part != null)
-                    part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
             }
 
             Animator.TrySetMovementAnimation("STAND");
