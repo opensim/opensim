@@ -2635,11 +2635,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
             avatarSitResponse.SitObject.ID = TargetID;
-            if (CameraAtOffset != Vector3.Zero)
-            {
-                avatarSitResponse.SitTransform.CameraAtOffset = CameraAtOffset;
-                avatarSitResponse.SitTransform.CameraEyeOffset = CameraEyeOffset;
-            }
+            avatarSitResponse.SitTransform.CameraAtOffset = CameraAtOffset;
+            avatarSitResponse.SitTransform.CameraEyeOffset = CameraEyeOffset;
             avatarSitResponse.SitTransform.ForceMouselook = ForceMouseLook;
             avatarSitResponse.SitTransform.AutoPilot = autopilot;
             avatarSitResponse.SitTransform.SitPosition = OffsetPos;
