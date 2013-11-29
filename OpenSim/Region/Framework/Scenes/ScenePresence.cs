@@ -480,8 +480,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return (IClientCore)ControllingClient; }
         }
 
-        public Vector3 ParentPosition { get; set; }
-
         /// <summary>
         /// Position of this avatar relative to the region the avatar is in
         /// </summary>
@@ -540,10 +538,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Don't update while sitting.  The PhysicsActor above is null whilst sitting.
                 if (ParentID == 0)
-                {
                     m_pos = value;
-                    ParentPosition = Vector3.Zero;
-                }
 
                 //m_log.DebugFormat(
                 //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
@@ -2195,7 +2190,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                ParentPosition = part.GetWorldPosition();
+                Vector3 sitPartWorldPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
                 ParentID = 0;
@@ -2230,7 +2225,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // hardcoding here.
                 Vector3 adjustmentForSitPose = new Vector3(0.74f, 0f, 0f) * standRotation;
 
-                Vector3 standPos = ParentPosition + adjustmentForSitPosition + adjustmentForSitPose;
+                Vector3 standPos = sitPartWorldPosition + adjustmentForSitPosition + adjustmentForSitPose;
 
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
@@ -2238,7 +2233,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Rotation = standRotation;
                 AbsolutePosition = standPos;
-                ParentPosition = Vector3.Zero;
             }
 
             // We need to wait until we have calculated proper stand positions before sitting up the physical 
@@ -2663,15 +2657,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_pos = newPos;
                     Rotation = newRot;
-                    ParentPosition = part.AbsolutePosition;
                 }
                 else
                 {
                     // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
                     // being sat upon.
                     m_pos -= part.GroupPosition;
-
-                    ParentPosition = part.AbsolutePosition;
 
 //                        m_log.DebugFormat(
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
