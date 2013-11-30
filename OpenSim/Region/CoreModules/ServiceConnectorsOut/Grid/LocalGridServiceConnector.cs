@@ -197,6 +197,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         //     be the base coordinate of the region.
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+            m_log.DebugFormat("{0} GetRegionByPosition. pos=<{1},{2}>", "[LOCAL GRID SERVICE CONNECTOR", x, y);
             GridRegion region = null;
 
             // First see if it's a neighbour, even if it isn't on this sim.
@@ -209,6 +210,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     region = rcache.GetRegionByPosition(x, y);
                     if (region != null)
                     {
+                        m_log.DebugFormat("{0} GetRegionByPosition. Found region {1}. Pos=<{2},{3}>",
+                                        "[LOCAL GRID SERVICE CONNECTOR", region.RegionName, x, y);
                         return region;
                     }
                 }

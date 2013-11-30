@@ -3123,6 +3123,9 @@ namespace OpenSim.Region.Framework.Scenes
                 int neighbor = 0;
                 int[] fix = new int[2];
 
+                // Compute the avatar position in the next physics tick.
+                // If the avatar will be crossing, we force the crossing to happen now
+                //     in the hope that this will make the avatar movement smoother when crossing.
                 float timeStep = 0.1f;
                 pos2.X = pos2.X + (vel.X * timeStep);
                 pos2.Y = pos2.Y + (vel.Y * timeStep);
@@ -3130,12 +3133,48 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsInTransit)
                 {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
-//                        pos2, Name, Scene.Name);
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
+                        pos2, Name, Scene.Name);
 
+                    if (!m_scene.PositionIsInCurrentRegion(pos2))
+                    {
+                        // Disconnect from the current region
+                        bool isFlying = Flying;
+                        RemoveFromPhysicalScene();
+                        // pos2 is the forcasted position so make that the 'current' position so the crossing
+                        //    code will move us into the newly addressed region.
+                        m_pos = pos2;
+                        if (CrossToNewRegion())
+                        {
+                            AddToPhysicalScene(isFlying);
+                        }
+                        else
+                        {
+                            // Tried to make crossing happen but it failed.
+                            if (m_requestedSitTargetUUID == UUID.Zero)
+                            {
+
+                                Vector3 pos = AbsolutePosition;
+                                if (AbsolutePosition.X < 0)
+                                    pos.X += Velocity.X * 2;
+                                else if (AbsolutePosition.X > m_scene.RegionInfo.RegionSizeX)
+                                    pos.X -= Velocity.X * 2;
+                                if (AbsolutePosition.Y < 0)
+                                    pos.Y += Velocity.Y * 2;
+                                else if (AbsolutePosition.Y > m_scene.RegionInfo.RegionSizeY)
+                                    pos.Y -= Velocity.Y * 2;
+                                Velocity = Vector3.Zero;
+                                AbsolutePosition = pos;
+
+                                AddToPhysicalScene(isFlying);
+                            }
+                        }
+                             
+                    }
+
+                    /*
                     // Checks if where it's headed exists a region
-                    bool needsTransit = false;
                     if (m_scene.TestBorderCross(pos2, Cardinals.W))
                     {
                         if (m_scene.TestBorderCross(pos2, Cardinals.S))
@@ -3236,6 +3275,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
+                    */
                 }
                 else
                 {

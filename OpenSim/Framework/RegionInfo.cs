@@ -788,7 +788,16 @@ namespace OpenSim.Framework
                     RegionSizeX = minSize;
                     RegionSizeY = minSize;
                     m_log.ErrorFormat("{0} Regions must be square until viewers are updated. Forcing region {1} size to <{2},{3}>",
-                                                    LogHeader, m_regionName, RegionSizeX, RegionSizeY);
+                                        LogHeader, m_regionName, RegionSizeX, RegionSizeY);
+                }
+
+                // There is a practical limit to region size.
+                if (RegionSizeX > Constants.MaximumRegionSize || RegionSizeY > Constants.MaximumRegionSize)
+                {
+                    RegionSizeX = Util.Clamp<uint>(RegionSizeX, Constants.RegionSize, Constants.MaximumRegionSize);
+                    RegionSizeY = Util.Clamp<uint>(RegionSizeY, Constants.RegionSize, Constants.MaximumRegionSize);
+                    m_log.ErrorFormat("{0} Region dimensions must be less than {1}. Clamping {2}'s size to <{3},{4}>",
+                                        LogHeader, Constants.MaximumRegionSize, m_regionName, RegionSizeX, RegionSizeY);
                 }
 
                 m_log.InfoFormat("{0} Region {1} size set to <{2},{3}>", LogHeader, m_regionName, RegionSizeX, RegionSizeY);

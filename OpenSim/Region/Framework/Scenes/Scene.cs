@@ -2483,6 +2483,23 @@ namespace OpenSim.Region.Framework.Scenes
                 EntityTransferModule.Cross(grp, attemptedPosition, silent);
         }
 
+        // Simple test to see if a position is in the current region.
+        // Resuming the position is relative to the region so anything outside its bounds.
+        // Return 'true' if position inside region.
+        public bool PositionIsInCurrentRegion(Vector3 pos)
+        {
+            bool ret = true;
+            int xx = (int)Math.Floor(pos.X);
+            int yy = (int)Math.Floor(pos.Y);
+            if (xx < 0
+                    || xx > RegionInfo.RegionSizeX
+                    || yy < 0
+                    || yy > RegionInfo.RegionSizeY)
+                ret = false;
+            return ret;
+
+        }
+
         public Border GetCrossedBorder(Vector3 position, Cardinals gridline)
         {
             if (BordersLocked)
