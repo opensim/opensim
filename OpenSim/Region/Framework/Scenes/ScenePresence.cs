@@ -353,18 +353,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public uint MovementFlag { get; private set; }
 
-        private bool m_updateflag;
-
         /// <summary>
         /// Is the agent stop control flag currently active?
         /// </summary>
         public bool AgentControlStopActive { get; private set; }
-
-        public bool Updated
-        {
-            set { m_updateflag = value; }
-            get { return m_updateflag; }
-        }
 
         private bool m_invulnerable = true;
 
@@ -3687,8 +3679,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_forceToApply.HasValue)
             {
                 Vector3 force = m_forceToApply.Value;
-
-                Updated = true;
 
                 Velocity = force;
 
