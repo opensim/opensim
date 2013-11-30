@@ -1847,7 +1847,7 @@ namespace OpenSim.Region.Framework.Scenes
                         float speedModifier;
 
                         if (AgentControlStopActive)
-                            speedModifier = 0.5f;
+                            speedModifier = AgentControlStopSlowWhilstMoving;
                         else
                             speedModifier = 1;
 
