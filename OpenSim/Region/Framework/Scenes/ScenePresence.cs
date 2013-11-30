@@ -355,6 +355,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_updateflag;
 
+        /// <summary>
+        /// Is the agent stop control flag currently active?
+        /// </summary>
+        public bool AgentControlStopActive { get; private set; }
+
         public bool Updated
         {
             set { m_updateflag = value; }
@@ -767,6 +772,14 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_speedModifier; }
             set { m_speedModifier = value; }
         }
+
+        /// <summary>
+        /// Modifier for agent movement if we get an AGENT_CONTROL_STOP whilst walking or running
+        /// </summary>
+        /// <remarks>
+        /// AGENT_CONTRL_STOP comes about if user holds down space key on viewers.
+        /// </remarks>
+        private float AgentControlStopSlowWhilstMoving = 0.5f;
 
         private bool m_forceFly;
 
@@ -1634,7 +1647,6 @@ namespace OpenSim.Region.Framework.Scenes
             if ((oldState & (uint)AgentState.Editing) != 0 && State == (uint)AgentState.None)
                 ControllingClient.SendAgentTerseUpdate(this);
 
-
             PhysicsActor actor = PhysicsActor;
             if (actor == null)
             {
@@ -1712,7 +1724,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 // Why did I get this?
                             }
 
-                            if ((MovementFlag & (uint)DCF) == 0)
+                            if (((MovementFlag & (uint)DCF) == 0) & !AgentControlStopActive)
                             {   
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
                                 MovementFlag += (uint)DCF;
@@ -1744,6 +1756,13 @@ namespace OpenSim.Region.Framework.Scenes
                         i++;
                     }
 
+                    // Detect AGENT_CONTROL_STOP state changes
+                    if (AgentControlStopActive != ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STOP) != 0))
+                    {
+                        AgentControlStopActive = !AgentControlStopActive;
+                        update_movementflag = true;
+                    }
+
                     if (MovingToTarget)
                     {
                         // If the user has pressed a key then we want to cancel any move to target.
@@ -1769,53 +1788,79 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only do this if we're flying
                 if (Flying && !ForceFly)
                 {
-                    // Landing detection code
-
-                    // Are the landing controls requirements filled?
-                    bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
-                                        ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
-
-                   //m_log.Debug("[CONTROL]: " +flags);
-                    // Applies a satisfying roll effect to the avatar when flying.
-                    if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                    // Need to stop in mid air if user holds down AGENT_CONTROL_STOP
+                    if (AgentControlStopActive)
                     {
-                        ApplyFlyingRoll(
-                            FLY_ROLL_RADIANS_PER_UPDATE, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
-                    } 
-                    else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
-                             (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
-                    {
-                        ApplyFlyingRoll(
-                            -FLY_ROLL_RADIANS_PER_UPDATE, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);                      
+                        agent_control_v3 = Vector3.Zero;
                     }
                     else
                     {
-                        if (m_AngularVelocity.Z != 0)
-                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);                        
-                    }                  
+                        // Landing detection code
 
-                    if (Flying && IsColliding && controlland)
-                    {
-                        // nesting this check because LengthSquared() is expensive and we don't 
-                        // want to do it every step when flying.
-                        if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
-                            StopFlying();
+                        // Are the landing controls requirements filled?
+                        bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
+                                            ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+
+                       //m_log.Debug("[CONTROL]: " +flags);
+                        // Applies a satisfying roll effect to the avatar when flying.
+                        if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                        {
+                            ApplyFlyingRoll(
+                                FLY_ROLL_RADIANS_PER_UPDATE, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
+                        } 
+                        else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
+                                 (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                        {
+                            ApplyFlyingRoll(
+                                -FLY_ROLL_RADIANS_PER_UPDATE, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);                      
+                        }
+                        else
+                        {
+                            if (m_AngularVelocity.Z != 0)
+                                m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);                        
+                        }                  
+
+                        if (Flying && IsColliding && controlland)
+                        {
+                            // nesting this check because LengthSquared() is expensive and we don't 
+                            // want to do it every step when flying.
+                            if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
+                                StopFlying();
+                        }
                     }
                 }
 
+//                m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
+
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
                 // which occurs later in the main scene loop
-                if (update_movementflag || (update_rotation && DCFlagKeyPressed))
+                // We also need to update if the user rotates their avatar whilst it is slow walking/running (if they
+                // held down AGENT_CONTROL_STOP whilst normal walking/running).  However, we do not want to update
+                // if the user rotated whilst holding down AGENT_CONTROL_STOP when already still (which locks the 
+                // avatar location in place).
+                if (update_movementflag 
+                    || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
                 {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
-//                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
+//                    if (update_movementflag || !AgentControlStopActive || MovementFlag != 0)
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, mf = {4}, ur = {5}",
+//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name, 
+//                            update_movementflag, MovementFlag, update_rotation);
 
-                    AddNewMovement(agent_control_v3);
+                        float speedModifier;
+
+                        if (AgentControlStopActive)
+                            speedModifier = 0.5f;
+                        else
+                            speedModifier = 1;
+
+                        AddNewMovement(agent_control_v3, speedModifier);
+//                    }
                 }
 //                else
 //                {
@@ -1828,7 +1873,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                }
 
                 if (update_movementflag && ParentID == 0)
+                {
+//                    m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
                     Animator.UpdateMovementAnimations();
+                }
 
                 SendControlsToScripts(flagsForScripts);
             }
@@ -2711,10 +2759,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
-        public void AddNewMovement(Vector3 vec)
+        /// <param name="thisAddSpeedModifier">
+        /// Optional additional speed modifier for this particular add.  Default is 1</param>
+        public void AddNewMovement(Vector3 vec, float thisAddSpeedModifier = 1)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1} for {2}", vec, Rotation, Name);
+//                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
+//                vec, Rotation, thisAddSpeedModifier, Name);
 
             Vector3 direc = vec * Rotation;
             direc.Normalize();
@@ -2732,7 +2783,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
-            direc *= 0.03f * 128f * SpeedModifier;
+            direc *= 0.03f * 128f * SpeedModifier * thisAddSpeedModifier;
 
 //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
