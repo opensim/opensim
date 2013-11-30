@@ -351,7 +351,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Record user movement inputs.
         /// </summary>
-        public byte MovementFlag { get; private set; }
+        public uint MovementFlag { get; private set; }
 
         private bool m_updateflag;
 
@@ -1695,10 +1695,7 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         dirVectors = Dir_Vectors;
 
-                    // The fact that MovementFlag is a byte needs to be fixed
-                    // it really should be a uint
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
-                    uint nudgehack = 250;
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
                         if (((uint)flags & (uint)DCF) != 0)
@@ -1715,29 +1712,19 @@ namespace OpenSim.Region.Framework.Scenes
                                 // Why did I get this?
                             }
 
-                            if ((MovementFlag & (byte)(uint)DCF) == 0)
-                            {
-                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE ||
-                                    DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT_NUDGE)
-                                {
-                                    MovementFlag |= (byte)nudgehack;
-                                }
-
+                            if ((MovementFlag & (uint)DCF) == 0)
+                            {   
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
-                                MovementFlag += (byte)(uint)DCF;
+                                MovementFlag += (uint)DCF;
                                 update_movementflag = true;
                             }
                         }
                         else
                         {
-                            if ((MovementFlag & (byte)(uint)DCF) != 0 ||
-                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE ||
-                                DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT_NUDGE)
-                                && ((MovementFlag & (byte)nudgehack) == nudgehack))
-                                ) // This or is for Nudge forward
+                            if ((MovementFlag & (uint)DCF) != 0)
                             {
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
-                                MovementFlag -= ((byte)(uint)DCF);
+                                MovementFlag -= (uint)DCF;
                                 update_movementflag = true;
 
                                 /*
