@@ -296,6 +296,11 @@ namespace OpenSim
                                           "Change the scale of a named prim", 
                                           HandleEditScale);
 
+            m_console.Commands.AddCommand("Objects", false, "rotate scene",
+                                          "rotate scene <degrees>",
+                                          "Rotates all scene objects around x:128, y:128",
+                                          HandleRotateScene);
+
             m_console.Commands.AddCommand("Users", false, "kick user",
                                           "kick user <first> <last> [--force] [message]",
                                           "Kick a user off the simulator",
@@ -503,6 +508,45 @@ namespace OpenSim
             {
                 MainConsole.Instance.Output("Argument error: edit scale <prim name> <x> <y> <z>");
             }
+        }
+
+        private void HandleRotateScene(string module, string[] args)
+        {
+            string usage = "Usage: rotate scene <angle in degrees> [centerX centerY] (centerX and centerY are optional and default to Constants.RegionSize / 2";
+
+            float centerX = Constants.RegionSize * 0.5f;
+            float centerY = Constants.RegionSize * 0.5f;
+
+            if (args.Length < 3 || args.Length == 4)
+            {
+                MainConsole.Instance.Output(usage);
+                return;
+            }
+            
+            float angle = (float)(Convert.ToSingle(args[2]) / 180.0 * Math.PI);
+            OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, angle);
+
+            if (args.Length > 4)
+            {
+                centerX = Convert.ToSingle(args[3]);
+                centerY = Convert.ToSingle(args[4]);
+            }
+
+            Vector3 center = new Vector3(centerX, centerY, 0.0f);
+
+            SceneManager.ForEachSelectedScene(delegate(Scene scene) 
+            {
+                scene.ForEachSOG(delegate(SceneObjectGroup sog)
+                {
+                    if (sog.AttachmentPoint == 0)
+                    {
+                        sog.RootPart.UpdateRotation(rot * sog.GroupRotation);
+                        Vector3 offset = sog.AbsolutePosition - center;
+                        offset *= rot;
+                        sog.UpdateGroupPosition(center + offset);
+                    }
+                });
+            });
         }
 
         /// <summary>
