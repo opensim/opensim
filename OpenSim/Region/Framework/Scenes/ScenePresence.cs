@@ -1652,20 +1652,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 bool update_rotation = false;
 
-                // Whilst not in mouselook, an avatar will transmit only the Z rotation as this is the only axis
-                // it rotates around.
-                // In mouselook, X and Y co-ordinate will also be sent but when used in Rotation, these cause unwanted
-                // excessive up and down movements of the camera when looking up and down.
-                // See http://opensimulator.org/mantis/view.php?id=3274
-                // This does not affect head movement, since this is controlled entirely by camera movement rather than
-                // body rotation.  It does not affect sitting avatar since it's the sitting part rotation that takes
-                // effect, not the avatar rotation.
-                // However, if we do need to store X and Y rotations in the future, another solution needs to be found
-                // for the mouselook bug.  Possibly, one could strip out X and Y rotations before sending the avatar
-                // update messages.
-                if (agentData.BodyRotation.Z != Rotation.Z || agentData.BodyRotation.W != Rotation.W)
+                if (agentData.BodyRotation != Rotation)
                 {
-                    Rotation = new Quaternion(0, 0, agentData.BodyRotation.Z, agentData.BodyRotation.W);
+                    Rotation = agentData.BodyRotation;
                     update_rotation = true;
                 }
 
