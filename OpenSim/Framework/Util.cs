@@ -1901,11 +1901,14 @@ namespace OpenSim.Framework
         private static long nextThreadFuncNum = 0;
         private static long numQueuedThreadFuncs = 0;
         private static long numRunningThreadFuncs = 0;
+        private static Int32 threadFuncOverloadMode = 0;
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             WaitCallback realCallback;
 
+            bool loggingEnabled = LogThreadPool;
+            
             long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
 
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
@@ -1925,7 +1928,7 @@ namespace OpenSim.Framework
 
                     try
                     {
-                        if (LogThreadPool)
+                        if (loggingEnabled || (threadFuncOverloadMode == 1))
                             m_log.DebugFormat("Run threadfunc {0} (Queued {1}, Running {2})", threadFuncNum, numQueued1, numRunning1);
 
                         Culture.SetCurrentCulture();
@@ -1939,7 +1942,7 @@ namespace OpenSim.Framework
                     finally
                     {
                         Interlocked.Decrement(ref numRunningThreadFuncs);
-                        if (LogThreadPool)
+                        if (loggingEnabled || (threadFuncOverloadMode == 1))
                             m_log.Debug("Exit threadfunc " + threadFuncNum);
                     }
                 };
@@ -1948,9 +1951,21 @@ namespace OpenSim.Framework
             long numQueued = Interlocked.Increment(ref numQueuedThreadFuncs);
             try
             {
-                if (LogThreadPool)
+                long numRunning = numRunningThreadFuncs;
+                if ((threadFuncOverloadMode == 0) && (numRunning >= m_ThreadPool.MaxThreads))
+                {
+                    if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 1, 0) == 0)
+                        m_log.DebugFormat("Threadfunc: enable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
+                }
+                else if ((threadFuncOverloadMode == 1) && (numRunning <= (m_ThreadPool.MaxThreads*2)/3))
+                {
+                    if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 0, 1) == 1)
+                        m_log.DebugFormat("Threadfunc: disable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
+                }
+
+                if (loggingEnabled || (threadFuncOverloadMode == 1))
                     m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}",
-                        threadFuncNum, numQueued, numRunningThreadFuncs, GetFireAndForgetStackTrace(true));
+                        threadFuncNum, numQueued, numRunningThreadFuncs, GetFireAndForgetStackTrace(loggingEnabled));
 
                 switch (FireAndForgetMethod)
                 {
