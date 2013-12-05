@@ -88,7 +88,7 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
     public class MaterialsDemoModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public string Name { get { return "MaterialsDemoModule"; } }        
         
         public Type ReplaceableInterface { get { return null; } }
