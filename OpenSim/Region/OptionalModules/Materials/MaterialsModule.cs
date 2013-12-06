@@ -42,77 +42,49 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSimAssetType = OpenSim.Framework.SLUtil.OpenSimAssetType;
 
 using Ionic.Zlib;
 
 // You will need to uncomment these lines if you are adding a region module to some other assembly which does not already
 // specify its assembly.  Otherwise, the region modules in the assembly will not be picked up when OpenSimulator scans
 // the available DLLs
-//[assembly: Addin("MaterialsDemoModule", "1.0")]
+//[assembly: Addin("MaterialsModule", "1.0")]
 //[assembly: AddinDependency("OpenSim", "0.5")]
 
-namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
+namespace OpenSim.Region.OptionalModules.Materials
 {
-    /// <summary>
-    ///
-    //   #    #    ##    #####   #    #     #    #    #   ####
-    //   #    #   #  #   #    #  ##   #     #    ##   #  #    #
-    //   #    #  #    #  #    #  # #  #     #    # #  #  #
-    //   # ## #  ######  #####   #  # #     #    #  # #  #  ###
-    //   ##  ##  #    #  #   #   #   ##     #    #   ##  #    #
-    //   #    #  #    #  #    #  #    #     #    #    #   ####
-    //
-    //   THIS MODULE IS FOR EXPERIMENTAL USE ONLY AND MAY CAUSE REGION OR ASSET CORRUPTION!
-    //
-    //////////////  WARNING  //////////////////////////////////////////////////////////////////
-    /// This is an *Experimental* module for developing support for materials-capable viewers
-    /// This module should NOT be used in a production environment! It may cause data corruption and
-    /// viewer crashes. It should be only used to evaluate implementations of materials.
-    /// 
-    /// Materials are persisted via SceneObjectPart.dynattrs. This is a relatively new feature
-    /// of OpenSimulator and is not field proven at the time this module was written. Persistence
-    /// may fail or become corrupt and this could cause viewer crashes due to erroneous materials
-    /// data being sent to viewers. Materials descriptions might survive IAR, OAR, or other means
-    /// of archiving however the texture resources used by these materials probably will not as they
-    /// may not be adequately referenced to ensure proper archiving.
-    /// 
-    /// 
-    /// 
-    /// To enable this module, add this string at the bottom of OpenSim.ini:
-    /// [MaterialsDemoModule]
-    /// 
-    /// </summary>
-    /// 
-
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MaterialsDemoModule")]
-    public class MaterialsDemoModule : INonSharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MaterialsModule")]
+    public class MaterialsModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get { return "MaterialsDemoModule"; } }        
+        public string Name { get { return "MaterialsModule"; } }        
         
         public Type ReplaceableInterface { get { return null; } }
 
         private Scene m_scene = null;
         private bool m_enabled = false;
 
-        public Dictionary<UUID, OSDMap> m_knownMaterials = new Dictionary<UUID, OSDMap>();
+        public Dictionary<UUID, OSDMap> m_regionMaterials = new Dictionary<UUID, OSDMap>();
         
         public void Initialise(IConfigSource source)
         {
-            m_enabled = (source.Configs["MaterialsDemoModule"] != null);
+            IConfig config = source.Configs["Materials"];
+            if (config == null)
+                return;
+
+            m_enabled = config.GetBoolean("enable_materials", true);
             if (!m_enabled)
                 return;
 
-            m_log.DebugFormat("[MaterialsDemoModule]: Initialized");
+            m_log.DebugFormat("[Materials]: Initialized");
         }
         
         public void Close()
         {
             if (!m_enabled)
                 return;
-
-            //m_log.DebugFormat("[MaterialsDemoModule]: CLOSED MODULE");
         }
         
         public void AddRegion(Scene scene)
@@ -120,22 +92,19 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             if (!m_enabled)
                 return;
 
-            //m_log.DebugFormat("[MaterialsDemoModule]: REGION {0} ADDED", scene.RegionInfo.RegionName);
-
             m_scene = scene;
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnObjectAddedToScene += EventManager_OnObjectAddedToScene;
-//            m_scene.EventManager.OnGatherUuids += GatherMaterialsUuids;           
         }
 
-        void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
+        private void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
         {
             foreach (var part in obj.Parts)
                 if (part != null)
-                    GetStoredMaterialsForPart(part);
+                    GetStoredMaterialsInPart(part);
         }
 
-        void OnRegisterCaps(OpenMetaverse.UUID agentID, OpenSim.Framework.Capabilities.Caps caps)
+        private void OnRegisterCaps(OpenMetaverse.UUID agentID, OpenSim.Framework.Capabilities.Caps caps)
         {
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
 
@@ -164,143 +133,65 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
 
             m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
             m_scene.EventManager.OnObjectAddedToScene -= EventManager_OnObjectAddedToScene;
-//            m_scene.EventManager.OnGatherUuids -= GatherMaterialsUuids; 
-
-            //m_log.DebugFormat("[MaterialsDemoModule]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }        
         
         public void RegionLoaded(Scene scene)
         {
         }
 
-        OSDMap GetMaterial(UUID id)
-        {
-            OSDMap map = null;
-            lock (m_knownMaterials)
-            {
-                if (m_knownMaterials.ContainsKey(id))
-                {
-                    map = new OSDMap();
-                    map["ID"] = OSD.FromBinary(id.GetBytes());
-                    map["Material"] = m_knownMaterials[id];
-                }
-            }
-            return map;
-        }
-
-        void GetStoredMaterialsForPart(SceneObjectPart part)
+        /// <summary>
+        /// Find the materials used in the SOP, and add them to 'm_regionMaterials'.
+        /// </summary>
+        private void GetStoredMaterialsInPart(SceneObjectPart part)
         { 
-            OSD OSMaterials = null;
-            OSDArray matsArr = null;
-
-            if (part.DynAttrs == null)
-            {
-                //m_log.Warn("[MaterialsDemoModule]: NULL DYNATTRS :( ");
+            if (part.Shape == null)
                 return;
-            }
-
-            lock (part.DynAttrs)
-            {
-                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
-                {
-                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
-
-                    if (materialsStore == null)
-                        return;
-
-                    materialsStore.TryGetValue("Materials", out OSMaterials);
-                }
-
-                if (OSMaterials != null && OSMaterials is OSDArray)
-                    matsArr = OSMaterials as OSDArray;
-                else
-                    return;
-            }
-
-            //m_log.Info("[MaterialsDemoModule]: OSMaterials: " + OSDParser.SerializeJsonString(OSMaterials));
-
-            if (matsArr == null)
-            {
-                //m_log.Info("[MaterialsDemoModule]: matsArr is null :( ");
+            var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+            if (te == null)
                 return;
-            }
 
-            foreach (OSD elemOsd in matsArr)
+            GetStoredMaterialInFace(part, te.DefaultTexture);
+
+            foreach (Primitive.TextureEntryFace face in te.FaceTextures)
             {
-                if (elemOsd != null && elemOsd is OSDMap)
-                {
-                    OSDMap matMap = elemOsd as OSDMap;
-                    if (matMap.ContainsKey("ID") && matMap.ContainsKey("Material"))
-                    {
-                        try
-                        {
-                            lock (m_knownMaterials)
-                                m_knownMaterials[matMap["ID"].AsUUID()] = (OSDMap)matMap["Material"];
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Warn("[MaterialsDemoModule]: exception decoding persisted material ", e);
-                        }
-                    }
-                }
+                if (face != null)
+                    GetStoredMaterialInFace(part, face);
             }
         }
 
-        void StoreMaterialsForPart(SceneObjectPart part)
+        /// <summary>
+        /// Find the materials used in one Face, and add them to 'm_regionMaterials'.
+        /// </summary>
+        private void GetStoredMaterialInFace(SceneObjectPart part, Primitive.TextureEntryFace face)
         {
-            try
+            UUID id = face.MaterialID;
+            if (id == UUID.Zero)
+                return;
+
+            lock (m_regionMaterials)
             {
-                if (part == null || part.Shape == null)
+                if (m_regionMaterials.ContainsKey(id))
                     return;
-
-                Dictionary<UUID, OSDMap> mats = new Dictionary<UUID, OSDMap>();
-
-                Primitive.TextureEntry te = part.Shape.Textures;
-
-                if (te.DefaultTexture != null)
+                
+                byte[] data = m_scene.AssetService.GetData(id.ToString());
+                if (data == null)
                 {
-                    lock (m_knownMaterials)
-                    {
-                        if (m_knownMaterials.ContainsKey(te.DefaultTexture.MaterialID))
-                            mats[te.DefaultTexture.MaterialID] = m_knownMaterials[te.DefaultTexture.MaterialID];
-                    }
-                }
-
-                if (te.FaceTextures != null)
-                {
-                    foreach (var face in te.FaceTextures)
-                    {
-                        if (face != null)
-                        {
-                            lock (m_knownMaterials)
-                            {
-                                if (m_knownMaterials.ContainsKey(face.MaterialID))
-                                    mats[face.MaterialID] = m_knownMaterials[face.MaterialID];
-                            }
-                        }
-                    }
-                }
-                if (mats.Count == 0)
+                    m_log.WarnFormat("[Materials]: Prim \"{0}\" ({1}) contains unknown material ID {2}", part.Name, part.UUID, id);
                     return;
-
-                OSDArray matsArr = new OSDArray();
-                foreach (KeyValuePair<UUID, OSDMap> kvp in mats)
-                {
-                    OSDMap matOsd = new OSDMap();
-                    matOsd["ID"] = OSD.FromUUID(kvp.Key);
-                    matOsd["Material"] = kvp.Value;
-                    matsArr.Add(matOsd);
                 }
 
-                OSDMap OSMaterials = new OSDMap();
-                OSMaterials["Materials"] = matsArr;
+                OSDMap mat;
+                try
+                {
+                    mat = (OSDMap)OSDParser.DeserializeLLSDXml(data);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[Materials]: cannot decode material asset {0}: {1}", id, e.Message);
+                    return;
+                }
 
-                lock (part.DynAttrs)
-                    part.DynAttrs.SetStore("OpenSim", "Materials", OSMaterials);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[MaterialsDemoModule]: exception in StoreMaterialsForPart() ", e);
+                m_regionMaterials[id] = mat;
             }
         }
 
@@ -308,8 +199,6 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                 string param, IOSHttpRequest httpRequest,
                 IOSHttpResponse httpResponse)
         {
-            //m_log.Debug("[MaterialsDemoModule]: POST cap handler");
-
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDMap resp = new OSDMap();
 
@@ -333,34 +222,38 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                         {
                             foreach (OSD elem in (OSDArray)osd)
                             {
-
                                 try
                                 {
                                     UUID id = new UUID(elem.AsBinary(), 0);
 
-                                    lock (m_knownMaterials)
+                                    lock (m_regionMaterials)
                                     {
-                                        if (m_knownMaterials.ContainsKey(id))
+                                        if (m_regionMaterials.ContainsKey(id))
                                         {
-                                            //m_log.Info("[MaterialsDemoModule]: request for known material ID: " + id.ToString());
                                             OSDMap matMap = new OSDMap();
                                             matMap["ID"] = OSD.FromBinary(id.GetBytes());
-
-                                            matMap["Material"] = m_knownMaterials[id];
+                                            matMap["Material"] = m_regionMaterials[id];
                                             respArr.Add(matMap);
                                         }
                                         else
-                                            m_log.Info("[MaterialsDemoModule]: request for UNKNOWN material ID: " + id.ToString());
+                                        {
+                                            m_log.Warn("[Materials]: request for unknown material ID: " + id.ToString());
+
+                                            // Theoretically we could try to load the material from the assets service,
+                                            // but that shouldn't be necessary because the viewer should only request
+                                            // materials that exist in a prim on the region, and all of these materials
+                                            // are already stored in m_regionMaterials.
+                                        }
                                     }
                                 }
                                 catch (Exception e)
                                 {
-                                    // report something here?
+                                    m_log.Error("Error getting materials in response to viewer request", e);
                                     continue;
                                 }
                             }
                         }
-                        else if (osd is OSDMap) // reqest to assign a material
+                        else if (osd is OSDMap) // request to assign a material
                         {
                             materialsFromViewer = osd as OSDMap;
 
@@ -375,94 +268,118 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                     {
                                         foreach (OSDMap matsMap in matsArr)
                                         {
-                                            //m_log.Debug("[MaterialsDemoModule]: processing matsMap: " + OSDParser.SerializeJsonString(matsMap));
-
                                             uint primLocalID = 0;
-                                            try { primLocalID = matsMap["ID"].AsUInteger(); }
-                                            catch (Exception e) { m_log.Warn("[MaterialsDemoModule]: cannot decode \"ID\" from matsMap: " + e.Message); }
-                                            //m_log.Debug("[MaterialsDemoModule]: primLocalID: " + primLocalID.ToString());
+                                            try {
+                                                primLocalID = matsMap["ID"].AsUInteger();
+                                            }
+                                            catch (Exception e) {
+                                                m_log.Warn("[Materials]: cannot decode \"ID\" from matsMap: " + e.Message);
+                                                continue;
+                                            }
 
                                             OSDMap mat = null;
-                                            try { mat = matsMap["Material"] as OSDMap; }
-                                            catch (Exception e) { m_log.Warn("[MaterialsDemoModule]: cannot decode \"Material\" from matsMap: " + e.Message); }
-                                            //m_log.Debug("[MaterialsDemoModule]: mat: " + OSDParser.SerializeJsonString(mat));
+                                            try
+                                            {
+                                                mat = matsMap["Material"] as OSDMap;
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                m_log.Warn("[Materials]: cannot decode \"Material\" from matsMap: " + e.Message);
+                                                continue;
+                                            }
+
+                                            SceneObjectPart sop = m_scene.GetSceneObjectPart(primLocalID);
+                                            if (sop == null)
+                                            {
+                                                m_log.WarnFormat("[Materials]: SOP not found for localId: {0}", primLocalID.ToString());
+                                                continue;
+                                            }
+
+                                            Primitive.TextureEntry te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
+                                            if (te == null)
+                                            {
+                                                m_log.WarnFormat("[Materials]: Error in TextureEntry for SOP {0} {1}", sop.Name, sop.UUID);
+                                                continue;
+                                            }
+
 
                                             UUID id;
                                             if (mat == null)
                                             {
+                                                // This happens then the user removes a material from a prim
                                                 id = UUID.Zero;
                                             }
                                             else
                                             {
-                                                id = HashOsd(mat);
-                                                lock (m_knownMaterials)
-                                                    m_knownMaterials[id] = mat;
+                                                // Material UUID = hash of the material's data.
+                                                // This makes materials deduplicate across the entire grid (but isn't otherwise required).
+                                                byte[] data = System.Text.Encoding.ASCII.GetBytes(OSDParser.SerializeLLSDXmlString(mat));
+                                                using (var md5 = MD5.Create())
+                                                    id = new UUID(md5.ComputeHash(data), 0);
+
+                                                lock (m_regionMaterials)
+                                                {
+                                                    if (!m_regionMaterials.ContainsKey(id))
+                                                    {
+                                                        m_regionMaterials[id] = mat;
+
+                                                        // This asset might exist already, but it's ok to try to store it again
+                                                        string name = "Material " + ChooseMaterialName(mat, sop);
+                                                        name = name.Substring(0, Math.Min(64, name.Length)).Trim();
+                                                        AssetBase asset = new AssetBase(id, name, (sbyte)OpenSimAssetType.Material, sop.OwnerID.ToString());
+                                                        asset.Data = data;
+                                                        m_scene.AssetService.Store(asset);
+                                                    }
+                                                }
                                             }
 
-                                            var sop = m_scene.GetSceneObjectPart(primLocalID);
-                                            if (sop == null)
-                                                m_log.Debug("[MaterialsDemoModule]: null SOP for localId: " + primLocalID.ToString());
-                                            else
-                                            {
-                                                var te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
 
-                                                if (te == null)
+                                            int face = -1;
+
+                                            if (matsMap.ContainsKey("Face"))
+                                            {
+                                                face = matsMap["Face"].AsInteger();
+                                                if (te.FaceTextures == null) // && face == 0)
                                                 {
-                                                    m_log.Debug("[MaterialsDemoModule]: null TextureEntry for localId: " + primLocalID.ToString());
+                                                    if (te.DefaultTexture == null)
+                                                        m_log.WarnFormat("[Materials]: te.DefaultTexture is null in {0} {1}", sop.Name, sop.UUID);
+                                                    else
+                                                        te.DefaultTexture.MaterialID = id;
                                                 }
                                                 else
                                                 {
-                                                    int face = -1;
-
-                                                    if (matsMap.ContainsKey("Face"))
+                                                    if (te.FaceTextures.Length >= face - 1)
                                                     {
-                                                        face = matsMap["Face"].AsInteger();
-                                                        if (te.FaceTextures == null) // && face == 0)
-                                                        {
-                                                            if (te.DefaultTexture == null)
-                                                                m_log.Debug("[MaterialsDemoModule]: te.DefaultTexture is null");
-                                                            else
-                                                                te.DefaultTexture.MaterialID = id;
-                                                        }
-                                                        else
-                                                        {
-                                                            if (te.FaceTextures.Length >= face - 1)
-                                                            {
-                                                                if (te.FaceTextures[face] == null)
-                                                                    te.DefaultTexture.MaterialID = id;
-                                                                else
-                                                                    te.FaceTextures[face].MaterialID = id;
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        if (te.DefaultTexture != null)
+                                                        if (te.FaceTextures[face] == null)
                                                             te.DefaultTexture.MaterialID = id;
-                                                    }
-
-                                                    //m_log.DebugFormat("[MaterialsDemoModule]: in \"{0}\", setting material ID for face {1} to {2}", sop.Name, face, id);
-
-                                                    //we cant use sop.UpdateTextureEntry(te); because it filters so do it manually
-
-                                                    if (sop.ParentGroup != null)
-                                                    {
-                                                        sop.Shape.TextureEntry = te.GetBytes();
-                                                        sop.TriggerScriptChangedEvent(Changed.TEXTURE);
-                                                        sop.UpdateFlag = UpdateRequired.FULL;
-                                                        sop.ParentGroup.HasGroupChanged = true;
-
-                                                        sop.ScheduleFullUpdate();
-
-                                                        StoreMaterialsForPart(sop);
+                                                        else
+                                                            te.FaceTextures[face].MaterialID = id;
                                                     }
                                                 }
+                                            }
+                                            else
+                                            {
+                                                if (te.DefaultTexture != null)
+                                                    te.DefaultTexture.MaterialID = id;
+                                            }
+
+                                            //m_log.DebugFormat("[Materials]: in \"{0}\" {1}, setting material ID for face {2} to {3}", sop.Name, sop.UUID, face, id);
+
+                                            // We can't use sop.UpdateTextureEntry(te) because it filters, so do it manually
+                                            sop.Shape.TextureEntry = te.GetBytes();
+
+                                            if (sop.ParentGroup != null)
+                                            {
+                                                sop.TriggerScriptChangedEvent(Changed.TEXTURE);
+                                                sop.UpdateFlag = UpdateRequired.FULL;
+                                                sop.ParentGroup.HasGroupChanged = true;
+                                                sop.ScheduleFullUpdate();
                                             }
                                         }
                                     }
                                     catch (Exception e)
                                     {
-                                        m_log.Warn("[MaterialsDemoModule]: exception processing received material ", e);
+                                        m_log.Warn("[Materials]: exception processing received material ", e);
                                     }
                                 }
                             }
@@ -472,20 +389,49 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn("[MaterialsDemoModule]: exception decoding zipped CAP payload ", e);
+                    m_log.Warn("[Materials]: exception decoding zipped CAP payload ", e);
                     //return "";
                 }
-                //m_log.Debug("[MaterialsDemoModule]: knownMaterials.Count: " + m_knownMaterials.Count.ToString());
             }
 
             
             resp["Zipped"] = ZCompressOSD(respArr, false);
             string response = OSDParser.SerializeLLSDXmlString(resp);
 
-            //m_log.Debug("[MaterialsDemoModule]: cap request: " + request);
-            //m_log.Debug("[MaterialsDemoModule]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
-            //m_log.Debug("[MaterialsDemoModule]: cap response: " + response);
+            //m_log.Debug("[Materials]: cap request: " + request);
+            //m_log.Debug("[Materials]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
+            //m_log.Debug("[Materials]: cap response: " + response);
             return response;
+        }
+
+        /// <summary>
+        /// Use heuristics to choose a good name for the material.
+        /// </summary>
+        private string ChooseMaterialName(OSDMap mat, SceneObjectPart sop)
+        {
+            UUID normMap = mat["NormMap"].AsUUID();
+            if (normMap != UUID.Zero)
+            {
+                AssetBase asset = m_scene.AssetService.GetCached(normMap.ToString());
+                if ((asset != null) && (asset.Name.Length > 0) && !asset.Name.Equals("From IAR"))
+                    return asset.Name;
+            }
+
+            UUID specMap = mat["SpecMap"].AsUUID();
+            if (specMap != UUID.Zero)
+            {
+                AssetBase asset = m_scene.AssetService.GetCached(specMap.ToString());
+                if ((asset != null) && (asset.Name.Length > 0) && !asset.Name.Equals("From IAR"))
+                    return asset.Name;
+            }
+
+            if (sop.Name != "Primitive")
+                return sop.Name;
+            
+            if ((sop.ParentGroup != null) && (sop.ParentGroup.Name != "Primitive"))
+                return sop.ParentGroup.Name;
+
+            return "";
         }
 
 
@@ -493,15 +439,13 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                 string param, IOSHttpRequest httpRequest,
                 IOSHttpResponse httpResponse)
         {
-            //m_log.Debug("[MaterialsDemoModule]: GET cap handler");
-
             OSDMap resp = new OSDMap();
             int matsCount = 0;
             OSDArray allOsd = new OSDArray();
 
-            lock (m_knownMaterials)
+            lock (m_regionMaterials)
             {
-                foreach (KeyValuePair<UUID, OSDMap> kvp in m_knownMaterials)
+                foreach (KeyValuePair<UUID, OSDMap> kvp in m_regionMaterials)
                 {
                     OSDMap matMap = new OSDMap();
 
@@ -513,12 +457,11 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             }
 
             resp["Zipped"] = ZCompressOSD(allOsd, false);
-            //m_log.Debug("[MaterialsDemoModule]: matsCount: " + matsCount.ToString());
 
             return OSDParser.SerializeLLSDXmlString(resp);
         }
 
-        static string ZippedOsdBytesToString(byte[] bytes)
+        private static string ZippedOsdBytesToString(byte[] bytes)
         {
             try
             {
@@ -537,26 +480,27 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
         /// <returns></returns>
         private static UUID HashOsd(OSD osd)
         {
+            byte[] data = OSDParser.SerializeLLSDBinary(osd, false);
             using (var md5 = MD5.Create())
-                using (MemoryStream ms = new MemoryStream(OSDParser.SerializeLLSDBinary(osd, false)))
-                    return new UUID(md5.ComputeHash(ms), 0);
+                return new UUID(md5.ComputeHash(data), 0);
         }
 
         public static OSD ZCompressOSD(OSD inOsd, bool useHeader)
         {
             OSD osd = null;
 
+            byte[] data = OSDParser.SerializeLLSDBinary(inOsd, useHeader);
+
             using (MemoryStream msSinkCompressed = new MemoryStream())
             {
                 using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkCompressed, 
                     Ionic.Zlib.CompressionMode.Compress, CompressionLevel.BestCompression, true))
                 {
-                    CopyStream(new MemoryStream(OSDParser.SerializeLLSDBinary(inOsd, useHeader)), zOut);
-                    zOut.Close();
+                    zOut.Write(data, 0, data.Length);
                 }
 
                 msSinkCompressed.Seek(0L, SeekOrigin.Begin);
-                osd = OSD.FromBinary( msSinkCompressed.ToArray());
+                osd = OSD.FromBinary(msSinkCompressed.ToArray());
             }
 
             return osd;
@@ -571,94 +515,14 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             {
                 using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkUnCompressed, CompressionMode.Decompress, true))
                 {
-                    CopyStream(new MemoryStream(input), zOut);
-                    zOut.Close();
+                    zOut.Write(input, 0, input.Length);
                 }
+
                 msSinkUnCompressed.Seek(0L, SeekOrigin.Begin);
                 osd = OSDParser.DeserializeLLSDBinary(msSinkUnCompressed.ToArray());
             }
 
             return osd;
         }
-
-        static void CopyStream(System.IO.Stream input, System.IO.Stream output)
-        {
-            byte[] buffer = new byte[2048];
-            int len;
-            while ((len = input.Read(buffer, 0, 2048)) > 0)
-            {
-                output.Write(buffer, 0, len);
-            }
-
-            output.Flush();
-        }
-
-        // FIXME: This code is currently still in UuidGatherer since we cannot use Scene.EventManager as some 
-        // calls to the gatherer are done for objects with no scene.
-//        /// <summary>
-//        /// Gather all of the texture asset UUIDs used to reference "Materials" such as normal and specular maps
-//        /// </summary>
-//        /// <param name="part"></param>
-//        /// <param name="assetUuids"></param>
-//        private void GatherMaterialsUuids(SceneObjectPart part, IDictionary<UUID, AssetType> assetUuids)
-//        {
-//            // scan thru the dynAttrs map of this part for any textures used as materials
-//            OSD osdMaterials = null;
-//
-//            lock (part.DynAttrs)
-//            {
-//                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
-//                {
-//                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
-//                    if (materialsStore == null)
-//                        return;
-//                        
-//                    materialsStore.TryGetValue("Materials", out osdMaterials);
-//                }
-//
-//                if (osdMaterials != null)
-//                {
-//                    //m_log.Info("[UUID Gatherer]: found Materials: " + OSDParser.SerializeJsonString(osd));
-//
-//                    if (osdMaterials is OSDArray)
-//                    {
-//                        OSDArray matsArr = osdMaterials as OSDArray;
-//                        foreach (OSDMap matMap in matsArr)
-//                        {
-//                            try
-//                            {
-//                                if (matMap.ContainsKey("Material"))
-//                                {
-//                                    OSDMap mat = matMap["Material"] as OSDMap;
-//                                    if (mat.ContainsKey("NormMap"))
-//                                    {
-//                                        UUID normalMapId = mat["NormMap"].AsUUID();
-//                                        if (normalMapId != UUID.Zero)
-//                                        {
-//                                            assetUuids[normalMapId] = AssetType.Texture;
-//                                            //m_log.Info("[UUID Gatherer]: found normal map ID: " + normalMapId.ToString());
-//                                        }
-//                                    }
-//                                    if (mat.ContainsKey("SpecMap"))
-//                                    {
-//                                        UUID specularMapId = mat["SpecMap"].AsUUID();
-//                                        if (specularMapId != UUID.Zero)
-//                                        {
-//                                            assetUuids[specularMapId] = AssetType.Texture;
-//                                            //m_log.Info("[UUID Gatherer]: found specular map ID: " + specularMapId.ToString());
-//                                        }
-//                                    }
-//                                }
-//
-//                            }
-//                            catch (Exception e)
-//                            {
-//                                m_log.Warn("[MaterialsDemoModule]: exception getting materials: " + e.Message);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
     }
 }
