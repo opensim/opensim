@@ -498,8 +498,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (inventoryType == "sound")
             {
-                inType = 1;
-                assType = 1;
+                inType = (sbyte)InventoryType.Sound;
+                assType = (sbyte)AssetType.Sound;
             }
             else if (inventoryType == "snapshot")
             {
@@ -507,19 +507,19 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else if (inventoryType == "animation")
             {
-                inType = 19;
-                assType = 20;
+                inType = (sbyte)InventoryType.Animation;
+                assType = (sbyte)AssetType.Animation;
             }
             else if (inventoryType == "wearable")
             {
-                inType = 18;
+                inType = (sbyte)InventoryType.Wearable;
                 switch (assetType)
                 {
                     case "bodypart":
-                        assType = 13;
+                        assType = (sbyte)AssetType.Bodypart;
                         break;
                     case "clothing":
-                        assType = 5;
+                        assType = (sbyte)AssetType.Clothing;
                         break;
                 }
             }
