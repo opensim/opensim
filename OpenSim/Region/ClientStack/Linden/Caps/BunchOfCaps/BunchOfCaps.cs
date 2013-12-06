@@ -501,6 +501,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 inType = 1;
                 assType = 1;
             }
+            else if (inventoryType == "snapshot")
+            {
+                inType = (sbyte)InventoryType.Snapshot;
+            }
             else if (inventoryType == "animation")
             {
                 inType = 19;
