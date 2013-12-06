@@ -90,6 +90,14 @@ namespace OpenSim.Framework
         public UUID TargetId;
         public string Notes;
     }
+
+    public class UserPreferences
+    {
+        public UUID UserId;
+        public bool IMViaEmail = false;
+        public bool Visible = false;
+        public string EMail = string.Empty;
+    }
     
     public class UserAccountProperties
     {

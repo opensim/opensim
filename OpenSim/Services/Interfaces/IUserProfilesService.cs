@@ -57,6 +57,11 @@ namespace OpenSim.Services.Interfaces
         bool AvatarPropertiesRequest(ref UserProfileProperties prop, ref string result);
         bool AvatarPropertiesUpdate(ref UserProfileProperties prop, ref string result);
         #endregion Profile Properties
+
+        #region User Preferences
+        bool UserPreferencesRequest(ref UserPreferences pref, ref string result);
+        bool UserPreferencesUpdate(ref UserPreferences pref, ref string result);
+        #endregion User Preferences
         
         #region Interests
         bool AvatarInterestsUpdate(UserProfileProperties prop, ref string result);

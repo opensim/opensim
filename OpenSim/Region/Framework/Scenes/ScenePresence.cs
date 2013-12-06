@@ -1648,12 +1648,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (AllowMovement && !SitGround)
             {
-                Quaternion bodyRotation = agentData.BodyRotation;
+//                m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
+
                 bool update_rotation = false;
 
-                if (bodyRotation != Rotation)
+                if (agentData.BodyRotation != Rotation)
                 {
-                    Rotation = bodyRotation;
+                    Rotation = agentData.BodyRotation;
                     update_rotation = true;
                 }
 
