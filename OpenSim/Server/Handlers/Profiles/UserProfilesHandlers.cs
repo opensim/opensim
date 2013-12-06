@@ -381,6 +381,59 @@ namespace OpenSim.Server.Handlers
         }
         #endregion Interests
 
+        #region User Preferences
+        public bool UserPreferencesRequest(OSDMap json, ref JsonRpcResponse response)
+        {
+            if(!json.ContainsKey("params"))
+            {
+                response.Error.Code = ErrorCode.ParseError;
+                m_log.DebugFormat ("User Preferences Request");
+                return false;
+            }
+
+            string result = string.Empty;
+            UserPreferences prefs = new UserPreferences();
+            object Prefs = (object)prefs;
+            OSD.DeserializeMembers(ref Prefs, (OSDMap)json["params"]);
+            if(Service.UserPreferencesRequest(ref prefs, ref result))
+            {
+                response.Result = OSD.SerializeMembers(prefs);
+                return true;
+            }
+            
+            response.Error.Code = ErrorCode.InternalError;
+            response.Error.Message = string.Format("{0}", result);
+            m_log.InfoFormat("[PROFILES]: User preferences request error - {0}", response.Error.Message);
+            return false;
+        }
+
+        public bool UserPreferenecesUpdate(OSDMap json, ref JsonRpcResponse response)
+        {
+            if(!json.ContainsKey("params"))
+            {
+                response.Error.Code = ErrorCode.ParseError;
+                response.Error.Message = "no parameters supplied";
+                m_log.DebugFormat ("User Preferences Update Request");
+                return false;
+            }
+            
+            string result = string.Empty;
+            UserPreferences prefs = new UserPreferences();
+            object Prefs = (object)prefs;
+            OSD.DeserializeMembers(ref Prefs, (OSDMap)json["params"]);
+            if(Service.UserPreferencesUpdate(ref prefs, ref result))
+            {
+                response.Result = OSD.SerializeMembers(prefs);
+                return true;
+            }
+            
+            response.Error.Code = ErrorCode.InternalError;
+            response.Error.Message = string.Format("{0}", result);
+            m_log.InfoFormat("[PROFILES]: User preferences update error - {0}", response.Error.Message);
+            return false;
+        }
+        #endregion User Preferences
+
         #region Utility
         public bool AvatarImageAssetsRequest(OSDMap json, ref JsonRpcResponse response)
         {
