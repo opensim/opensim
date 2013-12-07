@@ -81,13 +81,3 @@ CREATE TABLE IF NOT EXISTS `userdata` (
 
 commit;
 
-:VERSION 3         # -------------------------------
-begin;
-CREATE TABLE IF NOT EXISTS `usersettings` (
-  `useruuid` varchar(36) NOT NULL,
-  `imviaemail` enum('true','false') NOT NULL,
-  `visible` enum('true','false') NOT NULL,
-  `email` varchar(254) NOT NULL,
-  PRIMARY KEY (`useruuid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-commit;

@@ -81,12 +81,3 @@ CREATE TABLE userdata (
 
 commit;
 
-:VERSION 3        # -------------------------------
-begin;
-CREATE TABLE usersettings (
-    "useruuid" char(36) NOT NULL,
-    "imviaemail" bytea NOT NULL,
-    "visible" bytea NOT NULL,
-    PRIMARY KEY ("useruuid")
-);
-commit;

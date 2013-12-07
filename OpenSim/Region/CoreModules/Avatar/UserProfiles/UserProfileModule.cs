@@ -270,10 +270,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             // Notes
             client.AddGenericPacketHandler("avatarnotesrequest", NotesRequest);
             client.OnAvatarNotesUpdate += NotesUpdate;
-
-            // Preferences
-            client.OnUserInfoRequest += UserPreferencesRequest;
-            client.OnUpdateUserInfo += UpdateUserPreferences;
         }
         #endregion Region Event Handlers
 
@@ -802,69 +798,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
         }
         #endregion Notes
-
-        #region User Preferences
-        /// <summary>
-        /// Updates the user preferences.
-        /// </summary>
-        /// <param name='imViaEmail'>
-        /// Im via email.
-        /// </param>
-        /// <param name='visible'>
-        /// Visible.
-        /// </param>
-        /// <param name='remoteClient'>
-        /// Remote client.
-        /// </param>
-        public void UpdateUserPreferences(bool imViaEmail, bool visible, IClientAPI remoteClient)
-        {
-            UserPreferences pref = new UserPreferences();
-
-            pref.UserId = remoteClient.AgentId;
-            pref.IMViaEmail = imViaEmail;
-            pref.Visible = visible;
-
-            string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-
-            object Pref = pref;
-            if(!JsonRpcRequest(ref Pref, "user_preferences_update", serverURI, UUID.Random().ToString()))
-            {
-                m_log.InfoFormat("[PROFILES]: UserPreferences update error");
-                remoteClient.SendAgentAlertMessage("Error updating preferences", false);
-                return;   
-            }
-        }
-        
-        /// <summary>
-        /// Users the preferences request.
-        /// </summary>
-        /// <param name='remoteClient'>
-        /// Remote client.
-        /// </param>
-        public void UserPreferencesRequest(IClientAPI remoteClient)
-        {
-            UserPreferences pref = new UserPreferences();
-
-            pref.UserId = remoteClient.AgentId;
-
-            string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-
-
-            object Pref = (object)pref;
-            if(!JsonRpcRequest(ref Pref, "user_preferences_request", serverURI, UUID.Random().ToString()))
-            {
-                m_log.InfoFormat("[PROFILES]: UserPreferences request error");
-                remoteClient.SendAgentAlertMessage("Error requesting preferences", false);
-                return;
-            }
-            pref = (UserPreferences) Pref;
-
-            remoteClient.SendUserInfoReply(pref.IMViaEmail, pref.Visible, pref.EMail);
-       
-        }
-        #endregion User Preferences
 
         #region Avatar Properties
         /// <summary>
