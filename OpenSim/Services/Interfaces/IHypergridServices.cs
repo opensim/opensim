@@ -43,9 +43,6 @@ namespace OpenSim.Services.Interfaces
 
     }
 
-    /// <summary>
-    /// HG1.5 only
-    /// </summary>
     public interface IUserAgentService
     {
         bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
