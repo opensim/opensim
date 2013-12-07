@@ -566,8 +566,12 @@ namespace OpenSim.Region.Physics.Meshing
                     {
                         byte[] readBuffer = new byte[2048];
                         inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
+                        int readLen = 0;
 
-                        decompressionStream.CopyTo(outMs);
+                        while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                            outMs.Write(readBuffer, 0, readLen);
+
+                        outMs.Flush();
 
                         outMs.Seek(0, SeekOrigin.Begin);
 
