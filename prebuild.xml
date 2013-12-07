@@ -672,7 +672,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="log4net" path="../../../../bin/"/>
-      <Reference name="zlib.net" path="../../../../bin/"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

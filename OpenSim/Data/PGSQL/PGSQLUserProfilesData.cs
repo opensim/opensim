@@ -874,7 +874,7 @@ namespace OpenSim.Data.PGSQL
         }
         
         #region User Preferences
-        public OSDArray GetUserPreferences(UUID avatarId)
+        public bool GetUserPreferences(ref UserPreferences pref, ref string result)
         {
             string query = string.Empty;
             
@@ -891,19 +891,16 @@ namespace OpenSim.Data.PGSQL
                     dbcon.Open();
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.AddWithValue("Id", avatarId.ToString());
+                        cmd.Parameters.AddWithValue("Id", pref.UserId.ToString());
                         
                         using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
                             if(reader.HasRows)
                             {
                                 reader.Read();
-                                OSDMap record = new OSDMap();
-                                
-                                record.Add("imviaemail",OSD.FromString((string)reader["imviaemail"]));
-                                record.Add("visible",OSD.FromString((string)reader["visible"]));
-                                record.Add("email",OSD.FromString((string)reader["email"]));
-                                data.Add(record);
+                                bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
+                                bool.TryParse((string)reader["visible"], out pref.Visible);
+                                pref.EMail = (string)reader["email"];
                             }
                             else
                             {
@@ -926,15 +923,16 @@ namespace OpenSim.Data.PGSQL
             {
                 m_log.DebugFormat("[PROFILES_DATA]" +
                                  ": Get preferences exception {0}", e.Message);
+                result = e.Message;
             }
-            return data;
+            return true;
         }
-        
-        public bool UpdateUserPreferences(bool emailIm, bool visible, UUID avatarId )
+
+        public bool UpdateUserPreferences(ref UserPreferences pref,  ref string result)
         {           
             string query = string.Empty;
             
-            query += "UPDATE userpsettings SET ";
+            query += "UPDATE usersettings SET ";
             query += "imviaemail=:ImViaEmail, ";
             query += "visible=:Visible,";
             query += "WHERE useruuid=:uuid";
@@ -946,9 +944,9 @@ namespace OpenSim.Data.PGSQL
                     dbcon.Open();
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.AddWithValue("ImViaEmail", emailIm.ToString().ToLower ());
-                        cmd.Parameters.AddWithValue("WantText", visible.ToString().ToLower ());
-                        cmd.Parameters.AddWithValue("uuid", avatarId.ToString());
+                        cmd.Parameters.AddWithValue("ImViaEmail", pref.IMViaEmail.ToString().ToLower ());
+                        cmd.Parameters.AddWithValue("Visible", pref.Visible.ToString().ToLower ());
+                        cmd.Parameters.AddWithValue("uuid", pref.UserId.ToString());
                         
                         lock(Lock)
                         {
@@ -961,6 +959,7 @@ namespace OpenSim.Data.PGSQL
             {
                 m_log.DebugFormat("[PROFILES_DATA]" +
                                  ": AgentInterestsUpdate exception {0}", e.Message);
+                result = e.Message;
                 return false;
             }
             return true;
