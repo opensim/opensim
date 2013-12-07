@@ -736,7 +736,6 @@ namespace OpenSim.Data.MySQL
             string query = string.Empty;
             
             query += "UPDATE userprofile SET ";
-            query += "profilePartner=?profilePartner, ";
             query += "profileURL=?profileURL, ";
             query += "profileImage=?image, ";
             query += "profileAboutText=?abouttext,";
@@ -752,7 +751,6 @@ namespace OpenSim.Data.MySQL
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?profileURL", props.WebUrl);
-                        cmd.Parameters.AddWithValue("?profilePartner", props.PartnerId.ToString());
                         cmd.Parameters.AddWithValue("?image", props.ImageId.ToString());
                         cmd.Parameters.AddWithValue("?abouttext", props.AboutText);
                         cmd.Parameters.AddWithValue("?firstlifeimage", props.FirstLifeImageId.ToString());
@@ -897,7 +895,7 @@ namespace OpenSim.Data.MySQL
         }
         
         #region User Preferences
-        public OSDArray GetUserPreferences(UUID avatarId)
+        public bool GetUserPreferences(ref UserPreferences pref, ref string result)
         {
             string query = string.Empty;
             
@@ -914,19 +912,16 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
+                        cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
                         
                         using (MySqlDataReader reader = cmd.ExecuteReader())
                         {
                             if(reader.HasRows)
                             {
                                 reader.Read();
-                                OSDMap record = new OSDMap();
-                                
-                                record.Add("imviaemail",OSD.FromString((string)reader["imviaemail"]));
-                                record.Add("visible",OSD.FromString((string)reader["visible"]));
-                                record.Add("email",OSD.FromString((string)reader["email"]));
-                                data.Add(record);
+                                bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
+                                bool.TryParse((string)reader["visible"], out pref.Visible);
+                                pref.EMail = (string)reader["email"];
                             }
                             else
                             {
@@ -949,17 +944,19 @@ namespace OpenSim.Data.MySQL
             {
                 m_log.DebugFormat("[PROFILES_DATA]" +
                                  ": Get preferences exception {0}", e.Message);
+                result = e.Message;
+                return false;
             }
-            return data;
+            return true;
         }
         
-        public bool UpdateUserPreferences(bool emailIm, bool visible, UUID avatarId )
+        public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
         {           
             string query = string.Empty;
-            
-            query += "UPDATE userpsettings SET ";
+
+            query += "UPDATE usersettings SET ";
             query += "imviaemail=?ImViaEmail, ";
-            query += "visible=?Visible,";
+            query += "visible=?Visible ";
             query += "WHERE useruuid=?uuid";
             
             try
@@ -969,14 +966,11 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?ImViaEmail", emailIm.ToString().ToLower ());
-                        cmd.Parameters.AddWithValue("?WantText", visible.ToString().ToLower ());
-                        cmd.Parameters.AddWithValue("?uuid", avatarId.ToString());
-                        
-                        lock(Lock)
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
+                        cmd.Parameters.AddWithValue("?ImViaEmail", pref.IMViaEmail);
+                        cmd.Parameters.AddWithValue("?Visible", pref.Visible);
+                        cmd.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
+
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
@@ -984,6 +978,7 @@ namespace OpenSim.Data.MySQL
             {
                 m_log.DebugFormat("[PROFILES_DATA]" +
                                  ": AgentInterestsUpdate exception {0}", e.Message);
+                result = e.Message;
                 return false;
             }
             return true;
