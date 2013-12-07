@@ -2648,11 +2648,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
             avatarSitResponse.SitObject.ID = TargetID;
-            if (CameraAtOffset != Vector3.Zero)
-            {
-                avatarSitResponse.SitTransform.CameraAtOffset = CameraAtOffset;
-                avatarSitResponse.SitTransform.CameraEyeOffset = CameraEyeOffset;
-            }
+            avatarSitResponse.SitTransform.CameraAtOffset = CameraAtOffset;
+            avatarSitResponse.SitTransform.CameraEyeOffset = CameraEyeOffset;
             avatarSitResponse.SitTransform.ForceMouselook = ForceMouseLook;
             avatarSitResponse.SitTransform.AutoPilot = autopilot;
             avatarSitResponse.SitTransform.SitPosition = OffsetPos;
@@ -5150,15 +5147,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 attachPoint = 0;
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+
+                // attachPoint = presence.State; // Core: commented
                 collisionPlane = presence.CollisionPlane;
                 velocity = presence.Velocity;
                 acceleration = Vector3.Zero;
 
-                // Interestingly, sending this to non-zero will cause the client's avatar to start moving & accelerating
-                // in that direction, even though we don't model this on the server.  Implementing this in the future
-                // may improve movement smoothness.
-//                acceleration = new Vector3(1, 0, 0);
-                
                 if (sendTexture)
                     textureEntry = presence.Appearance.Texture.GetBytes();
                 else
@@ -5278,6 +5274,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     parentID = part.ParentGroup.RootPart.LocalId;
                 }
             }
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending full update to {0} with position {1} in {2}", Name, data.OffsetPosition, m_scene.Name);
 
             byte[] objectData = new byte[76];
 
@@ -5303,7 +5301,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.NameValue = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
                 data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
             update.ObjectData = objectData;
-            update.ParentID = parentID;
+
+            SceneObjectPart parentPart = data.ParentPart;
+            if (parentPart != null)
+                update.ParentID = parentPart.ParentGroup.LocalId;
+            else
+                update.ParentID = 0;
+
             update.PathCurve = 16;
             update.PathScaleX = 100;
             update.PathScaleY = 100;
@@ -13007,6 +13011,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (p is ScenePresence)
             {
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Immediately sending terse agent update for {0} to {1} in {2}", 
+//                    p.Name, Name, Scene.Name);
+
                 // It turns out to get the agent to stop flying, you have to feed it stop flying velocities
                 // There's no explicit message to send the client to tell it to stop flying..   it relies on the
                 // velocity, collision plane and avatar height

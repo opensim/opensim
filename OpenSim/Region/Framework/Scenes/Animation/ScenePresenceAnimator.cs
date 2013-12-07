@@ -420,11 +420,18 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 Falling = false;
                 // Walking / crouchwalking / running
                 if (move.Z < 0f)
+                {
                     return "CROUCHWALK";
-                else if (m_scenePresence.SetAlwaysRun)
-                    return "RUN";
-                else
-                    return "WALK";
+                }
+                // We need to prevent these animations if the user tries to make their avatar walk or run whilst
+                // specifying AGENT_CONTROL_STOP (pressing down space on viewers).
+                else if (!m_scenePresence.AgentControlStopActive)
+                {
+                    if (m_scenePresence.SetAlwaysRun)
+                        return "RUN";
+                    else
+                        return "WALK";
+                }
             }
             else if (!m_jumping)
             {
@@ -452,6 +459,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <returns>'true' if the animation was changed</returns>
         public bool UpdateMovementAnimations()
         {
+//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Updating movement animations for {0}", m_scenePresence.Name);
+
             bool ret = false;
             lock (m_animations)
             {

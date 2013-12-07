@@ -360,15 +360,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Record user movement inputs.
         /// </summary>
-        public byte MovementFlag { get; private set; }
+        public uint MovementFlag { get; private set; }
 
-        private bool m_updateflag;
-
-        public bool Updated
-        {
-            set { m_updateflag = value; }
-            get { return m_updateflag; }
-        }
+        /// <summary>
+        /// Is the agent stop control flag currently active?
+        /// </summary>
+        public bool AgentControlStopActive { get; private set; }
 
         private bool m_invulnerable = true;
 
@@ -513,6 +510,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
+//                    m_log.DebugFormat("[SCENE PRESENCE]: Fetching abs pos where PhysicsActor == null and parent part {0} for {1}", Name, Scene.Name);
                     // Obtain the correct position of a seated avatar.
                     // In addition to providing the correct position while
                     // the avatar is seated, this value will also
@@ -536,7 +534,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-//                m_log.DebugFormat("[SCENE PRESENCE]: Setting position of {0} in {1} to {2}", Name, Scene.Name, value);
+//                m_log.DebugFormat("[SCENE PRESENCE]: Setting position of {0} to {1} in {2}", Name, value, Scene.Name);
 //                Util.PrintCallStack();
 
                 if (PhysicsActor != null)
@@ -553,10 +551,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Don't update while sitting.  The PhysicsActor above is null whilst sitting.
                 if (ParentID == 0)
-                {
                     m_pos = value;
-//                    ParentPosition = Vector3.Zero;
-                }
 
                 //m_log.DebugFormat(
                 //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
@@ -818,6 +813,14 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_speedModifier; }
             set { m_speedModifier = value; }
         }
+
+        /// <summary>
+        /// Modifier for agent movement if we get an AGENT_CONTROL_STOP whilst walking or running
+        /// </summary>
+        /// <remarks>
+        /// AGENT_CONTRL_STOP comes about if user holds down space key on viewers.
+        /// </remarks>
+        private float AgentControlStopSlowWhilstMoving = 0.5f;
 
         private bool m_forceFly;
 
@@ -1899,7 +1902,6 @@ namespace OpenSim.Region.Framework.Scenes
             if ((oldState & (uint)AgentState.Editing) != 0 && State == (uint)AgentState.None)
                 ControllingClient.SendAgentTerseUpdate(this);
 
-
             PhysicsActor actor = PhysicsActor;
             if (actor == null)
             {
@@ -1909,12 +1911,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (AllowMovement && !SitGround)
             {
-                Quaternion bodyRotation = agentData.BodyRotation;
+//                m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
+
                 bool update_rotation = false;
 
-                if (bodyRotation != Rotation)
+                if (agentData.BodyRotation != Rotation)
                 {
-                    Rotation = bodyRotation;
+                    Rotation = agentData.BodyRotation;
                     update_rotation = true;
                 }
 
@@ -1960,10 +1963,7 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         dirVectors = Dir_Vectors;
 
-                    // The fact that MovementFlag is a byte needs to be fixed
-                    // it really should be a uint
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
-                    uint nudgehack = 250;
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
                         if (((uint)flags & (uint)DCF) != 0)
@@ -1980,29 +1980,19 @@ namespace OpenSim.Region.Framework.Scenes
                                 // Why did I get this?
                             }
 
-                            if ((MovementFlag & (byte)(uint)DCF) == 0)
-                            {
-                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE ||
-                                    DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT_NUDGE)
-                                {
-                                    MovementFlag |= (byte)nudgehack;
-                                }
-
+                            if (((MovementFlag & (uint)DCF) == 0) & !AgentControlStopActive)
+                            {   
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
-                                MovementFlag += (byte)(uint)DCF;
+                                MovementFlag += (uint)DCF;
                                 update_movementflag = true;
                             }
                         }
                         else
                         {
-                            if ((MovementFlag & (byte)(uint)DCF) != 0 ||
-                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE ||
-                                DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT_NUDGE)
-                                && ((MovementFlag & (byte)nudgehack) == nudgehack))
-                                ) // This or is for Nudge forward
+                            if ((MovementFlag & (uint)DCF) != 0)
                             {
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
-                                MovementFlag -= ((byte)(uint)DCF);
+                                MovementFlag -= (uint)DCF;
                                 update_movementflag = true;
 
                                 /*
@@ -2020,6 +2010,13 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 
                         i++;
+                    }
+
+                    // Detect AGENT_CONTROL_STOP state changes
+                    if (AgentControlStopActive != ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STOP) != 0))
+                    {
+                        AgentControlStopActive = !AgentControlStopActive;
+                        update_movementflag = true;
                     }
 
                     if (MovingToTarget)
@@ -2047,53 +2044,79 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only do this if we're flying
                 if (Flying && !ForceFly)
                 {
-                    // Landing detection code
-
-                    // Are the landing controls requirements filled?
-                    bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
-                                        ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
-
-                   //m_log.Debug("[CONTROL]: " +flags);
-                    // Applies a satisfying roll effect to the avatar when flying.
-                    if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                    // Need to stop in mid air if user holds down AGENT_CONTROL_STOP
+                    if (AgentControlStopActive)
                     {
-                        ApplyFlyingRoll(
-                            FLY_ROLL_RADIANS_PER_UPDATE, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
-                    } 
-                    else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
-                             (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
-                    {
-                        ApplyFlyingRoll(
-                            -FLY_ROLL_RADIANS_PER_UPDATE, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
-                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);                      
+                        agent_control_v3 = Vector3.Zero;
                     }
                     else
                     {
-                        if (m_AngularVelocity.Z != 0)
-                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);                        
-                    }                  
+                        // Landing detection code
 
-                    if (Flying && IsColliding && controlland)
-                    {
-                        // nesting this check because LengthSquared() is expensive and we don't 
-                        // want to do it every step when flying.
-                        if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
-                            StopFlying();
+                        // Are the landing controls requirements filled?
+                        bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
+                                            ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+
+                       //m_log.Debug("[CONTROL]: " +flags);
+                        // Applies a satisfying roll effect to the avatar when flying.
+                        if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                        {
+                            ApplyFlyingRoll(
+                                FLY_ROLL_RADIANS_PER_UPDATE, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
+                        } 
+                        else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
+                                 (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                        {
+                            ApplyFlyingRoll(
+                                -FLY_ROLL_RADIANS_PER_UPDATE, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);                      
+                        }
+                        else
+                        {
+                            if (m_AngularVelocity.Z != 0)
+                                m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);                        
+                        }                  
+
+                        if (Flying && IsColliding && controlland)
+                        {
+                            // nesting this check because LengthSquared() is expensive and we don't 
+                            // want to do it every step when flying.
+                            if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
+                                StopFlying();
+                        }
                     }
                 }
 
+//                m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
+
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
                 // which occurs later in the main scene loop
-                if (update_movementflag || (update_rotation && DCFlagKeyPressed))
+                // We also need to update if the user rotates their avatar whilst it is slow walking/running (if they
+                // held down AGENT_CONTROL_STOP whilst normal walking/running).  However, we do not want to update
+                // if the user rotated whilst holding down AGENT_CONTROL_STOP when already still (which locks the 
+                // avatar location in place).
+                if (update_movementflag 
+                    || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
                 {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
-//                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
+//                    if (update_movementflag || !AgentControlStopActive || MovementFlag != 0)
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, mf = {4}, ur = {5}",
+//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name, 
+//                            update_movementflag, MovementFlag, update_rotation);
 
-                    AddNewMovement(agent_control_v3);
+                        float speedModifier;
+
+                        if (AgentControlStopActive)
+                            speedModifier = AgentControlStopSlowWhilstMoving;
+                        else
+                            speedModifier = 1;
+
+                        AddNewMovement(agent_control_v3, speedModifier);
+//                    }
                 }
 //                else
 //                {
@@ -2106,7 +2129,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                }
 
                 if (update_movementflag && ParentID == 0)
+                {
+//                    m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
                     Animator.UpdateMovementAnimations();
+                }
 
                 SendControlsToScripts(flagsForScripts);
             }
@@ -2435,17 +2461,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: StandUp() for {0}", Name);
 
+            bool satOnObject = IsSatOnObject;
+            SceneObjectPart part = ParentPart;
             SitGround = false;
 
-/* move this down so avatar gets physical in the new position and not where it is siting
-            if (PhysicsActor == null)
-                AddToPhysicalScene(false);
- */
-
-            if (ParentID != 0)
+            if (satOnObject)
             {
                 PrevSitOffset = m_pos; // Save sit offset
-                SceneObjectPart part = ParentPart;
                 UnRegisterSeatControls(part.ParentGroup.UUID);
 
                 TaskInventoryDictionary taskIDict = part.TaskInventory;
@@ -2464,28 +2486,64 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 part.ParentGroup.DeleteAvatar(UUID);
-//                ParentPosition = part.GetWorldPosition();
+                Vector3 sitPartWorldPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
-
-//                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
-//                ParentPosition = Vector3.Zero;
-                m_pos = part.AbsolutePosition + (m_pos * part.GetWorldRotation()) + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
-                if (part.SitTargetAvatar == UUID)
-                    m_bodyRot = part.GetWorldRotation() * part.SitTargetOrientation;
 
                 ParentID = 0;
                 ParentPart = null;
 
-                if (PhysicsActor == null)
-                    AddToPhysicalScene(false);
+                Quaternion standRotation;
 
+                if (part.SitTargetAvatar == UUID)
+                {
+                    standRotation = part.GetWorldRotation();
+
+                    if (!part.IsRoot)
+                        standRotation = standRotation * part.SitTargetOrientation;
+//                        standRotation = part.RotationOffset * part.SitTargetOrientation;
+//                    else
+//                        standRotation = part.SitTargetOrientation;
+
+                }
+                else
+                {
+                    standRotation = Rotation;
+                }
+
+                //Vector3 standPos = ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                //Vector3 standPos = ParentPosition;
+
+//                Vector3 standPositionAdjustment 
+//                    = part.SitTargetPosition + new Vector3(0.5f, 0f, m_sitAvatarHeight / 2f);
+                Vector3 adjustmentForSitPosition = part.SitTargetPosition * part.GetWorldRotation();
+
+                // XXX: This is based on the physics capsule sizes.  Need to find a better way to read this rather than
+                // hardcoding here.
+                Vector3 adjustmentForSitPose = new Vector3(0.74f, 0f, 0f) * standRotation;
+
+                Vector3 standPos = sitPartWorldPosition + adjustmentForSitPosition + adjustmentForSitPose;
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
+//                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
+
+                Rotation = standRotation;
+                AbsolutePosition = standPos;
+            }
+
+            // We need to wait until we have calculated proper stand positions before sitting up the physical 
+            // avatar to avoid race conditions.
+            if (PhysicsActor == null)
+                AddToPhysicalScene(false);
+
+            if (satOnObject)
+            {
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
                 part.RemoveSittingAvatar(UUID);
 
-                if (part != null)
-                    part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
             }
 
             else if (PhysicsActor == null)
@@ -2543,7 +2601,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
             bool canSit = false;
-            Vector3 pos = part.AbsolutePosition + offset;
 
             if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
             {
@@ -2553,6 +2610,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 offset = part.SitTargetPosition;
                 sitOrientation = part.SitTargetOrientation;
+
+                if (!part.IsRoot)
+                {
+                    //                m_log.DebugFormat("Old sit orient {0}", sitOrientation);
+                    sitOrientation = part.RotationOffset * sitOrientation;
+                    //                m_log.DebugFormat("New sit orient {0}", sitOrientation);
+//                m_log.DebugFormat("Old sit offset {0}", offset);
+                    offset = offset * part.RotationOffset;
+//                m_log.DebugFormat("New sit offset {0}", offset);
+                }
+
                 canSit = true;
             }
             else
@@ -2560,9 +2628,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (PhysicsSit(part,offset)) // physics engine 
                     return;
 
+                Vector3 pos = part.AbsolutePosition + offset;
+
                 if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
                 {
-
                     AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
                     canSit = true;
                 }
@@ -2588,8 +2657,12 @@ namespace OpenSim.Region.Framework.Scenes
                 cameraEyeOffset = part.GetCameraEyeOffset();
                 forceMouselook = part.GetForceMouselook();
 
+                // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
+                // being sat upon.
+                offset += part.OffsetPosition;
+
                 ControllingClient.SendSitResponse(
-                    part.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+                    part.ParentGroup.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
                 m_requestedSitTargetUUID = part.UUID;
 
@@ -2870,10 +2943,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
-        public void AddNewMovement(Vector3 vec)
+        /// <param name="thisAddSpeedModifier">
+        /// Optional additional speed modifier for this particular add.  Default is 1</param>
+        public void AddNewMovement(Vector3 vec, float thisAddSpeedModifier = 1)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1} for {2}", vec, Rotation, Name);
+//                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
+//                vec, Rotation, thisAddSpeedModifier, Name);
 
             Vector3 direc = vec * Rotation;
             direc.Normalize();
@@ -2891,7 +2967,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
-            direc *= 0.03f * 128f * SpeedModifier;
+            direc *= 0.03f * 128f * SpeedModifier * thisAddSpeedModifier;
 
 //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
@@ -3037,6 +3113,7 @@ namespace OpenSim.Region.Framework.Scenes
                 lastTerseUpdateToAllClientsTick = currentTick;
                 lastPositionSentToAllClients = OffsetPosition;
 
+//                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
                 m_scene.ForEachClient(SendTerseUpdateToClient);
             }
             TriggerScenePresenceUpdated();
@@ -3805,8 +3882,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_forceToApply.HasValue)
             {
                 Vector3 force = m_forceToApply.Value;
-
-                Updated = true;
 
                 Velocity = force;
 

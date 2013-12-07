@@ -743,6 +743,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 inType = (sbyte)InventoryType.Sound;
                 assType = (sbyte)AssetType.Sound;
             }
+            else if (inventoryType == "snapshot")
+            {
+                inType = (sbyte)InventoryType.Snapshot;
+            }
             else if (inventoryType == "animation")
             {
                 inType = (sbyte)InventoryType.Animation;

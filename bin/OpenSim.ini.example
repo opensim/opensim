@@ -1039,7 +1039,7 @@
 
 
 [UserProfiles]
-  ;# {ProfileURL} {} {Set url to UserProfilesService} {}
+  ;# {ProfileServiceURL} {} {Set url to UserProfilesService} {}
   ;; Set the value of the url to your UserProfilesService
   ;; If un-set / "" the module is disabled
   ;; ProfileServiceURL = http://127.0.0.1:8002

@@ -715,7 +715,6 @@ namespace OpenSim.Data.PGSQL
             string query = string.Empty;
             
             query += "UPDATE userprofile SET ";
-            query += "profilePartner=:profilePartner, ";
             query += "profileURL=:profileURL, ";
             query += "profileImage=:image, ";
             query += "profileAboutText=:abouttext,";
@@ -731,7 +730,6 @@ namespace OpenSim.Data.PGSQL
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("profileURL", props.WebUrl);
-                        cmd.Parameters.AddWithValue("profilePartner", props.PartnerId.ToString());
                         cmd.Parameters.AddWithValue("image", props.ImageId.ToString());
                         cmd.Parameters.AddWithValue("abouttext", props.AboutText);
                         cmd.Parameters.AddWithValue("firstlifeimage", props.FirstLifeImageId.ToString());
