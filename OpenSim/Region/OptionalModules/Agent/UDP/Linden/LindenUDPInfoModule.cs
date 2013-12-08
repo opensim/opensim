@@ -669,7 +669,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                     aCircuit = new AgentCircuitData();
 
                                 if (!llClient.SceneAgent.IsChildAgent)
-                                    m_log.InfoFormat("[INFO]: {0} # {1} # {2}", llClient.Name, aCircuit.Viewer, aCircuit.Id0);
+                                    m_log.InfoFormat("[INFO]: {0} # {1} # {2}", llClient.Name, Util.GetViewerName(aCircuit), aCircuit.Id0);
 
                                 int avg_reqs = cinfo.AsyncRequests.Values.Sum() + cinfo.GenericRequests.Values.Sum() + cinfo.SyncRequests.Values.Sum();
                                 avg_reqs = avg_reqs / ((DateTime.Now - cinfo.StartedTime).Minutes + 1);

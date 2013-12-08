@@ -982,7 +982,7 @@ namespace OpenSim
                             aCircuit.child ? "child" : "root",
                             aCircuit.circuitcode.ToString(),
                             aCircuit.IPAddress != null ? aCircuit.IPAddress.ToString() : "not set",
-                            aCircuit.Viewer);
+                            Util.GetViewerName(aCircuit));
                 });
 
             MainConsole.Instance.Output(cdt.ToString());
