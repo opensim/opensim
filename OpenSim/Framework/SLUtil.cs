@@ -247,11 +247,17 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static List<string> ParseNotecardToList(string rawInput)
         {
-            string[] input = rawInput.Replace("\r", "").Split('\n');
+            string[] input;
             int idx = 0;
             int level = 0;
             List<string> output = new List<string>();
             string[] words;
+
+            //The Linden format always ends with a } after the input data.
+            //Strip off trailing } so there is nothing after the input data.
+            int i = rawInput.LastIndexOf("}");
+            rawInput = rawInput.Remove(i, rawInput.Length-i);
+            input = rawInput.Replace("\r", "").Split('\n');
 
             while (idx < input.Length)
             {
@@ -287,24 +293,18 @@ namespace OpenSim.Framework
                         break;
                     if (words[0] == "Text")
                     {
-                        int len = int.Parse(words[2]);
-                        idx++;
+                        idx++;  //Now points to first line of notecard text
 
-                        int count = -1;
+                        //Number of lines in notecard.
+                        int lines = input.Length - idx;
+                        int line = 0;
 
-                        while (count < len && idx < input.Length)
+                        while (line < lines)
                         {
-                            // int l = input[idx].Length;
-                            string ln = input[idx];
-
-                            int need = len-count-1;
-                            if (ln.Length > need)
-                                ln = ln.Substring(0, need);
-
-//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", ln);
-                            output.Add(ln);
-                            count += ln.Length + 1;
+//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", input[idx]);
+                            output.Add(input[idx]);
                             idx++;
+                            line++;
                         }
 
                         return output;
