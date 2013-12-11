@@ -118,6 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_hasGroupChanged = false;
         private long timeFirstChanged;
         private long timeLastChanged;
+        private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
         /// <summary>
         /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
@@ -1096,6 +1097,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
         /// <summary>
         ///
         /// </summary>
@@ -1104,6 +1106,46 @@ namespace OpenSim.Region.Framework.Scenes
         {
             part.ParentID = m_rootPart.LocalId;
             part.ClearUndoState();
+        }
+        /// <summary>
+        /// Add the avatar to this linkset (avatar is sat).
+        /// </summary>
+        /// <param name="agentID"></param>
+        public void AddAvatar(UUID agentID)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(agentID, out presence))
+            {
+                if (!m_linkedAvatars.Contains(presence))
+                {
+                    m_linkedAvatars.Add(presence);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete the avatar from this linkset (avatar is unsat).
+        /// </summary>
+        /// <param name="agentID"></param>
+        public void DeleteAvatar(UUID agentID)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(agentID, out presence))
+            {
+                if (m_linkedAvatars.Contains(presence))
+                {
+                    m_linkedAvatars.Remove(presence);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of linked presences (avatars sat on this group)
+        /// </summary>
+        /// <param name="agentID"></param>
+        public List<ScenePresence> GetLinkedAvatars()
+        {
+            return m_linkedAvatars;
         }
 
         public ushort GetTimeDilation()

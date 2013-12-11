@@ -70,6 +70,7 @@ namespace OpenSim.Framework
         void UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
         bool IsEitherBannedOrRestricted(UUID avatar);
         bool IsBannedFromLand(UUID avatar);
+        bool CanBeOnThisLand(UUID avatar, float posHeight);
         bool IsRestrictedFromLand(UUID avatar);
         bool IsInLandAccessList(UUID avatar);
         void SendLandUpdateToClient(IClientAPI remote_client);
