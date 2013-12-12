@@ -339,27 +339,14 @@ namespace OpenSim.Region.OptionalModules.Materials
                                             if (matsMap.ContainsKey("Face"))
                                             {
                                                 face = matsMap["Face"].AsInteger();
-                                                if (te.FaceTextures == null) // && face == 0)
-                                                {
-                                                    if (te.DefaultTexture == null)
-                                                        m_log.WarnFormat("[Materials]: te.DefaultTexture is null in {0} {1}", sop.Name, sop.UUID);
-                                                    else
-                                                        te.DefaultTexture.MaterialID = id;
-                                                }
-                                                else
-                                                {
-                                                    if (te.FaceTextures.Length >= face - 1)
-                                                    {
-                                                        if (te.FaceTextures[face] == null)
-                                                            te.DefaultTexture.MaterialID = id;
-                                                        else
-                                                            te.FaceTextures[face].MaterialID = id;
-                                                    }
-                                                }
+                                                Primitive.TextureEntryFace faceEntry = te.CreateFace((uint)face);
+                                                faceEntry.MaterialID = id;
                                             }
                                             else
                                             {
-                                                if (te.DefaultTexture != null)
+                                                if (te.DefaultTexture == null)
+                                                    m_log.WarnFormat("[Materials]: TextureEntry.DefaultTexture is null in {0} {1}", sop.Name, sop.UUID);
+                                                else
                                                     te.DefaultTexture.MaterialID = id;
                                             }
 
