@@ -2866,8 +2866,6 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 up = new Vector3((float)x, (float)y, (float)z);
                     Vector3 sitOffset = up * Appearance.AvatarHeight * 0.02638f;
 
-                    m_pos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
-
                     Vector3 newPos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
                     Quaternion newRot;
 
