@@ -119,7 +119,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // printing out npc.AbsolutePosition will give <0, 0, 0.8454993> not <0, 0, 0.845499337>
             Assert.That(
                 m_sp.AbsolutePosition,
-                Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, 0.845499337f)));
+                Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, sp.PhysicsActor.Size.Z / 2)));
 
             m_sp.StandUp();
 
