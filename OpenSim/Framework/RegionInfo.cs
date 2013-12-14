@@ -144,9 +144,9 @@ namespace OpenSim.Framework
         public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
 
-        public uint RegionWorldLocX = 0;
-        public uint RegionWorldLocY = 0;
-        public uint RegionWorldLocZ = 0;
+        public uint WorldLocX = 0;
+        public uint WorldLocY = 0;
+        public uint WorldLocZ = 0;
         public uint RegionSizeX = Constants.RegionSize;
         public uint RegionSizeY = Constants.RegionSize;
         public uint RegionSizeZ = Constants.RegionHeight;
@@ -452,52 +452,28 @@ namespace OpenSim.Framework
         /// Coordinate is scaled as world coordinates divided by the legacy region size
         /// and is thus is the number of legacy regions.
         /// </summary>
-        public uint LegacyRegionLocX
-        {
-            get { return RegionWorldLocX / Constants.RegionSize; }
-            set { RegionWorldLocX = value * Constants.RegionSize; }
-        }
-
-        /// <summary>
-        /// The y co-ordinate of this region in map tiles (e.g. 1000).
-        /// Coordinate is scaled as world coordinates divided by the legacy region size
-        /// and is thus is the number of legacy regions.
-        /// </summary>
-        public uint LegacyRegionLocY
-        {
-            get { return RegionWorldLocY / Constants.RegionSize; }
-            set { RegionWorldLocY = value * Constants.RegionSize; }
-        }
-
-        /// <summary>
-        /// The x co-ordinate of this region in map tiles (e.g. 1000).
-        /// Coordinate is scaled as world coordinates divided by the legacy region size
-        /// and is thus is the number of legacy regions.
-        /// DO NOT USE FOR NEW CODE! This entrypoint exists for downward compatability with external modules.
-        /// </summary>
         public uint RegionLocX
         {
-            get { return LegacyRegionLocX; }
-            set { LegacyRegionLocX = value; }
+            get { return WorldLocX / Constants.RegionSize; }
+            set { WorldLocX = value * Constants.RegionSize; }
         }
 
         /// <summary>
         /// The y co-ordinate of this region in map tiles (e.g. 1000).
         /// Coordinate is scaled as world coordinates divided by the legacy region size
         /// and is thus is the number of legacy regions.
-        /// DO NOT USE FOR NEW CODE! This entrypoint exists for downward compatability with external modules.
         /// </summary>
         public uint RegionLocY
         {
-            get { return LegacyRegionLocY; }
-            set { LegacyRegionLocY = value; }
+            get { return WorldLocY / Constants.RegionSize; }
+            set { WorldLocY = value * Constants.RegionSize; }
         }
 
         public void SetDefaultRegionSize()
         {
-            RegionWorldLocX = 0;
-            RegionWorldLocY = 0;
-            RegionWorldLocZ = 0;
+            WorldLocX = 0;
+            WorldLocY = 0;
+            WorldLocZ = 0;
             RegionSizeX = Constants.RegionSize;
             RegionSizeY = Constants.RegionSize;
             RegionSizeZ = Constants.RegionHeight;
@@ -508,7 +484,7 @@ namespace OpenSim.Framework
         //    compute the region coordinates from it.
         public ulong RegionHandle
         {
-            get { return Util.UIntsToLong(RegionWorldLocX, RegionWorldLocY); }
+            get { return Util.UIntsToLong(WorldLocX, WorldLocY); }
         }
 
         public void SetEndPoint(string ipaddr, int port)
@@ -615,8 +591,8 @@ namespace OpenSim.Framework
 
             string[] locationElements = location.Split(new char[] {','});
 
-            LegacyRegionLocX = Convert.ToUInt32(locationElements[0]);
-            LegacyRegionLocY = Convert.ToUInt32(locationElements[1]);
+            RegionLocX = Convert.ToUInt32(locationElements[0]);
+            RegionLocY = Convert.ToUInt32(locationElements[1]);
 
             // Region size
             // Default to legacy region size if not specified.
@@ -815,7 +791,7 @@ namespace OpenSim.Framework
 
             config.Set("RegionUUID", RegionID.ToString());
 
-            string location = String.Format("{0},{1}", LegacyRegionLocX, LegacyRegionLocY);
+            string location = String.Format("{0},{1}", RegionLocX, RegionLocY);
             config.Set("Location", location);
 
             if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
@@ -909,9 +885,9 @@ namespace OpenSim.Framework
                                                 "Region Name", RegionName, true);
 
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", LegacyRegionLocX.ToString(), true);
+                                                "Grid Location (X Axis)", RegionLocX.ToString(), true);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", LegacyRegionLocY.ToString(), true);
+                                                "Grid Location (Y Axis)", RegionLocY.ToString(), true);
             configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Size of region in X dimension", RegionSizeX.ToString(), true);
             configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
@@ -1050,10 +1026,10 @@ namespace OpenSim.Framework
                     RegionName = (string) configuration_result;
                     break;
                 case "sim_location_x":
-                    LegacyRegionLocX = (uint) configuration_result;
+                    RegionLocX = (uint) configuration_result;
                     break;
                 case "sim_location_y":
-                    LegacyRegionLocY = (uint) configuration_result;
+                    RegionLocY = (uint) configuration_result;
                     break;
                 case "sim_size_x":
                     RegionSizeX = (uint) configuration_result;
@@ -1144,8 +1120,8 @@ namespace OpenSim.Framework
             args["http_port"] = OSD.FromString(HttpPort.ToString());
             args["server_uri"] = OSD.FromString(ServerURI);
 
-            args["region_xloc"] = OSD.FromString(LegacyRegionLocX.ToString());
-            args["region_yloc"] = OSD.FromString(LegacyRegionLocY.ToString());
+            args["region_xloc"] = OSD.FromString(RegionLocX.ToString());
+            args["region_yloc"] = OSD.FromString(RegionLocY.ToString());
             args["region_size_x"] = OSD.FromString(RegionSizeX.ToString());
             args["region_size_y"] = OSD.FromString(RegionSizeY.ToString());
             args["region_size_z"] = OSD.FromString(RegionSizeZ.ToString());
@@ -1180,13 +1156,13 @@ namespace OpenSim.Framework
             {
                 uint locx;
                 UInt32.TryParse(args["region_xloc"].AsString(), out locx);
-                LegacyRegionLocX = locx;
+                RegionLocX = locx;
             }
             if (args["region_yloc"] != null)
             {
                 uint locy;
                 UInt32.TryParse(args["region_yloc"].AsString(), out locy);
-                LegacyRegionLocY = locy;
+                RegionLocY = locy;
             }
             if (args.ContainsKey("region_size_x"))
                 RegionSizeX = (uint)args["region_size_x"].AsInteger();

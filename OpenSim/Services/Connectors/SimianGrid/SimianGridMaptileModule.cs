@@ -201,8 +201,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             NameValueCollection requestArgs = new NameValueCollection
                 {
                         { "RequestMethod", "xAddMapTile" },
-                        { "X", scene.RegionInfo.LegacyRegionLocX.ToString() },
-                        { "Y", scene.RegionInfo.LegacyRegionLocY.ToString() },
+                        { "X", scene.RegionInfo.RegionLocX.ToString() },
+                        { "Y", scene.RegionInfo.RegionLocY.ToString() },
                         { "ContentType", "image/png" },
                         { "EncodedData", System.Convert.ToBase64String(pngData) }
                 };

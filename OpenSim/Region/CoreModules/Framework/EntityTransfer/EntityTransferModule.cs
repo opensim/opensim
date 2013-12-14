@@ -491,8 +491,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 // Check that these are not the same coordinates
-                if (finalDestination.RegionLocX == sp.Scene.RegionInfo.LegacyRegionLocX &&
-                    finalDestination.RegionLocY == sp.Scene.RegionInfo.LegacyRegionLocY)
+                if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
+                    finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
                 {
                     // Can't do. Viewer crashes
                     sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
@@ -564,8 +564,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                            destRegionX, destRegionY, finalDestination.RegionID, finalDestination.ServerURI);
 
             // Insanely, RegionLoc on RegionInfo is the 256m map co-ord whilst GridRegion.RegionLoc is the raw meters position.
-            return Math.Abs(sourceRegion.LegacyRegionLocX - destRegion.RegionCoordX) <= MaxTransferDistance
-                && Math.Abs(sourceRegion.LegacyRegionLocY - destRegion.RegionCoordY) <= MaxTransferDistance;
+            return Math.Abs(sourceRegion.RegionLocX - destRegion.RegionCoordX) <= MaxTransferDistance
+                && Math.Abs(sourceRegion.RegionLocY - destRegion.RegionCoordY) <= MaxTransferDistance;
         }
 
         /// <summary>
@@ -632,7 +632,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     string.Format(
                       "Can't teleport to {0} ({1},{2}) from {3} ({4},{5}), destination is more than {6} regions way",
                       finalDestination.RegionName, finalDestination.RegionCoordX, finalDestination.RegionCoordY,
-                      sourceRegion.RegionName, sourceRegion.LegacyRegionLocX, sourceRegion.LegacyRegionLocY,
+                      sourceRegion.RegionName, sourceRegion.RegionLocX, sourceRegion.RegionLocY,
                       MaxTransferDistance));
 
                 return;
@@ -1919,7 +1919,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (m_regionInfo != null)
             {
-                neighbours = RequestNeighbours(sp, m_regionInfo.LegacyRegionLocX, m_regionInfo.LegacyRegionLocY);
+                neighbours = RequestNeighbours(sp, m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             }
             else
             {
@@ -2244,10 +2244,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             extent.X = ((int)extent.X / (int)Constants.RegionSize);
             extent.Y = ((int)extent.Y / (int)Constants.RegionSize);
 
-            swCorner.X = Scene.RegionInfo.LegacyRegionLocX - 1;
-            swCorner.Y = Scene.RegionInfo.LegacyRegionLocY - 1;
-            neCorner.X = Scene.RegionInfo.LegacyRegionLocX + extent.X;
-            neCorner.Y = Scene.RegionInfo.LegacyRegionLocY + extent.Y;
+            swCorner.X = Scene.RegionInfo.RegionLocX - 1;
+            swCorner.Y = Scene.RegionInfo.RegionLocY - 1;
+            neCorner.X = Scene.RegionInfo.RegionLocX + extent.X;
+            neCorner.Y = Scene.RegionInfo.RegionLocY + extent.Y;
         }
 
         /// <summary>
@@ -2560,8 +2560,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
 
             // Compute the absolute position of the object.
-            double objectWorldLocX = (double)scene.RegionInfo.RegionWorldLocX + attemptedPosition.X;
-            double objectWorldLocY = (double)scene.RegionInfo.RegionWorldLocY + attemptedPosition.Y;
+            double objectWorldLocX = (double)scene.RegionInfo.WorldLocX + attemptedPosition.X;
+            double objectWorldLocY = (double)scene.RegionInfo.WorldLocY + attemptedPosition.Y;
 
             // Ask the grid service for the region that contains the passed address
             GridRegion destination = GetRegionContainingWorldLocation(scene.GridService, scene.RegionInfo.ScopeID, objectWorldLocX, objectWorldLocY);

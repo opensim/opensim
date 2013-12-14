@@ -255,8 +255,8 @@ namespace OpenSim.Services.Interfaces
         public GridRegion(RegionInfo ConvertFrom)
         {
             m_regionName = ConvertFrom.RegionName;
-            m_regionLocX = (int)(ConvertFrom.RegionWorldLocX);
-            m_regionLocY = (int)(ConvertFrom.RegionWorldLocY);
+            m_regionLocX = (int)(ConvertFrom.WorldLocX);
+            m_regionLocY = (int)(ConvertFrom.WorldLocY);
             RegionSizeX = (int)ConvertFrom.RegionSizeX;
             RegionSizeY = (int)ConvertFrom.RegionSizeY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;

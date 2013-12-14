@@ -96,9 +96,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             int x = (args.Length > 5 ? int.Parse(args[5]) : -1);
             int y = (args.Length > 6 ? int.Parse(args[6]) : -1);
 
-            if (x == -1 || m_module.Scene.RegionInfo.LegacyRegionLocX == x)
+            if (x == -1 || m_module.Scene.RegionInfo.RegionLocX == x)
             {
-                if (y == -1 || m_module.Scene.RegionInfo.LegacyRegionLocY == y)
+                if (y == -1 || m_module.Scene.RegionInfo.RegionLocY == y)
                 {
                     int corner = int.Parse(num);
                     UUID texture = UUID.Parse(uuid);
@@ -135,9 +135,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             int x = (args.Length > 4 ? int.Parse(args[4]) : -1);
             int y = (args.Length > 5 ? int.Parse(args[5]) : -1);
 
-            if (x == -1 || m_module.Scene.RegionInfo.LegacyRegionLocX == x)
+            if (x == -1 || m_module.Scene.RegionInfo.RegionLocX == x)
             {
-                if (y == -1 || m_module.Scene.RegionInfo.LegacyRegionLocY == y)
+                if (y == -1 || m_module.Scene.RegionInfo.RegionLocY == y)
                 {
                     double selectedheight = double.Parse(heightstring);
 
@@ -159,9 +159,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             int x = (args.Length > 6 ? int.Parse(args[6]) : -1);
             int y = (args.Length > 7 ? int.Parse(args[7]) : -1);
 
-            if (x == -1 || m_module.Scene.RegionInfo.LegacyRegionLocX == x)
+            if (x == -1 || m_module.Scene.RegionInfo.RegionLocX == x)
             {
-                if (y == -1 || m_module.Scene.RegionInfo.LegacyRegionLocY == y)
+                if (y == -1 || m_module.Scene.RegionInfo.RegionLocY == y)
                 {
                     int corner = int.Parse(num);
                     float lowValue = float.Parse(min, Culture.NumberFormatInfo);

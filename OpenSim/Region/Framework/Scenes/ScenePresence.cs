@@ -702,7 +702,7 @@ namespace OpenSim.Region.Framework.Scenes
                 uint x, y;
                 Util.RegionHandleToRegionLoc(handle, out x, out y);
 
-                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.LegacyRegionLocX, y, Scene.RegionInfo.LegacyRegionLocY))
+                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
                 {
                     old.Add(handle);
                 }
@@ -2115,8 +2115,8 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
 
             // Get terrain height for sub-region in a megaregion if necessary
-            int X = (int)((m_scene.RegionInfo.RegionWorldLocX) + pos.X);
-            int Y = (int)((m_scene.RegionInfo.RegionWorldLocY) + pos.Y);
+            int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
+            int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
             GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
             // If X and Y is NaN, target_region will be null
             if (target_region == null)

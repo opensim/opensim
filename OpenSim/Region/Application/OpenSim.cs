@@ -825,8 +825,8 @@ namespace OpenSim
                                 MainConsole.Instance.Output(String.Format(
                                            "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}, Estate Name: {4}",
                                            scene.RegionInfo.RegionName,
-                                           scene.RegionInfo.LegacyRegionLocX,
-                                           scene.RegionInfo.LegacyRegionLocY,
+                                           scene.RegionInfo.RegionLocX,
+                                           scene.RegionInfo.RegionLocY,
                                            scene.RegionInfo.InternalEndPoint.Port,
                                            scene.RegionInfo.EstateSettings.EstateName));
                             });

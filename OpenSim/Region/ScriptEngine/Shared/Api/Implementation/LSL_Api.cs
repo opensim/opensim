@@ -4244,7 +4244,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                      m_item.ItemID, item.AssetID.ToString());
 
-                    Vector3 region = new Vector3(World.RegionInfo.RegionWorldLocX, World.RegionInfo.RegionWorldLocY, 0);
+                    Vector3 region = new Vector3(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
 
                     World.AssetService.Get(item.AssetID.ToString(), this,
                         delegate(string i, object sender, AssetBase a)
@@ -5478,7 +5478,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetRegionCorner()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(World.RegionInfo.RegionWorldLocX, World.RegionInfo.RegionWorldLocY, 0);
+            return new LSL_Vector(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
         }
 
         /// <summary>
@@ -5651,8 +5651,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             List<GridRegion> neighbors = World.GridService.GetNeighbours(World.RegionInfo.ScopeID, World.RegionInfo.RegionID);
 
-            uint neighborX = World.RegionInfo.LegacyRegionLocX + (uint)dir.x;
-            uint neighborY = World.RegionInfo.LegacyRegionLocY + (uint)dir.y;
+            uint neighborX = World.RegionInfo.RegionLocX + (uint)dir.x;
+            uint neighborY = World.RegionInfo.RegionLocY + (uint)dir.y;
 
             foreach (GridRegion sri in neighbors)
             {
@@ -10767,7 +10767,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             httpHeaders["X-SecondLife-Shard"] = shard;
             httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
             httpHeaders["X-SecondLife-Object-Key"] = m_host.UUID.ToString();
-            httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.LegacyRegionLocX, regionInfo.LegacyRegionLocY);
+            httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.RegionLocX, regionInfo.RegionLocY);
             httpHeaders["X-SecondLife-Local-Position"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", position.X, position.Y, position.Z);
             httpHeaders["X-SecondLife-Local-Velocity"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", velocity.X, velocity.Y, velocity.Z);
             httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
