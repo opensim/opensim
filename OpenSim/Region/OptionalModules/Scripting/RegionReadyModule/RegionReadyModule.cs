@@ -216,9 +216,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
                 //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
-                // Warn level because the region cannot be used while logins are disabled
-                m_log.WarnFormat(
-                    "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
+                // Putting this out to console to make it eye-catching for people who are running OpenSimulator
+                // without info log messages enabled.  Making this a warning is arguably misleading since it isn't a 
+                // warning, and monitor scripts looking for warn/error/fatal messages will received false positives.
+                // Arguably, log4net needs a status log level (like Apache).
+                MainConsole.Instance.OutputFormat("INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
             }
 
             m_scene.SceneGridService.InformNeighborsThatRegionisUp(
