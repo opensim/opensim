@@ -324,6 +324,7 @@ namespace OpenSim.Region.CoreModules
                 try
                 {
                     WindParamSet(plugin, param, value);
+                    MainConsole.Instance.OutputFormat("{0} set to {1}", param, value);
                 }
                 catch (Exception e)
                 {
@@ -373,13 +374,11 @@ namespace OpenSim.Region.CoreModules
             {
                 IWindModelPlugin windPlugin = m_availableWindPlugins[plugin];
                 windPlugin.WindParamSet(param, value);
-                m_log.InfoFormat("[WIND] {0} set to {1}", param, value);
             }
             else
             {
                 throw new Exception(String.Format("Could not find plugin {0}", plugin));
             }
-
         }
 
         public float WindParamGet(string plugin, string param)
