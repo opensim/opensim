@@ -925,15 +925,19 @@ namespace OpenSim.Data.MySQL
                             }
                             else
                             {
+                                dbcon.Close();
+                                dbcon.Open();
+                                
+                                query = "INSERT INTO usersettings VALUES ";
+                                query += "(?uuid,'false','false', ?Email)";
+
                                 using (MySqlCommand put = new MySqlCommand(query, dbcon))
                                 {
-                                    query = "INSERT INTO usersettings VALUES ";
-                                    query += "(?Id,'false','false', '')";
                                     
-                                    lock(Lock)
-                                    {
-                                        put.ExecuteNonQuery();
-                                    }
+                                    put.Parameters.AddWithValue("?Email", pref.EMail);
+                                    put.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
+
+                                    put.ExecuteNonQuery();
                                 }
                             }
                         }

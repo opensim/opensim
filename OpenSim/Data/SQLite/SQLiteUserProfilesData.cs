@@ -808,11 +808,12 @@ namespace OpenSim.Data.SQLite
                          else
                          {
                             query = "INSERT INTO usersettings VALUES ";
-                            query += "(:Id,'false','false', '')";
+                            query += "(:Id,'false','false', :Email)";
                             
                             using (SqliteCommand put = (SqliteCommand)m_connection.CreateCommand())
                             {
                                 put.Parameters.AddWithValue(":Id", pref.UserId.ToString());
+                                put.Parameters.AddWithValue(":Email", pref.EMail);
                                 put.ExecuteNonQuery();
                                     
                             }
