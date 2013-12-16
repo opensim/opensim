@@ -546,6 +546,10 @@ namespace OpenSim.Data.MySQL
                                 reader.Read();
                                 notes.Notes = OSD.FromString((string)reader["notes"]);
                             }
+                            else
+                            {
+                                notes.Notes = OSD.FromString("");
+                            }
                         }
                     }
                 }
