@@ -177,6 +177,7 @@ namespace OpenSim.Services.Interfaces
 
         /// <summary>
         /// The location of this region in meters.
+        /// DANGER DANGER! Note that this name means something different in RegionInfo.
         /// </summary>
         public int RegionLocX
         {
@@ -190,6 +191,7 @@ namespace OpenSim.Services.Interfaces
 
         /// <summary>
         /// The location of this region in meters.
+        /// DANGER DANGER! Note that this name means something different in RegionInfo.
         /// </summary>
         public int RegionLocY
         {

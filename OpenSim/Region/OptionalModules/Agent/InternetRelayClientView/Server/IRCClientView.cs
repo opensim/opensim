@@ -908,7 +908,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             // Mimicking LLClientView which gets always set appearance from client.
             AvatarAppearance appearance;
             m_scene.GetAvatarAppearance(this, out appearance);
-            OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone(), new List<CachedTextureRequestArg>());
+            OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone(),appearance.AvatarSize, new WearableCacheItem[0]);
         }
 
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)

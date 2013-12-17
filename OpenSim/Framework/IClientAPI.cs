@@ -66,7 +66,7 @@ namespace OpenSim.Framework
 
     public delegate void CachedTextureRequest(IClientAPI remoteClient, int serial, List<CachedTextureRequestArg> cachedTextureRequest);
 
-    public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, List<CachedTextureRequestArg> cachedTextureData);
+    public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 AvSize, WearableCacheItem[] CacheItems);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 

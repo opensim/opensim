@@ -6409,26 +6409,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Temporarily protect ourselves from the mantis #951 failure.
                 // However, we could do this for several other handlers where a failure isn't terminal
                 // for the client session anyway, in order to protect ourselves against bad code in plugins
+                Vector3 avSize = appear.AgentData.Size;
                 try
                 {
                     byte[] visualparams = new byte[appear.VisualParam.Length];
                     for (int i = 0; i < appear.VisualParam.Length; i++)
                         visualparams[i] = appear.VisualParam[i].ParamValue;
+                    //var b = appear.WearableData[0]; 
 
                     Primitive.TextureEntry te = null;
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
 
-                    List<CachedTextureRequestArg> hashes = new List<CachedTextureRequestArg>();
-                    for (int i = 0; i < appear.WearableData.Length; i++)
-                    {
-                        CachedTextureRequestArg arg = new CachedTextureRequestArg();
-                        arg.BakedTextureIndex = appear.WearableData[i].TextureIndex;
-                        arg.WearableHashID = appear.WearableData[i].CacheID;
-                        hashes.Add(arg);
-                    }
+                    WearableCacheItem[] cacheitems = new WearableCacheItem[appear.WearableData.Length];
+                    for (int i=0; i<appear.WearableData.Length;i++)
+                        cacheitems[i] = new WearableCacheItem(){CacheId = appear.WearableData[i].CacheID,TextureIndex=Convert.ToUInt32(appear.WearableData[i].TextureIndex)};
 
-                    handlerSetAppearance(sender, te, visualparams, hashes);
+
+
+                    handlerSetAppearance(sender, te, visualparams,avSize, cacheitems);
                 }
                 catch (Exception e)
                 {

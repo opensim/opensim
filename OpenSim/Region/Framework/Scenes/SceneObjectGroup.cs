@@ -118,6 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_hasGroupChanged = false;
         private long timeFirstChanged;
         private long timeLastChanged;
+        private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
         /// <summary>
         /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
@@ -428,6 +429,12 @@ namespace OpenSim.Region.Framework.Scenes
             return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
         }
         
+        private struct avtocrossInfo
+        {
+            public ScenePresence av;
+            public uint ParentID;
+        }
+
         /// <summary>
         /// The absolute position of this scene object in the scene
         /// </summary>
@@ -455,13 +462,122 @@ namespace OpenSim.Region.Framework.Scenes
                             || Scene.TestBorderCross(val, Cardinals.S))
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
+                        IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                        string version = String.Empty;
+                        Vector3 newpos = Vector3.Zero;
+                        OpenSim.Services.Interfaces.GridRegion destination = null;
+
                         if (m_rootPart.KeyframeMotion != null)
                             m_rootPart.KeyframeMotion.StartCrossingCheck();
 
-                        m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+                        bool canCross = true;
+                        foreach (ScenePresence av in m_linkedAvatars)
+                        {
+                            // We need to cross these agents. First, let's find
+                            // out if any of them can't cross for some reason.
+                            // We have to deny the crossing entirely if any
+                            // of them are banned. Alternatively, we could
+                            // unsit banned agents....
+
+
+                            // We set the avatar position as being the object
+                            // position to get the region to send to
+                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out version, out newpos)) == null)
+                            {
+                                canCross = false;
+                                break;
+                            }
+
+                            m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
+                        }
+
+                        if (canCross)
+                        {
+                            // We unparent the SP quietly so that it won't
+                            // be made to stand up
+
+                            List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
+
+                            foreach (ScenePresence av in m_linkedAvatars)
+                            {
+                                avtocrossInfo avinfo = new avtocrossInfo();
+                                SceneObjectPart parentPart = m_scene.GetSceneObjectPart(av.ParentID);
+                                if (parentPart != null)
+                                    av.ParentUUID = parentPart.UUID;
+
+                                avinfo.av = av;
+                                avinfo.ParentID = av.ParentID;
+                                avsToCross.Add(avinfo);
+
+                                av.PrevSitOffset = av.OffsetPosition;
+                                av.ParentID = 0;
+                            }
+
+                            //                            m_linkedAvatars.Clear();
+                            m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+
+                            // Normalize
+                            if (val.X >= Constants.RegionSize)
+                                val.X -= Constants.RegionSize;
+                            if (val.Y >= Constants.RegionSize)
+                                val.Y -= Constants.RegionSize;
+                            if (val.X < 0)
+                                val.X += Constants.RegionSize;
+                            if (val.Y < 0)
+                                val.Y += Constants.RegionSize;
+
+                            // If it's deleted, crossing was successful
+                            if (IsDeleted)
+                            {
+                                //                                foreach (ScenePresence av in m_linkedAvatars)
+                                foreach (avtocrossInfo avinfo in avsToCross)
+                                {
+                                    ScenePresence av = avinfo.av;
+                                    if (!av.IsInTransit) // just in case...
+                                    {
+                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
+
+                                        av.IsInTransit = true;
+
+                                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
+                                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                    }
+                                    else
+                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
+                                }
+                                avsToCross.Clear();
+                                return;
+                            }
+                            else // cross failed, put avas back ??
+                            {
+                                foreach (avtocrossInfo avinfo in avsToCross)
+                                {
+                                    ScenePresence av = avinfo.av;
+                                    av.ParentUUID = UUID.Zero;
+                                    av.ParentID = avinfo.ParentID;
+//                                    m_linkedAvatars.Add(av);
+                                }
+                            }
+                            avsToCross.Clear();
+
+                        }
+                        else
+                        {
+                            if (m_rootPart.KeyframeMotion != null)
+                                m_rootPart.KeyframeMotion.CrossingFailure();
+
+                            if (RootPart.PhysActor != null)
+                            {
+                                RootPart.PhysActor.CrossingFailure();
+                            }
+                        }
+                        Vector3 oldp = AbsolutePosition;
+                        val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
+                        val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
+                        val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
                     }
                 }
-                
+
                 if (RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
@@ -493,6 +609,39 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Scene != null)
                     Scene.EventManager.TriggerParcelPrimCountTainted();
             }
+        }
+
+        public override Vector3 Velocity
+        {
+            get { return RootPart.Velocity; }
+            set { RootPart.Velocity = value; }
+        }
+
+        private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
+        {
+            CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
+            ScenePresence agent = icon.EndInvoke(iar);
+
+            //// If the cross was successful, this agent is a child agent
+            if (agent.IsChildAgent)
+            {
+                if (agent.ParentUUID != UUID.Zero)
+                {
+                    agent.ParentPart = null;
+//                    agent.ParentPosition = Vector3.Zero;
+//                    agent.ParentUUID = UUID.Zero;
+                }
+            }
+
+            agent.ParentUUID = UUID.Zero;
+//                agent.Reset();
+//            else // Not successful
+//                agent.RestoreInCurrentScene();
+
+            // In any case
+            agent.IsInTransit = false;
+
+            m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 
         public override uint LocalId
@@ -1096,6 +1245,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
         /// <summary>
         ///
         /// </summary>
@@ -1104,6 +1254,46 @@ namespace OpenSim.Region.Framework.Scenes
         {
             part.ParentID = m_rootPart.LocalId;
             part.ClearUndoState();
+        }
+        /// <summary>
+        /// Add the avatar to this linkset (avatar is sat).
+        /// </summary>
+        /// <param name="agentID"></param>
+        public void AddAvatar(UUID agentID)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(agentID, out presence))
+            {
+                if (!m_linkedAvatars.Contains(presence))
+                {
+                    m_linkedAvatars.Add(presence);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete the avatar from this linkset (avatar is unsat).
+        /// </summary>
+        /// <param name="agentID"></param>
+        public void DeleteAvatar(UUID agentID)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(agentID, out presence))
+            {
+                if (m_linkedAvatars.Contains(presence))
+                {
+                    m_linkedAvatars.Remove(presence);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of linked presences (avatars sat on this group)
+        /// </summary>
+        /// <param name="agentID"></param>
+        public List<ScenePresence> GetLinkedAvatars()
+        {
+            return m_linkedAvatars;
         }
 
         public ushort GetTimeDilation()

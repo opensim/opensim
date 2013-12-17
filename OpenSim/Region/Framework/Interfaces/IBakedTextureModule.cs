@@ -26,33 +26,15 @@
  */
 
 using System;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
+using Nini.Config;
 using OpenSim.Framework;
+using OpenMetaverse;
 
-namespace OpenSim.Data
+namespace OpenSim.Services.Interfaces
 {
-
-    public interface IProfilesData
+    public interface IBakedTextureModule
     {
-        OSDArray GetClassifiedRecords(UUID creatorId);
-        bool UpdateClassifiedRecord(UserClassifiedAdd ad, ref string result);
-        bool DeleteClassifiedRecord(UUID recordId);
-        OSDArray GetAvatarPicks(UUID avatarId);
-        UserProfilePick GetPickInfo(UUID avatarId, UUID pickId);
-        bool UpdatePicksRecord(UserProfilePick pick);
-        bool DeletePicksRecord(UUID pickId);
-        bool GetAvatarNotes(ref UserProfileNotes note);
-        bool UpdateAvatarNotes(ref UserProfileNotes note, ref string result);
-        bool GetAvatarProperties(ref UserProfileProperties props, ref string result);
-        bool UpdateAvatarProperties(ref UserProfileProperties props, ref string result);
-        bool UpdateAvatarInterests(UserProfileProperties up, ref string result);
-        bool GetClassifiedInfo(ref UserClassifiedAdd ad, ref string result);
-        bool UpdateUserPreferences(ref UserPreferences pref,  ref string result);
-        bool GetUserPreferences(ref UserPreferences pref, ref string result);
-        bool GetUserAppData(ref UserAppData props, ref string result);
-        bool SetUserAppData(UserAppData props, ref string result);
-        OSDArray GetUserImageAssets(UUID avatarId);
+        WearableCacheItem[] Get(UUID id);
+        void Store(UUID id, WearableCacheItem[] data);
     }
 }
-

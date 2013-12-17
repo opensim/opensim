@@ -297,9 +297,19 @@ namespace OpenSim
                                           HandleEditScale);
 
             m_console.Commands.AddCommand("Objects", false, "rotate scene",
-                                          "rotate scene <degrees>",
-                                          "Rotates all scene objects around x:128, y:128",
+                                          "rotate scene <degrees> [centerX, centerY]",
+                                          "Rotates all scene objects around centerX, centerY (defailt 128, 128) (please back up your region before using)",
                                           HandleRotateScene);
+
+            m_console.Commands.AddCommand("Objects", false, "scale scene",
+                                          "scale scene <factor>",
+                                          "Scales the scene objects (please back up your region before using)",
+                                          HandleScaleScene);
+
+            m_console.Commands.AddCommand("Objects", false, "translate scene",
+                                          "translate scene xOffset yOffset zOffset",
+                                          "translates the scene objects (please back up your region before using)",
+                                          HandleTranslateScene);
 
             m_console.Commands.AddCommand("Users", false, "kick user",
                                           "kick user <first> <last> [--force] [message]",
@@ -545,6 +555,82 @@ namespace OpenSim
                         offset *= rot;
                         sog.UpdateGroupPosition(center + offset);
                     }
+                });
+            });
+        }
+
+        private void HandleScaleScene(string module, string[] args)
+        {
+            string usage = "Usage: scale scene <factor>";
+
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output(usage);
+                return;
+            }
+
+            float factor = (float)(Convert.ToSingle(args[2]));
+
+            float minZ = float.MaxValue;
+
+            SceneManager.ForEachSelectedScene(delegate(Scene scene)
+            {
+                scene.ForEachSOG(delegate(SceneObjectGroup sog)
+                {
+                    if (sog.AttachmentPoint == 0)
+                    {
+                        if (sog.RootPart.AbsolutePosition.Z < minZ)
+                            minZ = sog.RootPart.AbsolutePosition.Z;
+                    }
+                });
+            });
+
+            SceneManager.ForEachSelectedScene(delegate(Scene scene)
+            {
+                scene.ForEachSOG(delegate(SceneObjectGroup sog)
+                {
+                    if (sog.AttachmentPoint == 0)
+                    {
+                        Vector3 tmpRootPos = sog.RootPart.AbsolutePosition;
+                        tmpRootPos.Z -= minZ;
+                        tmpRootPos *= factor;
+                        tmpRootPos.Z += minZ;
+
+                        foreach (SceneObjectPart sop in sog.Parts)
+                        {
+                            if (sop.ParentID != 0)
+                                sop.OffsetPosition *= factor;
+                            sop.Scale *= factor;
+                        }
+
+                        sog.UpdateGroupPosition(tmpRootPos);
+                    }
+                });
+            });
+        }
+
+        private void HandleTranslateScene(string module, string[] args)
+        {
+            string usage = "Usage: translate scene <xOffset, yOffset, zOffset>";
+
+            if (args.Length < 5)
+            {
+                MainConsole.Instance.Output(usage);
+                return;
+            }
+
+            float xOFfset = (float)Convert.ToSingle(args[2]);
+            float yOffset = (float)Convert.ToSingle(args[3]);
+            float zOffset = (float)Convert.ToSingle(args[4]);
+
+            Vector3 offset = new Vector3(xOFfset, yOffset, zOffset);
+
+            SceneManager.ForEachSelectedScene(delegate(Scene scene)
+            {
+                scene.ForEachSOG(delegate(SceneObjectGroup sog)
+                {
+                    if (sog.AttachmentPoint == 0)
+                        sog.UpdateGroupPosition(sog.AbsolutePosition + offset);
                 });
             });
         }

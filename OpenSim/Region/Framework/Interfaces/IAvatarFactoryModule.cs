@@ -35,8 +35,8 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IAvatarFactoryModule
     {
-        void SetAppearance(IScenePresence sp, AvatarAppearance appearance);
-        void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams);
+        void SetAppearance(IScenePresence sp, AvatarAppearance appearance, WearableCacheItem[] cacheItems);
+        void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, WearableCacheItem[] cacheItems);
 
         /// <summary>
         /// Send the appearance of an avatar to others in the scene.
@@ -52,6 +52,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>An empty list if this agent has no baked textures (e.g. because it's a child agent)</returns>
         Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(UUID agentId);
 
+
+        WearableCacheItem[] GetCachedItems(UUID agentId);
         /// <summary>
         /// Save the baked textures for the given agent permanently in the asset database.
         /// </summary>

@@ -118,14 +118,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override Vector3 Position { get; set; }
 
-        public override Vector3 Size
-        {
-            get { return _size; }
-            set {
-                  _size = value;
-                  _size.Z = _size.Z / 2.0f;
-                }
-        }
+        public override Vector3 Size { get; set; }
 
         public override PrimitiveBaseShape Shape
         {
