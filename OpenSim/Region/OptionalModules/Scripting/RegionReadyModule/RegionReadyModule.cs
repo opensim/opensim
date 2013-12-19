@@ -301,7 +301,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             finally
             {
                 if (os != null)
-                    os.Close();
+                    os.Dispose();
             }
         }
     }

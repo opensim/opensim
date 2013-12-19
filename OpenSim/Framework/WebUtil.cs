@@ -1030,7 +1030,7 @@ namespace OpenSim.Framework
                     finally
                     {
                         if (requestStream != null)
-                            requestStream.Close();
+                            requestStream.Dispose();
 
                         // capture how much time was spent writing
                         tickdata = Util.EnvironmentTickCountSubtract(tickstart);
@@ -1183,7 +1183,7 @@ namespace OpenSim.Framework
                 finally
                 {
                     if (requestStream != null)
-                        requestStream.Close();
+                        requestStream.Dispose();
 
                     // capture how much time was spent writing
                     tickdata = Util.EnvironmentTickCountSubtract(tickstart);

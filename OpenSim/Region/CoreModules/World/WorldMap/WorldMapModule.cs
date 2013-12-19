@@ -915,7 +915,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             finally
             {
                 if (os != null)
-                    os.Close();
+                    os.Dispose();
             }
 
             string response_mapItems_reply = null;

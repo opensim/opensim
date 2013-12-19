@@ -488,9 +488,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     byte[] data = Util.UTF8.GetBytes(OutboundBody);
 
                     Request.ContentLength = data.Length;
-                    Stream bstream = Request.GetRequestStream();
-                    bstream.Write(data, 0, data.Length);
-                    bstream.Close();
+                    using (Stream bstream = Request.GetRequestStream())
+                        bstream.Write(data, 0, data.Length);
                 }
 
                 try

@@ -1290,9 +1290,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            Stream dataStream = webRequest.GetRequestStream();
-            dataStream.Write(content, 0, content.Length);
-            dataStream.Close();
+            using (Stream dataStream = webRequest.GetRequestStream())
+                dataStream.Write(content, 0, content.Length);
 
             WebResponse webResponse = null;
             try
@@ -1306,26 +1305,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 return false;
             }
 
-            Stream rstream = webResponse.GetResponseStream();
-              
-            OSDMap mret = new OSDMap();
-            try
+            using (webResponse)
+            using (Stream rstream = webResponse.GetResponseStream())
             {
-                mret = (OSDMap)OSDParser.DeserializeJson(rstream);
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                return false;
-            }
+                OSDMap mret = (OSDMap)OSDParser.DeserializeJson(rstream);
 
+                if (mret.ContainsKey("error"))
+                    return false;
 
-            if (mret.ContainsKey("error"))
-                return false;
-            
-            // get params...
-            OSD.DeserializeMembers(ref parameters, (OSDMap) mret["result"]);
-            return true;
+                // get params...
+                OSD.DeserializeMembers(ref parameters, (OSDMap)mret["result"]);
+                return true;
+            }
         }
 
         /// <summary>
@@ -1366,9 +1357,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            Stream dataStream = webRequest.GetRequestStream();
-            dataStream.Write(content, 0, content.Length);
-            dataStream.Close();
+            using (Stream dataStream = webRequest.GetRequestStream())
+                dataStream.Write(content, 0, content.Length);
 
             WebResponse webResponse = null;
             try
@@ -1382,29 +1372,32 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 return false;
             }
 
-            Stream rstream = webResponse.GetResponseStream();
-
-            OSDMap response = new OSDMap();
-            try
+            using (webResponse)
+            using (Stream rstream = webResponse.GetResponseStream())
             {
-                response = (OSDMap)OSDParser.DeserializeJson(rstream);
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                return false;
-            }
+                OSDMap response = new OSDMap();
+                try
+                {
+                    response = (OSDMap)OSDParser.DeserializeJson(rstream);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
+                    return false;
+                }
 
-            if(response.ContainsKey("error"))
-            {
-                data = response["error"];
-                return false;
+                if (response.ContainsKey("error"))
+                {
+                    data = response["error"];
+                    return false;
+                }
+
+                data = response;
+
+                return true;
             }
-
-            data = response;
-
-            return true;
         }
+
         #endregion Web Util
     }
 }
