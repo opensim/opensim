@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.ClientStack.Linden;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -164,7 +165,7 @@ namespace OpenSim.Tests.Common
             throw new System.NotImplementedException ();
         }
 
-        public OSD BuildEvent (string eventName, OSD eventBody)
+        public OSD BuildEvent(string eventName, OSD eventBody)
         {
             Console.WriteLine("TWO");
             throw new System.NotImplementedException ();
