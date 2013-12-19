@@ -1864,7 +1864,7 @@ namespace OpenSim.Framework
 
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
-            FireAndForget(callback, null);
+            FireAndForget(callback, null, null);
         }
 
         public static void InitThreadPool(int minThreads, int maxThreads)
@@ -1913,6 +1913,11 @@ namespace OpenSim.Framework
         private static Int32 threadFuncOverloadMode = 0;
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
+        {
+            FireAndForget(callback, obj, null);
+        }
+        
+        public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
         {
             WaitCallback realCallback;
 
@@ -1973,8 +1978,12 @@ namespace OpenSim.Framework
                 }
 
                 if (loggingEnabled || (threadFuncOverloadMode == 1))
-                    m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}",
-                        threadFuncNum, numQueued, numRunningThreadFuncs, GetFireAndForgetStackTrace(loggingEnabled));
+                {
+                    m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
+                        threadFuncNum, numQueued, numRunningThreadFuncs,
+                        (context == null) ? "" : ("(" + context + ") "),
+                        GetFireAndForgetStackTrace(loggingEnabled));
+                }
 
                 switch (FireAndForgetMethod)
                 {

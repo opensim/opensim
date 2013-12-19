@@ -694,7 +694,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     cinfo.AsyncRequests[packet.Type.ToString()]++;
 
                     object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
-                    Util.FireAndForget(ProcessSpecificPacketAsync, obj);
+                    Util.FireAndForget(ProcessSpecificPacketAsync, obj, packet.Type.ToString());
                     result = true;
                 }
                 else
