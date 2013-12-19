@@ -1505,7 +1505,81 @@ namespace OpenSim.Framework
             SHAPE_EYELID_INNER_CORNER_UP = 214,
             SKIRT_SKIRT_RED = 215,
             SKIRT_SKIRT_GREEN = 216,
-            SKIRT_SKIRT_BLUE = 217
+            SKIRT_SKIRT_BLUE = 217,
+            /// Breast_Physics_UpDown_Controller - -1-+1
+            PHYSICS_BREAST_UPDOWN_CONTROLLER = 218,
+            /// Breast_Physics_InOut_Controller -1-+1
+            PHYSICS_BREAST_PHYSICS_INOUT_CONTROLLER = 219,
+            /// Belly_Physics_UpDown_Controller - -1-+1
+            PHYSICS_BELLY_PHYSICS_UPDOWN_CONTROLLER = 220,
+            /// Butt_Physics_UpDown_Controller - -1-+1
+            PHYSICS_BUTT_PHYSICS_UPDOWN_CONTROLLER = 221,
+            /// Breast_Physics_LeftRight_Controller -1-+1
+            PHYSICS_BREAST_PHYSICS_LEFTRIGHT_CONTROLLER = 222,
+            /// Breast_Physics_Mass - +0.1-+1
+            PHYSICS_BREAST_PHYSICS_MASS = 223,
+            /// Breast_Physics_Gravity - 0-+30
+            PHYSICS_BREAST_PHYSICS_GRAVITY = 224,
+            /// Breast_Physics_Drag - 0-+10
+            PHYSICS_BREAST_PHYSICS_DRAG = 225,
+            /// Breast_Physics_UpDown_Max_Effect - 0-+3
+            PHYSICS_BREAST_UPDOWN_MAX_EFFECT = 226,
+            /// Breast_Physics_UpDown_Spring - 0-+100
+            PHYSICS_BREAST_UPDOWN_SPRING = 227,
+            /// Breast_Physics_UpDown_Gain - +1-+100
+            PHYSICS_BREAST_UPDOWN_GAIN = 228,
+            /// Breast_Physics_UpDown_Damping - 0-+1
+            PHYSICS_BREAST_UPDOWN_DAMPING = 229,
+            /// Breast_Physics_InOut_Max_Effect - 0-+3
+            PHYSICS_BREAST_INOUT_MAX_EFFECT = 230,
+            /// Breast_Physics_InOut_Gain = +1-+100
+            PHYSICS_BREAST_INOUT_GAIN = 231,
+            /// Breast_Physics_InOut_Damping - 0-+1
+            PHYSICS_BREAST_INOUT_DAMPING = 232,
+            /// Belly_Physics_Mass - +0.1-+1
+            PHYSICS_BELLY_PHYSICS_MASS = 233,
+            /// Belly_Physics_Gravity - 0-+30
+            PHYSICS_BELLY_PHYSICS_GRAVITY = 234,
+            /// Belly_Physics_Drag - 0-+10
+            PHYSICS_BELLY_PHYSICS_DRAG = 235,
+            /// Belly_Physics_UpDown_Max_Effect - 0-+3
+            PHYSICS_BELLY_PHYSICS_UPDOWN_MAX_EFFECT = 236,
+            /// Belly_Physics_UpDown_Spring - 0-+100
+            PHYSICS_BELLY_PHYSICS_UPDOWN_SPRING = 237,
+            /// Belly_Physics_UpDown_Gain - +1-+100
+            PHYSICS_BELLY_PHYSICS_UPDOWN_GAIN = 238,
+            /// Belly_Physics_UpDown_Damping - 0-+1
+            PHYSICS_BELLY_PHYSICS_UPDOWN_DAMPING = 239,
+            /// Butt_Physics_Mass - +0.1-+1
+            PHYSICS_BUTT_PHYSICS_MASS = 240,
+            /// Butt_Physics_Gravity - 0-+30
+            PHYSICS_BUTT_PHYSICS_GRAVITY = 241,
+            /// Butt_Physics_Drag - 0-+10
+            PHYSICS_BUTT_PHYSICS_DRAG = 242,
+            /// Butt_Physics_UpDown_Max_Effect - 0-+30
+            PHYSICS_BUTT_PHYSICS_UPDOWN_MAX_EFFECT = 243,
+            /// Butt_Physics_UpDown_Spring - 0-+100
+            PHYSICS_BUTT_PHYSICS_UPDOWN_SPRING = 244,
+            /// Butt_Physics_UpDown_Gain - +1-+100
+            PHYSICS_BUTT_PHYSICS_UPDOWN_GAIN = 245,
+            /// Butt_Physics_UpDown_Damping - 0-+1
+            PHYSICS_BUTT_PHYSICS_UPDOWN_DAMPING = 246,
+            /// Butt_Physics_LeftRight_Max_Effect - 0-+3
+            PHYSICS_BUTT_PHYSICS_LEFTRIGHT_MAX_EFFECT = 247,
+            /// Butt_Physics_LeftRight_Spring - 0-+100
+            PHYSICS_BUTT_PHYSICS_LEFTRIGHT_SPRING = 248,
+            /// Butt_Physics_LeftRight_Gain - +1-+100
+            PHYSICS_BUTT_PHYSICS_LEFTRIGHT_GAIN = 249,
+            /// Butt_Physics_LeftRight_Damping - 0-+1
+            PHYSICS_BUTT_PHYSICS_LEFTRIGHT_DAMPING = 250,
+            /// Breast_Physics_LeftRight_Max_Effect = 0-+3
+            PHYSICS_BREAST_PHYSICS_LEFTRIGHT_MAX_EFFECT = 251,
+            /// Breast_Physics_LeftRight_Spring - 0-+100
+            PHYSICS_BREAST_PHYSICS_LEFTRIGHT_SPRING = 252,
+            /// Breast_Physics_LeftRight_Gain - +1-+100
+            PHYSICS_BREAST_PHYSICS_LEFT_RIGHT_GAIN = 253,
+            /// Breast_Physics_LeftRight_Damping - 0-+1
+            PHYSICS_BREAST_LEFTRIGHT_DAMPING = 254
         }
         #endregion
     }
