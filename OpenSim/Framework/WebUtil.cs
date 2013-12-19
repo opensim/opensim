@@ -1024,8 +1024,9 @@ namespace OpenSim.Framework
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat(
-                            "[FORMS]: exception occured {0} {1}: {2}{3}", verb, requestUrl, e.Message, e.StackTrace);
+                        m_log.ErrorFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
+                            obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+                        throw e;
                     }
                     finally
                     {
@@ -1043,27 +1044,17 @@ namespace OpenSim.Framework
                     {
                         if (resp.ContentLength != 0)
                         {
-                            Stream respStream = null;
-                            try
-                            {
-                                using (respStream = resp.GetResponseStream())
-                                    using (StreamReader reader = new StreamReader(respStream))
-                                        respstring = reader.ReadToEnd();
-                            }
-                            catch (Exception e)
-                            {
-                                m_log.DebugFormat(
-                                    "[FORMS]: Exception occured on receiving {0} {1}: {2}{3}",
-                                    verb, requestUrl, e.Message, e.StackTrace);
-                            }
+                            using (Stream respStream = resp.GetResponseStream())
+                                using (StreamReader reader = new StreamReader(respStream))
+                                    respstring = reader.ReadToEnd();
                         }
                     }
                 }
-                catch (System.InvalidOperationException e)
+                catch (Exception e)
                 {
-                    m_log.Debug(
-                        string.Format(
-                            "[FORMS]: InvalidOperationException on response from {0} {1}  ", verb, requestUrl), e);
+                    m_log.ErrorFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
+                        obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+                    throw e;
                 }
             }
 
