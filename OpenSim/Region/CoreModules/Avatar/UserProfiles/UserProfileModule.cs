@@ -612,12 +612,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         "Error selecting pick", false);
             }
             pick = (UserProfilePick) Pick;
-            if(pick.SnapshotId == UUID.Zero)
-            {
-                // In case of a new UserPick, the data may not be ready and we would send wrong data, skip it...
-                m_log.DebugFormat("[PROFILES]: PickInfoRequest: SnapshotID is {0}", UUID.Zero.ToString());
-                return;
-            }
              
             Vector3 globalPos;
             Vector3.TryParse(pick.GlobalPos,out globalPos);
