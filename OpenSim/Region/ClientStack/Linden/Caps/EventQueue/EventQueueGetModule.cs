@@ -295,9 +295,9 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             // Register an event queue for the client
 
-            //m_log.DebugFormat(
-            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
-            //    agentID, caps, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
+                agentID, caps, m_scene.RegionInfo.RegionName);
 
             // Let's instantiate a Queue for this agent right now
             TryGetQueue(agentID);
