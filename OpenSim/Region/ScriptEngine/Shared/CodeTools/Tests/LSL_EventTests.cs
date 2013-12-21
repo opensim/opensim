@@ -269,6 +269,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestIntRotRotArgEvent("at_rot_target");
         }
 
+        [Test]
+        public void TestAtTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntVecVecArgEvent("at_target");
+        }
+
         private void TestIntArgEvent(string eventName)
         {
             TestCompile("default { " + eventName + "(integer n) {} }", false);
@@ -299,6 +308,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestCompile("default { " + eventName + "{{}} }", true);
             TestCompile("default { " + eventName + "(string s) {{}} }", true);
             TestCompile("default { " + eventName + "(integer n, rotation r, rotation s, rotation t) {{}} }", true);
+        }
+
+        private void TestIntVecVecArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(integer n, vector v, vector w) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(integer n, vector v, vector w, vector x) {{}} }", true);
         }
 
         private void TestCompile(string script, bool expectException)
