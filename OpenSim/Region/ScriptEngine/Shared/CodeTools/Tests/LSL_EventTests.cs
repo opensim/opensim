@@ -260,6 +260,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestVectorArgEvent("land_collision_end");
         }
 
+        [Test]
+        public void TestAtRotTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntRotRotArgEvent("at_rot_target");
+        }
 
         private void TestIntArgEvent(string eventName)
         {
@@ -283,6 +291,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestCompile("default { " + eventName + "{{}} }", true);
             TestCompile("default { " + eventName + "(string s) {{}} }", true);
             TestCompile("default { " + eventName + "(vector v, vector w) {{}} }", true);
+        }
+
+        private void TestIntRotRotArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(integer n, rotation r, rotation s) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(integer n, rotation r, rotation s, rotation t) {{}} }", true);
         }
 
         private void TestCompile(string script, bool expectException)
