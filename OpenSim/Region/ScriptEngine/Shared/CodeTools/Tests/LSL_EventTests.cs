@@ -48,6 +48,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         [Test]
+        public void TestAttachEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestKeyArgEvent("attach");
+        }
+
+        [Test]
+        public void TestObjectRezEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestKeyArgEvent("object_rez");
+        }
+
+        [Test]
         public void TestMovingEndEvent()
         {
             TestHelpers.InMethod();
@@ -249,6 +267,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestCompile("default { " + eventName + "{{}} }", true);
             TestCompile("default { " + eventName + "(string s) {{}} }", true);
             TestCompile("default { " + eventName + "(integer n, integer o) {{}} }", true);
+        }
+
+        private void TestKeyArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(key k) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(key k, key l) {{}} }", true);
         }
 
         private void TestVectorArgEvent(string eventName)
