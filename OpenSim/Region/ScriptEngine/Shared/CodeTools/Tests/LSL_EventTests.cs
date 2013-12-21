@@ -278,6 +278,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestIntVecVecArgEvent("at_target");
         }
 
+        [Test]
+        public void TestControlEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestKeyIntIntArgEvent("control");
+        }
+
         private void TestIntArgEvent(string eventName)
         {
             TestCompile("default { " + eventName + "(integer n) {} }", false);
@@ -316,6 +325,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestCompile("default { " + eventName + "{{}} }", true);
             TestCompile("default { " + eventName + "(string s) {{}} }", true);
             TestCompile("default { " + eventName + "(integer n, vector v, vector w, vector x) {{}} }", true);
+        }
+
+        private void TestKeyIntIntArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(key k, integer n, integer o) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(key k, integer n, integer o, integer p) {{}} }", true);
         }
 
         private void TestCompile(string script, bool expectException)
