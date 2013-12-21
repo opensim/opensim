@@ -48,6 +48,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         [Test]
+        public void TestAttachEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestKeyArgEvent("attach");
+        }
+
+        [Test]
+        public void TestObjectRezEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestKeyArgEvent("object_rez");
+        }
+
+        [Test]
         public void TestMovingEndEvent()
         {
             TestHelpers.InMethod();
@@ -242,6 +260,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestVectorArgEvent("land_collision_end");
         }
 
+        [Test]
+        public void TestAtRotTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntRotRotArgEvent("at_rot_target");
+        }
+
+        [Test]
+        public void TestAtTargetEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestIntVecVecArgEvent("at_target");
+        }
+
+        [Test]
+        public void TestControlEvent()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            TestKeyIntIntArgEvent("control");
+        }
 
         private void TestIntArgEvent(string eventName)
         {
@@ -251,12 +295,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestCompile("default { " + eventName + "(integer n, integer o) {{}} }", true);
         }
 
+        private void TestKeyArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(key k) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(key k, key l) {{}} }", true);
+        }
+
         private void TestVectorArgEvent(string eventName)
         {
             TestCompile("default { " + eventName + "(vector v) {} }", false);
             TestCompile("default { " + eventName + "{{}} }", true);
             TestCompile("default { " + eventName + "(string s) {{}} }", true);
             TestCompile("default { " + eventName + "(vector v, vector w) {{}} }", true);
+        }
+
+        private void TestIntRotRotArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(integer n, rotation r, rotation s) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(integer n, rotation r, rotation s, rotation t) {{}} }", true);
+        }
+
+        private void TestIntVecVecArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(integer n, vector v, vector w) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(integer n, vector v, vector w, vector x) {{}} }", true);
+        }
+
+        private void TestKeyIntIntArgEvent(string eventName)
+        {
+            TestCompile("default { " + eventName + "(key k, integer n, integer o) {} }", false);
+            TestCompile("default { " + eventName + "{{}} }", true);
+            TestCompile("default { " + eventName + "(string s) {{}} }", true);
+            TestCompile("default { " + eventName + "(key k, integer n, integer o, integer p) {{}} }", true);
         }
 
         private void TestCompile(string script, bool expectException)
