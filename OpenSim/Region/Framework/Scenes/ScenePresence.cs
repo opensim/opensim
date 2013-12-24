@@ -76,6 +76,7 @@ namespace OpenSim.Region.Framework.Scenes
     public class ScenePresence : EntityBase, IScenePresence
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly String LogHeader = "[SCENE PRESENCE]";
 
 //        ~ScenePresence()
 //        {
@@ -3438,12 +3439,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsInTransit)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
-                        pos2, Name, Scene.Name);
-
                     if (!m_scene.PositionIsInCurrentRegion(pos2))
                     {
+                        m_log.DebugFormat("{0} CheckForBorderCrossing: position outside region. {1} in {2} at pos {3}", 
+                                                LogHeader, Name, Scene.Name, pos2);
+
                         // Disconnect from the current region
                         bool isFlying = Flying;
                         RemoveFromPhysicalScene();

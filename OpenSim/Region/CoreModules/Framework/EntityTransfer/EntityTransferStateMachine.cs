@@ -77,6 +77,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     public class EntityTransferStateMachine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[ENTITY TRANSFER STATE MACHINE]";
 
         /// <summary>
         /// If true then on a teleport, the source region waits for a callback from the destination region.  If
@@ -100,6 +101,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <returns>true if the agent was not already in transit, false if it was</returns>
         internal bool SetInTransit(UUID id)
         {
+            m_log.DebugFormat("{0} SetInTransit. agent={1}, newState=Preparing", LogHeader, id);
             lock (m_agentsInTransit)
             {
                 if (!m_agentsInTransit.ContainsKey(id))
@@ -121,6 +123,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <exception cref='Exception'>Illegal transitions will throw an Exception</exception>
         internal bool UpdateInTransit(UUID id, AgentTransferState newState)
         {
+            m_log.DebugFormat("{0} UpdateInTransit. agent={1}, newState={2}", LogHeader, id, newState);
+
             bool transitionOkay = false;
 
             // We don't want to throw an exception on cancel since this can come it at any time.
@@ -193,6 +197,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 else if (failIfNotOkay)
                 {
+                    m_log.DebugFormat("{0} UpdateInTransit. Throwing transition failure = {1}", LogHeader, failureMessage);
                     throw new Exception(failureMessage);
                 }
 //                else

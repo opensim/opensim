@@ -46,8 +46,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[SCENE INVENTORY]";
 
         /// <summary>
         /// Allows asynchronous derezzing of objects from the scene into a client's inventory.

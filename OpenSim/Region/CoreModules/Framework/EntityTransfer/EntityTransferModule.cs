@@ -1998,8 +1998,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         // Given a world position (fractional meter coordinate), get the GridRegion info for
         //   the region containing that point.
+        // Someday this should be a method on GridService.
         // Return 'null' if no such region exists.
-        private GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID, double px, double py)
+        public GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID, double px, double py)
         {
             m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
             GridRegion ret = null;
