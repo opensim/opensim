@@ -1441,6 +1441,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
             }
 
+            if (neighbourRegion == null)
+                m_log.DebugFormat("{0} GetDestination: region not found. Old region name={1} at <{2},{3}> of size <{4},{5}>. Old pos={6}",
+                    LogHeader, scene.RegionInfo.RegionName,
+                    scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY,
+                    scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY,
+                    pos);
+            else
+                m_log.DebugFormat("{0} GetDestination: new region={1} at <{2},{3}> of size <{4},{5}>, newpos=<{6},{7}>",
+                    LogHeader, neighbourRegion.RegionName,
+                    neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY,
+                    newpos.X, newpos.Y);
+
             return neighbourRegion;
         }
 
@@ -1560,17 +1572,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
         public ScenePresence CrossAgentToNewRegionAsync(
-            ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
-            bool isFlying, string version)
+                                ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
+                                bool isFlying, string version)
         {
+            m_log.DebugFormat("{0} CrossAgentToNewRegionAsync: new region={1} at <{2},{3}>. newpos={4}",
+                        LogHeader, neighbourRegion.RegionName, neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, pos);
+
             if (!CrossAgentToNewRegionPrep(agent, neighbourRegion))
             {
+                m_log.DebugFormat("{0} CrossAgentToNewRegionAsync: prep failed. Resetting transfer state", LogHeader);
                 m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
                 return agent;
             }
 
             if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying))
             {
+                m_log.DebugFormat("{0} CrossAgentToNewRegionAsync: cross main failed. Resetting transfer state", LogHeader);
                 m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
                 return agent;
             }
@@ -2294,28 +2311,25 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                     attemptedPosition.Z);
             }
 
-            if (destination != null)
+            if (destination == null || !CrossPrimGroupIntoNewRegion(destination, pos, grp, silent))
             {
-                if (!CrossPrimGroupIntoNewRegion(destination, pos, grp, silent))
-                {
-                    m_log.InfoFormat("[ENTITY TRANSFER MODULE] cross region transfer failed for object {0}", grp.UUID);
+                m_log.InfoFormat("[ENTITY TRANSFER MODULE] cross region transfer failed for object {0}", grp.UUID);
 
-                    // We are going to move the object back to the old position so long as the old position
-                    // is in the region
-                    oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X, 1.0f, (float)(scene.RegionInfo.RegionSizeX - 1));
-                    oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y, 1.0f, (float)(scene.RegionInfo.RegionSizeY - 1));
-                    oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z, 1.0f, Constants.RegionHeight);
+                // We are going to move the object back to the old position so long as the old position
+                // is in the region
+                oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X, 1.0f, (float)(scene.RegionInfo.RegionSizeX - 1));
+                oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y, 1.0f, (float)(scene.RegionInfo.RegionSizeY - 1));
+                oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z, 1.0f, Constants.RegionHeight);
 
-                    grp.AbsolutePosition = oldGroupPosition;
-                    grp.Velocity = Vector3.Zero;
-                    if (grp.RootPart.PhysActor != null)
-                        grp.RootPart.PhysActor.CrossingFailure();
+                grp.AbsolutePosition = oldGroupPosition;
+                grp.Velocity = Vector3.Zero;
+                if (grp.RootPart.PhysActor != null)
+                    grp.RootPart.PhysActor.CrossingFailure();
 
-                    if (grp.RootPart.KeyframeMotion != null)
-                        grp.RootPart.KeyframeMotion.CrossingFailure();
+                if (grp.RootPart.KeyframeMotion != null)
+                    grp.RootPart.KeyframeMotion.CrossingFailure();
 
-                    grp.ScheduleGroupForFullUpdate();
-                }
+                grp.ScheduleGroupForFullUpdate();
             }
         }
 
