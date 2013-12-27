@@ -121,8 +121,53 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         private EntityTransferStateMachine m_entityTransferStateMachine;
 
-        private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
-                new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
+        // For performance, we keed a cached of banned regions so we don't keep going
+        //    to the grid service.
+        private class BannedRegionCache
+        {
+            private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
+                    new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
+            ExpiringCache<ulong, DateTime> m_idCache;
+            DateTime m_banUntil;
+            public BannedRegionCache()
+            {
+            }
+            // Return 'true' if there is a valid ban entry for this agent in this region
+            public bool IfBanned(ulong pRegionHandle, UUID pAgentID)
+            {
+                bool ret = false;
+                if (m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
+                {
+                    if (m_idCache.TryGetValue(pRegionHandle, out m_banUntil))
+                    {
+                        if (DateTime.Now < m_banUntil)
+                        {
+                            ret = true;
+                        }
+                    }
+                }
+                return ret;
+            }
+            // Add this agent in this region as a banned person
+            public void Add(ulong pRegionHandle, UUID pAgentID)
+            {
+                if (!m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
+                {
+                    m_idCache = new ExpiringCache<ulong, DateTime>();
+                    m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(45));
+                }
+                m_idCache.Add(pRegionHandle, DateTime.Now + TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+            }
+            // Remove the agent from the region's banned list
+            public void Remove(ulong pRegionHandle, UUID pAgentID)
+            {
+                if (m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
+                {
+                    m_idCache.Remove(pRegionHandle);
+                }
+            }
+        }
+        private BannedRegionCache m_bannedRegionCache = new BannedRegionCache();
 
         private IEventQueue m_eqModule;
         private IRegionCombinerModule m_regionCombinerModule;
@@ -1393,7 +1438,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Call the grid service to lookup the region containing the new position.
             GridRegion neighbourRegion = GetRegionContainingWorldLocation(scene.GridService, scene.RegionInfo.ScopeID,
-                                                                    presenceWorldX, presenceWorldY);
+                                                        presenceWorldX, presenceWorldY, 
+                                                        Math.Max(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY));
 
             if (neighbourRegion != null)
             {
@@ -1402,24 +1448,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                       (float)(presenceWorldY - (double)neighbourRegion.RegionLocY),
                                       pos.Z);
 
-                // Check if banned from destination region.
-                ExpiringCache<ulong, DateTime> r;
-                DateTime banUntil;
-                if (m_bannedRegions.TryGetValue(agentID, out r))
+                if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
                 {
-                    if (r.TryGetValue(neighbourRegion.RegionHandle, out banUntil))
-                    {
-                        if (DateTime.Now < banUntil)
-                        {
-                            // If we're banned from the destination, we just can't go there.
-                            neighbourRegion = null;
-                        }
-                        r.Remove(neighbourRegion.RegionHandle);
-                    }
+                    neighbourRegion = null;
                 }
                 else
                 {
-                    r = null;
+                    // If not banned, make sure this agent is not in the list.
+                    m_bannedRegionCache.Remove(neighbourRegion.RegionHandle, agentID);
                 }
 
                 // Check to see if we have access to the target region.
@@ -1427,17 +1463,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (neighbourRegion != null
                     && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out reason))
                 {
-                    if (r == null)
-                    {
-                        r = new ExpiringCache<ulong, DateTime>();
-                        r.Add(neighbourRegion.RegionHandle, DateTime.Now + TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
-
-                        m_bannedRegions.Add(agentID, r, TimeSpan.FromSeconds(45));
-                    }
-                    else
-                    {
-                        r.Add(neighbourRegion.RegionHandle, DateTime.Now + TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
-                    }
+                    // remember banned
+                    m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
                     neighbourRegion = null;
                 }
             }
@@ -1993,14 +2020,119 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 0f);
         }
 
+        public GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID, double px, double py)
+        {
+            // Since we don't know how big the regions could be, we have to search a very large area
+            //    to find possible regions.
+            return GetRegionContainingWorldLocation(pGridService, pScopeID, px, py, Constants.MaximumRegionSize);
+        }
+
+        #region NotFoundLocationCache class
+        // A collection of not found locations to make future lookups 'not found' lookups quick.
+        // A simple expiring cache that keeps not found locations for some number of seconds.
+        // A 'not found' location is presumed to be anywhere in the minimum sized region that
+        //    contains that point. A conservitive estimate.
+        private class NotFoundLocationCache
+        {
+            private struct NotFoundLocation
+            {
+                public double minX, maxX, minY, maxY;
+                public DateTime expireTime;
+            }
+            private List<NotFoundLocation> m_notFoundLocations = new List<NotFoundLocation>();
+            public NotFoundLocationCache()
+            {
+            }
+            // Add an area to the lost of 'not found' places. The area is the snapped region
+            //    area around the added point.
+            public void Add(double pX, double pY)
+            {
+                lock (m_notFoundLocations)
+                {
+                    if (!LockedContains(pX, pY))
+                    {
+                        NotFoundLocation nfl = new NotFoundLocation();
+                        // A not found location is not found for at least a whole region sized area
+                        nfl.minX = pX - (pX % (double)Constants.RegionSize);
+                        nfl.minY = pY - (pY % (double)Constants.RegionSize);
+                        nfl.maxX = nfl.minX + (double)Constants.RegionSize;
+                        nfl.maxY = nfl.minY + (double)Constants.RegionSize;
+                        nfl.expireTime = DateTime.Now + TimeSpan.FromSeconds(30);
+                        m_notFoundLocations.Add(nfl);
+                    }
+                }
+                
+            }
+            // Test to see of this point is in any of the 'not found' areas.
+            // Return 'true' if the point is found inside the 'not found' areas.
+            public bool Contains(double pX, double pY)
+            {
+                bool ret = false;
+                lock (m_notFoundLocations)
+                    ret = LockedContains(pX, pY);
+                return ret;
+            }
+            private bool LockedContains(double pX, double pY)
+            {
+                bool ret = false;
+                this.DoExpiration();
+                foreach (NotFoundLocation nfl in m_notFoundLocations)
+                {
+                    if (pX >= nfl.minX && pX < nfl.maxX && pY >= nfl.minY && pY < nfl.maxY)
+                    {
+                        ret = true;
+                        break;
+                    }
+                }
+                return ret;
+            }
+            private void DoExpiration()
+            {
+                List<NotFoundLocation> m_toRemove = null;
+                DateTime now = DateTime.Now;
+                foreach (NotFoundLocation nfl in m_notFoundLocations)
+                {
+                    if (nfl.expireTime < now)
+                    {
+                        if (m_toRemove == null)
+                            m_toRemove = new List<NotFoundLocation>();
+                        m_toRemove.Add(nfl);
+                    }
+                }
+                if (m_toRemove != null)
+                {
+                    foreach (NotFoundLocation nfl in m_toRemove)
+                        m_notFoundLocations.Remove(nfl);
+                    m_toRemove.Clear();
+                }
+            }
+        }
+        #endregion // NotFoundLocationCache class
+        private NotFoundLocationCache m_notFoundLocationCache = new NotFoundLocationCache();
+
         // Given a world position (fractional meter coordinate), get the GridRegion info for
         //   the region containing that point.
         // Someday this should be a method on GridService.
+        // 'pSizeHint' is the size of the source region but since the destination point can be anywhere
+        //     the size of the target region is unknown thus the search area might have to be very large.
         // Return 'null' if no such region exists.
-        public GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID, double px, double py)
+        public GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID,
+                            double px, double py, uint pSizeHint)
         {
             m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
             GridRegion ret = null;
+            const double fudge = 2.0;
+
+            // One problem with this routine is negative results. That is, this can be called lots of times
+            //   for regions that don't exist. m_notFoundLocationCache remembers 'not found' results so they
+            //   will be quick 'not found's next time.
+            // NotFoundLocationCache is an expiring cache so it will eventually forget about 'not found' and
+            //   thus re-ask the GridService about the location.
+            if (m_notFoundLocationCache.Contains(px, py))
+            {
+                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Not found via cache. loc=<{1},{2}>", LogHeader, px, py);
+                return null;
+            }
 
             // As an optimization, since most regions will be legacy sized regions (256x256), first try to get
             //   the region at the appropriate legacy region location.
@@ -2018,13 +2150,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (ret == null)
             {
                 // If the simple lookup failed, search the larger area for a region that contains this point
-                double range = (double)Constants.RegionSize * 2 + 2;
+                double range = (double)pSizeHint + fudge;
                 while (ret == null && range <= (Constants.MaximumRegionSize + Constants.RegionSize))
                 {
-                    // Get from the grid service a list of regions that might contain this point
+                    // Get from the grid service a list of regions that might contain this point.
+                    // The region origin will be in the zero direction so only subtract the range.
                     List<GridRegion> possibleRegions = pGridService.GetRegionRange(pScopeID,
-                                        (int)(px - range), (int)(px + range),
-                                        (int)(py - range), (int)(py + range));
+                                        (int)(px - range), (int)(px),
+                                        (int)(py - range), (int)(py));
                     m_log.DebugFormat("{0} GetRegionContainingWorldLocation: possibleRegions cnt={1}, range={2}",
                                         LogHeader, possibleRegions.Count, range);
                     if (possibleRegions != null && possibleRegions.Count > 0)
@@ -2048,6 +2181,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     range *= 2;
                 }
             }
+
+            if (ret == null)
+            {
+                // remember this location was not found so we can quickly not find it next time
+                m_notFoundLocationCache.Add(px, py);
+                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Not found. Remembering loc=<{1},{2}>", LogHeader, px, py);
+            }
+
             return ret;
         }
 

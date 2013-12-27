@@ -3425,6 +3425,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsInTransit)
             {
                 Vector3 pos2 = AbsolutePosition;
+                Vector3 origPosition = pos2;
                 Vector3 vel = Velocity;
                 int neighbor = 0;
                 int[] fix = new int[2];
@@ -3459,128 +3460,25 @@ namespace OpenSim.Region.Framework.Scenes
                             // Tried to make crossing happen but it failed.
                             if (m_requestedSitTargetUUID == UUID.Zero)
                             {
+                                m_log.DebugFormat("{0} CheckForBorderCrossing: Crossing failed. Restoring old position.", LogHeader);
+                                const float borderFudge = 0.1f;
 
-                                Vector3 pos = AbsolutePosition;
-                                if (AbsolutePosition.X < 0)
-                                    pos.X += Velocity.X * 2;
-                                else if (AbsolutePosition.X > m_scene.RegionInfo.RegionSizeX)
-                                    pos.X -= Velocity.X * 2;
-                                if (AbsolutePosition.Y < 0)
-                                    pos.Y += Velocity.Y * 2;
-                                else if (AbsolutePosition.Y > m_scene.RegionInfo.RegionSizeY)
-                                    pos.Y -= Velocity.Y * 2;
+                                if (origPosition.X < 0)
+                                    origPosition.X = borderFudge;
+                                else if (origPosition.X > (float)m_scene.RegionInfo.RegionSizeX)
+                                    origPosition.X = (float)m_scene.RegionInfo.RegionSizeX - borderFudge;
+                                if (origPosition.Y < 0)
+                                    origPosition.Y = borderFudge;
+                                else if (origPosition.Y > (float)m_scene.RegionInfo.RegionSizeY)
+                                    origPosition.Y = (float)m_scene.RegionInfo.RegionSizeY - borderFudge;
                                 Velocity = Vector3.Zero;
-                                AbsolutePosition = pos;
+                                AbsolutePosition = origPosition;
 
                                 AddToPhysicalScene(isFlying);
                             }
                         }
                              
                     }
-
-                    /*
-                    // Checks if where it's headed exists a region
-                    if (m_scene.TestBorderCross(pos2, Cardinals.W))
-                    {
-                        if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                        {
-                            needsTransit = true;
-                            neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
-                        }
-                        else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                        {
-                            needsTransit = true;
-                            neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
-                        }
-                        else
-                        {
-                            needsTransit = true;
-                            neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
-                        }
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.E))
-                    {
-                        if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                        {
-                            needsTransit = true;
-                            neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
-                        }
-                        else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                        {
-                            needsTransit = true;
-                            neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
-                        }
-                        else
-                        {
-                            needsTransit = true;
-                            neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
-                        }
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
-                    }
-
-                    // Makes sure avatar does not end up outside region
-                    if (neighbor <= 0)
-                    {
-                        if (needsTransit)
-                        {
-                            if (m_requestedSitTargetUUID == UUID.Zero)
-                            {
-                                bool isFlying = Flying;
-                                RemoveFromPhysicalScene();
-
-                                Vector3 pos = AbsolutePosition;
-                                if (AbsolutePosition.X < 0)
-                                    pos.X += Velocity.X * 2;
-                                else if (AbsolutePosition.X > m_scene.RegionInfo.RegionSizeX)
-                                    pos.X -= Velocity.X * 2;
-                                if (AbsolutePosition.Y < 0)
-                                    pos.Y += Velocity.Y * 2;
-                                else if (AbsolutePosition.Y > m_scene.RegionInfo.RegionSizeY)
-                                    pos.Y -= Velocity.Y * 2;
-                                Velocity = Vector3.Zero;
-                                AbsolutePosition = pos;
-
-//                                m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
-
-                                AddToPhysicalScene(isFlying);
-                            }
-                        }
-                    }
-                    else if (neighbor > 0)
-                    {
-                        if (!CrossToNewRegion())
-                        {
-                            if (m_requestedSitTargetUUID == UUID.Zero)
-                            {
-                                bool isFlying = Flying;
-                                RemoveFromPhysicalScene();
-
-                                Vector3 pos = AbsolutePosition;
-                                if (AbsolutePosition.X < 0)
-                                    pos.X += Velocity.X * 2;
-                                else if (AbsolutePosition.X > m_scene.RegionInfo.RegionSizeX)
-                                    pos.X -= Velocity.X * 2;
-                                if (AbsolutePosition.Y < 0)
-                                    pos.Y += Velocity.Y * 2;
-                                else if (AbsolutePosition.Y > m_scene.RegionInfo.RegionSizeY)
-                                    pos.Y -= Velocity.Y * 2;
-                                Velocity = Vector3.Zero;
-                                AbsolutePosition = pos;
-
-                                AddToPhysicalScene(isFlying);
-                            }
-                        }
-                    }
-                    */
                 }
                 else
                 {
