@@ -223,6 +223,7 @@ namespace OpenSim.Services.Interfaces
             m_serverURI = string.Empty;
         }
 
+        /*
         public GridRegion(int regionLocX, int regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
             m_regionLocX = regionLocX;
@@ -245,6 +246,7 @@ namespace OpenSim.Services.Interfaces
 
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)port);
         }
+         */
 
         public GridRegion(uint xcell, uint ycell)
         {

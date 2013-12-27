@@ -337,6 +337,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 "[ENTITY TRANSFER MODULE]: Received teleport cancel request from {0} in {1}", client.Name, Scene.Name);
         }
 
+        // Attempt to teleport the ScenePresence to the specified position in the specified region (spec'ed by its handle).
         public void Teleport(ScenePresence sp, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags)
         {
             if (sp.Scene.Permissions.IsGridGod(sp.UUID))
@@ -478,7 +479,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Vector3 lookAt, uint teleportFlags, out GridRegion finalDestination)
         {
             uint x = 0, y = 0;
-            Utils.LongToUInts(regionHandle, out x, out y);
+            Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
             GridRegion reg = Scene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
 
             if (reg != null)
@@ -532,8 +533,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 Util.RegionHandleToRegionLoc(regionHandle, out regX, out regY);
 
                 MapBlockData block = new MapBlockData();
-                block.X = (ushort)Util.WorldToRegionLoc(regX);
-                block.Y = (ushort)Util.WorldToRegionLoc(regY);
+                block.X = (ushort)regX;
+                block.Y = (ushort)regY;
                 block.Access = 254; // == not there
 
                 List<MapBlockData> blocks = new List<MapBlockData>();
@@ -1505,7 +1506,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             agent.Scene.RequestTeleportLocation(
                 agent.ControllingClient, 
-                Utils.UIntsToLong(regionX * (uint)Constants.RegionSize, regionY * (uint)Constants.RegionSize), 
+                Util.RegionLocToHandle(regionX, regionY),
                 position, 
                 agent.Lookat, 
                 (uint)Constants.TeleportFlags.ViaLocation);
@@ -1515,11 +1516,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (im != null)
             {
                 UUID gotoLocation = Util.BuildFakeParcelID(
-                    Util.UIntsToLong(
-                                              (regionX *
-                                               (uint)Constants.RegionSize),
-                                              (regionY *
-                                               (uint)Constants.RegionSize)),
+                    Util.RegionLocToHandle(regionX, regionY),
                     (uint)(int)position.X,
                     (uint)(int)position.Y,
                     (uint)(int)position.Z);
@@ -1991,8 +1988,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int shifty = (rRegionY - tRegionY) * (int)Constants.RegionSize;
             return new Vector3(shiftx, shifty, 0f);
              */
-            return new Vector3(sp.Scene.RegionInfo.RegionLocX - neighbour.RegionLocX,
-                                sp.Scene.RegionInfo.RegionLocY - neighbour.RegionLocY,
+            return new Vector3( sp.Scene.RegionInfo.WorldLocX - neighbour.RegionLocX,
+                                sp.Scene.RegionInfo.WorldLocY - neighbour.RegionLocY,
                                 0f);
         }
 
@@ -2172,16 +2169,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // view to include everything in the megaregion
             if (m_regionCombinerModule == null || !m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
             {
-                int dd = avatar.DrawDistance < Constants.RegionSize ? (int)Constants.RegionSize : (int)avatar.DrawDistance;
+                // The area to check is as big as the current region.
+                // We presume all adjacent regions are the same size as this region.
+                uint dd = Math.Max((uint)avatar.DrawDistance, 
+                                Math.Max(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY));
 
-                int startX = (int)pRegionLocX * (int)Constants.RegionSize - dd + (int)(Constants.RegionSize/2);
-                int startY = (int)pRegionLocY * (int)Constants.RegionSize - dd + (int)(Constants.RegionSize/2);
+                uint startX = Util.RegionToWorldLoc(pRegionLocX) - dd + Constants.RegionSize/2;
+                uint startY = Util.RegionToWorldLoc(pRegionLocY) - dd + Constants.RegionSize/2;
 
-                int endX = (int)pRegionLocX * (int)Constants.RegionSize + dd + (int)(Constants.RegionSize/2);
-                int endY = (int)pRegionLocY * (int)Constants.RegionSize + dd + (int)(Constants.RegionSize/2);
+                uint endX = Util.RegionToWorldLoc(pRegionLocX) + dd + Constants.RegionSize/2;
+                uint endY = Util.RegionToWorldLoc(pRegionLocY) + dd + Constants.RegionSize/2;
 
                 List<GridRegion> neighbours =
-                    avatar.Scene.GridService.GetRegionRange(m_regionInfo.ScopeID, startX, endX, startY, endY);
+                    avatar.Scene.GridService.GetRegionRange(m_regionInfo.ScopeID, (int)startX, (int)endX, (int)startY, (int)endY);
 
                 neighbours.RemoveAll(delegate(GridRegion r) { return r.RegionID == m_regionInfo.RegionID; });
                 return neighbours;
@@ -2194,10 +2194,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 List<GridRegion> neighbours 
                     = pScene.GridService.GetRegionRange(
                         m_regionInfo.ScopeID, 
-                        (int)swCorner.X * (int)Constants.RegionSize, 
-                        (int)neCorner.X * (int)Constants.RegionSize,
-                        (int)swCorner.Y * (int)Constants.RegionSize,
-                        (int)neCorner.Y * (int)Constants.RegionSize);
+                        (int)Util.RegionToWorldLoc((uint)swCorner.X), (int)Util.RegionToWorldLoc((uint)neCorner.X),
+                        (int)Util.RegionToWorldLoc((uint)swCorner.Y), (int)Util.RegionToWorldLoc((uint)neCorner.Y) );
 
                 neighbours.RemoveAll(delegate(GridRegion r) { return r.RegionID == m_regionInfo.RegionID; });
 
@@ -2300,7 +2298,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             double objectWorldLocY = (double)scene.RegionInfo.WorldLocY + attemptedPosition.Y;
 
             // Ask the grid service for the region that contains the passed address
-            GridRegion destination = GetRegionContainingWorldLocation(scene.GridService, scene.RegionInfo.ScopeID, objectWorldLocX, objectWorldLocY);
+            GridRegion destination = GetRegionContainingWorldLocation(scene.GridService, scene.RegionInfo.ScopeID,
+                                objectWorldLocX, objectWorldLocY);
 
             Vector3 pos = Vector3.Zero;
             if (destination != null)

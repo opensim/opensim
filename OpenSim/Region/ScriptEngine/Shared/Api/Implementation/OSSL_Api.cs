@@ -815,7 +815,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool relaxRestrictions)
         {
             // ulong regionHandle = Util.UIntsToLong(((uint)regionX * (uint)Constants.RegionSize), ((uint)regionY * (uint)Constants.RegionSize));
-            ulong regionHandle = Util.RegionWorldLocToHandle(Util.RegionToWorldLoc((uint)regionX), Util.RegionToWorldLoc((uint)regionY));
+            ulong regionHandle = Util.RegionLocToHandle((uint)regionX, (uint)regionY);
 
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();

@@ -331,7 +331,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                Vector3 minScale = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionSize);
+                Vector3 minScale = new Vector3(Constants.MaximumRegionSize, Constants.MaximumRegionSize, Constants.MaximumRegionSize);
                 Vector3 maxScale = Vector3.Zero;
                 Vector3 finalScale = new Vector3(0.5f, 0.5f, 0.5f);
     
@@ -517,14 +517,14 @@ namespace OpenSim.Region.Framework.Scenes
                             m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
 
                             // Normalize
-                            if (val.X >= Constants.RegionSize)
-                                val.X -= Constants.RegionSize;
-                            if (val.Y >= Constants.RegionSize)
-                                val.Y -= Constants.RegionSize;
+                            if (val.X >= m_scene.RegionInfo.RegionSizeX)
+                                val.X -= m_scene.RegionInfo.RegionSizeX;
+                            if (val.Y >= m_scene.RegionInfo.RegionSizeY)
+                                val.Y -= m_scene.RegionInfo.RegionSizeY;
                             if (val.X < 0)
-                                val.X += Constants.RegionSize;
+                                val.X += m_scene.RegionInfo.RegionSizeX;
                             if (val.Y < 0)
-                                val.Y += Constants.RegionSize;
+                                val.Y += m_scene.RegionInfo.RegionSizeY;
 
                             // If it's deleted, crossing was successful
                             if (IsDeleted)
@@ -572,9 +572,9 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                         Vector3 oldp = AbsolutePosition;
-                        val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
-                        val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
-                        val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
+                        val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)m_scene.RegionInfo.RegionSizeX - 0.5f);
+                        val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)m_scene.RegionInfo.RegionSizeY - 0.5f);
+                        val.Z = Util.Clamp<float>(oldp.Z, 0.5f, Constants.RegionHeight);
                     }
                 }
 

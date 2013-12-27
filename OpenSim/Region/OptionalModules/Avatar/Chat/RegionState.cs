@@ -44,6 +44,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        // This computation is not the real region center if the region is larger than 256.
+        //     This computation isn't fixed because there is not a handle back to the region.
         private static readonly OpenMetaverse.Vector3 CenterOfRegion = new OpenMetaverse.Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 20);
         private const int DEBUG_CHANNEL = 2147483647;
 

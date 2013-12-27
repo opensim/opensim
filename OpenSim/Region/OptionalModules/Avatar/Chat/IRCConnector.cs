@@ -52,6 +52,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         // Local constants
 
+        // This computation is not the real region center if the region is larger than 256.
+        //     This computation isn't fixed because there is not a handle back to the region.
         private static readonly Vector3 CenterOfRegion = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 20);
         private static readonly char[] CS_SPACE = { ' ' };
 

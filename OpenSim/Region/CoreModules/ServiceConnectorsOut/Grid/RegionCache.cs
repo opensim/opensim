@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return new List<GridRegion>(m_neighbours.Values);
         }
 
-        // Get a region given its base coordinates.
+        // Get a region given its base coordinates (in meters).
         // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
         //     be the base coordinate of the region.
         // The snapping is technically unnecessary but is harmless because regions are always

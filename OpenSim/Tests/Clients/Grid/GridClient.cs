@@ -150,16 +150,16 @@ namespace OpenSim.Tests.Clients.GridClient
 
             Console.WriteLine("[GRID CLIENT]: *** GetRegionRange (this should return 2 regions)");
             regions = m_Connector.GetRegionRange(UUID.Zero, 
-                900 * (int)Constants.RegionSize, 1002 * (int) Constants.RegionSize,
-                900 * (int)Constants.RegionSize, 1002 * (int) Constants.RegionSize);
+                (int)Util.RegionToWorldLoc(900), (int)Util.RegionToWorldLoc(1002),
+                (int)Util.RegionToWorldLoc(900), (int)Util.RegionToWorldLoc(1002) );
             if (regions == null)
                 Console.WriteLine("[GRID CLIENT]: GetRegionRange returned null");
             else
                 Console.WriteLine("[GRID CLIENT]: GetRegionRange returned " + regions.Count + " regions");
             Console.WriteLine("[GRID CLIENT]: *** GetRegionRange (this should return 0 regions)");
             regions = m_Connector.GetRegionRange(UUID.Zero,
-                900 * (int)Constants.RegionSize, 950 * (int)Constants.RegionSize,
-                900 * (int)Constants.RegionSize, 950 * (int)Constants.RegionSize);
+                (int)Util.RegionToWorldLoc(900), (int)Util.RegionToWorldLoc(950),
+                (int)Util.RegionToWorldLoc(900), (int)Util.RegionToWorldLoc(950) );
             if (regions == null)
                 Console.WriteLine("[GRID CLIENT]: GetRegionRange returned null");
             else

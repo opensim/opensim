@@ -208,6 +208,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         Name = EngineType + "/" + RegionName;
     }
 
+    // Old version of initialization that assumes legacy sized regions (256x256)
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
         m_log.ErrorFormat("{0} WARNING WARNING WARNING! BulletSim initialized without region extent specification. Terrain will be messed up.");

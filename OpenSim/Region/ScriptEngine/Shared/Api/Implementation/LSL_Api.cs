@@ -4333,7 +4333,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
 
-            ulong regionHandle = Utils.UIntsToLong((uint)global_coords.x, (uint)global_coords.y);
+            ulong regionHandle = Util.RegionWorldLocToHandle((uint)global_coords.x, (uint)global_coords.y);
 
             if (UUID.TryParse(agent, out agentId))
             {

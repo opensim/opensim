@@ -1099,8 +1099,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override void OtherRegionUp(GridRegion otherRegion)
         {
-            // uint xcell = (uint)((int)otherRegion.RegionLocX / (int)Constants.RegionSize);
-            // uint ycell = (uint)((int)otherRegion.RegionLocY / (int)Constants.RegionSize);
             uint xcell = Util.WorldToRegionLoc((uint)otherRegion.RegionLocX);
             uint ycell = Util.WorldToRegionLoc((uint)otherRegion.RegionLocY);
 
@@ -2450,9 +2448,9 @@ namespace OpenSim.Region.Framework.Scenes
             int xx = (int)Math.Floor(pos.X);
             int yy = (int)Math.Floor(pos.Y);
             if (xx < 0
-                    || xx > RegionInfo.RegionSizeX
+                    || xx >= RegionInfo.RegionSizeX
                     || yy < 0
-                    || yy > RegionInfo.RegionSizeY)
+                    || yy >= RegionInfo.RegionSizeY)
                 ret = false;
             return ret;
 
@@ -4581,53 +4579,6 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(remoteClient.AgentId);
             if (sp != null)
             {
-                /*
-                uint regionX = RegionInfo.LegacyRegionLocX;
-                uint regionY = RegionInfo.LegacyRegionLocY;
-
-                Util.RegionHandleToWorldLoc(regionHandle, out regionX, out regionY);
-                Utils.LongToUInts(regionHandle, out regionX, out regionY);
-
-                int shiftx = (int) regionX - (int) RegionInfo.LegacyRegionLocX * (int)Constants.RegionSize;
-                int shifty = (int) regionY - (int) RegionInfo.LegacyRegionLocY * (int)Constants.RegionSize;
-                 */
-
-                uint regionX, regionY;
-                Util.RegionHandleToWorldLoc(regionHandle, out regionX, out regionY);
-
-                int shiftx = (int) regionX - (int)RegionInfo.WorldLocX;
-                int shifty = (int) regionY - (int)RegionInfo.WorldLocY;
-
-                position.X += shiftx;
-                position.Y += shifty;
-
-                bool result = false;
-
-                if (TestBorderCross(position,Cardinals.N))
-                    result = true;
-
-                if (TestBorderCross(position, Cardinals.S))
-                    result = true;
-
-                if (TestBorderCross(position, Cardinals.E))
-                    result = true;
-
-                if (TestBorderCross(position, Cardinals.W))
-                    result = true;
-
-                // bordercross if position is outside of region
-
-                if (!result)
-                {
-                    regionHandle = RegionInfo.RegionHandle;
-                }
-                else
-                {
-                    // not in this region, undo the shift!
-                    position.X -= shiftx;
-                    position.Y -= shifty;
-                }
-
                 if (EntityTransferModule != null)
                 {
                     EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);

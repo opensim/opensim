@@ -313,8 +313,10 @@ namespace OpenSim.Services.GridService
             if (region != null)
             {
                 // Not really? Maybe?
-                List<RegionData> rdatas = m_Database.Get(region.posX - (int)Constants.RegionSize - 1, region.posY - (int)Constants.RegionSize - 1, 
-                    region.posX + (int)Constants.RegionSize + 1, region.posY + (int)Constants.RegionSize + 1, scopeID);
+                // The adjacent regions are presumed to be the same size as the current region
+                List<RegionData> rdatas = m_Database.Get(
+                    region.posX - region.sizeX - 1, region.posY - region.sizeY - 1, 
+                    region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);
 
                 foreach (RegionData rdata in rdatas)
                 {
@@ -642,20 +644,20 @@ namespace OpenSim.Services.GridService
                 return;
             }
 
-            int x, y;
-            if (!int.TryParse(cmd[3], out x))
+            uint x, y;
+            if (!uint.TryParse(cmd[3], out x))
             {
                 MainConsole.Instance.Output("x-coord must be an integer");
                 return;
             }
 
-            if (!int.TryParse(cmd[4], out y))
+            if (!uint.TryParse(cmd[4], out y))
             {
                 MainConsole.Instance.Output("y-coord must be an integer");
                 return;
             }
 
-            RegionData region = m_Database.Get(x * (int)Constants.RegionSize, y * (int)Constants.RegionSize, UUID.Zero);
+            RegionData region = m_Database.Get((int)Util.RegionToWorldLoc(x), (int)Util.RegionToWorldLoc(y), UUID.Zero);
             if (region == null)
             {
                 MainConsole.Instance.OutputFormat("No region found at {0},{1}", x, y);

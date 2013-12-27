@@ -342,6 +342,11 @@ namespace OpenSim.Framework
             return Utils.UIntsToLong(X, Y);
         }
 
+        public static ulong RegionLocToHandle(uint X, uint Y)
+        {
+            return Utils.UIntsToLong(Util.RegionToWorldLoc(X), Util.RegionToWorldLoc(Y));
+        }
+
         public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
         {
             X = (uint)(handle >> 32);

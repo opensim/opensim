@@ -277,11 +277,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     {
                         List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
 
+                        // Get regions that are within 8 regions of here
                         List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                            (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
-                            (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
-                            (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
-                            (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
+                                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocX - 8),
+                                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocX + 8),
+                                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocY - 8),
+                                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocY + 8) );
                         foreach (GridRegion r in regions)
                         {
                             MapBlockData block = new MapBlockData();
@@ -1011,17 +1012,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // on an unloaded square.
                 // But make sure: Look whether the one we requested is in there
                 List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    minX * (int)Constants.RegionSize,
-                    maxX * (int)Constants.RegionSize,
-                    minY * (int)Constants.RegionSize,
-                    maxY * (int)Constants.RegionSize);
+                                    (int)Util.RegionToWorldLoc((uint)minX), (int)Util.RegionToWorldLoc((uint)maxX),
+                                    (int)Util.RegionToWorldLoc((uint)minY), (int)Util.RegionToWorldLoc((uint)maxY) );
 
                 if (regions != null)
                 {
                     foreach (GridRegion r in regions)
                     {
-                        if ((r.RegionLocX == minX * (int)Constants.RegionSize) &&
-                            (r.RegionLocY == minY * (int)Constants.RegionSize))
+                        if (r.RegionLocX == Util.RegionToWorldLoc((uint)minX)
+                            && r.RegionLocY == Util.RegionToWorldLoc((uint)minY) )
                         {
                             // found it => add it to response
                             MapBlockData block = new MapBlockData();
@@ -1055,10 +1054,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                (minX - 4) * (int)Constants.RegionSize,
-                (maxX + 4) * (int)Constants.RegionSize,
-                (minY - 4) * (int)Constants.RegionSize,
-                (maxY + 4) * (int)Constants.RegionSize);
+                        (int)Util.RegionToWorldLoc((uint)(minX - 4)), (int)Util.RegionToWorldLoc((uint)(maxX + 4)),
+                        (int)Util.RegionToWorldLoc((uint)(minY - 4)), (int)Util.RegionToWorldLoc((uint)(maxY + 4)) );
             foreach (GridRegion r in regions)
             {
                 MapBlockData block = new MapBlockData();
@@ -1086,8 +1083,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 break;
             }
             block.Name = r.RegionName;
-            block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
-            block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
+            block.X = (ushort)Util.WorldToRegionLoc((uint)r.RegionLocX);
+            block.Y = (ushort)Util.WorldToRegionLoc((uint)r.RegionLocY);
         }
 
         public Hashtable OnHTTPThrottled(Hashtable keysvals)
@@ -1218,10 +1215,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    (int)(m_scene.RegionInfo.RegionLocX - 9) * (int)Constants.RegionSize,
-                    (int)(m_scene.RegionInfo.RegionLocX + 9) * (int)Constants.RegionSize,
-                    (int)(m_scene.RegionInfo.RegionLocY - 9) * (int)Constants.RegionSize,
-                    (int)(m_scene.RegionInfo.RegionLocY + 9) * (int)Constants.RegionSize);
+                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocX - 9),
+                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocX + 9),
+                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocY - 9),
+                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocY + 9));
             List<AssetBase> textures = new List<AssetBase>();
             List<Image> bitImages = new List<Image>();
 

@@ -184,8 +184,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?
                     data.WaterHeight = 0; // not used
-                    data.X = (ushort)(info.RegionLocX / Constants.RegionSize);
-                    data.Y = (ushort)(info.RegionLocY / Constants.RegionSize);
+                    data.X = (ushort)Util.WorldToRegionLoc((uint)info.RegionLocX);
+                    data.Y = (ushort)Util.WorldToRegionLoc((uint)info.RegionLocY);
                     blocks.Add(data);
                 }
             }

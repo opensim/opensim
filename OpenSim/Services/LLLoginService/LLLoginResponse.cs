@@ -362,7 +362,6 @@ namespace OpenSim.Services.LLLoginService
 
         private void FillOutHomeData(GridUserInfo pinfo, GridRegion home)
         {
-            // int x = 1000 * (int)Constants.RegionSize, y = 1000 * (int)Constants.RegionSize;
             int x = (int)Util.RegionToWorldLoc(1000);
             int y = (int)Util.RegionToWorldLoc(1000);
             if (home != null)
@@ -438,22 +437,22 @@ namespace OpenSim.Services.LLLoginService
             ErrorReason = "key";
             welcomeMessage = "Welcome to OpenSim!";
             seedCapability = String.Empty;
-            home = "{'region_handle':[r" 
-                    + Util.RegionToWorldLoc(1000).ToString()
-                    + ",r"
-                    + Util.RegionToWorldLoc(1000).ToString()
-                    + "], 'position':[r"
-                    + userProfile.homepos.X.ToString()
-                    + ",r"
-                    + userProfile.homepos.Y.ToString()
-                    + ",r"
-                    + userProfile.homepos.Z.ToString()
-                    + "], 'look_at':[r"
-                    + userProfile.homelookat.X.ToString()
-                    + ",r"
-                    + userProfile.homelookat.Y.ToString()
-                    + ",r"
-                    + userProfile.homelookat.Z.ToString()
+            home = "{'region_handle':[" 
+                    + "r" + Util.RegionToWorldLoc(1000).ToString()
+                    + ","
+                    + "r" + Util.RegionToWorldLoc(1000).ToString()
+                    + "], 'position':["
+                    + "r" + userProfile.homepos.X.ToString()
+                    + ","
+                    + "r" + userProfile.homepos.Y.ToString()
+                    + ","
+                    + "r" + userProfile.homepos.Z.ToString()
+                    + "], 'look_at':["
+                    + "r" + userProfile.homelookat.X.ToString()
+                    + ","
+                    + "r" + userProfile.homelookat.Y.ToString()
+                    + ","
+                    + "r" + userProfile.homelookat.Z.ToString()
                     + "]}";
             lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
             RegionX = (uint) 255232;

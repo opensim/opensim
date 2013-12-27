@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
-        // Get a region given its base coordinates.
+        // Get a region given its base world coordinates (in meters).
         // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
         //     be the base coordinate of the region.
         // The coordinates are world coords (meters), NOT region units.

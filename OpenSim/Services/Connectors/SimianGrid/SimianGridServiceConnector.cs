@@ -101,7 +101,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
-            Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+            Vector3d maxPosition = minPosition + new Vector3d(regionInfo.RegionSizeX, regionInfo.RegionSizeY, Constants.RegionHeight);
 
             OSDMap extraData = new OSDMap
             {
@@ -156,15 +156,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            const int NEIGHBOR_RADIUS = 128;
-
             GridRegion region = GetRegionByUUID(scopeID, regionID);
+
+            int NEIGHBOR_RADIUS = Math.Max(region.RegionSizeX, region.RegionSizeY) / 2;
 
             if (region != null)
             {
                 List<GridRegion> regions = GetRegionRange(scopeID,
-                    region.RegionLocX - NEIGHBOR_RADIUS, region.RegionLocX + (int)Constants.RegionSize + NEIGHBOR_RADIUS,
-                    region.RegionLocY - NEIGHBOR_RADIUS, region.RegionLocY + (int)Constants.RegionSize + NEIGHBOR_RADIUS);
+                    region.RegionLocX - NEIGHBOR_RADIUS, region.RegionLocX + region.RegionSizeX + NEIGHBOR_RADIUS,
+                    region.RegionLocY - NEIGHBOR_RADIUS, region.RegionLocY + region.RegionSizeY + NEIGHBOR_RADIUS);
 
                 for (int i = 0; i < regions.Count; i++)
                 {
@@ -229,7 +229,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             else
             {
                 // m_log.InfoFormat("[SIMIAN GRID CONNECTOR]: Grid service did not find a match for region at {0},{1}",
-                //     x / Constants.RegionSize, y / Constants.RegionSize);
+                //     Util.WorldToRegionLoc(x), Util.WorldToRegionLoc(y));
                 return null;
             }
         }

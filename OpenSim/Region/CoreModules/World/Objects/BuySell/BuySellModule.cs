@@ -151,14 +151,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 break;
 
             case 2: // Sell a copy
-                Vector3 inventoryStoredPosition = new Vector3
-                       (((group.AbsolutePosition.X > (int)Constants.RegionSize)
-                             ? 250
-                             : group.AbsolutePosition.X)
-                        ,
-                        (group.AbsolutePosition.X > (int)Constants.RegionSize)
-                            ? 250
-                            : group.AbsolutePosition.X,
+                Vector3 inventoryStoredPosition = new Vector3(
+                        Math.Min(group.AbsolutePosition.X, m_scene.RegionInfo.RegionSizeX - 6),
+                        Math.Min(group.AbsolutePosition.Y, m_scene.RegionInfo.RegionSizeY - 6),
                         group.AbsolutePosition.Z);
 
                 Vector3 originalPosition = group.AbsolutePosition;
