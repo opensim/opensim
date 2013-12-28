@@ -177,6 +177,7 @@ namespace OpenSim.Services.Interfaces
 
         /// <summary>
         /// The location of this region in meters.
+        /// DANGER DANGER! Note that this name means something different in RegionInfo.
         /// </summary>
         public int RegionLocX
         {
@@ -185,8 +186,12 @@ namespace OpenSim.Services.Interfaces
         }
         protected int m_regionLocX;
 
+        public int RegionSizeX { get; set; }
+        public int RegionSizeY { get; set; }
+
         /// <summary>
         /// The location of this region in meters.
+        /// DANGER DANGER! Note that this name means something different in RegionInfo.
         /// </summary>
         public int RegionLocY
         {
@@ -218,10 +223,13 @@ namespace OpenSim.Services.Interfaces
             m_serverURI = string.Empty;
         }
 
+        /*
         public GridRegion(int regionLocX, int regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
+            RegionSizeX = (int)Constants.RegionSize;
+            RegionSizeY = (int)Constants.RegionSize;
 
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
@@ -231,16 +239,21 @@ namespace OpenSim.Services.Interfaces
         {
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
+            RegionSizeX = (int)Constants.RegionSize;
+            RegionSizeY = (int)Constants.RegionSize;
 
             m_externalHostName = externalUri;
 
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)port);
         }
+         */
 
         public GridRegion(uint xcell, uint ycell)
         {
             m_regionLocX = (int)(xcell * Constants.RegionSize);
             m_regionLocY = (int)(ycell * Constants.RegionSize);
+            RegionSizeX = (int)Constants.RegionSize;
+            RegionSizeY = (int)Constants.RegionSize;
         }
 
         public GridRegion(RegionInfo ConvertFrom)
@@ -248,6 +261,8 @@ namespace OpenSim.Services.Interfaces
             m_regionName = ConvertFrom.RegionName;
             m_regionLocX = (int)(ConvertFrom.RegionLocX * Constants.RegionSize);
             m_regionLocY = (int)(ConvertFrom.RegionLocY * Constants.RegionSize);
+            RegionSizeX = (int)ConvertFrom.RegionSizeX;
+            RegionSizeY = (int)ConvertFrom.RegionSizeY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_httpPort = ConvertFrom.HttpPort;
@@ -266,6 +281,8 @@ namespace OpenSim.Services.Interfaces
             m_regionName = ConvertFrom.RegionName;
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
+            RegionSizeX = ConvertFrom.RegionSizeX;
+            RegionSizeY = ConvertFrom.RegionSizeY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_httpPort = ConvertFrom.HttpPort;
@@ -373,6 +390,8 @@ namespace OpenSim.Services.Interfaces
             kvp["uuid"] = RegionID.ToString();
             kvp["locX"] = RegionLocX.ToString();
             kvp["locY"] = RegionLocY.ToString();
+            kvp["sizeX"] = RegionSizeX.ToString();
+            kvp["sizeY"] = RegionSizeY.ToString();
             kvp["regionName"] = RegionName;
             kvp["serverIP"] = ExternalHostName; //ExternalEndPoint.Address.ToString();
             kvp["serverHttpPort"] = HttpPort.ToString();
@@ -398,6 +417,12 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("locY"))
                 RegionLocY = Convert.ToInt32((string)kvp["locY"]);
+
+            if (kvp.ContainsKey("sizeX"))
+                RegionSizeX = Convert.ToInt32((string)kvp["sizeX"]);
+
+            if (kvp.ContainsKey("sizeY"))
+                RegionSizeY = Convert.ToInt32((string)kvp["sizeY"]);
 
             if (kvp.ContainsKey("regionName"))
                 RegionName = (string)kvp["regionName"];

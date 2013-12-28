@@ -30,8 +30,14 @@ namespace OpenSim.Framework
 {
     public class Constants
     {
+        // 'RegionSize' is the legacy region size.
+        // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
+        //      be the legacy region size.
         public const uint RegionSize = 256;
         public const uint RegionHeight = 4096;
+        // This could be a parameters but, really, a region of greater than this is pretty unmanageable
+        public const uint MaximumRegionSize = 8192;
+
         public const byte TerrainPatchSize = 16;
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
 
