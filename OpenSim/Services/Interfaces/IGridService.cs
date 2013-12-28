@@ -220,6 +220,8 @@ namespace OpenSim.Services.Interfaces
 
         public GridRegion()
         {
+            RegionSizeX = (int)Constants.RegionSize;
+            RegionSizeY = (int)Constants.RegionSize;
             m_serverURI = string.Empty;
         }
 
