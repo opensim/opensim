@@ -29,8 +29,12 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
+
 using OpenSim.Framework;
 using OpenMetaverse;
+
+using log4net;
 
 namespace OpenSim.Services.Interfaces
 {
@@ -119,6 +123,9 @@ namespace OpenSim.Services.Interfaces
 
     public class GridRegion
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[GRID REGION]";
+
         /// <summary>
         /// The port by which http communication occurs with the region 
         /// </summary>
@@ -420,9 +427,13 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("sizeX"))
                 RegionSizeX = Convert.ToInt32((string)kvp["sizeX"]);
+            else
+                RegionSizeX = (int)Constants.RegionSize;
 
             if (kvp.ContainsKey("sizeY"))
                 RegionSizeY = Convert.ToInt32((string)kvp["sizeY"]);
+            else
+                RegionSizeX = (int)Constants.RegionSize;
 
             if (kvp.ContainsKey("regionName"))
                 RegionName = (string)kvp["regionName"];
@@ -471,6 +482,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("Token"))
                 Token = kvp["Token"].ToString();
+
+            m_log.DebugFormat("{0} New GridRegion. id={1}, loc=<{2},{3}>, size=<{4},{5}>",
+                                    LogHeader, RegionID, RegionLocX, RegionLocY, RegionSizeX, RegionSizeY);
         }
     }
 }

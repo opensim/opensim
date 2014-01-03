@@ -31,7 +31,7 @@ namespace OpenSim.Framework
     public class Constants
     {
         // 'RegionSize' is the legacy region size.
-        // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionSize[XYZ] as a region might not
+        // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
         //      be the legacy region size.
         public const uint RegionSize = 256;
         public const uint RegionHeight = 4096;

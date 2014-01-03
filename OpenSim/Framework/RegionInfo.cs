@@ -236,6 +236,10 @@ namespace OpenSim.Framework
 
         public RegionInfo(uint legacyRegionLocX, uint legacyRegionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
+            RegionLocX = legacyRegionLocX;
+            RegionLocY = legacyRegionLocY;
+            RegionSizeX = Constants.RegionSize;
+            RegionSizeY = Constants.RegionSize;
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
             m_serverURI = string.Empty;
