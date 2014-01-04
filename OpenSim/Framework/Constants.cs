@@ -38,7 +38,10 @@ namespace OpenSim.Framework
         // This could be a parameters but, really, a region of greater than this is pretty unmanageable
         public const uint MaximumRegionSize = 8192;
 
-        public const byte TerrainPatchSize = 16;
+        // Since terrain is stored in 16x16 heights, regions must be a multiple of this number and that is the minimum
+        public const int MinRegionSize = 16;
+        public const int TerrainPatchSize = 16;
+
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
 
         public enum EstateAccessCodex : uint
