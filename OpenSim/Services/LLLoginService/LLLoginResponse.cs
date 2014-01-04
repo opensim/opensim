@@ -258,8 +258,7 @@ namespace OpenSim.Services.LLLoginService
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
 
             FillOutRegionData(destination);
-            m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX={0}, sizeY={1}", RegionSizeX, RegionSizeY);
-            Util.PrintCallStack();
+            // m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX=<{0},{1}>", RegionSizeX, RegionSizeY);
 
             FillOutSeedCap(aCircuit, destination, clientIP);
 
@@ -534,7 +533,7 @@ namespace OpenSim.Services.LLLoginService
                 responseData["region_y"] = (Int32)(RegionY);
                 responseData["region_size_x"] = (Int32)RegionSizeX;
                 responseData["region_size_y"] = (Int32)RegionSizeY;
-                m_log.DebugFormat("[LOGIN RESPONSE] returning sizeX={0}, sizeY={1}", RegionSizeX, RegionSizeY);
+                // m_log.DebugFormat("[LOGIN RESPONSE] returning sizeX=<{0},{1}>", RegionSizeX, RegionSizeY);
 
                 if (searchURL != String.Empty)
                     responseData["search"] = searchURL;

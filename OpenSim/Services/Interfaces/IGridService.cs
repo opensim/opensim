@@ -485,8 +485,8 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("Token"))
                 Token = kvp["Token"].ToString();
 
-            m_log.DebugFormat("{0} New GridRegion. id={1}, loc=<{2},{3}>, size=<{4},{5}>",
-                                    LogHeader, RegionID, RegionLocX, RegionLocY, RegionSizeX, RegionSizeY);
+            // m_log.DebugFormat("{0} New GridRegion. id={1}, loc=<{2},{3}>, size=<{4},{5}>",
+            //                         LogHeader, RegionID, RegionLocX, RegionLocY, RegionSizeX, RegionSizeY);
         }
     }
 }
