@@ -47,7 +47,7 @@ using OpenSim.Services.Interfaces;
 using Mono.Addins;
 using OpenSim.Services.Connectors.Hypergrid;
 
-namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
+namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserProfilesModule")]
     public class UserProfileModule : IProfileModule, INonSharedRegionModule
@@ -999,7 +999,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             string result = string.Empty;
 
             props.UserId = avatarID;
-            GetProfileData(ref props, out result);
+
+            try
+            {
+                GetProfileData(ref props, out result);
+            }
+            catch (Exception e)
+            {
+                if (foreign)
+                {
+                    // Check if the foreign grid is using OpenProfile.
+                    // If any error occurs then discard it, and report the original error.
+                    try
+                    {
+                        OpenProfileClient client = new OpenProfileClient(serverURI);
+                        if (!client.RequestAvatarPropertiesUsingOpenProfile(ref props))
+                            throw e;
+                    }
+                    catch (Exception)
+                    {
+                        throw e;
+                    }
+                }
+                else
+                    throw;
+            }
 
             remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, charterMember , props.FirstLifeText, flags,
                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
