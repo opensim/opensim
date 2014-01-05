@@ -50,6 +50,8 @@ namespace OpenSim.Services.LLLoginService
     public class LLLoginService : ILoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[LLOGIN SERVICE]";
+
         private static bool Initialized = false;
 
         protected IUserAccountService m_UserAccountService;
@@ -397,6 +399,7 @@ namespace OpenSim.Services.LLLoginService
                 if (guinfo == null)
                 {
                     // something went wrong, make something up, so that we don't have to test this anywhere else
+                    m_log.DebugFormat("{0} Failed to fetch GridUserInfo. Creating empty GridUserInfo as home", LogHeader);
                     guinfo = new GridUserInfo();
                     guinfo.LastPosition = guinfo.HomePosition = new Vector3(128, 128, 30);
                 }

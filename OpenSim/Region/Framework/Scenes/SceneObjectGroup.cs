@@ -506,9 +506,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
         }
-
-
-
+        
         private struct avtocrossInfo
         {
             public ScenePresence av;
@@ -660,12 +658,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-/* don't see the need but worse don't see where is restored to false if things stay in
-                foreach (SceneObjectPart part in m_parts.GetArray())
-                {
-                    part.IgnoreUndoUpdate = true;
-                }
- */
                 if (RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
@@ -751,7 +743,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             agent.ParentUUID = UUID.Zero;
-
 //                agent.Reset();
 //            else // Not successful
 //                agent.RestoreInCurrentScene();

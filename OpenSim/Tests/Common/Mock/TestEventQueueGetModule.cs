@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.ClientStack.Linden;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -113,22 +114,25 @@ namespace OpenSim.Tests.Common
             AddEvent(avatarID, "DisableSimulator", handle);
         }
 
-        public void EnableSimulator (ulong handle, IPEndPoint endPoint, UUID avatarID)
+        public void EnableSimulator (ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             AddEvent(avatarID, "EnableSimulator", handle);
         }
 
-        public void EstablishAgentCommunication (UUID avatarID, IPEndPoint endPoint, string capsPath)
+        public void EstablishAgentCommunication (UUID avatarID, IPEndPoint endPoint, string capsPath,
+                                ulong regionHandle, int regionSizeX, int regionSizeY)
         {
             AddEvent(avatarID, "EstablishAgentCommunication", endPoint, capsPath);
         }
 
-        public void TeleportFinishEvent (ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID, uint flags, string capsURL, UUID agentID)
+        public void TeleportFinishEvent (ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
+                    uint locationID, uint flags, string capsURL, UUID agentID, int regionSizeX, int regionSizeY)
         {
             AddEvent(agentID, "TeleportFinishEvent", regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL);
         }
 
-        public void CrossRegion (ulong handle, Vector3 pos, Vector3 lookAt, IPEndPoint newRegionExternalEndPoint, string capsURL, UUID avatarID, UUID sessionID)
+        public void CrossRegion (ulong handle, Vector3 pos, Vector3 lookAt, IPEndPoint newRegionExternalEndPoint,
+                                    string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
             AddEvent(avatarID, "CrossRegion", handle, pos, lookAt, newRegionExternalEndPoint, capsURL, sessionID);
         }
@@ -164,7 +168,7 @@ namespace OpenSim.Tests.Common
             throw new System.NotImplementedException ();
         }
 
-        public OSD BuildEvent (string eventName, OSD eventBody)
+        public OSD BuildEvent(string eventName, OSD eventBody)
         {
             Console.WriteLine("TWO");
             throw new System.NotImplementedException ();

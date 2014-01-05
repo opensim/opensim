@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     public class EntityTransferModule : INonSharedRegionModule, IEntityTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[ENTITY TRANSFER MODULE]";
 
         public const int DefaultMaxTransferDistance = 4095;
         public const bool WaitForAgentArrivedAtDestinationDefault = true;
@@ -825,7 +826,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // The EnableSimulator message makes the client establish a connection with the destination
                     // simulator by sending the initial UseCircuitCode UDP packet to the destination containing the
                     // correct circuit code.
-                    m_eqModule.EnableSimulator(destinationHandle, endPoint, sp.UUID);
+                    m_eqModule.EnableSimulator(destinationHandle, endPoint, sp.UUID,
+                                        finalDestination.RegionSizeX, finalDestination.RegionSizeY);
+                    m_log.DebugFormat("{0} Sent EnableSimulator. regName={1}, size=<{2},{3}>", LogHeader,
+                        finalDestination.RegionName, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
                     // XXX: Is this wait necessary?  We will always end up waiting on UpdateAgent for the destination
                     // simulator to confirm that it has established communication with the viewer.
@@ -835,7 +839,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // unnecessary - teleport will succeed and SEED caps will be requested without it (though possibly
                     // only on TeleportFinish).  This is untested for region teleport between different simulators
                     // though this probably also works.
-                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath, finalDestination.RegionHandle,
+                                        finalDestination.RegionSizeX, finalDestination.RegionSizeY);
                 }
                 else
                 {
@@ -921,7 +926,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // OK, send TPFinish to the client, so that it starts the process of contacting the destination region
             if (m_eqModule != null)
             {
-                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID,
+                            finalDestination.RegionSizeX, finalDestination.RegionSizeY);
             }
             else
             {
@@ -1074,7 +1080,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // New protocol: send TP Finish directly, without prior ES or EAC. That's what happens in the Linden grid
             if (m_eqModule != null)
-                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID,
+                                    finalDestination.RegionSizeX, finalDestination.RegionSizeY);
             else
                 sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
                                                             teleportFlags, capsPath);
@@ -1717,11 +1724,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (m_eqModule != null)
             {
                 m_eqModule.CrossRegion(
-                    neighbourRegion.RegionHandle, pos + agent.Velocity, vel2 /* agent.Velocity */, neighbourRegion.ExternalEndPoint,
-                    capsPath, agent.UUID, agent.ControllingClient.SessionId);
+                    neighbourRegion.RegionHandle, pos + agent.Velocity, vel2 /* agent.Velocity */,
+                    neighbourRegion.ExternalEndPoint,
+                    capsPath, agent.UUID, agent.ControllingClient.SessionId,
+                    neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
             }
             else
             {
+                m_log.ErrorFormat("{0} Using old CrossRegion packet. Varregion will not work!!", LogHeader);
                 agent.ControllingClient.CrossRegion(neighbourRegion.RegionHandle, pos + agent.Velocity, agent.Velocity, neighbourRegion.ExternalEndPoint,
                                             capsPath);
             }
@@ -2087,12 +2097,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                     #endregion
 
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: {0} is sending {1} EnableSimulator for neighbour region {2} @ {3} " +
-                        "and EstablishAgentCommunication with seed cap {4}",
-                        scene.RegionInfo.RegionName, sp.Name, reg.RegionName, reg.RegionHandle, capsPath);
+                    m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +
+                        "and EstablishAgentCommunication with seed cap {8}", LogHeader,
+                        scene.RegionInfo.RegionName, sp.Name,
+                        reg.RegionName, reg.RegionLocX, reg.RegionLocY, reg.RegionSizeX, reg.RegionSizeY , capsPath);
 
-                    m_eqModule.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
-                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+                    m_eqModule.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID, reg.RegionSizeX, reg.RegionSizeY);
+                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath, reg.RegionHandle, reg.RegionSizeX, reg.RegionSizeY);
                 }
                 else
                 {

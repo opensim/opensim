@@ -754,8 +754,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             IClientAPI remoteClient = (IClientAPI)sender;
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-            note.TargetId = remoteClient.AgentId;
-            UUID.TryParse(args[0], out note.UserId);
+            note.UserId = remoteClient.AgentId;
+            UUID.TryParse(args[0], out note.TargetId);
 
             object Note = (object)note;
             if(!JsonRpcRequest(ref Note, "avatarnotesrequest", serverURI, UUID.Random().ToString()))

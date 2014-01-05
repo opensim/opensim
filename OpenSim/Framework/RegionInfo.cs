@@ -100,6 +100,7 @@ namespace OpenSim.Framework
     public class RegionInfo
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[REGION INFO]";
 
         public bool commFailTF = false;
         public ConfigurationMember configMember;
@@ -139,16 +140,20 @@ namespace OpenSim.Framework
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
         protected IPEndPoint m_internalEndPoint;
-        protected uint? m_regionLocX;
-        protected uint? m_regionLocY;
         protected uint m_remotingPort;
         public UUID RegionID = UUID.Zero;
         public string RemotingAddress;
         public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
 
-        private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
+        public uint WorldLocX = 0;
+        public uint WorldLocY = 0;
+        public uint WorldLocZ = 0;
+        public uint RegionSizeX = Constants.RegionSize;
+        public uint RegionSizeY = Constants.RegionSize;
+        public uint RegionSizeZ = Constants.RegionHeight;
 
+        private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -231,11 +236,12 @@ namespace OpenSim.Framework
             m_serverURI = string.Empty;
         }
 
-        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
+        public RegionInfo(uint legacyRegionLocX, uint legacyRegionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
-            m_regionLocX = regionLocX;
-            m_regionLocY = regionLocY;
-
+            RegionLocX = legacyRegionLocX;
+            RegionLocY = legacyRegionLocY;
+            RegionSizeX = Constants.RegionSize;
+            RegionSizeY = Constants.RegionSize;
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
             m_serverURI = string.Empty;
@@ -449,25 +455,42 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// The x co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
         /// </summary>
         public uint RegionLocX
         {
-            get { return m_regionLocX.Value; }
-            set { m_regionLocX = value; }
+            get { return WorldLocX / Constants.RegionSize; }
+            set { WorldLocX = value * Constants.RegionSize; }
         }
 
         /// <summary>
         /// The y co-ordinate of this region in map tiles (e.g. 1000).
+        /// Coordinate is scaled as world coordinates divided by the legacy region size
+        /// and is thus is the number of legacy regions.
         /// </summary>
         public uint RegionLocY
         {
-            get { return m_regionLocY.Value; }
-            set { m_regionLocY = value; }
+            get { return WorldLocY / Constants.RegionSize; }
+            set { WorldLocY = value * Constants.RegionSize; }
         }
 
+        public void SetDefaultRegionSize()
+        {
+            WorldLocX = 0;
+            WorldLocY = 0;
+            WorldLocZ = 0;
+            RegionSizeX = Constants.RegionSize;
+            RegionSizeY = Constants.RegionSize;
+            RegionSizeZ = Constants.RegionHeight;
+        }
+
+        // A unique region handle is created from the region's world coordinates.
+        // This cannot be changed because some code expects to receive the region handle and then
+        //    compute the region coordinates from it.
         public ulong RegionHandle
         {
-            get { return Util.UIntsToLong((RegionLocX * (uint) Constants.RegionSize), (RegionLocY * (uint) Constants.RegionSize)); }
+            get { return Util.UIntsToLong(WorldLocX, WorldLocY); }
         }
 
         public void SetEndPoint(string ipaddr, int port)
@@ -574,8 +597,25 @@ namespace OpenSim.Framework
 
             string[] locationElements = location.Split(new char[] {','});
 
-            m_regionLocX = Convert.ToUInt32(locationElements[0]);
-            m_regionLocY = Convert.ToUInt32(locationElements[1]);
+            RegionLocX = Convert.ToUInt32(locationElements[0]);
+            RegionLocY = Convert.ToUInt32(locationElements[1]);
+
+            // Region size
+            // Default to legacy region size if not specified.
+            allKeys.Remove("SizeX");
+            string configSizeX = config.GetString("SizeX", Constants.RegionSize.ToString());
+            config.Set("SizeX", configSizeX);
+            RegionSizeX = Convert.ToUInt32(configSizeX);
+            allKeys.Remove("SizeY");
+            string configSizeY = config.GetString("SizeY", Constants.RegionSize.ToString());
+            config.Set("SizeY", configSizeX);
+            RegionSizeY = Convert.ToUInt32(configSizeY);
+            allKeys.Remove("SizeZ");
+            string configSizeZ = config.GetString("SizeZ", Constants.RegionHeight.ToString());
+            config.Set("SizeZ", configSizeX);
+            RegionSizeZ = Convert.ToUInt32(configSizeZ);
+
+            DoRegionSizeSanityChecks();
 
             // InternalAddress
             //
@@ -695,6 +735,57 @@ namespace OpenSim.Framework
             }
         }
 
+        // Make sure user specified region sizes are sane.
+        // Must be multiples of legacy region size (256).
+        private void DoRegionSizeSanityChecks()
+        {
+            if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
+            {
+                // Doing non-legacy region sizes.
+                // Enforce region size to be multiples of the legacy region size (256)
+                uint partial = RegionSizeX % Constants.RegionSize;
+                if (partial != 0)
+                {
+                    RegionSizeX -= partial;
+                    if (RegionSizeX == 0)
+                        RegionSizeX = Constants.RegionSize;
+                    m_log.ErrorFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeX={3} instead of specified {4}",
+                        LogHeader, Constants.RegionSize, m_regionName, RegionSizeX, RegionSizeX + partial);
+                }
+                partial = RegionSizeY % Constants.RegionSize;
+                if (partial != 0)
+                {
+                    RegionSizeY -= partial;
+                    if (RegionSizeY == 0)
+                        RegionSizeY = Constants.RegionSize;
+                    m_log.ErrorFormat("{0} Region size must be multiple of {1}. Enforcing {2}.RegionSizeY={3} instead of specified {4}",
+                        LogHeader, Constants.RegionSize, m_regionName, RegionSizeY, RegionSizeY + partial);
+                }
+
+                // Because of things in the viewer, regions MUST be square.
+                // Remove this check when viewers have been updated.
+                if (RegionSizeX != RegionSizeY)
+                {
+                    uint minSize = Math.Min(RegionSizeX, RegionSizeY);
+                    RegionSizeX = minSize;
+                    RegionSizeY = minSize;
+                    m_log.ErrorFormat("{0} Regions must be square until viewers are updated. Forcing region {1} size to <{2},{3}>",
+                                        LogHeader, m_regionName, RegionSizeX, RegionSizeY);
+                }
+
+                // There is a practical limit to region size.
+                if (RegionSizeX > Constants.MaximumRegionSize || RegionSizeY > Constants.MaximumRegionSize)
+                {
+                    RegionSizeX = Util.Clamp<uint>(RegionSizeX, Constants.RegionSize, Constants.MaximumRegionSize);
+                    RegionSizeY = Util.Clamp<uint>(RegionSizeY, Constants.RegionSize, Constants.MaximumRegionSize);
+                    m_log.ErrorFormat("{0} Region dimensions must be less than {1}. Clamping {2}'s size to <{3},{4}>",
+                                        LogHeader, Constants.MaximumRegionSize, m_regionName, RegionSizeX, RegionSizeY);
+                }
+
+                m_log.InfoFormat("{0} Region {1} size set to <{2},{3}>", LogHeader, m_regionName, RegionSizeX, RegionSizeY);
+            }
+        }
+
         private void WriteNiniConfig(IConfigSource source)
         {
             IConfig config = source.Configs[RegionName];
@@ -706,11 +797,17 @@ namespace OpenSim.Framework
 
             config.Set("RegionUUID", RegionID.ToString());
 
-            string location = String.Format("{0},{1}", m_regionLocX, m_regionLocY);
+            string location = String.Format("{0},{1}", RegionLocX, RegionLocY);
             config.Set("Location", location);
 
             if (DataStore != String.Empty)
                 config.Set("Datastore", DataStore);
+            if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
+            {
+                config.Set("SizeX", RegionSizeX);
+                config.Set("SizeY", RegionSizeY);
+                config.Set("SizeZ", RegionSizeZ);
+            }
 
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
             config.Set("InternalPort", m_internalEndPoint.Port);
@@ -794,10 +891,18 @@ namespace OpenSim.Framework
                                                 RegionID.ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Region Name", RegionName, true);
+
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", m_regionLocX.ToString(), true);
+                                                "Grid Location (X Axis)", RegionLocX.ToString(), true);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", m_regionLocY.ToString(), true);
+                                                "Grid Location (Y Axis)", RegionLocY.ToString(), true);
+            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in X dimension", RegionSizeX.ToString(), true);
+            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Y dimension", RegionSizeY.ToString(), true);
+            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Z dimension", RegionSizeZ.ToString(), true);
+
             //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
@@ -860,10 +965,18 @@ namespace OpenSim.Framework
                                                 UUID.Random().ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Region Name", "OpenSim Test", false);
+
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (X Axis)", "1000", false);
             configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Grid Location (Y Axis)", "1000", false);
+            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in X dimension", Constants.RegionSize.ToString(), false);
+            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Y dimension", Constants.RegionSize.ToString(), false);
+            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Size of region in Z dimension", Constants.RegionHeight.ToString(), false);
+
             //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
             configMember.addConfigurationOption("internal_ip_address",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
@@ -921,10 +1034,19 @@ namespace OpenSim.Framework
                     RegionName = (string) configuration_result;
                     break;
                 case "sim_location_x":
-                    m_regionLocX = (uint) configuration_result;
+                    RegionLocX = (uint) configuration_result;
                     break;
                 case "sim_location_y":
-                    m_regionLocY = (uint) configuration_result;
+                    RegionLocY = (uint) configuration_result;
+                    break;
+                case "sim_size_x":
+                    RegionSizeX = (uint) configuration_result;
+                    break;
+                case "sim_size_y":
+                    RegionSizeY = (uint) configuration_result;
+                    break;
+                case "sim_size_z":
+                    RegionSizeZ = (uint) configuration_result;
                     break;
                 case "datastore":
                     DataStore = (string) configuration_result;
@@ -1008,8 +1130,13 @@ namespace OpenSim.Framework
             args["external_host_name"] = OSD.FromString(ExternalHostName);
             args["http_port"] = OSD.FromString(HttpPort.ToString());
             args["server_uri"] = OSD.FromString(ServerURI);
+
             args["region_xloc"] = OSD.FromString(RegionLocX.ToString());
             args["region_yloc"] = OSD.FromString(RegionLocY.ToString());
+            args["region_size_x"] = OSD.FromString(RegionSizeX.ToString());
+            args["region_size_y"] = OSD.FromString(RegionSizeY.ToString());
+            args["region_size_z"] = OSD.FromString(RegionSizeZ.ToString());
+
             args["internal_ep_address"] = OSD.FromString(InternalEndPoint.Address.ToString());
             args["internal_ep_port"] = OSD.FromString(InternalEndPoint.Port.ToString());
             if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
@@ -1048,6 +1175,13 @@ namespace OpenSim.Framework
                 UInt32.TryParse(args["region_yloc"].AsString(), out locy);
                 RegionLocY = locy;
             }
+            if (args.ContainsKey("region_size_x"))
+                RegionSizeX = (uint)args["region_size_x"].AsInteger();
+            if (args.ContainsKey("region_size_y"))
+                RegionSizeY = (uint)args["region_size_y"].AsInteger();
+            if (args.ContainsKey("region_size_z"))
+                RegionSizeZ = (uint)args["region_size_z"].AsInteger();
+
             IPAddress ip_addr = null;
             if (args["internal_ep_address"] != null)
             {

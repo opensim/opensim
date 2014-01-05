@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         {
             TestHelpers.InMethod();
 
-            string[] ncLines = { "One", "Two", "Three" };
+            string[] ncLines = { "One", "Twoè", "Three" };
 
             TaskInventoryItem ncItem 
                 = TaskInventoryHelpers.AddNotecard(m_scene, m_so.RootPart, "nc", "1", "10", string.Join("\n", ncLines));

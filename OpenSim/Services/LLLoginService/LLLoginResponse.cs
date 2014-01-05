@@ -261,11 +261,11 @@ namespace OpenSim.Services.LLLoginService
             Currency = currency;
             ClassifiedFee = classifiedFee;
 
-
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
 
             FillOutRegionData(destination);
+            // m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX=<{0},{1}>", RegionSizeX, RegionSizeY);
 
             FillOutSeedCap(aCircuit, destination, clientIP);
 
@@ -392,6 +392,8 @@ namespace OpenSim.Services.LLLoginService
             SimPort = (uint)endPoint.Port;
             RegionX = (uint)destination.RegionLocX;
             RegionY = (uint)destination.RegionLocY;
+            RegionSizeX = destination.RegionSizeX;
+            RegionSizeY = destination.RegionSizeY;
         }
 
         private void FillOutSeedCap(AgentCircuitData aCircuit, GridRegion destination, IPEndPoint ipepClient)
@@ -539,6 +541,9 @@ namespace OpenSim.Services.LLLoginService
                 responseData["message"] = welcomeMessage;
                 responseData["region_x"] = (Int32)(RegionX);
                 responseData["region_y"] = (Int32)(RegionY);
+                responseData["region_size_x"] = (Int32)RegionSizeX;
+                responseData["region_size_y"] = (Int32)RegionSizeY;
+                // m_log.DebugFormat("[LOGIN RESPONSE] returning sizeX=<{0},{1}>", RegionSizeX, RegionSizeY);
 
                 if (searchURL != String.Empty)
                     responseData["search"] = searchURL;
@@ -934,6 +939,9 @@ namespace OpenSim.Services.LLLoginService
             get { return regionY; }
             set { regionY = value; }
         }
+
+        public int RegionSizeX { get; private set; }
+        public int RegionSizeY { get; private set; }
 
         public string SunTexture
         {

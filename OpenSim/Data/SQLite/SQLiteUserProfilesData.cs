@@ -747,6 +747,90 @@ namespace OpenSim.Data.SQLite
             }
             return true;
         }
+
+        public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
+        {           
+            string query = string.Empty;
+            
+            query += "UPDATE usersettings SET ";
+            query += "imviaemail=:ImViaEmail, ";
+            query += "visible=:Visible ";
+            query += "WHERE useruuid=:uuid";
+            
+            try
+            {
+                using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
+                {
+                    cmd.CommandText = query;
+                    cmd.Parameters.AddWithValue(":ImViaEmail", pref.IMViaEmail);
+                    cmd.Parameters.AddWithValue(":Visible", pref.Visible);
+                    cmd.Parameters.AddWithValue(":uuid", pref.UserId.ToString());
+                        
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[PROFILES_DATA]" +
+                                  ": AgentInterestsUpdate exception {0}", e.Message);
+                result = e.Message;
+                return false;
+            }
+            return true;
+        }
+
+        public bool GetUserPreferences(ref UserPreferences pref, ref string result)
+        {
+            IDataReader reader = null;
+            string query = string.Empty;
+            
+            query += "SELECT imviaemail,visible,email FROM ";
+            query += "usersettings WHERE ";
+            query += "useruuid = :Id";
+            
+            OSDArray data = new OSDArray();
+            
+            try
+            {
+                using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
+                {
+                    cmd.CommandText = query;
+                    cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
+                        
+                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                    {
+                        if(reader.Read())
+                        {
+                            bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
+                            bool.TryParse((string)reader["visible"], out pref.Visible);
+                            pref.EMail = (string)reader["email"];
+                         }
+                         else
+                         {
+                            query = "INSERT INTO usersettings VALUES ";
+                            query += "(:Id,'false','false', :Email)";
+                            
+                            using (SqliteCommand put = (SqliteCommand)m_connection.CreateCommand())
+                            {
+                                put.Parameters.AddWithValue(":Id", pref.UserId.ToString());
+                                put.Parameters.AddWithValue(":Email", pref.EMail);
+                                put.ExecuteNonQuery();
+                                    
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[PROFILES_DATA]" +
+                                  ": Get preferences exception {0}", e.Message);
+                result = e.Message;
+                return false;
+            }
+            return true;
+        }
+
         public bool GetUserAppData(ref UserAppData props, ref string result)
         {
             IDataReader reader = null;

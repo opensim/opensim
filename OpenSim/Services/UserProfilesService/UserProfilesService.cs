@@ -37,6 +37,7 @@ using OpenSim.Data;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using OpenSim.Services.UserAccountService;
 
 namespace OpenSim.Services.ProfilesService
 {
@@ -162,6 +163,78 @@ namespace OpenSim.Services.ProfilesService
             return ProfilesData.UpdateAvatarInterests(prop, ref result);
         }
         #endregion Interests
+
+        #region User Preferences
+        public bool UserPreferencesUpdate(ref UserPreferences pref, ref string result)
+        {
+            if(string.IsNullOrEmpty(pref.EMail))
+            {
+                UserAccount account = new UserAccount();
+                if(userAccounts is UserAccountService.UserAccountService)
+                {
+                    try
+                    {
+                        account = userAccounts.GetUserAccount(UUID.Zero, pref.UserId);
+                        if(string.IsNullOrEmpty(account.Email))
+                        {
+                            result = "No Email address on record!";
+                            return false;
+                        }
+                        else
+                            pref.EMail = account.Email;
+                    }
+                    catch
+                    {
+                        m_log.Info ("[PROFILES]: UserAccountService Exception: Could not get user account");
+                        result = "Missing Email address!";
+                        return false;
+                    }
+                }
+                else
+                {
+                    m_log.Info ("[PROFILES]: UserAccountService: Could not get user account");
+                    result = "Missing Email address!";
+                    return false;
+                }
+            }
+            return ProfilesData.UpdateUserPreferences(ref pref, ref result);
+        }
+
+        public bool UserPreferencesRequest(ref UserPreferences pref, ref string result)
+        {
+            if(string.IsNullOrEmpty(pref.EMail))
+            {
+                UserAccount account = new UserAccount();
+                if(userAccounts is UserAccountService.UserAccountService)
+                {
+                    try
+                    {
+                        account = userAccounts.GetUserAccount(UUID.Zero, pref.UserId);
+                        if(string.IsNullOrEmpty(account.Email))
+                        {
+                            result = "No Email address on record!";
+                            return false;
+                        }
+                        else
+                            pref.EMail = account.Email;
+                    }
+                    catch
+                    {
+                        m_log.Info ("[PROFILES]: UserAccountService Exception: Could not get user account");
+                        result = "Missing Email address!";
+                        return false;
+                    }
+                }
+                else
+                {
+                    m_log.Info ("[PROFILES]: UserAccountService: Could not get user account");
+                    result = "Missing Email address!";
+                    return false;
+                }
+            }
+            return ProfilesData.GetUserPreferences(ref pref, ref result);
+        }
+        #endregion User Preferences
 
         #region Utility
         public OSD AvatarImageAssetsRequest(UUID avatarId)

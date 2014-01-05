@@ -531,9 +531,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
             region.RegionName = response["Name"].AsString();
 
             Vector3d minPosition = response["MinPosition"].AsVector3d();
+            Vector3d maxPosition = response["MaxPosition"].AsVector3d();
             region.RegionLocX = (int)minPosition.X;
             region.RegionLocY = (int)minPosition.Y;
-            
+
+            region.RegionSizeX = (int)maxPosition.X - (int)minPosition.X;
+            region.RegionSizeY = (int)maxPosition.Y - (int)minPosition.Y;
+
             if ( ! extraData["HyperGrid"] ) {
                 Uri httpAddress = response["Address"].AsUri();
                 region.ExternalHostName = httpAddress.Host;

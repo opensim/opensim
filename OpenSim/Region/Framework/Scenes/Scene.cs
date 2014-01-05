@@ -2016,6 +2016,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             GridRegion region = new GridRegion(RegionInfo);
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
+            m_log.DebugFormat("{0} RegisterRegionWithGrid. name={1},id={2},loc=<{3},{4}>,size=<{5},{6}>",
+                                LogHeader, m_regionName, 
+                                RegionInfo.RegionID,
+                                RegionInfo.RegionLocX, RegionInfo.RegionLocY,
+                                RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
             if (error != String.Empty)
                 throw new Exception(error);
         }

@@ -2863,16 +2863,33 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 up = new Vector3((float)x, (float)y, (float)z);
                     Vector3 sitOffset = up * Appearance.AvatarHeight * 0.02638f;
 
-                    m_pos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
+                    Vector3 newPos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
+                    Quaternion newRot;
 
-//                    m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT - sitOffset;
-                    Rotation = sitTargetOrient;
+                    if (part.IsRoot)
+                    {
+                        newRot = sitTargetOrient;
+                    }
+                    else
+                    {
+                        newPos = newPos * part.RotationOffset;
+                        newRot = part.RotationOffset * sitTargetOrient;
+                    }
+
+                    newPos += part.OffsetPosition;
+
+                    m_pos = newPos;
+                    Rotation = newRot;
+
 //                    ParentPosition = part.AbsolutePosition;
                     part.ParentGroup.AddAvatar(UUID);
                 }
                 else
                 {
-                    m_pos -= part.AbsolutePosition;
+                    // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
+                    // being sat upon.
+                    m_pos -= part.GroupPosition;
+
 //                    ParentPosition = part.AbsolutePosition;
                     part.ParentGroup.AddAvatar(UUID);
 

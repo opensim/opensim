@@ -177,9 +177,18 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (part.ParticleSystem.Length > 0)
                     {
-                        Primitive.ParticleSystem ps = new Primitive.ParticleSystem(part.ParticleSystem, 0);
-                        if (ps.Texture != UUID.Zero)
-                            assetUuids[ps.Texture] = AssetType.Texture;
+                        try
+                        {
+                            Primitive.ParticleSystem ps = new Primitive.ParticleSystem(part.ParticleSystem, 0);
+                            if (ps.Texture != UUID.Zero)
+                                assetUuids[ps.Texture] = AssetType.Texture;
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.WarnFormat(
+                                "[UUID GATHERER]: Could not check particle system for part {0} {1} in object {2} {3} since it is corrupt.  Continuing.", 
+                                part.Name, part.UUID, sceneObject.Name, sceneObject.UUID);
+                        }
                     }
 
                     TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
