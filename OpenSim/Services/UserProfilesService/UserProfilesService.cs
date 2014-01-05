@@ -164,6 +164,7 @@ namespace OpenSim.Services.ProfilesService
         }
         #endregion Interests
 
+        /*
         #region User Preferences
         public bool UserPreferencesUpdate(ref UserPreferences pref, ref string result)
         {
@@ -235,6 +236,7 @@ namespace OpenSim.Services.ProfilesService
             return ProfilesData.GetUserPreferences(ref pref, ref result);
         }
         #endregion User Preferences
+        */
 
         #region Utility
         public OSD AvatarImageAssetsRequest(UUID avatarId)

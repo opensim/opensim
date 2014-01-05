@@ -941,8 +941,8 @@ namespace OpenSim.Data.MySQL
                                 using (MySqlCommand put = new MySqlCommand(query, dbcon))
                                 {
                                     
-                                    put.Parameters.AddWithValue("?Email", pref.EMail);
-                                    put.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
+//                                    put.Parameters.AddWithValue("?Email", pref.EMail);
+//                                    put.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
 
                                     put.ExecuteNonQuery();
                                 }

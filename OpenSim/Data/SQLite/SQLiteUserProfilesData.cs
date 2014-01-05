@@ -748,6 +748,7 @@ namespace OpenSim.Data.SQLite
             return true;
         }
 
+        /*
         public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
         {           
             string query = string.Empty;
@@ -830,6 +831,7 @@ namespace OpenSim.Data.SQLite
             }
             return true;
         }
+        */
 
         public bool GetUserAppData(ref UserAppData props, ref string result)
         {
