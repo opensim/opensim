@@ -974,8 +974,8 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?ImViaEmail", pref.IMViaEmail);
-                        cmd.Parameters.AddWithValue("?Visible", pref.Visible);
+                        cmd.Parameters.AddWithValue("?ImViaEmail", pref.IMViaEmail.ToString().ToLower());
+                        cmd.Parameters.AddWithValue("?Visible", pref.Visible.ToString().ToLower());
                         cmd.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
 
                         cmd.ExecuteNonQuery();
