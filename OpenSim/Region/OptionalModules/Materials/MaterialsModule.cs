@@ -109,7 +109,10 @@ namespace OpenSim.Region.OptionalModules.Materials
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
 
             IRequestHandler renderMaterialsPostHandler 
-                = new RestStreamHandler("POST", capsBase + "/", RenderMaterialsPostCap, "RenderMaterials", null);
+                = new RestStreamHandler("POST", capsBase + "/",
+                    (request, path, param, httpRequest, httpResponse)
+                        => RenderMaterialsPostCap(request, agentID),
+                    "RenderMaterials", null);
             caps.RegisterHandler("RenderMaterials", renderMaterialsPostHandler);
 
             // OpenSimulator CAPs infrastructure seems to be somewhat hostile towards any CAP that requires both GET
@@ -117,12 +120,18 @@ namespace OpenSim.Region.OptionalModules.Materials
             // handler normally and then add a GET handler via MainServer
 
             IRequestHandler renderMaterialsGetHandler 
-                = new RestStreamHandler("GET", capsBase + "/", RenderMaterialsGetCap, "RenderMaterials", null);
+                = new RestStreamHandler("GET", capsBase + "/",
+                    (request, path, param, httpRequest, httpResponse)
+                        => RenderMaterialsGetCap(request),
+                    "RenderMaterials", null);
             MainServer.Instance.AddStreamHandler(renderMaterialsGetHandler);
 
             // materials viewer seems to use either POST or PUT, so assign POST handler for PUT as well
             IRequestHandler renderMaterialsPutHandler 
-                = new RestStreamHandler("PUT", capsBase + "/", RenderMaterialsPostCap, "RenderMaterials", null);
+                = new RestStreamHandler("PUT", capsBase + "/",
+                    (request, path, param, httpRequest, httpResponse)
+                        => RenderMaterialsPostCap(request, agentID),
+                    "RenderMaterials", null);
             MainServer.Instance.AddStreamHandler(renderMaterialsPutHandler);
         }
         
@@ -195,9 +204,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             }
         }
 
-        public string RenderMaterialsPostCap(string request, string path,
-                string param, IOSHttpRequest httpRequest,
-                IOSHttpResponse httpResponse)
+        public string RenderMaterialsPostCap(string request, UUID agentID)
         {
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDMap resp = new OSDMap();
@@ -295,6 +302,12 @@ namespace OpenSim.Region.OptionalModules.Materials
                                                 continue;
                                             }
 
+                                            if (!m_scene.Permissions.CanEditObject(sop.UUID, agentID))
+                                            {
+                                                m_log.WarnFormat("User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
+                                                continue;
+                                            }
+
                                             Primitive.TextureEntry te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
                                             if (te == null)
                                             {
@@ -326,7 +339,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                                         // This asset might exist already, but it's ok to try to store it again
                                                         string name = "Material " + ChooseMaterialName(mat, sop);
                                                         name = name.Substring(0, Math.Min(64, name.Length)).Trim();
-                                                        AssetBase asset = new AssetBase(id, name, (sbyte)OpenSimAssetType.Material, sop.OwnerID.ToString());
+                                                        AssetBase asset = new AssetBase(id, name, (sbyte)OpenSimAssetType.Material, agentID.ToString());
                                                         asset.Data = data;
                                                         m_scene.AssetService.Store(asset);
                                                     }
@@ -422,9 +435,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         }
 
 
-        public string RenderMaterialsGetCap(string request, string path,
-                string param, IOSHttpRequest httpRequest,
-                IOSHttpResponse httpResponse)
+        public string RenderMaterialsGetCap(string request)
         {
             OSDMap resp = new OSDMap();
             int matsCount = 0;
