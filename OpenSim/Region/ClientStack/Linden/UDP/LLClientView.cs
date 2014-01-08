@@ -5098,11 +5098,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // excessive up and down movements of the camera when looking up and down.
                 // See http://opensimulator.org/mantis/view.php?id=3274
                 // This does not affect head movement, since this is controlled entirely by camera movement rather than
-                // body rotation.  It does not affect sitting avatar since it's the sitting part rotation that takes
-                // effect, not the avatar rotation.
+                // body rotation.  We still need to transmit X and Y for sitting avatars but mouselook does not change
+                // the rotation in this case.
                 rotation = presence.Rotation;
-                rotation.X = 0;
-                rotation.Y = 0;
+
+                if (!presence.IsSatOnObject)
+                {
+                    rotation.X = 0;
+                    rotation.Y = 0;
+                }
 
                 if (sendTexture)
                     textureEntry = presence.Appearance.Texture.GetBytes();
@@ -5225,11 +5229,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // excessive up and down movements of the camera when looking up and down.
             // See http://opensimulator.org/mantis/view.php?id=3274
             // This does not affect head movement, since this is controlled entirely by camera movement rather than
-            // body rotation.  It does not affect sitting avatar since it's the sitting part rotation that takes
-            // effect, not the avatar rotation.
+            // body rotation.  We still need to transmit X and Y for sitting avatars but mouselook does not change
+            // the rotation in this case.
             Quaternion rot = data.Rotation;
-            rot.X = 0;
-            rot.Y = 0;
+
+            if (!data.IsSatOnObject)
+            {
+                rot.X = 0;
+                rot.Y = 0;
+            }
+
             rot.ToBytes(objectData, 52);
             //data.AngularVelocity.ToBytes(objectData, 64);
 
