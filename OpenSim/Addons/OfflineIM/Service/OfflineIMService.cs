@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -100,7 +100,7 @@ namespace OpenSim.OfflineIM
                 return false;
             }
 
-            string imXml = string.Empty;
+            string imXml;
             using (MemoryStream mstream = new MemoryStream())
             {
                 XmlWriterSettings settings = new XmlWriterSettings();
@@ -110,13 +110,9 @@ namespace OpenSim.OfflineIM
                 {
                     m_serializer.Serialize(writer, im);
                     writer.Flush();
-                    
-                    mstream.Position = 0;
-                    using (StreamReader sreader = new StreamReader(mstream))
-                    {
-                        imXml = sreader.ReadToEnd();
-                    }
                 }
+
+                imXml = Util.UTF8.GetString(mstream.ToArray());
             }
 
             OfflineIMData data = new OfflineIMData();
