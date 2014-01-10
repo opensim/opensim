@@ -3235,13 +3235,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 oldPos;
 
-            // FIXME: This improves the situation where editing just the root prim of an attached object would send
-            // all the other parts to oblivion after detach/reattach.  However, a problem remains since the root prim
-            // still ends up in the wrong position on reattach.
             if (IsAttachment)
-                oldPos = RootPart.OffsetPosition;
+                oldPos = m_rootPart.AttachedPos + m_rootPart.OffsetPosition;  // OffsetPosition should always be 0 in an attachments's root prim
             else
-                oldPos = AbsolutePosition + RootPart.OffsetPosition;
+                oldPos = AbsolutePosition + m_rootPart.OffsetPosition;
 
             Vector3 diff = oldPos - newPos;
             Quaternion partRotation = m_rootPart.RotationOffset;
@@ -3256,6 +3253,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             AbsolutePosition = newPos;
+            
+            if (IsAttachment)
+                m_rootPart.AttachedPos = newPos;
 
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
