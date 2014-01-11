@@ -259,7 +259,6 @@ namespace OpenSim.Services.LLLoginService
 
             FillOutRegionData(destination);
             m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX={0}, sizeY={1}", RegionSizeX, RegionSizeY);
-            Util.PrintCallStack();
 
             FillOutSeedCap(aCircuit, destination, clientIP);
 

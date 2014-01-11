@@ -557,7 +557,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetServerURLs", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetServerURLs for user {1}", m_ServerURL, userID);
 //                reason = "Exception: " + e.Message;
                 return serverURLs;
             }

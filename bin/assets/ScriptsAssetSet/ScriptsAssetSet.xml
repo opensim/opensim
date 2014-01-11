@@ -89,9 +89,9 @@
     <Key Name="assetType" Value="10" />
     <Key Name="fileName" Value="llResetLandBanList.lsl" />
   </Section>
-  <Section Name="llResetLandPassList">
+  <Section Name="llSay">
     <Key Name="assetID" Value="366ac8e9-b391-11dc-8314-0800200c9a66" />
-    <Key Name="name" Value="llResetLandPassList" />
+    <Key Name="name" Value="llSay" />
     <Key Name="assetType" Value="10" />
     <Key Name="fileName" Value="llSay.lsl" />
   </Section>

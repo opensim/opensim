@@ -1900,6 +1900,8 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SendAgentTerseUpdate(this);
 
             PhysicsActor actor = PhysicsActor;
+
+            // This will be the case if the agent is sitting on the groudn or on an object.
             if (actor == null)
             {
                 SendControlsToScripts(flagsForScripts);

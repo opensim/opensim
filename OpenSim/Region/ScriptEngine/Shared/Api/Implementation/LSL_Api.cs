@@ -4394,7 +4394,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(agent,out av))
             {
-                LSLError("First parameter to llDialog needs to be a key");
+                LSLError("First parameter to llTextBox needs to be a key");
                 return;
             }
 
