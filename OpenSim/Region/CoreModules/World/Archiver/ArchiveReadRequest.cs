@@ -567,10 +567,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (UserManager != null)
                     UserManager.AddUser(part.CreatorID, part.CreatorData);
 
-                if (!ResolveUserUuid(scene, part.OwnerID))
+                if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
                     part.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
 
-                if (!ResolveUserUuid(scene, part.LastOwnerID))
+                if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
                     part.LastOwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
 
                 if (!ResolveGroupUuid(part.GroupID))
@@ -588,7 +588,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     TaskInventoryDictionary inv = part.TaskInventory;
                     foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        if (!ResolveUserUuid(scene, kvp.Value.OwnerID))
+                        if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
                         {
                             kvp.Value.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
                         }
