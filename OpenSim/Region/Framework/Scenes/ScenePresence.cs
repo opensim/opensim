@@ -1076,6 +1076,10 @@ namespace OpenSim.Region.Framework.Scenes
                 // before the inventory is processed in MakeRootAgent. This fixes a race condition
                 // related to the handling of attachments
                 //m_scene.GetAvatarAppearance(ControllingClient, out Appearance);
+
+                /* RA 20140111: Commented out these TestBorderCross's.
+                 * Not sure why this code is here. It is not checking all the borders
+                 * and 'in region' sanity checking is done in CheckAndAdjustLandingPoint and below.
                 if (m_scene.TestBorderCross(pos, Cardinals.E))
                 {
                     Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
@@ -1087,6 +1091,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
                     pos.Y = crossedBorder.BorderLine.Z - 1;
                 }
+                 */
 
                 CheckAndAdjustLandingPoint(ref pos);
 
@@ -4667,6 +4672,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        // Modify landing point based on possible banning, telehubs or parcel restrictions.
         private void CheckAndAdjustLandingPoint(ref Vector3 pos)
         {
             string reason;
