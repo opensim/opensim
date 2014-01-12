@@ -59,6 +59,7 @@ namespace OpenSim.Region.ClientStack.Linden
     public class EventQueueGetModule : IEventQueue, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[EVENT QUEUE GET MODULE]";
 
         /// <value>
         /// Debug level.
@@ -714,7 +715,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             m_log.DebugFormat("{0} EnableSimulator. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                "[EVENT QUEUE GET MODULE]", handle, avatarID, regionSizeX, regionSizeY);
+                LogHeader, handle, avatarID, regionSizeX, regionSizeY);
 
             OSD item = EventQueueHelper.EnableSimulator(handle, endPoint, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
@@ -724,7 +725,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 ulong regionHandle, int regionSizeX, int regionSizeY) 
         {
             m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                "[EVENT QUEUE GET MODULE]", regionHandle, avatarID, regionSizeX, regionSizeY);
+                LogHeader, regionHandle, avatarID, regionSizeX, regionSizeY);
             OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath, regionHandle, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
@@ -734,8 +735,8 @@ namespace OpenSim.Region.ClientStack.Linden
                                         uint locationID, uint flags, string capsURL, 
                                         UUID avatarID, int regionSizeX, int regionSizeY)
         {
-            m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                "[EVENT QUEUE GET MODULE]", regionHandle, avatarID, regionSizeX, regionSizeY);
+            m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, avatarID={2}, regionSize=<{3},{4}>",
+                LogHeader, regionHandle, avatarID, regionSizeX, regionSizeY);
 
             OSD item = EventQueueHelper.TeleportFinishEvent(regionHandle, simAccess, regionExternalEndPoint,
                                                             locationID, flags, capsURL, avatarID, regionSizeX, regionSizeY);
@@ -747,7 +748,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
             m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                "[EVENT QUEUE GET MODULE]", handle, avatarID, regionSizeX, regionSizeY);
+                LogHeader, handle, avatarID, regionSizeX, regionSizeY);
 
             OSD item = EventQueueHelper.CrossRegion(handle, pos, lookAt, newRegionExternalEndPoint,
                                                     capsURL, avatarID, sessionID, regionSizeX, regionSizeY);
