@@ -51,6 +51,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Amib.Threading;
+using System.Collections.Concurrent;
 
 namespace OpenSim.Framework
 {
@@ -147,6 +148,9 @@ namespace OpenSim.Framework
         /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
         /// </summary>
         private static SmartThreadPool m_ThreadPool;
+
+        // Watchdog timer that aborts threads that have timed-out
+        private static Timer m_threadPoolWatchdog;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
         public static readonly DateTime UnixEpoch =
@@ -1883,6 +1887,7 @@ namespace OpenSim.Framework
             startInfo.MinWorkerThreads = minThreads;
 
             m_ThreadPool = new SmartThreadPool(startInfo);
+            m_threadPoolWatchdog = new Timer(ThreadPoolWatchdog, null, 0, 1000);
         }
 
         public static int FireAndForgetCount()
@@ -1907,16 +1912,117 @@ namespace OpenSim.Framework
         }
 
         
+        /// <summary>
+        /// Additional information about threads in the main thread pool. Used to time how long the
+        /// thread has been running, and abort it if it has timed-out.
+        /// </summary>
+        private class ThreadInfo
+        {
+            public long ThreadFuncNum { get; set; }
+            public string StackTrace { get; set; }
+            private string context;
+            
+            public IWorkItemResult WorkItem { get; set; }
+            public Thread Thread { get; set; }
+            public bool Running { get; set; }
+            public bool Aborted { get; set; }
+            private int started;
+
+            public ThreadInfo(long threadFuncNum, string context)
+            {
+                ThreadFuncNum = threadFuncNum;
+                this.context = context;
+                Thread = null;
+                Running = false;
+                Aborted = false;
+            }
+
+            public void Started()
+            {
+                Thread = Thread.CurrentThread;
+                started = EnvironmentTickCount();
+                Running = true;
+            }
+
+            public void Ended()
+            {
+                Running = false;
+            }
+
+            public int Elapsed()
+            {
+                return EnvironmentTickCountSubtract(started);
+            }
+
+            public void Abort()
+            {
+                Aborted = true;
+                WorkItem.Cancel(true);
+            }
+
+            /// <summary>
+            /// Returns the thread's stack trace.
+            /// </summary>
+            /// <remarks>
+            /// May return one of two stack traces. First, tries to get the thread's active stack
+            /// trace. But this can fail, so as a fallback this method will return the stack
+            /// trace that was active when the task was queued.
+            /// </remarks>
+            public string GetStackTrace()
+            {
+                string ret = (context == null) ? "" : ("(" + context + ") ");
+
+                StackTrace activeStackTrace = Util.GetStackTrace(Thread);
+                if (activeStackTrace != null)
+                    ret += activeStackTrace.ToString();
+                else if (StackTrace != null)
+                    ret += "(Stack trace when queued) " + StackTrace;
+                // else, no stack trace available
+
+                return ret;
+            }
+        }
+
+
         private static long nextThreadFuncNum = 0;
         private static long numQueuedThreadFuncs = 0;
         private static long numRunningThreadFuncs = 0;
         private static Int32 threadFuncOverloadMode = 0;
 
+        // Maps (ThreadFunc number -> Thread)
+        private static ConcurrentDictionary<long, ThreadInfo> activeThreads = new ConcurrentDictionary<long, ThreadInfo>();
+
+        private static readonly int THREAD_TIMEOUT = 60 * 1000;
+
+        /// <summary>
+        /// Finds threads in the main thread pool that have timed-out, and aborts them.
+        /// </summary>
+        private static void ThreadPoolWatchdog(object state)
+        {
+            foreach (KeyValuePair<long, ThreadInfo> entry in activeThreads)
+            {
+                ThreadInfo t = entry.Value;
+                if (t.Running && !t.Aborted && (t.Elapsed() >= THREAD_TIMEOUT))
+                {
+                    m_log.WarnFormat("Timeout in threadfunc {0} ({1}) {2}", t.ThreadFuncNum, t.Thread.Name, t.GetStackTrace());
+                    t.Abort();
+
+                    ThreadInfo dummy;
+                    activeThreads.TryRemove(entry.Key, out dummy);
+
+                    // It's possible that the thread won't abort. To make sure the thread pool isn't
+                    // depleted, increase the pool size.
+                    m_ThreadPool.MaxThreads++;
+                }
+            }
+        }
+
+
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             FireAndForget(callback, obj, null);
         }
-        
+
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
         {
             WaitCallback realCallback;
@@ -1924,6 +2030,7 @@ namespace OpenSim.Framework
             bool loggingEnabled = (DebugFlags & DebugFlagsEnum.LogThreadPool) != 0;
             
             long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
+            ThreadInfo threadInfo = new ThreadInfo(threadFuncNum, context);
 
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
@@ -1939,6 +2046,8 @@ namespace OpenSim.Framework
                 {
                     long numQueued1 = Interlocked.Decrement(ref numQueuedThreadFuncs);
                     long numRunning1 = Interlocked.Increment(ref numRunningThreadFuncs);
+                    threadInfo.Started();
+                    activeThreads[threadFuncNum] = threadInfo;
 
                     try
                     {
@@ -1949,15 +2058,22 @@ namespace OpenSim.Framework
 
                         callback(o);
                     }
+                    catch (ThreadAbortException e)
+                    {
+                        m_log.Error(string.Format("Aborted threadfunc {0} ", threadFuncNum), e);
+                    }
                     catch (Exception e)
                     {
-                        m_log.Error("[UTIL]: FireAndForget thread terminated with error ", e);
+                        m_log.Error(string.Format("[UTIL]: Util STP threadfunc {0} terminated with error ", threadFuncNum), e);
                     }
                     finally
                     {
                         Interlocked.Decrement(ref numRunningThreadFuncs);
+                        threadInfo.Ended();
+                        ThreadInfo dummy;
+                        activeThreads.TryRemove(threadFuncNum, out dummy);
                         if (loggingEnabled || (threadFuncOverloadMode == 1))
-                            m_log.Debug("Exit threadfunc " + threadFuncNum);
+                            m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
                     }
                 };
             }
@@ -1979,10 +2095,13 @@ namespace OpenSim.Framework
 
                 if (loggingEnabled || (threadFuncOverloadMode == 1))
                 {
+                    string full, partial;
+                    GetFireAndForgetStackTrace(out full, out partial);
                     m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
                         threadFuncNum, numQueued, numRunningThreadFuncs,
                         (context == null) ? "" : ("(" + context + ") "),
-                        GetFireAndForgetStackTrace(loggingEnabled));
+                        loggingEnabled ? full : partial);
+                    threadInfo.StackTrace = full;
                 }
 
                 switch (FireAndForgetMethod)
@@ -2004,7 +2123,7 @@ namespace OpenSim.Framework
                     case FireAndForgetMethod.SmartThreadPool:
                         if (m_ThreadPool == null)
                             InitThreadPool(2, 15);
-                        m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
+                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
                         break;
                     case FireAndForgetMethod.Thread:
                         Thread thread = new Thread(delegate(object o) { realCallback(o); });
@@ -2017,6 +2136,8 @@ namespace OpenSim.Framework
             catch (Exception)
             {
                 Interlocked.Decrement(ref numQueuedThreadFuncs);
+                ThreadInfo dummy;
+                activeThreads.TryRemove(threadFuncNum, out dummy);
                 throw;
             }
         }
@@ -2024,8 +2145,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// Returns a stack trace for a thread added using FireAndForget().
         /// </summary>
-        /// <param name="full">True: return full stack trace; False: return only the first frame</param>
-        private static string GetFireAndForgetStackTrace(bool full)
+        /// <param name="full">Will contain the full stack trace</param>
+        /// <param name="partial">Will contain only the first frame of the stack trace</param>
+        private static void GetFireAndForgetStackTrace(out string full, out string partial)
         {
             string src = Environment.StackTrace;
             string[] lines = src.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
@@ -2034,6 +2156,7 @@ namespace OpenSim.Framework
 
             bool started = false;
             bool first = true;
+            partial = "";
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -2051,20 +2174,101 @@ namespace OpenSim.Framework
                 {
                     line = line.TrimStart();
                     first = false;
+                    partial = line;
                 }
 
-                bool last = (i == lines.Length - 1) || !full;
+                bool last = (i == lines.Length - 1);
                 if (last)
                     dest.Append(line);
                 else
                     dest.AppendLine(line);
-
-                if (!full)
-                    break;
             }
 
-            return dest.ToString();
+            full = dest.ToString();
         }
+
+#pragma warning disable 0618
+        /// <summary>
+        /// Return the stack trace of a different thread.
+        /// </summary>
+        /// <remarks>
+        /// This is complicated because the thread needs to be paused in order to get its stack
+        /// trace. And pausing another thread can cause a deadlock. This method attempts to
+        /// avoid deadlock by using a short timeout (200ms), after which it gives up and
+        /// returns 'null' instead of the stack trace.
+        /// 
+        /// Take from: http://stackoverflow.com/a/14935378
+        /// 
+        /// WARNING: this doesn't work in Mono. See https://bugzilla.novell.com/show_bug.cgi?id=571691
+        /// 
+        /// </remarks>
+        /// <returns>The stack trace, or null if failed to get it</returns>
+        private static StackTrace GetStackTrace(Thread targetThread)
+        {
+            if (IsPlatformMono)
+            {
+                // This doesn't work in Mono
+                return null;
+            }
+
+            ManualResetEventSlim fallbackThreadReady = new ManualResetEventSlim();
+            ManualResetEventSlim exitedSafely = new ManualResetEventSlim();
+
+            try
+            {
+                new Thread(delegate()
+                {
+                    fallbackThreadReady.Set();
+                    while (!exitedSafely.Wait(200))
+                    {
+                        try
+                        {
+                            targetThread.Resume();
+                        }
+                        catch (Exception)
+                        {
+                            // Whatever happens, do never stop to resume the main-thread regularly until the main-thread has exited safely.
+                        }
+                    }
+                }).Start();
+
+                fallbackThreadReady.Wait();
+                // From here, you have about 200ms to get the stack-trace
+
+                targetThread.Suspend();
+
+                StackTrace trace = null;
+                try
+                {
+                    trace = new StackTrace(targetThread, true);
+                }
+                catch (ThreadStateException)
+                {
+                    //failed to get stack trace, since the fallback-thread resumed the thread
+                    //possible reasons:
+                    //1.) This thread was just too slow
+                    //2.) A deadlock ocurred
+                    //Automatic retry seems too risky here, so just return null.
+                }
+
+                try
+                {
+                    targetThread.Resume();
+                }
+                catch (ThreadStateException)
+                {
+                    // Thread is running again already
+                }
+
+                return trace;
+            }
+            finally
+            {
+                // Signal the fallack-thread to stop
+                exitedSafely.Set();
+            }
+        }
+#pragma warning restore 0618
 
         /// <summary>
         /// Get information about the current state of the smart thread pool.
@@ -2147,6 +2351,60 @@ namespace OpenSim.Framework
                 tcB += EnvironmentTickCountMask + 1;
 
             return tcA - tcB;
+        }
+
+        /// <summary>
+        /// Formats a duration (given in milliseconds).
+        /// </summary>
+        public static string FormatDuration(int ms)
+        {
+            TimeSpan span = new TimeSpan(ms * TimeSpan.TicksPerMillisecond);
+
+            string str = "";
+            string suffix = null;
+
+            int hours = (int)span.TotalHours;
+            if (hours > 0)
+            {
+                str += hours.ToString(str.Length == 0 ? "0" : "00");
+                suffix = "hours";
+            }
+
+            if ((hours > 0) || (span.Minutes > 0))
+            {
+                if (str.Length > 0)
+                    str += ":";
+                str += span.Minutes.ToString(str.Length == 0 ? "0" : "00");
+                if (suffix == null)
+                    suffix = "min";
+            }
+
+            if ((hours > 0) || (span.Minutes > 0) || (span.Seconds > 0))
+            {
+                if (str.Length > 0)
+                    str += ":";
+                str += span.Seconds.ToString(str.Length == 0 ? "0" : "00");
+                if (suffix == null)
+                    suffix = "sec";
+            }
+
+            if (suffix == null)
+                suffix = "ms";
+
+            if (span.TotalMinutes < 1)
+            {
+                int ms1 = span.Milliseconds;
+                if (str.Length > 0)
+                {
+                    ms1 /= 100;
+                    str += ".";
+                }
+                str += ms1.ToString("0");
+            }
+
+            str += " " + suffix;
+
+            return str;
         }
 
         /// <summary>
