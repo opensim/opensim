@@ -283,7 +283,7 @@ namespace OpenSim.Services.GridService
 
             int flags = Convert.ToInt32(region.Data["flags"]);
 
-            if (!m_DeleteOnUnregister || (flags & (int)OpenSim.Framework.RegionFlags.Persistent) != 0)
+            if ((!m_DeleteOnUnregister) || ((flags & (int)OpenSim.Framework.RegionFlags.Persistent) != 0))
             {
                 flags &= ~(int)OpenSim.Framework.RegionFlags.RegionOnline;
                 region.Data["flags"] = flags.ToString();
@@ -298,7 +298,6 @@ namespace OpenSim.Services.GridService
                 }
 
                 return true;
-
             }
 
             return m_Database.Delete(regionID);
