@@ -337,6 +337,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
         LSL_List osGetRegionStats();
+        vector osGetRegionSize();
 
         int osGetSimulatorMemory();
         void osKickAvatar(string FirstName,string SurName,string alert);
