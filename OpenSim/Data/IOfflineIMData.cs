@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -34,6 +34,7 @@ namespace OpenSim.Data
     public class OfflineIMData
     {
         public UUID PrincipalID;
+        public UUID FromID;
         public Dictionary<string, string> Data;
     }
 

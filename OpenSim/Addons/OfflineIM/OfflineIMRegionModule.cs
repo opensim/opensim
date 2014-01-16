@@ -261,6 +261,11 @@ namespace OpenSim.OfflineIM
             return m_OfflineIMService.StoreMessage(im, out reason);
         }
 
+        public void DeleteMessages(UUID userID)
+        {
+            m_OfflineIMService.DeleteMessages(userID);
+        }
+
         #endregion
     }
 }
