@@ -279,6 +279,17 @@ namespace OpenSim.Framework.Servers
                 "debug threadpool status",
                 "Show current debug threadpool parameters.",
                 HandleDebugThreadpoolStatus);
+            
+            m_console.Commands.AddCommand(
+                "Debug", false, "debug threadpool level",
+                "debug threadpool level 0.." + Util.MAX_THREADPOOL_LEVEL,
+                "Turn on logging of activity in the main thread pool.",
+                "Log levels:\n"
+                    + "  0 = no logging\n"
+                    + "  1 = only first line of stack trace; don't log common threads\n"
+                    + "  2 = full stack trace; don't log common threads\n"
+                    + "  3 = full stack trace, including common threads\n",
+                HandleDebugThreadpoolLevel);
 
             m_console.Commands.AddCommand(
                 "Debug", false, "force gc",
@@ -430,6 +441,33 @@ namespace OpenSim.Framework.Servers
                 Notice("Max worker threads now {0}", maxWorkerThreads);
                 Notice("Max IOCP threads now {0}", maxIocpThreads);
             }
+        }
+
+        private static void HandleDebugThreadpoolLevel(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length < 4)
+            {
+                MainConsole.Instance.Output("Usage: debug threadpool level 0.." + Util.MAX_THREADPOOL_LEVEL);
+                return;
+            }
+
+            string rawLevel = cmdparams[3];
+            int newLevel;
+
+            if (!int.TryParse(rawLevel, out newLevel))
+            {
+                MainConsole.Instance.OutputFormat("{0} is not a valid debug level", rawLevel);
+                return;
+            }
+
+            if (newLevel < 0 || newLevel > Util.MAX_THREADPOOL_LEVEL)
+            {
+                MainConsole.Instance.OutputFormat("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, newLevel);
+                return;
+            }
+
+            Util.LogThreadPool = newLevel;
+            MainConsole.Instance.OutputFormat("LogThreadPool set to {0}", newLevel);
         }
 
         private void HandleForceGc(string module, string[] args)

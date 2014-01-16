@@ -110,15 +110,6 @@ namespace OpenSim.Framework
         public int MaxConcurrentWorkItems { get; set; }
     }
 
-    [Flags]
-    public enum DebugFlagsEnum : uint
-    {
-        None = 0,
-
-        // Log every invocation of a thread using the threadpool
-        LogThreadPool = 0x01
-    }
-
     /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
@@ -127,13 +118,19 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Flags that enable additional debugging.
+        /// Log-level for the thread pool:
+        /// 0 = no logging
+        /// 1 = only first line of stack trace; don't log common threads
+        /// 2 = full stack trace; don't log common threads
+        /// 3 = full stack trace, including common threads
         /// </summary>
-        public static DebugFlagsEnum DebugFlags { get; set; }
+        public static int LogThreadPool { get; set; }
+
+        public static readonly int MAX_THREADPOOL_LEVEL = 3;
 
         static Util()
         {
-            DebugFlags = DebugFlagsEnum.None;
+            LogThreadPool = 0;
         }
 
         private static uint nextXferID = 5000;
@@ -1921,6 +1918,7 @@ namespace OpenSim.Framework
             public long ThreadFuncNum { get; set; }
             public string StackTrace { get; set; }
             private string context;
+            public bool LogThread { get; set; }
             
             public IWorkItemResult WorkItem { get; set; }
             public Thread Thread { get; set; }
@@ -1932,6 +1930,7 @@ namespace OpenSim.Framework
             {
                 ThreadFuncNum = threadFuncNum;
                 this.context = context;
+                LogThread = true;
                 Thread = null;
                 Running = false;
                 Aborted = false;
@@ -2027,7 +2026,7 @@ namespace OpenSim.Framework
         {
             WaitCallback realCallback;
 
-            bool loggingEnabled = (DebugFlags & DebugFlagsEnum.LogThreadPool) != 0;
+            bool loggingEnabled = LogThreadPool > 0;
             
             long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
             ThreadInfo threadInfo = new ThreadInfo(threadFuncNum, context);
@@ -2051,7 +2050,7 @@ namespace OpenSim.Framework
 
                     try
                     {
-                        if (loggingEnabled || (threadFuncOverloadMode == 1))
+                        if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Run threadfunc {0} (Queued {1}, Running {2})", threadFuncNum, numQueued1, numRunning1);
 
                         Culture.SetCurrentCulture();
@@ -2072,7 +2071,7 @@ namespace OpenSim.Framework
                         threadInfo.Ended();
                         ThreadInfo dummy;
                         activeThreads.TryRemove(threadFuncNum, out dummy);
-                        if (loggingEnabled || (threadFuncOverloadMode == 1))
+                        if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
                     }
                 };
@@ -2097,11 +2096,16 @@ namespace OpenSim.Framework
                 {
                     string full, partial;
                     GetFireAndForgetStackTrace(out full, out partial);
-                    m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
-                        threadFuncNum, numQueued, numRunningThreadFuncs,
-                        (context == null) ? "" : ("(" + context + ") "),
-                        loggingEnabled ? full : partial);
                     threadInfo.StackTrace = full;
+                    threadInfo.LogThread = ShouldLogThread(partial);
+
+                    if (threadInfo.LogThread)
+                    {
+                        m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
+                            threadFuncNum, numQueued, numRunningThreadFuncs,
+                            (context == null) ? "" : ("(" + context + ") "),
+                            (LogThreadPool >= 2) ? full : partial);
+                    }
                 }
 
                 switch (FireAndForgetMethod)
@@ -2140,6 +2144,23 @@ namespace OpenSim.Framework
                 activeThreads.TryRemove(threadFuncNum, out dummy);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Returns whether the thread should be logged. Some very common threads aren't logged,
+        /// to avoid filling up the log.
+        /// </summary>
+        /// <param name="stackTrace">A partial stack trace of where the thread was queued</param>
+        /// <returns>Whether to log this thread</returns>
+        private static bool ShouldLogThread(string stackTrace)
+        {
+            if (LogThreadPool < 3)
+            {
+                if (stackTrace.Contains("BeginFireQueueEmpty"))
+                    return false;
+            }
+            
+            return true;
         }
 
         /// <summary>
