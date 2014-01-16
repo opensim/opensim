@@ -932,10 +932,12 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
             lock (m_completeMovementLock)
+            {
                 if (!IsChildAgent)
                     return false;
 
-            IsChildAgent = false;
+                IsChildAgent = false;
+            }
 
             // Must reset this here so that a teleport to a region next to an existing region does not keep the flag
             // set and prevent the close of the connection on a subsequent re-teleport.
