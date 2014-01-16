@@ -108,6 +108,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// This exists to prevent race conditions between two CompleteMovement threads if the simulator is slow and
+        /// the viewer fires these in quick succession.
+        /// </summary>
+        /// <remarks>
+        /// TODO: The child -> agent transition should be folded into LifecycleState and the CompleteMovement 
+        /// regulation done there.
+        /// </remarks>
+        private object m_completeMovementLock = new object();
+
 //        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
@@ -905,6 +915,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Turns a child agent into a root agent.
         /// </summary>
+        /// <remarks>
         /// Child agents are logged into neighbouring sims largely to observe changes.  Root agents exist when the
         /// avatar is actual in the sim.  They can perform all actions.
         /// This change is made whenever an avatar enters a region, whether by crossing over from a neighbouring sim,
@@ -912,14 +923,18 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         /// This method is on the critical path for transferring an avatar from one region to another.  Delay here
         /// delays that crossing.
-        /// </summary>
-        private void MakeRootAgent(Vector3 pos, bool isFlying)
+        /// </remarks>
+        private bool MakeRootAgent(Vector3 pos, bool isFlying)
         {
 //            m_log.InfoFormat(
 //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
 //                Name, m_scene.RegionInfo.RegionName);
 
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
+
+            lock (m_completeMovementLock)
+                if (!IsChildAgent)
+                    return false;
 
             IsChildAgent = false;
 
@@ -1070,6 +1085,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
+            return true;
         }
 
         public int GetStateSource()
@@ -1443,7 +1459,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            MakeRootAgent(AbsolutePosition, flying);
+            if (!MakeRootAgent(AbsolutePosition, flying))
+            {
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE]: Aborting CompleteMovement call for {0} in {1} as they are already root", 
+                    Name, Scene.Name);
+
+                return;
+            }
 
             // Tell the client that we're totally ready
             ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
