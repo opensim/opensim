@@ -1003,48 +1003,45 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         private bool MakeRootAgent(Vector3 pos, bool isFlying)
         {
-//            m_log.InfoFormat(
-//                "[SCENE]: Upgrading child to root agent for {0} in {1}",
-//                Name, m_scene.RegionInfo.RegionName);
-
-            if (ParentUUID != UUID.Zero)
-            {
-                m_log.DebugFormat("[SCENE PRESENCE]: Sitting avatar back on prim {0}", ParentUUID);
-                SceneObjectPart part = m_scene.GetSceneObjectPart(ParentUUID);
-                if (part == null)
-                {
-                    m_log.ErrorFormat("[SCENE PRESENCE]: Can't find prim {0} to sit on", ParentUUID);
-                }
-                else
-                {
-                    part.ParentGroup.AddAvatar(UUID);
-                    if (part.SitTargetPosition != Vector3.Zero)
-                        part.SitTargetAvatar = UUID;
-//                    ParentPosition = part.GetWorldPosition();
-                    ParentID = part.LocalId;
-                    ParentPart = part;
-                    m_pos = PrevSitOffset;
-//                    pos = ParentPosition;
-                    pos = part.GetWorldPosition();
-                }
-                ParentUUID = UUID.Zero;
-
-                IsChildAgent = false;
-
-//                Animator.TrySetMovementAnimation("SIT");
-            }
-            else
-            {
-                IsChildAgent = false;
-                IsLoggingIn = false;
-            }
-
-            //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
-
             lock (m_completeMovementLock)
             {
                 if (!IsChildAgent)
                     return false;
+
+                //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
+
+    //            m_log.InfoFormat(
+    //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
+    //                Name, m_scene.RegionInfo.RegionName);
+
+                if (ParentUUID != UUID.Zero)
+                {
+                    m_log.DebugFormat("[SCENE PRESENCE]: Sitting avatar back on prim {0}", ParentUUID);
+                    SceneObjectPart part = m_scene.GetSceneObjectPart(ParentUUID);
+                    if (part == null)
+                    {
+                        m_log.ErrorFormat("[SCENE PRESENCE]: Can't find prim {0} to sit on", ParentUUID);
+                    }
+                    else
+                    {
+                        part.ParentGroup.AddAvatar(UUID);
+                        if (part.SitTargetPosition != Vector3.Zero)
+                            part.SitTargetAvatar = UUID;
+    //                    ParentPosition = part.GetWorldPosition();
+                        ParentID = part.LocalId;
+                        ParentPart = part;
+                        m_pos = PrevSitOffset;
+    //                    pos = ParentPosition;
+                        pos = part.GetWorldPosition();
+                    }
+                    ParentUUID = UUID.Zero;
+
+    //                Animator.TrySetMovementAnimation("SIT");
+                }
+                else
+                {
+                    IsLoggingIn = false;
+                }
 
                 IsChildAgent = false;
             }
