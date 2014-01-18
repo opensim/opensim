@@ -352,7 +352,6 @@ namespace OpenSim.Region.CoreModules.Asset
             return false;
         }
 
-
         /// <summary>
         /// Try to get an asset from the file cache.
         /// </summary>
@@ -390,15 +389,16 @@ namespace OpenSim.Region.CoreModules.Asset
 
             if (File.Exists(filename))
             {
-                FileStream stream = null;
                 try
                 {
-                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    BinaryFormatter bformatter = new BinaryFormatter();
+                    using (FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        BinaryFormatter bformatter = new BinaryFormatter();
 
-                    asset = (AssetBase)bformatter.Deserialize(stream);
+                        asset = (AssetBase)bformatter.Deserialize(stream);
 
-                    m_DiskHits++;
+                        m_DiskHits++;
+                    }
                 }
                 catch (System.Runtime.Serialization.SerializationException e)
                 {
@@ -417,12 +417,6 @@ namespace OpenSim.Region.CoreModules.Asset
                     m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
-
-                }
-                finally
-                {
-                    if (stream != null)
-                        stream.Close();
                 }
             }
 
@@ -434,36 +428,19 @@ namespace OpenSim.Region.CoreModules.Asset
             bool found = false;
 
             string filename = GetFileName(id);
+
             if (File.Exists(filename))
             {
-                // actually check if we can open it, and so update expire
-                FileStream stream = null;
                 try
                 {
-                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    if (stream != null)
+                    using (FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        found = true;
-                        stream.Close();
+                        if (stream != null)
+                            found = true;
                     }
-
-                }
-                catch (System.Runtime.Serialization.SerializationException e)
-                {
-                    found = false;
-                    m_log.ErrorFormat(
-                        "[FLOTSAM ASSET CACHE]: Failed to check file {0} for asset {1}.  Exception {2} {3}",
-                        filename, id, e.Message, e.StackTrace);
-
-                    // If there was a problem deserializing the asset, the asset may
-                    // either be corrupted OR was serialized under an old format
-                    // {different version of AssetBase} -- we should attempt to
-                    // delete it and re-cache
-                    File.Delete(filename);
                 }
                 catch (Exception e)
                 {
-                    found = false;
                     m_log.ErrorFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to check file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
