@@ -487,11 +487,6 @@ namespace OpenSim.Region.CoreModules.Asset
             return Get(id);
         }
 
-        public AssetBase CheckCached(string id)
-        {
-            return Get(id);
-        }
-
         public void Expire(string id)
         {
             if (m_LogLevel >= 2)
@@ -1034,11 +1029,6 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             AssetBase asset = Get(id);
             return asset.Data;
-        }
-
-        public bool CheckData(string id)
-        {
-            return Check(id); ;
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)
