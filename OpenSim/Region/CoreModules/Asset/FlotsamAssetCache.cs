@@ -344,12 +344,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private bool CheckFromMemoryCache(string id)
         {
-            AssetBase asset = null;
-
-            if (m_MemoryCache.TryGetValue(id, out asset))
-                return true;
-
-            return false;
+            return m_MemoryCache.Contains(id);
         }
 
         /// <summary>
