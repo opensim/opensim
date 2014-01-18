@@ -248,70 +248,67 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private void UpdateFileCache(string key, AssetBase asset)
         {
-            // TODO: Spawn this off to some seperate thread to do the actual writing
-            if (asset != null)
+            string filename = GetFileName(key);
+
+            try
             {
-                string filename = GetFileName(key);
-
-                try
+                // If the file is already cached, don't cache it, just touch it so access time is updated
+                if (File.Exists(filename))
                 {
-                    // If the file is already cached, don't cache it, just touch it so access time is updated
-                    if (File.Exists(filename))
+                    // We don't really want to know about sharing
+                    // violations here. If the file is locked, then
+                    // the other thread has updated the time for us.
+                    try
                     {
-                        // We don't really want to know about sharing
-                        // violations here. If the file is locked, then
-                        // the other thread has updated the time for us.
-                        try
-                        {
-                            lock (m_CurrentlyWriting)
-                            {
-                                if (!m_CurrentlyWriting.Contains(filename))
-                                    File.SetLastAccessTime(filename, DateTime.Now);
-                            }
-                        }
-                        catch
-                        {
-                        }
-                    } else {
-
-                        // Once we start writing, make sure we flag that we're writing
-                        // that object to the cache so that we don't try to write the 
-                        // same file multiple times.
                         lock (m_CurrentlyWriting)
                         {
+                            if (!m_CurrentlyWriting.Contains(filename))
+                                File.SetLastAccessTime(filename, DateTime.Now);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                } 
+                else 
+                {
+                    // Once we start writing, make sure we flag that we're writing
+                    // that object to the cache so that we don't try to write the 
+                    // same file multiple times.
+                    lock (m_CurrentlyWriting)
+                    {
 #if WAIT_ON_INPROGRESS_REQUESTS
-                            if (m_CurrentlyWriting.ContainsKey(filename))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                m_CurrentlyWriting.Add(filename, new ManualResetEvent(false));
-                            }
-
-#else
-                            if (m_CurrentlyWriting.Contains(filename))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                m_CurrentlyWriting.Add(filename);
-                            }
-#endif
-
+                        if (m_CurrentlyWriting.ContainsKey(filename))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            m_CurrentlyWriting.Add(filename, new ManualResetEvent(false));
                         }
 
-                        Util.FireAndForget(
-                            delegate { WriteFileCache(filename, asset); });
+#else
+                        if (m_CurrentlyWriting.Contains(filename))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            m_CurrentlyWriting.Add(filename);
+                        }
+#endif
+
                     }
+
+                    Util.FireAndForget(
+                        delegate { WriteFileCache(filename, asset); });
                 }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
-                        asset.ID, e.Message, e.StackTrace);
-                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
+                    asset.ID, e.Message, e.StackTrace);
             }
         }
 
