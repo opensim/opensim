@@ -266,10 +266,11 @@ namespace OpenSim
                                           SavePrimsXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load oar",
-                                          "load oar [--merge] [--skip-assets] [<OAR path>]",
+                                          "load oar [--merge] [--skip-assets] [--displacement \"<x,y,z>\"] [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene." + Environment.NewLine
                                           + "--skip-assets will load the OAR but ignore the assets it contains." + Environment.NewLine
+                                          + "--displacement will add this value to the position of every object loaded" + Environment.NewLine
                                           + "The path can be either a filesystem location or a URI."
                                           + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
                                           LoadOar);

@@ -752,7 +752,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 byte[] archive = archiveWriteStream.ToArray();
                 MemoryStream archiveReadStream = new MemoryStream(archive);
 
-                m_archiverModule.DearchiveRegion(archiveReadStream, true, false, Guid.Empty);
+                m_archiverModule.DearchiveRegion(archiveReadStream, true, false, new Vector3(0f, 0f, 0f), Guid.Empty);
 
                 SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1.Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");

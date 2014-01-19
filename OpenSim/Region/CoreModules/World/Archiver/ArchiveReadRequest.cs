@@ -104,6 +104,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </value>
         protected bool m_skipAssets;
 
+        /// <value>
+        /// Displacement added to each object as it is added to the world
+        /// </value>
+        protected Vector3 m_displacement = new Vector3(0f, 0f, 0f);
+
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
@@ -132,7 +137,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private IAssetService m_assetService = null;
 
 
-        public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Guid requestId)
+        public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Vector3 displacement, Guid requestId)
         {
             m_rootScene = scene;
 
@@ -153,6 +158,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_merge = merge;
             m_skipAssets = skipAssets;
             m_requestId = requestId;
+            m_displacement = displacement;
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
@@ -444,6 +450,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 */
 
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
+
+                // Happily this does not do much to the object since it hasn't been added to the scene yet
+                sceneObject.AbsolutePosition += m_displacement;
+
 
                 bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
 
@@ -809,7 +819,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
 
             MemoryStream ms = new MemoryStream(data);
-            terrainModule.LoadFromStream(terrainPath, ms);
+            if (m_displacement != Vector3.Zero)
+            {
+                Vector2 terrainDisplacement = new Vector2(m_displacement.X, m_displacement.Y);
+                terrainModule.LoadFromStream(terrainPath, terrainDisplacement, ms);
+            }
+            else
+            {
+                terrainModule.LoadFromStream(terrainPath, ms);
+            }
             ms.Close();
 
             m_log.DebugFormat("[ARCHIVER]: Restored terrain {0}", terrainPath);

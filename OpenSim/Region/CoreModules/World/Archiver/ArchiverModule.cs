@@ -33,10 +33,13 @@ using log4net;
 using NDesk.Options;
 using Nini.Config;
 using Mono.Addins;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+
+using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -101,9 +104,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             bool mergeOar = false;
             bool skipAssets = false;
+            Vector3 displacement = new Vector3(0f, 0f, 0f);
             
-            OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
-            options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
+            OptionSet options = new OptionSet();
+            options.Add("m|merge", delegate (string v) { mergeOar = (v != null); });
+            options.Add("s|skip-assets", delegate (string v) { skipAssets = (v != null); });
+            options.Add("displacement=", delegate (string v) {
+                try
+                {
+                    displacement = v == null ? new Vector3(0f, 0f, 0f) : Vector3.Parse(v);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing displacement");
+                    displacement = new Vector3(0f, 0f, 0f);
+                }
+            });
 
             // Send a message to the region ready module
             /* bluewall* Disable this for the time being
@@ -124,11 +140,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (mainParams.Count > 2)
             {
-                DearchiveRegion(mainParams[2], mergeOar, skipAssets, Guid.Empty);
+                DearchiveRegion(mainParams[2], mergeOar, skipAssets, displacement, Guid.Empty);
             }
             else
             {
-                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, skipAssets, Guid.Empty);
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, skipAssets, displacement, Guid.Empty);
             }
         }
 
@@ -198,23 +214,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
-            DearchiveRegion(loadPath, false, false, Guid.Empty);
+            DearchiveRegion(loadPath, false, false, new Vector3(0f, 0f, 0f), Guid.Empty);
         }
         
-        public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Guid requestId)
+        public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Vector3 displacement, Guid requestId)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(Scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadPath, merge, skipAssets, displacement, requestId).DearchiveRegion();
         }
         
         public void DearchiveRegion(Stream loadStream)
         {
-            DearchiveRegion(loadStream, false, false, Guid.Empty);
+            DearchiveRegion(loadStream, false, false, new Vector3(0f, 0f, 0f), Guid.Empty);
         }
         
-        public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Guid requestId)
+        public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Vector3 displacement, Guid requestId)
         {
             new ArchiveReadRequest(Scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
         }
