@@ -111,6 +111,45 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(scene.GetScenePresences().Count, Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Test that duplicate complete movement calls are ignored.
+        /// </summary>
+        /// <remarks>
+        /// If duplicate calls are not ignored then there is a risk of race conditions or other unexpected effects.
+        /// </remarks>
+        [Test]
+        public void TestDupeCompleteMovementCalls()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID spUuid = TestHelpers.ParseTail(0x1);
+
+            TestScene scene = new SceneHelpers().SetupScene();
+
+            int makeRootAgentEvents = 0;
+            scene.EventManager.OnMakeRootAgent += spi => makeRootAgentEvents++;
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, spUuid);
+
+            Assert.That(makeRootAgentEvents, Is.EqualTo(1));
+
+            // Normally these would be invoked by a CompleteMovement message coming in to the UDP stack.  But for
+            // convenience, here we will invoke it manually.
+            sp.CompleteMovement(sp.ControllingClient, true);
+
+            Assert.That(makeRootAgentEvents, Is.EqualTo(1));
+
+            // Check rest of exepcted parameters.
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(spUuid), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+          
+            Assert.That(sp.IsChildAgent, Is.False);
+            Assert.That(sp.UUID, Is.EqualTo(spUuid));
+
+            Assert.That(scene.GetScenePresences().Count, Is.EqualTo(1));
+        }
+
         [Test]
         public void TestCreateDuplicateRootScenePresence()
         {
@@ -249,58 +288,5 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(childPresence, Is.Not.Null);
 //            Assert.That(childPresence.IsChildAgent, Is.True);
         }
-
-//        /// <summary>
-//        /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
-//        /// </summary>
-//        [Test]
-//        public void T010_TestAddRootAgent()
-//        {
-//            TestHelpers.InMethod();
-//
-//            string firstName = "testfirstname";
-//
-//            AgentCircuitData agent = new AgentCircuitData();
-//            agent.AgentID = agent1;
-//            agent.firstname = firstName;
-//            agent.lastname = "testlastname";
-//            agent.SessionID = UUID.Random();
-//            agent.SecureSessionID = UUID.Random();
-//            agent.circuitcode = 123;
-//            agent.BaseFolder = UUID.Zero;
-//            agent.InventoryFolder = UUID.Zero;
-//            agent.startpos = Vector3.Zero;
-//            agent.CapsPath = GetRandomCapsObjectPath();
-//            agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
-//            agent.child = true;
-//
-//            scene.PresenceService.LoginAgent(agent.AgentID.ToString(), agent.SessionID, agent.SecureSessionID);
-//
-//            string reason;
-//            scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);
-//            testclient = new TestClient(agent, scene);
-//            scene.AddNewAgent(testclient);
-//
-//            ScenePresence presence = scene.GetScenePresence(agent1);
-//
-//            Assert.That(presence, Is.Not.Null, "presence is null");
-//            Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same");
-//            acd1 = agent;
-//        }
-//
-//        /// <summary>
-//        /// Test removing an uncrossed root agent from a scene.
-//        /// </summary>
-//        [Test]
-//        public void T011_TestRemoveRootAgent()
-//        {
-//            TestHelpers.InMethod();
-//
-//            scene.RemoveClient(agent1);
-//
-//            ScenePresence presence = scene.GetScenePresence(agent1);
-//
-//            Assert.That(presence, Is.Null, "presence is not null");
-//        }
     }
 }

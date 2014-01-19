@@ -31,10 +31,34 @@ namespace OpenSim.Framework
 {
     public interface IImprovedAssetCache
     {
+        /// <summary>
+        /// Cache the specified asset.
+        /// </summary>
+        /// <param name='asset'></param>
         void Cache(AssetBase asset);
+
+        /// <summary>
+        /// Get an asset by its id.
+        /// </summary>
+        /// <param name='id'></param>
+        /// <returns>null if the asset does not exist.</returns>
         AssetBase Get(string id);
+
+        /// <summary>
+        /// Check whether an asset with the specified id exists in the cache.
+        /// </summary>
+        /// <param name='id'></param>
         bool Check(string id);
+
+        /// <summary>
+        /// Expire an asset from the cache.
+        /// </summary>
+        /// <param name='id'></param>
         void Expire(string id);
+
+        /// <summary>
+        /// Clear the cache.
+        /// </summary>
         void Clear();
     }
 }

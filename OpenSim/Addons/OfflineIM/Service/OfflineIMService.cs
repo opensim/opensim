@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -91,7 +91,7 @@ namespace OpenSim.OfflineIM
         {
             reason = string.Empty;
             
-            // TODO Check limits
+            // Check limits
             UUID principalID = new UUID(im.toAgentID);
             long count = m_Database.GetCount("PrincipalID", principalID.ToString());
             if (count >= MAX_IM)
@@ -100,7 +100,7 @@ namespace OpenSim.OfflineIM
                 return false;
             }
 
-            string imXml = string.Empty;
+            string imXml;
             using (MemoryStream mstream = new MemoryStream())
             {
                 XmlWriterSettings settings = new XmlWriterSettings();
@@ -110,22 +110,26 @@ namespace OpenSim.OfflineIM
                 {
                     m_serializer.Serialize(writer, im);
                     writer.Flush();
-                    
-                    mstream.Position = 0;
-                    using (StreamReader sreader = new StreamReader(mstream))
-                    {
-                        imXml = sreader.ReadToEnd();
-                    }
                 }
+
+                imXml = Util.UTF8.GetString(mstream.ToArray());
             }
 
             OfflineIMData data = new OfflineIMData();
             data.PrincipalID = principalID;
+            data.FromID = new UUID(im.fromAgentID);
             data.Data = new Dictionary<string, string>();
             data.Data["Message"] = imXml;
 
             return m_Database.Store(data);
 
         }
+
+        public void DeleteMessages(UUID userID)
+        {
+            m_Database.Delete("PrincipalID", userID.ToString());
+            m_Database.Delete("FromID", userID.ToString());
+        }
+
     }
 }
