@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Drawing;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 
@@ -53,5 +54,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="components">number of components</param>
         /// <returns>true if decode was successful.  false otherwise.</returns>
         bool Decode(UUID assetID, byte[] j2kData, out OpenJPEG.J2KLayerInfo[] layers, out int components);
+
+        /// <summary>
+        /// Provides a synchronous decode direct to an image object
+        /// </summary>
+        /// <param name="j2kData"></param>
+        /// <returns>decoded image or 'null' of unsuccessful</returns>
+        Image DecodeToImage(byte[] j2kData);
     }
 }
