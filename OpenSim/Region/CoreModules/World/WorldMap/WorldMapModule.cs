@@ -406,7 +406,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             uint xstart = 0;
             uint ystart = 0;
-            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
+            Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
             if (itemtype == 6) // Service 6 right now (MAP_ITEM_AGENTS_LOCATION; green dots)
             {
                 if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
