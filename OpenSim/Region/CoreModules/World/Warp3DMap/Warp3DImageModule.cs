@@ -31,20 +31,24 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
+
 using CSJ2K;
 using Nini.Config;
 using log4net;
 using Rednettle.Warp3D;
 using Mono.Addins;
-using OpenMetaverse;
-using OpenMetaverse.Imaging;
-using OpenMetaverse.Rendering;
-using OpenMetaverse.StructuredData;
+
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Services.Interfaces;
+
+using OpenMetaverse;
+using OpenMetaverse.Assets;
+using OpenMetaverse.Imaging;
+using OpenMetaverse.Rendering;
+using OpenMetaverse.StructuredData;
 
 using WarpRenderer = global::Warp3D.Warp3D;
 
@@ -57,12 +61,20 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private static readonly Color4 WATER_COLOR = new Color4(29, 72, 96, 216);
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[WARP 3D IMAGE MODULE]";
 
         private Scene m_scene;
         private IRendering m_primMesher;
-        private IConfigSource m_config;
         private Dictionary<UUID, Color4> m_colors = new Dictionary<UUID, Color4>();
-        private bool m_useAntiAliasing = false; // TODO: Make this a config option
+
+        private IConfigSource m_config;
+        private bool m_drawPrimVolume = true;   // true if should render the prims on the tile
+        private bool m_textureTerrain = true;   // true if to create terrain splatting texture
+        private bool m_texturePrims = true;     // true if should texture the rendered prims
+        private float m_texturePrimSize = 48f;  // size of prim before we consider texturing it
+        private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
+        private bool m_useAntiAliasing = false; // true if to anti-alias the rendered image
+
         private bool m_Enabled = false;
 
         #region Region Module interface
@@ -71,11 +83,27 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             m_config = source;
 
+            string[] configSections = new string[] { "Map", "Startup" };
+
             if (Util.GetConfigVarFromSections<string>(
-                m_config, "MapImageModule", new string[] { "Startup", "Map" }, "MapImageModule") != "Warp3DImageModule")
+                m_config, "MapImageModule", configSections, "MapImageModule") != "Warp3DImageModule")
                 return;
 
             m_Enabled = true;
+
+            m_drawPrimVolume 
+                = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, m_drawPrimVolume);
+            m_textureTerrain 
+                = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, m_textureTerrain);
+            m_texturePrims
+                = Util.GetConfigVarFromSections<bool>(m_config, "TexturePrims", configSections, m_texturePrims);
+            m_texturePrimSize
+                = Util.GetConfigVarFromSections<float>(m_config, "TexturePrimSize", configSections, m_texturePrimSize);
+            m_renderMeshes
+                = Util.GetConfigVarFromSections<bool>(m_config, "RenderMeshes", configSections, m_renderMeshes);
+            m_useAntiAliasing
+                = Util.GetConfigVarFromSections<bool>(m_config, "UseAntiAliasing", configSections, m_useAntiAliasing);
+
         }
 
         public void AddRegion(Scene scene)
@@ -127,31 +155,28 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public Bitmap CreateMapTile()
         {
-            Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
+            // Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
+            // Camera above the middle of the region
+            Vector3 camPos = new Vector3(
+                            m_scene.RegionInfo.RegionSizeX/2 - 0.5f,
+                            m_scene.RegionInfo.RegionSizeY/2 - 0.5f,
+                            221.7025033688163f);
+            // Viewport viewing down onto the region
             Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f,
-                        (int)Constants.RegionSize, (int)Constants.RegionSize,
-                        (float)Constants.RegionSize, (float)Constants.RegionSize);
+                        (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY,
+                        (float)m_scene.RegionInfo.RegionSizeX, (float)m_scene.RegionInfo.RegionSizeY );
+            // Fill the viewport and return the image
             return CreateMapTile(viewport, false);
         }
 
         public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
         {
-            Viewport viewport = new Viewport(camPos, camDir, fov, (float)Constants.RegionSize, 0.1f, width, height);
+            Viewport viewport = new Viewport(camPos, camDir, fov, Constants.RegionSize,  0.1f, width, height);
             return CreateMapTile(viewport, useTextures);
         }
 
         public Bitmap CreateMapTile(Viewport viewport, bool useTextures)
         {
-            bool drawPrimVolume = true;
-            bool textureTerrain = true;
-
-            string[] configSections = new string[] { "Map", "Startup" };
-
-            drawPrimVolume 
-                = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, drawPrimVolume);
-            textureTerrain 
-                = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, textureTerrain);
-
             m_colors.Clear();
 
             int width = viewport.Width;
@@ -195,8 +220,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             renderer.Scene.addLight("Light2", new warp_Light(new warp_Vector(-1f, -1f, 1f), 0xffffff, 0, 100, 40));
 
             CreateWater(renderer);
-            CreateTerrain(renderer, textureTerrain);
-            if (drawPrimVolume)
+            CreateTerrain(renderer, m_textureTerrain);
+            if (m_drawPrimVolume)
                 CreateAllPrims(renderer, useTextures);
 
             renderer.Render();
@@ -212,6 +237,16 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             // afterwards.  It's generally regarded as a bad idea to manually GC.  If Warp3D is using lots of memory
             // then this may be some issue with the Warp3D code itself, though it's also quite possible that generating
             // this map tile simply takes a lot of memory.
+            foreach (var o in renderer.Scene.objectData.Values)
+            {
+                warp_Object obj = (warp_Object)o;
+                obj.vertexData = null;
+                obj.triangleData = null;
+            }
+            renderer.Scene.removeAllObjects();
+            renderer = null;
+            viewport = null;
+            m_colors.Clear();
             GC.Collect();
             m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
 
@@ -238,61 +273,74 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         #region Rendering Methods
 
+        // Add a water plane to the renderer.
         private void CreateWater(WarpRenderer renderer)
         {
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            renderer.AddPlane("Water", 256f * 0.5f);
-            renderer.Scene.sceneobject("Water").setPos(127.5f, waterHeight, 127.5f);
+            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f);
+            renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX/2 - 0.5f,
+                                                       waterHeight,
+                                                       m_scene.RegionInfo.RegionSizeY/2 - 0.5f );
 
-            renderer.AddMaterial("WaterColor", ConvertColor(WATER_COLOR));
-			renderer.Scene.material("WaterColor").setReflectivity(0);  // match water color with standard map module thanks lkalif
-            renderer.Scene.material("WaterColor").setTransparency((byte)((1f - WATER_COLOR.A) * 255f));
+            warp_Material waterColorMaterial = new warp_Material(ConvertColor(WATER_COLOR));
+			waterColorMaterial.setReflectivity(0);  // match water color with standard map module thanks lkalif
+            waterColorMaterial.setTransparency((byte)((1f - WATER_COLOR.A) * 255f));
+            renderer.Scene.addMaterial("WaterColor", waterColorMaterial);
             renderer.SetObjectMaterial("Water", "WaterColor");
         }
 
+        // Add a terrain to the renderer.
+        // Note that we create a 'low resolution' 256x256 vertex terrain rather than trying for
+        //    full resolution. This saves a lot of memory especially for very large regions.
         private void CreateTerrain(WarpRenderer renderer, bool textureTerrain)
         {
             ITerrainChannel terrain = m_scene.Heightmap;
-            float[] heightmap = terrain.GetFloatsSerialised();
+
+            // 'diff' is the difference in scale between the real region size and the size of terrain we're buiding
+            float diff = (float)m_scene.RegionInfo.RegionSizeX / 256f;
 
             warp_Object obj = new warp_Object(256 * 256, 255 * 255 * 2);
 
-            for (int y = 0; y < 256; y++)
+            // Create all the vertices for the terrain
+            for (float y = 0; y < m_scene.RegionInfo.RegionSizeY; y += diff)
             {
-                for (int x = 0; x < 256; x++)
+                for (float x = 0; x < m_scene.RegionInfo.RegionSizeX; x += diff)
                 {
-                    int v = y * 256 + x;
-                    float height = heightmap[v];
-
-                    warp_Vector pos = ConvertVector(new Vector3(x, y, height));
-                    obj.addVertex(new warp_Vertex(pos, (float)x / 255f, (float)(255 - y) / 255f));
+                    warp_Vector pos = ConvertVector(x, y, (float)terrain[(int)x, (int)y]);
+                    obj.addVertex(new warp_Vertex(pos,
+                        x / (float)m_scene.RegionInfo.RegionSizeX,
+                        (((float)m_scene.RegionInfo.RegionSizeY) - y) / m_scene.RegionInfo.RegionSizeY) );
                 }
             }
 
-            for (int y = 0; y < 256; y++)
+            // Now that we have all the vertices, make another pass and create
+            //     the normals for each of the surface triangles and
+            //     create the list of triangle indices.
+            for (float y = 0; y < m_scene.RegionInfo.RegionSizeY; y += diff)
             {
-                for (int x = 0; x < 256; x++)
+                for (float x = 0; x < m_scene.RegionInfo.RegionSizeX; x += diff)
                 {
-                    if (x < 255 && y < 255)
+                    float newX = x / diff;
+                    float newY = y / diff;
+                    if (newX < 255 && newY < 255)
                     {
-                        int v = y * 256 + x;
+                        int v = (int)newY * 256 + (int)newX;
 
-                        // Normal
-                        Vector3 v1 = new Vector3(x, y, heightmap[y * 256 + x]);
-                        Vector3 v2 = new Vector3(x + 1, y, heightmap[y * 256 + x + 1]);
-                        Vector3 v3 = new Vector3(x, y + 1, heightmap[(y + 1) * 256 + x]);
+                        // Normal for a triangle made up of three adjacent vertices
+                        Vector3 v1 = new Vector3(newX, newY, (float)terrain[(int)x, (int)y]);
+                        Vector3 v2 = new Vector3(newX + 1, newY, (float)terrain[(int)(x + 1), (int)y]);
+                        Vector3 v3 = new Vector3(newX, newY + 1, (float)terrain[(int)x, ((int)(y + 1))]);
                         warp_Vector norm = ConvertVector(SurfaceNormal(v1, v2, v3));
                         norm = norm.reverse();
                         obj.vertex(v).n = norm;
 
-                        // Triangle 1
+                        // Make two triangles for each of the squares in the grid of vertices
                         obj.addTriangle(
                             v,
                             v + 1,
                             v + 256);
 
-                        // Triangle 2
                         obj.addTriangle(
                             v + 256 + 1,
                             v + 256,
@@ -307,7 +355,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             float[] startHeights = new float[4];
             float[] heightRanges = new float[4];
 
-            RegionSettings regionInfo = m_scene.RegionInfo.RegionSettings;
+            OpenSim.Framework.RegionSettings regionInfo = m_scene.RegionInfo.RegionSettings;
 
             textureIDs[0] = regionInfo.TerrainTexture1;
             textureIDs[1] = regionInfo.TerrainTexture2;
@@ -325,16 +373,18 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             heightRanges[3] = (float)regionInfo.Elevation2NE;
 
             uint globalX, globalY;
-            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
+            Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
 
             warp_Texture texture;
-
             using (
                 Bitmap image
-                    = TerrainSplat.Splat(
-                        heightmap, textureIDs, startHeights, heightRanges,
+                    = TerrainSplat.Splat(terrain, textureIDs, startHeights, heightRanges,
                         new Vector3d(globalX, globalY, 0.0), m_scene.AssetService, textureTerrain))
             {
+                image.Save( // DEBUG DEBUG
+                            String.Format("maptiles/splat-{0}-{1}-{2}.jpg", m_scene.RegionInfo.RegionName,
+                                        m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY),
+                            ImageFormat.Jpeg);
                 texture = new warp_Texture(image);
             }
 
@@ -370,8 +420,48 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (prim.Scale.LengthSquared() < MIN_SIZE * MIN_SIZE)
                 return;
 
+            FacetedMesh renderMesh = null;
             Primitive omvPrim = prim.Shape.ToOmvPrimitive(prim.OffsetPosition, prim.RotationOffset);
-            FacetedMesh renderMesh = m_primMesher.GenerateFacetedMesh(omvPrim, DetailLevel.Medium);
+
+            if (m_renderMeshes)
+            {
+                if (omvPrim.Sculpt != null && omvPrim.Sculpt.SculptTexture != UUID.Zero)
+                {
+                    // Try fetchinng the asset
+                    byte[] sculptAsset = m_scene.AssetService.GetData(omvPrim.Sculpt.SculptTexture.ToString());
+                    if (sculptAsset != null)
+                    {
+                        // Is it a mesh?
+                        if (omvPrim.Sculpt.Type == SculptType.Mesh)
+                        {
+                            AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset);
+                            FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, DetailLevel.Highest, out renderMesh);
+                            meshAsset = null;
+                        }
+                        else // It's sculptie
+                        {
+                            IJ2KDecoder imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
+                            if (imgDecoder != null)
+                            {
+                                Image sculpt = imgDecoder.DecodeToImage(sculptAsset);
+                                if (sculpt != null)
+                                {
+                                    renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt,
+                                                                                        DetailLevel.Medium);
+                                    sculpt.Dispose();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If not a mesh or sculptie, try the regular mesher
+            if (renderMesh == null)
+            {
+                renderMesh = m_primMesher.GenerateFacetedMesh(omvPrim, DetailLevel.Medium);
+            }
+
             if (renderMesh == null)
                 return;
 
@@ -430,7 +520,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                 Primitive.TextureEntryFace teFace = prim.Shape.Textures.GetFace((uint)i);
                 Color4 faceColor = GetFaceColor(teFace);
-                string materialName = GetOrCreateMaterial(renderer, faceColor);
+                string materialName = String.Empty;
+                if (m_texturePrims && prim.Scale.LengthSquared() > m_texturePrimSize*m_texturePrimSize)
+                    materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID);
+                else
+                    materialName = GetOrCreateMaterial(renderer, faceColor);
 
                 faceObj.transform(m);
                 faceObj.setPos(primPos);
@@ -519,9 +613,50 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             return name;
         }
 
+        public string GetOrCreateMaterial(WarpRenderer renderer, Color4 faceColor, UUID textureID)
+        {
+            string materialName = "Color-" + faceColor.ToString() + "-Texture-" + textureID.ToString();
+
+            if (renderer.Scene.material(materialName) == null)
+            {
+                renderer.AddMaterial(materialName, ConvertColor(faceColor));
+                if (faceColor.A < 1f)
+                {
+                    renderer.Scene.material(materialName).setTransparency((byte) ((1f - faceColor.A)*255f));
+                }
+                warp_Texture texture = GetTexture(textureID);
+                if (texture != null)
+                    renderer.Scene.material(materialName).setTexture(texture);
+            }
+
+            return materialName;
+        }
+
+        private warp_Texture GetTexture(UUID id)
+        {
+            warp_Texture ret = null;
+            byte[] asset = m_scene.AssetService.GetData(id.ToString());
+            if (asset != null)
+            {
+                IJ2KDecoder imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
+                Bitmap img = (Bitmap) imgDecoder.DecodeToImage(asset);
+                if (img != null)
+                {
+                    return new warp_Texture(img);
+                }
+            }
+            return ret;
+        }
+
         #endregion Rendering Methods
 
         #region Static Helpers
+
+        // Note: axis change.
+        private static warp_Vector ConvertVector(float x, float y, float z)
+        {
+            return new warp_Vector(x, z, y);
+        }
 
         private static warp_Vector ConvertVector(Vector3 vector)
         {

@@ -207,9 +207,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             {
                 if (mapTile != null)
                 {
-                    mapTile.Save(   // DEBUG DEBUG
-                        String.Format("maptiles/raw-{0}-{1}-{2}.jpg", regionName, scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY),
-                        ImageFormat.Jpeg);
+                    // mapTile.Save(   // DEBUG DEBUG
+                    //     String.Format("maptiles/raw-{0}-{1}-{2}.jpg", regionName, scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY),
+                    //     ImageFormat.Jpeg);
                     // If the region/maptile is legacy sized, just upload the one tile like it has always been done
                     if (mapTile.Width == Constants.RegionSize && mapTile.Height == Constants.RegionSize)
                     {
@@ -235,8 +235,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                                             (int)Constants.RegionSize, (int)Constants.RegionSize);
                                 using (Bitmap subMapTile = mapTile.Clone(rect, mapTile.PixelFormat))
                                 {
-                                    m_log.DebugFormat("{0} ConvertAndUploadMaptile: {1}: rect={2}, xx,yy=<{3},{4}>",
-                                                                    LogHeader, regionName, rect, xx, yy);
                                     ConvertAndUploadMaptile(subMapTile,
                                                 scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
                                                 scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),

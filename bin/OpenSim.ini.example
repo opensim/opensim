@@ -308,6 +308,18 @@
     ;; got a large number of objects, so you can turn it off here if you'd like.
     ; DrawPrimOnMapTile = true
 
+    ;# {TexturePrims} {} {Texture prims on map tiles?} {true false} true
+    ;; Texture the faces of the prims that are rendered on the map tiles.
+    ; TexturePrims = true
+
+    ;# {TexturePrimSize} {} {Size of prims to texture faces?} {} 48
+    ;; Only texture prims that have a diagonal size greater than this number
+    ; TexturePrimSize = 48
+
+    ;# {RenderMeshes} {} {Render meshes and sculpties on map tiles?} {true false} false
+    ;; Attempt to render meshes and sculpties on the map
+    ; RenderMeshes = false;
+
 
 [Permissions]
     ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by comma} {} DefaultPermissionsModule
