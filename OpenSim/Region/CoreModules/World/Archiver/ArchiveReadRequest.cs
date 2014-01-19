@@ -100,6 +100,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected bool m_merge;
 
         /// <value>
+        /// If true, suppresses the loading of terrain from the oar file
+        /// </value>
+        protected bool m_noTerrain;
+
+        /// <value>
+        /// If true, suppresses the loading of parcels from the oar file
+        /// </value>
+        protected bool m_noParcels;
+
+        /// <value>
         /// Should we ignore any assets when reloading the archive?
         /// </value>
         protected bool m_skipAssets;
@@ -107,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// Displacement added to each object as it is added to the world
         /// </value>
-        protected Vector3 m_displacement = new Vector3(0f, 0f, 0f);
+        protected Vector3 m_displacement = Vector3.Zero;
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -137,7 +147,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private IAssetService m_assetService = null;
 
 
-        public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Vector3 displacement, Guid requestId)
+        public ArchiveReadRequest(Scene scene, string loadPath, Guid requestId, Dictionary<string,object>options)
         {
             m_rootScene = scene;
 
@@ -155,10 +165,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         
             m_errorMessage = String.Empty;
-            m_merge = merge;
-            m_skipAssets = skipAssets;
+            m_merge = options.ContainsKey("merge");
+            m_noTerrain = options.ContainsKey("noTerrain");
+            m_noParcels = options.ContainsKey("noParcels");
+            m_skipAssets = options.ContainsKey("skipAssets");
             m_requestId = requestId;
-            m_displacement = displacement;
+            m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
@@ -167,13 +179,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_assetService = m_rootScene.AssetService;
         }
 
-        public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge, bool skipAssets, Guid requestId)
+        public ArchiveReadRequest(Scene scene, Stream loadStream, Guid requestId, Dictionary<string, object>options)
         {
             m_rootScene = scene;
             m_loadPath = null;
             m_loadStream = loadStream;
-            m_merge = merge;
-            m_skipAssets = skipAssets;
+            m_skipAssets = options.ContainsKey("skipAssets");
+            m_merge = options.ContainsKey("merge");
             m_requestId = requestId;
 
             // Zero can never be a valid user id
@@ -249,7 +261,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if ((successfulAssetRestores + failedAssetRestores) % 250 == 0)
                             m_log.Debug("[ARCHIVER]: Loaded " + successfulAssetRestores + " assets and failed to load " + failedAssetRestores + " assets...");
                     }
-                    else if (!m_merge && filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
+                    else if (!m_noTerrain && !m_merge && filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
                     {
                         LoadTerrain(scene, filePath, data);
                     }
@@ -257,7 +269,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         LoadRegionSettings(scene, filePath, data, dearchivedScenes);
                     } 
-                    else if (!m_merge && filePath.StartsWith(ArchiveConstants.LANDDATA_PATH))
+                    else if (!m_noParcels && !m_merge && filePath.StartsWith(ArchiveConstants.LANDDATA_PATH))
                     {
                         sceneContext.SerialisedParcels.Add(Encoding.UTF8.GetString(data));
                     } 

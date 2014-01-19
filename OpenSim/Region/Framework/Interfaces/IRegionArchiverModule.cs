@@ -102,16 +102,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
         /// 
         /// <param name="loadPath"></param>
-        /// <param name="merge">
-        /// If true, the loaded region merges with the existing one rather than replacing it.  Any terrain or region
-        /// settings in the archive will be ignored.
-        /// </param>
-        /// <param name="skipAssets">
-        /// If true, the archive is loaded without loading any assets contained within it.  This is useful if the
-        /// assets are already known to be present in the grid's asset service.
-        /// </param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
-        void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Vector3 displacement, Guid requestId);
+        /// <param name="options">
+        /// Dictionary of options.
+        /// </param>
+        void DearchiveRegion(string loadPath, Guid requestId, Dictionary<string,object> options);
         
         /// <summary>
         /// Dearchive a region from a stream.  This replaces the existing scene. 
@@ -129,15 +124,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
         /// 
         /// <param name="loadStream"></param>
-        /// <param name="merge">
-        /// If true, the loaded region merges with the existing one rather than replacing it.  Any terrain or region
-        /// settings in the archive will be ignored.
-        /// </param>
-        /// <param name="skipAssets">
-        /// If true, the archive is loaded without loading any assets contained within it.  This is useful if the
-        /// assets are already known to be present in the grid's asset service.
-        /// </param
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
-        void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Vector3 displacement, Guid requestId);
+        /// <param name="options">
+        /// Dictionary of options.
+        /// </param>
+        void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string,object> options);
     }
 }

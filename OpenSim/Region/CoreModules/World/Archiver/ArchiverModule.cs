@@ -104,11 +104,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             bool mergeOar = false;
             bool skipAssets = false;
+            bool noTerrain = false;
+            bool noParcels = false;
             Vector3 displacement = new Vector3(0f, 0f, 0f);
             
             OptionSet options = new OptionSet();
             options.Add("m|merge", delegate (string v) { mergeOar = (v != null); });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = (v != null); });
+            options.Add("noterrain", delegate (string v) { noTerrain = (v != null); });
+            options.Add("noparcels", delegate (string v) { noParcels = (v != null); });
             options.Add("displacement=", delegate (string v) {
                 try
                 {
@@ -138,13 +142,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //            foreach (string param in mainParams)
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
 
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            if (mergeOar) archiveOptions.Add("merge", null);
+            if (skipAssets) archiveOptions.Add("skipAssets", null);
+            if (noTerrain) archiveOptions.Add("noTerrain", null);
+            if (noParcels) archiveOptions.Add("noParcels", null);
+            if (displacement != Vector3.Zero) archiveOptions.Add("displacement", displacement);
+
             if (mainParams.Count > 2)
             {
-                DearchiveRegion(mainParams[2], mergeOar, skipAssets, displacement, Guid.Empty);
+                DearchiveRegion(mainParams[2], Guid.Empty, archiveOptions);
             }
             else
             {
-                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, skipAssets, displacement, Guid.Empty);
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, Guid.Empty, archiveOptions);
             }
         }
 
@@ -214,25 +225,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
-            DearchiveRegion(loadPath, false, false, new Vector3(0f, 0f, 0f), Guid.Empty);
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            DearchiveRegion(loadPath, Guid.Empty, archiveOptions);
         }
         
-        public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Vector3 displacement, Guid requestId)
+        public void DearchiveRegion(string loadPath, Guid requestId, Dictionary<string,object> options)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(Scene, loadPath, merge, skipAssets, displacement, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadPath, requestId, options).DearchiveRegion();
         }
         
         public void DearchiveRegion(Stream loadStream)
         {
-            DearchiveRegion(loadStream, false, false, new Vector3(0f, 0f, 0f), Guid.Empty);
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            DearchiveRegion(loadStream, Guid.Empty, archiveOptions);
         }
         
-        public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Vector3 displacement, Guid requestId)
+        public void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveReadRequest(Scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadStream, requestId, options).DearchiveRegion();
         }
     }
 }
