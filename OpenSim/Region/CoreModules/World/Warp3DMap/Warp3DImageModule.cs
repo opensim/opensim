@@ -381,10 +381,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     = TerrainSplat.Splat(terrain, textureIDs, startHeights, heightRanges,
                         new Vector3d(globalX, globalY, 0.0), m_scene.AssetService, textureTerrain))
             {
-                image.Save( // DEBUG DEBUG
-                            String.Format("maptiles/splat-{0}-{1}-{2}.jpg", m_scene.RegionInfo.RegionName,
-                                        m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY),
-                            ImageFormat.Jpeg);
                 texture = new warp_Texture(image);
             }
 
