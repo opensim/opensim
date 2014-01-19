@@ -104,25 +104,35 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             bool mergeOar = false;
             bool skipAssets = false;
-            bool noTerrain = false;
-            bool noParcels = false;
+            bool forceTerrain = false;
+            bool forceParcels = false;
             Vector3 displacement = new Vector3(0f, 0f, 0f);
+            float rotation = 0f;
+            Vector3 rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0);
             
             OptionSet options = new OptionSet();
             options.Add("m|merge", delegate (string v) { mergeOar = (v != null); });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = (v != null); });
-            options.Add("noterrain", delegate (string v) { noTerrain = (v != null); });
-            options.Add("noparcels", delegate (string v) { noParcels = (v != null); });
+            options.Add("forceterrain", delegate (string v) { forceTerrain = (v != null); });
+            options.Add("forceparcels", delegate (string v) { forceParcels = (v != null); });
             options.Add("displacement=", delegate (string v) {
                 try
                 {
-                    displacement = v == null ? new Vector3(0f, 0f, 0f) : Vector3.Parse(v);
+                    displacement = v == null ? Vector3.Zero : Vector3.Parse(v);
                 }
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing displacement");
                     displacement = new Vector3(0f, 0f, 0f);
                 }
+            });
+            options.Add("rotation=", delegate (string v) {
+                rotation = float.Parse(v);
+                rotation = Util.Clamp<float>(rotation, -359f, 359f);
+            });
+            options.Add("rotationcenter=", delegate (string v) {
+                // RA 20130119: libomv's Vector2.Parse doesn't work. Need to use vector3 for the moment
+                rotationCenter = Vector3.Parse(v);
             });
 
             // Send a message to the region ready module
@@ -145,9 +155,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
             if (mergeOar) archiveOptions.Add("merge", null);
             if (skipAssets) archiveOptions.Add("skipAssets", null);
-            if (noTerrain) archiveOptions.Add("noTerrain", null);
-            if (noParcels) archiveOptions.Add("noParcels", null);
-            if (displacement != Vector3.Zero) archiveOptions.Add("displacement", displacement);
+            if (forceTerrain) archiveOptions.Add("forceTerrain", null);
+            if (forceParcels) archiveOptions.Add("forceParcels", null);
+            archiveOptions.Add("displacement", displacement);
+            archiveOptions.Add("rotation", rotation);
+            archiveOptions.Add("rotationCenter", rotationCenter);
 
             if (mainParams.Count > 2)
             {

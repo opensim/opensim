@@ -96,18 +96,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         /// <value>
         /// Should the archive being loaded be merged with what is already on the region?
+        /// Merging usually suppresses terrain and parcel loading
         /// </value>
         protected bool m_merge;
 
         /// <value>
-        /// If true, suppresses the loading of terrain from the oar file
+        /// If true, force the loading of terrain from the oar file
         /// </value>
-        protected bool m_noTerrain;
+        protected bool m_forceTerrain;
 
         /// <value>
-        /// If true, suppresses the loading of parcels from the oar file
+        /// If true, force the loading of parcels from the oar file
         /// </value>
-        protected bool m_noParcels;
+        protected bool m_forceParcels;
 
         /// <value>
         /// Should we ignore any assets when reloading the archive?
@@ -118,6 +119,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Displacement added to each object as it is added to the world
         /// </value>
         protected Vector3 m_displacement = Vector3.Zero;
+
+        /// <value>
+        /// Rotation to apply to the objects as they are loaded.
+        /// </value>
+        protected float m_rotation = 0f;
+
+        /// <value>
+        /// Center around which to apply the rotation relative to the origional oar position
+        /// </value>
+        protected Vector3 m_rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0f);
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -166,11 +177,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
             m_errorMessage = String.Empty;
             m_merge = options.ContainsKey("merge");
-            m_noTerrain = options.ContainsKey("noTerrain");
-            m_noParcels = options.ContainsKey("noParcels");
+            m_forceTerrain = options.ContainsKey("forceTerrain");
+            m_forceParcels = options.ContainsKey("forceParcels");
             m_skipAssets = options.ContainsKey("skipAssets");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
+            m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
+            m_rotationCenter = options.ContainsKey("rotationCenter") ? (Vector3)options["rotationCenter"] 
+                                : new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0f);
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
@@ -261,7 +275,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if ((successfulAssetRestores + failedAssetRestores) % 250 == 0)
                             m_log.Debug("[ARCHIVER]: Loaded " + successfulAssetRestores + " assets and failed to load " + failedAssetRestores + " assets...");
                     }
-                    else if (!m_noTerrain && !m_merge && filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
+                    else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH) && (!m_merge || m_forceTerrain))
                     {
                         LoadTerrain(scene, filePath, data);
                     }
@@ -269,7 +283,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         LoadRegionSettings(scene, filePath, data, dearchivedScenes);
                     } 
-                    else if (!m_noParcels && !m_merge && filePath.StartsWith(ArchiveConstants.LANDDATA_PATH))
+                    else if (filePath.StartsWith(ArchiveConstants.LANDDATA_PATH) && (!m_merge || m_forceParcels))
                     {
                         sceneContext.SerialisedParcels.Add(Encoding.UTF8.GetString(data));
                     } 
@@ -440,6 +454,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
+            float angle = (float)(m_rotation / 180.0 * Math.PI);
+            OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, angle);
+
             UUID oldTelehubUUID = scene.RegionInfo.RegionSettings.TelehubObject;
 
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
@@ -464,7 +481,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 
                 // Happily this does not do much to the object since it hasn't been added to the scene yet
-                sceneObject.AbsolutePosition += m_displacement;
+                if (sceneObject.AttachmentPoint == 0)
+                {
+                    if (angle != 0f)
+                    {
+                        sceneObject.RootPart.RotationOffset = rot * sceneObject.GroupRotation;
+                        Vector3 offset = sceneObject.AbsolutePosition - m_rotationCenter;
+                        offset *= rot;
+                        sceneObject.AbsolutePosition = m_rotationCenter + offset;
+                    }
+                    if (m_displacement != Vector3.Zero)
+                    {
+                        sceneObject.AbsolutePosition += m_displacement;
+                    }
+                }
 
 
                 bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
@@ -571,6 +601,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             foreach (string serialisedParcel in serialisedParcels)
             {
                 LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
+
+                if (m_displacement != Vector3.Zero)
+                {
+                    Vector3 parcelDisp = new Vector3(m_displacement.X, m_displacement.Y, 0f);
+                    parcel.AABBMin += parcelDisp;
+                    parcel.AABBMax += parcelDisp;
+                }
                 
                 // Validate User and Group UUID's
 
