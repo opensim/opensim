@@ -199,7 +199,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                         bool used = false;
 
                         foreach (var face in te.FaceTextures)
-                            if (face.MaterialID == id)
+                            if (face != null && face.MaterialID == id)
                                 used = true;
 
                         if (used)
@@ -207,7 +207,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                             var newId = StoreMaterialAsAsset(part.CreatorID, material, part);
                             foreach (var face in te.FaceTextures)
-                                if (face.MaterialID == id)
+                                if (face != null && face.MaterialID == id)
                                     face.MaterialID = newId;
                         }
                     }
