@@ -215,6 +215,8 @@ namespace OpenSim.Region.OptionalModules.Materials
             }
 
             part.Shape.TextureEntry = te.GetBytes();
+            part.ParentGroup.HasGroupChanged = true;
+            part.ScheduleFullUpdate();
 
             lock (part.DynAttrs)
                 part.DynAttrs.RemoveStore("OpenSim", "Materials");
