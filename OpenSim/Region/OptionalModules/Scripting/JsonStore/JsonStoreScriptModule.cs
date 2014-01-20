@@ -59,7 +59,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         private IScriptModuleComms m_comms;
         private IJsonStoreModule m_store;
-        
+
+        private Dictionary<UUID,HashSet<UUID>> m_scriptStores = new Dictionary<UUID,HashSet<UUID>>();
+
 #region Region Module interface
 
         // -----------------------------------------------------------------
@@ -126,6 +128,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public void AddRegion(Scene scene)
         {
+            scene.EventManager.OnScriptReset += HandleScriptReset;
+            scene.EventManager.OnRemoveScript += HandleScriptReset;
         }
 
         // -----------------------------------------------------------------
@@ -134,8 +138,30 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public void RemoveRegion(Scene scene)
         {
+            scene.EventManager.OnScriptReset -= HandleScriptReset;
+            scene.EventManager.OnRemoveScript -= HandleScriptReset;
+
             // need to remove all references to the scene in the subscription
             // list to enable full garbage collection of the scene object
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// </summary>
+        // -----------------------------------------------------------------
+        private void HandleScriptReset(uint localID, UUID itemID)
+        {
+            HashSet<UUID> stores;
+
+            lock (m_scriptStores)
+            {
+                if (! m_scriptStores.TryGetValue(itemID, out stores))
+                    return;
+                m_scriptStores.Remove(itemID);
+            }
+
+            foreach (UUID id in stores)
+                m_store.DestroyStore(id);
         }
 
         // -----------------------------------------------------------------
@@ -250,6 +276,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (! m_store.CreateStore(value, ref uuid))
                 GenerateRuntimeError("Failed to create Json store");
             
+            lock (m_scriptStores)
+            {
+                if (! m_scriptStores.ContainsKey(scriptID))
+                    m_scriptStores[scriptID] = new HashSet<UUID>();
+                
+                m_scriptStores[scriptID].Add(uuid);
+            }
             return uuid;
         }
 
@@ -261,6 +294,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         [ScriptInvocation]
         public int JsonDestroyStore(UUID hostID, UUID scriptID, UUID storeID)
         {
+            lock(m_scriptStores)
+            {
+                if (m_scriptStores.ContainsKey(scriptID))
+                    m_scriptStores[scriptID].Remove(storeID);
+            }
+
             return m_store.DestroyStore(storeID) ? 1 : 0;
         }
 
