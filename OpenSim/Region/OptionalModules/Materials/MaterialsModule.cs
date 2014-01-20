@@ -149,12 +149,10 @@ namespace OpenSim.Region.OptionalModules.Materials
         }
 
         /// <summary>
-        /// Searches the part for any legacy materials stored in DynAttrs and converts them to assets, replacing
-        /// the MaterialIDs in the TextureEntries for the part.
-        /// Deletes the legacy materials from the part as they are no longer needed.
+        /// Finds any legacy materials stored in DynAttrs that may exist for this part and add them to 'm_regionMaterials'.
         /// </summary>
         /// <param name="part"></param>
-        private void ConvertLegacyMaterialsInPart(SceneObjectPart part)
+        private void GetLegacyStoredMaterialsInPart(SceneObjectPart part)
         {
             if (part.DynAttrs == null)
                 return;
@@ -183,10 +181,6 @@ namespace OpenSim.Region.OptionalModules.Materials
             if (matsArr == null)
                 return;
 
-            var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
-            if (te == null)
-                return;
-
             foreach (OSD elemOsd in matsArr)
             {
                 if (elemOsd != null && elemOsd is OSDMap)
@@ -194,32 +188,18 @@ namespace OpenSim.Region.OptionalModules.Materials
                     OSDMap matMap = elemOsd as OSDMap;
                     if (matMap.ContainsKey("ID") && matMap.ContainsKey("Material"))
                     {
-                        UUID id = matMap["ID"].AsUUID();
-                        OSDMap material = (OSDMap)matMap["Material"];
-                        bool used = false;
-
-                        foreach (var face in te.FaceTextures)
-                            if (face != null && face.MaterialID == id)
-                                used = true;
-
-                        if (used)
-                        { // store legacy material in new asset format, and update the part texture entry with the new hashed UUID
-
-                            var newId = StoreMaterialAsAsset(part.CreatorID, material, part);
-                            foreach (var face in te.FaceTextures)
-                                if (face != null && face.MaterialID == id)
-                                    face.MaterialID = newId;
+                        try
+                        {
+                            lock (m_regionMaterials)
+                                m_regionMaterials[matMap["ID"].AsUUID()] = (OSDMap)matMap["Material"];
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Warn("[Materials]: exception decoding persisted legacy material: " + e.ToString());
                         }
                     }
                 }
             }
-
-            part.Shape.TextureEntry = te.GetBytes();
-            part.ParentGroup.HasGroupChanged = true;
-            part.ScheduleFullUpdate();
-
-            lock (part.DynAttrs)
-                part.DynAttrs.RemoveStore("OpenSim", "Materials");
         }
 
         /// <summary>
@@ -230,11 +210,11 @@ namespace OpenSim.Region.OptionalModules.Materials
             if (part.Shape == null)
                 return;
 
-            ConvertLegacyMaterialsInPart(part);
-
             var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
             if (te == null)
                 return;
+
+            GetLegacyStoredMaterialsInPart(part);
 
             GetStoredMaterialInFace(part, te.DefaultTexture);
 
