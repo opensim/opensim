@@ -159,10 +159,6 @@ namespace OpenSim.Region.OptionalModules.Materials
             if (part.DynAttrs == null)
                 return;
 
-            var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
-            if (te == null)
-                return;
-
             OSD OSMaterials = null;
             OSDArray matsArr = null;
 
@@ -185,6 +181,10 @@ namespace OpenSim.Region.OptionalModules.Materials
             }
 
             if (matsArr == null)
+                return;
+
+            var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+            if (te == null)
                 return;
 
             foreach (OSD elemOsd in matsArr)
