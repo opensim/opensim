@@ -4,123 +4,6 @@
         <name>OpenMetaverse.StructuredData</name>
     </assembly>
     <members>
-        <member name="T:OpenMetaverse.StructuredData.OSDType">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Unknown">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Boolean">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Integer">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Real">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.String">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.UUID">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Date">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.URI">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Binary">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Map">
-            <summary></summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Array">
-            <summary></summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDException">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSD">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSD.SerializeMembers(System.Object)">
-            <summary>
-            Uses reflection to create an SDMap from all of the SD
-            serializable types in an object
-            </summary>
-            <param name="obj">Class or struct containing serializable types</param>
-            <returns>An SDMap holding the serialized values from the
-            container object</returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSD.DeserializeMembers(System.Object@,OpenMetaverse.StructuredData.OSDMap)">
-            <summary>
-            Uses reflection to deserialize member variables in an object from
-            an SDMap
-            </summary>
-            <param name="obj">Reference to an object to fill with deserialized
-            values</param>
-            <param name="serialized">Serialized values to put in the target
-            object</param>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDBoolean">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDInteger">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDReal">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDString">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDUUID">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDDate">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDUri">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDBinary">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDMap">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDArray">
-            <summary>
-            
-            </summary>
-        </member>
         <member name="T:OpenMetaverse.StructuredData.OSDParser">
             <summary>
             
@@ -344,6 +227,123 @@
             <param name="s"></param>
             <param name="c"></param>
             <returns></returns>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Unknown">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Boolean">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Integer">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Real">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.String">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.UUID">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Date">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.URI">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Binary">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Map">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Array">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDException">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSD">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSD.SerializeMembers(System.Object)">
+            <summary>
+            Uses reflection to create an SDMap from all of the SD
+            serializable types in an object
+            </summary>
+            <param name="obj">Class or struct containing serializable types</param>
+            <returns>An SDMap holding the serialized values from the
+            container object</returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSD.DeserializeMembers(System.Object@,OpenMetaverse.StructuredData.OSDMap)">
+            <summary>
+            Uses reflection to deserialize member variables in an object from
+            an SDMap
+            </summary>
+            <param name="obj">Reference to an object to fill with deserialized
+            values</param>
+            <param name="serialized">Serialized values to put in the target
+            object</param>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDBoolean">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDInteger">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDReal">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDString">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDUUID">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDDate">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDUri">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDBinary">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDMap">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDArray">
+            <summary>
+            
+            </summary>
         </member>
     </members>
 </doc>
