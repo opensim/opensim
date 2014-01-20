@@ -149,12 +149,87 @@ namespace OpenSim.Region.OptionalModules.Materials
         }
 
         /// <summary>
+        /// Searches the part for any legacy materials stored in DynAttrs and converts them to assets, replacing
+        /// the MaterialIDs in the TextureEntries for the part.
+        /// Deletes the legacy materials from the part as they are no longer needed.
+        /// </summary>
+        /// <param name="part"></param>
+        private void ConvertLegacyMaterialsInPart(SceneObjectPart part)
+        {
+            if (part.DynAttrs == null)
+                return;
+
+            var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
+            if (te == null)
+                return;
+
+            OSD OSMaterials = null;
+            OSDArray matsArr = null;
+
+            lock (part.DynAttrs)
+            {
+                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
+                {
+                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+
+                    if (materialsStore == null)
+                        return;
+
+                    materialsStore.TryGetValue("Materials", out OSMaterials);
+                }
+
+                if (OSMaterials != null && OSMaterials is OSDArray)
+                    matsArr = OSMaterials as OSDArray;
+                else
+                    return;
+            }
+
+            if (matsArr == null)
+                return;
+
+            foreach (OSD elemOsd in matsArr)
+            {
+                if (elemOsd != null && elemOsd is OSDMap)
+                {
+                    OSDMap matMap = elemOsd as OSDMap;
+                    if (matMap.ContainsKey("ID") && matMap.ContainsKey("Material"))
+                    {
+                        UUID id = matMap["ID"].AsUUID();
+                        OSDMap material = (OSDMap)matMap["Material"];
+                        bool used = false;
+
+                        foreach (var face in te.FaceTextures)
+                            if (face.MaterialID == id)
+                                used = true;
+
+                        if (used)
+                        { // store legacy material in new asset format, and update the part texture entry with the new hashed UUID
+
+                            var newId = StoreMaterialAsAsset(part.CreatorID, material, part);
+                            foreach (var face in te.FaceTextures)
+                                if (face.MaterialID == id)
+                                    face.MaterialID = newId;
+                        }
+                    }
+                }
+            }
+
+            part.Shape.TextureEntry = te.GetBytes();
+
+            lock (part.DynAttrs)
+                part.DynAttrs.RemoveStore("OpenSim", "Materials");
+        }
+
+        /// <summary>
         /// Find the materials used in the SOP, and add them to 'm_regionMaterials'.
         /// </summary>
         private void GetStoredMaterialsInPart(SceneObjectPart part)
         { 
             if (part.Shape == null)
                 return;
+
+            ConvertLegacyMaterialsInPart(part);
+
             var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
             if (te == null)
                 return;
@@ -324,26 +399,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                             }
                                             else
                                             {
-                                                // Material UUID = hash of the material's data.
-                                                // This makes materials deduplicate across the entire grid (but isn't otherwise required).
-                                                byte[] data = System.Text.Encoding.ASCII.GetBytes(OSDParser.SerializeLLSDXmlString(mat));
-                                                using (var md5 = MD5.Create())
-                                                    id = new UUID(md5.ComputeHash(data), 0);
-
-                                                lock (m_regionMaterials)
-                                                {
-                                                    if (!m_regionMaterials.ContainsKey(id))
-                                                    {
-                                                        m_regionMaterials[id] = mat;
-
-                                                        // This asset might exist already, but it's ok to try to store it again
-                                                        string name = "Material " + ChooseMaterialName(mat, sop);
-                                                        name = name.Substring(0, Math.Min(64, name.Length)).Trim();
-                                                        AssetBase asset = new AssetBase(id, name, (sbyte)OpenSimAssetType.Material, agentID.ToString());
-                                                        asset.Data = data;
-                                                        m_scene.AssetService.Store(asset);
-                                                    }
-                                                }
+                                                id = StoreMaterialAsAsset(agentID, mat, sop);
                                             }
 
 
@@ -402,6 +458,32 @@ namespace OpenSim.Region.OptionalModules.Materials
             //m_log.Debug("[Materials]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
             //m_log.Debug("[Materials]: cap response: " + response);
             return response;
+        }
+
+        private UUID StoreMaterialAsAsset(UUID agentID, OSDMap mat, SceneObjectPart sop)
+        {
+            UUID id;
+            // Material UUID = hash of the material's data.
+            // This makes materials deduplicate across the entire grid (but isn't otherwise required).
+            byte[] data = System.Text.Encoding.ASCII.GetBytes(OSDParser.SerializeLLSDXmlString(mat));
+            using (var md5 = MD5.Create())
+                id = new UUID(md5.ComputeHash(data), 0);
+
+            lock (m_regionMaterials)
+            {
+                if (!m_regionMaterials.ContainsKey(id))
+                {
+                    m_regionMaterials[id] = mat;
+
+                    // This asset might exist already, but it's ok to try to store it again
+                    string name = "Material " + ChooseMaterialName(mat, sop);
+                    name = name.Substring(0, Math.Min(64, name.Length)).Trim();
+                    AssetBase asset = new AssetBase(id, name, (sbyte)OpenSimAssetType.Material, agentID.ToString());
+                    asset.Data = data;
+                    m_scene.AssetService.Store(asset);
+                }
+            }
+            return id;
         }
 
         /// <summary>
