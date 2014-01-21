@@ -60,7 +60,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         
         public void Initialise()
         {            
-            m_log.DebugFormat("[ESTATE MODULE]: Setting up estate commands for region {0}", m_module.Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ESTATE MODULE]: Setting up estate commands for region {0}", m_module.Scene.RegionInfo.RegionName);
             
             m_module.Scene.AddCommand("Regions", m_module, "set terrain texture",
                                "set terrain texture <number> <uuid> [<x>] [<y>]",

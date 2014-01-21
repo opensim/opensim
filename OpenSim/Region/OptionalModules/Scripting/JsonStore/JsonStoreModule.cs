@@ -42,7 +42,6 @@ using OpenSim.Region.Framework.Scenes;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-            
 namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "JsonStoreModule")]
@@ -60,6 +59,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private Scene m_scene = null;
 
         private Dictionary<UUID,JsonStore> m_JsonValueStore;
+
         private UUID m_sharedStore;
 
 #region Region Module interface
@@ -140,6 +140,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 m_sharedStore = UUID.Zero;
                 m_JsonValueStore = new Dictionary<UUID,JsonStore>();
                 m_JsonValueStore.Add(m_sharedStore,new JsonStore(""));
+
+                scene.EventManager.OnObjectBeingRemovedFromScene += EventManagerOnObjectBeingRemovedFromScene;
             }
         }
 
@@ -149,6 +151,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public void RemoveRegion(Scene scene)
         {
+            scene.EventManager.OnObjectBeingRemovedFromScene -= EventManagerOnObjectBeingRemovedFromScene;
+
             // need to remove all references to the scene in the subscription
             // list to enable full garbage collection of the scene object
         }
@@ -161,7 +165,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public void RegionLoaded(Scene scene)
         {
-            if (m_enabled) {}
+            if (m_enabled)
+            {
+            }
         }
 
         /// -----------------------------------------------------------------
@@ -175,8 +181,39 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
 #endregion
 
+#region SceneEvents
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public void EventManagerOnObjectBeingRemovedFromScene(SceneObjectGroup obj)
+        {
+            obj.ForEachPart(delegate(SceneObjectPart sop) { DestroyStore(sop.UUID); } );
+        }
+
+#endregion
+
 #region ScriptInvocationInteface
 
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public JsonStoreStats GetStoreStats()
+        {
+            JsonStoreStats stats;
+
+            lock (m_JsonValueStore)
+            {
+                stats.StoreCount = m_JsonValueStore.Count;
+            }
+            
+            return stats;
+        }
+        
         // -----------------------------------------------------------------
         /// <summary>
         /// 

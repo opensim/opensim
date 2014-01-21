@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// uuids to request
         /// </value>
-        protected IDictionary<UUID, AssetType> m_uuids;
+        protected IDictionary<UUID, sbyte> m_uuids;
 
         /// <value>
         /// Callback used when all the assets requested have been received.
@@ -115,7 +115,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected Dictionary<string, object> m_options;
 
         protected internal AssetsRequest(
-            AssetsArchiver assetsArchiver, IDictionary<UUID, AssetType> uuids, 
+            AssetsArchiver assetsArchiver, IDictionary<UUID, sbyte> uuids, 
             IAssetService assetService, IUserAccountService userService, 
             UUID scope, Dictionary<string, object> options, 
             AssetsRequestCallback assetsRequestCallback)
@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_requestCallbackTimer.Enabled = true;
 
-            foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
+            foreach (KeyValuePair<UUID, sbyte> kvp in m_uuids)
             {
 //                m_log.DebugFormat("[ARCHIVER]: Requesting asset {0}", kvp.Key);
 
@@ -235,9 +235,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Check for broken asset types and fix them with the AssetType gleaned by UuidGatherer
             if (fetchedAsset != null && fetchedAsset.Type == (sbyte)AssetType.Unknown)
             {
-                AssetType type = (AssetType)assetType;
-                m_log.InfoFormat("[ARCHIVER]: Rewriting broken asset type for {0} to {1}", fetchedAsset.ID, type);
-                fetchedAsset.Type = (sbyte)type;
+                m_log.InfoFormat("[ARCHIVER]: Rewriting broken asset type for {0} to {1}", fetchedAsset.ID,  SLUtil.AssetTypeFromCode((sbyte)assetType));
+                fetchedAsset.Type = (sbyte)assetType;
             }
 
             AssetRequestCallback(fetchedAssetID, this, fetchedAsset);

@@ -260,9 +260,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // The act of gathering UUIDs downloads some assets from the remote server
             // but not all...
-            Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
+            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
-            uuidGatherer.GatherAssetUuids(assetID, (AssetType)meta.Type, ids);
+            uuidGatherer.GatherAssetUuids(assetID, meta.Type, ids);
             m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", ids.Count);
             bool success = true;
             foreach (UUID uuid in ids.Keys)
@@ -286,9 +286,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
             if (asset != null)
             {
-                Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
+                Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
                 HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
-                uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                uuidGatherer.GatherAssetUuids(asset.FullID, asset.Type, ids);
                 bool success = false;
                 foreach (UUID uuid in ids.Keys)
                 {
