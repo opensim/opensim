@@ -161,7 +161,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // Get the prim's default texture.  This will be used for faces which don't have their own texture
                         if (textureEntry.DefaultTexture != null)
-                            assetUuids[textureEntry.DefaultTexture.TextureID] = (sbyte)AssetType.Texture;
+                            GatherTextureEntryAssets(textureEntry.DefaultTexture, assetUuids);
 
                         if (textureEntry.FaceTextures != null)
                         {
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Framework.Scenes
                             foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
                             {
                                 if (texture != null)
-                                    assetUuids[texture.TextureID] = (sbyte)AssetType.Texture;
+                                    GatherTextureEntryAssets(texture, assetUuids);
                             }
                         }
                     }
@@ -230,6 +230,19 @@ namespace OpenSim.Region.Framework.Scenes
                         "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)", 
                         part.Shape.TextureEntry.Length);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gather all the asset uuids found in one face of a Texture Entry.
+        /// </summary>
+        private void GatherTextureEntryAssets(Primitive.TextureEntryFace texture, IDictionary<UUID, sbyte> assetUuids)
+        {
+            assetUuids[texture.TextureID] = (sbyte)AssetType.Texture;
+
+            if (texture.MaterialID != UUID.Zero)
+            {
+                GatherAssetUuids(texture.MaterialID, (sbyte)OpenSimAssetType.Material, assetUuids);
             }
         }
 
