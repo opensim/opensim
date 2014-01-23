@@ -114,6 +114,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     "export-map [<path>]",
                     "Save an image of the world map", HandleExportWorldMapConsoleCommand);
 
+                m_scene.AddCommand(
+                    "Regions", this, "generate map",
+                    "generate map",
+                    "Generates and stores a new maptile.", HandleGenerateMapConsoleCommand);
+
                 AddHandlers();
             }
         }
@@ -1253,6 +1258,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.InfoFormat(
                 "[WORLD MAP]: Successfully exported world map for {0} to {1}",
                 m_scene.RegionInfo.RegionName, exportPath);
+        }
+
+        public void HandleGenerateMapConsoleCommand(string module, string[] cmdparams)
+        {
+            Scene consoleScene = m_scene.ConsoleScene();
+
+            if (consoleScene != null && consoleScene != m_scene)
+                return;
+
+            GenerateMaptile();
         }
 
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)

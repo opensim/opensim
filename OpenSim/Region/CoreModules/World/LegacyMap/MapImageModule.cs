@@ -127,7 +127,10 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             try
             {
                 using (Bitmap mapbmp = CreateMapTile())
-                    return OpenJPEG.EncodeFromImage(mapbmp, true);
+                {
+                    if (mapbmp != null)
+                        return OpenJPEG.EncodeFromImage(mapbmp, true);
+                }
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
