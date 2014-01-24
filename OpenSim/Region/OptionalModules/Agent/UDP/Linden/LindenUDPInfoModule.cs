@@ -434,24 +434,24 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                     scene.ForEachClient(
                         delegate(IClientAPI client)
                         {
-                            bool isChild = client.SceneAgent.IsChildAgent;
-                            if (isChild && !showChildren)
-                                return;
-                    
-                            string name = client.Name;
-                            if (pname != "" && name != pname)
-                                return;
-
-                            string regionName = scene.RegionInfo.RegionName;
-
-                            report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
-                            report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-                            report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
-
                             if (client is IStatsCollector)
                             {
-                                IStatsCollector stats = (IStatsCollector)client;
+
+                                bool isChild = client.SceneAgent.IsChildAgent;
+                                if (isChild && !showChildren)
+                                    return;
                         
+                                string name = client.Name;
+                                if (pname != "" && name != pname)
+                                    return;
+
+                                string regionName = scene.RegionInfo.RegionName;
+
+                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
+
+                                IStatsCollector stats = (IStatsCollector)client;                            
                                 report.AppendLine(stats.Report());
                             }
                         });
