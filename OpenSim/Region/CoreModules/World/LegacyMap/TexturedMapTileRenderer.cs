@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         private Bitmap fetchTexture(UUID id)
         {
             AssetBase asset = m_scene.AssetService.Get(id.ToString());
-            m_log.DebugFormat("[TexturedMapTileRenderer]: Fetched texture {0}, found: {1}", id, asset != null);
+            m_log.DebugFormat("[TEXTURED MAP TILE RENDERER]: Fetched texture {0}, found: {1}", id, asset != null);
             if (asset == null) return null;
 
             ManagedImage managedImage;
@@ -188,17 +188,17 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             }
             catch (DllNotFoundException)
             {
-                m_log.ErrorFormat("[TexturedMapTileRenderer]: OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}", id);
+                m_log.ErrorFormat("[TEXTURED MAP TILE RENDERER]: OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}", id);
                 
             }
             catch (IndexOutOfRangeException)
             {
-                m_log.ErrorFormat("[TexturedMapTileRenderer]: OpenJpeg was unable to encode this.   Asset Data is empty for {0}", id);
+                m_log.ErrorFormat("[TEXTURED MAP TILE RENDERER]: OpenJpeg was unable to encode this.   Asset Data is empty for {0}", id);
                 
             }
             catch (Exception)
             {
-                m_log.ErrorFormat("[TexturedMapTileRenderer]: OpenJpeg was unable to encode this.   Asset Data is empty for {0}", id);
+                m_log.ErrorFormat("[TEXTURED MAP TILE RENDERER]: OpenJpeg was unable to encode this.   Asset Data is empty for {0}", id);
                 
             }
             return null;
@@ -233,10 +233,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             if (textureID == UUID.Zero) return defaultColor; // not set
             if (m_mapping.ContainsKey(textureID)) return m_mapping[textureID]; // one of the predefined textures
 
-            Bitmap bmp = fetchTexture(textureID);
-            Color color = bmp == null ? defaultColor : computeAverageColor(bmp);
-            // store it for future reference
-            m_mapping[textureID] = color;
+            Color color;
+
+            using (Bitmap bmp = fetchTexture(textureID))
+            {
+                color = bmp == null ? defaultColor : computeAverageColor(bmp);
+                // store it for future reference
+                m_mapping[textureID] = color;
+            }
 
             return color;
         }
@@ -278,7 +282,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         public void TerrainToBitmap(Bitmap mapbmp)
         {
             int tc = Environment.TickCount;
-            m_log.Debug("[MAPTILE]: Generating Maptile Step 1: Terrain");
+            m_log.Debug("[TEXTURED MAP TILE RENDERER]: Generating Maptile Step 1: Terrain");
 
             // These textures should be in the AssetCache anyway, as every client conneting to this
             // region needs them. Except on start, when the map is recreated (before anyone connected),
@@ -412,7 +416,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     }
                 }
             }
-            m_log.Debug("[MAPTILE]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
+
+            m_log.Debug("[TEXTURED MAP TILE RENDERER]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
         }
     }
 }
