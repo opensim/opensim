@@ -255,6 +255,18 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         region.RegionLocY = n;
                         //m_log.Debug(">> HERE, y: " + region.RegionLocY);
                     }
+                    if (hash["size_x"] != null)
+                    {
+                        Int32.TryParse((string)hash["size_x"], out n);
+                        region.RegionSizeX = n;
+                        //m_log.Debug(">> HERE, x: " + region.RegionLocX);
+                    }
+                    if (hash["size_y"] != null)
+                    {
+                        Int32.TryParse((string)hash["size_y"], out n);
+                        region.RegionSizeY = n;
+                        //m_log.Debug(">> HERE, y: " + region.RegionLocY);
+                    }
                     if (hash["region_name"] != null)
                     {
                         region.RegionName = (string)hash["region_name"];
