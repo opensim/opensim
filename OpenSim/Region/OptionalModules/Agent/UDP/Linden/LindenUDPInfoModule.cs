@@ -395,7 +395,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7}\n",
                 "Since",
                 "Pkts",
                 "Pkts",
@@ -407,12 +407,11 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Q Pkts",
                 "Q Pkts",
                 "Q Pkts",
-                "Q Pkts",
                 "Q Pkts");
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7}\n",
                 "Last In",
                 "In",
                 "Out",
@@ -424,8 +423,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Cloud",
                 "Task",
                 "Texture",
-                "Asset",
-                "State");            
+                "Asset");            
             
             lock (m_scenes)
             {
