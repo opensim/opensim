@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         protected TaskInventoryItem m_item;
 
-        protected bool throwErrorOnNotImplemented = true;
+        protected bool throwErrorOnNotImplemented = false;
         protected AsyncCommandManager AsyncCommands = null;
         protected float m_ScriptDelayFactor = 1.0f;
         protected float m_ScriptDistanceFactor = 1.0f;
@@ -11245,20 +11245,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return item.ItemID;
         }
 
-        internal void ShoutError(string msg)
+        /// <summary>
+        /// Reports the script error in the viewer's Script Warning/Error dialog and shouts it on the debug channel.
+        /// </summary>
+        /// <param name="command">The name of the command that generated the error.</param>
+        /// <param name="message">The error message to report to the user.</param>
+        internal void Error(string command, string message)
         {
-            llShout(ScriptBaseClass.DEBUG_CHANNEL, msg);
+            string text = command + ": " + message;
+            if (text.Length > 1023)
+            {
+                text = text.Substring(0, 1023);
+            }
+
+            World.SimChat(Utils.StringToBytes(text), ChatTypeEnum.DebugChannel, ScriptBaseClass.DEBUG_CHANNEL,
+                m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if (wComm != null)
+            {
+                wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, text);
+            }
         }
 
-        internal void NotImplemented(string command)
+        /// <summary>
+        /// Reports that the command is not implemented as a script error.
+        /// </summary>
+        /// <param name="command">The name of the command that is not implemented.</param>
+        /// <param name="message">Additional information to report to the user. (Optional)</param>
+        internal void NotImplemented(string command, string message = "")
         {
             if (throwErrorOnNotImplemented)
-                throw new NotImplementedException("Command not implemented: " + command);
+            {
+                if (message != "")
+                {
+                    message = " - " + message;
+                }
+
+                throw new NotImplementedException("Command not implemented: " + command + message);
+            }
+            else
+            {
+                string text = "Command not implemented";
+                if (message != "")
+                {
+                    text = text + " - " + message;
+                }
+
+                Error(command, text);
+            }
         }
 
-        internal void Deprecated(string command)
+        /// <summary>
+        /// Reports that the command is deprecated as a script error.
+        /// </summary>
+        /// <param name="command">The name of the command that is deprecated.</param>
+        /// <param name="message">Additional information to report to the user. (Optional)</param>
+        internal void Deprecated(string command, string message = "")
         {
-            throw new ScriptException("Command deprecated: " + command);
+            string text = "Command deprecated";
+            if (message != "")
+            {
+                text = text + " - " + message;
+            }
+
+            Error(command, text);
         }
 
         internal void LSLError(string msg)
