@@ -304,7 +304,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         private string GetImageQueuesReport(string[] showParams)
         {
             if (showParams.Length < 5 || showParams.Length > 6)
-                return "Usage: image queues show <first-name> <last-name> [full]";
+                return "Usage: show image queues <first-name> <last-name> [full]";
 
             string firstName = showParams[3];
             string lastName = showParams[4];
