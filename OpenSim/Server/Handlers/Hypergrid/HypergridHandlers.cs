@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -105,6 +105,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 hash["uuid"] = regInfo.RegionID.ToString();
                 hash["x"] = regInfo.RegionLocX.ToString();
                 hash["y"] = regInfo.RegionLocY.ToString();
+                hash["size_x"] = regInfo.RegionSizeX.ToString();
+                hash["size_y"] = regInfo.RegionSizeY.ToString();
                 hash["region_name"] = regInfo.RegionName;
                 hash["hostname"] = regInfo.ExternalHostName;
                 hash["http_port"] = regInfo.HttpPort.ToString();
