@@ -890,7 +890,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (channelID == 0)
             {
-                LSLError("Cannot use llRegionSay() on channel 0");
+                Error("llRegionSay", "Cannot use on channel 0");
                 return;
             }
 
@@ -2884,7 +2884,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
                 {
-                    LSLError("No permissions to give money");
+                    Error("llGiveMoney", "No permissions to give money");
                     return;
                 }
 
@@ -2892,7 +2892,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (!UUID.TryParse(destination, out toID))
                 {
-                    LSLError("Bad key in llGiveMoney");
+                    Error("llGiveMoney", "Bad key in llGiveMoney");
                     return;
                 }
 
@@ -4391,7 +4391,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(agent,out av))
             {
-                LSLError("First parameter to llTextBox needs to be a key");
+                Error("llTextBox", "First parameter must be a key");
                 return;
             }
 
@@ -6811,17 +6811,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(avatar,out av))
             {
-                LSLError("First parameter to llDialog needs to be a key");
+                Error("llDialog", "First parameter must be a key");
                 return;
             }
             if (buttons.Length < 1)
             {
-                LSLError("No less than 1 button can be shown");
+                Error("llDialog", "At least 1 button must be shown");
                 return;
             }
             if (buttons.Length > 12)
             {
-                LSLError("No more than 12 buttons can be shown");
+                Error("llDialog", "No more than 12 buttons can be shown");
                 return;
             }
             string[] buts = new string[buttons.Length];
@@ -6829,12 +6829,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (buttons.Data[i].ToString() == String.Empty)
                 {
-                    LSLError("button label cannot be blank");
+                    Error("llDialog", "Button label cannot be blank");
                     return;
                 }
                 if (buttons.Data[i].ToString().Length > 24)
                 {
-                    LSLError("button label cannot be longer than 24 characters");
+                    Error("llDialog", "Button label cannot be longer than 24 characters");
                     return;
                 }
                 buts[i] = buttons.Data[i].ToString();
@@ -10302,7 +10302,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (quick_pay_buttons.Data.Length < 4)
             {
-                LSLError("List must have at least 4 elements");
+                Error("llSetPayPrice", "List must have at least 4 elements");
                 return;
             }
             m_host.ParentGroup.RootPart.PayPrice[0]=price;
@@ -11290,11 +11290,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             Error(command, text);
-        }
-
-        internal void LSLError(string msg)
-        {
-            throw new ScriptException("LSL Runtime Error: " + msg);
         }
 
         public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
