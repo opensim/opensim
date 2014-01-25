@@ -2955,13 +2955,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (item == null)
                 {
-                    llSay(0, "Could not find object " + inventory);
+                    Error("llRezAtRoot", "Could not find object " + inventory);
                     return;
                 }
 
                 if (item.InvType != (int)InventoryType.Object)
                 {
-                    llSay(0, "Unable to create requested object. Object is missing from database.");
+                    Error("llRezAtRoot", "Unable to create requested object. Object is missing from database.");
                     return;
                 }
 
@@ -4003,7 +4003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(destination, out destId))
             {
-                llSay(0, "Could not parse key " + destination);
+                Error("llGiveInventory", "Could not parse key " + destination);
                 return;
             }
 
@@ -4011,8 +4011,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                llSay(0, String.Format("Could not find object '{0}'", inventory));
-                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
+                Error("llGiveInventory", String.Format("Could not find object '{0}'", inventory));
             }
 
             UUID objId = item.ItemID;
@@ -4036,7 +4035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (account == null)
                     {
-                        llSay(0, "Can't find destination "+destId.ToString());
+                        Error("llGiveInventory", "Can't find destination " + destId.ToString());
                         return;
                     }
                 }
@@ -6876,7 +6875,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(target, out destId))
             {
-                llSay(0, "Could not parse key " + target);
+                Error("llRemoteLoadScriptPin", "Could not parse key " + target);
                 return;
             }
 
@@ -6892,7 +6891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // make sure the object is a script
             if (item == null || item.Type != 10)
             {
-                llSay(0, "Could not find script " + name);
+                Error("llRemoteLoadScriptPin", "Could not find script " + name);
                 return;
             }
 
@@ -9718,7 +9717,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                llSay(0, "No item name '" + item + "'");
+                Error("llGetInventoryCreator", "Cannot find item '" + item + "'");
 
                 return String.Empty;
             }
