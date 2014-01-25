@@ -261,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((item = GetScriptByName(name)) != UUID.Zero)
                 m_ScriptEngine.ResetScript(item);
             else
-                Error("llResetOtherScript", "Script " + name + " not found");
+                Error("llResetOtherScript", "Can't find script '" + name + "'");
         }
 
         public LSL_Integer llGetScriptState(string name)
@@ -275,7 +275,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return m_ScriptEngine.GetScriptState(item) ?1:0;
             }
 
-            Error("llGetScriptState", "Script " + name + " not found");
+            Error("llGetScriptState", "Can't find script '" + name + "'");
 
             // If we didn't find it, then it's safe to
             // assume it is not running.
@@ -298,7 +298,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                Error("llSetScriptState", "Script " + name + " not found");
+                Error("llSetScriptState", "Can't find script '" + name + "'");
             }
         }
 
@@ -2955,13 +2955,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (item == null)
                 {
-                    Error("llRezAtRoot", "Could not find object " + inventory);
+                    Error("llRezAtRoot", "Can't find object '" + inventory + "'");
                     return;
                 }
 
                 if (item.InvType != (int)InventoryType.Object)
                 {
-                    Error("llRezAtRoot", "Unable to create requested object. Object is missing from database.");
+                    Error("llRezAtRoot", "Can't create requested object; object is missing from database");
                     return;
                 }
 
@@ -4003,7 +4003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(destination, out destId))
             {
-                Error("llGiveInventory", "Could not parse key " + destination);
+                Error("llGiveInventory", "Can't parse destination key '" + destination + "'");
                 return;
             }
 
@@ -4011,7 +4011,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                Error("llGiveInventory", String.Format("Could not find object '{0}'", inventory));
+                Error("llGiveInventory", "Can't find inventory object '" + inventory + "'");
             }
 
             UUID objId = item.ItemID;
@@ -4035,7 +4035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (account == null)
                     {
-                        Error("llGiveInventory", "Can't find destination " + destId.ToString());
+                        Error("llGiveInventory", "Can't find destination '" + destId.ToString() + "'");
                         return;
                     }
                 }
@@ -6875,7 +6875,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(target, out destId))
             {
-                Error("llRemoteLoadScriptPin", "Could not parse key " + target);
+                Error("llRemoteLoadScriptPin", "Can't parse key '" + target + "'");
                 return;
             }
 
@@ -6891,7 +6891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // make sure the object is a script
             if (item == null || item.Type != 10)
             {
-                Error("llRemoteLoadScriptPin", "Could not find script " + name);
+                Error("llRemoteLoadScriptPin", "Can't find script '" + name + "'");
                 return;
             }
 
@@ -9719,7 +9719,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                Error("llGetInventoryCreator", "Cannot find item '" + item + "'");
+                Error("llGetInventoryCreator", "Can't find item '" + item + "'");
 
                 return String.Empty;
             }
@@ -11322,7 +11322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (assetID == UUID.Zero)
             {
                 // => complain loudly, as specified by the LSL docs
-                Error("llGetNumberOfNotecardLines", "Notecard '" + name + "' could not be found");
+                Error("llGetNumberOfNotecardLines", "Can't find notecard '" + name + "'");
 
                 return UUID.Zero.ToString();
             }
@@ -11344,7 +11344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (a == null || a.Type != 7)
                 {
-                    Error("llGetNumberOfNotecardLines", "Notecard '" + name + "' could not be found");
+                    Error("llGetNumberOfNotecardLines", "Can't find notecard '" + name + "'");
                     return;
                 }
 
@@ -11375,7 +11375,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (assetID == UUID.Zero)
             {
                 // => complain loudly, as specified by the LSL docs
-                Error("llGetNotecardLine", "Notecard '" + name + "' could not be found");
+                Error("llGetNotecardLine", "Can't find notecard '" + name + "'");
 
                 return UUID.Zero.ToString();
             }
@@ -11398,7 +11398,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                          {
                              if (a == null || a.Type != 7)
                              {
-                                 Error("llGetNotecardLine", "Notecard '" + name + "' could not be found");
+                                 Error("llGetNotecardLine", "Can't find notecard '" + name + "'");
                                  return;
                              }
 
