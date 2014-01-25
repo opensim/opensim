@@ -2553,9 +2553,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSound(string sound, double volume, int queue, int loop)
         {
             m_host.AddScriptLPS(1);
-            // This function has been deprecated
-            // see http://www.lslwiki.net/lslwiki/wakka.php?wakka=llSound
-            Deprecated("llSound");
+            Deprecated("llSound", "Use llPlaySound instead");
         }
 
         // Xantor 20080528 PlaySound updated so it accepts an objectinventory name -or- a key to a sound
@@ -2914,28 +2912,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeExplosion");
+            Deprecated("llMakeExplosion", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
         public void llMakeFountain(int particles, double scale, double vel, double lifetime, double arc, int bounce, string texture, LSL_Vector offset, double bounce_offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeFountain");
+            Deprecated("llMakeFountain", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
         public void llMakeSmoke(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeSmoke");
+            Deprecated("llMakeSmoke", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
         public void llMakeFire(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeFire");
+            Deprecated("llMakeFire", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
@@ -3236,13 +3234,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTakeCamera(string avatar)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llTakeCamera");
+            Deprecated("llTakeCamera", "Use llSetCameraParams instead");
         }
 
         public void llReleaseCamera(string avatar)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llReleaseCamera");
+            Deprecated("llReleaseCamera", "Use llClearCameraParams instead");
         }
 
         public LSL_String llGetOwner()
@@ -3422,13 +3420,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        /// <summary>
-        /// llSoundPreload is deprecated. In SL this appears to do absolutely nothing
-        /// and is documented to have no delay.
-        /// </summary>
         public void llSoundPreload(string sound)
         {
             m_host.AddScriptLPS(1);
+            Deprecated("llSoundPreload", "Use llPreloadSound instead");
         }
 
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
@@ -8000,7 +7995,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llXorBase64Strings(string str1, string str2)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llXorBase64Strings");
+            Deprecated("llXorBase64Strings", "Use llXorBase64 instead");
             ScriptSleep(300);
             return String.Empty;
         }
@@ -8008,7 +8003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteDataSetRegion()
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llRemoteDataSetRegion");
+            Deprecated("llRemoteDataSetRegion", "Use llOpenRemoteDataChannel instead");
         }
 
         public LSL_Float llLog10(double val)
@@ -10364,13 +10359,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Quaternion.Identity;
         }
 
-        /// <summary>
-        /// The SL implementation does nothing, it is deprecated
-        /// This duplicates SL
-        /// </summary>
         public void llSetPrimURL(string url)
         {
             m_host.AddScriptLPS(1);
+            Deprecated("llSetPrimURL", "Use llSetPrimMediaParams instead");
             ScriptSleep(2000);
         }
 
