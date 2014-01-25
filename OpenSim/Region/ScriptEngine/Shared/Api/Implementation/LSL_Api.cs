@@ -7972,9 +7972,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 string encodedData = Convert.ToBase64String(encData_byte);
                 return encodedData;
             }
-            catch (Exception e)
+            catch
             {
-                throw new Exception("Error in base64Encode" + e.Message);
+                Error("llBase64ToString", "Error encoding string");
+                return String.Empty;
             }
         }
 
@@ -7985,9 +7986,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return Util.Base64ToString(str);
             }
-            catch (Exception e)
+            catch
             {
-                throw new Exception("Error in base64Decode" + e.Message);
+                Error("llBase64ToString", "Error decoding string");
+                return String.Empty;
             }
         }
 
@@ -10678,7 +10680,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!ok || flag < 0 ||
                     flag > (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE)
                 {
-                    throw new ScriptException("Parameter " + i.ToString() + " is an invalid flag");
+                    Error("llHTTPRequest", "Parameter " + i.ToString() + " is an invalid flag");
                 }
 
                 param.Add(parameters.Data[i].ToString());       //Add parameter flag
@@ -10702,12 +10704,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             //There must be at least one name/value pair for custom header
                             if (count == 1)
-                                throw new ScriptException("Missing name/value for custom header at parameter " + i.ToString());
+                                Error("llHTTPRequest", "Missing name/value for custom header at parameter " + i.ToString());
                             break;
                         }
 
                         if (HttpStandardHeaders.Contains(parameters.Data[i].ToString(), StringComparer.OrdinalIgnoreCase))
-                            throw new ScriptException("Name is invalid as a custom header at parameter " + i.ToString());
+                            Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
 
                         param.Add(parameters.Data[i].ToString());
                         param.Add(parameters.Data[i+1].ToString());
