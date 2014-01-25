@@ -3053,7 +3053,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llStopLookAt()
         {
             m_host.AddScriptLPS(1);
-//            NotImplemented("llStopLookAt");
             m_host.StopLookAt();
         }
 
@@ -3419,7 +3418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch (NotImplementedException)
             {
                 // Currently not implemented in DotNetEngine only XEngine
-                NotImplemented("llMinEventDelay in DotNetEngine");
+                NotImplemented("llMinEventDelay", "In DotNetEngine");
             }
         }
 
@@ -10163,7 +10162,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     default:
-                        NotImplemented("llParcelMediaCommandList parameter not supported yet: " + Enum.Parse(typeof(ParcelMediaCommandEnum), commandList.Data[i].ToString()).ToString());
+                        NotImplemented("llParcelMediaCommandList", "Parameter not supported yet: " + Enum.Parse(typeof(ParcelMediaCommandEnum), commandList.Data[i].ToString()).ToString());
                         break;
                 }//end switch
             }//end for
@@ -10271,7 +10270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
-                            NotImplemented("llParcelMediaQuery parameter do not supported yet: " + Enum.Parse(mediaCommandEnum.GetType() , aList.Data[i].ToString()).ToString());
+                            NotImplemented("llParcelMediaQuery", "Parameter not supported yet: " + Enum.Parse(mediaCommandEnum.GetType() , aList.Data[i].ToString()).ToString());
                             break;
                     }
 
