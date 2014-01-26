@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
     public struct DrawStruct
     {
         public DrawRoutine dr;
-        public Rectangle rect;
+//        public Rectangle rect;
         public SolidBrush brush;
         public face[] trns;
     }
@@ -120,6 +120,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             {
                 mapbmp = FetchTexture(m_scene.RegionInfo.RegionSettings.TerrainImageID);
             }
+
             return mapbmp;
         }
 
@@ -128,7 +129,10 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             try
             {
                 using (Bitmap mapbmp = CreateMapTile())
-                    return OpenJPEG.EncodeFromImage(mapbmp, true);
+                {
+                    if (mapbmp != null)
+                        return OpenJPEG.EncodeFromImage(mapbmp, true);
+                }
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
@@ -278,12 +282,11 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             tc = Environment.TickCount;
             m_log.Debug("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
             EntityBase[] objs = whichScene.GetEntities();
-            Dictionary<uint, DrawStruct> z_sort = new Dictionary<uint, DrawStruct>();
-            //SortedList<float, RectangleDrawStruct> z_sort = new SortedList<float, RectangleDrawStruct>();
             List<float> z_sortheights = new List<float>();
             List<uint> z_localIDs = new List<uint>();
+            Dictionary<uint, DrawStruct> z_sort = new Dictionary<uint, DrawStruct>();
 
-            try
+            try 
             {
                 lock (objs)
                 {
@@ -294,7 +297,6 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                         {
                             SceneObjectGroup mapdot = (SceneObjectGroup)obj;
                             Color mapdotspot = Color.Gray; // Default color when prim color is white
-
                             // Loop over prim in group
                             foreach (SceneObjectPart part in mapdot.Parts)
                             {
@@ -547,27 +549,25 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         z_localIDs.Add(part.LocalId);
                                         z_sortheights.Add(pos.Z);
 
-                                        //for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
-                                        //{
-                                        //for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
-                                        //{
-                                        //m_log.InfoFormat("[MAPDEBUG]: {0},{1}({2})", wx, (255 - wy),wy);
-                                        //try
-                                        //{
-                                        // Remember, flip the y!
-                                        //    mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
-                                        //}
-                                        //catch (ArgumentException)
-                                        //{
-                                        //    breakYN = true;
-                                        //}
-
-                                        //if (breakYN)
-                                        //    break;
-                                        //}
-
-                                        //if (breakYN)
-                                        //    break;
+                                        for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
+                                        // {
+                                        //     for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
+                                        //     {
+                                        //         m_log.InfoFormat("[MAPDEBUG]: {0},{1}({2})", wx, (255 - wy),wy);
+                                        //         try
+                                        //         {
+                                        //             // Remember, flip the y!
+                                        //             mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
+                                        //         }
+                                        //         catch (ArgumentException)
+                                        //         {
+                                        //             breakYN = true;
+                                        //         }
+                                        //     }
+                                        //     if (breakYN)
+                                        //         break;
+                                        //     }
+                                        // }
                                         //}
                                     } // Object is within 256m Z of terrain
                                 } // object is at least a meter wide
@@ -581,21 +581,23 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     // Sort prim by Z position
                     Array.Sort(sortedZHeights, sortedlocalIds);
 
-                    Graphics g = Graphics.FromImage(mapbmp);
-
-                    for (int s = 0; s < sortedZHeights.Length; s++)
+                    using (Graphics g = Graphics.FromImage(mapbmp))
                     {
-                        if (z_sort.ContainsKey(sortedlocalIds[s]))
+                        for (int s = 0; s < sortedZHeights.Length; s++)
                         {
-                            DrawStruct rectDrawStruct = z_sort[sortedlocalIds[s]];
-                            for (int r = 0; r < rectDrawStruct.trns.Length; r++)
+                            if (z_sort.ContainsKey(sortedlocalIds[s]))
                             {
-                                g.FillPolygon(rectDrawStruct.brush,rectDrawStruct.trns[r].pts);
+                                DrawStruct rectDrawStruct = z_sort[sortedlocalIds[s]];
+                                for (int r = 0; r < rectDrawStruct.trns.Length; r++)
+                                {
+                                    g.FillPolygon(rectDrawStruct.brush,rectDrawStruct.trns[r].pts);
+                                }
+                                //g.FillRectangle(rectDrawStruct.brush , rectDrawStruct.rect);
                             }
-                            //g.FillRectangle(rectDrawStruct.brush , rectDrawStruct.rect);
                         }
                     }
-                }   // lock(objs)
+                } // lock entities objs
+
             }
             finally
             {
@@ -603,9 +605,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     ds.brush.Dispose();
             }
 
-            g.Dispose();
-
             m_log.Debug("[MAPTILE]: Generating Maptile Step 2: Done in " + (Environment.TickCount - tc) + " ms");
+
             return mapbmp;
         }
 

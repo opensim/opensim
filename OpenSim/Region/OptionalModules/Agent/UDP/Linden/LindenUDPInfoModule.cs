@@ -304,7 +304,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         private string GetImageQueuesReport(string[] showParams)
         {
             if (showParams.Length < 5 || showParams.Length > 6)
-                return "Usage: image queues show <first-name> <last-name> [full]";
+                return "Usage: show image queues <first-name> <last-name> [full]";
 
             string firstName = showParams[3];
             string lastName = showParams[4];
@@ -395,7 +395,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7}\n",
                 "Since",
                 "Pkts",
                 "Pkts",
@@ -407,12 +407,11 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Q Pkts",
                 "Q Pkts",
                 "Q Pkts",
-                "Q Pkts",
                 "Q Pkts");
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7}\n",
                 "Last In",
                 "In",
                 "Out",
@@ -424,8 +423,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Cloud",
                 "Task",
                 "Texture",
-                "Asset",
-                "State");            
+                "Asset");            
             
             lock (m_scenes)
             {
@@ -434,24 +432,24 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                     scene.ForEachClient(
                         delegate(IClientAPI client)
                         {
-                            bool isChild = client.SceneAgent.IsChildAgent;
-                            if (isChild && !showChildren)
-                                return;
-                    
-                            string name = client.Name;
-                            if (pname != "" && name != pname)
-                                return;
-
-                            string regionName = scene.RegionInfo.RegionName;
-
-                            report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
-                            report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-                            report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
-
                             if (client is IStatsCollector)
                             {
-                                IStatsCollector stats = (IStatsCollector)client;
+
+                                bool isChild = client.SceneAgent.IsChildAgent;
+                                if (isChild && !showChildren)
+                                    return;
                         
+                                string name = client.Name;
+                                if (pname != "" && name != pname)
+                                    return;
+
+                                string regionName = scene.RegionInfo.RegionName;
+
+                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
+
+                                IStatsCollector stats = (IStatsCollector)client;                            
                                 report.AppendLine(stats.Report());
                             }
                         });

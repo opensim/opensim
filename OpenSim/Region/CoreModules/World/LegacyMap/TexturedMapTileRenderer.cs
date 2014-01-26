@@ -232,10 +232,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             if (textureID == UUID.Zero) return defaultColor; // not set
             if (m_mapping.ContainsKey(textureID)) return m_mapping[textureID]; // one of the predefined textures
 
-            Bitmap bmp = fetchTexture(textureID);
-            Color color = bmp == null ? defaultColor : computeAverageColor(bmp);
-            // store it for future reference
-            m_mapping[textureID] = color;
+            Color color;
+
+            using (Bitmap bmp = fetchTexture(textureID))
+            {
+                color = bmp == null ? defaultColor : computeAverageColor(bmp);
+                // store it for future reference
+                m_mapping[textureID] = color;
+            }
 
             return color;
         }
@@ -417,7 +421,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     }
                 }
             }
-            m_log.Debug("[MAPTILE]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
+
+            m_log.Debug("[TEXTURED MAP TILE RENDERER]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
         }
     }
 }
