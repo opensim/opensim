@@ -48,6 +48,7 @@ namespace OpenSim.Server.Handlers.Grid
     public class GridServerPostHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[GRID HANDLER]";
 
         private IGridService m_GridService;
 
@@ -281,8 +282,8 @@ namespace OpenSim.Server.Handlers.Grid
             else
                 m_log.WarnFormat("[GRID HANDLER]: no Y in request to get region by position");
 
+            // m_log.DebugFormat("{0} GetRegionByPosition: loc=<{1},{2}>", LogHeader, x, y);
             GridRegion rinfo = m_GridService.GetRegionByPosition(scopeID, x, y);
-            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             if (rinfo == null)

@@ -549,7 +549,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         z_localIDs.Add(part.LocalId);
                                         z_sortheights.Add(pos.Z);
 
-                                        for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
+                                        // for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
                                         // {
                                         //     for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
                                         //     {

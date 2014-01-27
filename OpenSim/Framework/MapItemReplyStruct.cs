@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -37,5 +38,37 @@ namespace OpenSim.Framework
         public int Extra;
         public int Extra2;
         public string name;
+
+        public mapItemReply(uint pX, uint pY, UUID pId, string pName, int pExt1, int pExt2)
+        {
+            x = pX;
+            y = pY;
+            id = pId;
+            name = pName;
+            Extra = pExt1;
+            Extra2 = pExt2;
+        }
+
+        public OSDMap ToOSD()
+        {
+            OSDMap map = new OSDMap();
+            map["X"] = OSD.FromInteger((int)x);
+            map["Y"] = OSD.FromInteger((int)y);
+            map["ID"] = OSD.FromUUID(id);
+            map["Name"] = OSD.FromString(name);
+            map["Extra"] = OSD.FromInteger(Extra);
+            map["Extra2"] = OSD.FromInteger(Extra2);
+            return map;
+        }
+        
+        public void FromOSD(OSDMap map)
+        {
+            x = (uint) map["X"].AsInteger();
+            y = (uint) map["Y"].AsInteger();
+            id = map["ID"].AsUUID();
+            Extra = map["Extra"].AsInteger();
+            Extra2 = map["Extra2"].AsInteger();
+            name = map["Name"].AsString();
+        }
     }
 }

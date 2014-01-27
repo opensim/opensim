@@ -523,9 +523,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ScenePresence sp, ulong regionHandle, Vector3 position,
             Vector3 lookAt, uint teleportFlags, out GridRegion finalDestination)
         {
-            uint x = 0, y = 0;
-            Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
-            GridRegion reg = Scene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
+            // Get destination region taking into account that the address could be an offset
+            //     region inside a varregion.
+            GridRegion reg = GetTeleportDestinationRegion(sp.Scene.GridService, sp.Scene.RegionInfo.ScopeID, regionHandle, ref position);
 
             if (reg != null)
             {
@@ -586,6 +586,31 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 blocks.Add(block);
                 sp.ControllingClient.SendMapBlock(blocks, 0);
             }
+        }
+
+        // The teleport address could be an address in a subregion of a larger varregion.
+        // Find the real base region and adjust the teleport location to account for the
+        //    larger region.
+        private GridRegion GetTeleportDestinationRegion(IGridService gridService, UUID scope, ulong regionHandle, ref Vector3 position)
+        {
+            uint x = 0, y = 0;
+            Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
+
+            // Compute the world location we're teleporting to
+            double worldX = (double)x + position.X;
+            double worldY = (double)y + position.Y;
+
+            // Find the region that contains the position
+            GridRegion reg = GetRegionContainingWorldLocation(gridService, scope, worldX, worldY);
+
+            if (reg != null)
+            {
+                // modify the position for the offset into the actual region returned
+                position.X += x - reg.RegionLocX;
+                position.Y += y - reg.RegionLocY;
+            }
+
+            return reg;
         }
 
         // Nothing to validate here
