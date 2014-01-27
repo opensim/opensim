@@ -2909,7 +2909,6 @@ namespace OpenSim.Region.Framework.Scenes
                     Rotation = newRot;
 
 //                    ParentPosition = part.AbsolutePosition;
-                    part.ParentGroup.AddAvatar(UUID);
                 }
                 else
                 {
@@ -2918,13 +2917,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_pos -= part.GroupPosition;
 
 //                    ParentPosition = part.AbsolutePosition;
-                    part.ParentGroup.AddAvatar(UUID);
 
 //                        m_log.DebugFormat(
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
 
+                part.ParentGroup.AddAvatar(UUID);
                 ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;
