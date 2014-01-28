@@ -100,10 +100,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             x[0, 0] -= 1.0;
             Assert.That(x[0, 0] == 4.0, "Terrain addition/subtraction error.");
 
-            x[0, 0] = Math.PI;
-            double[,] doublesExport = x.GetDoubles();
-            Assert.That(doublesExport[0, 0] == Math.PI, "Export to double[,] array not working correctly.");
-
             x[0, 0] = 1.0;
             float[] floatsExport = x.GetFloatsSerialised();
             Assert.That(floatsExport[0] == 1.0f, "Export to float[] not working correctly.");
