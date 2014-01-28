@@ -1193,22 +1193,36 @@ namespace OpenSim.Region.Framework.Scenes
                 // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
                 // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
                 // not transporting the required data.
-                lock (m_attachments)
-                {
-                    if (HasAttachments())
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+                //
+                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+                // not transporting the required data.
+                //
+                // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
+                // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
+                // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
+                //
+                // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
+                // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
+                // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
+                // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
+                //
+                // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
+                // be locked, allowing race conditions if other code changes the attachments list.
+                List<SceneObjectGroup> attachments = GetAttachments();
 
-                        // Resume scripts
-                        Util.FireAndForget(delegate(object x) {
-                            foreach (SceneObjectGroup sog in m_attachments)
-                            {
-                                sog.ScheduleGroupForFullUpdate();
-                                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                                sog.ResumeScripts();
-                            }
-                        });
+                if (attachments.Count > 0)
+                {
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                    // Resume scripts
+                    foreach (SceneObjectGroup sog in attachments)
+                    {
+                        sog.ScheduleGroupForFullUpdate();
+                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                        sog.ResumeScripts();
                     }
                 }
             }
@@ -2912,7 +2926,6 @@ namespace OpenSim.Region.Framework.Scenes
                     Rotation = newRot;
 
 //                    ParentPosition = part.AbsolutePosition;
-                    part.ParentGroup.AddAvatar(UUID);
                 }
                 else
                 {
@@ -2921,13 +2934,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_pos -= part.GroupPosition;
 
 //                    ParentPosition = part.AbsolutePosition;
-                    part.ParentGroup.AddAvatar(UUID);
 
 //                        m_log.DebugFormat(
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
 
+                part.ParentGroup.AddAvatar(UUID);
                 ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;
@@ -3231,6 +3244,8 @@ namespace OpenSim.Region.Framework.Scenes
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
             SendAvatarDataToAllAgents();
+
+            // This invocation always shows up in the viewer logs as an error.  Is it needed?
             SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
