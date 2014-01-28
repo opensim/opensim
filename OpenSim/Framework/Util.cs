@@ -2084,8 +2084,10 @@ namespace OpenSim.Framework
         #region Xml Serialization Utilities
         public static bool ReadBoolean(XmlTextReader reader)
         {
+            // AuroraSim uses "int" for some fields that are boolean in OpenSim, e.g. "PassCollisions". Don't fail because of this.
             reader.ReadStartElement();
-            bool result = Boolean.Parse(reader.ReadContentAsString().ToLower());
+            string val = reader.ReadContentAsString().ToLower();
+            bool result = val.Equals("true") || val.Equals("1");
             reader.ReadEndElement();
 
             return result;

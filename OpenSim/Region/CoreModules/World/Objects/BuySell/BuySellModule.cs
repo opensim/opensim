@@ -205,13 +205,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = categoryID;
 
-                uint nextPerms=(perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
+                PermissionsUtil.ApplyFoldedPermissions(perms, ref perms);
 
                 item.BasePermissions = perms & part.NextOwnerMask;
                 item.CurrentPermissions = perms & part.NextOwnerMask;

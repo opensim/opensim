@@ -916,48 +916,27 @@ namespace OpenSim.Region.Framework.Scenes
                 // Since renaming the item in the inventory does not affect the name stored
                 // in the serialization, transfer the correct name from the inventory to the
                 // object itself before we rez.
-                rootPart.Name = item.Name;
-                rootPart.Description = item.Description;
-
-                SceneObjectPart[] partList = group.Parts;
+                // Only do these for the first object if we are rezzing a coalescence.
+                if (i == 0)
+                {
+                    rootPart.Name = item.Name;
+                    rootPart.Description = item.Description;
+                }
 
                 group.SetGroup(m_part.GroupID, null);
 
-                // TODO: Remove magic number badness
-                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                foreach (SceneObjectPart part in group.Parts)
                 {
-                    if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
-                    {
-                        foreach (SceneObjectPart part in partList)
-                        {
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                                part.EveryoneMask = item.EveryonePermissions;
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                                part.NextOwnerMask = item.NextPermissions;
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                                part.GroupMask = item.GroupPermissions;
-                        }
+                    // Convert between InventoryItem classes. You can never have too many similar but slightly different classes :)
+                    InventoryItemBase dest = new InventoryItemBase(item.ItemID, item.OwnerID);
+                    dest.BasePermissions = item.BasePermissions;
+                    dest.CurrentPermissions = item.CurrentPermissions;
+                    dest.EveryOnePermissions = item.EveryonePermissions;
+                    dest.GroupPermissions = item.GroupPermissions;
+                    dest.NextPermissions = item.NextPermissions;
+                    dest.Flags = item.Flags;
 
-                        group.ApplyNextOwnerPermissions();
-                    }
-                }
-
-                foreach (SceneObjectPart part in partList)
-                {
-                    // TODO: Remove magic number badness
-                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
-                    {
-                        part.LastOwnerID = part.OwnerID;
-                        part.OwnerID = item.OwnerID;
-                        part.Inventory.ChangeInventoryOwner(item.OwnerID);
-                    }
-
-                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                        part.EveryoneMask = item.EveryonePermissions;
-                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                        part.NextOwnerMask = item.NextPermissions;
-                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                        part.GroupMask = item.GroupPermissions;
+                    part.ApplyPermissionsOnRez(dest, false, m_part.ParentGroup.Scene);
                 }
 
                 rootPart.TrimPermissions();

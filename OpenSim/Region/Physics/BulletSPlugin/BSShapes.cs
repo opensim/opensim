@@ -71,7 +71,7 @@ public abstract class BSShape
         lastReferenced = DateTime.Now;
     }
 
-    // Called when this shape is being used again.
+    // Called when this shape is done being used.
     protected virtual void DecrementReference()
     {
         referenceCount--;
@@ -868,6 +868,8 @@ public class BSShapeHull : BSShape
 public class BSShapeCompound : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
+    public static Dictionary<string, BSShapeCompound> CompoundShapes = new Dictionary<string, BSShapeCompound>();
+
     public BSShapeCompound(BulletShape pShape) : base(pShape)
     {
     }
@@ -875,7 +877,9 @@ public class BSShapeCompound : BSShape
     {
         // Base compound shapes are not shared so this returns a raw shape.
         // A built compound shape can be reused in linksets.
-        return new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene));
+        BSShapeCompound ret = new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene));
+        CompoundShapes.Add(ret.AddrString, ret);
+        return ret;
     }
     public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
     {
@@ -913,8 +917,19 @@ public class BSShapeCompound : BSShape
                     BulletShape childShape = physicsScene.PE.RemoveChildShapeFromCompoundShapeIndex(physShapeInfo, ii);
                     DereferenceAnonCollisionShape(physicsScene, childShape);
                 }
+
+                lock (CompoundShapes)
+                    CompoundShapes.Remove(physShapeInfo.AddrString);
                 physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
             }
+        }
+    }
+    public static bool TryGetCompoundByPtr(BulletShape pShape, out BSShapeCompound outCompound)
+    {
+        lock (CompoundShapes)
+        {
+            string addr = pShape.AddrString;
+            return CompoundShapes.TryGetValue(addr, out outCompound);
         }
     }
     private static BulletShape CreatePhysicalCompoundShape(BSScene physicsScene)
@@ -928,10 +943,13 @@ public class BSShapeCompound : BSShape
     private void DereferenceAnonCollisionShape(BSScene physicsScene, BulletShape pShape)
     {
         // TODO: figure a better way to go through all the shape types and find a possible instance.
+        physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,shape={1}",
+                                            BSScene.DetailLogZero, pShape);
         BSShapeMesh meshDesc;
         if (BSShapeMesh.TryGetMeshByPtr(pShape, out meshDesc))
         {
             meshDesc.Dereference(physicsScene);
+            // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,foundMesh,shape={1}", BSScene.DetailLogZero, pShape);
         }
         else
         {
@@ -939,13 +957,15 @@ public class BSShapeCompound : BSShape
             if (BSShapeHull.TryGetHullByPtr(pShape, out hullDesc))
             {
                 hullDesc.Dereference(physicsScene);
+                // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,foundHull,shape={1}", BSScene.DetailLogZero, pShape);
             }
             else
             {
                 BSShapeConvexHull chullDesc;
-                if (BSShapeConvexHull.TryGetHullByPtr(pShape, out chullDesc))
+                if (BSShapeConvexHull.TryGetConvexHullByPtr(pShape, out chullDesc))
                 {
                     chullDesc.Dereference(physicsScene);
+                    // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,foundConvexHull,shape={1}", BSScene.DetailLogZero, pShape);
                 }
                 else
                 {
@@ -953,20 +973,23 @@ public class BSShapeCompound : BSShape
                     if (BSShapeGImpact.TryGetGImpactByPtr(pShape, out gImpactDesc))
                     {
                         gImpactDesc.Dereference(physicsScene);
+                        // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,foundgImpact,shape={1}", BSScene.DetailLogZero, pShape);
                     }
                     else
                     {
                         // Didn't find it in the lists of specific types. It could be compound.
-                        if (physicsScene.PE.IsCompound(pShape))
+                        BSShapeCompound compoundDesc;
+                        if (BSShapeCompound.TryGetCompoundByPtr(pShape, out compoundDesc))
                         {
-                            BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
-                            recursiveCompound.Dereference(physicsScene);
+                            compoundDesc.Dereference(physicsScene);
+                            // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,recursiveCompoundShape,shape={1}", BSScene.DetailLogZero, pShape);
                         }
                         else
                         {
                             // If none of the above, maybe it is a simple native shape.
                             if (physicsScene.PE.IsNativeShape(pShape))
                             {
+                                // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,assumingNative,shape={1}", BSScene.DetailLogZero, pShape);
                                 BSShapeNative nativeShape = new BSShapeNative(pShape);
                                 nativeShape.Dereference(physicsScene);
                             }
@@ -1023,6 +1046,8 @@ public class BSShapeConvexHull : BSShape
                     convexShape = physicsScene.PE.BuildConvexHullShapeFromMesh(physicsScene.World, baseMesh.physShapeInfo);
                     convexShape.shapeKey = newMeshKey;
                     ConvexHulls.Add(convexShape.shapeKey, retConvexHull);
+                    physicsScene.DetailLog("{0},BSShapeConvexHull.GetReference,addingNewlyCreatedShape,shape={1}",
+                                        BSScene.DetailLogZero, convexShape);
                 }
 
                 // Done with the base mesh
@@ -1051,7 +1076,7 @@ public class BSShapeConvexHull : BSShape
         }
     }
     // Loop through all the known hulls and return the description based on the physical address.
-    public static bool TryGetHullByPtr(BulletShape pShape, out BSShapeConvexHull outHull)
+    public static bool TryGetConvexHullByPtr(BulletShape pShape, out BSShapeConvexHull outHull)
     {
         bool ret = false;
         BSShapeConvexHull foundDesc = null;

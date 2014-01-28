@@ -195,7 +195,7 @@
 <!-- S == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/> -->
   <Section Name="llSay">
     <Key Name="inventoryID" Value="3af51d20-b38f-11dc-8314-0800200c9a66" />
-    <Key Name="assetID" Value="3af51d21-b38f-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="366ac8e9-b391-11dc-8314-0800200c9a66" />
     <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/>
     <Key Name="description" Value="llS" />
     <Key Name="name" Value="llSay" />

@@ -439,17 +439,28 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item == null)
                 return null;
+
+            item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
+            item.CreatorData = objlist[0].RootPart.CreatorData;
                             
-            // Can't know creator is the same, so null it in inventory
             if (objlist.Count > 1)
             {
-                item.CreatorId = UUID.Zero.ToString();
                 item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
+                
+                // If the objects have different creators then don't specify a creator at all
+                foreach (SceneObjectGroup objectGroup in objlist)
+                {
+                    if ((objectGroup.RootPart.CreatorID.ToString() != item.CreatorId)
+                        || (objectGroup.RootPart.CreatorData.ToString() != item.CreatorData))
+                    {
+                        item.CreatorId = UUID.Zero.ToString();
+                        item.CreatorData = string.Empty;
+                        break;
+                    }
+                }
             }
             else
             {
-                item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
-                item.CreatorData = objlist[0].RootPart.CreatorData;
                 item.SaleType = objlist[0].RootPart.ObjectSaleType;
                 item.SalePrice = objlist[0].RootPart.SalePrice;                    
             }              
@@ -470,12 +481,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
-                AddPermissions(item, objlist[0], objlist, remoteClient);
-
                 item.CreationDate = Util.UnixTimeSinceEpoch();
                 item.Description = asset.Description;
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
+
+                AddPermissions(item, objlist[0], objlist, remoteClient);
 
                 m_Scene.AddInventoryItem(item);
 
@@ -531,16 +542,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             effectivePerms |= (uint)PermissionMask.Move;
 
+            //PermissionsUtil.LogPermissions(item.Name, "Before AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);
+
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
                 uint perms = effectivePerms;
-                uint nextPerms = (perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
+                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref perms);
 
                 item.BasePermissions = perms & so.RootPart.NextOwnerMask;
                 item.CurrentPermissions = item.BasePermissions;
@@ -548,10 +555,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
                 
-                // Magic number badness. Maybe this deserves an enum.
-                // bit 4 (16) is the "Slam" bit, it means treat as passed
-                // and apply next owner perms on rez
-                item.CurrentPermissions |= 16; // Slam!
+                // apply next owner perms on rez
+                item.CurrentPermissions |= SceneObjectGroup.SLAM;
             }
             else
             {
@@ -568,8 +573,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
                          7); // Preserve folded permissions
-            }    
-            
+            }
+
+            //PermissionsUtil.LogPermissions(item.Name, "After AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);            
+
             return item;
         }
         
@@ -864,11 +871,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
                 }
 
-                foreach (SceneObjectPart part in group.Parts)
+                if (item == null)
                 {
-                    // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = remoteClient.AgentId;
+                    // Change ownership. Normally this is done in DoPreRezWhenFromItem(), but in this case we must do it here.
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = remoteClient.AgentId;
+                    }
                 }
 
                 if (!attachment)
@@ -1077,7 +1088,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             part.GroupMask = item.GroupPermissions;
                     }
                 }
-    
+
                 rootPart.TrimPermissions();
 
                 if (isAttachment)

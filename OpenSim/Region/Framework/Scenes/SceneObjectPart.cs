@@ -5293,6 +5293,64 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ParentGroup.AddScriptLPS(count);
         }
+
+        /// <summary>
+        /// Sets a prim's owner and permissions when it's rezzed.
+        /// </summary>
+        /// <param name="item">The inventory item from which the item was rezzed</param>
+        /// <param name="userInventory">True: the item is being rezzed from the user's inventory. False: from a prim's inventory.</param>
+        /// <param name="scene">The scene the prim is being rezzed into</param>
+        public void ApplyPermissionsOnRez(InventoryItemBase item, bool userInventory, Scene scene)
+        {
+            if ((OwnerID != item.Owner) || ((item.CurrentPermissions & SceneObjectGroup.SLAM) != 0) || ((item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0))
+            {
+                if (scene.Permissions.PropagatePermissions())
+                {
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                    {
+                        // Apply the item's permissions to the object
+                        //LogPermissions("Before applying item permissions");
+                        if (userInventory)
+                        {
+                            EveryoneMask = item.EveryOnePermissions;
+                            NextOwnerMask = item.NextPermissions;
+                        }
+                        else
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                EveryoneMask = item.EveryOnePermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                NextOwnerMask = item.NextPermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                GroupMask = item.GroupPermissions;
+                        }
+                        //LogPermissions("After applying item permissions");
+                    }
+                }
+
+                GroupMask = 0; // DO NOT propagate here
+            }
+
+            if (OwnerID != item.Owner)
+            {
+                //LogPermissions("Before ApplyNextOwnerPermissions");
+                ApplyNextOwnerPermissions();
+                //LogPermissions("After ApplyNextOwnerPermissions");
+
+                LastOwnerID = OwnerID;
+                OwnerID = item.Owner;
+                Inventory.ChangeInventoryOwner(item.Owner);
+            }
+        }
+
+        /// <summary>
+        /// Logs the prim's permissions. Useful when debugging permission problems.
+        /// </summary>
+        /// <param name="message"></param>
+        private void LogPermissions(String message)
+        {
+            PermissionsUtil.LogPermissions(Name, message, BaseMask, OwnerMask, NextOwnerMask);
+        }
         
         public void ApplyNextOwnerPermissions()
         {

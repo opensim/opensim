@@ -75,6 +75,7 @@ what it is today.
 * Chris Yeoh (IBM)
 * controlbreak
 * coyled
+* ctrlaltdavid (David Rowe)
 * Daedius
 * daTwitch 
 * devalnor-#708

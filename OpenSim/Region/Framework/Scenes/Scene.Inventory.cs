@@ -664,17 +664,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // a mask
                 if (item.InvType == (int)InventoryType.Object)
                 {
-                    // Create a safe mask for the current perms
-                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
-                    foldedPerms |= permsMask;
-
                     bool isRootMod = (item.CurrentPermissions &
                                       (uint)PermissionMask.Modify) != 0 ?
                                       true : false;
 
                     // Mask the owner perms to the folded perms
-                    ownerPerms &= foldedPerms;
-                    basePerms &= foldedPerms;
+                    PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref ownerPerms);
+                    PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref basePerms);
 
                     // If the root was mod, let the mask reflect that
                     // We also need to adjust the base here, because
@@ -1235,9 +1231,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                {
+                    uint perms = taskItem.CurrentPermissions;
+                    PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms);
+                    agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
+                    agentItem.CurrentPermissions = agentItem.BasePermissions;
+                }
                 else
+                {
                     agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
+                }
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.NextPermissions = taskItem.NextPermissions;
