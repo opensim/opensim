@@ -124,7 +124,7 @@ namespace OpenSim
             else
             {
                 Application.iniFilePath = Path.GetFullPath(
-                        Path.Combine(Util.configDir(), iniFileName));
+                    Path.Combine(Util.configDir(), iniFileName));
 
                 if (!File.Exists(Application.iniFilePath))
                 {
@@ -154,14 +154,14 @@ namespace OpenSim
                 }
             }
 
-			// Override distro settings with contents of inidirectory
+            // Override distro settings with contents of inidirectory
             string iniDirName = startupConfig.GetString("inidirectory", "config");
             string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
 
             if (Directory.Exists(iniDirPath))
             {
                 m_log.InfoFormat("[CONFIG]: Searching folder {0} for config ini files", iniDirPath);
-	            List<string> overrideSources = new List<string>();
+                List<string> overrideSources = new List<string>();
 
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
@@ -169,45 +169,45 @@ namespace OpenSim
                     if (Path.GetExtension(filePath).ToLower() == ".ini")
                     {
                         if (!sources.Contains(Path.GetFullPath(filePath)))
-						{
+                        {
                             overrideSources.Add(Path.GetFullPath(filePath));
-							// put it in sources too, to avoid circularity
-							sources.Add(Path.GetFullPath(filePath));
-						}
+                            // put it in sources too, to avoid circularity
+                            sources.Add(Path.GetFullPath(filePath));
+                        }
                     }
                 }
 
 
-            	if (overrideSources.Count > 0)
-            	{
-					OpenSimConfigSource overrideConfig = new OpenSimConfigSource();
-					overrideConfig.Source = new IniConfigSource();
-    	        	
-	            	for (int i = 0 ; i < overrideSources.Count ; i++)
-            		{
-		                if (ReadConfig(overrideConfig, overrideSources[i]))
-                		{
-		                    iniFileExists = true;
-                    		AddIncludes(overrideConfig, overrideSources);
-                		} 
-	           		}
-		            m_config.Source.Merge(overrideConfig.Source);
-				}			
-			}
-			
+                if (overrideSources.Count > 0)
+                {
+                    OpenSimConfigSource overrideConfig = new OpenSimConfigSource();
+                    overrideConfig.Source = new IniConfigSource();
+
+                    for (int i = 0 ; i < overrideSources.Count ; i++)
+                    {
+                        if (ReadConfig(overrideConfig, overrideSources[i]))
+                        {
+                            iniFileExists = true;
+                            AddIncludes(overrideConfig, overrideSources);
+                        } 
+                    }
+                    m_config.Source.Merge(overrideConfig.Source);
+                }
+            }
+
             if (sources.Count == 0)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
                 Environment.Exit(1);
             } 
-			else if (!iniFileExists)
+            else if (!iniFileExists)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
                 m_log.FatalFormat("[CONFIG]: Configuration exists, but there was an error loading it!");
                 Environment.Exit(1);
             }
-			
-			// Make sure command line options take precedence
+
+            // Make sure command line options take precedence
             m_config.Source.Merge(argvSource);
 
             IConfig enVars = m_config.Source.Configs["Environment"];
