@@ -3005,6 +3005,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
+        public LSL_Vector osGetRegionSize()
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetRegionSize");
+            m_host.AddScriptLPS(1);
+
+            bool isMegaregion;
+            IRegionCombinerModule rcMod = World.RequestModuleInterface<IRegionCombinerModule>();
+            if (rcMod != null)
+                isMegaregion = rcMod.IsRootForMegaregion(World.RegionInfo.RegionID);
+            else
+                isMegaregion = false;
+
+            if (isMegaregion)
+            {
+                Vector2 size = rcMod.GetSizeOfMegaregion(World.RegionInfo.RegionID);
+                return new LSL_Vector(size.X, size.Y, Constants.RegionHeight);
+            }
+            else
+            {
+                return new LSL_Vector((float)Constants.RegionSize, (float)Constants.RegionSize, Constants.RegionHeight);
+            }
+        }
+
         public int osGetSimulatorMemory()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemory");

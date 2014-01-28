@@ -194,10 +194,12 @@ namespace OpenSim.Region.CoreModules.Asset
 
         #region IImprovedAssetCache Members
 
-
         public bool Check(string id)
         {
-            return false;
+            AssetBase asset;
+
+            // XXX:This is probably not an efficient implementation.
+            return m_cache.TryGetValue(id, out asset);
         }
 
         /// <summary>

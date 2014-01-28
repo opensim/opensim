@@ -1385,7 +1385,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out uint xDest, out uint yDest, out string version, out Vector3 newpos)
         {
             version = String.Empty;
-            newpos = new Vector3(pos.X, pos.Y, pos.Z);
+            newpos = pos;
 
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);

@@ -163,6 +163,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_maxRTO = 60000;
         public bool m_deliverPackets = true;
 
+        /// <summary>
+        /// This is the percentage of the udp texture queue to add to the task queue since
+        /// textures are now generally handled through http.
+        /// </summary>
+        private double m_cannibalrate = 0.0;
+        
         private ClientInfo m_info = new ClientInfo();
 
         /// <summary>
@@ -202,6 +208,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
+            m_cannibalrate = rates.CannibalizeTextureRate;
+            
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 ThrottleOutPacketType type = (ThrottleOutPacketType)i;
@@ -350,6 +358,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             texture = Math.Max(texture, LLUDPServer.MTU);
             asset = Math.Max(asset, LLUDPServer.MTU);
 
+            // Since most textures are now delivered through http, make it possible
+            // to cannibalize some of the bw from the texture throttle to use for
+            // the task queue (e.g. object updates)
+            task = task + (int)(m_cannibalrate * texture);
+            texture = (int)((1 - m_cannibalrate) * texture);
+            
             //int total = resend + land + wind + cloud + task + texture + asset;
             //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
             //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);

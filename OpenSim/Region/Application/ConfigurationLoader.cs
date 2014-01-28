@@ -124,7 +124,7 @@ namespace OpenSim
             else
             {
                 Application.iniFilePath = Path.GetFullPath(
-                        Path.Combine(Util.configDir(), iniFileName));
+                    Path.Combine(Util.configDir(), iniFileName));
 
                 if (!File.Exists(Application.iniFilePath))
                 {
@@ -139,12 +139,29 @@ namespace OpenSim
                 }
             }
 
+            m_config = new OpenSimConfigSource();
+            m_config.Source = new IniConfigSource();
+            m_config.Source.Merge(DefaultConfig());
+
+            m_log.Info("[CONFIG]: Reading configuration settings");
+
+            for (int i = 0 ; i < sources.Count ; i++)
+            {
+                if (ReadConfig(m_config, sources[i]))
+                {
+                    iniFileExists = true;
+                    AddIncludes(m_config, sources);
+                }
+            }
+
+            // Override distro settings with contents of inidirectory
             string iniDirName = startupConfig.GetString("inidirectory", "config");
             string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
 
             if (Directory.Exists(iniDirPath))
             {
-                m_log.InfoFormat("Searching folder {0} for config ini files", iniDirPath);
+                m_log.InfoFormat("[CONFIG]: Searching folder {0} for config ini files", iniDirPath);
+                List<string> overrideSources = new List<string>();
 
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
@@ -152,33 +169,38 @@ namespace OpenSim
                     if (Path.GetExtension(filePath).ToLower() == ".ini")
                     {
                         if (!sources.Contains(Path.GetFullPath(filePath)))
+                        {
+                            overrideSources.Add(Path.GetFullPath(filePath));
+                            // put it in sources too, to avoid circularity
                             sources.Add(Path.GetFullPath(filePath));
+                        }
                     }
                 }
+
+
+                if (overrideSources.Count > 0)
+                {
+                    OpenSimConfigSource overrideConfig = new OpenSimConfigSource();
+                    overrideConfig.Source = new IniConfigSource();
+
+                    for (int i = 0 ; i < overrideSources.Count ; i++)
+                    {
+                        if (ReadConfig(overrideConfig, overrideSources[i]))
+                        {
+                            iniFileExists = true;
+                            AddIncludes(overrideConfig, overrideSources);
+                        } 
+                    }
+                    m_config.Source.Merge(overrideConfig.Source);
+                }
             }
-
-            m_config = new OpenSimConfigSource();
-            m_config.Source = new IniConfigSource();
-            m_config.Source.Merge(DefaultConfig());
-
-            m_log.Info("[CONFIG]: Reading configuration settings");
 
             if (sources.Count == 0)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
                 Environment.Exit(1);
-            }
-
-            for (int i = 0 ; i < sources.Count ; i++)
-            {
-                if (ReadConfig(sources[i]))
-                {
-                    iniFileExists = true;
-                    AddIncludes(sources);
-                }
-            }
-
-            if (!iniFileExists)
+            } 
+            else if (!iniFileExists)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
                 m_log.FatalFormat("[CONFIG]: Configuration exists, but there was an error loading it!");
@@ -214,10 +236,10 @@ namespace OpenSim
         /// Adds the included files as ini configuration files
         /// </summary>
         /// <param name="sources">List of URL strings or filename strings</param>
-        private void AddIncludes(List<string> sources)
+        private void AddIncludes(OpenSimConfigSource configSource, List<string> sources)
         {
             //loop over config sources
-            foreach (IConfig config in m_config.Source.Configs)
+            foreach (IConfig config in configSource.Source.Configs)
             {
                 // Look for Include-* in the key name
                 string[] keys = config.GetKeys();
@@ -284,7 +306,7 @@ namespace OpenSim
         /// </summary>
         /// <param name="iniPath">Full path to the ini</param>
         /// <returns></returns>
-        private bool ReadConfig(string iniPath)
+        private bool ReadConfig(OpenSimConfigSource configSource, string iniPath)
         {
             bool success = false;
 
@@ -292,7 +314,7 @@ namespace OpenSim
             {
                 m_log.InfoFormat("[CONFIG]: Reading configuration file {0}", Path.GetFullPath(iniPath));
 
-                m_config.Source.Merge(new IniConfigSource(iniPath));
+                configSource.Source.Merge(new IniConfigSource(iniPath));
                 success = true;
             }
             else
@@ -305,7 +327,7 @@ namespace OpenSim
                 {
                     XmlReader r = XmlReader.Create(iniPath);
                     XmlConfigSource cs = new XmlConfigSource(r);
-                    m_config.Source.Merge(cs);
+                    configSource.Source.Merge(cs);
 
                     success = true;
                 }

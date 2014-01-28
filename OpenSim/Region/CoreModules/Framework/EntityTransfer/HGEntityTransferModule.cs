@@ -182,11 +182,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", so.Name, so.AttachedAvatar, url);
-                    Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
+                    Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
                     HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url);
                     uuidGatherer.GatherAssetUuids(so, ids);
 
-                    foreach (KeyValuePair<UUID, AssetType> kvp in ids)
+                    foreach (KeyValuePair<UUID, sbyte> kvp in ids)
                         uuidGatherer.FetchAsset(kvp.Key);
                 }
             }

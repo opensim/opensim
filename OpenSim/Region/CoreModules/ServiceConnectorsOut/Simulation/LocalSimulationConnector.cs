@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         #endregion
 
-        #region ISimulation
+        #region ISimulationService
 
         public IScene GetScene(UUID regionId)
         {
@@ -352,7 +352,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        #endregion /* IInterregionComms */
+        #endregion
 
         #region Misc
 

@@ -115,6 +115,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     "export-map [<path>]",
                     "Save an image of the world map", HandleExportWorldMapConsoleCommand);
 
+                m_scene.AddCommand(
+                    "Regions", this, "generate map",
+                    "generate map",
+                    "Generates and stores a new maptile.", HandleGenerateMapConsoleCommand);
+
                 AddHandlers();
             }
         }
@@ -1324,6 +1329,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_scene.RegionInfo.RegionName, exportPath);
         }
 
+        public void HandleGenerateMapConsoleCommand(string module, string[] cmdparams)
+        {
+            Scene consoleScene = m_scene.ConsoleScene();
+
+            if (consoleScene != null && consoleScene != m_scene)
+                return;
+
+            GenerateMaptile();
+        }
+
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
         {
             uint xstart = 0;
@@ -1561,88 +1576,69 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private Byte[] GenerateOverlay()
         {
-            Bitmap overlay = new Bitmap(256, 256);
-
-            bool[,] saleBitmap = new bool[64, 64];
-            for (int x = 0 ; x < 64 ; x++)
+            using (Bitmap overlay = new Bitmap(256, 256))
             {
-                for (int y = 0 ; y < 64 ; y++)
-                    saleBitmap[x, y] = false;
-            }
-
-            bool landForSale = false;
-
-            List<ILandObject> parcels = m_scene.LandChannel.AllParcels();
-
-            Color background = Color.FromArgb(0, 0, 0, 0);
-            SolidBrush transparent = new SolidBrush(background);
-            Graphics g = Graphics.FromImage(overlay);
-            g.FillRectangle(transparent, 0, 0, 255, 255);
-
-            SolidBrush yellow = new SolidBrush(Color.FromArgb(255, 249, 223, 9));
-            Pen grey = new Pen(Color.FromArgb(255, 92, 92, 92));
-
-            foreach (ILandObject land in parcels)
-            {
-                // m_log.DebugFormat("[WORLD MAP]: Parcel {0} flags {1}", land.LandData.Name, land.LandData.Flags);
-                if ((land.LandData.Flags & (uint)ParcelFlags.ForSale) != 0)
+                bool[,] saleBitmap = new bool[64, 64];
+                for (int x = 0 ; x < 64 ; x++)
                 {
-                    landForSale = true;
-                    
-                    bool[,] landBitmap = land.GetLandBitmap();
+                    for (int y = 0 ; y < 64 ; y++)
+                        saleBitmap[x, y] = false;
+                }
 
-                    for (int x = 0 ; x < 64 ; x++)
+                bool landForSale = false;
+
+                List<ILandObject> parcels = m_scene.LandChannel.AllParcels();
+
+                Color background = Color.FromArgb(0, 0, 0, 0);
+
+                using (Graphics g = Graphics.FromImage(overlay))
+                {
+                    using (SolidBrush transparent = new SolidBrush(background))
+                        g.FillRectangle(transparent, 0, 0, 256, 256);
+
+
+                    foreach (ILandObject land in parcels)
                     {
-                        for (int y = 0 ; y < 64 ; y++)
+                        // m_log.DebugFormat("[WORLD MAP]: Parcel {0} flags {1}", land.LandData.Name, land.LandData.Flags);
+                        if ((land.LandData.Flags & (uint)ParcelFlags.ForSale) != 0)
                         {
-                            if (landBitmap[x, y])
-                            {
-                                g.FillRectangle(yellow, x * 4, 252 - (y * 4), 4, 4);
+                            landForSale = true;
 
-                                if (x > 0)
-                                {
-                                    if ((saleBitmap[x - 1, y] || landBitmap[x - 1, y]) == false)
-                                        g.DrawLine(grey, x * 4, 252 - (y * 4), x * 4, 255 - (y * 4));
-                                }
-                                if (y > 0)
-                                {
-                                    if ((saleBitmap[x, y-1] || landBitmap[x, y-1]) == false)
-                                        g.DrawLine(grey, x * 4, 255 - (y * 4), x * 4 + 3, 255 - (y * 4));
-                                }
-                                if (x < 63)
-                                {
-                                    if ((saleBitmap[x + 1, y] || landBitmap[x + 1, y]) == false)
-                                        g.DrawLine(grey, x * 4 + 3, 252 - (y * 4), x * 4 + 3, 255 - (y * 4));
-                                }
-                                if (y < 63)
-                                {
-                                    if ((saleBitmap[x, y + 1] || landBitmap[x, y + 1]) == false)
-                                        g.DrawLine(grey, x * 4, 252 - (y * 4), x * 4 + 3, 252 - (y * 4));
-                                }
-                            }
+                            saleBitmap = land.MergeLandBitmaps(saleBitmap, land.GetLandBitmap());
                         }
                     }
 
-                    saleBitmap = land.MergeLandBitmaps(saleBitmap, landBitmap);
+                    if (!landForSale)
+                    {
+                        m_log.DebugFormat("[WORLD MAP]: Region {0} has no parcels for sale, not generating overlay", m_scene.RegionInfo.RegionName);
+                        return null;
+                    }
+
+                    m_log.DebugFormat("[WORLD MAP]: Region {0} has parcels for sale, generating overlay", m_scene.RegionInfo.RegionName);
+
+                    using (SolidBrush yellow = new SolidBrush(Color.FromArgb(255, 249, 223, 9)))
+                    {
+                        for (int x = 0 ; x < 64 ; x++)
+                        {
+                            for (int y = 0 ; y < 64 ; y++)
+                            {
+                                if (saleBitmap[x, y])
+                                    g.FillRectangle(yellow, x * 4, 252 - (y * 4), 4, 4);
+                            }
+                        }
+                    }
+                }
+
+                try
+                {
+                    return OpenJPEG.EncodeFromImage(overlay, true);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[WORLD MAP]: Error creating parcel overlay: " + e.ToString());
                 }
             }
 
-            if (!landForSale)
-            {
-                m_log.DebugFormat("[WORLD MAP]: Region {0} has no parcels for sale, not generating overlay", m_scene.RegionInfo.RegionName);
-                return null;
-            }
-
-            m_log.DebugFormat("[WORLD MAP]: Region {0} has parcels for sale, generating overlay", m_scene.RegionInfo.RegionName);
-
-            try
-            {
-                return OpenJPEG.EncodeFromImage(overlay, true);
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[WORLD MAP]: Error creating parcel overlay: " + e.ToString());
-            }
             return null;
         }
     }

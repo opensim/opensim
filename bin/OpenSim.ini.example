@@ -687,6 +687,12 @@
     ; enable_windlight = false
 
 
+[Materials]
+    ;# {enable_materials} {} {Enable Materials support?} {true false} true
+    ;; This enables the use of Materials.
+    ; enable_materials = true
+
+
 [DataSnapshot]
     ;# {index_sims} {} {Enable data snapshotting (search)?} {true false} false
     ;; The following set of configs pertains to search.

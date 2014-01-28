@@ -4121,32 +4121,52 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+//                m_log.DebugFormat(
+//                    "[SCENE]: Found telehub object {0} for new user connection {1} to {2}", 
+//                    RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
+
                 // Honor Estate teleport routing via Telehubs excluding ViaHome and GodLike TeleportFlags
                 if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero &&
                     RegionInfo.EstateSettings.AllowDirectTeleport == false &&
                     !viahome && !godlike)
                 {
                     SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
-                    // Can have multiple SpawnPoints
-                    List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
-                    if (spawnpoints.Count > 1)
+
+                    if (telehub != null)
                     {
-                        // We have multiple SpawnPoints, Route the agent to a random or sequential one
-                        if (SpawnPointRouting == "random")
-                            acd.startpos = spawnpoints[Util.RandomClass.Next(spawnpoints.Count) - 1].GetLocation(
-                                telehub.AbsolutePosition,
-                                telehub.GroupRotation
-                            );
+                        // Can have multiple SpawnPoints
+                        List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
+                        if (spawnpoints.Count > 1)
+                        {
+                            // We have multiple SpawnPoints, Route the agent to a random or sequential one
+                            if (SpawnPointRouting == "random")
+                                acd.startpos = spawnpoints[Util.RandomClass.Next(spawnpoints.Count) - 1].GetLocation(
+                                    telehub.AbsolutePosition,
+                                    telehub.GroupRotation
+                                );
+                            else
+                                acd.startpos = spawnpoints[SpawnPoint()].GetLocation(
+                                    telehub.AbsolutePosition,
+                                    telehub.GroupRotation
+                                );
+                        }
+                        else if (spawnpoints.Count == 1)
+                        {
+                            // We have a single SpawnPoint and will route the agent to it
+                            acd.startpos = spawnpoints[0].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                        }
                         else
-                            acd.startpos = spawnpoints[SpawnPoint()].GetLocation(
-                                telehub.AbsolutePosition,
-                                telehub.GroupRotation
-                            );
+                        {
+                            m_log.DebugFormat(
+                                "[SCENE]: No spawnpoints defined for telehub {0} for {1} in {2}.  Continuing.", 
+                                RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
+                        }
                     }
                     else
                     {
-                        // We have a single SpawnPoint and will route the agent to it
-                        acd.startpos = spawnpoints[0].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                        m_log.DebugFormat(
+                            "[SCENE]: No telehub {0} found to direct {1} in {2}.  Continuing.", 
+                            RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
                     }
 
                     return true;
@@ -4593,18 +4613,6 @@ namespace OpenSim.Region.Framework.Scenes
             return sp;
         }
 
-        public virtual bool IncomingRetrieveRootAgent(UUID id, out IAgentData agent)
-        {
-            agent = null;
-            ScenePresence sp = GetScenePresence(id);
-            if ((sp != null) && (!sp.IsChildAgent))
-            {
-                sp.IsChildAgent = true;
-                return sp.CopyAgent(out agent);
-            }
-
-            return false;
-        }
         /// <summary>
         /// Authenticated close (via network)
         /// </summary>

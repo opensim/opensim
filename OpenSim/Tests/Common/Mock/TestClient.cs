@@ -799,11 +799,6 @@ namespace OpenSim.Tests.Common.Mock
             {
                 OnRegionHandShakeReply(this);
             }
-
-            if (OnCompleteMovementToRegion != null)
-            {
-                OnCompleteMovementToRegion(this, true);
-            }
         }
         
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)

@@ -248,70 +248,67 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private void UpdateFileCache(string key, AssetBase asset)
         {
-            // TODO: Spawn this off to some seperate thread to do the actual writing
-            if (asset != null)
+            string filename = GetFileName(key);
+
+            try
             {
-                string filename = GetFileName(key);
-
-                try
+                // If the file is already cached, don't cache it, just touch it so access time is updated
+                if (File.Exists(filename))
                 {
-                    // If the file is already cached, don't cache it, just touch it so access time is updated
-                    if (File.Exists(filename))
+                    // We don't really want to know about sharing
+                    // violations here. If the file is locked, then
+                    // the other thread has updated the time for us.
+                    try
                     {
-                        // We don't really want to know about sharing
-                        // violations here. If the file is locked, then
-                        // the other thread has updated the time for us.
-                        try
-                        {
-                            lock (m_CurrentlyWriting)
-                            {
-                                if (!m_CurrentlyWriting.Contains(filename))
-                                    File.SetLastAccessTime(filename, DateTime.Now);
-                            }
-                        }
-                        catch
-                        {
-                        }
-                    } else {
-
-                        // Once we start writing, make sure we flag that we're writing
-                        // that object to the cache so that we don't try to write the 
-                        // same file multiple times.
                         lock (m_CurrentlyWriting)
                         {
+                            if (!m_CurrentlyWriting.Contains(filename))
+                                File.SetLastAccessTime(filename, DateTime.Now);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                } 
+                else 
+                {
+                    // Once we start writing, make sure we flag that we're writing
+                    // that object to the cache so that we don't try to write the 
+                    // same file multiple times.
+                    lock (m_CurrentlyWriting)
+                    {
 #if WAIT_ON_INPROGRESS_REQUESTS
-                            if (m_CurrentlyWriting.ContainsKey(filename))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                m_CurrentlyWriting.Add(filename, new ManualResetEvent(false));
-                            }
-
-#else
-                            if (m_CurrentlyWriting.Contains(filename))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                m_CurrentlyWriting.Add(filename);
-                            }
-#endif
-
+                        if (m_CurrentlyWriting.ContainsKey(filename))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            m_CurrentlyWriting.Add(filename, new ManualResetEvent(false));
                         }
 
-                        Util.FireAndForget(
-                            delegate { WriteFileCache(filename, asset); });
+#else
+                        if (m_CurrentlyWriting.Contains(filename))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            m_CurrentlyWriting.Add(filename);
+                        }
+#endif
+
                     }
+
+                    Util.FireAndForget(
+                        delegate { WriteFileCache(filename, asset); });
                 }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
-                        asset.ID, e.Message, e.StackTrace);
-                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
+                    asset.ID, e.Message, e.StackTrace);
             }
         }
 
@@ -347,14 +344,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private bool CheckFromMemoryCache(string id)
         {
-            AssetBase asset = null;
-
-            if (m_MemoryCache.TryGetValue(id, out asset))
-                return true;
-
-            return false;
+            return m_MemoryCache.Contains(id);
         }
-
 
         /// <summary>
         /// Try to get an asset from the file cache.
@@ -393,15 +384,16 @@ namespace OpenSim.Region.CoreModules.Asset
 
             if (File.Exists(filename))
             {
-                FileStream stream = null;
                 try
                 {
-                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    BinaryFormatter bformatter = new BinaryFormatter();
+                    using (FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        BinaryFormatter bformatter = new BinaryFormatter();
 
-                    asset = (AssetBase)bformatter.Deserialize(stream);
+                        asset = (AssetBase)bformatter.Deserialize(stream);
 
-                    m_DiskHits++;
+                        m_DiskHits++;
+                    }
                 }
                 catch (System.Runtime.Serialization.SerializationException e)
                 {
@@ -420,12 +412,6 @@ namespace OpenSim.Region.CoreModules.Asset
                     m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
-
-                }
-                finally
-                {
-                    if (stream != null)
-                        stream.Close();
                 }
             }
 
@@ -437,36 +423,19 @@ namespace OpenSim.Region.CoreModules.Asset
             bool found = false;
 
             string filename = GetFileName(id);
+
             if (File.Exists(filename))
             {
-                // actually check if we can open it, and so update expire
-                FileStream stream = null;
                 try
                 {
-                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    if (stream != null)
+                    using (FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        found = true;
-                        stream.Close();
+                        if (stream != null)
+                            found = true;
                     }
-
-                }
-                catch (System.Runtime.Serialization.SerializationException e)
-                {
-                    found = false;
-                    m_log.ErrorFormat(
-                        "[FLOTSAM ASSET CACHE]: Failed to check file {0} for asset {1}.  Exception {2} {3}",
-                        filename, id, e.Message, e.StackTrace);
-
-                    // If there was a problem deserializing the asset, the asset may
-                    // either be corrupted OR was serialized under an old format
-                    // {different version of AssetBase} -- we should attempt to
-                    // delete it and re-cache
-                    File.Delete(filename);
                 }
                 catch (Exception e)
                 {
-                    found = false;
                     m_log.ErrorFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to check file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
@@ -514,11 +483,6 @@ namespace OpenSim.Region.CoreModules.Asset
         }
 
         public AssetBase GetCached(string id)
-        {
-            return Get(id);
-        }
-
-        public AssetBase CheckCached(string id)
         {
             return Get(id);
         }
@@ -807,7 +771,7 @@ namespace OpenSim.Region.CoreModules.Asset
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
             HashSet<UUID> uniqueUuids = new HashSet<UUID>();
-            Dictionary<UUID, AssetType> assets = new Dictionary<UUID, AssetType>();
+            Dictionary<UUID, sbyte> assets = new Dictionary<UUID, sbyte>();
 
             foreach (Scene s in m_Scenes)
             {
@@ -830,7 +794,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         else if (storeUncached)
                         {
                             AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
-                            if (cachedAsset == null && assets[assetID] != AssetType.Unknown)
+                            if (cachedAsset == null && assets[assetID] != (sbyte)AssetType.Unknown)
                                 m_log.DebugFormat(
                                 "[FLOTSAM ASSET CACHE]: Could not find asset {0}, type {1} referenced by object {2} at {3} in scene {4} when pre-caching all scene assets",
                                     assetID, assets[assetID], e.Name, e.AbsolutePosition, s.Name);
@@ -1065,11 +1029,6 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             AssetBase asset = Get(id);
             return asset.Data;
-        }
-
-        public bool CheckData(string id)
-        {
-            return Check(id); ;
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)

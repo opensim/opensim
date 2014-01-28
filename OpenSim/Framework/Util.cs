@@ -1043,7 +1043,7 @@ namespace OpenSim.Framework
                 else if (typeof(T) == typeof(Int32))
                     val = cnf.GetInt(varname, (int)val);
                 else if (typeof(T) == typeof(float))
-                    val = cnf.GetFloat(varname, (int)val);
+                    val = cnf.GetFloat(varname, (float)val);
                 else
                     m_log.ErrorFormat("[UTIL]: Unhandled type {0}", typeof(T));
             }

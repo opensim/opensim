@@ -504,21 +504,14 @@ namespace OpenSim.Framework
             set { m_TelehubEnabled = value; }
         }
 
-        // Connected Telehub object
-        private UUID m_TelehubObject = UUID.Zero;
-        public UUID TelehubObject
-        {
-            get
-            {
-                return m_TelehubObject;
-            }
-            set
-            {
-                m_TelehubObject = value;
-            }
-        }
+        /// <summary>
+        /// Connected Telehub object
+        /// </summary>
+        public UUID TelehubObject { get; set; }
 
-        // Our Connected Telehub's SpawnPoints
+        /// <summary>
+        /// Our connected Telehub's SpawnPoints
+        /// </summary>
         public List<SpawnPoint> l_SpawnPoints = new List<SpawnPoint>();
 
         // Add a SpawnPoint

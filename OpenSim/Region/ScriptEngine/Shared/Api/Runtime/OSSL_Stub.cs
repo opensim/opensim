@@ -858,6 +858,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetRegionStats();
         }
 
+        public vector osGetRegionSize()
+        {
+            return m_OSSL_Functions.osGetRegionSize();
+        }
+
         /// <summary>
         /// Returns the amount of memory in use by the Simulator Daemon.
         /// Amount in bytes - if >= 4GB, returns 4GB. (LSL is not 64-bit aware)

@@ -117,6 +117,14 @@ namespace OpenSim.OfflineIM
             return true;
         }
 
+        public void DeleteMessages(UUID userID)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["UserID"] = userID;
+            
+            MakeRequest("DELETE", sendData);
+        }
+
         #endregion
 
 
