@@ -616,10 +616,14 @@ namespace OpenSim.Data.MySQL
         // Legacy region loading
         public double[,] LoadTerrain(UUID regionID)
         {
+            double[,] ret = null;
             TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
-            return terrData.GetDoubles();
+            if (terrData != null)
+                ret = terrData.GetDoubles();
+            return ret;
         }
 
+        // Returns 'null' if region not found
         public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
         {
             TerrainData terrData = null;

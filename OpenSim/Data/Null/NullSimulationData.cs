@@ -148,6 +148,7 @@ namespace OpenSim.Data.Null
         }
 
         // Legacy. Just don't do this.
+        // Returns 'null' if region not found
         public double[,] LoadTerrain(UUID regionID)
         {
             if (m_terrains.ContainsKey(regionID))
