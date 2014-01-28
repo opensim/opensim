@@ -8942,6 +8942,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TeleportLocationRequest handlerTeleportLocationRequest = OnTeleportLocationRequest;
             if (handlerTeleportLocationRequest != null)
             {
+                // Adjust teleport location to base of a larger region if requested to teleport to a sub-region
+                uint locX, locY;
+                Util.RegionHandleToWorldLoc(tpLocReq.Info.RegionHandle, out locX, out locY);
+                if ((locX >= m_scene.RegionInfo.WorldLocX)
+                            && (locX < (m_scene.RegionInfo.WorldLocX + m_scene.RegionInfo.RegionSizeX))
+                            && (locY >= m_scene.RegionInfo.WorldLocY)
+                            && (locY < (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)) )
+                {
+                    tpLocReq.Info.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                    tpLocReq.Info.Position.X += locX - m_scene.RegionInfo.WorldLocX;
+                    tpLocReq.Info.Position.Y += locY - m_scene.RegionInfo.WorldLocY;
+                }
+
                 handlerTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position,
                                                tpLocReq.Info.LookAt, 16);
             }
