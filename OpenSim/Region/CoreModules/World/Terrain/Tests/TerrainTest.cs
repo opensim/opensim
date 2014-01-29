@@ -51,6 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
                 }
             }
 
+            /*
             //
             // Test RaiseSphere
             //
@@ -84,6 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             Assert.That(map[120, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (120,128).");
             Assert.That(map[128, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (128,128).");
             Assert.That(map[0, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (0,128).");
+             */
         }
 
         [Test]
