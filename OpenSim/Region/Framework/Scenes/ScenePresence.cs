@@ -3201,7 +3201,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendInitialDataToMe()
         {
             // Send all scene object to the new client
-            Util.FireAndForget(delegate
+            Util.RunThreadNoTimeout(delegate
             {
                 // we created a new ScenePresence (a new child agent) in a fresh region.
                 // Request info about all the (root) agents in this region
@@ -3216,7 +3216,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
 
-            });
+            }, "SendInitialDataToMe", null);
         }
 
         /// <summary>

@@ -199,7 +199,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
                             m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
 
-                    Util.FireAndForget(o => ar.Execute());
+                    Util.RunThreadNoTimeout(o => ar.Execute(), "AssetsRequest", null);
 
                     // CloseArchive() will be called from ReceivedAllAssets()
                 }

@@ -1509,7 +1509,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         tmpMS = Util.EnvironmentTickCount();
                         m_cleaningTemps = true;
-                        Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
+                        Util.RunThreadNoTimeout(delegate { CleanTempObjects(); m_cleaningTemps = false;  }, "CleanTempObjects", null);
                         tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
@@ -1682,7 +1682,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                Util.FireAndForget(BackupWaitCallback);
+                Util.RunThreadNoTimeout(BackupWaitCallback, "BackupWaitCallback", null);
             }
         }
 
@@ -1695,7 +1695,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Wrapper for Backup() that can be called with Util.FireAndForget()
+        /// Wrapper for Backup() that can be called with Util.RunThreadNoTimeout()
         /// </summary>
         private void BackupWaitCallback(object o)
         {

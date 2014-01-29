@@ -356,7 +356,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
                             options, ReceivedAllAssets);
 
-                    Util.FireAndForget(o => ar.Execute());
+                    Util.RunThreadNoTimeout(o => ar.Execute(), "AssetsRequest", null);
                 }
                 else
                 {

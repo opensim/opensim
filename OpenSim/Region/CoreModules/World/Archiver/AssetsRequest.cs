@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_requestState = RequestState.Running;
             
             m_log.DebugFormat("[ARCHIVER]: AssetsRequest executed looking for {0} possible assets", m_repliesRequired);
-            
+
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
             {
@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             finally
             {
                 if (timedOut)
-                    Util.FireAndForget(PerformAssetsRequestCallback, true);
+                    Util.RunThreadNoTimeout(PerformAssetsRequestCallback, "AssetsRequestCallback", true);
             }
         }
 
@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
-                        Util.FireAndForget(PerformAssetsRequestCallback, false);
+                        Util.RunThreadNoTimeout(PerformAssetsRequestCallback, "AssetsRequestCallback", false);
                     }
                     else
                     {
