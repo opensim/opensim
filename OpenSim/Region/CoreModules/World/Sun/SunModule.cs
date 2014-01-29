@@ -261,10 +261,8 @@ namespace OpenSim.Region.CoreModules
 
         private float GetCurrentTimeAsLindenSunHour()
         {
-            if (m_SunFixed)
-                return m_SunFixedHour + 6;
-
-            return GetCurrentSunHour() + 6.0f;
+            float curtime = m_SunFixed ? m_SunFixedHour : GetCurrentSunHour();
+            return (curtime + 6.0f) % 24.0f;
         }
 
         #region INonSharedRegion Methods
@@ -517,7 +515,7 @@ namespace OpenSim.Region.CoreModules
                     return m_UpdateInterval;
 
                 case "current_time":
-                    return CurrentTime;
+                    return GetCurrentTimeAsLindenSunHour();
                 
                 default:
                     throw new Exception("Unknown sun parameter.");
@@ -526,7 +524,51 @@ namespace OpenSim.Region.CoreModules
 
         public void SetSunParameter(string param, double value)
         {
-            HandleSunConsoleCommand("sun", new string[] {param, value.ToString() });
+            switch (param)
+            {
+                case "year_length":
+                    m_YearLengthDays = (int)value;
+                    SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
+                    SeasonSpeed = m_SeasonalCycle/SecondsPerYear;
+                    break;
+
+                case "day_length":
+                    m_DayLengthHours = value;
+                    SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
+                    SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
+                    SunSpeed = m_SunCycle/SecondsPerSunCycle;
+                    SeasonSpeed = m_SeasonalCycle/SecondsPerYear;
+                    break;
+
+                case "day_night_offset":
+                    m_HorizonShift = value;
+                    HorizonShift = m_HorizonShift;
+                    break;
+
+                case "day_time_sun_hour_scale":
+                    m_DayTimeSunHourScale = value;
+                    break;
+
+                case "update_interval":
+                    m_UpdateInterval = (int)value;
+                    break;
+
+                case "current_time":
+                    value = (value + 18.0) % 24.0;
+                    // set the current offset so that the effective sun time is the parameter
+                    m_CurrentTimeOffset = 0; // clear this first so we use raw time
+                    m_CurrentTimeOffset = (ulong)(SecondsPerSunCycle * value/ 24.0) - (CurrentTime % SecondsPerSunCycle);
+                    break;
+
+                default:
+                    throw new Exception("Unknown sun parameter.");
+
+                // Generate shared values
+                GenSunPos();
+
+                // When sun settings are updated, we should update all clients with new settings.
+                SunUpdateToAllClients();
+            }
         }
 
         public float GetCurrentSunHour()
@@ -606,57 +648,15 @@ namespace OpenSim.Region.CoreModules
             }
             else if (args.Length == 3)
             {
-                float value = 0.0f;
-                if (!float.TryParse(args[2], out value))
+                double value = 0.0;
+                if (! double.TryParse(args[2], out value))
                 {
                     Output.Add(String.Format("The parameter value {0} is not a valid number.", args[2]));
+                    return Output;
                 }
 
-                switch (args[1].ToLower())
-                {
-                    case "year_length":
-                        m_YearLengthDays = (int)value;
-                        SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
-                        break;
-
-                    case "day_length":
-                        m_DayLengthHours = value;
-                        SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
-                        SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
-                        break;
-
-                    case "day_night_offset":
-                        m_HorizonShift = value;
-                        HorizonShift = m_HorizonShift;
-                        break;
-
-                    case "day_time_sun_hour_scale":
-                        m_DayTimeSunHourScale = value;
-                        break;
-
-                    case "update_interval":
-                        m_UpdateInterval = (int)value;
-                        break;
-
-                    case "current_time":
-                        // best to get the current time offset out of the currenttime equation then
-                        // reset it
-                        m_CurrentTimeOffset = 0;
-                        m_CurrentTimeOffset = CurrentTime - (ulong)value;
-                        break;
-
-                    default:
-                        Output.Add(String.Format("Unknown parameter {0}.", args[1]));
-                        return Output;
-                }
-
+                SetSunParameter(args[1].ToLower(), value);
                 Output.Add(String.Format("Parameter {0} set to {1}.", args[1], value.ToString()));
-
-                // Generate shared values
-                GenSunPos();
-
-                // When sun settings are updated, we should update all clients with new settings.
-                SunUpdateToAllClients();
             }
 
             return Output;
