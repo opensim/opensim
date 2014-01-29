@@ -616,14 +616,18 @@ namespace OpenSim.Region.CoreModules
                 {
                     case "year_length":
                         m_YearLengthDays = (int)value;
+                        SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
                         break;
 
                     case "day_length":
                         m_DayLengthHours = value;
+                        SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
+                        SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
                         break;
 
                     case "day_night_offset":
                         m_HorizonShift = value;
+                        HorizonShift = m_HorizonShift;
                         break;
 
                     case "day_time_sun_hour_scale":
