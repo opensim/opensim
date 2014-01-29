@@ -579,7 +579,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 ArchiveConstants.CONTROL_FILE_PATH,
                 new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
-            LandObject lo = new LandObject(groupID, true, null);
+            LandObject lo = new LandObject(groupID, true, m_scene);
             lo.SetLandBitmap(lo.BasicFullRegionLandBitmap());
             LandData ld = lo.LandData;
             ld.GlobalID = landID;

@@ -160,7 +160,11 @@ namespace OpenSim.Framework
 
         public override bool IsTaintedAt(int xx, int yy)
         {
-            return m_taint[xx / Constants.TerrainPatchSize, yy / Constants.TerrainPatchSize];
+            int tx = xx / Constants.TerrainPatchSize;
+            int ty = yy / Constants.TerrainPatchSize;
+            bool ret =  m_taint[tx, ty];
+            m_taint[tx, ty] = false;
+            return ret;
         }
 
         // TerrainData.GetDatabaseBlob
