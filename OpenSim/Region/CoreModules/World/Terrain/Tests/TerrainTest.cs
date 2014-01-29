@@ -60,7 +60,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             effect.PaintEffect(map, allowMask, (int)Constants.RegionSize * 0.5f, (int)Constants.RegionSize * 0.5f, -1.0, 4, 0.1);
             Assert.That(map[127, (int)((int)Constants.RegionSize * 0.5f)] > 0.0, "Raise brush should raising value at this point (127,128).");
             Assert.That(map[124, (int)((int)Constants.RegionSize * 0.5f)] > 0.0, "Raise brush should raising value at this point (124,128).");
-            Assert.That(map[123, (int)((int)Constants.RegionSize * 0.5f)] == 0.0, "Raise brush should not change value at this point (123,128).");
+            Assert.That(map[120, (int)((int)Constants.RegionSize * 0.5f)] == 0.0, "Raise brush should not change value at this point (120,128).");
             Assert.That(map[128, (int)((int)Constants.RegionSize * 0.5f)] == 0.0, "Raise brush should not change value at this point (128,128).");
             Assert.That(map[0, (int)((int)Constants.RegionSize * 0.5f)] == 0.0, "Raise brush should not change value at this point (0,128).");
 
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             Assert.That(map[127, (int)((int)Constants.RegionSize * 0.5f)] >= 0.0, "Lower should not lowering value below 0.0 at this point (127,128).");
             Assert.That(map[127, (int)((int)Constants.RegionSize * 0.5f)] == 0.0, "Lower brush should lowering value to 0.0 at this point (127,128).");
             Assert.That(map[124, (int)((int)Constants.RegionSize * 0.5f)] < 1.0, "Lower brush should lowering value at this point (124,128).");
-            Assert.That(map[123, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (123,128).");
+            Assert.That(map[120, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (120,128).");
             Assert.That(map[128, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (128,128).");
             Assert.That(map[0, (int)((int)Constants.RegionSize * 0.5f)] == 1.0, "Lower brush should not change value at this point (0,128).");
         }
