@@ -50,12 +50,45 @@ namespace OpenSim.Services.UserAccountService
 
             MainConsole.Instance.Commands.AddCommand(
                 "Users", false,
+                "show grid user",
+                "show grid user <ID>",
+                "Show grid user entry or entries that match or start with the given ID.  This will normally be a UUID.",
+                "This is for debug purposes to see what data is found for a particular user id.",
+                HandleShowGridUser);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Users", false,
                 "show grid users online",
                 "show grid users online",
                 "Show number of grid users registered as online.", 
                 "This number may not be accurate as a region may crash or not be cleanly shutdown and leave grid users shown as online\n."
                 + "For this reason, users online for more than 5 days are not currently counted",
                 HandleShowGridUsersOnline);
+        }
+
+        protected void HandleShowGridUser(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: show grid user <UUID>");
+                return;
+            }
+
+            GridUserData[] data = m_Database.GetAll(cmdparams[3]);
+
+            foreach (GridUserData gu in data)
+            {
+                ConsoleDisplayList cdl = new ConsoleDisplayList();
+
+                cdl.AddRow("User ID", gu.UserID);
+
+                foreach (KeyValuePair<string,string> kvp in gu.Data)
+                    cdl.AddRow(kvp.Key, kvp.Value);
+
+                MainConsole.Instance.Output(cdl.ToString());
+            }
+
+            MainConsole.Instance.OutputFormat("Entries: {0}", data.Length);
         }
 
         protected void HandleShowGridUsersOnline(string module, string[] cmdparams)
