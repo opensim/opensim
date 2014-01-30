@@ -538,7 +538,7 @@ public static class BSParam
             (s,o) => { s.PE.SetContactProcessingThreshold(o.PhysBody, ContactProcessingThreshold); } ),
 
 	    new ParameterDefn<float>("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
-            (float)BSTerrainPhys.TerrainImplementation.Mesh ),
+            (float)BSTerrainPhys.TerrainImplementation.Heightmap ),
         new ParameterDefn<int>("TerrainMeshMagnification", "Number of times the 256x256 heightmap is multiplied to create the terrain mesh" ,
             2 ),
         new ParameterDefn<float>("TerrainFriction", "Factor to reduce movement against terrain surface" ,
