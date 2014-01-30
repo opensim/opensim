@@ -382,11 +382,30 @@ namespace OpenSim.Services.LLLoginService
                 //
                 GridRegion home = null;
                 GridUserInfo guinfo = m_GridUserService.LoggedIn(account.PrincipalID.ToString());
-                if (guinfo != null && (guinfo.HomeRegionID != UUID.Zero) && m_GridService != null)
+
+                // We are only going to complain about no home if the user actually tries to login there, to avoid
+                // spamming the console.
+                if (guinfo != null)
                 {
-                    home = m_GridService.GetRegionByUUID(scopeID, guinfo.HomeRegionID);
+                    if (guinfo.HomeRegionID == UUID.Zero && startLocation == "home")
+                    {
+                        m_log.WarnFormat(
+                            "[LLOGIN SERVICE]: User {0} tried to login to a 'home' start location but they have none set",
+                            account.Name);
+                    }
+                    else if (m_GridService != null)
+                    {
+                        home = m_GridService.GetRegionByUUID(scopeID, guinfo.HomeRegionID);
+
+                        if (home == null && startLocation == "home")
+                        {
+                            m_log.WarnFormat(
+                                "[LLOGIN SERVICE]: User {0} tried to login to a 'home' start location with ID {1} but this was not found.",
+                                account.Name, guinfo.HomeRegionID);
+                        }
+                    }
                 }
-                if (guinfo == null)
+                else
                 {
                     // something went wrong, make something up, so that we don't have to test this anywhere else
                     guinfo = new GridUserInfo();
@@ -506,10 +525,6 @@ namespace OpenSim.Services.LLLoginService
 
                 if (home == null)
                 {
-                    m_log.WarnFormat(
-                        "[LLOGIN SERVICE]: User {0} {1} tried to login to a 'home' start location but they have none set",
-                        account.FirstName, account.LastName);
-                    
                     tryDefaults = true;
                 }
                 else
