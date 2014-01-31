@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         protected TaskInventoryItem m_item;
 
-        protected bool throwErrorOnNotImplemented = true;
+        protected bool throwErrorOnNotImplemented = false;
         protected AsyncCommandManager AsyncCommands = null;
         protected float m_ScriptDelayFactor = 1.0f;
         protected float m_ScriptDistanceFactor = 1.0f;
@@ -261,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((item = GetScriptByName(name)) != UUID.Zero)
                 m_ScriptEngine.ResetScript(item);
             else
-                ShoutError("llResetOtherScript: script "+name+" not found");
+                Error("llResetOtherScript", "Can't find script '" + name + "'");
         }
 
         public LSL_Integer llGetScriptState(string name)
@@ -275,7 +275,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return m_ScriptEngine.GetScriptState(item) ?1:0;
             }
 
-            ShoutError("llGetScriptState: script "+name+" not found");
+            Error("llGetScriptState", "Can't find script '" + name + "'");
 
             // If we didn't find it, then it's safe to
             // assume it is not running.
@@ -298,7 +298,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                ShoutError("llSetScriptState: script "+name+" not found");
+                Error("llSetScriptState", "Can't find script '" + name + "'");
             }
         }
 
@@ -890,7 +890,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (channelID == 0)
             {
-                LSLError("Cannot use llRegionSay() on channel 0");
+                Error("llRegionSay", "Cannot use on channel 0");
                 return;
             }
 
@@ -2553,9 +2553,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSound(string sound, double volume, int queue, int loop)
         {
             m_host.AddScriptLPS(1);
-            // This function has been deprecated
-            // see http://www.lslwiki.net/lslwiki/wakka.php?wakka=llSound
-            Deprecated("llSound");
+            Deprecated("llSound", "Use llPlaySound instead");
         }
 
         // Xantor 20080528 PlaySound updated so it accepts an objectinventory name -or- a key to a sound
@@ -2886,7 +2884,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
                 {
-                    LSLError("No permissions to give money");
+                    Error("llGiveMoney", "No permissions to give money");
                     return;
                 }
 
@@ -2894,7 +2892,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (!UUID.TryParse(destination, out toID))
                 {
-                    LSLError("Bad key in llGiveMoney");
+                    Error("llGiveMoney", "Bad key in llGiveMoney");
                     return;
                 }
 
@@ -2914,28 +2912,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeExplosion");
+            Deprecated("llMakeExplosion", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
         public void llMakeFountain(int particles, double scale, double vel, double lifetime, double arc, int bounce, string texture, LSL_Vector offset, double bounce_offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeFountain");
+            Deprecated("llMakeFountain", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
         public void llMakeSmoke(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeSmoke");
+            Deprecated("llMakeSmoke", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
         public void llMakeFire(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llMakeFire");
+            Deprecated("llMakeFire", "Use llParticleSystem instead");
             ScriptSleep(100);
         }
 
@@ -2957,13 +2955,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (item == null)
                 {
-                    llSay(0, "Could not find object " + inventory);
+                    Error("llRezAtRoot", "Can't find object '" + inventory + "'");
                     return;
                 }
 
                 if (item.InvType != (int)InventoryType.Object)
                 {
-                    llSay(0, "Unable to create requested object. Object is missing from database.");
+                    Error("llRezAtRoot", "Can't create requested object; object is missing from database");
                     return;
                 }
 
@@ -3053,7 +3051,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llStopLookAt()
         {
             m_host.AddScriptLPS(1);
-//            NotImplemented("llStopLookAt");
             m_host.StopLookAt();
         }
 
@@ -3237,13 +3234,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTakeCamera(string avatar)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llTakeCamera");
+            Deprecated("llTakeCamera", "Use llSetCameraParams instead");
         }
 
         public void llReleaseCamera(string avatar)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llReleaseCamera");
+            Deprecated("llReleaseCamera", "Use llClearCameraParams instead");
         }
 
         public LSL_String llGetOwner()
@@ -3320,7 +3317,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
             if (emailModule == null)
             {
-                ShoutError("llEmail: email module not configured");
+                Error("llEmail", "Email module not configured");
                 return;
             }
 
@@ -3334,7 +3331,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
             if (emailModule == null)
             {
-                ShoutError("llGetNextEmail: email module not configured");
+                Error("llGetNextEmail", "Email module not configured");
                 return;
             }
             Email email;
@@ -3419,17 +3416,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch (NotImplementedException)
             {
                 // Currently not implemented in DotNetEngine only XEngine
-                NotImplemented("llMinEventDelay in DotNetEngine");
+                NotImplemented("llMinEventDelay", "In DotNetEngine");
             }
         }
 
-        /// <summary>
-        /// llSoundPreload is deprecated. In SL this appears to do absolutely nothing
-        /// and is documented to have no delay.
-        /// </summary>
         public void llSoundPreload(string sound)
         {
             m_host.AddScriptLPS(1);
+            Deprecated("llSoundPreload", "Use llPreloadSound instead");
         }
 
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
@@ -3734,7 +3728,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
             {
-                ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+                Error("llCreateLink", "PERMISSION_CHANGE_LINKS permission not set");
                 return;
             }
 
@@ -3789,7 +3783,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
             {
-                ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+                Error("llBreakLink", "PERMISSION_CHANGE_LINKS permission not set");
                 return;
             }
 
@@ -4009,7 +4003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(destination, out destId))
             {
-                llSay(0, "Could not parse key " + destination);
+                Error("llGiveInventory", "Can't parse destination key '" + destination + "'");
                 return;
             }
 
@@ -4017,8 +4011,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                llSay(0, String.Format("Could not find object '{0}'", inventory));
-                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
+                Error("llGiveInventory", "Can't find inventory object '" + inventory + "'");
             }
 
             UUID objId = item.ItemID;
@@ -4042,7 +4035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (account == null)
                     {
-                        llSay(0, "Can't find destination "+destId.ToString());
+                        Error("llGiveInventory", "Can't find destination '" + destId.ToString() + "'");
                         return;
                     }
                 }
@@ -4394,17 +4387,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(agent,out av))
             {
-                LSLError("First parameter to llTextBox needs to be a key");
+                Error("llTextBox", "First parameter must be a key");
                 return;
             }
 
             if (message == string.Empty)
             {
-                ShoutError("Trying to use llTextBox with empty message.");
+                Error("llTextBox", "Empty message");
             }
             else if (message.Length > 512)
             {
-                ShoutError("Trying to use llTextBox with message over 512 characters.");
+                Error("llTextBox", "Message more than 512 characters");
             }
             else
             {
@@ -6814,17 +6807,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(avatar,out av))
             {
-                LSLError("First parameter to llDialog needs to be a key");
+                Error("llDialog", "First parameter must be a key");
                 return;
             }
             if (buttons.Length < 1)
             {
-                LSLError("No less than 1 button can be shown");
+                Error("llDialog", "At least 1 button must be shown");
                 return;
             }
             if (buttons.Length > 12)
             {
-                LSLError("No more than 12 buttons can be shown");
+                Error("llDialog", "No more than 12 buttons can be shown");
                 return;
             }
             string[] buts = new string[buttons.Length];
@@ -6832,12 +6825,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (buttons.Data[i].ToString() == String.Empty)
                 {
-                    LSLError("button label cannot be blank");
+                    Error("llDialog", "Button label cannot be blank");
                     return;
                 }
                 if (buttons.Data[i].ToString().Length > 24)
                 {
-                    LSLError("button label cannot be longer than 24 characters");
+                    Error("llDialog", "Button label cannot be longer than 24 characters");
                     return;
                 }
                 buts[i] = buttons.Data[i].ToString();
@@ -6858,15 +6851,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.ParentGroup.ScriptSetVolumeDetect(detect != 0);
         }
 
-        /// <summary>
-        /// This is a depecated function so this just replicates the result of
-        /// invoking it in SL
-        /// </summary>
         public void llRemoteLoadScript(string target, string name, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            // Report an error as it does in SL
-            ShoutError("Deprecated. Please use llRemoteLoadScriptPin instead.");
+            Deprecated("llRemoteLoadScript", "Use llRemoteLoadScriptPin instead");
             ScriptSleep(3000);
         }
 
@@ -6884,7 +6872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(target, out destId))
             {
-                llSay(0, "Could not parse key " + target);
+                Error("llRemoteLoadScriptPin", "Can't parse key '" + target + "'");
                 return;
             }
 
@@ -6900,7 +6888,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // make sure the object is a script
             if (item == null || item.Type != 10)
             {
-                llSay(0, "Could not find script " + name);
+                Error("llRemoteLoadScriptPin", "Can't find script '" + name + "'");
                 return;
             }
 
@@ -7948,9 +7936,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch (InvalidCastException e)
             {
-                ShoutError(string.Format(
-                        "{0} error running rule #{1}: arg #{2} ",
-                        originFunc, rulesParsed, idx - idxStart) + e.Message);
+                Error(originFunc, string.Format("Error running rule #{0}: arg #{1} - ", rulesParsed, idx - idxStart) + e.Message);
             }
             finally
             {
@@ -7983,9 +7969,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 string encodedData = Convert.ToBase64String(encData_byte);
                 return encodedData;
             }
-            catch (Exception e)
+            catch
             {
-                throw new Exception("Error in base64Encode" + e.Message);
+                Error("llBase64ToString", "Error encoding string");
+                return String.Empty;
             }
         }
 
@@ -7996,16 +7983,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return Util.Base64ToString(str);
             }
-            catch (Exception e)
+            catch
             {
-                throw new Exception("Error in base64Decode" + e.Message);
+                Error("llBase64ToString", "Error decoding string");
+                return String.Empty;
             }
         }
 
         public LSL_String llXorBase64Strings(string str1, string str2)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llXorBase64Strings");
+            Deprecated("llXorBase64Strings", "Use llXorBase64 instead");
             ScriptSleep(300);
             return String.Empty;
         }
@@ -8013,7 +8001,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteDataSetRegion()
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llRemoteDataSetRegion");
+            Deprecated("llRemoteDataSetRegion", "Use llOpenRemoteDataChannel instead");
         }
 
         public LSL_Float llLog10(double val)
@@ -9728,7 +9716,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                llSay(0, "No item name '" + item + "'");
+                Error("llGetInventoryCreator", "Can't find item '" + item + "'");
 
                 return String.Empty;
             }
@@ -10047,7 +10035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     presence = World.GetScenePresence(agentID);
                                 }
                             }
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_AGENT must be a key");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_AGENT must be a key");
                             ++i;
                         }
                         break;
@@ -10078,7 +10066,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 url = (LSL_String)commandList.Data[i + 1];
                                 update = true;
                             }
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_URL must be a string.");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_URL must be a string");
                             ++i;
                         }
                         break;
@@ -10091,7 +10079,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 texture = (LSL_String)commandList.Data[i + 1];
                                 update = true;
                             }
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_TEXTURE must be a string or key.");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_TEXTURE must be a string or a key");
                             ++i;
                         }
                         break;
@@ -10103,7 +10091,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 time = (float)(LSL_Float)commandList.Data[i + 1];
                             }
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_TIME must be a float.");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_TIME must be a float");
                             ++i;
                         }
                         break;
@@ -10117,7 +10105,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 update = true;
                             }
 
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_AUTO_ALIGN must be an integer.");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_AUTO_ALIGN must be an integer");
                             ++i;
                         }
                         break;
@@ -10130,7 +10118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 mediaType = (LSL_String)commandList.Data[i + 1];
                                 update = true;
                             }
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_TYPE must be a string.");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_TYPE must be a string");
                             ++i;
                         }
                         break;
@@ -10143,7 +10131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 description = (LSL_String)commandList.Data[i + 1];
                                 update = true;
                             }
-                            else ShoutError("The argument of PARCEL_MEDIA_COMMAND_DESC must be a string.");
+                            else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_DESC must be a string");
                             ++i;
                         }
                         break;
@@ -10159,15 +10147,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     height = (LSL_Integer)commandList.Data[i + 2];
                                     update = true;
                                 }
-                                else ShoutError("The second argument of PARCEL_MEDIA_COMMAND_SIZE must be an integer.");
+                                else Error("llParcelMediaCommandList", "The second argument of PARCEL_MEDIA_COMMAND_SIZE must be an integer");
                             }
-                            else ShoutError("The first argument of PARCEL_MEDIA_COMMAND_SIZE must be an integer.");
+                            else Error("llParcelMediaCommandList", "The first argument of PARCEL_MEDIA_COMMAND_SIZE must be an integer");
                             i += 2;
                         }
                         break;
 
                     default:
-                        NotImplemented("llParcelMediaCommandList parameter not supported yet: " + Enum.Parse(typeof(ParcelMediaCommandEnum), commandList.Data[i].ToString()).ToString());
+                        NotImplemented("llParcelMediaCommandList", "Parameter not supported yet: " + Enum.Parse(typeof(ParcelMediaCommandEnum), commandList.Data[i].ToString()).ToString());
                         break;
                 }//end switch
             }//end for
@@ -10275,7 +10263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
-                            NotImplemented("llParcelMediaQuery parameter do not supported yet: " + Enum.Parse(mediaCommandEnum.GetType() , aList.Data[i].ToString()).ToString());
+                            NotImplemented("llParcelMediaQuery", "Parameter not supported yet: " + Enum.Parse(mediaCommandEnum.GetType() , aList.Data[i].ToString()).ToString());
                             break;
                     }
 
@@ -10312,7 +10300,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (quick_pay_buttons.Data.Length < 4)
             {
-                LSLError("List must have at least 4 elements");
+                Error("llSetPayPrice", "List must have at least 4 elements");
                 return;
             }
             m_host.ParentGroup.RootPart.PayPrice[0]=price;
@@ -10333,7 +10321,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
-                ShoutError("No permissions to track the camera");
+                Error("llGetCameraPos", "No permissions to track the camera");
                 return Vector3.Zero;
             }
 
@@ -10356,7 +10344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
-                ShoutError("No permissions to track the camera");
+                Error("llGetCameraRot", "No permissions to track the camera");
                 return Quaternion.Identity;
             }
 
@@ -10369,24 +10357,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Quaternion.Identity;
         }
 
-        /// <summary>
-        /// The SL implementation does nothing, it is deprecated
-        /// This duplicates SL
-        /// </summary>
         public void llSetPrimURL(string url)
         {
             m_host.AddScriptLPS(1);
+            Deprecated("llSetPrimURL", "Use llSetPrimMediaParams instead");
             ScriptSleep(2000);
         }
 
-        /// <summary>
-        /// The SL implementation shouts an error, it is deprecated
-        /// This duplicates SL
-        /// </summary>
         public void llRefreshPrimURL()
         {
             m_host.AddScriptLPS(1);
-            ShoutError("llRefreshPrimURL - not yet supported");
+            Deprecated("llRefreshPrimURL");
             ScriptSleep(20000);
         }
 
@@ -10696,7 +10677,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!ok || flag < 0 ||
                     flag > (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE)
                 {
-                    throw new ScriptException("Parameter " + i.ToString() + " is an invalid flag");
+                    Error("llHTTPRequest", "Parameter " + i.ToString() + " is an invalid flag");
                 }
 
                 param.Add(parameters.Data[i].ToString());       //Add parameter flag
@@ -10720,12 +10701,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             //There must be at least one name/value pair for custom header
                             if (count == 1)
-                                throw new ScriptException("Missing name/value for custom header at parameter " + i.ToString());
+                                Error("llHTTPRequest", "Missing name/value for custom header at parameter " + i.ToString());
                             break;
                         }
 
                         if (HttpStandardHeaders.Contains(parameters.Data[i].ToString(), StringComparer.OrdinalIgnoreCase))
-                            throw new ScriptException("Name is invalid as a custom header at parameter " + i.ToString());
+                            Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
 
                         param.Add(parameters.Data[i].ToString());
                         param.Add(parameters.Data[i+1].ToString());
@@ -11242,25 +11223,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return item.ItemID;
         }
 
-        internal void ShoutError(string msg)
+        /// <summary>
+        /// Reports the script error in the viewer's Script Warning/Error dialog and shouts it on the debug channel.
+        /// </summary>
+        /// <param name="command">The name of the command that generated the error.</param>
+        /// <param name="message">The error message to report to the user.</param>
+        internal void Error(string command, string message)
         {
-            llShout(ScriptBaseClass.DEBUG_CHANNEL, msg);
+            string text = command + ": " + message;
+            if (text.Length > 1023)
+            {
+                text = text.Substring(0, 1023);
+            }
+
+            World.SimChat(Utils.StringToBytes(text), ChatTypeEnum.DebugChannel, ScriptBaseClass.DEBUG_CHANNEL,
+                m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if (wComm != null)
+            {
+                wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, text);
+            }
         }
 
-        internal void NotImplemented(string command)
+        /// <summary>
+        /// Reports that the command is not implemented as a script error.
+        /// </summary>
+        /// <param name="command">The name of the command that is not implemented.</param>
+        /// <param name="message">Additional information to report to the user. (Optional)</param>
+        internal void NotImplemented(string command, string message = "")
         {
             if (throwErrorOnNotImplemented)
-                throw new NotImplementedException("Command not implemented: " + command);
+            {
+                if (message != "")
+                {
+                    message = " - " + message;
+                }
+
+                throw new NotImplementedException("Command not implemented: " + command + message);
+            }
+            else
+            {
+                string text = "Command not implemented";
+                if (message != "")
+                {
+                    text = text + " - " + message;
+                }
+
+                Error(command, text);
+            }
         }
 
-        internal void Deprecated(string command)
+        /// <summary>
+        /// Reports that the command is deprecated as a script error.
+        /// </summary>
+        /// <param name="command">The name of the command that is deprecated.</param>
+        /// <param name="message">Additional information to report to the user. (Optional)</param>
+        internal void Deprecated(string command, string message = "")
         {
-            throw new ScriptException("Command deprecated: " + command);
-        }
+            string text = "Command deprecated";
+            if (message != "")
+            {
+                text = text + " - " + message;
+            }
 
-        internal void LSLError(string msg)
-        {
-            throw new ScriptException("LSL Runtime Error: " + msg);
+            Error(command, text);
         }
 
         public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
@@ -11292,7 +11319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (assetID == UUID.Zero)
             {
                 // => complain loudly, as specified by the LSL docs
-                ShoutError("Notecard '" + name + "' could not be found.");
+                Error("llGetNumberOfNotecardLines", "Can't find notecard '" + name + "'");
 
                 return UUID.Zero.ToString();
             }
@@ -11314,7 +11341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (a == null || a.Type != 7)
                 {
-                    ShoutError("Notecard '" + name + "' could not be found.");
+                    Error("llGetNumberOfNotecardLines", "Can't find notecard '" + name + "'");
                     return;
                 }
 
@@ -11345,7 +11372,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (assetID == UUID.Zero)
             {
                 // => complain loudly, as specified by the LSL docs
-                ShoutError("Notecard '" + name + "' could not be found.");
+                Error("llGetNotecardLine", "Can't find notecard '" + name + "'");
 
                 return UUID.Zero.ToString();
             }
@@ -11368,7 +11395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                          {
                              if (a == null || a.Type != 7)
                              {
-                                 ShoutError("Notecard '" + name + "' could not be found.");
+                                 Error("llGetNotecardLine", "Can't find notecard '" + name + "'");
                                  return;
                              }
 
