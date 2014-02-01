@@ -95,9 +95,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
             
-            Stream dataStream = webRequest.GetRequestStream();
-            dataStream.Write(content, 0, content.Length);
-            dataStream.Close();
+            //Stream dataStream = webRequest.GetRequestStream();
+            //dataStream.Write(content, 0, content.Length);
+            //dataStream.Close();
+
+            using (Stream dataStream = webRequest.GetRequestStream())
+                dataStream.Write(content, 0, content.Length);
             
             WebResponse webResponse = null;
             try
@@ -111,26 +114,18 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return false;
             }
             
-            Stream rstream = webResponse.GetResponseStream();
-            
-            OSDMap mret = new OSDMap();
-            try
+            using (webResponse)
+            using (Stream rstream = webResponse.GetResponseStream())
             {
-                mret = (OSDMap)OSDParser.DeserializeJson(rstream);
+                OSDMap mret = (OSDMap)OSDParser.DeserializeJson(rstream);
+                        
+                if (mret.ContainsKey("error"))
+                    return false;
+            
+                // get params...
+                OSD.DeserializeMembers(ref parameters, (OSDMap)mret["result"]);
+                return true;
             }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[JSONRPC]: JsonRpcRequest Error {0}", e.Message);
-                return false;
-            }
-            
-            
-            if (mret.ContainsKey("error"))
-                return false;
-            
-            // get params...
-            OSD.DeserializeMembers(ref parameters, (OSDMap) mret["result"]);
-            return true;
         }
         
         /// <summary>
@@ -171,10 +166,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
             
-            Stream dataStream = webRequest.GetRequestStream();
-            dataStream.Write(content, 0, content.Length);
-            dataStream.Close();
-            
+            using (Stream dataStream = webRequest.GetRequestStream())
+              dataStream.Write(content, 0, content.Length);
+
             WebResponse webResponse = null;
             try
             {
@@ -187,28 +181,30 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return false;
             }
             
-            Stream rstream = webResponse.GetResponseStream();
-            
-            OSDMap response = new OSDMap();
-            try
+            using (webResponse)
+            using (Stream rstream = webResponse.GetResponseStream())
             {
-                response = (OSDMap)OSDParser.DeserializeJson(rstream);
+                OSDMap response = new OSDMap();
+                try
+                {
+                    response = (OSDMap)OSDParser.DeserializeJson(rstream);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[JSONRPC]: JsonRpcRequest Error {0}", e.Message);
+                    return false;
+                }
+
+                if (response.ContainsKey("error"))
+                {
+                    data = response["error"];
+                    return false;
+                }
+
+                data = response;            
+
+                return true;
             }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[JSONRPC]: JsonRpcRequest Error {0}", e.Message);
-                return false;
-            }
-            
-            if(response.ContainsKey("error"))
-            {
-                data = response["error"];
-                return false;
-            }
-            
-            data = response;
-            
-            return true;
         }
         #endregion Web Util
     }
