@@ -61,7 +61,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
-        private readonly UUID m_uuid = UUID.Random();
+        private readonly UUID m_uuid;
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
 
@@ -71,6 +71,19 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_firstname = firstname;
             m_lastname = lastname;
             m_startPos = position;
+            m_uuid = UUID.Random();
+            m_scene = scene;
+            m_ownerID = ownerID;
+            SenseAsAgent = senseAsAgent;
+        }
+
+        public NPCAvatar(
+            string firstname, string lastname, UUID agentID, Vector3 position, UUID ownerID, bool senseAsAgent, Scene scene)
+        {
+            m_firstname = firstname;
+            m_lastname = lastname;
+            m_startPos = position;
+            m_uuid = agentID;
             m_scene = scene;
             m_ownerID = ownerID;
             SenseAsAgent = senseAsAgent;
