@@ -177,13 +177,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
             m_errorMessage = String.Empty;
             m_merge = options.ContainsKey("merge");
-            m_forceTerrain = options.ContainsKey("forceTerrain");
-            m_forceParcels = options.ContainsKey("forceParcels");
+            m_forceTerrain = options.ContainsKey("force-terrain");
+            m_forceParcels = options.ContainsKey("force-parcels");
             m_skipAssets = options.ContainsKey("skipAssets");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
-            m_rotationCenter = options.ContainsKey("rotationCenter") ? (Vector3)options["rotationCenter"] 
+            m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"] 
                                 : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
             // Zero can never be a valid user id

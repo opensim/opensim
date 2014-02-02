@@ -113,8 +113,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             OptionSet options = new OptionSet();
             options.Add("m|merge", delegate (string v) { mergeOar = (v != null); });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = (v != null); });
-            options.Add("forceterrain", delegate (string v) { forceTerrain = (v != null); });
-            options.Add("forceparcels", delegate (string v) { forceParcels = (v != null); });
+            options.Add("force-terrain", delegate (string v) { forceTerrain = (v != null); });
+            options.Add("force-parcels", delegate (string v) { forceParcels = (v != null); });
             options.Add("displacement=", delegate (string v) {
                 try
                 {
@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // Convert to radians for internals
                 rotation = Util.Clamp<float>(rotation, -359f, 359f) / 180f * (float)Math.PI;
             });
-            options.Add("rotationcenter=", delegate (string v) {
+            options.Add("rotation-center=", delegate (string v) {
                 try
                 {
                     rotationCenter = v == null ? Vector3.Zero : Vector3.Parse(v);
@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 catch
                 {
                     m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation displacement");
-                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --rotationcenter \"<128,128,0>\"");
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --rotation-center \"<128,128,0>\"");
                     return;
                 }
             });
@@ -174,11 +174,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
             if (mergeOar) archiveOptions.Add("merge", null);
             if (skipAssets) archiveOptions.Add("skipAssets", null);
-            if (forceTerrain) archiveOptions.Add("forceTerrain", null);
-            if (forceParcels) archiveOptions.Add("forceParcels", null);
+            if (forceTerrain) archiveOptions.Add("force-terrain", null);
+            if (forceParcels) archiveOptions.Add("force-parcels", null);
             archiveOptions.Add("displacement", displacement);
             archiveOptions.Add("rotation", rotation);
-            archiveOptions.Add("rotationCenter", rotationCenter);
+            archiveOptions.Add("rotation-center", rotationCenter);
 
             if (mainParams.Count > 2)
             {
