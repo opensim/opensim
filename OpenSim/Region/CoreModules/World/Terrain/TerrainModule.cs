@@ -316,8 +316,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         public void LoadFromStream(string filename, Stream stream)
         {
-            Vector2 defaultDisplacement = new Vector2(0f, 0f);
-            LoadFromStream(filename, defaultDisplacement, stream);
+            LoadFromStream(filename, Vector3.Zero, 0f, Vector2.Zero, stream);
         }
 
         /// <summary>
@@ -325,7 +324,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// </summary>
         /// <param name="filename">Filename to terrain file. Type is determined by extension.</param>
         /// <param name="stream"></param>
-        public void LoadFromStream(string filename, Vector2 displacement, Stream stream)
+        public void LoadFromStream(string filename, Vector3 displacement,
+                                float radianRotation, Vector2 rotationDisplacement, Stream stream)
         {
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
             {
@@ -336,7 +336,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         try
                         {
                             ITerrainChannel channel = loader.Value.LoadStream(stream);
-                            MergeTerrainIntoExisting(channel, displacement);
+                            m_channel.Merge(channel, displacement, radianRotation, rotationDisplacement);
                             UpdateRevertMap();
                         }
                         catch (NotImplementedException)
@@ -354,33 +354,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
-        }
-
-        private void MergeTerrainIntoExisting(ITerrainChannel channel, Vector2 displacement)
-        {
-            if (displacement == Vector2.Zero)
-            {
-                // If there is no displacement, just use this channel as the new heightmap
-                m_scene.Heightmap = channel;
-                m_channel = channel;
-            }
-            else
-            {
-                // If there is a displacement, we copy the loaded heightmap into the overall region
-                for (int xx = 0; xx < channel.Width; xx++)
-                {
-                    for (int yy = 0; yy < channel.Height; yy++)
-                    {
-                        int dispX = xx + (int)displacement.X;
-                        int dispY = yy + (int)displacement.Y;
-                        if (dispX >= 0 && dispX < m_channel.Width
-                                    && dispY >= 0 && dispY < m_channel.Height)
-                        {
-                            m_channel[dispX, dispY] = channel[xx, yy];
-                        }
-                    }
-                }
-            }
         }
 
         private static Stream URIFetch(Uri uri)

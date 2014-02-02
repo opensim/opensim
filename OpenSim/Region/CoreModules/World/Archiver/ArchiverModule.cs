@@ -120,19 +120,38 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     displacement = v == null ? Vector3.Zero : Vector3.Parse(v);
                 }
-                catch (Exception e)
+                catch
                 {
                     m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing displacement");
-                    displacement = new Vector3(0f, 0f, 0f);
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --displacement \"<128,128,0>\"");
+                    return;
                 }
             });
             options.Add("rotation=", delegate (string v) {
-                rotation = float.Parse(v);
-                rotation = Util.Clamp<float>(rotation, -359f, 359f);
+                try
+                {
+                    rotation = v == null ? 0f : float.Parse(v);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation");
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be an angle in degrees between -360 and +360: --rotation 45");
+                    return;
+                }
+                // Convert to radians for internals
+                rotation = Util.Clamp<float>(rotation, -359f, 359f) / 180f * (float)Math.PI;
             });
             options.Add("rotationcenter=", delegate (string v) {
-                // RA 20130119: libomv's Vector2.Parse doesn't work. Need to use vector3 for the moment
-                rotationCenter = Vector3.Parse(v);
+                try
+                {
+                    rotationCenter = v == null ? Vector3.Zero : Vector3.Parse(v);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation displacement");
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --rotationcenter \"<128,128,0>\"");
+                    return;
+                }
             });
 
             // Send a message to the region ready module
