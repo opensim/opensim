@@ -114,7 +114,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             options.Add("m|merge", delegate (string v) { mergeOar = (v != null); });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = (v != null); });
             options.Add("force-terrain", delegate (string v) { forceTerrain = (v != null); });
+            options.Add("forceterrain", delegate (string v) { forceTerrain = (v != null); });   // downward compatibility
             options.Add("force-parcels", delegate (string v) { forceParcels = (v != null); });
+            options.Add("forceparcels", delegate (string v) { forceParcels = (v != null); });   // downward compatibility
             options.Add("displacement=", delegate (string v) {
                 try
                 {
