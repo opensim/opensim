@@ -130,6 +130,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </value>
         protected Vector3 m_rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0f);
 
+        protected bool m_noObjects = false;
+
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
@@ -179,6 +181,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_merge = options.ContainsKey("merge");
             m_forceTerrain = options.ContainsKey("force-terrain");
             m_forceParcels = options.ContainsKey("force-parcels");
+            m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
@@ -261,7 +264,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     // Process the file
 
-                    if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                    if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH) && !m_noObjects)
                     {
                         sceneContext.SerialisedSceneObjects.Add(Encoding.UTF8.GetString(data));
                     }

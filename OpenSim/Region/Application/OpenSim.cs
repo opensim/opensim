@@ -268,6 +268,7 @@ namespace OpenSim
             m_console.Commands.AddCommand("Archiving", false, "load oar",
                                           "load oar [--merge] [--skip-assets]"
                                              + " [--force-terrain] [--force-parcels]"
+                                             + " [--no-objects]"
                                              + " [--rotation degrees] [--rotation-center \"<x,y,z>\"]"
                                              + " [--displacement \"<x,y,z>\"]"
                                              + " [<OAR path>]",
@@ -279,6 +280,7 @@ namespace OpenSim
                                           + "--force-parcels forces the loading of parcels from the oar (undoes suppression done by --merge)" + Environment.NewLine
                                           + "--rotation specified rotation to be applied to the oar. Specified in degrees." + Environment.NewLine
                                           + "--rotation-center Location (relative to original OAR) to apply rotation. Default is <128,128,0>" + Environment.NewLine
+                                          + "--no-objects suppresses the addition of any objects (good for loading only the terrain)" + Environment.NewLine
                                           + "The path can be either a filesystem location or a URI."
                                           + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
                                           LoadOar);

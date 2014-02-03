@@ -106,6 +106,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             bool skipAssets = false;
             bool forceTerrain = false;
             bool forceParcels = false;
+            bool noObjects = false;
             Vector3 displacement = new Vector3(0f, 0f, 0f);
             float rotation = 0f;
             Vector3 rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0);
@@ -117,6 +118,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             options.Add("forceterrain", delegate (string v) { forceTerrain = (v != null); });   // downward compatibility
             options.Add("force-parcels", delegate (string v) { forceParcels = (v != null); });
             options.Add("forceparcels", delegate (string v) { forceParcels = (v != null); });   // downward compatibility
+            options.Add("no-objects", delegate (string v) { noObjects = (v != null); });
             options.Add("displacement=", delegate (string v) {
                 try
                 {
@@ -178,6 +180,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (skipAssets) archiveOptions.Add("skipAssets", null);
             if (forceTerrain) archiveOptions.Add("force-terrain", null);
             if (forceParcels) archiveOptions.Add("force-parcels", null);
+            if (noObjects) archiveOptions.Add("no-objects", null);
             archiveOptions.Add("displacement", displacement);
             archiveOptions.Add("rotation", rotation);
             archiveOptions.Add("rotation-center", rotationCenter);
