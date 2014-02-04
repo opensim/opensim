@@ -148,6 +148,9 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
         public void Store(UUID agentId, WearableCacheItem[] data)
         {
+            if (m_URL == String.Empty)
+                return null;
+
             MemoryStream bakeStream = new MemoryStream();
             XmlTextWriter bakeWriter = new XmlTextWriter(bakeStream, null);
 
@@ -184,6 +187,5 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 }
             );
         }
-
     }
 }
