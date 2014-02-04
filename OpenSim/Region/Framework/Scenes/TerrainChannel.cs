@@ -217,6 +217,10 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.Merge
         public void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement)
         {
+            m_log.DebugFormat("{0} Merge. inSize=<{1},{2}>, disp={3}, rot={4}, rotDisp={5}, outSize=<{6},{7}>", LogHeader,
+                                        newTerrain.Width, newTerrain.Height,
+                                        displacement, radianRotation, rotationDisplacement,
+                                        m_terrainData.SizeX, m_terrainData.SizeY);
             for (int xx = 0; xx < newTerrain.Width; xx++)
             {
                 for (int yy = 0; yy < newTerrain.Height; yy++)

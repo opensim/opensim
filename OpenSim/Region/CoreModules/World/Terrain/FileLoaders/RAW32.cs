@@ -25,7 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
+
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -116,7 +119,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadStream(Stream s)
         {
-            TerrainChannel retval = new TerrainChannel();
+            // The raw format doesn't contain any dimension information.
+            // Guess the square dimensions by using the length of the raw file.
+            double dimension = Math.Sqrt((double)(s.Length / 4));
+            // Regions are always multiples of 256.
+            int trimmedDimension = (int)dimension - ((int)dimension % (int)Constants.RegionSize);
+            if (trimmedDimension < Constants.RegionSize)
+                trimmedDimension = (int)Constants.RegionSize;
+
+            TerrainChannel retval = new TerrainChannel(trimmedDimension, trimmedDimension);
 
             BinaryReader bs = new BinaryReader(s);
             int y;
