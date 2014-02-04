@@ -325,6 +325,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly byte[] m_channelVersion = Utils.EmptyBytes;
         private readonly IGroupsModule m_GroupsModule;
 
+        private int m_cachedTextureSerial;
         private PriorityQueue m_entityUpdates;
         private PriorityQueue m_entityProps;
         private Prioritizer m_prioritizer;
@@ -11742,36 +11743,158 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
+            //m_log.Debug("texture cached: " + packet.ToString());
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
+            AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
 
             if (cachedtex.AgentData.SessionID != SessionId)
                 return false;
 
-            List<CachedTextureRequestArg> requestArgs = new List<CachedTextureRequestArg>();
 
-            for (int i = 0; i < cachedtex.WearableData.Length; i++)
-            {
-                CachedTextureRequestArg arg = new CachedTextureRequestArg();
-                arg.BakedTextureIndex = cachedtex.WearableData[i].TextureIndex;
-                arg.WearableHashID = cachedtex.WearableData[i].ID;
-                
-                requestArgs.Add(arg);
-            }
+            // TODO: don't create new blocks if recycling an old packet
+            cachedresp.AgentData.AgentID = AgentId;
+            cachedresp.AgentData.SessionID = m_sessionId;
+            cachedresp.AgentData.SerialNum = m_cachedTextureSerial;
+            m_cachedTextureSerial++;
+            cachedresp.WearableData =
+                new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
-            try
+            //IAvatarFactoryModule fac = m_scene.RequestModuleInterface<IAvatarFactoryModule>();
+           // var item = fac.GetBakedTextureFaces(AgentId);
+            //WearableCacheItem[] items = fac.GetCachedItems(AgentId);
+
+            IAssetService cache = m_scene.AssetService;
+            IBakedTextureModule bakedTextureModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
+            //bakedTextureModule = null;
+            int maxWearablesLoop = cachedtex.WearableData.Length;
+            if (maxWearablesLoop > AvatarWearable.MAX_WEARABLES)
+                maxWearablesLoop = AvatarWearable.MAX_WEARABLES;
+
+            if (bakedTextureModule != null && cache != null)
             {
-                CachedTextureRequest handlerCachedTextureRequest = OnCachedTextureRequest;
-                if (handlerCachedTextureRequest != null)
+                // We need to make sure the asset stored in the bake is available on this server also by it's assetid before we map it to a Cacheid
+
+                WearableCacheItem[] cacheItems = null;
+                ScenePresence p = m_scene.GetScenePresence(AgentId);
+                if (p.Appearance != null)
+                    if (p.Appearance.WearableCacheItems == null || p.Appearance.WearableCacheItemsDirty)
+                    {
+                        try
+                        {
+                            cacheItems = bakedTextureModule.Get(AgentId);
+                            p.Appearance.WearableCacheItems = cacheItems;
+                            p.Appearance.WearableCacheItemsDirty = false;
+                        }
+
+                        /*
+                         * The following Catch types DO NOT WORK, it jumps to the General Packet Exception Handler if you don't catch Exception!
+                         * 
+                        catch (System.Net.Sockets.SocketException)
+                        {
+                            cacheItems = null;
+                        }
+                        catch (WebException)
+                        {
+                            cacheItems = null;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            cacheItems = null;
+                        } */
+                        catch (Exception)
+                        {
+                            cacheItems = null;
+                        }
+
+                    }
+                    else if (p.Appearance.WearableCacheItems != null)
+                    {
+                        cacheItems = p.Appearance.WearableCacheItems;
+                    }
+
+                if (cache != null && cacheItems != null)
                 {
-                    handlerCachedTextureRequest(simclient,cachedtex.AgentData.SerialNum,requestArgs);
+                    foreach (WearableCacheItem item in cacheItems)
+                    {
+
+                        if (cache.GetCached(item.TextureID.ToString()) == null)
+                        {
+                            item.TextureAsset.Temporary = true;
+                            cache.Store(item.TextureAsset);
+                        }
+
+
+                    }
+                }
+                if (cacheItems != null)
+                {
+
+                    for (int i = 0; i < maxWearablesLoop; i++)
+                    {
+                        WearableCacheItem item =
+                            WearableCacheItem.SearchTextureIndex(cachedtex.WearableData[i].TextureIndex,cacheItems);
+
+                        cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                        cachedresp.WearableData[i].TextureIndex= cachedtex.WearableData[i].TextureIndex;
+                        cachedresp.WearableData[i].HostName = new byte[0];
+                        if (item != null && cachedtex.WearableData[i].ID == item.CacheId)
+                        {
+
+                            cachedresp.WearableData[i].TextureID = item.TextureID;
+                        }
+                        else
+                        {
+                            cachedresp.WearableData[i].TextureID = UUID.Zero;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < maxWearablesLoop; i++)
+                    {
+                        cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                        cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                        //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
+                        cachedresp.WearableData[i].HostName = new byte[0];
+                    }
                 }
             }
-            catch (Exception e)
+            else
             {
-                m_log.ErrorFormat("[CLIENT VIEW]: AgentTextureCached packet handler threw an exception, {0}", e);
-                return false;
+                if (cache == null)
+                {
+                    for (int i = 0; i < maxWearablesLoop; i++)
+                    {
+                        cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                        cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                            //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
+                        cachedresp.WearableData[i].HostName = new byte[0];
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < maxWearablesLoop; i++)
+                    {
+                        cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                        cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+
+
+
+                        if (cache.GetCached(cachedresp.WearableData[i].TextureID.ToString()) == null)
+                            cachedresp.WearableData[i].TextureID = UUID.Zero;
+                            //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
+                        else
+                            cachedresp.WearableData[i].TextureID = UUID.Zero;
+                                // UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
+                        cachedresp.WearableData[i].HostName = new byte[0];
+                    }
+                }
             }
-            
+            cachedresp.Header.Zerocoded = true;
+            OutPacket(cachedresp, ThrottleOutPacketType.Task);
+
             return true;
         }
         
