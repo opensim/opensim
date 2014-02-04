@@ -1066,6 +1066,11 @@
   ;; If un-set / "" the module is disabled
   ;; ProfileServiceURL = http://127.0.0.1:8002
 
+[XBakes]
+  ;# {URL} {} {Set URL for Baked texture service} {}
+  ;; Sets the URL for the baked texture ROBUST service.
+  ;; Disabled when unset.
+  ;; URL = http://127.0.0.1:8003
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
