@@ -134,7 +134,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
         {
             m_scene = scene;
-            m_landBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+            if (m_scene == null)
+                m_landBitmap = new bool[Constants.RegionSize / landUnit, Constants.RegionSize / landUnit];
+            else
+                m_landBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
 
             LandData.OwnerID = owner_id;
             if (is_group_owned)

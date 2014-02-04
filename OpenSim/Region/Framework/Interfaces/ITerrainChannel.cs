@@ -26,6 +26,7 @@
  */
 
 using OpenSim.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -56,5 +57,7 @@ namespace OpenSim.Region.Framework.Interfaces
         ITerrainChannel MakeCopy();
         string SaveToXmlString();
         void LoadFromXmlString(string data);
+        // Merge some terrain into this channel
+        void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement);
     }
 }

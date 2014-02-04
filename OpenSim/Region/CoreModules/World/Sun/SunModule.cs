@@ -68,9 +68,6 @@ namespace OpenSim.Region.CoreModules
         // updating those region settings in GenSunPos()
         private bool receivedEstateToolsSunUpdate = false;
 
-        // Configurable values
-        private string m_RegionMode               = "SL";
-
         // Sun's position information is updated and sent to clients every m_UpdateInterval frames
         private int    m_UpdateInterval           = 0;
 
@@ -90,7 +87,6 @@ namespace OpenSim.Region.CoreModules
         // private double m_longitude      = 0;
         // private double m_latitude       = 0;
         // Configurable defaults                     Defaults close to SL
-        private string d_mode           = "SL";
         private int    d_frame_mod      = 100;    // Every 10 seconds (actually less)
         private double d_day_length     = 4;      // A VW day is 4 RW hours long
         private int    d_year_length    = 60;     // There are 60 VW days in a VW year
@@ -134,12 +130,15 @@ namespace OpenSim.Region.CoreModules
 
         private const int TICKS_PER_SECOND = 10000000;
 
+        private ulong m_CurrentTimeOffset = 0;
+
         // Current time in elapsed seconds since Jan 1st 1970
         private ulong CurrentTime
         {
             get
             {
-                return (ulong)(((DateTime.Now.Ticks) - TicksToEpoch + TicksUTCOffset) / TICKS_PER_SECOND);
+                ulong ctime = (ulong)(((DateTime.Now.Ticks) - TicksToEpoch + TicksUTCOffset) / TICKS_PER_SECOND);
+                return ctime + m_CurrentTimeOffset;
             }
         }
 
@@ -262,10 +261,8 @@ namespace OpenSim.Region.CoreModules
 
         private float GetCurrentTimeAsLindenSunHour()
         {
-            if (m_SunFixed)
-                return m_SunFixedHour + 6;
-
-            return GetCurrentSunHour() + 6.0f;
+            float curtime = m_SunFixed ? m_SunFixedHour : GetCurrentSunHour();
+            return (curtime + 6.0f) % 24.0f;
         }
 
         #region INonSharedRegion Methods
@@ -291,8 +288,6 @@ namespace OpenSim.Region.CoreModules
             try
             {
                 // Mode: determines how the sun is handled
-                m_RegionMode = config.Configs["Sun"].GetString("mode", d_mode);
-                // Mode: determines how the sun is handled
                 // m_latitude = config.Configs["Sun"].GetDouble("latitude", d_latitude);
                 // Mode: determines how the sun is handled
                 // m_longitude = config.Configs["Sun"].GetDouble("longitude", d_longitude);
@@ -314,7 +309,6 @@ namespace OpenSim.Region.CoreModules
             catch (Exception e)
             {
                 m_log.Debug("[SUN]: Configuration access failed, using defaults. Reason: " + e.Message);
-                m_RegionMode        = d_mode;
                 m_YearLengthDays = d_year_length;
                 m_DayLengthHours  = d_day_length;
                 m_HorizonShift   = d_day_night;
@@ -325,40 +319,28 @@ namespace OpenSim.Region.CoreModules
                 // m_longitude   = d_longitude;
             }
 
-            switch (m_RegionMode)
-            {
-                case "T1":
-                default:
-                case "SL":
-                    // Time taken to complete a cycle (day and season)
+            SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
+            SecondsPerYear     = (uint) (SecondsPerSunCycle*m_YearLengthDays);
 
-                    SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
-                    SecondsPerYear     = (uint) (SecondsPerSunCycle*m_YearLengthDays);
+            // Ration of real-to-virtual time
 
-                    // Ration of real-to-virtual time
+            // VWTimeRatio        = 24/m_day_length;
 
-                    // VWTimeRatio        = 24/m_day_length;
+            // Speed of rotation needed to complete a cycle in the
+            // designated period (day and season)
 
-                    // Speed of rotation needed to complete a cycle in the
-                    // designated period (day and season)
+            SunSpeed           = m_SunCycle/SecondsPerSunCycle;
+            SeasonSpeed        = m_SeasonalCycle/SecondsPerYear;
 
-                    SunSpeed           = m_SunCycle/SecondsPerSunCycle;
-                    SeasonSpeed        = m_SeasonalCycle/SecondsPerYear;
+            // Horizon translation
 
-                    // Horizon translation
+            HorizonShift      = m_HorizonShift; // Z axis translation
+            // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
 
-                    HorizonShift      = m_HorizonShift; // Z axis translation
-                    // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
-
-                    m_log.Debug("[SUN]: Mode is " + m_RegionMode);
-                    m_log.Debug("[SUN]: Initialization completed. Day is " + SecondsPerSunCycle + " seconds, and year is " + m_YearLengthDays + " days");
-                    m_log.Debug("[SUN]: Axis offset is " + m_HorizonShift);
-                    m_log.Debug("[SUN]: Percentage of time for daylight " + m_DayTimeSunHourScale);
-                    m_log.Debug("[SUN]: Positional data updated every " + m_UpdateInterval + " frames");
-
-                    break;
-            }
-
+            m_log.Debug("[SUN]: Initialization completed. Day is " + SecondsPerSunCycle + " seconds, and year is " + m_YearLengthDays + " days");
+            m_log.Debug("[SUN]: Axis offset is " + m_HorizonShift);
+            m_log.Debug("[SUN]: Percentage of time for daylight " + m_DayTimeSunHourScale);
+            m_log.Debug("[SUN]: Positional data updated every " + m_UpdateInterval + " frames");
         }
 
         public Type ReplaceableInterface 
@@ -385,7 +367,8 @@ namespace OpenSim.Region.CoreModules
                 string sunCommand = string.Format("sun {0}", kvp.Key);
                 m_scene.AddCommand("Regions", this, sunCommand, string.Format("{0} [<value>]", sunCommand), kvp.Value, "", HandleSunConsoleCommand);
             }
-
+            m_scene.AddCommand("Regions", this, "sun help", "sun help", "list parameters that can be changed", "", HandleSunConsoleCommand);
+            m_scene.AddCommand("Regions", this, "sun list", "sun list", "list parameters that can be changed", "", HandleSunConsoleCommand);
             ready = true;
         }
 
@@ -419,23 +402,22 @@ namespace OpenSim.Region.CoreModules
 
         public void SunToClient(IClientAPI client)
         {
-            if (m_RegionMode != "T1")
+            if (ready)
             {
-                if (ready)
+                if (m_SunFixed)
                 {
-                    if (m_SunFixed)
-                    {
-                        // m_log.DebugFormat("[SUN]: SunHour {0}, Position {1}, PosTime {2}, OrbitalPosition : {3} ", m_SunFixedHour, Position.ToString(), PosTime.ToString(), OrbitalPosition.ToString());
-                        client.SendSunPos(Position, Velocity, PosTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
-                    }
-                    else
-                    {
-                        // m_log.DebugFormat("[SUN]: SunHour {0}, Position {1}, PosTime {2}, OrbitalPosition : {3} ", m_SunFixedHour, Position.ToString(), PosTime.ToString(), OrbitalPosition.ToString());
-                        client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
-                    }
+                    // m_log.DebugFormat("[SUN]: Fixed SunHour {0}, Position {1}, PosTime {2}, OrbitalPosition : {3} ",
+                    //                   m_SunFixedHour, Position.ToString(), PosTime.ToString(), OrbitalPosition.ToString());
+                    client.SendSunPos(Position, Velocity, PosTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
+                }
+                else
+                {
+                    // m_log.DebugFormat("[SUN]: SunHour {0}, Position {1}, PosTime {2}, OrbitalPosition : {3} ",
+                    //                  m_SunFixedHour, Position.ToString(), PosTime.ToString(), OrbitalPosition.ToString());
+                    client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
                 }
             }
-        }
+        }            
 
         public void SunUpdate()
         {
@@ -532,6 +514,9 @@ namespace OpenSim.Region.CoreModules
                 case "update_interval":
                     return m_UpdateInterval;
 
+                case "current_time":
+                    return GetCurrentTimeAsLindenSunHour();
+                
                 default:
                     throw new Exception("Unknown sun parameter.");
             }
@@ -539,7 +524,51 @@ namespace OpenSim.Region.CoreModules
 
         public void SetSunParameter(string param, double value)
         {
-            HandleSunConsoleCommand("sun", new string[] {param, value.ToString() });
+            switch (param)
+            {
+                case "year_length":
+                    m_YearLengthDays = (int)value;
+                    SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
+                    SeasonSpeed = m_SeasonalCycle/SecondsPerYear;
+                    break;
+
+                case "day_length":
+                    m_DayLengthHours = value;
+                    SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
+                    SecondsPerYear = (uint) (SecondsPerSunCycle*m_YearLengthDays);
+                    SunSpeed = m_SunCycle/SecondsPerSunCycle;
+                    SeasonSpeed = m_SeasonalCycle/SecondsPerYear;
+                    break;
+
+                case "day_night_offset":
+                    m_HorizonShift = value;
+                    HorizonShift = m_HorizonShift;
+                    break;
+
+                case "day_time_sun_hour_scale":
+                    m_DayTimeSunHourScale = value;
+                    break;
+
+                case "update_interval":
+                    m_UpdateInterval = (int)value;
+                    break;
+
+                case "current_time":
+                    value = (value + 18.0) % 24.0;
+                    // set the current offset so that the effective sun time is the parameter
+                    m_CurrentTimeOffset = 0; // clear this first so we use raw time
+                    m_CurrentTimeOffset = (ulong)(SecondsPerSunCycle * value/ 24.0) - (CurrentTime % SecondsPerSunCycle);
+                    break;
+
+                default:
+                    throw new Exception("Unknown sun parameter.");
+
+                // Generate shared values
+                GenSunPos();
+
+                // When sun settings are updated, we should update all clients with new settings.
+                SunUpdateToAllClients();
+            }
         }
 
         public float GetCurrentSunHour()
@@ -572,7 +601,7 @@ namespace OpenSim.Region.CoreModules
 
             foreach (string output in ParseCmdParams(cmdparams))
             {
-                m_log.Info("[SUN] " + output);
+                MainConsole.Instance.Output(output);
             }
         }
 
@@ -581,10 +610,11 @@ namespace OpenSim.Region.CoreModules
             Dictionary<string, string> Params = new Dictionary<string, string>();
 
             Params.Add("year_length", "number of days to a year");
-            Params.Add("day_length", "number of seconds to a day");
+            Params.Add("day_length", "number of hours to a day");
             Params.Add("day_night_offset", "induces a horizon shift");
             Params.Add("update_interval", "how often to update the sun's position in frames");
             Params.Add("day_time_sun_hour_scale", "scales day light vs nite hours to change day/night ratio");
+            Params.Add("current_time", "time in seconds of the simulator");
 
             return Params;
         }
@@ -618,46 +648,15 @@ namespace OpenSim.Region.CoreModules
             }
             else if (args.Length == 3)
             {
-                float value = 0.0f;
-                if (!float.TryParse(args[2], out value))
+                double value = 0.0;
+                if (! double.TryParse(args[2], out value))
                 {
                     Output.Add(String.Format("The parameter value {0} is not a valid number.", args[2]));
+                    return Output;
                 }
 
-                switch (args[1].ToLower())
-                {
-                    case "year_length":
-                        m_YearLengthDays = (int)value;
-                        break;
-
-                    case "day_length":
-                        m_DayLengthHours = value;
-                        break;
-
-                    case "day_night_offset":
-                        m_HorizonShift = value;
-                        break;
-
-                    case "day_time_sun_hour_scale":
-                        m_DayTimeSunHourScale = value;
-                        break;
-
-                    case "update_interval":
-                        m_UpdateInterval = (int)value;
-                        break;
-
-                    default:
-                        Output.Add(String.Format("Unknown parameter {0}.", args[1]));
-                        return Output;
-                }
-
+                SetSunParameter(args[1].ToLower(), value);
                 Output.Add(String.Format("Parameter {0} set to {1}.", args[1], value.ToString()));
-
-                // Generate shared values
-                GenSunPos();
-
-                // When sun settings are updated, we should update all clients with new settings.
-                SunUpdateToAllClients();
             }
 
             return Output;

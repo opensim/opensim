@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected Vector3 m_displacement = Vector3.Zero;
 
         /// <value>
-        /// Rotation to apply to the objects as they are loaded.
+        /// Rotation (in radians) to apply to the objects as they are loaded.
         /// </value>
         protected float m_rotation = 0f;
 
@@ -129,6 +129,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Center around which to apply the rotation relative to the origional oar position
         /// </value>
         protected Vector3 m_rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0f);
+
+        protected bool m_noObjects = false;
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -177,14 +179,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
             m_errorMessage = String.Empty;
             m_merge = options.ContainsKey("merge");
-            m_forceTerrain = options.ContainsKey("forceTerrain");
-            m_forceParcels = options.ContainsKey("forceParcels");
+            m_forceTerrain = options.ContainsKey("force-terrain");
+            m_forceParcels = options.ContainsKey("force-parcels");
+            m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
-            m_rotationCenter = options.ContainsKey("rotationCenter") ? (Vector3)options["rotationCenter"] 
-                                : new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0f);
+            m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"] 
+                                : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
@@ -261,7 +264,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     // Process the file
 
-                    if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                    if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH) && !m_noObjects)
                     {
                         sceneContext.SerialisedSceneObjects.Add(Encoding.UTF8.GetString(data));
                     }
@@ -454,8 +457,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
-            float angle = (float)(m_rotation / 180.0 * Math.PI);
-            OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, angle);
+            OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, m_rotation);
 
             UUID oldTelehubUUID = scene.RegionInfo.RegionSettings.TelehubObject;
 
@@ -483,16 +485,25 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // Happily this does not do much to the object since it hasn't been added to the scene yet
                 if (sceneObject.AttachmentPoint == 0)
                 {
-                    if (angle != 0f)
+                    if (m_displacement != Vector3.Zero || m_rotation != 0f)
                     {
-                        sceneObject.RootPart.RotationOffset = rot * sceneObject.GroupRotation;
-                        Vector3 offset = sceneObject.AbsolutePosition - m_rotationCenter;
-                        offset *= rot;
-                        sceneObject.AbsolutePosition = m_rotationCenter + offset;
-                    }
-                    if (m_displacement != Vector3.Zero)
-                    {
-                        sceneObject.AbsolutePosition += m_displacement;
+                        Vector3 pos = sceneObject.AbsolutePosition;
+                        if (m_rotation != 0f)
+                        {
+                            // Rotate the object
+                            sceneObject.RootPart.RotationOffset = rot * sceneObject.GroupRotation;
+                            // Get object position relative to rotation axis
+                            Vector3 offset = pos - m_rotationCenter;
+                            // Rotate the object position
+                            offset *= rot;
+                            // Restore the object position back to relative to the region
+                            pos = m_rotationCenter + offset;
+                        }
+                        if (m_displacement != Vector3.Zero)
+                        {
+                            pos += m_displacement;
+                        }
+                        sceneObject.AbsolutePosition = pos;
                     }
                 }
 
@@ -868,10 +879,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
 
             MemoryStream ms = new MemoryStream(data);
-            if (m_displacement != Vector3.Zero)
+            if (m_displacement != Vector3.Zero || m_rotation != 0f)
             {
-                Vector2 terrainDisplacement = new Vector2(m_displacement.X, m_displacement.Y);
-                terrainModule.LoadFromStream(terrainPath, terrainDisplacement, ms);
+                Vector2 rotationCenter = new Vector2(m_rotationCenter.X, m_rotationCenter.Y);
+                terrainModule.LoadFromStream(terrainPath, m_displacement, m_rotation, rotationCenter, ms);
             }
             else
             {

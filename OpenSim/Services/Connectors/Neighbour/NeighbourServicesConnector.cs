@@ -162,7 +162,7 @@ namespace OpenSim.Services.Connectors
             finally
             {
                 if (os != null)
-                    os.Close();
+                    os.Dispose();
             }
 
             // Let's wait for the response

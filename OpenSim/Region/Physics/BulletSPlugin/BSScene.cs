@@ -235,6 +235,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // Set default values for physics parameters plus any overrides from the ini file
         GetInitialParameterValues(config);
 
+        // Force some parameters to values depending on other configurations
+        // Only use heightmap terrain implementation if terrain larger than legacy size
+        if ((uint)regionExtent.X > Constants.RegionSize || (uint)regionExtent.Y > Constants.RegionSize)
+        {
+            m_log.WarnFormat("{0} Forcing terrain implementation to heightmap for large region", LogHeader);
+            BSParam.TerrainImplementation = (float)BSTerrainPhys.TerrainImplementation.Heightmap;
+        }
+
         // Get the connection to the physics engine (could be native or one of many DLLs)
         PE = SelectUnderlyingBulletEngine(BulletEngineName);
 

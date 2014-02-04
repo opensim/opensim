@@ -160,7 +160,11 @@ namespace OpenSim.Framework
 
         public override bool IsTaintedAt(int xx, int yy)
         {
-            return m_taint[xx / Constants.TerrainPatchSize, yy / Constants.TerrainPatchSize];
+            int tx = xx / Constants.TerrainPatchSize;
+            int ty = yy / Constants.TerrainPatchSize;
+            bool ret =  m_taint[tx, ty];
+            m_taint[tx, ty] = false;
+            return ret;
         }
 
         // TerrainData.GetDatabaseBlob
@@ -274,6 +278,7 @@ namespace OpenSim.Framework
             m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
             // m_log.DebugFormat("{0} new by dimensions. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
             ClearTaint();
+            ClearLand(0f);
         }
 
         public HeightmapTerrainData(short[] cmap, float pCompressionFactor, int pX, int pY, int pZ) : this(pX, pY, pZ)

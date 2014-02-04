@@ -36,6 +36,8 @@ using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
+using OpenMetaverse;
+
 using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -210,6 +212,76 @@ namespace OpenSim.Region.Framework.Scenes
             ReadXml(reader);
             reader.Close();
             sr.Close();
+        }
+
+        // ITerrainChannel.Merge
+        public void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement)
+        {
+            for (int xx = 0; xx < newTerrain.Width; xx++)
+            {
+                for (int yy = 0; yy < newTerrain.Height; yy++)
+                {
+                    int dispX = (int)displacement.X;
+                    int dispY = (int)displacement.Y;
+                    float newHeight = (float)newTerrain[xx, yy] + displacement.Z;
+                    if (radianRotation == 0)
+                    {
+                        // If no rotation, place the new height in the specified location
+                        dispX += xx;
+                        dispY += yy;
+                        if (dispX >= 0 && dispX < m_terrainData.SizeX && dispY >= 0 && dispY < m_terrainData.SizeY)
+                        {
+                            m_terrainData[dispX, dispY] = newHeight;
+                        }
+                    }
+                    else
+                    {
+                        // If rotating, we have to smooth the result because the conversion
+                        //    to ints will mean heightmap entries will not get changed
+                        // First compute the rotation location for the new height.
+                        dispX += (int)(rotationDisplacement.X
+                            + ((float)xx - rotationDisplacement.X) * Math.Cos(radianRotation)
+                            - ((float)yy - rotationDisplacement.Y) * Math.Sin(radianRotation) );
+
+                        dispY += (int)(rotationDisplacement.Y
+                            + ((float)xx - rotationDisplacement.X) * Math.Sin(radianRotation)
+                            + ((float)yy - rotationDisplacement.Y) * Math.Cos(radianRotation) );
+
+                        if (dispX >= 0 && dispX < m_terrainData.SizeX && dispY >= 0 && dispY < m_terrainData.SizeY)
+                        {
+                            float oldHeight = m_terrainData[dispX, dispY];
+                            // Smooth the heights around this location if the old height is far from this one
+                            for (int sxx = dispX - 2; sxx < dispX + 2; sxx++)
+                            {
+                                for (int syy = dispY - 2; syy < dispY + 2; syy++)
+                                {
+                                    if (sxx >= 0 && sxx < m_terrainData.SizeX && syy >= 0 && syy < m_terrainData.SizeY)
+                                    {
+                                        if (sxx == dispX && syy == dispY)
+                                        {
+                                            // Set height for the exact rotated point
+                                            m_terrainData[dispX, dispY] = newHeight;
+                                        }
+                                        else
+                                        {
+                                            if (Math.Abs(m_terrainData[sxx, syy] - newHeight) > 1f)
+                                            {
+                                                // If the adjacent height is far off, force it to this height
+                                                m_terrainData[sxx, syy] = newHeight;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (dispX >= 0 && dispX < m_terrainData.SizeX && dispY >= 0 && dispY < m_terrainData.SizeY)
+                        {
+                            m_terrainData[dispX, dispY] = (float)newTerrain[xx, yy];
+                        }
+                    }
+                }
+            }
         }
 
         #endregion
