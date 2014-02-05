@@ -244,13 +244,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     }
                     if (hash["size_x"] != null)
                     {
-                        Int32.TryParse((string)hash["x"], out n);
+                        Int32.TryParse((string)hash["size_x"], out n);
                         region.RegionSizeX = n;
                         //m_log.Debug(">> HERE, x: " + region.RegionLocX);
                     }
                     if (hash["size_y"] != null)
                     {
-                        Int32.TryParse((string)hash["y"], out n);
+                        Int32.TryParse((string)hash["size_y"], out n);
                         region.RegionSizeY = n;
                         //m_log.Debug(">> HERE, y: " + region.RegionLocY);
                     }
