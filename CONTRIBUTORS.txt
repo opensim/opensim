@@ -145,6 +145,7 @@ what it is today.
 * Richard Alimi (IBM)
 * Rick Alther (IBM)
 * Rob Smart (IBM)
+* Roger Kirkman (zadark)
 * rtomita
 * Ruud Lathorp
 * SachaMagne
