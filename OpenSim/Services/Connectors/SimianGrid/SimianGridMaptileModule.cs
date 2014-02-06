@@ -181,7 +181,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
             m_log.DebugFormat("[SIMIAN MAPTILE]: upload maptile for {0}",scene.RegionInfo.RegionName);
 
             // Create a PNG map tile and upload it to the AddMapTile API
-            byte[] pngData = Utils.EmptyBytes;
             IMapImageGenerator tileGenerator = scene.RequestModuleInterface<IMapImageGenerator>();
             if (tileGenerator == null)
             {
@@ -189,93 +188,79 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return;
             }
 
-            using (Image mapTile = tileGenerator.CreateMapTile())
+            using (Bitmap mapTile = tileGenerator.CreateMapTile())
             {
-                using (MemoryStream stream = new MemoryStream())
+                if (mapTile != null)
                 {
-                    mapTile.Save(stream, ImageFormat.Png);
-                    pngData = stream.ToArray();
+                    // If the region/maptile is legacy sized, just upload the one tile like it has always been done
+                    if (mapTile.Width == Constants.RegionSize && mapTile.Height == Constants.RegionSize)
+                    {
+                        ConvertAndUploadMaptile(mapTile, scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY);
+                    }
+                    else
+                    {
+                        // For larger regions (varregion) we must cut the region image into legacy sized
+                        //    pieces since that is how the maptile system works.
+                        // Note the assumption that varregions are always a multiple of legacy size.
+                        for (uint xx = 0; xx < mapTile.Width; xx += Constants.RegionSize)
+                        {
+                            for (uint yy = 0; yy < mapTile.Height; yy += Constants.RegionSize)
+                            {
+                                // Images are addressed from the upper left corner so have to do funny
+                                //     math to pick out the sub-tile since regions are numbered from
+                                //     the lower left.
+                                Rectangle rect = new Rectangle(
+                                            (int)xx,
+                                            mapTile.Height - (int)yy - (int)Constants.RegionSize,
+                                            (int)Constants.RegionSize, (int)Constants.RegionSize);
+
+                                using (Bitmap subMapTile = mapTile.Clone(rect, mapTile.PixelFormat))
+                                {
+                                    uint locX = scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize);
+                                    uint locY = scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize);
+                                    
+                                    ConvertAndUploadMaptile(subMapTile, locX, locY);
+                                }
+                            }
+                        }
+                    }
                 }
+                else
+                {
+                    m_log.WarnFormat("[SIMIAN MAPTILE] Tile image generation failed");
+                }
+            }
+
+        }
+        
+        ///<summary>
+        ///
+        ///</summary>
+        private void ConvertAndUploadMaptile(Image mapTile, uint locX, uint locY)
+        {
+            //m_log.DebugFormat("[SIMIAN MAPTILE]: upload maptile for location {0}, {1}", locX, locY);
+
+            byte[] pngData = Utils.EmptyBytes;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                mapTile.Save(stream, ImageFormat.Png);
+                pngData = stream.ToArray();
             }
 
             NameValueCollection requestArgs = new NameValueCollection
                 {
-                        { "RequestMethod", "xAddMapTile" },
-                        { "X", scene.RegionInfo.RegionLocX.ToString() },
-                        { "Y", scene.RegionInfo.RegionLocY.ToString() },
-                        { "ContentType", "image/png" },
-                        { "EncodedData", System.Convert.ToBase64String(pngData) }
+                    { "RequestMethod", "xAddMapTile" },
+                    { "X", locX.ToString() },
+                    { "Y", locY.ToString() },
+                    { "ContentType", "image/png" },
+                    { "EncodedData", System.Convert.ToBase64String(pngData) }
                 };
                             
             OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
             if (! response["Success"].AsBoolean())
             {
                 m_log.WarnFormat("[SIMIAN MAPTILE] failed to store map tile; {0}",response["Message"].AsString());
-                return;
             }
-
-            // List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
-            // {
-            //     new MultipartForm.Parameter("X", scene.RegionInfo.RegionLocX.ToString()),
-            //     new MultipartForm.Parameter("Y", scene.RegionInfo.RegionLocY.ToString()),
-            //     new MultipartForm.File("Tile", "tile.png", "image/png", pngData)
-            // };
-
-            // string errorMessage = null;
-            // int tickstart = Util.EnvironmentTickCount();
-
-            // // Make the remote storage request
-            // try
-            // {
-            //     HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl);
-            //     request.Timeout = 20000;
-            //     request.ReadWriteTimeout = 5000;
-
-            //     using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
-            //     {
-            //         using (Stream responseStream = response.GetResponseStream())
-            //         {
-            //             string responseStr = responseStream.GetStreamString();
-            //             OSD responseOSD = OSDParser.Deserialize(responseStr);
-            //             if (responseOSD.Type == OSDType.Map)
-            //             {
-            //                 OSDMap responseMap = (OSDMap)responseOSD;
-            //                 if (responseMap["Success"].AsBoolean())
-            //                     return;
-
-            //                 errorMessage = "Upload failed: " + responseMap["Message"].AsString();
-            //             }
-            //             else
-            //             {
-            //                 errorMessage = "Response format was invalid:\n" + responseStr;
-            //             }
-            //         }
-            //     }
-            // }
-            // catch (WebException we)
-            // {
-            //     errorMessage = we.Message;
-            //     if (we.Status == WebExceptionStatus.ProtocolError)
-            //     {
-            //         HttpWebResponse webResponse = (HttpWebResponse)we.Response;
-            //         errorMessage = String.Format("[{0}] {1}",
-            //                                      webResponse.StatusCode,webResponse.StatusDescription);
-            //     }
-            // }
-            // catch (Exception ex)
-            // {
-            //     errorMessage = ex.Message;
-            // }
-            // finally
-            // {
-            //     // This just dumps a warning for any operation that takes more than 100 ms
-            //     int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-            //     m_log.DebugFormat("[SIMIAN MAPTILE]: map tile uploaded in {0}ms",tickdiff);
-            // }
-
-            // m_log.WarnFormat("[SIMIAN MAPTILE]: Failed to store {0} byte tile for {1}: {2}",
-            //                  pngData.Length, scene.RegionInfo.RegionName, errorMessage);
-
         }
     }
 }
