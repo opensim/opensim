@@ -1323,7 +1323,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Wind);
+            byte layerType = (byte)TerrainPatch.LayerType.Wind;
+            if (m_scene.RegionInfo.RegionSizeX > Constants.RegionSize || m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
+                layerType = (byte)TerrainPatch.LayerType.WindExtended;
+
+            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacket(patches, layerType,
+                                (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY);
             layerpack.Header.Zerocoded = true;
             OutPacket(layerpack, ThrottleOutPacketType.Wind);
         }
@@ -1347,7 +1352,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Cloud);
+            byte layerType = (byte)TerrainPatch.LayerType.Cloud;
+            if (m_scene.RegionInfo.RegionSizeX > Constants.RegionSize || m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
+                layerType = (byte)TerrainPatch.LayerType.CloudExtended;
+
+            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacket(patches, layerType,
+                                (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY);
             layerpack.Header.Zerocoded = true;
             OutPacket(layerpack, ThrottleOutPacketType.Cloud);
         }

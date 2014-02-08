@@ -119,9 +119,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte landPacketType = (byte)TerrainPatch.LayerType.Land;
             if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
             {
-                // libOMV does not have a packet type defined for the extended parcel format.
-                // We just happen to know the extended parcel format code is one more than the usual code.
-                landPacketType++;
+                landPacketType = (byte)TerrainPatch.LayerType.LandExtended;
             }
 
             return CreateLandPacket(terrData, xPieces, yPieces, landPacketType);
