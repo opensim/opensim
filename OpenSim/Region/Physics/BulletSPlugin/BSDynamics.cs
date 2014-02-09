@@ -1011,8 +1011,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},  MoveLinear,clampMax,origVelW={1},lenSq={2},maxVelSq={3},,newVelW={4}",
                             ControllingPrim.LocalID, origVelW, newVelocityLengthSq, BSParam.VehicleMaxLinearVelocitySquared, VehicleVelocity);
             }
-            else if (newVelocityLengthSq < 0.001f)
+            else if (newVelocityLengthSq < BSParam.VehicleMinLinearVelocitySquared)
+            {
+                Vector3 origVelW = VehicleVelocity;         // DEBUG DEBUG
+                VDetailLog("{0},  MoveLinear,clampMin,origVelW={1},lenSq={2}",
+                            ControllingPrim.LocalID, origVelW, newVelocityLengthSq);
                 VehicleVelocity = Vector3.Zero;
+            }
 
             VDetailLog("{0},  MoveLinear,done,isColl={1},newVel={2}", ControllingPrim.LocalID, ControllingPrim.HasSomeCollision, VehicleVelocity );
 
