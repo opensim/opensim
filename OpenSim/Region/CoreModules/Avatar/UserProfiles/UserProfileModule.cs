@@ -1164,7 +1164,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
                 UserAgentServiceConnector uConn = new UserAgentServiceConnector(home_url);
 
-                Dictionary<string, object> account = uConn.GetUserInfo(userID);
+                Dictionary<string, object> account;
+                try
+                {
+                    account = uConn.GetUserInfo(userID);
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn("[PROFILES]: GetUserInfo call failed ", e);
+                    account = new Dictionary<string, object>();
+                }
 
                 if (account.Count > 0)
                 {
