@@ -1057,30 +1057,32 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
 
-            UUID groupUUID = UUID.Zero;
-            string GroupName = string.Empty;
+            UUID groupUUID = ControllingClient.ActiveGroupId;
+            string groupName = string.Empty;
             ulong groupPowers = 0;
 
             // ----------------------------------
             // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
             try
             {
-                if (gm != null)
+                if (groupUUID != UUID.Zero && gm != null)
                 {
-                    groupUUID = ControllingClient.ActiveGroupId;
                     GroupRecord record = gm.GetGroupRecord(groupUUID);
                     if (record != null)
-                        GroupName = record.GroupName;
+                        groupName = record.GroupName;
+
                     GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
+
                     if (groupMembershipData != null)
                         groupPowers = groupMembershipData.GroupPowers;
                 }
-                ControllingClient.SendAgentDataUpdate(m_uuid, groupUUID, Firstname, Lastname, groupPowers, GroupName,
-                                                      Grouptitle);
+
+                ControllingClient.SendAgentDataUpdate(
+                    m_uuid, groupUUID, Firstname, Lastname, groupPowers, groupName, Grouptitle);
             }
             catch (Exception e)
             {
-                m_log.Debug("[AGENTUPDATE]: " + e.ToString());
+                m_log.Error("[AGENTUPDATE]: Error ", e);
             }
             // ------------------------------------
 
