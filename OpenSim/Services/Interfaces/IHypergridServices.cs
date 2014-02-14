@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -47,15 +47,47 @@ namespace OpenSim.Services.Interfaces
     {
         bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
         void LogoutAgent(UUID userID, UUID sessionID);
-        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
-        Dictionary<string, object> GetServerURLs(UUID userID);
-        Dictionary<string,object> GetUserInfo(UUID userID);
 
+        /// <summary>
+        /// Returns the home region of a remote user.
+        /// </summary>
+        /// <returns>On success: the user's home region. If the user doesn't exist: null.</returns>
+        /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
+        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
+
+        /// <summary>
+        /// Returns the Server URLs of a remote user.
+        /// </summary>
+        /// <returns>On success: the user's Server URLs. If the user doesn't exist: an empty dictionary.</returns>
+        /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
+        Dictionary<string, object> GetServerURLs(UUID userID);
+
+        /// <summary>
+        /// Returns the UserInfo of a remote user.
+        /// </summary>
+        /// <returns>On success: the user's UserInfo. If the user doesn't exist: an empty dictionary.</returns>
+        /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
+        Dictionary<string, object> GetUserInfo(UUID userID);
+
+        /// <summary>
+        /// Returns the current location of a remote user.
+        /// </summary>
+        /// <returns>On success: the user's Server URLs. If the user doesn't exist: "".</returns>
+        /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
         string LocateUser(UUID userID);
-        // Tries to get the universal user identifier for the targetUserId
-        // on behalf of the userID
+        
+        /// <summary>
+        /// Returns the Universal User Identifier for 'targetUserID' on behalf of 'userID'.
+        /// </summary>
+        /// <returns>On success: the user's UUI. If the user doesn't exist: "".</returns>
+        /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
         string GetUUI(UUID userID, UUID targetUserID);
 
+        /// <summary>
+        /// Returns the remote user that has the given name.
+        /// </summary>
+        /// <returns>On success: the user's UUID. If the user doesn't exist: UUID.Zero.</returns>
+        /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
         UUID GetUUID(String first, String last);
 
         // Returns the local friends online

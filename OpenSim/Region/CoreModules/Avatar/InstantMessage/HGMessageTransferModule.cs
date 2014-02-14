@@ -282,7 +282,17 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         string uasURL = circuit.ServiceURLs["HomeURI"].ToString();
                         m_log.DebugFormat("[HG MESSAGE TRANSFER]: getting UUI of user {0} from {1}", toAgent, uasURL);
                         UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uasURL);
-                        return uasConn.GetUUI(fromAgent, toAgent);
+
+                        string agentUUI = string.Empty;
+                        try
+                        {
+                            agentUUI = uasConn.GetUUI(fromAgent, toAgent);
+                        }
+                        catch (Exception e) {
+                            m_log.Debug("[HG MESSAGE TRANSFER]: GetUUI call failed ", e);
+                        }
+
+                        return agentUUI;
                     }
                 }
             }

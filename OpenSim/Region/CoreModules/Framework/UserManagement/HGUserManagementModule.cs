@@ -130,7 +130,17 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         }
 
                         UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uriStr);
-                        UUID userID = uasConn.GetUUID(names[0], names[1]);
+                        
+                        UUID userID = UUID.Zero;
+                        try
+                        {
+                            userID = uasConn.GetUUID(names[0], names[1]);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Debug("[USER MANAGEMENT MODULE]: GetUUID call failed ", e);
+                        }
+                        
                         if (!userID.Equals(UUID.Zero))
                         {
                             UserData ud = new UserData();
