@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         }
                         catch (Exception e)
                         {
-                            m_log.Warn("[USER MANAGEMENT MODULE]: GetUUID call failed ", e);
+                            m_log.Debug("[USER MANAGEMENT MODULE]: GetUUID call failed ", e);
                         }
                         
                         if (!userID.Equals(UUID.Zero))

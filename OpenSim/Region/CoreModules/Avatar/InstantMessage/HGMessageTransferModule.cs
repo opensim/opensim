@@ -289,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             agentUUI = uasConn.GetUUI(fromAgent, toAgent);
                         }
                         catch (Exception e) {
-                            m_log.Warn("[HG MESSAGE TRANSFER]: GetUUI call failed ", e);
+                            m_log.Debug("[HG MESSAGE TRANSFER]: GetUUI call failed ", e);
                         }
 
                         return agentUUI;

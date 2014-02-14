@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             catch (Exception e)
             {
-                m_log.Warn("[HG ENTITY TRANSFER MODULE]: GetHomeRegion call failed ", e);
+                m_log.Debug("[HG ENTITY TRANSFER MODULE]: GetHomeRegion call failed ", e);
             }
             
             if (finalDestination == null)

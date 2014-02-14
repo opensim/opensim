@@ -479,7 +479,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
                     catch (Exception e)
                     {
-                        m_log.Warn("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
+                        m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
                         userdata.ServerURLs = new Dictionary<string, object>();
                     }
                     

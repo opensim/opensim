@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn("[PROFILES]: GetUserInfo call failed ", e);
+                    m_log.Debug("[PROFILES]: GetUserInfo call failed ", e);
                     account = new Dictionary<string, object>();
                 }
 
