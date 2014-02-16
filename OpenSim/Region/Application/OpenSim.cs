@@ -559,7 +559,7 @@ namespace OpenSim
             {
                 scene.ForEachSOG(delegate(SceneObjectGroup sog)
                 {
-                    if (sog.AttachmentPoint == 0)
+                    if (!sog.IsAttachment)
                     {
                         sog.RootPart.UpdateRotation(rot * sog.GroupRotation);
                         Vector3 offset = sog.AbsolutePosition - center;
@@ -588,7 +588,7 @@ namespace OpenSim
             {
                 scene.ForEachSOG(delegate(SceneObjectGroup sog)
                 {
-                    if (sog.AttachmentPoint == 0)
+                    if (!sog.IsAttachment)
                     {
                         if (sog.RootPart.AbsolutePosition.Z < minZ)
                             minZ = sog.RootPart.AbsolutePosition.Z;
@@ -600,7 +600,7 @@ namespace OpenSim
             {
                 scene.ForEachSOG(delegate(SceneObjectGroup sog)
                 {
-                    if (sog.AttachmentPoint == 0)
+                    if (!sog.IsAttachment)
                     {
                         Vector3 tmpRootPos = sog.RootPart.AbsolutePosition;
                         tmpRootPos.Z -= minZ;
@@ -640,7 +640,7 @@ namespace OpenSim
             {
                 scene.ForEachSOG(delegate(SceneObjectGroup sog)
                 {
-                    if (sog.AttachmentPoint == 0)
+                    if (!sog.IsAttachment)
                         sog.UpdateGroupPosition(sog.AbsolutePosition + offset);
                 });
             });
