@@ -429,7 +429,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IsAttachmentCheckFull()
         {
-            return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
+            return (IsAttachment || (m_rootPart.Shape.PCode == (byte)PCodeEnum.Primitive && m_rootPart.Shape.State != 0));
         }
         
         private struct avtocrossInfo
@@ -451,19 +451,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Scene != null)
                 {
                     if (
-                        // (Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E)
-                        //     || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
-                        //     || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N)
-                        //     || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S))
-                        // Experimental change for better border crossings.
-                        //    The commented out original lines above would, it seems, trigger
-                        //    a border crossing a little early or late depending on which
-                        //    direction the object was moving.
-                        (Scene.TestBorderCross(val, Cardinals.E)
-                            || Scene.TestBorderCross(val, Cardinals.W)
-                            || Scene.TestBorderCross(val, Cardinals.N)
-                            || Scene.TestBorderCross(val, Cardinals.S))
-                        && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
+                        !Scene.PositionIsInCurrentRegion(val)
+                                && !IsAttachmentCheckFull()
+                                && (!Scene.LoadingPrims)
+                        )
                     {
                         IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                         string version = String.Empty;
