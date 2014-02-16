@@ -214,7 +214,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // final block, closing the search result
                 MapBlockData data = new MapBlockData();
                 data.Agents = 0;
-                data.Access = 255;
+                data.Access = (byte)SimAccess.NonExistent;
                 data.MapImageId = UUID.Zero;
                 data.Name = "";
                 data.RegionFlags = 0;

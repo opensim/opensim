@@ -126,7 +126,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                     foreach (MapBlockData b in mapBlocks)
                     {
                         b.Name = string.Empty;
-                        b.Access = 254; // means 'simulator is offline'. We need this because the viewer ignores 255's
+                        // Set 'simulator is offline'. We need this because the viewer ignores SimAccess.Unknown (255)
+                        b.Access = (byte)SimAccess.Down;
                     }
 
                     m_log.DebugFormat("[HG MAP]: Resetting {0} blocks", mapBlocks.Count);
