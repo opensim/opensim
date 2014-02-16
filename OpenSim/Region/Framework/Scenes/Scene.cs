@@ -2420,7 +2420,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (regionCombinerModule == null)
             {
                 // Regular region. Just check for region size
-                if (xx < RegionInfo.RegionSizeX || yy < RegionInfo.RegionSizeY )
+                if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
                     ret = true;
             }
             else
