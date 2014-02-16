@@ -1443,10 +1443,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    see that it is actually outside the current region), find the new region that the
         //    point is actually in.
         // Returns the coordinates and information of the new region or 'null' of it doesn't exist.
-        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos)
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos,
+                                            out string version, out Vector3 newpos, out string failureReason)
         {
             version = String.Empty;
             newpos = pos;
+            failureReason = string.Empty;
 
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
@@ -1463,12 +1465,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (neighbourRegion != null)
             {
                 // Compute the entity's position relative to the new region
-                newpos = new Vector3( (float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
+                newpos = new Vector3((float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
                                       (float)(presenceWorldY - (double)neighbourRegion.RegionLocY),
                                       pos.Z);
 
                 if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
                 {
+                    failureReason = "Cannot region cross into banned parcel";
                     neighbourRegion = null;
                 }
                 else
@@ -1478,14 +1481,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 // Check to see if we have access to the target region.
-                string reason;
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out reason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
                     neighbourRegion = null;
                 }
+            }
+            else
+            {
+                // The destination region just doesn't exist
+                failureReason = "Cannot cross into non-existant region";
             }
 
             if (neighbourRegion == null)
@@ -1509,11 +1516,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             uint y;
             Vector3 newpos;
             string version;
+            string failureReason;
 
-            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out version, out newpos);
+            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition,
+                                                            out version, out newpos, out failureReason);
             if (neighbourRegion == null)
             {
-                agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
+                agent.ControllingClient.SendAlertMessage(failureReason);
                 return false;
             }
 

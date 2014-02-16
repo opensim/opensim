@@ -3473,8 +3473,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 pos2 = AbsolutePosition;
                 Vector3 origPosition = pos2;
                 Vector3 vel = Velocity;
-                int neighbor = 0;
-                int[] fix = new int[2];
 
                 // Compute the avatar position in the next physics tick.
                 // If the avatar will be crossing, we force the crossing to happen now
@@ -3507,23 +3505,13 @@ namespace OpenSim.Region.Framework.Scenes
                             if (m_requestedSitTargetUUID == UUID.Zero)
                             {
                                 m_log.DebugFormat("{0} CheckForBorderCrossing: Crossing failed. Restoring old position.", LogHeader);
-                                const float borderFudge = 0.1f;
 
-                                if (origPosition.X < 0)
-                                    origPosition.X = borderFudge;
-                                else if (origPosition.X > (float)m_scene.RegionInfo.RegionSizeX)
-                                    origPosition.X = (float)m_scene.RegionInfo.RegionSizeX - borderFudge;
-                                if (origPosition.Y < 0)
-                                    origPosition.Y = borderFudge;
-                                else if (origPosition.Y > (float)m_scene.RegionInfo.RegionSizeY)
-                                    origPosition.Y = (float)m_scene.RegionInfo.RegionSizeY - borderFudge;
                                 Velocity = Vector3.Zero;
-                                AbsolutePosition = origPosition;
+                                AbsolutePosition = EnforceSanityOnPosition(origPosition);
 
                                 AddToPhysicalScene(isFlying);
                             }
                         }
-                             
                     }
                 }
                 else
@@ -3539,6 +3527,36 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[SCENE PRESENCE]: In transit m_pos={0}", m_pos);
                 }
             }   
+        }
+
+        // Given a position, make sure it is within the current region.
+        // If just outside some border, the returned position will be just inside the border on that side.
+        private Vector3 EnforceSanityOnPosition(Vector3 origPosition)
+        {
+            const float borderFudge = 0.1f;
+            Vector3 ret = origPosition;
+
+            // Sanity checking on the position to make sure it is in the region we couldn't cross from
+            float extentX = (float)m_scene.RegionInfo.RegionSizeX;
+            float extentY = (float)m_scene.RegionInfo.RegionSizeY;
+            IRegionCombinerModule combiner = m_scene.RequestModuleInterface<IRegionCombinerModule>();
+            if (combiner != null)
+            {
+                // If a mega-region, the size could be much bigger
+                Vector2 megaExtent = combiner.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
+                extentX = megaExtent.X;
+                extentY = megaExtent.Y;
+            }
+            if (ret.X < 0)
+                ret.X = borderFudge;
+            else if (ret.X >= extentX)
+                ret.X = extentX - borderFudge;
+            if (ret.Y < 0)
+                ret.Y = borderFudge;
+            else if (ret.Y >= extentY)
+                ret.Y = extentY - borderFudge;
+
+            return ret;
         }
 
         /// <summary>

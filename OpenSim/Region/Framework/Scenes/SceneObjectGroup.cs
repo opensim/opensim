@@ -459,6 +459,7 @@ namespace OpenSim.Region.Framework.Scenes
                         IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                         string version = String.Empty;
                         Vector3 newpos = Vector3.Zero;
+                        string failureReason = String.Empty;
                         OpenSim.Services.Interfaces.GridRegion destination = null;
 
                         if (m_rootPart.KeyframeMotion != null)
@@ -476,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // We set the avatar position as being the object
                             // position to get the region to send to
-                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out version, out newpos)) == null)
+                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out version, out newpos, out failureReason)) == null)
                             {
                                 canCross = false;
                                 break;
