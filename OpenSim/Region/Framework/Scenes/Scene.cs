@@ -213,7 +213,14 @@ namespace OpenSim.Region.Framework.Scenes
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
         {
-            get { return m_defaultDrawDistance; }
+            // get { return m_defaultDrawDistance; }
+            get {
+                if (RegionInfo != null)
+                {
+                    m_defaultDrawDistance = Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+                }
+                return m_defaultDrawDistance;
+            }
         }
 
         private List<string> m_AllowedViewers = new List<string>();
