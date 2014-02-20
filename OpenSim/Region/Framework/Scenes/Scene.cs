@@ -4358,6 +4358,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (EntityTransferModule != null)
             {
+                EventManager.TriggerCrossAgentToNewRegion(agent, isFlying);
                 return EntityTransferModule.Cross(agent, isFlying);
             }
             else
