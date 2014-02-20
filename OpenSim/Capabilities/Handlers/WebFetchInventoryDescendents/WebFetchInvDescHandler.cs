@@ -238,7 +238,15 @@ namespace OpenSim.Capabilities.Handlers
 
             if (folderID != UUID.Zero)
             {
-                contents = m_InventoryService.GetFolderContent(agentID, folderID);
+                InventoryCollection fetchedContents = m_InventoryService.GetFolderContent(agentID, folderID);
+
+                if (fetchedContents == null)
+                {
+                    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Could not get contents of folder {0} for user {1}", folderID, agentID);
+                    return contents;
+                }
+
+                contents = fetchedContents;
                 InventoryFolderBase containingFolder = new InventoryFolderBase();
                 containingFolder.ID = folderID;
                 containingFolder.Owner = agentID;
