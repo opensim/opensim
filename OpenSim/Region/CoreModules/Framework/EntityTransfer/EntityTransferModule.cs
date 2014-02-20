@@ -1531,6 +1531,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
             d.BeginInvoke(agent, newpos, neighbourRegion, isFlying, version, CrossAgentToNewRegionCompleted, d);
 
+            Scene.EventManager.TriggerCrossAgentToNewRegion(agent, isFlying, neighbourRegion);
+
             return true;
         }
 

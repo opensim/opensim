@@ -430,7 +430,7 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void IncomingInstantMessage(GridInstantMessage message);
         public event IncomingInstantMessage OnIncomingInstantMessage;
 
-        public delegate void CrossAgentToNewRegion(ScenePresence sp, bool isFlying);
+        public delegate void CrossAgentToNewRegion(ScenePresence sp, bool isFlying, GridRegion newRegion);
         public event CrossAgentToNewRegion OnCrossAgentToNewRegion;
 
         public event IncomingInstantMessage OnUnhandledInstantMessage;
@@ -1963,7 +1963,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerCrossAgentToNewRegion(ScenePresence agent, bool isFlying)
+        public void TriggerCrossAgentToNewRegion(ScenePresence agent, bool isFlying, GridRegion newRegion)
         {
             CrossAgentToNewRegion handlerCrossAgentToNewRegion = OnCrossAgentToNewRegion;
             if (handlerCrossAgentToNewRegion != null)
@@ -1972,7 +1972,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(agent, isFlying);
+                        d(agent, isFlying, newRegion);
                     }
                     catch (Exception e)
                     {
