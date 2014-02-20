@@ -631,16 +631,29 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private warp_Texture GetTexture(UUID id)
         {
             warp_Texture ret = null;
+
             byte[] asset = m_scene.AssetService.GetData(id.ToString());
+
             if (asset != null)
             {
                 IJ2KDecoder imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
-                Bitmap img = (Bitmap) imgDecoder.DecodeToImage(asset);
+                Bitmap img = null;
+
+                try
+                {
+                    img = (Bitmap)imgDecoder.DecodeToImage(asset);
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn(string.Format("[WARP 3D IMAGE MODULE]: Failed to decode asset {0}, exception  ", id), e);
+                }
+
                 if (img != null)
                 {
                     return new warp_Texture(img);
                 }
             }
+
             return ret;
         }
 
