@@ -687,6 +687,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             m_scene.EventManager.TriggerAvatarAppearanceChanged(sp);
         }
 
+        /// <summary>
+        /// For a given set of appearance items, check whether the items are valid and add their asset IDs to 
+        /// appearance data.
+        /// </summary>
+        /// <param name='userID'></param>
+        /// <param name='appearance'></param>
         private void SetAppearanceAssets(UUID userID, AvatarAppearance appearance)
         {
             IInventoryService invService = m_scene.InventoryService;
