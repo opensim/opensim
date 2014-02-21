@@ -215,7 +215,15 @@ namespace OpenSim.Services.HypergridService
                 {
                     // Let's check with the UAS if the user is elsewhere
                     m_log.DebugFormat("[HG IM SERVICE]: User is not present. Checking location with User Agent service");
-                    url = m_UserAgentService.LocateUser(toAgentID);
+                    try
+                    {
+                        url = m_UserAgentService.LocateUser(toAgentID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Warn("[HG IM SERVICE]: LocateUser call failed ", e);
+                        url = string.Empty;
+                    }
                 }
 
                 // check if we've tried this before..

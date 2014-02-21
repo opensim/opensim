@@ -430,6 +430,9 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void IncomingInstantMessage(GridInstantMessage message);
         public event IncomingInstantMessage OnIncomingInstantMessage;
 
+        public delegate void CrossAgentToNewRegion(ScenePresence sp, bool isFlying, GridRegion newRegion);
+        public event CrossAgentToNewRegion OnCrossAgentToNewRegion;
+
         public event IncomingInstantMessage OnUnhandledInstantMessage;
 
         public delegate void ClientClosed(UUID clientID, Scene scene);
@@ -1954,6 +1957,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerAvatarAppearanceChanged failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerCrossAgentToNewRegion(ScenePresence agent, bool isFlying, GridRegion newRegion)
+        {
+            CrossAgentToNewRegion handlerCrossAgentToNewRegion = OnCrossAgentToNewRegion;
+            if (handlerCrossAgentToNewRegion != null)
+            {
+                foreach (CrossAgentToNewRegion d in handlerCrossAgentToNewRegion.GetInvocationList())
+                {
+                    try
+                    {
+                        d(agent, isFlying, newRegion);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerCrossAgentToNewRegion failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }

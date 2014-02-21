@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -462,7 +462,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             IUserAgentService userAgentService = new UserAgentServiceConnector(aCircuit.ServiceURLs["HomeURI"].ToString());
             Vector3 position = Vector3.UnitY, lookAt = Vector3.UnitY;
-            GridRegion finalDestination = userAgentService.GetHomeRegion(aCircuit.AgentID, out position, out lookAt);
+
+            GridRegion finalDestination = null;
+            try
+            {
+                finalDestination = userAgentService.GetHomeRegion(aCircuit.AgentID, out position, out lookAt);
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[HG ENTITY TRANSFER MODULE]: GetHomeRegion call failed ", e);
+            }
+            
             if (finalDestination == null)
             {
                 client.SendTeleportFailed("Your home region could not be found");

@@ -1746,6 +1746,30 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Pretty format the hashtable contents to a single line.
+        /// </summary>
+        /// <remarks>
+        /// Used for debugging output.
+        /// </remarks>
+        /// <param name='ht'></param>
+        public static string PrettyFormatToSingleLine(Hashtable ht)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            int i = 0;
+
+            foreach (string key in ht.Keys)
+            {
+                sb.AppendFormat("{0}:{1}", key, ht[key]);
+
+                if (++i < ht.Count)
+                    sb.AppendFormat(", ");
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Used to trigger an early library load on Windows systems.
         /// </summary>
         /// <remarks>

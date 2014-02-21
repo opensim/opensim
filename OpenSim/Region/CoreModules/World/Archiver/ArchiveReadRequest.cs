@@ -483,7 +483,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 
                 // Happily this does not do much to the object since it hasn't been added to the scene yet
-                if (sceneObject.AttachmentPoint == 0)
+                if (!sceneObject.IsAttachment)
                 {
                     if (m_displacement != Vector3.Zero || m_rotation != 0f)
                     {

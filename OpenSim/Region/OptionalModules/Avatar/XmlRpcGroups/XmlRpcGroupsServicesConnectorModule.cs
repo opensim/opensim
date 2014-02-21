@@ -1012,7 +1012,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData.Contains("error") && !respData.Contains("succeed"))
                 {
-                    LogRespDataToConsoleError(respData);
+                    LogRespDataToConsoleError(requestingAgentID, function, param, respData);
                 }
 
                 return respData;
@@ -1040,20 +1040,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return error;
         }
 
-        private void LogRespDataToConsoleError(Hashtable respData)
+        private void LogRespDataToConsoleError(UUID requestingAgentID, string function, Hashtable param, Hashtable respData)
         {
-            m_log.Error("[XMLRPC-GROUPS-CONNECTOR]: Error:");
-
-            foreach (string key in respData.Keys)
-            {
-                m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: Key: {0}", key);
-
-                string[] lines = respData[key].ToString().Split(new char[] { '\n' });
-                foreach (string line in lines)
-                {
-                    m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: {0}", line);
-                }
-            }
+            m_log.ErrorFormat(
+                "[XMLRPC-GROUPS-CONNECTOR]: Error when calling {0} for {1} with params {2}.  Response params are {3}", 
+                function, requestingAgentID, Util.PrettyFormatToSingleLine(param), Util.PrettyFormatToSingleLine(respData));
         }
 
         /// <summary>

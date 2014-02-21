@@ -106,7 +106,7 @@ namespace OpenSim.Groups
             sendData["OP"] = "UPDATE";
             Dictionary<string, object> ret = MakeRequest("PUTGROUP", sendData);
 
-            if (ret == null || (ret != null && ret["RESULT"].ToString() == "NULL"))
+            if (ret == null || (ret != null && (!ret.ContainsKey("RESULT") || ret["RESULT"].ToString() == "NULL")))
                 return null;
 
             return GroupsDataUtils.GroupRecord((Dictionary<string, object>)ret["RESULT"]);
@@ -127,7 +127,7 @@ namespace OpenSim.Groups
 
             Dictionary<string, object> ret = MakeRequest("GETGROUP", sendData);
 
-            if (ret == null || (ret != null && ret["RESULT"].ToString() == "NULL"))
+            if (ret == null || (ret != null && (!ret.ContainsKey("RESULT") || ret["RESULT"].ToString() == "NULL")))
                 return null;
 
             return GroupsDataUtils.GroupRecord((Dictionary<string, object>)ret["RESULT"]);
@@ -267,6 +267,7 @@ namespace OpenSim.Groups
 
             if (ret["RESULT"].ToString() == "NULL")
                 return members;
+
             foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
             {
                 ExtendedGroupMembersData m = GroupsDataUtils.GroupMembersData((Dictionary<string, object>)v);
@@ -357,6 +358,7 @@ namespace OpenSim.Groups
 
             if (ret["RESULT"].ToString() == "NULL")
                 return roles;
+
             foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
             {
                 GroupRolesData m = GroupsDataUtils.GroupRolesData((Dictionary<string, object>)v);
@@ -667,7 +669,7 @@ namespace OpenSim.Groups
 
             return replyData;
         }
-        #endregion
 
+        #endregion
     }
 }

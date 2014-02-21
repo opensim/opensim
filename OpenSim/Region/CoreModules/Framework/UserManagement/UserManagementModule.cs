@@ -473,7 +473,16 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     //    serverType, userdata.HomeURL, userID);
 
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
-                    userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    try
+                    {
+                        userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
+                        userdata.ServerURLs = new Dictionary<string, object>();
+                    }
+                    
                     if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
                         return userdata.ServerURLs[serverType].ToString();
                 }

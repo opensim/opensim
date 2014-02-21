@@ -2479,13 +2479,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (pa != null)
             {
-                Vector3 newpos = new Vector3(pa.Position.GetBytes(), 0);
-                
-                if (ParentGroup.Scene.TestBorderCross(newpos, Cardinals.N)
-                    | ParentGroup.Scene.TestBorderCross(newpos, Cardinals.S)
-                    | ParentGroup.Scene.TestBorderCross(newpos, Cardinals.E)
-                    | ParentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
+                Vector3 newpos = pa.Position;
+                if (!ParentGroup.Scene.PositionIsInCurrentRegion(newpos))
                 {
+                    // Setting position outside current region will start region crossing
                     ParentGroup.AbsolutePosition = newpos;
                     return;
                 }

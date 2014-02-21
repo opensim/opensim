@@ -429,7 +429,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IsAttachmentCheckFull()
         {
-            return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
+            return (IsAttachment || (m_rootPart.Shape.PCode == (byte)PCodeEnum.Primitive && m_rootPart.Shape.State != 0));
         }
         
         private struct avtocrossInfo
@@ -451,23 +451,15 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Scene != null)
                 {
                     if (
-                        // (Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E)
-                        //     || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
-                        //     || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N)
-                        //     || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S))
-                        // Experimental change for better border crossings.
-                        //    The commented out original lines above would, it seems, trigger
-                        //    a border crossing a little early or late depending on which
-                        //    direction the object was moving.
-                        (Scene.TestBorderCross(val, Cardinals.E)
-                            || Scene.TestBorderCross(val, Cardinals.W)
-                            || Scene.TestBorderCross(val, Cardinals.N)
-                            || Scene.TestBorderCross(val, Cardinals.S))
-                        && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
+                        !Scene.PositionIsInCurrentRegion(val)
+                                && !IsAttachmentCheckFull()
+                                && (!Scene.LoadingPrims)
+                        )
                     {
                         IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                         string version = String.Empty;
                         Vector3 newpos = Vector3.Zero;
+                        string failureReason = String.Empty;
                         OpenSim.Services.Interfaces.GridRegion destination = null;
 
                         if (m_rootPart.KeyframeMotion != null)
@@ -485,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // We set the avatar position as being the object
                             // position to get the region to send to
-                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out version, out newpos)) == null)
+                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out version, out newpos, out failureReason)) == null)
                             {
                                 canCross = false;
                                 break;

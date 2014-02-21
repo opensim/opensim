@@ -91,7 +91,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="folderID"></param>
-        /// <returns></returns>
+        /// <returns>Inventory content.  null if the request failed.</returns>
         InventoryCollection GetFolderContent(UUID userID, UUID folderID);
         
         /// <summary>

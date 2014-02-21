@@ -464,7 +464,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Name, position, sp.Scene.RegionInfo.RegionName);
 
             // Teleport within the same region
-            if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
+            if (!sp.Scene.PositionIsInCurrentRegion(position) || position.Z < 0)
             {
                 Vector3 emergencyPos = new Vector3(128, 128, 128);
 
@@ -580,7 +580,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 MapBlockData block = new MapBlockData();
                 block.X = (ushort)regX;
                 block.Y = (ushort)regY;
-                block.Access = 254; // == not there
+                block.Access = (byte)SimAccess.Down;
 
                 List<MapBlockData> blocks = new List<MapBlockData>();
                 blocks.Add(block);
@@ -713,10 +713,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            uint newRegionX = (uint)(reg.RegionHandle >> 40);
-            uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
-            uint oldRegionX = (uint)(sp.Scene.RegionInfo.RegionHandle >> 40);
-            uint oldRegionY = (((uint)(sp.Scene.RegionInfo.RegionHandle)) >> 8);
+            uint newRegionX, newRegionY, oldRegionX, oldRegionY;
+            Util.RegionHandleToRegionLoc(reg.RegionHandle, out newRegionX, out newRegionY);
+            Util.RegionHandleToRegionLoc(sp.Scene.RegionInfo.RegionHandle, out oldRegionX, out oldRegionY);
 
             ulong destinationHandle = finalDestination.RegionHandle;
 
@@ -1333,6 +1332,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return region;
         }
 
+        // This returns 'true' if the new region already has a child agent for our
+        //    incoming agent. The implication is that, if 'false', we have to create  the
+        //    child and then teleport into the region.
         protected virtual bool NeedsNewAgent(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY)
         {
             if (m_regionCombinerModule != null && m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
@@ -1355,20 +1357,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual bool NeedsClosing(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
         {
             return Util.IsOutsideView(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY);
-        }
-
-        protected virtual bool IsOutsideRegion(Scene s, Vector3 pos)
-        {
-            if (s.TestBorderCross(pos, Cardinals.N))
-                return true;
-            if (s.TestBorderCross(pos, Cardinals.S))
-                return true;
-            if (s.TestBorderCross(pos, Cardinals.E))
-                return true;
-            if (s.TestBorderCross(pos, Cardinals.W))
-                return true;
-
-            return false;
         }
 
         #endregion
@@ -1455,10 +1443,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    see that it is actually outside the current region), find the new region that the
         //    point is actually in.
         // Returns the coordinates and information of the new region or 'null' of it doesn't exist.
-        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos)
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos,
+                                            out string version, out Vector3 newpos, out string failureReason)
         {
             version = String.Empty;
             newpos = pos;
+            failureReason = string.Empty;
 
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
@@ -1475,12 +1465,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (neighbourRegion != null)
             {
                 // Compute the entity's position relative to the new region
-                newpos = new Vector3( (float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
+                newpos = new Vector3((float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
                                       (float)(presenceWorldY - (double)neighbourRegion.RegionLocY),
                                       pos.Z);
 
                 if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
                 {
+                    failureReason = "Cannot region cross into banned parcel";
                     neighbourRegion = null;
                 }
                 else
@@ -1490,14 +1481,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 // Check to see if we have access to the target region.
-                string reason;
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out reason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
                     neighbourRegion = null;
                 }
+            }
+            else
+            {
+                // The destination region just doesn't exist
+                failureReason = "Cannot cross into non-existant region";
             }
 
             if (neighbourRegion == null)
@@ -1521,11 +1516,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             uint y;
             Vector3 newpos;
             string version;
+            string failureReason;
 
-            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out version, out newpos);
+            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition,
+                                                            out version, out newpos, out failureReason);
             if (neighbourRegion == null)
             {
-                agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
+                agent.ControllingClient.SendAlertMessage(failureReason);
                 return false;
             }
 
@@ -1533,6 +1530,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
             d.BeginInvoke(agent, newpos, neighbourRegion, isFlying, version, CrossAgentToNewRegionCompleted, d);
+
+            Scene.EventManager.TriggerCrossAgentToNewRegion(agent, isFlying, neighbourRegion);
 
             return true;
         }
@@ -2077,7 +2076,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             public NotFoundLocationCache()
             {
             }
-            // Add an area to the lost of 'not found' places. The area is the snapped region
+            // Add an area to the list of 'not found' places. The area is the snapped region
             //    area around the added point.
             public void Add(double pX, double pY)
             {
@@ -2305,22 +2304,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name='neCorner'></param>
         private void GetMegaregionViewRange(out Vector2 swCorner, out Vector2 neCorner)
         {
-            Border[] northBorders = Scene.NorthBorders.ToArray();
-            Border[] eastBorders = Scene.EastBorders.ToArray();
-
             Vector2 extent = Vector2.Zero;
-            for (int i = 0; i < eastBorders.Length; i++)
-            {
-                extent.X = (eastBorders[i].BorderLine.Z > extent.X) ? eastBorders[i].BorderLine.Z : extent.X;
-            }
-            for (int i = 0; i < northBorders.Length; i++)
-            {
-                extent.Y = (northBorders[i].BorderLine.Z > extent.Y) ? northBorders[i].BorderLine.Z : extent.Y;
-            }
 
-            // Loss of fraction on purpose
-            extent.X = ((int)extent.X / (int)Constants.RegionSize);
-            extent.Y = ((int)extent.Y / (int)Constants.RegionSize);
+            if (m_regionCombinerModule != null)
+            {
+                Vector2 megaRegionSize = m_regionCombinerModule.GetSizeOfMegaregion(Scene.RegionInfo.RegionID);
+                extent.X = (float)Util.WorldToRegionLoc((uint)megaRegionSize.X);
+                extent.Y = (float)Util.WorldToRegionLoc((uint)megaRegionSize.Y);
+            }
 
             swCorner.X = Scene.RegionInfo.RegionLocX - 1;
             swCorner.Y = Scene.RegionInfo.RegionLocY - 1;
