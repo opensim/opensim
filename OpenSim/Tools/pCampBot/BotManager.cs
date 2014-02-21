@@ -290,6 +290,12 @@ namespace pCampBot
                 if (abName == "t")
                     newBehaviour = new TeleportBehaviour();
 
+                if (abName == "tw")
+                    newBehaviour = new TwitchyBehaviour();
+
+                if (abName == "ph2")
+                    newBehaviour = new PhysicsBehaviour2();
+
                 if (newBehaviour != null)
                 {
                     behaviours.Add(newBehaviour);
