@@ -192,7 +192,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int wbits;
             int[] patch = CompressPatch(patchData, header, 10, out wbits);
-            wbits = EncodePatchHeader(output, header, patch, (uint)pRegionSizeX, (uint)pRegionSizeY, wbits);
+            wbits = EncodePatchHeader(output, header, patch, Constants.RegionSize, Constants.RegionSize, wbits);
             EncodePatch(output, patch, 0, wbits);
         }
 

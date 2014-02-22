@@ -1309,18 +1309,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Vector2[] windSpeeds = (Vector2[])o;
             TerrainPatch[] patches = new TerrainPatch[2];
-            patches[0] = new TerrainPatch();
-            patches[0].Data = new float[16 * 16];
-            patches[1] = new TerrainPatch();
-            patches[1].Data = new float[16 * 16];
+            patches[0] = new TerrainPatch { Data = new float[16 * 16] };
+            patches[1] = new TerrainPatch { Data = new float[16 * 16] };
 
-            for (int y = 0; y < 16; y++)
+            for (int x = 0; x < 16 * 16; x++)
             {
-                for (int x = 0; x < 16; x++)
-                {
-                    patches[0].Data[y * 16 + x] = windSpeeds[y * 16 + x].X;
-                    patches[1].Data[y * 16 + x] = windSpeeds[y * 16 + x].Y;
-                }
+                patches[0].Data[x] = windSpeeds[x].X;
+                patches[1].Data[x] = windSpeeds[x].Y;
             }
 
             byte layerType = (byte)TerrainPatch.LayerType.Wind;
