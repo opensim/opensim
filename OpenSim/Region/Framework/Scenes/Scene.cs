@@ -217,7 +217,9 @@ namespace OpenSim.Region.Framework.Scenes
             get {
                 if (RegionInfo != null)
                 {
-                    m_defaultDrawDistance = Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+                    float largestDimension = Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+                    m_defaultDrawDistance = Math.Max(m_defaultDrawDistance, largestDimension);
+
                 }
                 return m_defaultDrawDistance;
             }
