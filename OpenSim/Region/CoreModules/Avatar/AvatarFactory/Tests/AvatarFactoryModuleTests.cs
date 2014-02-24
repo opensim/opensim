@@ -102,8 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
             eyesFace.TextureID = eyesTextureId;
 
-/*
-            afm.SetAppearance(sp, bakedTextureEntry, visualParams);
+            afm.SetAppearance(sp, bakedTextureEntry, visualParams, null);
             afm.SaveBakedTextures(userId);
 //            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = afm.GetBakedTextureFaces(userId);
 
@@ -114,7 +113,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             Assert.That(eyesBake, Is.Not.Null);
             Assert.That(eyesBake.Temporary, Is.False);
             Assert.That(eyesBake.Local, Is.False);
-*/
         }
 
         /// <summary>
@@ -128,7 +126,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public void TestSetAppearanceAlphaBakedTextures()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
             UUID alphaTextureID = new UUID("3a367d1c-bef1-6d43-7595-e88c1e3aadb3");
