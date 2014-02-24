@@ -116,5 +116,58 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             Assert.That(eyesBake.Local, Is.False);
 */
         }
+
+        /// <summary>
+        /// Test appearance setting where the baked texture UUID are library alpha textures.
+        /// </summary>
+        /// <remarks>
+        /// For a mesh avatar, it appears these 'baked textures' are used.  So these should not trigger a request to 
+        /// rebake.
+        /// </remarks>
+        [Test]
+        public void TestSetAppearanceAlphaBakedTextures()
+        {
+            TestHelpers.InMethod();
+            TestHelpers.EnableLogging();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID alphaTextureID = new UUID("3a367d1c-bef1-6d43-7595-e88c1e3aadb3");
+
+
+            // We need an asset cache because otherwise the LocalAssetServiceConnector will short-circuit directly
+            // to the AssetService, which will then store temporary and local assets permanently
+            CoreAssetCache assetCache = new CoreAssetCache();
+            
+            AvatarFactoryModule afm = new AvatarFactoryModule();
+            TestScene scene = new SceneHelpers(assetCache).SetupScene();
+            SceneHelpers.SetupSceneModules(scene, afm);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
+
+            AssetBase libraryAsset;
+            libraryAsset 
+                = new AssetBase(
+                    alphaTextureID, "Default Alpha Layer Texturee", (sbyte)AssetType.Texture, userId.ToString());
+            libraryAsset.Data = new byte[] { 2 }; // Not necessary to have a genuine JPEG2000 asset here yet
+            libraryAsset.Temporary = false;
+            libraryAsset.Local = false;
+            scene.AssetService.Store(libraryAsset);
+
+            byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
+            for (byte i = 0; i < visualParams.Length; i++)
+                visualParams[i] = i;
+
+            Primitive.TextureEntry bakedTextureEntry = new Primitive.TextureEntry(TestHelpers.ParseTail(0x10));
+            uint eyesFaceIndex = (uint)AppearanceManager.BakeTypeToAgentTextureIndex(BakeType.Eyes);
+            Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
+
+            int rebakeRequestsReceived = 0;
+            ((TestClient)sp.ControllingClient).OnReceivedSendRebakeAvatarTextures += id => rebakeRequestsReceived++;
+
+            // This is the alpha texture
+            eyesFace.TextureID = alphaTextureID;
+            afm.SetAppearance(sp, bakedTextureEntry, visualParams, null);
+    
+            Assert.That(rebakeRequestsReceived, Is.EqualTo(0));
+        }
     }
 }

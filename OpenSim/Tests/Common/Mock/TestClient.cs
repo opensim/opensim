@@ -63,6 +63,7 @@ namespace OpenSim.Tests.Common.Mock
         public event Action<ulong, IPEndPoint> OnTestClientInformClientOfNeighbour;
         public event TestClientOnSendRegionTeleportDelegate OnTestClientSendRegionTeleport;
         public event Action<GridInstantMessage> OnReceivedInstantMessage;
+        public event Action<UUID> OnReceivedSendRebakeAvatarTextures;
 
         public delegate void TestClientOnSendRegionTeleportDelegate(
             ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
@@ -1227,6 +1228,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendRebakeAvatarTextures(UUID textureID)
         {
+            if (OnReceivedSendRebakeAvatarTextures != null)
+                OnReceivedSendRebakeAvatarTextures(textureID);
         }
         
         public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
