@@ -82,8 +82,7 @@ namespace OpenSim
 
             List<string> sources = new List<string>();
 
-            string masterFileName =
-                    startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
+            string masterFileName = startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
 
             if (masterFileName == "none")
                 masterFileName = String.Empty;
@@ -207,25 +206,12 @@ namespace OpenSim
                 Environment.Exit(1);
             }
 
+            // Merge OpSys env vars
+            m_log.Info("[CONFIG]: Loading environment variables for Config");
+            Util.MergeEnvironmentToConfig(m_config.Source);
+
             // Make sure command line options take precedence
             m_config.Source.Merge(argvSource);
-
-            IConfig enVars = m_config.Source.Configs["Environment"];
-
-            if( enVars != null )
-            {
-                string[] env_keys = enVars.GetKeys();
-
-                foreach ( string key in env_keys )
-                {
-                    envConfigSource.AddEnv(key, string.Empty);
-                }
-
-                envConfigSource.LoadEnv();
-                m_config.Source.Merge(envConfigSource);
-            }
-
-            m_config.Source.ExpandKeyValues();
 
             ReadConfigSettings();
 

@@ -49,9 +49,7 @@ namespace OpenSim.Server.Base
     {
         // Logger
         //
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Command line args
         //
@@ -72,11 +70,9 @@ namespace OpenSim.Server.Base
         public ServicesServerBase(string prompt, string[] args) : base()
         {
             // Save raw arguments
-            //
             m_Arguments = args;
 
             // Read command line
-            //
             ArgvConfigSource argvConfig = new ArgvConfigSource(args);
 
             argvConfig.AddSwitch("Startup", "console", "c");
@@ -86,7 +82,6 @@ namespace OpenSim.Server.Base
             argvConfig.AddSwitch("Startup", "logconfig", "g");
 
             // Automagically create the ini file name
-            //
             string fileName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
             string iniFile = fileName + ".ini";
             string logConfig = null;
@@ -95,19 +90,17 @@ namespace OpenSim.Server.Base
             if (startupConfig != null)
             {
                 // Check if a file name was given on the command line
-                //
                 iniFile = startupConfig.GetString("inifile", iniFile);
-                //
+
                 // Check if a prompt was given on the command line
                 prompt = startupConfig.GetString("prompt", prompt);
-                //
+                
                 // Check for a Log4Net config file on the command line
-                logConfig =startupConfig.GetString("logconfig",logConfig);
+                logConfig =startupConfig.GetString("logconfig", logConfig);
             }
 
-            // Find out of the file name is a URI and remote load it
-            // if it's possible. Load it as a local file otherwise.
-            //
+            // Find out of the file name is a URI and remote load it if possible.
+            // Load it as a local file otherwise.
             Uri configUri;
 
             try
@@ -129,13 +122,14 @@ namespace OpenSim.Server.Base
                 Environment.Exit(1);
             }
 
-            // Merge the configuration from the command line into the
-            // loaded file
-            //
+            // Merge OpSys env vars
+            m_log.Info("[CONFIG]: Loading environment variables for Config");
+            Util.MergeEnvironmentToConfig(Config);
+            
+            // Merge the configuration from the command line into the loaded file
             Config.Merge(argvConfig);
 
             // Refresh the startupConfig post merge
-            //
             if (Config.Configs["Startup"] != null)
             {
                 startupConfig = Config.Configs["Startup"];
@@ -145,13 +139,10 @@ namespace OpenSim.Server.Base
 
             prompt = startupConfig.GetString("Prompt", prompt);
 
-            // Allow derived classes to load config before the console is
-            // opened.
-            //
+            // Allow derived classes to load config before the console is opened.
             ReadConfig();
 
             // Create main console
-            //
             string consoleType = "local";
             if (startupConfig != null)
                 consoleType = startupConfig.GetString("console", consoleType);
@@ -195,7 +186,6 @@ namespace OpenSim.Server.Base
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
-            //
             Initialise();
         }
 

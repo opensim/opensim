@@ -946,11 +946,12 @@ namespace OpenSim.Framework
         }
 
         #region Nini (config) related Methods
+
         public static IConfigSource ConvertDataRowToXMLConfig(DataRow row, string fileName)
         {
             if (!File.Exists(fileName))
             {
-                //create new file
+                // create new file
             }
             XmlConfigSource config = new XmlConfigSource(fileName);
             AddDataRowToConfig(config, row);
@@ -966,25 +967,6 @@ namespace OpenSim.Framework
             {
                 config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
-        }
-
-        public static string GetConfigVarWithDefaultSection(IConfigSource config, string varname, string section)
-        {
-            // First, check the Startup section, the default section
-            IConfig cnf = config.Configs["Startup"];
-            if (cnf == null)
-                return string.Empty;
-            string val = cnf.GetString(varname, string.Empty);
-
-            // Then check for an overwrite of the default in the given section
-            if (!string.IsNullOrEmpty(section))
-            {
-                cnf = config.Configs[section];
-                if (cnf != null)
-                    val = cnf.GetString(varname, val);
-            }
-
-            return val;
         }
 
         /// <summary>
@@ -1037,6 +1019,91 @@ namespace OpenSim.Framework
             }
 
             return (T)val;
+        }
+
+        public static void MergeEnvironmentToConfig(IConfigSource ConfigSource)
+        {
+            IConfig enVars = ConfigSource.Configs["Environment"];
+            // if section does not exist then user isn't expecting them, so don't bother.
+            if( enVars != null )
+            {
+                // load the values from the environment
+                EnvConfigSource envConfigSource = new EnvConfigSource();
+                // add the requested keys
+                string[] env_keys = enVars.GetKeys();
+                foreach ( string key in env_keys )
+                {
+                    envConfigSource.AddEnv(key, string.Empty);
+                }
+                // load the values from environment
+                envConfigSource.LoadEnv();
+                // add them in to the master
+                ConfigSource.Merge(envConfigSource);
+                ConfigSource.ExpandKeyValues();
+            }
+        }
+        
+        public static T ReadSettingsFromIniFile<T>(IConfig config, T settingsClass)
+        {
+            Type settingsType = settingsClass.GetType();
+
+            FieldInfo[] fieldInfos = settingsType.GetFields();
+            foreach (FieldInfo fieldInfo in fieldInfos)
+            {
+                if (!fieldInfo.IsStatic)
+                {
+                    if (fieldInfo.FieldType == typeof(System.String))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.Get(fieldInfo.Name, (string)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Boolean))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetBoolean(fieldInfo.Name, (bool)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Int32))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetInt(fieldInfo.Name, (int)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Single))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetFloat(fieldInfo.Name, (float)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.UInt32))
+                    {
+                        fieldInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
+                    }
+                }
+            }
+
+            PropertyInfo[] propertyInfos = settingsType.GetProperties();
+            foreach (PropertyInfo propInfo in propertyInfos)
+            {
+                if ((propInfo.CanRead) && (propInfo.CanWrite))
+                {
+                    if (propInfo.PropertyType == typeof(System.String))
+                    {
+                        propInfo.SetValue(settingsClass, config.Get(propInfo.Name, (string)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    else if (propInfo.PropertyType == typeof(System.Boolean))
+                    {
+                        propInfo.SetValue(settingsClass, config.GetBoolean(propInfo.Name, (bool)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    else if (propInfo.PropertyType == typeof(System.Int32))
+                    {
+                        propInfo.SetValue(settingsClass, config.GetInt(propInfo.Name, (int)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    else if (propInfo.PropertyType == typeof(System.Single))
+                    {
+                        propInfo.SetValue(settingsClass, config.GetFloat(propInfo.Name, (float)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    if (propInfo.PropertyType == typeof(System.UInt32))
+                    {
+                        propInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(propInfo.Name, ((uint)propInfo.GetValue(settingsClass, null)).ToString())), null);
+                    }
+                }
+            }
+
+            return settingsClass;
         }
 
         #endregion
@@ -1409,69 +1476,6 @@ namespace OpenSim.Framework
             displayConnectionString += connectionString.Substring(passEndPosition, connectionString.Length - passEndPosition);
 
             return displayConnectionString;
-        }
-
-        public static T ReadSettingsFromIniFile<T>(IConfig config, T settingsClass)
-        {
-            Type settingsType = settingsClass.GetType();
-
-            FieldInfo[] fieldInfos = settingsType.GetFields();
-            foreach (FieldInfo fieldInfo in fieldInfos)
-            {
-                if (!fieldInfo.IsStatic)
-                {
-                    if (fieldInfo.FieldType == typeof(System.String))
-                    {
-                        fieldInfo.SetValue(settingsClass, config.Get(fieldInfo.Name, (string)fieldInfo.GetValue(settingsClass)));
-                    }
-                    else if (fieldInfo.FieldType == typeof(System.Boolean))
-                    {
-                        fieldInfo.SetValue(settingsClass, config.GetBoolean(fieldInfo.Name, (bool)fieldInfo.GetValue(settingsClass)));
-                    }
-                    else if (fieldInfo.FieldType == typeof(System.Int32))
-                    {
-                        fieldInfo.SetValue(settingsClass, config.GetInt(fieldInfo.Name, (int)fieldInfo.GetValue(settingsClass)));
-                    }
-                    else if (fieldInfo.FieldType == typeof(System.Single))
-                    {
-                        fieldInfo.SetValue(settingsClass, config.GetFloat(fieldInfo.Name, (float)fieldInfo.GetValue(settingsClass)));
-                    }
-                    else if (fieldInfo.FieldType == typeof(System.UInt32))
-                    {
-                        fieldInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
-                    }
-                }
-            }
-
-            PropertyInfo[] propertyInfos = settingsType.GetProperties();
-            foreach (PropertyInfo propInfo in propertyInfos)
-            {
-                if ((propInfo.CanRead) && (propInfo.CanWrite))
-                {
-                    if (propInfo.PropertyType == typeof(System.String))
-                    {
-                        propInfo.SetValue(settingsClass, config.Get(propInfo.Name, (string)propInfo.GetValue(settingsClass, null)), null);
-                    }
-                    else if (propInfo.PropertyType == typeof(System.Boolean))
-                    {
-                        propInfo.SetValue(settingsClass, config.GetBoolean(propInfo.Name, (bool)propInfo.GetValue(settingsClass, null)), null);
-                    }
-                    else if (propInfo.PropertyType == typeof(System.Int32))
-                    {
-                        propInfo.SetValue(settingsClass, config.GetInt(propInfo.Name, (int)propInfo.GetValue(settingsClass, null)), null);
-                    }
-                    else if (propInfo.PropertyType == typeof(System.Single))
-                    {
-                        propInfo.SetValue(settingsClass, config.GetFloat(propInfo.Name, (float)propInfo.GetValue(settingsClass, null)), null);
-                    }
-                    if (propInfo.PropertyType == typeof(System.UInt32))
-                    {
-                        propInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(propInfo.Name, ((uint)propInfo.GetValue(settingsClass, null)).ToString())), null);
-                    }
-                }
-            }
-
-            return settingsClass;
         }
 
         public static string Base64ToString(string str)
