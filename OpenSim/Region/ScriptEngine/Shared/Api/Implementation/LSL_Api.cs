@@ -313,6 +313,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>
         /// The link entity.  null if not found.
         /// </returns>
+        /// <param name='part'></param>
         /// <param name='linknum'>
         /// Can be either a non-negative integer or ScriptBaseClass.LINK_THIS (-4).
         /// If ScriptBaseClass.LINK_THIS then the entity containing the script is returned.
@@ -323,18 +324,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Otherwise, if a positive linknum is given which is greater than the number of entities in the linkset, then
         /// null is returned.
         /// </param>
-        public ISceneEntity GetLinkEntity(int linknum)
+        public ISceneEntity GetLinkEntity(SceneObjectPart part, int linknum)
         {
             if (linknum < 0)
             {
                 if (linknum == ScriptBaseClass.LINK_THIS)
-                    return m_host;
+                    return part;
                 else
                     return null;
             }
 
-            int actualPrimCount = m_host.ParentGroup.PrimCount;
-            List<UUID> sittingAvatarIds = m_host.ParentGroup.GetSittingAvatars();
+            int actualPrimCount = part.ParentGroup.PrimCount;
+            List<UUID> sittingAvatarIds = part.ParentGroup.GetSittingAvatars();
             int adjustedPrimCount = actualPrimCount + sittingAvatarIds.Count;
 
             // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
@@ -342,7 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (linknum == 0)
             {
                 if (actualPrimCount == 1 && sittingAvatarIds.Count == 0)
-                    return m_host;
+                    return part;
 
                 return null;
             }
@@ -351,7 +352,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else if (linknum == ScriptBaseClass.LINK_ROOT && actualPrimCount == 1)
             {
                 if (sittingAvatarIds.Count > 0)
-                    return m_host.ParentGroup.RootPart;
+                    return part.ParentGroup.RootPart;
                 else
                     return null;
             }
@@ -359,7 +360,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (linknum <= actualPrimCount)
                 {
-                    return m_host.ParentGroup.GetLinkNumPart(linknum);
+                    return part.ParentGroup.GetLinkNumPart(linknum);
                 }
                 else
                 {
@@ -424,6 +425,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ret = new List<SceneObjectPart>();
                 ret.Add(target);
                 return ret;
+            }
+        }
+
+        public List<ISceneEntity> GetLinkEntities(int linkType)
+        {
+            return GetLinkEntities(m_host, linkType);
+        }
+
+        public List<ISceneEntity> GetLinkEntities(SceneObjectPart part, int linkType)
+        {
+            List<ISceneEntity> ret = new List<ISceneEntity>();
+            ret.Add(part);
+
+            switch (linkType)
+            {
+                case ScriptBaseClass.LINK_SET:
+                    return new List<ISceneEntity>(part.ParentGroup.Parts);
+
+                case ScriptBaseClass.LINK_ROOT:
+                    ret = new List<ISceneEntity>();
+                    ret.Add(part.ParentGroup.RootPart);
+                    return ret;
+
+                case ScriptBaseClass.LINK_ALL_OTHERS:
+                    ret = new List<ISceneEntity>(part.ParentGroup.Parts);
+
+                    if (ret.Contains(part))
+                        ret.Remove(part);
+
+                    return ret;
+
+                case ScriptBaseClass.LINK_ALL_CHILDREN:
+                    ret = new List<ISceneEntity>(part.ParentGroup.Parts);
+
+                    if (ret.Contains(part.ParentGroup.RootPart))
+                        ret.Remove(part.ParentGroup.RootPart);
+                    return ret;
+
+                case ScriptBaseClass.LINK_THIS:
+                    return ret;
+
+                default:
+                    if (linkType < 0)
+                        return new List<ISceneEntity>();
+
+                    ISceneEntity target = GetLinkEntity(part, linkType);
+                    if (target == null)
+                        return new List<ISceneEntity>();
+                    ret = new List<ISceneEntity>();
+                    ret.Add(target);
+                    return ret;
             }
         }
 
@@ -3882,7 +3934,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            ISceneEntity entity = GetLinkEntity(linknum);
+            ISceneEntity entity = GetLinkEntity(m_host, linknum);
 
             if (entity != null)
                 return entity.UUID.ToString();
@@ -3933,7 +3985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            ISceneEntity entity = GetLinkEntity(linknum);
+            ISceneEntity entity = GetLinkEntity(m_host, linknum);
 
             if (entity != null)
                 return entity.Name;
@@ -7371,22 +7423,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void setLinkPrimParams(int linknumber, LSL_List rules, string originFunc)
         {
-            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+            List<ISceneEntity> entities = GetLinkEntities(linknumber);
 
             LSL_List remaining = null;
             uint rulesParsed = 0;
 
-            foreach (SceneObjectPart part in parts)
-                remaining = SetPrimParams(part, rules, originFunc, ref rulesParsed);
+            foreach (ISceneEntity entity in entities)
+            {
+                if (entity is SceneObjectPart)
+                    remaining = SetPrimParams((SceneObjectPart)entity, rules, originFunc, ref rulesParsed);
+                else
+                    remaining = SetAgentParams((ScenePresence)entity, rules, originFunc, ref rulesParsed);
+            }
 
             while (remaining != null && remaining.Length > 2)
             {
                 linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
-                parts = GetLinkParts(linknumber);
+                entities = GetLinkEntities(linknumber);
 
-                foreach (SceneObjectPart part in parts)
-                    remaining = SetPrimParams(part, rules, originFunc, ref rulesParsed);
+                foreach (ISceneEntity entity in entities)
+                {
+                    if (entity is SceneObjectPart)
+                        remaining = SetPrimParams((SceneObjectPart)entity, rules, originFunc, ref rulesParsed);
+                    else
+                        remaining = SetAgentParams((ScenePresence)entity, rules, originFunc, ref rulesParsed);
+                }
             }
         }
 
@@ -7956,6 +8018,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+
+            return null;
+        }
+
+        protected LSL_List SetAgentParams(ScenePresence sp, LSL_List rules, string originFunc, ref uint rulesParsed)
+        {
+            int idx = 0;
+            int idxStart = 0;
+
+            try
+            {
+                while (idx < rules.Length)
+                {
+                    ++rulesParsed;
+                    int code = rules.GetLSLIntegerItem(idx++);
+
+                    int remain = rules.Length - idx;
+                    idxStart = idx;
+
+                    LSL_Vector v;
+
+                    switch (code)
+                    {
+                        case (int)ScriptBaseClass.PRIM_POSITION:
+                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                            if (remain < 1)
+                                return null;
+
+                            sp.OffsetPosition = rules.GetVector3Item(idx++);
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_ROTATION:
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                            if (remain < 1)
+                                return null;
+
+                            sp.Rotation = rules.GetQuaternionItem(idx++);
+
+                            break;
+                    }
+                }
+            }
+            catch (InvalidCastException e)
+            {
+                Error(
+                    originFunc, 
+                    string.Format("Error running rule #{0}: arg #{1} - ", rulesParsed, idx - idxStart) + e.Message);
+            }
+
             return null;
         }
 
@@ -8225,7 +8336,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 int linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
-                entity = GetLinkEntity(linknumber);
+                entity = GetLinkEntity(m_host, linknumber);
             }
         }
 
@@ -8240,7 +8351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            return GetEntityParams(GetLinkEntity(linknumber), rules);
+            return GetEntityParams(GetLinkEntity(m_host, linknumber), rules);
         }
 
         public LSL_Vector GetAgentSize(ScenePresence sp)
