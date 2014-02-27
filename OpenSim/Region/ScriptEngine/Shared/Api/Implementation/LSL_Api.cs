@@ -8040,8 +8040,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     int remain = rules.Length - idx;
                     idxStart = idx;
 
-                    LSL_Vector v;
-
                     switch (code)
                     {
                         case (int)ScriptBaseClass.PRIM_POSITION:
