@@ -1064,10 +1064,11 @@ namespace OpenSim.Framework
                         }
                     }
                 }
-                catch (System.InvalidOperationException)
+                catch (System.InvalidOperationException e)
                 {
-                    // This is what happens when there is invalid XML
-                    m_log.DebugFormat("[FORMS]: InvalidOperationException on receiving {0} {1}", verb, requestUrl);
+                    m_log.Debug(
+                        string.Format(
+                            "[FORMS]: InvalidOperationException on response from {0} {1}  ", verb, requestUrl), e);
                 }
             }
 
