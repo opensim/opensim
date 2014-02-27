@@ -265,10 +265,12 @@ namespace OpenSim.Framework
                 {
                     using (Stream responseStream = response.GetResponseStream())
                     {
-                        string responseStr = null;
-                        responseStr = responseStream.GetStreamString();
-                        // m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
-                        return CanonicalizeResults(responseStr);
+                        using (StreamReader reader = new StreamReader(responseStream))
+                        {
+                            string responseStr = reader.ReadToEnd();
+                            // m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
+                            return CanonicalizeResults(responseStr);
+                        }
                     }
                 }
             }
@@ -426,12 +428,14 @@ namespace OpenSim.Framework
                 {
                     using (Stream responseStream = response.GetResponseStream())
                     {
-                        string responseStr = null;
+                        using (StreamReader reader = new StreamReader(responseStream))
+                        {
+                            string responseStr = reader.ReadToEnd();
+                            OSD responseOSD = OSDParser.Deserialize(responseStr);
 
-                        responseStr = responseStream.GetStreamString();
-                        OSD responseOSD = OSDParser.Deserialize(responseStr);
-                        if (responseOSD.Type == OSDType.Map)
-                            return (OSDMap)responseOSD;
+                            if (responseOSD.Type == OSDType.Map)
+                                return (OSDMap)responseOSD;
+                        }
                     }
                 }
             }
@@ -643,38 +647,6 @@ namespace OpenSim.Framework
             }
 
             return totalCopiedBytes;
-        }
-
-        /// <summary>
-        /// Converts an entire stream to a string, regardless of current stream
-        /// position
-        /// </summary>
-        /// <param name="stream">The stream to convert to a string</param>
-        /// <returns></returns>
-        /// <remarks>When this method is done, the stream position will be 
-        /// reset to its previous position before this method was called</remarks>
-        public static string GetStreamString(this Stream stream)
-        {
-            string value = null;
-
-            if (stream != null && stream.CanRead)
-            {
-                long rewindPos = -1;
-
-                if (stream.CanSeek)
-                {
-                    rewindPos = stream.Position;
-                    stream.Seek(0, SeekOrigin.Begin);
-                }
-
-                StreamReader reader = new StreamReader(stream);
-                value = reader.ReadToEnd();
-
-                if (rewindPos >= 0)
-                    stream.Seek(rewindPos, SeekOrigin.Begin);
-            }
-
-            return value;
         }
 
         #endregion Stream
