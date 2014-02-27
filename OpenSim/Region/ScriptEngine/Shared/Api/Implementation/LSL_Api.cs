@@ -435,8 +435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public List<ISceneEntity> GetLinkEntities(SceneObjectPart part, int linkType)
         {
-            List<ISceneEntity> ret = new List<ISceneEntity>();
-            ret.Add(part);
+            List<ISceneEntity> ret;
 
             switch (linkType)
             {
@@ -444,9 +443,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return new List<ISceneEntity>(part.ParentGroup.Parts);
 
                 case ScriptBaseClass.LINK_ROOT:
-                    ret = new List<ISceneEntity>();
-                    ret.Add(part.ParentGroup.RootPart);
-                    return ret;
+                    return new List<ISceneEntity>() { part.ParentGroup.RootPart };
 
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                     ret = new List<ISceneEntity>(part.ParentGroup.Parts);
@@ -461,10 +458,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (ret.Contains(part.ParentGroup.RootPart))
                         ret.Remove(part.ParentGroup.RootPart);
+
                     return ret;
 
                 case ScriptBaseClass.LINK_THIS:
-                    return ret;
+                    return new List<ISceneEntity>() { part };
 
                 default:
                     if (linkType < 0)
@@ -473,9 +471,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     ISceneEntity target = GetLinkEntity(part, linkType);
                     if (target == null)
                         return new List<ISceneEntity>();
-                    ret = new List<ISceneEntity>();
-                    ret.Add(target);
-                    return ret;
+
+                    return new List<ISceneEntity>() { target };
             }
         }
 
