@@ -7400,7 +7400,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            setLinkPrimParams(ScriptBaseClass.LINK_THIS, rules, "llSetPrimitiveParams");
+            SetLinkPrimParams(ScriptBaseClass.LINK_THIS, rules, "llSetPrimitiveParams");
 
             ScriptSleep(200);
         }
@@ -7409,7 +7409,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            setLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParams");
+            SetLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParams");
 
             ScriptSleep(200);
         }
@@ -7418,13 +7418,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            setLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParamsFast");
+            SetLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParamsFast");
         }
 
-        protected void setLinkPrimParams(int linknumber, LSL_List rules, string originFunc)
+        protected void SetLinkPrimParams(int linknumber, LSL_List rules, string originFunc)
         {
-            List<ISceneEntity> entities = GetLinkEntities(linknumber);
+            SetEntityParams(GetLinkEntities(linknumber), rules, originFunc);
+        }
 
+        protected void SetEntityParams(List<ISceneEntity> entities, LSL_List rules, string originFunc)
+        {
             LSL_List remaining = null;
             uint rulesParsed = 0;
 
@@ -7438,7 +7441,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             while (remaining != null && remaining.Length > 2)
             {
-                linknumber = remaining.GetLSLIntegerItem(0);
+                int linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
                 entities = GetLinkEntities(linknumber);
 
@@ -11530,41 +11533,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (obj.OwnerID != m_host.OwnerID)
                 return;
 
-            uint rulesParsed = 0;
-            LSL_List remaining = SetPrimParams(obj, rules, originFunc, ref rulesParsed);
-
-            while ((object)remaining != null && remaining.Length > 2)
-            {
-                LSL_Integer newLink = remaining.GetLSLIntegerItem(0);
-                LSL_List newrules = remaining.GetSublist(1, -1);
-                foreach(SceneObjectPart part in GetLinkParts(obj, newLink)){
-                    remaining = SetPrimParams(part, newrules, originFunc, ref rulesParsed);
-                }
-            }
+            SetEntityParams(new List<ISceneEntity>() { obj }, rules, originFunc);
         }
 
         public LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
         {
             SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
 
-            LSL_List result = new LSL_List();
-
             if (obj != null && obj.OwnerID == m_host.OwnerID)
-            {
-                LSL_List remaining = GetPrimParams(obj, rules, ref result);
+                return GetEntityParams(obj, rules);
 
-                while (remaining != null && remaining.Length > 2)
-                {
-                    int linknumber = remaining.GetLSLIntegerItem(0);
-                    rules = remaining.GetSublist(1, -1);
-                    List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-                    foreach (SceneObjectPart part in parts)
-                        remaining = GetPrimParams(part, rules, ref result);
-                }
-            }
-
-            return result;
+            return new LSL_List();
         }
 
         public void print(string str)
