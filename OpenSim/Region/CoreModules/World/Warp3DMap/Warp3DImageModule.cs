@@ -189,6 +189,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
 
             WarpRenderer renderer = new WarpRenderer();
+
             renderer.CreateScene(width, height);
             renderer.Scene.autoCalcNormals = false;
 
@@ -243,9 +244,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 obj.vertexData = null;
                 obj.triangleData = null;
             }
+
             renderer.Scene.removeAllObjects();
             renderer = null;
             viewport = null;
+
             m_colors.Clear();
             GC.Collect();
             m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
@@ -637,21 +640,16 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (asset != null)
             {
                 IJ2KDecoder imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
-                Bitmap img = null;
 
                 try
                 {
-                    img = (Bitmap)imgDecoder.DecodeToImage(asset);
+                    using (Bitmap img = (Bitmap)imgDecoder.DecodeToImage(asset))
+                        ret = new warp_Texture(img);
                 }
                 catch (Exception e)
                 {
                     m_log.Warn(string.Format("[WARP 3D IMAGE MODULE]: Failed to decode asset {0}, exception  ", id), e);
-                }
-
-                if (img != null)
-                {
-                    return new warp_Texture(img);
-                }
+                }                    
             }
 
             return ret;
