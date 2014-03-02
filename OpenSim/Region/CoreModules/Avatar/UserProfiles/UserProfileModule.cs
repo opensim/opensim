@@ -47,6 +47,7 @@ using OpenSim.Services.Interfaces;
 using Mono.Addins;
 using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.UserProfilesService;
 
 namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 {

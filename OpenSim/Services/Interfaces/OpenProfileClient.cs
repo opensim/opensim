@@ -39,7 +39,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
+namespace OpenSim.Services.UserProfilesService
 {
     /// <summary>
     /// A client for accessing a profile server using the OpenProfile protocol.
