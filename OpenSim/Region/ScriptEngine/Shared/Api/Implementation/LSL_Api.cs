@@ -8047,7 +8047,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             sp.OffsetPosition = rules.GetVector3Item(idx++);
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_ROTATION:
+                        case (int)ScriptBaseClass.PRIM_ROTATION:                       
+                            if (remain < 1)
+                                return null;
+
+                            Quaternion inRot = rules.GetQuaternionItem(idx++);
+
+                            SceneObjectPart parentPart = sp.ParentPart;
+
+                            if (parentPart != null)
+                                sp.Rotation = m_host.GetWorldRotation() * inRot;
+
+                            break;
+
                         case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;

@@ -86,6 +86,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             new SceneHelpers().SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
+            part.RotationOffset = new Quaternion(0.7071068f, 0, 0, 0.7071068f);
 
             LSL_Api apiGrp1 = new LSL_Api();
             apiGrp1.Initialize(m_engine, part, null, null);
@@ -99,17 +100,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, part.UUID, Vector3.Zero);
 
             // Test position
-            Vector3 newPos = new Vector3(1, 2, 3);
-            apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_POSITION, newPos));
+            {
+                Vector3 newPos = new Vector3(1, 2, 3);
+                apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_POSITION, newPos));
 
-            Assert.That(sp.OffsetPosition, Is.EqualTo(newPos));
+                Assert.That(sp.OffsetPosition, Is.EqualTo(newPos));
+            }
 
-            // Test rotation
-            Quaternion newRot = new Quaternion(0, 0.7071068f, 0, 0.7071068f);
-            apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_ROTATION, newRot));
+            // Test world rotation
+            {
+                Quaternion newRot = new Quaternion(0, 0.7071068f, 0, 0.7071068f);
+                apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_ROTATION, newRot));
 
-            Assert.That(
-                sp.Rotation, new QuaternionToleranceConstraint(newRot, 0.000001));
+                Assert.That(
+                    sp.Rotation, new QuaternionToleranceConstraint(part.GetWorldRotation() * newRot, 0.000001));
+            }
+
+            // Test local rotation
+            {
+                Quaternion newRot = new Quaternion(0, 0.7071068f, 0, 0.7071068f);
+                apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_ROT_LOCAL, newRot));
+
+                Assert.That(
+                    sp.Rotation, new QuaternionToleranceConstraint(newRot, 0.000001));
+            }
         }
     }
 }
