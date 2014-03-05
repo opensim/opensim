@@ -1358,8 +1358,6 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     PhysicsActor.SetMomentum(vel);
             }
-
-            SendTerseUpdateToAllClients();
         }
 
         public void avnLocalTeleport(Vector3 newpos, Vector3? newvel, bool rotateToVelXY)
@@ -1391,11 +1389,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-
-            SendTerseUpdateToAllClients();
         }
-
-
 
         public void StopFlying()
         {
