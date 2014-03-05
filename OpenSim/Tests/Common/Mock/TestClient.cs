@@ -62,6 +62,7 @@ namespace OpenSim.Tests.Common.Mock
         public event Action<RegionInfo, Vector3, Vector3> OnReceivedMoveAgentIntoRegion;
         public event Action<ulong, IPEndPoint> OnTestClientInformClientOfNeighbour;
         public event TestClientOnSendRegionTeleportDelegate OnTestClientSendRegionTeleport;
+        public event Action<ISceneEntity, PrimUpdateFlags> OnReceivedEntityUpdate;
         public event Action<GridInstantMessage> OnReceivedInstantMessage;
         public event Action<UUID> OnReceivedSendRebakeAvatarTextures;
 
@@ -685,6 +686,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
+            if (OnReceivedEntityUpdate != null)
+                OnReceivedEntityUpdate(entity, updateFlags);
         }
 
         public void ReprioritizeUpdates()

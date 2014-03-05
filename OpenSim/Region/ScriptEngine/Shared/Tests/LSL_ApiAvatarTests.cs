@@ -77,14 +77,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_engine.AddRegion(m_scene);
         }
 
+        /// <summary>
+        /// Test llSetLinkPrimtiveParams for agents.
+        /// </summary>
+        /// <remarks>
+        /// Also testing entity updates here as well.  Possibly that's putting 2 different concerns into one test and
+        /// this should be separated.
+        /// </remarks>
         [Test]
         public void TestllSetLinkPrimitiveParamsForAgent()
         {
             TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
-            new SceneHelpers().SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
             part.RotationOffset = new Quaternion(0.7071068f, 0, 0, 0.7071068f);
 
@@ -99,12 +106,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, part.UUID, Vector3.Zero);
 
+            int entityUpdates = 0;
+            ((TestClient)sp.ControllingClient).OnReceivedEntityUpdate += (entity, flags) => { if (entity is ScenePresence) { entityUpdates++; }};
+
             // Test position
             {
                 Vector3 newPos = new Vector3(1, 2, 3);
                 apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_POSITION, newPos));
 
                 Assert.That(sp.OffsetPosition, Is.EqualTo(newPos));
+
+                m_scene.Update(1);
+                Assert.That(entityUpdates, Is.EqualTo(1));
+            }
+
+            // Test small reposition
+            {
+                Vector3 newPos = new Vector3(1.001f, 2, 3);
+                apiGrp1.llSetLinkPrimitiveParams(2, new LSL_Types.list(ScriptBaseClass.PRIM_POSITION, newPos));
+
+                Assert.That(sp.OffsetPosition, Is.EqualTo(newPos));
+
+                m_scene.Update(1);
+                Assert.That(entityUpdates, Is.EqualTo(2));
             }
 
             // Test world rotation
@@ -114,6 +138,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
                 Assert.That(
                     sp.Rotation, new QuaternionToleranceConstraint(part.GetWorldRotation() * newRot, 0.000001));
+
+                m_scene.Update(1);
+                Assert.That(entityUpdates, Is.EqualTo(3));
             }
 
             // Test local rotation
@@ -123,6 +150,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
                 Assert.That(
                     sp.Rotation, new QuaternionToleranceConstraint(newRot, 0.000001));
+
+                m_scene.Update(1);
+                Assert.That(entityUpdates, Is.EqualTo(4));
             }
         }
     }

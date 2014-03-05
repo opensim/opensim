@@ -3084,9 +3084,19 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
                     SendAvatarDataToAllAgents();
 
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                // Allow any updates for sitting avatars to that llSetPrimitiveLinkParams() can work for very
+                // small increments (e.g. sit position adjusters).  An alternative may be to eliminate the tolerance
+                // checks on all updates but the ramifications of this would need careful consideration.
+                bool updateClients 
+                    = IsSatOnObject && (Rotation != m_lastRotation || Velocity != m_lastVelocity || m_pos != m_lastPosition);
+
+                if (!updateClients)
+                    updateClients 
+                        = !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) 
+                            || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
+                            || !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE);
+
+                if (updateClients)
                 {
                     SendTerseUpdateToAllClients();
 

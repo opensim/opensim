@@ -1495,7 +1495,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Objects queue their updates onto all scene presences
                     if (Frame % m_update_objects == 0)
                         m_sceneGraph.UpdateObjectGroups();
-    
+
                     // Run through all ScenePresences looking for updates
                     // Presence updates and queued object updates for each presence are sent to clients
                     if (Frame % m_update_presences == 0)
