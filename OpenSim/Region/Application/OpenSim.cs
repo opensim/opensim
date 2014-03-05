@@ -916,17 +916,24 @@ namespace OpenSim
                     break;
 
                 case "regions":
+                    ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+                    cdt.AddColumn("Name", ConsoleDisplayUtil.RegionNameSize);
+                    cdt.AddColumn("ID", ConsoleDisplayUtil.UuidSize);
+                    cdt.AddColumn("Position", ConsoleDisplayUtil.CoordTupleSize);
+                    cdt.AddColumn("Port", ConsoleDisplayUtil.PortSize);
+                    cdt.AddColumn("Ready?", 6);
+                    cdt.AddColumn("Estate", ConsoleDisplayUtil.EstateNameSize);
                     SceneManager.ForEachScene(
-                        delegate(Scene scene)
-                            {
-                                MainConsole.Instance.Output(String.Format(
-                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}, Estate Name: {4}",
-                                           scene.RegionInfo.RegionName,
-                                           scene.RegionInfo.RegionLocX,
-                                           scene.RegionInfo.RegionLocY,
-                                           scene.RegionInfo.InternalEndPoint.Port,
-                                           scene.RegionInfo.EstateSettings.EstateName));
-                            });
+                        scene => 
+                        { 
+                            RegionInfo ri = scene.RegionInfo; 
+                            cdt.AddRow(
+                                ri.RegionName, ri.RegionID, string.Format("{0},{1}", ri.RegionLocX, ri.RegionLocY), 
+                                ri.InternalEndPoint.Port, scene.Ready ? "Yes" : "No", ri.EstateSettings.EstateName);
+                        }
+                    );
+
+                    MainConsole.Instance.Output(cdt.ToString());
                     break;
 
                 case "ratings":
