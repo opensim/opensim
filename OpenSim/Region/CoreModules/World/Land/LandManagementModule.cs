@@ -2088,27 +2088,27 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void AppendParcelsSummaryReport(StringBuilder report)
         {           
-            report.AppendFormat("Land information for {0}\n", m_scene.RegionInfo.RegionName);            
-            report.AppendFormat(
-                "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n",
-                "Parcel Name",
-                "Local ID",
-                "Area",
-                "Starts",
-                "Ends",
-                "Owner");
+            report.AppendFormat("Land information for {0}\n", m_scene.Name);
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Parcel Name", ConsoleDisplayUtil.ParcelNameSize);
+            cdt.AddColumn("ID", 3);
+            cdt.AddColumn("Area", 6);
+            cdt.AddColumn("Starts", ConsoleDisplayUtil.VectorSize);
+            cdt.AddColumn("Ends", ConsoleDisplayUtil.VectorSize);
+            cdt.AddColumn("Owner", ConsoleDisplayUtil.UserNameSize);
             
             lock (m_landList)
             {
                 foreach (ILandObject lo in m_landList.Values)
                 {
                     LandData ld = lo.LandData;
-                    
-                    report.AppendFormat(
-                        "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n", 
+                    cdt.AddRow(
                         ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, m_userManager.GetUserName(ld.OwnerID));
                 }
             }
+
+            report.Append(cdt.ToString());
         } 
 
         private void AppendParcelReport(StringBuilder report, ILandObject lo)

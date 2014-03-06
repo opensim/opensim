@@ -35,9 +35,14 @@ namespace OpenSim.Framework.Console
     public static class ConsoleDisplayUtil
     {
         public const int CoordTupleSize = 11;
-        public const int EstateNameSize = 20;
         public const int PortSize = 5;
+
+        public const int EstateNameSize = 20;
+        public const int ParcelNameSize = 40;
         public const int RegionNameSize = 20;
+        public const int UserNameSize = 35;
+
         public const int UuidSize = 36;
+        public const int VectorSize = 15;
     }
 }
