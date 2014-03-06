@@ -657,9 +657,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         /// Enabled.
         /// </param>
         public void PickInfoUpdate(IClientAPI remoteClient, UUID pickID, UUID creatorID, bool topPick, string name, string desc, UUID snapshotID, int sortOrder, bool enabled)
-        {
-            
+        {            
             m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
+
             UserProfilePick pick = new UserProfilePick();
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
@@ -672,19 +672,29 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                                             avaPos.Z);
 
             string landOwnerName = string.Empty;
-            ILandObject land =  p.Scene.LandChannel.GetLandObject(avaPos.X, avaPos.Y);
-            if(land.LandData.IsGroupOwned)
+            ILandObject land = p.Scene.LandChannel.GetLandObject(avaPos.X, avaPos.Y);
+
+            if (land != null)
             {
-                IGroupsModule groupMod = p.Scene.RequestModuleInterface<IGroupsModule>();
-                UUID groupId = land.LandData.GroupID;
-                GroupRecord groupRecord = groupMod.GetGroupRecord(groupId);
-                landOwnerName = groupRecord.GroupName;
+                if (land.LandData.IsGroupOwned)
+                {
+                    IGroupsModule groupMod = p.Scene.RequestModuleInterface<IGroupsModule>();
+                    UUID groupId = land.LandData.GroupID;
+                    GroupRecord groupRecord = groupMod.GetGroupRecord(groupId);
+                    landOwnerName = groupRecord.GroupName;
+                }
+                else
+                {
+                    IUserAccountService accounts = p.Scene.RequestModuleInterface<IUserAccountService>();
+                    UserAccount user = accounts.GetUserAccount(p.Scene.RegionInfo.ScopeID, land.LandData.OwnerID);
+                    landOwnerName = user.Name;
+                }
             }
             else
             {
-                IUserAccountService accounts = p.Scene.RequestModuleInterface<IUserAccountService>();
-                UserAccount user = accounts.GetUserAccount(p.Scene.RegionInfo.ScopeID, land.LandData.OwnerID);
-                landOwnerName = user.Name;
+                m_log.WarnFormat(
+                    "[PROFILES]: PickInfoUpdate found no parcel info at {0},{1} in {2}", 
+                    avaPos.X, avaPos.Y, p.Scene.Name);
             }
 
             pick.PickId = pickID;
