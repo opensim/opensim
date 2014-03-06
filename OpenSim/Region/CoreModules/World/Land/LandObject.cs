@@ -47,12 +47,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[LAND OBJECT]";
 
-        private bool[,] m_landBitmap;
         private readonly int landUnit = 4;
 
         private int m_lastSeqId = 0;
-
-        protected LandData m_landData = new LandData();        
+              
         protected Scene m_scene;
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
@@ -60,27 +58,18 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
         protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
 
-        public bool[,] LandBitmap
-        {
-            get { return m_landBitmap; }
-            set { m_landBitmap = value; }
-        }
+        public bool[,] LandBitmap { get; set; }
 
         #endregion
 
         public int GetPrimsFree()
         {
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
-            int free = GetSimulatorMaxPrimCount() - m_landData.SimwidePrims;
+            int free = GetSimulatorMaxPrimCount() - LandData.SimwidePrims;
             return free;
         }
 
-        public LandData LandData
-        {
-            get { return m_landData; }
-
-            set { m_landData = value; }
-        }
+        public LandData LandData { get; set; }
 
         public IPrimCounts PrimCounts { get; set; }
 
@@ -135,10 +124,11 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             m_scene = scene;
             if (m_scene == null)
-                m_landBitmap = new bool[Constants.RegionSize / landUnit, Constants.RegionSize / landUnit];
+                LandBitmap = new bool[Constants.RegionSize / landUnit, Constants.RegionSize / landUnit];
             else
-                m_landBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+                LandBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
 
+            LandData = new LandData(); 
             LandData.OwnerID = owner_id;
             if (is_group_owned)
                 LandData.GroupID = owner_id;
@@ -1099,7 +1089,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     foreach (SceneObjectGroup obj in primsOverMe)
                     {
-                        if (obj.OwnerID == m_landData.OwnerID)
+                        if (obj.OwnerID == LandData.OwnerID)
                         {
                             if (!returns.ContainsKey(obj.OwnerID))
                                 returns[obj.OwnerID] =
@@ -1108,11 +1098,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                     }
                 }
-                else if (type == (uint)ObjectReturnType.Group && m_landData.GroupID != UUID.Zero)
+                else if (type == (uint)ObjectReturnType.Group && LandData.GroupID != UUID.Zero)
                 {
                     foreach (SceneObjectGroup obj in primsOverMe)
                     {
-                        if (obj.GroupID == m_landData.GroupID)
+                        if (obj.GroupID == LandData.GroupID)
                         {
                             if (!returns.ContainsKey(obj.OwnerID))
                                 returns[obj.OwnerID] =
@@ -1125,9 +1115,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     foreach (SceneObjectGroup obj in primsOverMe)
                     {
-                        if (obj.OwnerID != m_landData.OwnerID &&
-                            (obj.GroupID != m_landData.GroupID ||
-                            m_landData.GroupID == UUID.Zero))
+                        if (obj.OwnerID != LandData.OwnerID &&
+                            (obj.GroupID != LandData.GroupID ||
+                            LandData.GroupID == UUID.Zero))
                         {
                             if (!returns.ContainsKey(obj.OwnerID))
                                 returns[obj.OwnerID] =
