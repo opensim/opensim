@@ -638,8 +638,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     if (lastRecordedLo.LandBitmap[x, y])
                                     {
                                         m_log.ErrorFormat(
-                                            "{0}: Cannot add parcel \"{1}\", local ID {2} at tile {3},{4} because this is still occupied by parcel \"{5}\", local ID {6}.",
-                                            LogHeader, new_land.LandData.Name, new_land.LandData.LocalID, x, y, lastRecordedLo.LandData.Name, lastRecordedLo.LandData.LocalID);
+                                            "{0}: Cannot add parcel \"{1}\", local ID {2} at tile {3},{4} because this is still occupied by parcel \"{5}\", local ID {6} in {7}",
+                                            LogHeader, new_land.LandData.Name, new_land.LandData.LocalID, x, y, 
+                                            lastRecordedLo.LandData.Name, lastRecordedLo.LandData.LocalID, m_scene.Name);
 
                                         return null;
                                     }
