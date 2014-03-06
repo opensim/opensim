@@ -117,8 +117,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             m_scene = scene;
             m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / LandUnit, m_scene.RegionInfo.RegionSizeY / LandUnit];
-
-            m_landIDList.Initialize();
             landChannel = new LandChannel(scene, this);
 
             parcelInfoCache = new Cache();
@@ -301,7 +299,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.Clear();
                 m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
                 m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / LandUnit, m_scene.RegionInfo.RegionSizeY / LandUnit];
-                m_landIDList.Initialize();
             }
         }
         
@@ -938,7 +935,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         private bool[,] CreateBitmapForID(int landID)
         {
             bool[,] ret = new bool[m_landIDList.GetLength(0), m_landIDList.GetLength(1)];
-            ret.Initialize();
 
             for (int xx = 0; xx < m_landIDList.GetLength(0); xx++)
                 for (int yy = 0; yy < m_landIDList.GetLength(0); yy++)
