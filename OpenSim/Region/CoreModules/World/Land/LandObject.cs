@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if (x >= 0 && y >= 0 && x < m_scene.RegionInfo.RegionSizeX && y < m_scene.RegionInfo.RegionSizeY)
             {
-                return (LandBitmap[x / landUnit, y / landUnit] == true);
+                return LandBitmap[x / landUnit, y / landUnit];
             }
             else
             {
