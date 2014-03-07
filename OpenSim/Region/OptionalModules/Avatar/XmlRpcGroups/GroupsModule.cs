@@ -497,6 +497,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         OnNewGroupNotice(GroupID, NoticeID);
                     }
 
+                    /*** We would insert call code here ***/
                     // Send notice out to everyone that wants notices
                     foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetRequestingAgentID(remoteClient), GroupID))
                     {

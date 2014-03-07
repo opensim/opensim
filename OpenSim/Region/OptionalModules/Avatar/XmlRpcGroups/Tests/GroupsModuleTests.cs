@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using Nini.Config;
@@ -117,6 +118,60 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
             Assert.That(foundUpdate, Is.True, "Did not find AgentGroupDataUpdate in response");
 
             // TODO: More checking of more actual event data.           
+        }
+
+        [Test]
+        public void TestSendGroupNotice()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+            
+            TestScene scene = new SceneHelpers().SetupScene();
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Groups");            
+            config.Set("Enabled", true);
+            config.Set("Module", "GroupsModule");            
+            config.Set("DebugEnabled", true);
+
+            GroupsModule gm = new GroupsModule();
+
+            SceneHelpers.SetupSceneModules(scene, configSource, gm, new MockGroupsServicesConnector());
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            string subjectText = "newman";
+            string messageText = "Hello";
+            string combinedSubjectMessage = string.Format("{0}|{1}", subjectText, messageText);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+            TestClient tc = (TestClient)sp.ControllingClient;
+
+            UUID groupID = gm.CreateGroup(tc, "group1", null, true, UUID.Zero, 0, true, true, true);
+            gm.JoinGroupRequest(tc, groupID);
+
+            // Create a second user who doesn't want to receive notices
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x2));
+            TestClient tc2 = (TestClient)sp2.ControllingClient;
+            gm.JoinGroupRequest(tc2, groupID);
+            gm.SetGroupAcceptNotices(tc2, groupID, false, true);
+
+            List<GridInstantMessage> spReceivedMessages = new List<GridInstantMessage>();
+            tc.OnReceivedInstantMessage += im => spReceivedMessages.Add(im);
+
+            List<GridInstantMessage> sp2ReceivedMessages = new List<GridInstantMessage>();
+            tc2.OnReceivedInstantMessage += im => sp2ReceivedMessages.Add(im);
+
+            GridInstantMessage noticeIm = new GridInstantMessage();
+            noticeIm.fromAgentID = userId.Guid;
+            noticeIm.toAgentID = groupID.Guid;
+            noticeIm.message = combinedSubjectMessage;
+            noticeIm.dialog = (byte)InstantMessageDialog.GroupNotice;
+
+            tc.HandleImprovedInstantMessage(noticeIm);
+
+            Assert.That(spReceivedMessages.Count, Is.EqualTo(1));
+            Assert.That(spReceivedMessages[0].message, Is.EqualTo(combinedSubjectMessage));
+
+            Assert.That(sp2ReceivedMessages.Count, Is.EqualTo(0));
         }
     }
 }

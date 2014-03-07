@@ -48,9 +48,57 @@ namespace OpenSim.Data
         public ulong everyonePowers;
         public ulong ownersPowers;
 
+        public Dictionary<UUID, XGroupMember> members = new Dictionary<UUID, XGroupMember>();
+        public Dictionary<UUID, XGroupNotice> notices = new Dictionary<UUID, XGroupNotice>();
+
         public XGroup Clone()
         {
-            return (XGroup)MemberwiseClone();
+            XGroup clone = (XGroup)MemberwiseClone();
+            clone.members = new Dictionary<UUID, XGroupMember>();
+            clone.notices = new Dictionary<UUID, XGroupNotice>();
+
+            foreach (KeyValuePair<UUID, XGroupMember> kvp in members)
+                clone.members[kvp.Key] = kvp.Value.Clone();
+
+            foreach (KeyValuePair<UUID, XGroupNotice> kvp in notices)
+                clone.notices[kvp.Key] = kvp.Value.Clone();
+
+            return clone;
+        }
+    }
+
+    public class XGroupMember
+    {
+        public UUID agentID;
+        public UUID groupID;
+        public UUID roleID;
+        public bool acceptNotices = true;
+        public bool listInProfile = true;
+
+        public XGroupMember Clone()
+        {
+            return (XGroupMember)MemberwiseClone();
+        }
+    }
+
+    public class XGroupNotice
+    {
+        public UUID groupID;
+        public UUID noticeID;
+        public uint timestamp;
+        public string fromName;
+        public string subject;
+        public string message;
+        public byte[] binaryBucket;
+        public bool hasAttachment;
+        public int assetType;
+
+        public XGroupNotice Clone()
+        {
+            XGroupNotice clone = (XGroupNotice)MemberwiseClone();
+            clone.binaryBucket = (byte[])binaryBucket.Clone();
+
+            return clone;
         }
     }
 
@@ -58,14 +106,13 @@ namespace OpenSim.Data
     /// Early stub interface for groups data, not final.
     /// </summary>
     /// <remarks>
-    /// Currently in-use only for regression test purposes.  Needs to be filled out over time.
+    /// Currently in-use only for regression test purposes.
     /// </remarks>
     public interface IXGroupData
     {
         bool StoreGroup(XGroup group);
-        XGroup[] GetGroups(string field, string val);
-        XGroup[] GetGroups(string[] fields, string[] vals);
-        bool DeleteGroups(string field, string val);
-        bool DeleteGroups(string[] fields, string[] vals);
+        XGroup GetGroup(UUID groupID);
+        Dictionary<UUID, XGroup> GetGroups();
+        bool DeleteGroup(UUID groupID);
     }
 }

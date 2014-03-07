@@ -38,7 +38,7 @@ using OpenSim.Data;
 
 namespace OpenSim.Data.Null
 {
-    public class NullXGroupData : NullGenericDataHandler, IXGroupData
+    public class NullXGroupData : IXGroupData
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -56,35 +56,31 @@ namespace OpenSim.Data.Null
             return true;
         }
 
-        public XGroup[] GetGroups(string field, string val)
+        public XGroup GetGroup(UUID groupID)
         {
-            return GetGroups(new string[] { field }, new string[] { val });
+            XGroup group = null;
+
+            lock (m_groups)
+                m_groups.TryGetValue(groupID, out group);
+
+            return group;
         }
 
-        public XGroup[] GetGroups(string[] fields, string[] vals)
+        public Dictionary<UUID, XGroup> GetGroups()
+        {
+            Dictionary<UUID, XGroup> groupsClone = new Dictionary<UUID, XGroup>();
+
+            lock (m_groups)
+                foreach (XGroup group in m_groups.Values)
+                    groupsClone[group.groupID] = group.Clone();
+
+            return groupsClone;
+        }
+
+        public bool DeleteGroup(UUID groupID)
         {
             lock (m_groups)
-            {
-                List<XGroup> origGroups = Get<XGroup>(fields, vals, m_groups.Values.ToList());
-
-                return origGroups.Select(g => g.Clone()).ToArray();
-            }
-        }
-
-        public bool DeleteGroups(string field, string val)
-        {
-            return DeleteGroups(new string[] { field }, new string[] { val });
-        }
-
-        public bool DeleteGroups(string[] fields, string[] vals)
-        {
-            lock (m_groups)
-            {
-                XGroup[] groupsToDelete = GetGroups(fields, vals);
-                Array.ForEach(groupsToDelete, g => m_groups.Remove(g.groupID));
-            }
-
-            return true;
+                return m_groups.Remove(groupID);
         }
     }
 }

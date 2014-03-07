@@ -138,32 +138,27 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        private XGroup GetXGroup(UUID groupID, string name)
+        {
+            XGroup group = m_data.GetGroup(groupID);
+
+
+            if (group == null)
+                m_log.DebugFormat("[MOCK GROUPS SERVICES CONNECTOR]: No group found with ID {0}", groupID);               
+
+            return group;
+        }
+
         public GroupRecord GetGroupRecord(UUID requestingAgentID, UUID groupID, string groupName)
         {
             m_log.DebugFormat(
                 "[MOCK GROUPS SERVICES CONNECTOR]: Processing GetGroupRecord() for groupID {0}, name {1}", 
                 groupID, groupName);
 
-            XGroup[] groups;
-            string field, val;
+            XGroup xg = GetXGroup(groupID, groupName);
 
-            if (groupID != UUID.Zero)
-            {
-                field = "groupID";
-                val = groupID.ToString();
-            }
-            else
-            {
-                field = "name";
-                val = groupName;
-            }
-
-            groups = m_data.GetGroups(field, val);
-
-            if (groups.Length == 0)
+            if (xg == null)
                 return null;
-
-            XGroup xg = groups[0];
 
             GroupRecord gr = new GroupRecord()
             {
@@ -196,8 +191,25 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void SetAgentGroupInfo(UUID requestingAgentID, UUID AgentID, UUID GroupID, bool AcceptNotices, bool ListInProfile)
+        public void SetAgentGroupInfo(UUID requestingAgentID, UUID agentID, UUID groupID, bool acceptNotices, bool listInProfile)
         {
+            m_log.DebugFormat(
+                "[MOCK GROUPS SERVICES CONNECTOR]: SetAgentGroupInfo, requestingAgentID {0}, agentID {1}, groupID {2}, acceptNotices {3}, listInProfile {4}", 
+                requestingAgentID, agentID, groupID, acceptNotices, listInProfile);
+
+            XGroup group = GetXGroup(groupID, null);
+
+            if (group == null)
+                return;
+
+            XGroupMember xgm = null;
+            if (!group.members.TryGetValue(agentID, out xgm))
+                return;
+
+            xgm.acceptNotices = acceptNotices;
+            xgm.listInProfile = listInProfile;
+
+            m_data.StoreGroup(group);
         }
 
         public void AddAgentToGroupInvite(UUID requestingAgentID, UUID inviteID, UUID groupID, UUID roleID, UUID agentID)
@@ -213,8 +225,27 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void AddAgentToGroup(UUID requestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID)
+        public void AddAgentToGroup(UUID requestingAgentID, UUID agentID, UUID groupID, UUID roleID)
         {
+            m_log.DebugFormat(
+                "[MOCK GROUPS SERVICES CONNECTOR]: AddAgentToGroup, requestingAgentID {0}, agentID {1}, groupID {2}, roleID {3}", 
+                requestingAgentID, agentID, groupID, roleID);
+
+            XGroup group = GetXGroup(groupID, null);
+
+            if (group == null)
+                return;
+
+            XGroupMember groupMember = new XGroupMember()
+            {
+                agentID = agentID,
+                groupID = groupID,
+                roleID = roleID
+            };
+
+            group.members[agentID] = groupMember;
+
+            m_data.StoreGroup(group);
         }
 
         public void RemoveAgentFromGroup(UUID requestingAgentID, UUID AgentID, UUID GroupID)
@@ -259,9 +290,31 @@ namespace OpenSim.Tests.Common.Mock
             return null;
         }
 
-        public List<GroupMembersData> GetGroupMembers(UUID requestingAgentID, UUID GroupID)
+        public List<GroupMembersData> GetGroupMembers(UUID requestingAgentID, UUID groupID)
         {
-            return null;
+            m_log.DebugFormat(
+                "[MOCK GROUPS SERVICES CONNECTOR]: GetGroupMembers, requestingAgentID {0}, groupID {1}",
+                requestingAgentID, groupID);
+
+            List<GroupMembersData> groupMembers = new List<GroupMembersData>();
+
+            XGroup group = GetXGroup(groupID, null);
+
+            if (group == null)
+                return groupMembers;
+
+            foreach (XGroupMember xgm in group.members.Values)
+            {
+                GroupMembersData gmd = new GroupMembersData();
+                gmd.AgentID = xgm.agentID;
+                gmd.IsOwner = group.founderID == gmd.AgentID;
+                gmd.AcceptNotices = xgm.acceptNotices;
+                gmd.ListInProfile = xgm.listInProfile;
+
+                groupMembers.Add(gmd);
+            }
+
+            return groupMembers;
         }
 
         public List<GroupRoleMembersData> GetGroupRoleMembers(UUID requestingAgentID, UUID GroupID)
@@ -269,18 +322,71 @@ namespace OpenSim.Tests.Common.Mock
             return null;
         }
 
-        public List<GroupNoticeData> GetGroupNotices(UUID requestingAgentID, UUID GroupID)
+        public List<GroupNoticeData> GetGroupNotices(UUID requestingAgentID, UUID groupID)
         {
             return null;
         }
         
         public GroupNoticeInfo GetGroupNotice(UUID requestingAgentID, UUID noticeID)
         {
+            m_log.DebugFormat(
+                "[MOCK GROUPS SERVICES CONNECTOR]: GetGroupNotices, requestingAgentID {0}, noticeID {1}",
+                requestingAgentID, noticeID);
+
+            // Yes, not an efficient way to do it.
+            Dictionary<UUID, XGroup> groups = m_data.GetGroups();
+
+            foreach (XGroup group in groups.Values)
+            {
+                if (group.notices.ContainsKey(noticeID))
+                {
+                    XGroupNotice n = group.notices[noticeID];
+
+                    GroupNoticeInfo gni = new GroupNoticeInfo();
+                    gni.GroupID = n.groupID;
+                    gni.Message = n.message;
+                    gni.BinaryBucket = n.binaryBucket;
+                    gni.noticeData.NoticeID = n.noticeID;
+                    gni.noticeData.Timestamp = n.timestamp;
+                    gni.noticeData.FromName = n.fromName;
+                    gni.noticeData.Subject = n.subject;
+                    gni.noticeData.HasAttachment = n.hasAttachment;
+                    gni.noticeData.AssetType = (byte)n.assetType;
+
+                    return gni;
+                }
+            }
+           
             return null;
         }
         
         public void AddGroupNotice(UUID requestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket)
         {
+            m_log.DebugFormat(
+                "[MOCK GROUPS SERVICES CONNECTOR]: AddGroupNotice, requestingAgentID {0}, groupID {1}, noticeID {2}, fromName {3}, subject {4}, message {5}, binaryBucket.Length {6}", 
+                requestingAgentID, groupID, noticeID, fromName, subject, message, binaryBucket.Length);
+
+            XGroup group = GetXGroup(groupID, null);
+
+            if (group == null)
+                return;
+
+            XGroupNotice groupNotice = new XGroupNotice()
+            {
+                groupID = groupID,
+                noticeID = noticeID,
+                fromName = fromName,
+                subject = subject,
+                message = message,
+                timestamp = (uint)Util.UnixTimeSinceEpoch(),
+                hasAttachment = false,
+                assetType = 0,
+                binaryBucket = binaryBucket
+            };
+
+            group.notices[noticeID] = groupNotice;
+
+            m_data.StoreGroup(group);
         }
 
         public void ResetAgentGroupChatSessions(UUID agentID)
