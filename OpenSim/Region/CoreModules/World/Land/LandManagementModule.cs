@@ -874,6 +874,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                         // This sometimes happens when terrain is resized.
                         if (m_landList.Count == 1)
                         {
+                            m_log.DebugFormat(
+                                "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}", 
+                                LogHeader, x, y, m_scene.Name);
+
                             int onlyParcelID = 0;
                             ILandObject onlyLandObject = null;
                             foreach (KeyValuePair<int, ILandObject> kvp in m_landList)
@@ -892,8 +896,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                             onlyLandObject.LandBitmap = CreateBitmapForID(onlyParcelID);
                             landID = onlyParcelID;
                         }
-                        else
+                        else if (m_landList.Count > 1)
                         {
+                            m_log.DebugFormat(
+                                "[{0}]: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}", 
+                                LogHeader, x, y, m_scene.Name);
+
                             // There are several other parcels so we must create a new one for the unassigned space
                             ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);                                                
                             // Claim all the unclaimed "0" ids
@@ -907,6 +915,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                             landID = m_lastLandLocalID;
                         }
+
+                        // XXX: We're not currently doing anything if there are no parcels, as this might indicate a race
+                        // condition where this method is being called before land data is loaded.  May need to address
+                        // this in another way.
                     }
 
                     ret = m_landList[landID];
