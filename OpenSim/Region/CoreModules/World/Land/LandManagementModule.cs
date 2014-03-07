@@ -865,86 +865,67 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             lock (m_landIDList)
             {
-                try
+                int landID = m_landIDList[x / LandUnit, y / LandUnit];
+                if (landID == 0)
                 {
-                    int landID = m_landIDList[x / LandUnit, y / LandUnit];
-                    if (landID == 0)
+                    // Zero is the uninitialized value saying there is no parcel for this location.
+                    // This sometimes happens when terrain is resized.
+                    if (m_landList.Count == 1)
                     {
-                        // Zero is the uninitialized value saying there is no parcel for this location.
-                        // This sometimes happens when terrain is resized.
-                        if (m_landList.Count == 1)
+                        m_log.DebugFormat(
+                            "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}", 
+                            LogHeader, x, y, m_scene.Name);
+
+                        int onlyParcelID = 0;
+                        ILandObject onlyLandObject = null;
+                        foreach (KeyValuePair<int, ILandObject> kvp in m_landList)
                         {
-                            m_log.DebugFormat(
-                                "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}", 
-                                LogHeader, x, y, m_scene.Name);
-
-                            int onlyParcelID = 0;
-                            ILandObject onlyLandObject = null;
-                            foreach (KeyValuePair<int, ILandObject> kvp in m_landList)
-                            {
-                                onlyParcelID = kvp.Key;
-                                onlyLandObject = kvp.Value;
-                                break;
-                            }
-
-                            // There is only one parcel. Grow it to fill all the unallocated spaces.
-                            for (int xx = 0; xx < m_landIDList.GetLength(0); xx++)
-                                for (int yy = 0; yy < m_landIDList.GetLength(1); yy++)
-                                    if (m_landIDList[xx, yy] == 0)
-                                        m_landIDList[xx, yy] = onlyParcelID;
-
-                            onlyLandObject.LandBitmap = CreateBitmapForID(onlyParcelID);
-                            landID = onlyParcelID;
+                            onlyParcelID = kvp.Key;
+                            onlyLandObject = kvp.Value;
+                            break;
                         }
-                        else if (m_landList.Count > 1)
-                        {
-                            m_log.DebugFormat(
-                                "[{0}]: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}", 
-                                LogHeader, x, y, m_scene.Name);
 
-                            // There are several other parcels so we must create a new one for the unassigned space
-                            ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);                                                
-                            // Claim all the unclaimed "0" ids
-                            newLand.SetLandBitmap(CreateBitmapForID(0));
-                            newLand.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                            newLand.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
-                            newLand = AddLandObject(newLand);
+                        // There is only one parcel. Grow it to fill all the unallocated spaces.
+                        for (int xx = 0; xx < m_landIDList.GetLength(0); xx++)
+                            for (int yy = 0; yy < m_landIDList.GetLength(1); yy++)
+                                if (m_landIDList[xx, yy] == 0)
+                                    m_landIDList[xx, yy] = onlyParcelID;
 
-                            if (newLand == null)
-                                return null;
-
-                            landID = m_lastLandLocalID;
-                        }
-                        else
-                        {
-                            // XXX: We're not currently doing anything if there are no parcels, as this might indicate a race
-                            // condition where this method is being called before land data is loaded.  May need to address
-                            // this in another way.
-
-                            m_log.WarnFormat(
-                                "[{0}]: Ignoring request to auto-create parcel in {1} as there are no other parcels present", 
-                                LogHeader, m_scene.Name);
-                        }
+                        onlyLandObject.LandBitmap = CreateBitmapForID(onlyParcelID);
+                        landID = onlyParcelID;
                     }
+                    else if (m_landList.Count > 1)
+                    {
+                        m_log.DebugFormat(
+                            "[{0}]: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}", 
+                            LogHeader, x, y, m_scene.Name);
 
-                    ret = m_landList[landID];
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    m_log.ErrorFormat(
-                        "{0} GetLandObject: Tried to retrieve land object from out of bounds co-ordinate ({1},{2}) in {3}. landListSize=({4},{5})",
-                        LogHeader, x, y, m_scene.RegionInfo.RegionName, m_landIDList.GetLength(0), m_landIDList.GetLength(1));
+                        // There are several other parcels so we must create a new one for the unassigned space
+                        ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);                                                
+                        // Claim all the unclaimed "0" ids
+                        newLand.SetLandBitmap(CreateBitmapForID(0));
+                        newLand.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                        newLand.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
+                        newLand = AddLandObject(newLand);
 
-                    return null;
-                }
-                catch
-                {
-                    m_log.ErrorFormat(
-                        "{0} GetLandObject: LandID not in landlist. XY=<{1},{2}> in {3}. landID[x,y]={4}",
-                        LogHeader, x, y, m_scene.RegionInfo.RegionName, m_landIDList[x/LandUnit, y/LandUnit]);
+                        if (newLand == null)
+                            return null;
 
-                    return null;
+                        landID = m_lastLandLocalID;
+                    }
+                    else
+                    {
+                        // XXX: We're not currently doing anything if there are no parcels, as this might indicate a race
+                        // condition where this method is being called before land data is loaded.  May need to address
+                        // this in another way.
+
+                        m_log.WarnFormat(
+                            "[{0}]: Ignoring request to auto-create parcel in {1} as there are no other parcels present", 
+                            LogHeader, m_scene.Name);
+                    }
                 }
+
+                ret = m_landList[landID];
             }
 
             return ret;
