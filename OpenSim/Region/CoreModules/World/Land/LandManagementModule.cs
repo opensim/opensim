@@ -915,10 +915,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                             landID = m_lastLandLocalID;
                         }
+                        else
+                        {
+                            // XXX: We're not currently doing anything if there are no parcels, as this might indicate a race
+                            // condition where this method is being called before land data is loaded.  May need to address
+                            // this in another way.
 
-                        // XXX: We're not currently doing anything if there are no parcels, as this might indicate a race
-                        // condition where this method is being called before land data is loaded.  May need to address
-                        // this in another way.
+                            m_log.WarnFormat(
+                                "[{0}]: Ignoring request to auto-create parcel in {1} as there are no other parcels present", 
+                                LogHeader, m_scene.Name);
+                        }
                     }
 
                     ret = m_landList[landID];
@@ -1545,16 +1551,21 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Land Object From Storage Functions
 
-        public void EventManagerOnIncomingLandDataFromStorage(List<LandData> data)
+        private void EventManagerOnIncomingLandDataFromStorage(List<LandData> data)
         {
 //            m_log.DebugFormat(
 //                "[LAND MANAGMENT MODULE]: Processing {0} incoming parcels on {1}", data.Count, m_scene.Name);
 
-            for (int i = 0; i < data.Count; i++)
-                IncomingLandObjectFromStorage(data[i]);
+            // Prevent race conditions from any auto-creation of new parcels for varregions whilst we are still loading
+            // the existing parcels.
+            lock (m_landList)
+            {
+                for (int i = 0; i < data.Count; i++)
+                    IncomingLandObjectFromStorage(data[i]);
+            }
         }
 
-        public void IncomingLandObjectFromStorage(LandData data)
+        private void IncomingLandObjectFromStorage(LandData data)
         {
             ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene);
             new_land.LandData = data.Copy();
