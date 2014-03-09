@@ -638,6 +638,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	
 [BakedTextureService]
     LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"
-    ;; This directiry must exist and be writable for the user ROBUST runs as
+    ;; This directory must exist and be writable for the user ROBUST runs as
     BaseDirectory = "/data/bakes"
 
