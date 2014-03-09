@@ -59,6 +59,8 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 ; OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
 ;; Uncomment this if you want Groups V2 to work
 ; GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
+;; Uncomment to provide bakes caching
+;BakedTextureService = "8003/OpenSim.Server.Handlers.dll:XBakesConnector
 
 ;; Additions for Hypergrid
 
