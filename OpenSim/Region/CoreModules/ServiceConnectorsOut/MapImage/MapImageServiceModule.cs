@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
 
         private int m_refreshtime = 0;
         private int m_lastrefresh = 0;
-        private System.Timers.Timer m_refreshTimer = new System.Timers.Timer();
+        private System.Timers.Timer m_refreshTimer;
         
         #region ISharedRegionModule
         
@@ -94,13 +94,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 return;
 
             int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime"));
-            if (refreshminutes <= 0)
+            
+            // if refresh is less than zero, disable the module
+            if (refreshminutes < 0)
             {
-                m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: No refresh time given in config. Module disabled.");
+                m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: Negative refresh time given in config. Module disabled.");
                 return;
             }
-
-            m_refreshtime = refreshminutes * 60 * 1000; // convert from minutes to ms
 
             string service = config.GetString("LocalServiceModule", string.Empty);
             if (service == string.Empty)
@@ -116,15 +116,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: Unable to load LocalServiceModule from {0}. MapService module disabled. Please fix the configuration.", service);
                 return;
             }
+   
+            // we don't want the timer if the interval is zero, but we still want this module enables
+            if(refreshminutes > 0)
+            {
+                m_refreshtime = refreshminutes * 60 * 1000; // convert from minutes to ms
+   
+                m_refreshTimer = new System.Timers.Timer();
+                m_refreshTimer.Enabled = true;
+                m_refreshTimer.AutoReset = true;
+                m_refreshTimer.Interval = m_refreshtime;
+                m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
 
-            m_refreshTimer.Enabled = true;
-            m_refreshTimer.AutoReset = true;
-            m_refreshTimer.Interval = m_refreshtime;
-            m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
-
-            m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0}min and service object {1}",
+                m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0} min and service object {1}",
                              refreshminutes, service);
-
+            }
+            else 
+            {
+                m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with no refresh and service object {0}", service);
+            }
             m_enabled = true;
         }
 
