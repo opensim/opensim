@@ -50,8 +50,9 @@ namespace OpenSim.Framework
         // Someday terrain will have caves
         public abstract float this[int x, int y, int z] { get; set; }
 
-        public bool IsTainted { get; protected set; }
         public abstract bool IsTaintedAt(int xx, int yy);
+        public abstract bool IsTaintedAt(int xx, int yy, bool clearOnTest);
+        public abstract void TaintAllTerrain();
         public abstract void ClearTaint();
 
         public abstract void ClearLand();
@@ -75,6 +76,7 @@ namespace OpenSim.Framework
         public abstract short[] GetCompressedMap();
         public abstract float CompressionFactor { get; }
 
+        public abstract float[] GetFloatsSerialized();
         public abstract double[,] GetDoubles();
         public abstract TerrainData Clone();
     }
@@ -138,10 +140,20 @@ namespace OpenSim.Framework
         // TerrainData.ClearTaint
         public override void ClearTaint()
         {
-            IsTainted = false;
+            SetAllTaint(false);
+        }
+
+        // TerrainData.TaintAllTerrain
+        public override void TaintAllTerrain()
+        {
+            SetAllTaint(true);
+        }
+
+        private void SetAllTaint(bool setting)
+        {
             for (int ii = 0; ii < m_taint.GetLength(0); ii++)
                 for (int jj = 0; jj < m_taint.GetLength(1); jj++)
-                    m_taint[ii, jj] = false;
+                    m_taint[ii, jj] = setting;
         }
 
         // TerrainData.ClearLand
@@ -158,13 +170,23 @@ namespace OpenSim.Framework
                     m_heightmap[xx, yy] = flatHeight;
         }
 
-        public override bool IsTaintedAt(int xx, int yy)
+        // Return 'true' of the patch that contains these region coordinates has been modified.
+        // Note that checking the taint clears it.
+        // There is existing code that relies on this feature.
+        public override bool IsTaintedAt(int xx, int yy, bool clearOnTest)
         {
             int tx = xx / Constants.TerrainPatchSize;
             int ty = yy / Constants.TerrainPatchSize;
             bool ret =  m_taint[tx, ty];
-            m_taint[tx, ty] = false;
+            if (ret && clearOnTest)
+                m_taint[tx, ty] = false;
             return ret;
+        }
+
+        // Old form that clears the taint flag when we check it.
+        public override bool IsTaintedAt(int xx, int yy)
+        {
+            return IsTaintedAt(xx, yy, true /* clearOnTest */);
         }
 
         // TerrainData.GetDatabaseBlob
@@ -210,6 +232,25 @@ namespace OpenSim.Framework
             HeightmapTerrainData ret = new HeightmapTerrainData(SizeX, SizeY, SizeZ);
             ret.m_heightmap = (short[,])this.m_heightmap.Clone();
             return ret;
+        }
+
+        // TerrainData.GetFloatsSerialized
+        // This one dimensional version is ordered so height = map[y*sizeX+x];
+        // DEPRECATED: don't use this function as it does not retain the dimensions of the terrain
+        //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
+        public override float[] GetFloatsSerialized()
+        {
+            int points = SizeX * SizeY;
+            float[] heights = new float[points];
+
+            int idx = 0;
+            for (int jj = 0; jj < SizeY; jj++)
+                for (int ii = 0; ii < SizeX; ii++)
+                {
+                    heights[idx++] = FromCompressedHeight(m_heightmap[ii, jj]);
+                }
+
+            return heights;
         }
 
         // TerrainData.GetDoubles
