@@ -113,15 +113,15 @@
     ;; NonPhysicalPrimMax!).
     ; NonPhysicalPrimMax = 256
 
-    ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 10
+    ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 0.01
     ;; Maximum size where a prim can be physical.  Affects resizing of
     ;; existing prims.  This can be overriden in the region config file.
     ; PhysicalPrimMin = 0.01
 
-    ;# {PhysicalPrimMax} {} {Maximum size of physical prims?} {} 10
+    ;# {PhysicalPrimMax} {} {Maximum size of physical prims?} {} 64
     ;; Maximum size where a prim can be physical.  Affects resizing of
     ;; existing prims.  This can be overriden in the region config file.
-    ; PhysicalPrimMax = 10
+    ; PhysicalPrimMax = 64
 
     ;# {ClampPrimSize} {} {Clamp viewer rezzed prims to max sizes?} {true false} false
     ;; If a viewer attempts to rez a prim larger than the non-physical or

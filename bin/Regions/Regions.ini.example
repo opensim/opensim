@@ -29,7 +29,7 @@ ExternalHostName = "SYSTEMIP"
 ; *
 
 ; NonphysicalPrimMax = 256
-; PhysicalPrimMax = 10
+; PhysicalPrimMax = 64
 ; ClampPrimSize = False
 ; MaxPrims = 15000
 ; MaxAgents = 100

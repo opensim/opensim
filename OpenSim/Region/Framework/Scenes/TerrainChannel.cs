@@ -124,17 +124,7 @@ namespace OpenSim.Region.Framework.Scenes
         //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
         public float[] GetFloatsSerialised()
         {
-            int points = Width * Height;
-            float[] heights = new float[points];
-
-            int idx = 0;
-            for (int jj = 0; jj < Height; jj++)
-                for (int ii = 0; ii < Width; ii++)
-                {
-                    heights[idx++] = m_terrainData[ii, jj];
-                }
-
-            return heights;
+            return m_terrainData.GetFloatsSerialized();
         }
 
         // ITerrainChannel.GetDoubles()
