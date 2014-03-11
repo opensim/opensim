@@ -59,6 +59,8 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 ; OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
 ;; Uncomment this if you want Groups V2 to work
 ; GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
+;; Uncomment to provide bakes caching
+;BakedTextureService = "8003/OpenSim.Server.Handlers.dll:XBakesConnector"
 
 ;; Additions for Hypergrid
 
@@ -632,5 +634,10 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
     ;; Realm = UserProfiles
     UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
-    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService
+	
+[BakedTextureService]
+    LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"
+    ;; This directory must exist and be writable for the user ROBUST runs as
+    BaseDirectory = "/data/bakes"
 

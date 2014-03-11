@@ -2946,7 +2946,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                return new LSL_Vector((float)Constants.RegionSize, (float)Constants.RegionSize, Constants.RegionHeight);
+                Scene scene = m_ScriptEngine.World;
+                GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
+                return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeX, Constants.RegionHeight);
             }
         }
 

@@ -51,7 +51,7 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 ;; Uncomment this if you want Groups V2 to work
 ;GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
 ;; Uncomment to provide bakes caching
-;BakedTextureService = "8003/OpenSim.Server.Handlers.dll:XBakesConnector
+;BakedTextureService = "8003/OpenSim.Server.Handlers.dll:XBakesConnector"
 
 ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
 ; UserProfilesServiceConnector = "8002/OpenSim.Server.Handlers.dll:UserProfilesConnector"
@@ -454,6 +454,6 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
 [BakedTextureService]
     LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"
-    ;; This directiry must exist and be writable for the user ROBUST runs as
+    ;; This directory must exist and be writable for the user ROBUST runs as
     BaseDirectory = "/data/bakes"
 
