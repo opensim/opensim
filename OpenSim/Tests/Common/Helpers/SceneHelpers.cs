@@ -63,9 +63,9 @@ namespace OpenSim.Tests.Common
         /// </summary>
         public SceneManager SceneManager { get; private set; }
 
+        public ISimulationDataService SimDataService { get; private set; }
+
         private AgentCircuitManager m_acm = new AgentCircuitManager();
-        private ISimulationDataService m_simDataService
-            = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
         private IEstateDataService m_estateDataService = null;
 
         private LocalAssetServicesConnector m_assetService;
@@ -96,6 +96,9 @@ namespace OpenSim.Tests.Common
             m_presenceService.PostInitialise();
 
             m_cache = cache;
+
+            SimDataService 
+                = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
         }
 
         /// <summary>
@@ -139,7 +142,7 @@ namespace OpenSim.Tests.Common
             SceneCommunicationService scs = new SceneCommunicationService();
 
             TestScene testScene = new TestScene(
-                regInfo, m_acm, scs, m_simDataService, m_estateDataService, configSource, null);
+                regInfo, m_acm, scs, SimDataService, m_estateDataService, configSource, null);
 
             INonSharedRegionModule godsModule = new GodsModule();
             godsModule.Initialise(new IniConfigSource());
