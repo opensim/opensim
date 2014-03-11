@@ -45,9 +45,6 @@ namespace OpenSim.Groups
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GroupsModule")]
     public class GroupsModule : ISharedRegionModule, IGroupsModule
     {
-        /// <summary>
-        /// </summary>
-
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -466,6 +463,7 @@ namespace OpenSim.Groups
                             OnNewGroupNotice(GroupID, NoticeID);
                         }
 
+                       
                         // Send notice out to everyone that wants notices
                         foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetRequestingAgentIDStr(remoteClient), GroupID))
                         {

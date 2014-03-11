@@ -77,9 +77,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private List<Scene> m_sceneList = new List<Scene>();
 
-        private IMessageTransferModule m_msgTransferModule = null;
+        private IMessageTransferModule m_msgTransferModule;
+
+        private IGroupsMessagingModule m_groupsMessagingModule;
         
-        private IGroupsServicesConnector m_groupData = null;
+        private IGroupsServicesConnector m_groupData;
 
         // Configuration settings
         private bool m_groupsEnabled = false;
@@ -185,8 +187,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_msgTransferModule == null)
                 {
                     m_groupsEnabled = false;
-                    m_log.Warn("[GROUPS]: Could not get MessageTransferModule");
+                    m_log.Warn("[GROUPS]: Could not get IMessageTransferModule");
                 }
+            }
+
+            if (m_groupsMessagingModule == null)
+            {
+                m_groupsMessagingModule = scene.RequestModuleInterface<IGroupsMessagingModule>();
+
+                // No message transfer module, no notices, group invites, rejects, ejects, etc
+                if (m_groupsMessagingModule == null)
+                    m_log.Warn("[GROUPS]: Could not get IGroupsMessagingModule");
             }
 
             lock (m_sceneList)
@@ -497,32 +508,37 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         OnNewGroupNotice(GroupID, NoticeID);
                     }
 
-                    /*** We would insert call code here ***/
-                    // Send notice out to everyone that wants notices
-                    foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetRequestingAgentID(remoteClient), GroupID))
+                    if (m_debugEnabled)
                     {
-                         if (m_debugEnabled)
+                        foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetRequestingAgentID(remoteClient), GroupID))
                         {
-                            UserAccount targetUser = m_sceneList[0].UserAccountService.GetUserAccount(remoteClient.Scene.RegionInfo.ScopeID, member.AgentID);
-                            if (targetUser != null)
+                            if (m_debugEnabled)
                             {
-                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, targetUser.FirstName + " " + targetUser.LastName, member.AcceptNotices);
-                            }
-                            else
-                            {
-                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, member.AgentID, member.AcceptNotices);
-                            }
-                        }
+                                UserAccount targetUser
+                                    = m_sceneList[0].UserAccountService.GetUserAccount(
+                                        remoteClient.Scene.RegionInfo.ScopeID, member.AgentID);
 
-                       if (member.AcceptNotices)
-                        {
-                            // Build notice IM
-                            GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
-
-                            msg.toAgentID = member.AgentID.Guid;
-                            OutgoingInstantMessage(msg, member.AgentID);
+                                if (targetUser != null)
+                                {
+                                    m_log.DebugFormat(
+                                        "[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", 
+                                        NoticeID, targetUser.FirstName + " " + targetUser.LastName, member.AcceptNotices);
+                                }
+                                else
+                                {
+                                    m_log.DebugFormat(
+                                        "[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", 
+                                        NoticeID, member.AgentID, member.AcceptNotices);
+                                }
+                            }
                         }
                     }
+
+                    GridInstantMessage msg 
+                        = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
+
+                    if (m_groupsMessagingModule != null)
+                        m_groupsMessagingModule.SendMessageToGroup(msg, GroupID, gmd => gmd.AcceptNotices);
                 }
             }
 

@@ -172,10 +172,8 @@ namespace OpenSim.Groups
                 return;
             }
 
-
             if (m_presenceService == null)
                 m_presenceService = scene.PresenceService;
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -222,7 +220,6 @@ namespace OpenSim.Groups
 
         #endregion
 
-
         /// <summary>
         /// Not really needed, but does confirm that the group exists.
         /// </summary>
@@ -242,8 +239,13 @@ namespace OpenSim.Groups
                 return false;
             }
         }
-        
+
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
+        {
+            SendMessageToGroup(im, groupID, null);
+        }
+        
+        public void SendMessageToGroup(GridInstantMessage im, UUID groupID, Func<GroupMembersData, bool> sendCondition)
         {
             UUID fromAgentID = new UUID(im.fromAgentID);
             List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), groupID);
@@ -299,12 +301,27 @@ namespace OpenSim.Groups
 
                 if (clientsAlreadySent.Contains(member.AgentID))
                     continue;
+
                 clientsAlreadySent.Add(member.AgentID);
 
-                if (hasAgentDroppedGroupChatSession(member.AgentID.ToString(), groupID))
+                if (sendCondition != null)
+                {
+                    if (!sendCondition(member))
+                    {
+                        if (m_debugEnabled) 
+                            m_log.DebugFormat(
+                                "[Groups.Messaging]: Not sending to {0} as they do not fulfill send condition", 
+                                 member.AgentID);
+
+                        continue;
+                    }
+                }
+                else if (hasAgentDroppedGroupChatSession(member.AgentID.ToString(), groupID))
                 {
                     // Don't deliver messages to people who have dropped this session
-                    if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: {0} has dropped session, not delivering to them", member.AgentID);
+                    if (m_debugEnabled) 
+                        m_log.DebugFormat("[Groups.Messaging]: {0} has dropped session, not delivering to them", member.AgentID);
+
                     continue;
                 }
 

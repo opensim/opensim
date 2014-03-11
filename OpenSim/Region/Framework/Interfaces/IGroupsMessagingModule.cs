@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -57,7 +58,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool StartGroupChatSession(UUID agentID, UUID groupID);
         
         /// <summary>
-        /// Send a message to an entire group.
+        /// Send a message to each member of a group whose chat session is active.
         /// </summary>
         /// <param name="im">
         /// The message itself.  The fields that must be populated are
@@ -69,5 +70,23 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="groupID"></param>
         void SendMessageToGroup(GridInstantMessage im, UUID groupID);
+
+        /// <summary>
+        /// Send a message to all the members of a group that fulfill a condition.
+        /// </summary>
+        /// <param name="im">
+        /// The message itself.  The fields that must be populated are
+        /// 
+        /// imSessionID - Populate this with the group ID (session ID and group ID are currently identical)
+        /// fromAgentName - Populate this with whatever arbitrary name you want to show up in the chat dialog
+        /// message - The message itself
+        /// dialog - This must be (byte)InstantMessageDialog.SessionSend
+        /// </param>
+        /// <param name="groupID"></param>
+        /// <param name="sendCondition">
+        /// The condition that must be met by a member for the message to be sent.  If null then the message is sent
+        /// if the chat session is active.
+        /// </param>
+        void SendMessageToGroup(GridInstantMessage im, UUID groupID, Func<GroupMembersData, bool> sendCondition);
     }
 }

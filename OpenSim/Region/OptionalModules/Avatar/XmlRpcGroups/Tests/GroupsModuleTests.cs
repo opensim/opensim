@@ -41,6 +41,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.ClientStack.Linden;
+using OpenSim.Region.CoreModules.Avatar.InstantMessage;
 using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups;
@@ -127,15 +128,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
 //            TestHelpers.EnableLogging();
             
             TestScene scene = new SceneHelpers().SetupScene();
-            IConfigSource configSource = new IniConfigSource();
-            IConfig config = configSource.AddConfig("Groups");            
-            config.Set("Enabled", true);
-            config.Set("Module", "GroupsModule");            
-            config.Set("DebugEnabled", true);
 
+            MessageTransferModule mtm = new MessageTransferModule();
             GroupsModule gm = new GroupsModule();
+            GroupsMessagingModule gmm = new GroupsMessagingModule();
 
-            SceneHelpers.SetupSceneModules(scene, configSource, gm, new MockGroupsServicesConnector());
+            IConfigSource configSource = new IniConfigSource();
+
+            {
+                IConfig config = configSource.AddConfig("Messaging");            
+                config.Set("MessageTransferModule", mtm.Name);
+            }
+
+            {
+                IConfig config = configSource.AddConfig("Groups");            
+                config.Set("Enabled", true);
+                config.Set("Module", gm.Name);
+                config.Set("DebugEnabled", true);
+                config.Set("MessagingModule", gmm.Name);
+                config.Set("MessagingEnabled", true);
+            }
+
+            SceneHelpers.SetupSceneModules(scene, configSource, new MockGroupsServicesConnector(), mtm, gm, gmm);
 
             UUID userId = TestHelpers.ParseTail(0x1);
             string subjectText = "newman";
