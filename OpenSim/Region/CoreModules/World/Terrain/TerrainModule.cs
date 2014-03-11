@@ -853,7 +853,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="y">The patch corner to send</param>
         private void SendToClients(TerrainData terrData, int x, int y)
         {
-            float[] heightMap = terrData.GetFloatsSerialized();
+            // We know the actual terrain data passed is ignored. This kludge saves changing IClientAPI.
+            //float[] heightMap = terrData.GetFloatsSerialized();
+            float[] heightMap = new float[10];
             m_scene.ForEachClient(
                 delegate(IClientAPI controller)
                     {
@@ -975,7 +977,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         protected void client_OnUnackedTerrain(IClientAPI client, int patchX, int patchY)
         {
             //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
-             client.SendLayerData(patchX, patchY, m_scene.Heightmap.GetFloatsSerialised());
+            // SendLayerData does not use the heightmap parameter. This kludge is so as to not change IClientAPI.
+            float[] heightMap = new float[10];
+            client.SendLayerData(patchX, patchY, heightMap);
         }
 
         private void StoreUndoState()
