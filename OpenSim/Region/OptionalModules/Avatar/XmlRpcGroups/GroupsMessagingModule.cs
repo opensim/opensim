@@ -238,15 +238,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
         }
 
-        
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
-            SendMessageToGroup(im, groupID, null);
+            SendMessageToGroup(im, groupID, new UUID(im.fromAgentID), null);
         }
         
-        public void SendMessageToGroup(GridInstantMessage im, UUID groupID, Func<GroupMembersData, bool> sendCondition)
+        public void SendMessageToGroup(
+            GridInstantMessage im, UUID groupID, UUID sendingAgentForGroupCalls, Func<GroupMembersData, bool> sendCondition)
         {
-            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(new UUID(im.fromAgentID), groupID);
+            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(sendingAgentForGroupCalls, groupID);
             int groupMembersCount = groupMembers.Count;
 
             if (m_messageOnlineAgentsOnly)
@@ -488,7 +488,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
 
         #endregion
-
 
         #region ClientEvents
         private void OnInstantMessage(IClientAPI remoteClient, GridInstantMessage im)

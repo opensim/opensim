@@ -83,10 +83,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// dialog - This must be (byte)InstantMessageDialog.SessionSend
         /// </param>
         /// <param name="groupID"></param>
+        /// <param name="sendingAgentForGroupCalls">
+        /// The requesting agent to use when querying the groups service.  Sometimes this is different from 
+        /// im.fromAgentID, with group notices, for example.
+        /// </param>
         /// <param name="sendCondition">
         /// The condition that must be met by a member for the message to be sent.  If null then the message is sent
         /// if the chat session is active.
         /// </param>
-        void SendMessageToGroup(GridInstantMessage im, UUID groupID, Func<GroupMembersData, bool> sendCondition);
+        void SendMessageToGroup(
+            GridInstantMessage im, UUID groupID, UUID sendingAgentForGroupCalls, Func<GroupMembersData, bool> sendCondition);
     }
 }

@@ -83,7 +83,6 @@ namespace OpenSim.Groups
         private Dictionary<UUID, List<string>> m_groupsAgentsDroppedFromChatSession = new Dictionary<UUID, List<string>>();
         private Dictionary<UUID, List<string>> m_groupsAgentsInvitedToChatSession = new Dictionary<UUID, List<string>>();
 
-
         #region Region Module interfaceBase Members
 
         public void Initialise(IConfigSource config)
@@ -242,13 +241,18 @@ namespace OpenSim.Groups
 
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
-            SendMessageToGroup(im, groupID, null);
+            SendMessageToGroup(im, groupID, UUID.Zero, null);
         }
         
-        public void SendMessageToGroup(GridInstantMessage im, UUID groupID, Func<GroupMembersData, bool> sendCondition)
+        public void SendMessageToGroup(
+            GridInstantMessage im, UUID groupID, UUID sendingAgentForGroupCalls, Func<GroupMembersData, bool> sendCondition)
         {
             UUID fromAgentID = new UUID(im.fromAgentID);
+
+            // Unlike current XmlRpcGroups, Groups V2 can accept UUID.Zero when a perms check for the requesting agent
+            // is not necessary.
             List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero.ToString(), groupID);
+
             int groupMembersCount = groupMembers.Count;
             PresenceInfo[] onlineAgents = null;
 

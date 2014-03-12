@@ -538,7 +538,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
 
                     if (m_groupsMessagingModule != null)
-                        m_groupsMessagingModule.SendMessageToGroup(msg, GroupID, gmd => gmd.AcceptNotices);
+                        m_groupsMessagingModule.SendMessageToGroup(
+                            msg, GroupID, remoteClient.AgentId, gmd => gmd.AcceptNotices);
                 }
             }
 
