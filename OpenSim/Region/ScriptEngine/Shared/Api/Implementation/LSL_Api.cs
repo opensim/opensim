@@ -3922,6 +3922,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llBreakAllLinks()
         {
             m_host.AddScriptLPS(1);
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+                && !m_automaticLinkPermission)
+            {
+                Error("llBreakAllLinks", "PERMISSION_CHANGE_LINKS permission not set");
+                return;
+            }
+
             SceneObjectGroup parentPrim = m_host.ParentGroup;
             if (parentPrim.AttachmentPoint != 0)
                 return; // Fail silently if attached
