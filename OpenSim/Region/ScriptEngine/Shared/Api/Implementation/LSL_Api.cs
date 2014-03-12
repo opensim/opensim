@@ -3769,10 +3769,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCreateLink(string target, int parent)
         {
             m_host.AddScriptLPS(1);
-            UUID targetID;
-
-            if (!UUID.TryParse(target, out targetID))
-                return;
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
@@ -3781,10 +3777,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            IClientAPI client = null;
-            ScenePresence sp = World.GetScenePresence(m_item.PermsGranter);
-            if (sp != null)
-                client = sp.ControllingClient;
+            CreateLink(target, parent);
+        }
+
+        public void CreateLink(string target, int parent)
+        {
+            UUID targetID;
+
+            if (!UUID.TryParse(target, out targetID))
+                return;           
 
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)targetID);
 
@@ -3819,6 +3820,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.HasGroupChanged = true;
             parentPrim.ScheduleGroupForFullUpdate();
 
+            IClientAPI client = null;
+            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+            if (sp != null)
+                client = sp.ControllingClient;
+
             if (client != null)
                 parentPrim.SendPropertiesToClient(client);
 
@@ -3836,6 +3842,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
+            BreakLink(linknum);
+        }
+
+        public void BreakLink(int linknum)
+        {
             if (linknum < ScriptBaseClass.LINK_THIS)
                 return;
 

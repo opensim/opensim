@@ -542,6 +542,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetLinkPrimitiveParams(linknumber, rules);
         }
 
+        public void osForceCreateLink(string target, int parent)
+        {
+            m_OSSL_Functions.osForceCreateLink(target, parent);
+        }
+
+        public void osForceBreakLink(int linknum)
+        {
+            m_OSSL_Functions.osForceBreakLink(linknum);
+        }
+
         public LSL_Integer osIsNpc(LSL_Key npc)
         {
             return m_OSSL_Functions.osIsNpc(npc);

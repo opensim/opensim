@@ -2330,6 +2330,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
+        public void osForceCreateLink(string target, int parent)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osForceCreateLink");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).CreateLink(target, parent);
+        }
+
+        public void osForceBreakLink(int linknum)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osForceBreakLink");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).BreakLink(linknum);
+        }
+
         public LSL_Integer osIsNpc(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.None, "osIsNpc");
