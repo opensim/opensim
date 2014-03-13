@@ -2350,6 +2350,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ((LSL_Api)m_LSL_Api).BreakLink(linknum);
         }
 
+        public void osForceBreakAllLinks()
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osForceBreakAllLinks");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).BreakAllLinks();
+        }
+
         public LSL_Integer osIsNpc(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.None, "osIsNpc");

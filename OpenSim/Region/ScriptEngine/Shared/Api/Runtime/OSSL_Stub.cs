@@ -552,6 +552,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osForceBreakLink(linknum);
         }
 
+        public void osForceBreakAllLinks()
+        {
+            m_OSSL_Functions.osForceBreakAllLinks();
+        }
+
         public LSL_Integer osIsNpc(LSL_Key npc)
         {
             return m_OSSL_Functions.osIsNpc(npc);

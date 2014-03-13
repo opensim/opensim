@@ -3930,6 +3930,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
+            BreakAllLinks();
+        }
+
+        public void BreakAllLinks()
+        {
             SceneObjectGroup parentPrim = m_host.ParentGroup;
             if (parentPrim.AttachmentPoint != 0)
                 return; // Fail silently if attached

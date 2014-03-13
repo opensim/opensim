@@ -307,6 +307,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osForceBreakLink(int linknum);
 
         /// <summary>
+        /// Identical to llBreakAllLinks() but does not require permission from the owner.
+        /// </summary>
+        void osForceBreakAllLinks();
+
+        /// <summary>
         /// Check if the given key is an npc
         /// </summary>
         /// <param name="npc"></param>
