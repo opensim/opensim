@@ -113,7 +113,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         protected IPAddress m_listenIPAddress = IPAddress.Any;
 
-        private PollServiceRequestManager m_PollServiceManager;
+        public PollServiceRequestManager PollServiceRequestManager { get; private set; }
 
         public uint SSLPort
         {
@@ -374,7 +374,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             return true;
         }
 
-        private void OnRequest(object source, RequestEventArgs args)
+        public void OnRequest(object source, RequestEventArgs args)
         {
             RequestNumber++;
 
@@ -429,7 +429,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         psEvArgs.Request(psreq.RequestID, keysvals);
                     }
 
-                    m_PollServiceManager.Enqueue(psreq);
+                    PollServiceRequestManager.Enqueue(psreq);
                 }
                 else
                 {
@@ -1781,10 +1781,17 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Start()
         {
-            StartHTTP();
+            Start(true);
         }
 
-        private void StartHTTP()
+        /// <summary>
+        /// Start the http server
+        /// </summary>
+        /// <param name='processPollRequestsAsync'>
+        /// If true then poll responses are performed asynchronsly.
+        /// Option exists to allow regression tests to perform processing synchronously.
+        /// </param>
+        public void Start(bool performPollResponsesAsync)
         {
             m_log.InfoFormat(
                 "[BASE HTTP SERVER]: Starting {0} server on port {1}", UseSSL ? "HTTPS" : "HTTP", Port);
@@ -1822,8 +1829,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.Start(64);
 
                 // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
-                m_PollServiceManager = new PollServiceRequestManager(this, 3, 25000);
-                m_PollServiceManager.Start();
+                PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 3, 25000);
+                PollServiceRequestManager.Start();
+
                 HTTPDRunning = true;
 
                 //HttpListenerContext context;
@@ -1892,7 +1900,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                m_PollServiceManager.Stop();
+                PollServiceRequestManager.Stop();
 
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;

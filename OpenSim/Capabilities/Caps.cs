@@ -50,8 +50,7 @@ namespace OpenSim.Framework.Capabilities
 
     public class Caps
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_httpListenerHostName;
         private uint m_httpListenPort;
@@ -152,6 +151,10 @@ namespace OpenSim.Framework.Capabilities
 
         public void RegisterPollHandler(string capName, PollServiceEventArgs pollServiceHandler)
         {
+//            m_log.DebugFormat(
+//                "[CAPS]: Registering handler with name {0}, url {1} for {2}", 
+//                capName, pollServiceHandler.Url, m_agentID, m_regionName);
+
             m_pollServiceHandlers.Add(capName, pollServiceHandler);
 
             m_httpListener.AddPollServiceHTTPHandler(pollServiceHandler.Url, pollServiceHandler);

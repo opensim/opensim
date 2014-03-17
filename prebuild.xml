@@ -3321,12 +3321,14 @@
       <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
+      <Reference name="HttpServer_OpenSim" path="../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../bin/"/>
       <Reference name="Nini" path="../../../../../bin/"/>
       <Reference name="nunit.framework" path="../../../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../../../bin/"/>
+      <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Monitoring"/>
@@ -3341,6 +3343,7 @@
       <Reference name="OpenSim.Tests.Common"/>
 
       <Files>
+        <Match path="Tests" pattern="*.cs" recurse="false"/>
         <Match path="EventQueue/Tests" pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
