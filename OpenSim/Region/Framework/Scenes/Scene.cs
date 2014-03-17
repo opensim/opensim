@@ -903,7 +903,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_generateMaptiles)
                 {
-                    int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
+                    int maptileRefresh = Util.GetConfigVarFromSections<int>(config, "MaptileRefresh", possibleMapConfigSections, 0);
+                    m_log.InfoFormat("[SCENE]: Region {0}, WORLD MAP refresh time set to {1} seconds", RegionInfo.RegionName, maptileRefresh);
                     if (maptileRefresh != 0)
                     {
                         m_mapGenerationTimer.Interval = maptileRefresh * 1000;
