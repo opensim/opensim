@@ -99,6 +99,7 @@ namespace OpenSim.Framework.Monitoring
 
                     string categoryName = components[0];
                     string containerName = components.Length > 1 ? components[1] : null;
+                    string statName = components.Length > 2 ? components[2] : null;
 
                     if (categoryName == AllSubCommand)
                     {
@@ -128,7 +129,23 @@ namespace OpenSim.Framework.Monitoring
                                 SortedDictionary<string, Stat> container;
                                 if (category.TryGetValue(containerName, out container))
                                 {
-                                    OutputContainerStatsToConsole(con, container);
+                                    if (String.IsNullOrEmpty(statName))
+                                    {
+                                        OutputContainerStatsToConsole(con, container);
+                                    }
+                                    else
+                                    {
+                                        Stat stat;
+                                        if (container.TryGetValue(statName, out stat))
+                                        {
+                                            OutputStatToConsole(con, stat);
+                                        }
+                                        else
+                                        {
+                                            con.OutputFormat(
+                                                "No such stat {0} in {1}.{2}", statName, categoryName, containerName);
+                                        }
+                                    }
                                 }
                                 else
                                 {
@@ -198,6 +215,11 @@ namespace OpenSim.Framework.Monitoring
         {
             foreach (string report in GetContainerStatsReports(container))
                 con.Output(report);
+        }
+
+        private static void OutputStatToConsole(ICommandConsole con, Stat stat)
+        {
+            con.Output(stat.ToConsoleString());
         }
 
         // Creates an OSDMap of the format:
