@@ -98,11 +98,11 @@ namespace OpenSim.Framework
         /// </remarks>
         public bool Contains(T item)
         {
-            if (m_queue.Count < 1 && m_pqueue.Count < 1)
-                return false;
-
             lock (m_queueSync)
             {
+                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                    return false;
+
                 if (m_pqueue.Contains(item))
                     return true;
                 return m_queue.Contains(item);
@@ -112,12 +112,10 @@ namespace OpenSim.Framework
         /// <summary>
         /// Return a count of the number of requests on this queue.
         /// </summary>
-        /// <remarks>
-        /// This method is not thread-safe.  Do not rely on the result without consistent external locking.
-        /// </remarks>
         public int Count()
         {
-            return m_queue.Count + m_pqueue.Count;
+            lock (m_queueSync)
+                return m_queue.Count + m_pqueue.Count;
         }
 
         /// <summary>
@@ -128,11 +126,11 @@ namespace OpenSim.Framework
         /// </remarks>
         public T[] GetQueueArray()
         {
-            if (m_queue.Count < 1 && m_pqueue.Count < 1)
-                return new T[0];
-
             lock (m_queueSync)
             {
+                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                    return new T[0];
+
                 return m_queue.ToArray();
             }
         }
