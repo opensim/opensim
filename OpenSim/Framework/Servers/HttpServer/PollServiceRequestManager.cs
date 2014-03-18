@@ -58,6 +58,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public bool PerformResponsesAsync { get; private set; }
 
+        /// <summary>
+        /// Number of responses actually processed and sent to viewer (or aborted due to error).
+        /// </summary>
+        public int ResponsesProcessed { get; private set; }
+
         private readonly BaseHttpServer m_server;
 
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
@@ -81,14 +86,27 @@ namespace OpenSim.Framework.Servers.HttpServer
             StatsManager.RegisterStat(
                 new Stat(
                     "QueuedPollResponses",
-                    "Number of poll responses queued for sending.",
+                    "Number of poll responses queued for processing.",
                     "",
                     "",
                     "httpserver",
                     m_server.Port.ToString(),
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
-                    stat => m_requests.Count(),
+                    stat => stat.Value = m_requests.Count(),
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "ProcessedPollResponses",
+                    "Number of poll responses processed.",
+                    "",
+                    "",
+                    "httpserver",
+                    m_server.Port.ToString(),
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = ResponsesProcessed,
                     StatVerbosity.Debug));
         }
 
@@ -210,6 +228,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     wreq = m_requests.Dequeue(0);
+                    ResponsesProcessed++;
                     wreq.DoHTTPGruntWork(
                         m_server, wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id));
                 }
@@ -256,6 +275,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         {
                             try
                             {
+                                ResponsesProcessed++;
                                 req.DoHTTPGruntWork(m_server, responsedata);
                             }
                             catch (ObjectDisposedException e) // Browser aborted before we could read body, server closed the stream
@@ -270,6 +290,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             {
                                 try
                                 {
+                                    ResponsesProcessed++;
                                     req.DoHTTPGruntWork(m_server, responsedata);
                                 }
                                 catch (ObjectDisposedException e) // Browser aborted before we could read body, server closed the stream
@@ -290,6 +311,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                         {
+                            ResponsesProcessed++;
                             req.DoHTTPGruntWork(
                                 m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                         }
