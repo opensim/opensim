@@ -1816,7 +1816,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("UserLookAtZ", land.UserLookAt.Z);
             cmd.Parameters.AddWithValue("AuthBuyerID", land.AuthBuyerID);
             cmd.Parameters.AddWithValue("OtherCleanTime", land.OtherCleanTime);
-            cmd.Parameters.AddWithValue("Dwell", land.OtherCleanTime);
+            cmd.Parameters.AddWithValue("Dwell", land.Dwell);
             cmd.Parameters.AddWithValue("MediaDescription", land.MediaDescription);
             cmd.Parameters.AddWithValue("MediaType", land.MediaType);
             cmd.Parameters.AddWithValue("MediaWidth", land.MediaWidth);
