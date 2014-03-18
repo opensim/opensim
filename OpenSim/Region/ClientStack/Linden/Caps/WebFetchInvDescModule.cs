@@ -74,6 +74,8 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </remarks>
         public bool ProcessQueuedRequestsAsync { get; private set; }
 
+        private Stat m_queuedRequestsStat;
+
         private Scene m_scene;
 
         private IInventoryService m_InventoryService;
@@ -130,6 +132,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
 
+            StatsManager.DeregisterStat(m_queuedRequestsStat);
+
             if (ProcessQueuedRequestsAsync)
             {
                 if (m_workerThreads != null)
@@ -148,6 +152,21 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             if (!m_Enabled)
                 return;
+
+            m_queuedRequestsStat =
+                new Stat(
+                    "QueuedFetchInventoryRequests",
+                    "Number of fetch inventory requests queued for processing",
+                    "",
+                    "",
+                    "scene",
+                    m_scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => { lock (m_queue) { stat.Value = m_queue.Count; } },
+                    StatVerbosity.Debug);
+
+            StatsManager.RegisterStat(m_queuedRequestsStat);
 
             m_InventoryService = m_scene.InventoryService;
             m_LibraryService = m_scene.LibraryService;
