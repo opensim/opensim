@@ -2304,7 +2304,11 @@ namespace OpenSim.Framework
 
         public virtual int Count
         {
-            get { return m_highQueue.Count + m_lowQueue.Count; }
+            get 
+            { 
+                lock (m_syncRoot)
+                    return m_highQueue.Count + m_lowQueue.Count; 
+            }
         }
 
         public virtual void Enqueue(T data)
