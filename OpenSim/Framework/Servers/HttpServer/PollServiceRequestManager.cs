@@ -77,6 +77,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             PerformResponsesAsync = performResponsesAsync;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "QueuedPollResponses",
+                    "Number of non long-poll responses queued for sending.",
+                    "",
+                    "",
+                    "httpserver",
+                    m_server.Port.ToString(),
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => m_requests.Count(),
+                    StatVerbosity.Debug));
         }
 
         public void Start()
