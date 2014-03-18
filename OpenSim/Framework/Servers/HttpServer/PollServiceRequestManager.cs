@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             StatsManager.RegisterStat(
                 new Stat(
                     "QueuedPollResponses",
-                    "Number of non long-poll responses queued for sending.",
+                    "Number of poll responses queued for sending.",
                     "",
                     "",
                     "httpserver",
