@@ -122,15 +122,15 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 {
                     try
                     {
-                        mapbmp = new Bitmap("maptiles/" + m_scene.RegionInfo.m_maptileStaticFile);
+                        mapbmp = new Bitmap(m_scene.RegionInfo.m_maptileStaticFile);
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", "maptiles/" + m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
+                        m_log.ErrorFormat("[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
                         //mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                         mapbmp = null;
                     }
-                    if (mapbmp != null) m_log.DebugFormat("[MAPTILE]: Static map image texture file {0} found for {1}", "maptiles/" + m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
+                    if (mapbmp != null) m_log.DebugFormat("[MAPTILE]: Static map image texture file {0} found for {1}", m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
                 }
             }
             else
