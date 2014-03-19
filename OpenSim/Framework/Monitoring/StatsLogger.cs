@@ -26,7 +26,10 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Timers;
 using log4net;
 
@@ -52,6 +55,15 @@ namespace OpenSim.Framework.Monitoring
                 "Control whether stats are being regularly recorded to a separate file.",
                 "For debug purposes.  Experimental.",
                 HandleStatsRecordCommand);
+
+            console.Commands.AddCommand(
+                "General",
+                false,
+                "stats save",
+                "stats save <path>",
+                "Save stats snapshot to a file.  If the file already exists, then the report is appended.",
+                "For debug purposes.  Experimental.",
+                HandleStatsSaveCommand);
         }
 
         public static void HandleStatsRecordCommand(string module, string[] cmd)
@@ -76,6 +88,27 @@ namespace OpenSim.Framework.Monitoring
             }
         }
 
+        public static void HandleStatsSaveCommand(string module, string[] cmd)
+        {
+            ICommandConsole con = MainConsole.Instance;
+
+            if (cmd.Length != 3)
+            {
+                con.Output("Usage: stats save <path>");
+                return;
+            }
+
+            string path = cmd[2];
+            
+            using (StreamWriter sw = new StreamWriter(path, true))
+            {
+                foreach (string line in GetReport())
+                    sw.WriteLine(line);
+            }   
+            
+            MainConsole.Instance.OutputFormat("Stats saved to file {0}", path);
+        }
+
         public static void Start()
         {
             if (m_loggingTimer != null)
@@ -97,12 +130,22 @@ namespace OpenSim.Framework.Monitoring
 
         private static void Log(object sender, ElapsedEventArgs e)
         {
-            m_statsLog.InfoFormat("*** STATS REPORT AT {0} ***", DateTime.Now);
-
-            foreach (string report in StatsManager.GetAllStatsReports())
-                m_statsLog.Info(report);
+            foreach (string line in GetReport())
+                m_statsLog.Info(line);
 
             m_loggingTimer.Start();
+        }
+
+        private static List<string> GetReport()
+        {
+            List<string> lines = new List<string>();
+
+            lines.Add(string.Format("*** STATS REPORT AT {0} ***", DateTime.Now));
+
+            foreach (string report in StatsManager.GetAllStatsReports())
+                lines.Add(report);
+
+            return lines;
         }
     }
 }
