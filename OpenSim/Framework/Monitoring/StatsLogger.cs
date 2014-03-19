@@ -48,10 +48,10 @@ namespace OpenSim.Framework.Monitoring
         public static void RegisterConsoleCommands(ICommandConsole console)
         {
             console.Commands.AddCommand(
-                "Debug",
+                "General",
                 false,
-                "debug stats record",
-                "debug stats record start|stop",
+                "stats record",
+                "stats record start|stop",
                 "Control whether stats are being regularly recorded to a separate file.",
                 "For debug purposes.  Experimental.",
                 HandleStatsRecordCommand);
