@@ -2296,6 +2296,11 @@ namespace OpenSim.Framework
         private Queue<T> m_highQueue = new Queue<T>();
 
         private object m_syncRoot = new object();
+        private Semaphore m_s = new Semaphore(0, 1);
+
+        public DoubleQueue()
+        {
+        }
 
         public virtual int Count
         {
@@ -2324,7 +2329,11 @@ namespace OpenSim.Framework
         private void Enqueue(Queue<T> q, T data)
         {
             lock (m_syncRoot)
+            {
                 q.Enqueue(data);
+                m_s.WaitOne(0);
+                m_s.Release();
+            }
         }
 
         public virtual T Dequeue()
@@ -2354,28 +2363,39 @@ namespace OpenSim.Framework
 
         public bool Dequeue(TimeSpan wait, ref T res)
         {
-            if (!Monitor.TryEnter(m_syncRoot, wait))
+            if (!m_s.WaitOne(wait))
                 return false;
 
-            try
+            lock (m_syncRoot)
             {
                 if (m_highQueue.Count > 0)
                     res = m_highQueue.Dequeue();
                 else if (m_lowQueue.Count > 0)
                     res = m_lowQueue.Dequeue();
 
+                if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)
+                    return true;
+
+                try
+                {
+                    m_s.Release();
+                }
+                catch
+                {
+                }
+
                 return true;
-            }
-            finally
-            {
-                Monitor.Exit(m_syncRoot);
             }
         }
 
         public virtual void Clear()
         {
+
             lock (m_syncRoot)
             {
+                // Make sure sem count is 0
+                m_s.WaitOne(0);
+
                 m_lowQueue.Clear();
                 m_highQueue.Clear();
             }
