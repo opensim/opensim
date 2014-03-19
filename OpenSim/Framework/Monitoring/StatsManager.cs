@@ -72,8 +72,8 @@ namespace OpenSim.Framework.Monitoring
             console.Commands.AddCommand(
                 "General",
                 false,
-                "show stats",
-                "show stats [list|all|(<category>[.<container>])+",
+                "stats show",
+                "stats show [list|all|(<category>[.<container>])+",
                 "Show statistical information for this server",
                 "If no final argument is specified then legacy statistics information is currently shown.\n"
                     + "'list' argument will show statistic categories.\n"
@@ -82,6 +82,14 @@ namespace OpenSim.Framework.Monitoring
                     + "A <category>.<container> name will show statistics from that category in that container.\n"
                     + "More than one name can be given separated by spaces.\n"
                     + "THIS STATS FACILITY IS EXPERIMENTAL AND DOES NOT YET CONTAIN ALL STATS",
+                HandleShowStatsCommand);
+
+            console.Commands.AddCommand(
+                "General",
+                false,
+                "show stats",
+                "show stats [list|all|(<category>[.<container>])+",
+                "Alias for 'stats show' command",
                 HandleShowStatsCommand);
 
             StatsLogger.RegisterConsoleCommands(console);
