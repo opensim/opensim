@@ -3614,6 +3614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
                         ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
                         ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
+                        ScriptBaseClass.PERMISSION_TRACK_CAMERA |
                         ScriptBaseClass.PERMISSION_ATTACH;
             }
             else
