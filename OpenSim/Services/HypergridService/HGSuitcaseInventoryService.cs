@@ -228,6 +228,10 @@ namespace OpenSim.Services.HypergridService
                     return ConvertToOpenSim(suitcase);
                 }
             }
+            else
+            {
+                return ConvertToOpenSim(suitcase);
+            }
 
             return null;
         }
