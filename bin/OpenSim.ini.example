@@ -297,6 +297,7 @@
 
     ;# {MaptileStaticUUID} {} {Asset ID for static map texture} {} 00000000-0000-0000-0000-000000000000
     ;; If not generating maptiles, use this static texture asset ID
+    ;; This may be overridden on a per region basis in Regions.ini
     ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
 
     ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true

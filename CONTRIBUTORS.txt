@@ -101,6 +101,7 @@ what it is today.
 * Iain Oliver
 * Imaze Rhiano
 * Intimidated
+* Jak Daniels
 * Jeremy Bongio (IBM)
 * jhurliman
 * John R Sohn (XenReborn)

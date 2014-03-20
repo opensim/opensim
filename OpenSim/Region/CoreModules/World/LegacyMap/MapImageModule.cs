@@ -91,29 +91,46 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
             if (generateMaptiles)
             {
-                if (textureTerrain)
+                if (String.IsNullOrEmpty(m_scene.RegionInfo.m_maptileStaticFile))
                 {
-                    terrainRenderer = new TexturedMapTileRenderer();
+                    if (textureTerrain)
+                    {
+                        terrainRenderer = new TexturedMapTileRenderer();
+                    }
+                    else
+                    {
+                        terrainRenderer = new ShadedMapTileRenderer();
+                    }
+
+                    terrainRenderer.Initialise(m_scene, m_config);
+
+                    mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height,
+                                            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                    //long t = System.Environment.TickCount;
+                    //for (int i = 0; i < 10; ++i) {
+                    terrainRenderer.TerrainToBitmap(mapbmp);
+                    //}
+                    //t = System.Environment.TickCount - t;
+                    //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+
+                    if (drawPrimVolume)
+                    {
+                        DrawObjectVolume(m_scene, mapbmp);
+                    }
                 }
                 else
                 {
-                    terrainRenderer = new ShadedMapTileRenderer();
-                }
-
-                terrainRenderer.Initialise(m_scene, m_config);
-
-                mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height,
-                                        System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-                //long t = System.Environment.TickCount;
-                //for (int i = 0; i < 10; ++i) {
-                terrainRenderer.TerrainToBitmap(mapbmp);
-                //}
-                //t = System.Environment.TickCount - t;
-                //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
-
-                if (drawPrimVolume)
-                {
-                    DrawObjectVolume(m_scene, mapbmp);
+                    try
+                    {
+                        mapbmp = new Bitmap(m_scene.RegionInfo.m_maptileStaticFile);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
+                        //mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                        mapbmp = null;
+                    }
+                    if (mapbmp != null) m_log.DebugFormat("[MAPTILE]: Static map image texture file {0} found for {1}", m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
                 }
             }
             else
