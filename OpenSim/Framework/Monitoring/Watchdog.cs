@@ -82,12 +82,32 @@ namespace OpenSim.Framework.Monitoring
             /// </summary>
             public Func<string> AlarmMethod { get; set; }
 
+            /// <summary>
+            /// Stat structure associated with this thread.
+            /// </summary>
+            public Stat Stat { get; set; }
+
             public ThreadWatchdogInfo(Thread thread, int timeout)
             {
                 Thread = thread;
                 Timeout = timeout;
                 FirstTick = Environment.TickCount & Int32.MaxValue;
                 LastTick = FirstTick;
+
+                Stat 
+                    = new Stat(
+                        thread.Name,
+                        string.Format("Last update of thread {0}", thread.Name),
+                        "",
+                        "ms",
+                        "server",
+                        "thread",
+                        StatType.Pull,
+                        MeasuresOfInterest.None,
+                        stat => stat.Value = Environment.TickCount & Int32.MaxValue - LastTick,
+                        StatVerbosity.Debug);
+
+                StatsManager.RegisterStat(Stat);
             }
 
             public ThreadWatchdogInfo(ThreadWatchdogInfo previousTwi)
@@ -99,6 +119,11 @@ namespace OpenSim.Framework.Monitoring
                 IsTimedOut = previousTwi.IsTimedOut;
                 AlarmIfTimeout = previousTwi.AlarmIfTimeout;
                 AlarmMethod = previousTwi.AlarmMethod;
+            }
+
+            public void Cleanup()
+            {
+                StatsManager.DeregisterStat(Stat);
             }
         }
 
@@ -238,6 +263,7 @@ namespace OpenSim.Framework.Monitoring
                     m_log.DebugFormat(
                         "[WATCHDOG]: Removing thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
 
+                    twi.Cleanup();
                     m_threads.Remove(threadID);
 
                     return true;
