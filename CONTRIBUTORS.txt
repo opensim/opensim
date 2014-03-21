@@ -16,6 +16,7 @@ people that make the day to day of OpenSim happen.
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Snoopy Pfeffer
 * Robert Adams (Intel)
+* Oren Hurvitz (Kitely)
 
 = Core Developers Following the White Rabbit =
 Core developers who have temporarily (we hope) gone chasing the white rabbit. 
@@ -139,7 +140,6 @@ what it is today.
 * nornalbion
 * Omar Vera Ustariz (IBM)
 * openlifegrid.com
-* Oren Hurvitz (Kitely)
 * otakup0pe
 * Pixel Tomsen
 * ralphos
