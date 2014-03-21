@@ -80,10 +80,10 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <remarks>
         /// It's the PollServiceRequestManager that actually sends completed requests back to the requester.
         /// </remarks>
-        public int ProcessedRequestsCount { get; set; }
+        public static int ProcessedRequestsCount { get; set; }
 
-        private Stat m_queuedRequestsStat;
-        private Stat m_processedRequestsStat;
+        private static Stat s_queuedRequestsStat;
+        private static Stat s_processedRequestsStat;
 
         public Scene Scene { get; private set; }
 
@@ -141,8 +141,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             Scene.EventManager.OnRegisterCaps -= RegisterCaps;
 
-            StatsManager.DeregisterStat(m_processedRequestsStat);
-            StatsManager.DeregisterStat(m_queuedRequestsStat);
+            StatsManager.DeregisterStat(s_processedRequestsStat);
+            StatsManager.DeregisterStat(s_queuedRequestsStat);
 
             if (ProcessQueuedRequestsAsync)
             {
@@ -163,34 +163,36 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            m_processedRequestsStat =
-                new Stat(
-                    "ProcessedFetchInventoryRequests",
-                    "Number of processed fetch inventory requests",
-                    "These have not necessarily yet been dispatched back to the requester.",
-                    "",
-                    "scene-inventory",
-                    Scene.Name,
-                    StatType.Pull,
-                    MeasuresOfInterest.AverageChangeOverTime,
-                    stat => { lock (m_queue) { stat.Value = ProcessedRequestsCount; } },
-                    StatVerbosity.Debug);
+            if (s_processedRequestsStat == null)
+                s_processedRequestsStat =
+                    new Stat(
+                        "ProcessedFetchInventoryRequests",
+                        "Number of processed fetch inventory requests",
+                        "These have not necessarily yet been dispatched back to the requester.",
+                        "",
+                        "inventory",
+                        "httpfetch",
+                        StatType.Pull,
+                        MeasuresOfInterest.AverageChangeOverTime,
+                        stat => { stat.Value = ProcessedRequestsCount; },
+                        StatVerbosity.Debug);
 
-            m_queuedRequestsStat =
-                new Stat(
-                    "QueuedFetchInventoryRequests",
-                    "Number of fetch inventory requests queued for processing",
-                    "",
-                    "",
-                    "scene-inventory",
-                    Scene.Name,
-                    StatType.Pull,
-                    MeasuresOfInterest.AverageChangeOverTime,
-                    stat => { lock (m_queue) { stat.Value = m_queue.Count; } },
-                    StatVerbosity.Debug);
+            if (s_queuedRequestsStat == null)
+                s_queuedRequestsStat =
+                    new Stat(
+                        "QueuedFetchInventoryRequests",
+                        "Number of fetch inventory requests queued for processing",
+                        "",
+                        "",
+                        "inventory",
+                        "httpfetch",
+                        StatType.Pull,
+                        MeasuresOfInterest.AverageChangeOverTime,
+                        stat => { stat.Value = m_queue.Count; },
+                        StatVerbosity.Debug);
 
-            StatsManager.RegisterStat(m_processedRequestsStat);
-            StatsManager.RegisterStat(m_queuedRequestsStat);
+            StatsManager.RegisterStat(s_processedRequestsStat);
+            StatsManager.RegisterStat(s_queuedRequestsStat);
 
             m_InventoryService = Scene.InventoryService;
             m_LibraryService = Scene.LibraryService;
@@ -365,7 +367,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 lock (responses)
                     responses[requestID] = response;
 
-                m_module.ProcessedRequestsCount++;
+                WebFetchInvDescModule.ProcessedRequestsCount++;
             }
         }
 
