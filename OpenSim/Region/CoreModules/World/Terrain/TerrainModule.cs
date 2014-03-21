@@ -1054,7 +1054,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (presence == null)
                 return ret;
 
-            // See if there are patches within our view distance to send.
+            // Compute the area of patches within our draw distance
             int startX = (((int) (presence.AbsolutePosition.X - presence.DrawDistance))/Constants.TerrainPatchSize) - 2;
             startX = Math.Max(startX, 0);
             startX = Math.Min(startX, (int)m_scene.RegionInfo.RegionSizeX/Constants.TerrainPatchSize);
@@ -1067,8 +1067,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int endY = (((int) (presence.AbsolutePosition.Y + presence.DrawDistance))/Constants.TerrainPatchSize) + 2;
             endY = Math.Max(endY, 0);
             endY = Math.Min(endY, (int)m_scene.RegionInfo.RegionSizeY/Constants.TerrainPatchSize);
-            // m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. start=<{1},{2}>, end=<{3},{4}>",
-            //                                     LogHeader, startX, startY, endX, endY);
+            m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. ddist={1}, start=<{2},{3}>, end=<{4},{5}>",
+                                                LogHeader, presence.DrawDistance, startX, startY, endX, endY);
             for (int x = startX; x < endX; x++)
             {
                 for (int y = startY; y < endY; y++)
