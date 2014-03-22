@@ -426,7 +426,7 @@ public sealed class BSCharacter : BSPhysObject
             m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
             if (_setAlwaysRun && !_flying)
-                targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 0f);
+                targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 1f);
 
             if (m_moveActor != null)
                 m_moveActor.SetVelocityAndTarget(RawVelocity, targetVel, false /* inTaintTime */);
