@@ -272,7 +272,10 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 lastPhysGroupPos;
         private Quaternion lastPhysGroupRot;
 
-        private bool m_isBackedUp;
+        /// <summary>
+        /// Is this entity set to be saved in persistent storage?
+        /// </summary>
+        public bool Backup { get; private set; }
 
         protected MapAndArray<UUID, SceneObjectPart> m_parts = new MapAndArray<UUID, SceneObjectPart>();
 
@@ -882,10 +885,10 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat(
                 //    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
 
-                if (!m_isBackedUp)
+                if (!Backup)
                     m_scene.EventManager.OnBackup += ProcessBackup;
                 
-                m_isBackedUp = true;
+                Backup = true;
             }
         }
         
@@ -1555,7 +1558,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="datastore"></param>
         public virtual void ProcessBackup(ISimulationDataService datastore, bool forcedBackup)
         {
-            if (!m_isBackedUp)
+            if (!Backup)
             {
 //                m_log.DebugFormat(
 //                    "[WATER WARS]: Ignoring backup of {0} {1} since object is not marked to be backed up", Name, UUID);
@@ -1677,7 +1680,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup Copy(bool userExposed)
         {
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
-            dupe.m_isBackedUp = false;
+            dupe.Backup = false;
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
 
             // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
@@ -2537,10 +2540,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup"></param>
         public virtual void DetachFromBackup()
         {
-            if (m_isBackedUp && Scene != null)
+            if (Backup && Scene != null)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
             
-            m_isBackedUp = false;
+            Backup = false;
         }
 
         // This links an SOP from a previous linkset into my linkset.
@@ -2816,12 +2819,22 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart selectionPart = GetPart(localID);
 
-            if (SetTemporary && Scene != null)
+            if (Scene != null)
             {
-                DetachFromBackup();
-                // Remove from database and parcel prim count
-                //
-                m_scene.DeleteFromStorage(UUID);
+                if (SetTemporary)
+                {
+                    DetachFromBackup();
+                    // Remove from database and parcel prim count
+                    //
+                    m_scene.DeleteFromStorage(UUID);
+                }
+                else if (!Backup)
+                {
+                    // Previously been temporary now switching back so make it
+                    // available for persisting again
+                    AttachToBackup();
+                }
+
                 m_scene.EventManager.TriggerParcelPrimCountTainted();
             }
 

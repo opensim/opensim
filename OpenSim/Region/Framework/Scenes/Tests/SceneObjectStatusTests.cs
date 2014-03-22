@@ -58,6 +58,25 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
+        public void TestSetTemporary()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+            m_so1.ScriptSetTemporaryStatus(true);
+
+            // Is this really the correct flag?
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.TemporaryOnRez));
+            Assert.That(m_so1.Backup, Is.False);
+
+            // Test setting back to non-temporary
+            m_so1.ScriptSetTemporaryStatus(false);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.None));
+            Assert.That(m_so1.Backup, Is.True);          
+        }
+
+        [Test]
         public void TestSetPhantomSinglePrim()
         {
             TestHelpers.InMethod();
