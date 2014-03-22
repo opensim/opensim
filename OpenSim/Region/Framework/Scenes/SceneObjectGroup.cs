@@ -699,7 +699,11 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_rootPart.Text = value; }
         }
 
-        protected virtual bool InSceneBackup
+        /// <summary>
+        /// If set to true then the scene object can be backed up in principle, though this will only actually occur
+        /// if Backup is set.  If false then the scene object will never be backed up, Backup will always be false.
+        /// </summary>
+        protected virtual bool CanBeBackedUp
         {
             get { return true; }
         }
@@ -880,7 +884,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void AttachToBackup()
         {
-            if (InSceneBackup)
+            if (CanBeBackedUp)
             {
                 //m_log.DebugFormat(
                 //    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
