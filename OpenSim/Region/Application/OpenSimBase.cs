@@ -158,7 +158,10 @@ namespace OpenSim
 
         protected virtual void LoadPlugins()
         {
-            using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this)))
+            IConfig startupConfig = Config.Configs["Startup"];
+            string registryLocation = (startupConfig != null) ? startupConfig.GetString("RegistryLocation",".") : ".";
+
+            using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this), registryLocation))
             {
                 loader.Load("/OpenSim/Startup");
                 m_plugins = loader.Plugins;
