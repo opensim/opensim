@@ -245,8 +245,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         string state = sog.GetStateSnapshot();
                         ad.AttachmentObjectStates.Add(state);
                         sp.InTransitScriptStates.Add(state);
-                        // Let's remove the scripts of the original object here
-                        sog.RemoveScriptInstances(true);
+
+                        // Scripts of the originals will be removed when the Agent is successfully removed.
+                        // sog.RemoveScriptInstances(true);
                     }
                 }
             }
