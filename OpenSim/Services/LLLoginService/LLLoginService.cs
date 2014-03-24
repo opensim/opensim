@@ -167,11 +167,12 @@ namespace OpenSim.Services.LLLoginService
                 m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(agentService, args);
 
             // Get the Hypergrid inventory service (exists only if Hypergrid is enabled)
-            string hgInvService = Util.GetConfigVarFromSections<string>(config, "LocalServiceModule", new string[] { "HGInventoryService" }, String.Empty);
-            if (hgInvService != string.Empty)
+            string hgInvServicePlugin = m_LoginServerConfig.GetString("HGInventoryServicePlugin", String.Empty);
+            if (hgInvServicePlugin != string.Empty)
             {
-                Object[] args2 = new Object[] { config, "HGInventoryService" };
-                m_HGInventoryService = ServerUtils.LoadPlugin<IInventoryService>(hgInvService, args2);
+                string hgInvServiceArg = m_LoginServerConfig.GetString("HGInventoryServiceConstructorArg", String.Empty);
+                Object[] args2 = new Object[] { config, hgInvServiceArg };
+                m_HGInventoryService = ServerUtils.LoadPlugin<IInventoryService>(hgInvServicePlugin, args2);
             }
 
             //
