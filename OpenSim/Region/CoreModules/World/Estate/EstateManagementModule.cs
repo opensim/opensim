@@ -96,6 +96,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_commands = new EstateManagementCommands(this);
             m_commands.Initialise();
+
+            m_regionChangeTimer.Interval = 10000;
+            m_regionChangeTimer.Elapsed += RaiseRegionInfoChange;
+            m_regionChangeTimer.AutoReset = false;
         }
         
         public void RemoveRegion(Scene scene) {}            
