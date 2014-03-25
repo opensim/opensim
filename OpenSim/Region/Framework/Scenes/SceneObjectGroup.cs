@@ -1886,25 +1886,27 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart part = parts[i];
 
-                Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
+                if (Scene != null)
                 {
-                    if (avatar.ParentID == LocalId)
-                        avatar.StandUp();
-
-                    if (!silent)
+                    Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
                     {
-                        part.ClearUpdateSchedule();
-                        if (part == m_rootPart)
-                        {
-                            if (!IsAttachment
-                                || AttachedAvatar == avatar.ControllingClient.AgentId
-                                || !HasPrivateAttachmentPoint)
-                                avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
-                        }
-                    }
-                });
-            }
+                        if (avatar.ParentID == LocalId)
+                            avatar.StandUp();
 
+                        if (!silent)
+                        {
+                            part.ClearUpdateSchedule();
+                            if (part == m_rootPart)
+                            {
+                                if (!IsAttachment
+                                    || AttachedAvatar == avatar.ControllingClient.AgentId
+                                    || !HasPrivateAttachmentPoint)
+                                    avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         public void AddScriptLPS(int count)
