@@ -833,7 +833,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             Stream inputStream = Util.Copy(request.InputStream);
 
-            if (request.ContentType == "application/x-gzip")
+            if (request.Headers["Content-Encoding"] == "gzip")
                 inputStream = new GZipStream(inputStream, System.IO.Compression.CompressionMode.Decompress);
 
             using (StreamReader reader = new StreamReader(inputStream, Encoding.UTF8))

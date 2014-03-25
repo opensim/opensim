@@ -181,7 +181,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             _request = req;
             _context = context;
 
-            if (null != req.Headers["content-encoding"])
+            if ((null != req.Headers["content-encoding"]) && ("gzip" != req.Headers["content-encoding"]))
                 _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
             if (null != req.Headers["content-type"])
                 _contentType = _request.Headers["content-type"];

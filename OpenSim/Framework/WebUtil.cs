@@ -250,9 +250,12 @@ namespace OpenSim.Framework
 
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
 
+                    request.ContentType = "application/json";
+                    
                     if (compressed)
                     {
-                        request.ContentType = "application/x-gzip";
+                        request.Headers["Content-Encoding"] = "gzip";
+
                         using (MemoryStream ms = new MemoryStream())
                         {
                             using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress))
@@ -270,10 +273,9 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-                        request.ContentType = "application/json";
                         request.ContentLength = buffer.Length;   //Count bytes to send
                         using (Stream requestStream = request.GetRequestStream())
-                                requestStream.Write(buffer, 0, buffer.Length);         //Send it
+                            requestStream.Write(buffer, 0, buffer.Length);         //Send it
                     }
                 }
                 
