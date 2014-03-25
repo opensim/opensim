@@ -254,7 +254,7 @@ namespace OpenSim.Framework
                     
                     if (compressed)
                     {
-                        request.Headers["Content-Encoding"] = "gzip";
+                        request.Headers["X-Content-Encoding"] = "gzip"; // can't set "Content-Encoding" because old OpenSims fail if they get an unrecognized Content-Encoding
 
                         using (MemoryStream ms = new MemoryStream())
                         {

@@ -181,12 +181,23 @@ namespace OpenSim.Framework.Servers.HttpServer
             _request = req;
             _context = context;
 
-            if ((null != req.Headers["content-encoding"]) && ("gzip" != req.Headers["content-encoding"]))
-                _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
+            if (null != req.Headers["content-encoding"])
+            {
+                try
+                {
+                    _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
+            }
+            
             if (null != req.Headers["content-type"])
                 _contentType = _request.Headers["content-type"];
             if (null != req.Headers["user-agent"])
                 _userAgent = req.Headers["user-agent"];
+            
             if (null != req.Headers["remote_addr"])
             {
                 try

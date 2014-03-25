@@ -833,7 +833,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             Stream inputStream = Util.Copy(request.InputStream);
 
-            if (request.Headers["Content-Encoding"] == "gzip")
+            if ((request.Headers["Content-Encoding"] == "gzip") || (request.Headers["X-Content-Encoding"] == "gzip"))
                 inputStream = new GZipStream(inputStream, System.IO.Compression.CompressionMode.Decompress);
 
             using (StreamReader reader = new StreamReader(inputStream, Encoding.UTF8))
@@ -977,6 +977,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         private byte[] HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
             Stream requestStream = request.InputStream;
+
+            if ((request.Headers["Content-Encoding"] == "gzip") || (request.Headers["X-Content-Encoding"] == "gzip"))
+                requestStream = new GZipStream(requestStream, System.IO.Compression.CompressionMode.Decompress);
 
             Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(requestStream, encoding);

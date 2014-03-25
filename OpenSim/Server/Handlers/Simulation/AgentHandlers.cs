@@ -239,7 +239,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
 
             Stream inputStream = request;
-            if (httpRequest.Headers["Content-Encoding"] == "gzip")
+            if ((httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
                 inputStream = new GZipStream(inputStream, CompressionMode.Decompress);
 
             StreamReader reader = new StreamReader(inputStream, encoding);
@@ -433,7 +433,7 @@ namespace OpenSim.Server.Handlers.Simulation
             keysvals.Add("querystringkeys", querystringkeys);
 
             Stream inputStream = request;
-            if (httpRequest.Headers["Content-Encoding"] == "gzip")
+            if ((httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
                 inputStream = new GZipStream(inputStream, CompressionMode.Decompress);
 
             Encoding encoding = Encoding.UTF8;
