@@ -2081,15 +2081,19 @@ namespace OpenSim.Framework
             try
             {
                 long numRunning = numRunningThreadFuncs;
-                if ((threadFuncOverloadMode == 0) && (numRunning >= m_ThreadPool.MaxThreads))
+
+                if (m_ThreadPool != null)
                 {
-                    if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 1, 0) == 0)
-                        m_log.DebugFormat("Threadfunc: enable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
-                }
-                else if ((threadFuncOverloadMode == 1) && (numRunning <= (m_ThreadPool.MaxThreads*2)/3))
-                {
-                    if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 0, 1) == 1)
-                        m_log.DebugFormat("Threadfunc: disable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
+                    if ((threadFuncOverloadMode == 0) && (numRunning >= m_ThreadPool.MaxThreads))
+                    {
+                        if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 1, 0) == 0)
+                            m_log.DebugFormat("Threadfunc: enable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
+                    }
+                    else if ((threadFuncOverloadMode == 1) && (numRunning <= (m_ThreadPool.MaxThreads * 2) / 3))
+                    {
+                        if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 0, 1) == 1)
+                            m_log.DebugFormat("Threadfunc: disable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
+                    }
                 }
 
                 if (loggingEnabled || (threadFuncOverloadMode == 1))
@@ -2325,6 +2329,13 @@ namespace OpenSim.Framework
         /// </summary>
         public static void RunThreadNoTimeout(WaitCallback callback, string name, object obj)
         {
+            if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
+            {
+                Culture.SetCurrentCulture();
+                callback(obj);
+                return;
+            }
+
             Thread t = new Thread(delegate()
             {
                 try
