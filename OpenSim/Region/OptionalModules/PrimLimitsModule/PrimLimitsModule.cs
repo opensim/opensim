@@ -26,8 +26,9 @@
  */
 
 using System;
-using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -62,7 +63,7 @@ namespace OpenSim.Region.OptionalModules
             string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
                 new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule"); 
 
-            List<string> modules=new List<string>(permissionModules.Split(','));
+            List<string> modules = new List<string>(permissionModules.Split(',').Select(m => m.Trim()));
 
             if(!modules.Contains("PrimLimitsModule"))
                 return;
