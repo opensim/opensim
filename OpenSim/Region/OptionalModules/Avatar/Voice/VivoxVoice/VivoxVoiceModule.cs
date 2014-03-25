@@ -635,15 +635,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 // TODO: EstateSettings don't seem to get propagated...
                 if (!scene.RegionInfo.EstateSettings.AllowVoice)
                 {
-                    m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": voice not enabled in estate settings",
-                                      scene.RegionInfo.RegionName);
+                    //m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": voice not enabled in estate settings",
+                    //                  scene.RegionInfo.RegionName);
                     channel_uri = String.Empty;
                 }
 
                 if ((land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
                 {
-                    m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
-                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
+                    //m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
+                    //                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
                     channel_uri = String.Empty;
                 }
                 else
