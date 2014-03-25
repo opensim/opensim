@@ -86,11 +86,11 @@ namespace OpenSim.Data.MySQL
         public GroupData[] RetrieveGroups(string pattern)
         {
             if (string.IsNullOrEmpty(pattern))
-                pattern = "1 ORDER BY Name LIMIT 100";
+                pattern = "1";
             else
-                pattern = string.Format("Name LIKE '%{0}%' ORDER BY Name LIMIT 100", pattern);
+                pattern = string.Format("Name LIKE '%{0}%'", pattern);
 
-            return m_Groups.Get(pattern);
+            return m_Groups.Get(string.Format("ShowInList=1 AND ({0}) ORDER BY Name LIMIT 100", pattern));
         }
 
         public bool DeleteGroup(UUID groupID)

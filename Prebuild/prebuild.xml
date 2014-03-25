@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.9.xsd" version="1.9">
-	<Solution name="Prebuild" version="2.0.5">
+<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.10.xsd" version="1.10">
+	<Solution name="Prebuild" version="2.0.6">
 		<Configuration name="Debug">
 			<Options>
 				<CompilerDefines>DEBUG;TRACE</CompilerDefines>
@@ -31,7 +31,7 @@
 		         type="Exe"
 		         rootNamespace="Prebuild"
 		         startupObject="Prebuild.Prebuild"
-		         version="2.0.5"
+		         version="2.0.6"
 		         frameworkVersion="v3_5"
 		>
 			<Author>Matthew Holmes (matthew@wildfiregames.com)</Author>
@@ -66,7 +66,7 @@
 			<Reference name="System" />
 			<Files>
 				<Match pattern="App.ico" buildAction="EmbeddedResource"/>
-				<Match path="data" pattern="prebuild-1.9.xsd" buildAction="EmbeddedResource"/>
+				<Match path="data" pattern="prebuild-1.10.xsd" buildAction="EmbeddedResource"/>
 				<Match path="data" pattern="autotools.xml" buildAction="EmbeddedResource"/>
 				<Match pattern="*.cs" recurse="true"/>
 			</Files>

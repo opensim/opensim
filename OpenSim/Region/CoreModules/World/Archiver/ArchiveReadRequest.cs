@@ -189,8 +189,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"] 
                                 : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
-            // Zero can never be a valid user id
+            // Zero can never be a valid user or group id
             m_validUserUuids[UUID.Zero] = false;
+            m_validGroupUuids[UUID.Zero] = false;
 
             m_groupsModule = m_rootScene.RequestModuleInterface<IGroupsModule>();
             m_assetService = m_rootScene.AssetService;
@@ -523,58 +524,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     oldTelehubUUID = UUID.Zero;
                 }
 
-                // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
-                // or creator data is present.  Otherwise, use the estate owner instead.
-                foreach (SceneObjectPart part in sceneObject.Parts)
-                {
-                    if (string.IsNullOrEmpty(part.CreatorData))
-                    {
-                        if (!ResolveUserUuid(scene, part.CreatorID))
-                            part.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
-                    }
-                    if (UserManager != null)
-                        UserManager.AddUser(part.CreatorID, part.CreatorData);
-
-                    if (!ResolveUserUuid(scene, part.OwnerID))
-                        part.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
-
-                    if (!ResolveUserUuid(scene, part.LastOwnerID))
-                        part.LastOwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
-
-                    if (!ResolveGroupUuid(part.GroupID))
-                        part.GroupID = UUID.Zero;
-
-                    // And zap any troublesome sit target information
-//                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-//                    part.SitTargetPosition    = new Vector3(0, 0, 0);
-
-                    // Fix ownership/creator of inventory items
-                    // Not doing so results in inventory items
-                    // being no copy/no mod for everyone
-                    lock (part.TaskInventory)
-                    {
-                        TaskInventoryDictionary inv = part.TaskInventory;
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
-                        {
-                            if (!ResolveUserUuid(scene, kvp.Value.OwnerID))
-                            {
-                                kvp.Value.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
-                            }
-
-                            if (string.IsNullOrEmpty(kvp.Value.CreatorData))
-                            {
-                                if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
-                                    kvp.Value.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
-                            }
-
-                            if (UserManager != null)
-                                UserManager.AddUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
-
-                            if (!ResolveGroupUuid(kvp.Value.GroupID))
-                                kvp.Value.GroupID = UUID.Zero;
-                        }
-                    }
-                }
+                ModifySceneObject(scene, sceneObject);
 
                 if (scene.AddRestoredSceneObject(sceneObject, true, false))
                 {
@@ -598,6 +548,67 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 scene.RegionInfo.RegionSettings.ClearSpawnPoints();
             }
         }
+
+        /// <summary>
+        /// Optionally modify a loaded SceneObjectGroup. Currently this just ensures that the
+        /// User IDs and Group IDs are valid, but other manipulations could be done as well.
+        /// </summary>
+        private void ModifySceneObject(Scene scene, SceneObjectGroup sceneObject)
+        {
+            // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
+            // or creator data is present.  Otherwise, use the estate owner instead.
+            foreach (SceneObjectPart part in sceneObject.Parts)
+            {
+                if (string.IsNullOrEmpty(part.CreatorData))
+                {
+                    if (!ResolveUserUuid(scene, part.CreatorID))
+                        part.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
+                }
+                if (UserManager != null)
+                    UserManager.AddUser(part.CreatorID, part.CreatorData);
+
+                if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
+                    part.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
+
+                if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
+                    part.LastOwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
+
+                if (!ResolveGroupUuid(part.GroupID))
+                    part.GroupID = UUID.Zero;
+
+                // And zap any troublesome sit target information
+                //                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+                //                    part.SitTargetPosition    = new Vector3(0, 0, 0);
+
+                // Fix ownership/creator of inventory items
+                // Not doing so results in inventory items
+                // being no copy/no mod for everyone
+                lock (part.TaskInventory)
+                {
+                    TaskInventoryDictionary inv = part.TaskInventory;
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
+                    {
+                        if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
+                        {
+                            kvp.Value.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
+                        }
+
+                        if (string.IsNullOrEmpty(kvp.Value.CreatorData))
+                        {
+                            if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
+                                kvp.Value.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
+                        }
+
+                        if (UserManager != null)
+                            UserManager.AddUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+
+                        if (!ResolveGroupUuid(kvp.Value.GroupID))
+                            kvp.Value.GroupID = UUID.Zero;
+                    }
+                }
+            }
+        }
+
         
         /// <summary>
         /// Load serialized parcels.
@@ -695,9 +706,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         private bool ResolveGroupUuid(UUID uuid)
         {
-            if (uuid == UUID.Zero)
-                return true;    // this means the object has no group
-
             lock (m_validGroupUuids)
             {
                 if (!m_validGroupUuids.ContainsKey(uuid))
@@ -754,7 +762,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
                 if (assetType == (sbyte)AssetType.Unknown)
+                {
                     m_log.WarnFormat("[ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, uuid);
+                }
+                else if (assetType == (sbyte)AssetType.Object)
+                {
+                    data = SceneObjectSerializer.ModifySerializedObject(UUID.Parse(uuid), data,
+                        sog =>
+                        {
+                            ModifySceneObject(m_rootScene, sog);
+                            return true;
+                        });
+                    
+                    if (data == null)
+                        return false;
+                }
 
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 

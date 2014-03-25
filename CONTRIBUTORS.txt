@@ -17,6 +17,7 @@ people that make the day to day of OpenSim happen.
 * Snoopy Pfeffer
 * Robert Adams (Intel)
 * Oren Hurvitz (Kitely)
+* Kevin Cozens
 
 = Core Developers Following the White Rabbit =
 Core developers who have temporarily (we hope) gone chasing the white rabbit. 
@@ -111,7 +112,6 @@ what it is today.
 * Jon Cundill
 * Junta Kohime
 * Kayne
-* Kevin Cozens
 * kinoc (Daxtron Labs)
 * Kira
 * Kitto Flora

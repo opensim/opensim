@@ -91,7 +91,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             grp2.RootPart.ClearUpdateSchedule();
 
             // Link grp2 to grp1.   part2 becomes child prim to grp1. grp2 is eliminated.
+            Assert.IsFalse(grp1.GroupContainsForeignPrims);
             grp1.LinkToGroup(grp2);
+            Assert.IsTrue(grp1.GroupContainsForeignPrims);
+
+            scene.Backup(true);
+            Assert.IsFalse(grp1.GroupContainsForeignPrims);
 
             // FIXME: Can't do this test yet since group 2 still has its root part!  We can't yet null this since
             // it might cause SOG.ProcessBackup() to fail due to the race condition.  This really needs to be fixed.
@@ -143,7 +148,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(grp1.Parts.Length, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
             Assert.That(part2.AbsolutePosition == Vector3.Zero, "The absolute position should be zero");
-            Assert.That(grp3.HasGroupChangedDueToDelink, Is.True);
         }
 
         [Test]
@@ -335,30 +339,34 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneObjectPart rootPart
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = rootPartName, UUID = rootPartUuid };
+            
             SceneObjectPart linkPart
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = linkPartName, UUID = linkPartUuid };
+            SceneObjectGroup linkGroup = new SceneObjectGroup(linkPart);
+            scene.AddNewSceneObject(linkGroup, true);
 
             SceneObjectGroup sog = new SceneObjectGroup(rootPart);
-            sog.AddPart(linkPart);
-            scene.AddNewSceneObject(sog, true);            
-            
-            // In a test, we have to crank the backup handle manually.  Normally this would be done by the timer invoked
-            // scene backup thread.
+            scene.AddNewSceneObject(sog, true);
+
+            Assert.IsFalse(sog.GroupContainsForeignPrims);
+            sog.LinkToGroup(linkGroup);
+            Assert.IsTrue(sog.GroupContainsForeignPrims);
+
             scene.Backup(true);
-                        
+            Assert.AreEqual(1, scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID).Count);
+
             // These changes should occur immediately without waiting for a backup pass
             SceneObjectGroup groupToDelete = sog.DelinkFromGroup(linkPart, false);
-            
-            Assert.That(groupToDelete.HasGroupChangedDueToDelink, Is.True);
+            Assert.IsFalse(groupToDelete.GroupContainsForeignPrims);
+
             scene.DeleteSceneObject(groupToDelete, false);
-            Assert.That(groupToDelete.HasGroupChangedDueToDelink, Is.False);
             
             List<SceneObjectGroup> storedObjects = scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID);
-            
-            Assert.That(storedObjects.Count, Is.EqualTo(1));
-            Assert.That(storedObjects[0].Parts.Length, Is.EqualTo(1));
-            Assert.That(storedObjects[0].ContainsPart(rootPartUuid));
+
+            Assert.AreEqual(1, storedObjects.Count);
+            Assert.AreEqual(1, storedObjects[0].Parts.Length);
+            Assert.IsTrue(storedObjects[0].ContainsPart(rootPartUuid));
         }
     }
 }

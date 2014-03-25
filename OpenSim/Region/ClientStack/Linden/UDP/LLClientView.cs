@@ -10387,7 +10387,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerDirFindQuery(this,
                                     dirFindQueryPacket.QueryData.QueryID,
                                     Utils.BytesToString(
-                                        dirFindQueryPacket.QueryData.QueryText),
+                                        dirFindQueryPacket.QueryData.QueryText).Trim(),
                                     dirFindQueryPacket.QueryData.QueryFlags,
                                     dirFindQueryPacket.QueryData.QueryStart);
             }

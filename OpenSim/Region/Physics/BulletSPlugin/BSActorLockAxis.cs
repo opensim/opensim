@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -121,8 +121,10 @@ public class BSActorLockAxis : BSActor
             // The constraint is tied to the world and oriented to the prim.
 
             // Free to move linearly in the region
-            OMV.Vector3 linearLow = OMV.Vector3.Zero;
-            OMV.Vector3 linearHigh = m_physicsScene.TerrainManager.DefaultRegionSize;
+            // OMV.Vector3 linearLow = OMV.Vector3.Zero;
+            // OMV.Vector3 linearHigh = m_physicsScene.TerrainManager.DefaultRegionSize;
+            OMV.Vector3 linearLow = new OMV.Vector3(-10000f, -10000f, -10000f);
+            OMV.Vector3 linearHigh = new OMV.Vector3(10000f, 10000f, 10000f);
             if (m_controllingPrim.LockedLinearAxis.X != BSPhysObject.FreeAxis)
             {
                 linearLow.X = m_controllingPrim.RawPosition.X;

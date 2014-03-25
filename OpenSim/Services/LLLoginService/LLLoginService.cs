@@ -58,6 +58,7 @@ namespace OpenSim.Services.LLLoginService
         protected IGridUserService m_GridUserService;
         protected IAuthenticationService m_AuthenticationService;
         protected IInventoryService m_InventoryService;
+        protected IInventoryService m_HGInventoryService;
         protected IGridService m_GridService;
         protected IPresenceService m_PresenceService;
         protected ISimulationService m_LocalSimulationService;
@@ -164,6 +165,15 @@ namespace OpenSim.Services.LLLoginService
                 m_RemoteSimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
             if (agentService != string.Empty)
                 m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(agentService, args);
+
+            // Get the Hypergrid inventory service (exists only if Hypergrid is enabled)
+            string hgInvServicePlugin = m_LoginServerConfig.GetString("HGInventoryServicePlugin", String.Empty);
+            if (hgInvServicePlugin != string.Empty)
+            {
+                string hgInvServiceArg = m_LoginServerConfig.GetString("HGInventoryServiceConstructorArg", String.Empty);
+                Object[] args2 = new Object[] { config, hgInvServiceArg };
+                m_HGInventoryService = ServerUtils.LoadPlugin<IInventoryService>(hgInvServicePlugin, args2);
+            }
 
             //
             // deal with the services given as argument
@@ -348,6 +358,13 @@ namespace OpenSim.Services.LLLoginService
                         "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: inventory service not set up",
                         firstName, lastName);
                     return LLFailedLoginResponse.InventoryProblem;
+                }
+
+                if (m_HGInventoryService != null)
+                {
+                    // Give the Suitcase service a chance to create the suitcase folder.
+                    // (If we're not using the Suitcase inventory service then this won't do anything.)
+                    m_HGInventoryService.GetRootFolder(account.PrincipalID);
                 }
 
                 List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);

@@ -106,7 +106,9 @@ namespace Prebuild.Core.Targets
         {
             switch (frameworkVersion)
             {
-            	case FrameworkVersion.v4_0:
+                case FrameworkVersion.v4_5_1:
+                case FrameworkVersion.v4_5:
+                case FrameworkVersion.v4_0:
                 case FrameworkVersion.v3_5:
             		return "ToolsVersion=\"4.0\"";
                 case FrameworkVersion.v3_0:

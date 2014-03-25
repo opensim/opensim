@@ -1342,10 +1342,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             m_regionChangeTimer.Stop();
             m_regionChangeTimer.Start();
-        }
 
-        protected void RaiseRegionInfoChange(object sender, ElapsedEventArgs e)
-        {
             ChangeDelegate change = OnRegionInfoChange;
 
             if (change != null)

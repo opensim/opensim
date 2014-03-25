@@ -215,7 +215,7 @@ namespace OpenSim.Framework
             AddinManager.AddinLoadError += on_addinloaderror_;
             AddinManager.AddinLoaded += on_addinloaded_;
 
-            clear_registry_();
+            clear_registry_(dir);
 
             suppress_console_output_(true);
             AddinManager.Initialize(dir);
@@ -239,18 +239,19 @@ namespace OpenSim.Framework
                         + args.Exception.StackTrace);
         }
 
-        private void clear_registry_()
+        private void clear_registry_(string dir)
         {
             // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0)
             // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
+
             try
             {
-                if (Directory.Exists("addin-db-000"))
-                    Directory.Delete("addin-db-000", true);
+                if (Directory.Exists(dir + "/addin-db-000"))
+                    Directory.Delete(dir + "/addin-db-000", true);
 
-                if (Directory.Exists("addin-db-001"))
-                    Directory.Delete("addin-db-001", true);
+                if (Directory.Exists(dir + "/addin-db-001"))
+                    Directory.Delete(dir + "/addin-db-001", true);
             }
             catch (IOException)
             {

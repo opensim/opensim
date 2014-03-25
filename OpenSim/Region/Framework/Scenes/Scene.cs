@@ -1757,6 +1757,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (group != null)
             {
+                group.HasGroupChanged = true;
                 group.ProcessBackup(SimulationDataService, true);
             }
         }
@@ -2345,13 +2346,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!softDelete)
                 {
-                    // Force a database update so that the scene object group ID is accurate.  It's possible that the
-                    // group has recently been delinked from another group but that this change has not been persisted
-                    // to the DB.
+                    // If the group contains prims whose SceneGroupID is incorrect then force a
+                    // database update, because RemoveObject() works by searching on the SceneGroupID.
                     // This is an expensive thing to do so only do it if absolutely necessary.
-                    if (so.HasGroupChangedDueToDelink)
-                        ForceSceneObjectBackup(so);                
-                    
+                    if (so.GroupContainsForeignPrims)
+                        ForceSceneObjectBackup(so);
+
                     so.DetachFromBackup();
                     SimulationDataService.RemoveObject(so.UUID, RegionInfo.RegionID);
                 }
@@ -3413,6 +3413,7 @@ namespace OpenSim.Region.Framework.Scenes
             // TeleportFlags.ViaLandmark | TeleportFlags.ViaLocation | TeleportFlags.ViaLandmark | TeleportFlags.Default - Regular Teleport
 
             // Don't disable this log message - it's too helpful
+            string curViewer = Util.GetViewerName(acd);
             m_log.DebugFormat(
                 "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags ({8}), position {9})",
                 RegionInfo.RegionName,
@@ -3422,7 +3423,7 @@ namespace OpenSim.Region.Framework.Scenes
                 acd.AgentID,
                 acd.circuitcode,
                 acd.IPAddress,
-                acd.Viewer,
+                curViewer,
                 ((TPFlags)teleportFlags).ToString(),
                 acd.startpos
             );
@@ -3442,7 +3443,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (string viewer in m_AllowedViewers)
                 {
-                    if (viewer == acd.Viewer.Substring(0, viewer.Length).Trim().ToLower())
+                    if (viewer == curViewer.Substring(0, viewer.Length).Trim().ToLower())
                     {
                         ViewerDenied = false;
                         break;
@@ -3459,7 +3460,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (string viewer in m_BannedViewers)
                 {
-                    if (viewer == acd.Viewer.Substring(0, viewer.Length).Trim().ToLower())
+                    if (viewer == curViewer.Substring(0, viewer.Length).Trim().ToLower())
                     {
                         ViewerDenied = true;
                         break;
@@ -3471,7 +3472,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.DebugFormat(
                     "[SCENE]: Access denied for {0} {1} using {2}",
-                    acd.firstname, acd.lastname, acd.Viewer);
+                    acd.firstname, acd.lastname, curViewer);
                 reason = "Access denied, your viewer is banned by the region owner";
                 return false;
             }

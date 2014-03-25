@@ -299,6 +299,73 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
+        
+        /// <summary>
+        /// Modifies a SceneObjectGroup.
+        /// </summary>
+        /// <param name="sog">The object</param>
+        /// <returns>Whether the object was actually modified</returns>
+        public delegate bool SceneObjectModifier(SceneObjectGroup sog);
+        
+        /// <summary>
+        /// Modifies an object by deserializing it; applying 'modifier' to each SceneObjectGroup; and reserializing.
+        /// </summary>
+        /// <param name="assetId">The object's UUID</param>
+        /// <param name="data">Serialized data</param>
+        /// <param name="modifier">The function to run on each SceneObjectGroup</param>
+        /// <returns>The new serialized object's data, or null if an error occurred</returns>
+        public static byte[] ModifySerializedObject(UUID assetId, byte[] data, SceneObjectModifier modifier)
+        {
+            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            CoalescedSceneObjects coa = null;
+
+            string xmlData = Utils.BytesToString(data);
+            
+            if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
+            {
+                // m_log.DebugFormat("[SERIALIZER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
+
+                if (coa.Objects.Count == 0)
+                {
+                    m_log.WarnFormat("[SERIALIZER]: Aborting load of coalesced object from asset {0} as it has zero loaded components", assetId);
+                    return null;
+                }
+
+                sceneObjects.AddRange(coa.Objects);
+            }
+            else
+            {
+                SceneObjectGroup deserializedObject = FromOriginalXmlFormat(xmlData);
+
+                if (deserializedObject != null)
+                {
+                    sceneObjects.Add(deserializedObject);
+                }
+                else
+                {
+                    m_log.WarnFormat("[SERIALIZER]: Aborting load of object from asset {0} as deserialization failed", assetId);
+                    return null;
+                }
+            }
+
+            bool modified = false;
+            foreach (SceneObjectGroup sog in sceneObjects)
+            {
+                if (modifier(sog))
+                    modified = true;
+            }
+
+            if (modified)
+            {
+                if (coa != null)
+                    data = Utils.StringToBytes(CoalescedSceneObjectsSerializer.ToXml(coa));
+                else
+                    data = Utils.StringToBytes(ToOriginalXmlFormat(sceneObjects[0]));
+            }
+
+            return data;
+        }
+
 
         #region manual serialization
 
@@ -1230,7 +1297,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (m_UserManagement == null)
                     m_UserManagement = sop.ParentGroup.Scene.RequestModuleInterface<IUserManagement>();
                 string name = m_UserManagement.GetUserName(sop.CreatorID);
-                writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
+                writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)options["home"], name));
             }
 
             WriteUUID(writer, "FolderID", sop.FolderID, options);
@@ -1403,7 +1470,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         if (m_UserManagement == null)
                             m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
                         string name = m_UserManagement.GetUserName(item.CreatorID);
-                        writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
+                        writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)options["home"], name));
                     }
 
                     writer.WriteElementString("Description", item.Description);

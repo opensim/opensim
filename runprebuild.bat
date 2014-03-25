@@ -7,11 +7,19 @@ setlocal ENABLEEXTENSIONS
 set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSBuild\ToolsVersions\4.0"
 set VALUE_NAME=MSBuildToolsPath
 
-rem We have to use find here as req query spits out 4 lines before Windows 7
-rem But 2 lines after Windows 7.  Unfortunately, this screws up cygwin
-rem as it uses its own find command.  This could be fixed but it could be
-rem complex to find the location of find on all windows systems
-FOR /F "usebackq tokens=1-3" %%A IN (`REG QUERY %KEY_NAME% /v %VALUE_NAME% 2^>nul ^| FIND "%VALUE_NAME%"`) DO (
+rem We have to use grep or find to locate the correct line, because reg query spits
+rem out 4 lines before Windows 7 but 2 lines after Windows 7.
+rem We use grep if it's on the path; otherwise we use the built-in find command
+rem from Windows. (We must use grep on Cygwin because it overrides the "find" command.)
+
+for %%X in (grep.exe) do (set FOUNDGREP=%%~$PATH:X)
+if defined FOUNDGREP (
+  set FINDCMD=grep
+) else (
+  set FINDCMD=find
+)
+
+FOR /F "usebackq tokens=1-3" %%A IN (`REG QUERY %KEY_NAME% /v %VALUE_NAME% 2^>nul ^| %FINDCMD% "%VALUE_NAME%"`) DO (
     set ValueName=%%A
     set ValueType=%%B
     set ValueValue=%%C

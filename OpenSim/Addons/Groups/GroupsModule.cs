@@ -101,7 +101,7 @@ namespace OpenSim.Groups
             {
                 scene.RegisterModuleInterface<IGroupsModule>(this);
                 scene.AddCommand(
-                    "debug",
+                    "Debug",
                     this,
                     "debug groups verbose",
                     "debug groups verbose <true|false>",

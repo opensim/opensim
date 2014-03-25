@@ -848,7 +848,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string Viewer
         {
-            get { return m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode).Viewer; }
+            get { return Util.GetViewerName(m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode)); }
         }
 
         #endregion

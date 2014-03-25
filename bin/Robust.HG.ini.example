@@ -335,6 +335,10 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
+    ; This inventory service will be used to initialize the user's inventory
+    HGInventoryServicePlugin = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
+    HGInventoryServiceConstructorArg = "HGInventoryService"
+
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
@@ -634,7 +638,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
     ;; Realm = UserProfiles
     UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
-    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 	
 [BakedTextureService]
     LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"

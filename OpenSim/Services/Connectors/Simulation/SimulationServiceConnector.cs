@@ -421,11 +421,18 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
-                WebUtil.PostToService(uri, args, 40000);
+                OSDMap result = WebUtil.PostToService(uri, args, 40000);
+
+                if (result == null)
+                    return false;
+                bool success = result["success"].AsBoolean();
+                if (!success)
+                    return false;
             }
             catch (Exception e)
             {
                 m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CreateObject failed with exception; {0}",e.ToString());
+                return false;
             }
 
             return true;

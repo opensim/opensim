@@ -2250,10 +2250,15 @@ namespace OpenSim.Framework
             {
                 string[] parts = firstName.Split(new char[] { '.' });
                 if (parts.Length == 2)
-                    return id.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
+                    return CalcUniversalIdentifier(id, agentsURI, parts[0] + " " + parts[1]);
             }
-            return id.ToString() + ";" + agentsURI + ";" + firstName + " " + lastName;
+            
+            return CalcUniversalIdentifier(id, agentsURI, firstName + " " + lastName);
+        }
 
+        private static string CalcUniversalIdentifier(UUID id, string agentsURI, string name)
+        {
+            return id.ToString() + ";" + agentsURI + ";" + name;
         }
 
         /// <summary>
@@ -2287,6 +2292,38 @@ namespace OpenSim.Framework
         public static string EscapeForLike(string str)
         {
             return str.Replace("_", "\\_").Replace("%", "\\%");
+        }
+
+        /// <summary>
+        /// Returns the name of the user's viewer.
+        /// </summary>
+        /// <remarks>
+        /// This method handles two ways that viewers specify their name:
+        /// 1. Viewer = "Firestorm-Release 4.4.2.34167", Channel = "(don't care)" -> "Firestorm-Release 4.4.2.34167"
+        /// 2. Viewer = "4.5.1.38838", Channel = "Firestorm-Beta" -> "Firestorm-Beta 4.5.1.38838"
+        /// </remarks>
+        public static string GetViewerName(AgentCircuitData agent)
+        {
+            string name = agent.Viewer;
+            if (name == null)
+                name = "";
+            else
+                name = name.Trim();
+
+            // Check if 'Viewer' is just a version number. If it's *not*, then we
+            // assume that it contains the real viewer name, and we return it.
+            foreach (char c in name)
+            {
+                if (Char.IsLetter(c))
+                    return name;
+            }
+
+            // The 'Viewer' string contains just a version number. If there's anything in
+            // 'Channel' then assume that it's the viewer name.
+            if ((agent.Channel != null) && (agent.Channel.Length > 0))
+                name = agent.Channel.Trim() + " " + name;
+
+            return name;
         }
     }
 

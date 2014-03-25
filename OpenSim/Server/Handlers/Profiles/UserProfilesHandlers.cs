@@ -273,10 +273,10 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(note);
                 return true;
             }
-            
-            object Notes = (object) note;
-            OSD.DeserializeMembers(ref Notes, (OSDMap)json["params"]);
-            return true;
+
+            response.Error.Code = ErrorCode.InternalError;
+            response.Error.Message = "Error reading notes";
+            return false;
         }
         
         public bool NotesUpdate(OSDMap json, ref JsonRpcResponse response)

@@ -109,7 +109,7 @@ namespace OpenSim.OfflineIM
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[OFFLINE IM HANDLER]: Exception {0}", e.StackTrace);
+                m_log.Error(string.Format("[OFFLINE IM HANDLER]: Exception {0} ", e.Message), e);
             }
 
             return FailureResult();
