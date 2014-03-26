@@ -103,36 +103,36 @@
 
     ;# {NonPhysicalPrimMin} {} {Minimum size of nonphysical prims?} {} 0.001
     ;; Minimum size for non-physical prims.  Affects resizing of existing 
-    ;; prims.  This can be overriden in the region config file (as 
+    ;; prims.  This can be overridden in the region config file (as 
     ;; NonPhysicalPrimMin!).
     ; NonPhysicalPrimMin = 0.001
 
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing
-    ;; prims. This can be overriden in the region config file (as 
+    ;; prims. This can be overridden in the region config file (as 
     ;; NonPhysicalPrimMax!).
     ; NonPhysicalPrimMax = 256
 
     ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 0.01
     ;; Maximum size where a prim can be physical.  Affects resizing of
-    ;; existing prims.  This can be overriden in the region config file.
+    ;; existing prims.  This can be overridden in the region config file.
     ; PhysicalPrimMin = 0.01
 
     ;# {PhysicalPrimMax} {} {Maximum size of physical prims?} {} 64
     ;; Maximum size where a prim can be physical.  Affects resizing of
-    ;; existing prims.  This can be overriden in the region config file.
+    ;; existing prims.  This can be overridden in the region config file.
     ; PhysicalPrimMax = 64
 
     ;# {ClampPrimSize} {} {Clamp viewer rezzed prims to max sizes?} {true false} false
     ;; If a viewer attempts to rez a prim larger than the non-physical or
     ;; physical prim max, clamp the dimensions to the appropriate maximum
-    ;; This can be overriden in the region config file.
+    ;; This can be overridden in the region config file.
     ; ClampPrimSize = false
 	
     ;# {LinksetPrims} {} {Max prims an object will hold?} {} 0
     ;; Maximum number of prims allowable in a linkset. Affects creating new
     ;; linksets. Ignored if less than or equal to zero.
-    ;; This can be overriden in the region config file.
+    ;; This can be overridden in the region config file.
     ; LinksetPrims = 0
 
     ;# {AllowScriptCrossing} {} {Allow scripts to cross into this region} {true false} true
@@ -278,7 +278,7 @@
     ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
     ;; Map tile options.  
     ;; If true, then maptiles are generated using the MapImageModule below.
-    ;; If false then the texture referenced by MaptileStaticUUID is used instead, which can also be overriden
+    ;; If false then the texture referenced by MaptileStaticUUID is used instead, which can also be overridden
     ;; in individual region config file(s).  If you do not want to upload map tiles at all, then you will need 
     ;; both to set this to false and comment out the [Modules] MapImageServiceModule setting in config-include/
     ; GenerateMaptiles = true
