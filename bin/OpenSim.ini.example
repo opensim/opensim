@@ -114,7 +114,7 @@
     ; NonPhysicalPrimMax = 256
 
     ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 0.01
-    ;; Maximum size where a prim can be physical.  Affects resizing of
+    ;; Minimum size where a prim can be physical.  Affects resizing of
     ;; existing prims.  This can be overridden in the region config file.
     ; PhysicalPrimMin = 0.01
 
