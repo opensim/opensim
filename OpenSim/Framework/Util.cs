@@ -2031,7 +2031,7 @@ namespace OpenSim.Framework
         // Maps (ThreadFunc number -> Thread)
         private static ConcurrentDictionary<long, ThreadInfo> activeThreads = new ConcurrentDictionary<long, ThreadInfo>();
 
-        private static readonly int THREAD_TIMEOUT = 60 * 1000;
+        private static readonly int THREAD_TIMEOUT = 10 * 60 * 1000;    // 10 minutes
 
         /// <summary>
         /// Finds threads in the main thread pool that have timed-out, and aborts them.
