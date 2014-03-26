@@ -331,4 +331,12 @@ ALTER TABLE dbo.estate_map ADD CONSTRAINT
 
 COMMIT
 
+:VERSION 10
 
+BEGIN transaction
+
+ALTER TABLE estate_settings ADD AllowLandmark tinyint NOT NULL default 1;
+ALTER TABLE estate_settings ADD AllowParcelChanges tinyint NOT NULL default 1;
+ALTER TABLE estate_settings ADD AllowSetHome tinyint NOT NULL default 1;
+
+COMMIT;
