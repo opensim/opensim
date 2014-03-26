@@ -143,7 +143,6 @@ namespace OpenSim.Framework
         public string RemotingAddress;
         public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
-        public string m_maptileStaticFile;
 
         public uint WorldLocX = 0;
         public uint WorldLocY = 0;
@@ -351,10 +350,7 @@ namespace OpenSim.Framework
             get { return m_maptileStaticUUID; }
         }
 
-        public string MaptileStaticFile
-        {
-            get { return m_maptileStaticFile; }
-        }
+        public string MaptileStaticFile { get; private set; }
         
         /// <summary>
         /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
@@ -723,7 +719,7 @@ namespace OpenSim.Framework
                 config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString()); 
             }
 
-            m_maptileStaticFile = config.GetString("MaptileStaticFile", String.Empty);
+            MaptileStaticFile = config.GetString("MaptileStaticFile", String.Empty);
             allKeys.Remove("MaptileStaticFile");
             
             #endregion
@@ -853,8 +849,8 @@ namespace OpenSim.Framework
             if (m_maptileStaticUUID != UUID.Zero)
                 config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString());
 
-            if (m_maptileStaticFile != String.Empty)
-                config.Set("MaptileStaticFile", m_maptileStaticFile);
+            if (MaptileStaticFile != String.Empty)
+                config.Set("MaptileStaticFile", MaptileStaticFile);
         }
 
         public bool ignoreIncomingConfiguration(string configuration_key, object configuration_result)
@@ -966,7 +962,7 @@ namespace OpenSim.Framework
                                                 "UUID of a texture to use as the map for this region", m_maptileStaticUUID.ToString(), true);
 
             configMember.addConfigurationOption("region_static_mapfile", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Filename of a texture to use as the map for this region", m_maptileStaticFile, true);
+                                                "Filename of a texture to use as the map for this region", MaptileStaticFile, true);
         }
 
         public void loadConfigurationOptions()
@@ -1116,7 +1112,7 @@ namespace OpenSim.Framework
                     m_maptileStaticUUID = (UUID)configuration_result;
                     break;
                 case "region_static_mapfile":
-                    m_maptileStaticFile = (string)configuration_result;
+                    MaptileStaticFile = (string)configuration_result;
                     break;
             }
 
