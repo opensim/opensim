@@ -1026,7 +1026,7 @@ namespace OpenSim.Framework
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
+                        m_log.InfoFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
                             obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
                         throw e;
                     }
@@ -1054,7 +1054,7 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
+                    m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
                         obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
                     throw e;
                 }
