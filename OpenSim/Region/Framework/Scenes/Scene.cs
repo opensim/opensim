@@ -1703,8 +1703,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         /// <summary>
-        /// Backup the scene.  This acts as the main method of the backup thread.
+        /// Backup the scene.
         /// </summary>
+        /// <remarks>
+        /// This acts as the main method of the backup thread.  In a regression test whether the backup thread is not
+        /// running independently this can be invoked directly.
+        /// </remarks>
         /// <param name="forced">
         /// If true, then any changes that have not yet been persisted are persisted.  If false,
         /// then the persistence decision is left to the backup code (in some situations, such as object persistence,

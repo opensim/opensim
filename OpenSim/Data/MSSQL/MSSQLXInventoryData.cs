@@ -278,7 +278,7 @@ namespace OpenSim.Data.MSSQL
 //            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
 //            Util.PrintCallStack();
 
-            string sql = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+            string sql = "update inventoryfolders set version=version+1 where folderID = @folderID";
             
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             {

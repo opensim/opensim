@@ -42,7 +42,7 @@ namespace OpenSim.Data.Null
 
 //        private string m_connectionString;
 
-        private Dictionary<uint, EstateSettings> m_knownEstates = new Dictionary<uint, EstateSettings>();
+//        private Dictionary<uint, EstateSettings> m_knownEstates = new Dictionary<uint, EstateSettings>();
         private EstateSettings m_estate = null;
 
         private EstateSettings GetEstate()

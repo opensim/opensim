@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
             if (generateMaptiles)
             {
-                if (String.IsNullOrEmpty(m_scene.RegionInfo.m_maptileStaticFile))
+                if (String.IsNullOrEmpty(m_scene.RegionInfo.MaptileStaticFile))
                 {
                     if (textureTerrain)
                     {
@@ -122,15 +122,21 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 {
                     try
                     {
-                        mapbmp = new Bitmap(m_scene.RegionInfo.m_maptileStaticFile);
+                        mapbmp = new Bitmap(m_scene.RegionInfo.MaptileStaticFile);
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
+                        m_log.ErrorFormat(
+                            "[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", 
+                            m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
                         //mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                         mapbmp = null;
                     }
-                    if (mapbmp != null) m_log.DebugFormat("[MAPTILE]: Static map image texture file {0} found for {1}", m_scene.RegionInfo.m_maptileStaticFile, m_scene.Name);
+
+                    if (mapbmp != null) 
+                        m_log.DebugFormat(
+                            "[MAPTILE]: Static map image texture file {0} found for {1}", 
+                            m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
                 }
             }
             else

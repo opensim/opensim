@@ -250,9 +250,12 @@ namespace OpenSim.Framework
 
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
 
+                    request.ContentType = "application/json";
+                    
                     if (compressed)
                     {
-                        request.ContentType = "application/x-gzip";
+                        request.Headers["X-Content-Encoding"] = "gzip"; // can't set "Content-Encoding" because old OpenSims fail if they get an unrecognized Content-Encoding
+
                         using (MemoryStream ms = new MemoryStream())
                         {
                             using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress))
@@ -270,10 +273,9 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-                        request.ContentType = "application/json";
                         request.ContentLength = buffer.Length;   //Count bytes to send
                         using (Stream requestStream = request.GetRequestStream())
-                                requestStream.Write(buffer, 0, buffer.Length);         //Send it
+                            requestStream.Write(buffer, 0, buffer.Length);         //Send it
                     }
                 }
                 
@@ -1024,7 +1026,7 @@ namespace OpenSim.Framework
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
+                        m_log.InfoFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
                             obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
                         throw e;
                     }
@@ -1052,7 +1054,7 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
+                    m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
                         obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
                     throw e;
                 }
