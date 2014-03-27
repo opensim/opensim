@@ -1144,9 +1144,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpSculptData(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-//            m_log.DebugFormat("[SCENE OBJECT SERIALIZER]: Setting sculpt data length {0}", shp.SculptData.Length);
-
-            shp.SculptData = Convert.FromBase64String(reader.ReadElementString("SculptData"));
+            // Ignore this field. It shouldn't have been serialized. If we read it
+            // we'll just be wasting memory.
         }
 
         private static void ProcessShpFlexiSoftness(PrimitiveBaseShape shp, XmlTextReader reader)
@@ -1558,14 +1557,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 WriteUUID(writer, "SculptTexture", shp.SculptTexture, options);
                 writer.WriteElementString("SculptType", shp.SculptType.ToString());
-                writer.WriteStartElement("SculptData");
-                byte[] sd;
-                if (shp.SculptData != null)
-                    sd = shp.SculptData;
-                else
-                    sd = Utils.EmptyBytes;
-                writer.WriteBase64(sd, 0, sd.Length);
-                writer.WriteEndElement(); // SculptData
+                // Don't serialize SculptData. It's just a copy of the asset, which can be loaded separately using 'SculptTexture'.
 
                 writer.WriteElementString("FlexiSoftness", shp.FlexiSoftness.ToString());
                 writer.WriteElementString("FlexiTension", shp.FlexiTension.ToString());
