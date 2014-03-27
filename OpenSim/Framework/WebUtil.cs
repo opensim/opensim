@@ -41,6 +41,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using log4net;
 using OpenMetaverse.StructuredData;
+using XMLResponseHelper = OpenSim.Framework.SynchronousRestObjectRequester.XMLResponseHelper;
 
 namespace OpenSim.Framework
 {
@@ -793,7 +794,6 @@ namespace OpenSim.Framework
                 ht.ServicePoint.ConnectionLimit = maxConnections;
 
             TResponse deserial = default(TResponse);
-            XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
 
             request.Method = verb;
 
@@ -840,9 +840,7 @@ namespace OpenSim.Framework
                                 {
                                     using (Stream respStream = response.GetResponseStream())
                                     {
-                                        if (WebUtil.DebugLevel >= 5)
-                                            WebUtil.LogResponseDetail(respStream);
-                                        deserial = (TResponse)deserializer.Deserialize(respStream);
+                                        deserial = XMLResponseHelper.LogAndDeserialize<TRequest, TResponse>(respStream, response.ContentLength);
                                     }
                                 }
                                 catch (System.InvalidOperationException)
@@ -869,9 +867,7 @@ namespace OpenSim.Framework
                                 {
                                     using (Stream respStream = response.GetResponseStream())
                                     {
-                                        if (WebUtil.DebugLevel >= 5)
-                                            WebUtil.LogResponseDetail(respStream);
-                                        deserial = (TResponse)deserializer.Deserialize(respStream);
+                                        deserial = XMLResponseHelper.LogAndDeserialize<TRequest, TResponse>(respStream, response.ContentLength);
                                     }
                                 }
                                 catch (System.InvalidOperationException)
@@ -1189,22 +1185,7 @@ namespace OpenSim.Framework
                         {
                             using (Stream respStream = resp.GetResponseStream())
                             {
-                                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-
-                                if (WebUtil.DebugLevel >= 5)
-                                {
-                                    byte[] data = new byte[resp.ContentLength];
-                                    Util.ReadStream(respStream, data);
-                                
-                                    WebUtil.LogResponseDetail(System.Text.Encoding.UTF8.GetString(data));
-
-                                    using (MemoryStream temp = new MemoryStream(data))
-                                        deserial = (TResponse)deserializer.Deserialize(temp);
-                                }
-                                else
-                                {
-                                    deserial = (TResponse)deserializer.Deserialize(respStream);
-                                }
+                                deserial = XMLResponseHelper.LogAndDeserialize<TRequest, TResponse>(respStream, resp.ContentLength);
                             }
                         }
                         else
@@ -1277,6 +1258,30 @@ namespace OpenSim.Framework
             }
 
             return deserial;
+        }
+
+    
+        public static class XMLResponseHelper
+        {
+            public static TResponse LogAndDeserialize<TRequest, TResponse>(Stream respStream, long contentLength)
+            {
+                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+
+                if (WebUtil.DebugLevel >= 5)
+                {
+                    byte[] data = new byte[contentLength];
+                    Util.ReadStream(respStream, data);
+
+                    WebUtil.LogResponseDetail(System.Text.Encoding.UTF8.GetString(data));
+
+                    using (MemoryStream temp = new MemoryStream(data))
+                        return (TResponse)deserializer.Deserialize(temp);
+                }
+                else
+                {
+                    return (TResponse)deserializer.Deserialize(respStream);
+                }
+            }
         }
     }
 }
