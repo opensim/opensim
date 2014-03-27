@@ -72,9 +72,7 @@ namespace OpenSim.Services.ProfilesService
             IConfig ProfilesConfig = config.Configs[configName];
             if (ProfilesConfig != null)
             {
-                if (dllName == String.Empty)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
-
+                dllName = dbConfig.GetString("StorageProvider", dllName);
                 connString = ProfilesConfig.GetString("ConnectionString", connString);
                 realm = ProfilesConfig.GetString("Realm", realm);
             }
