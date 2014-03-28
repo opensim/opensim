@@ -507,7 +507,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_ShapeXmlProcessors.Add("HollowShape", ProcessShpHollowShape);
             m_ShapeXmlProcessors.Add("SculptTexture", ProcessShpSculptTexture);
             m_ShapeXmlProcessors.Add("SculptType", ProcessShpSculptType);
-            m_ShapeXmlProcessors.Add("SculptData", ProcessShpSculptData);
+            // Ignore "SculptData"; this element is deprecated
             m_ShapeXmlProcessors.Add("FlexiSoftness", ProcessShpFlexiSoftness);
             m_ShapeXmlProcessors.Add("FlexiTension", ProcessShpFlexiTension);
             m_ShapeXmlProcessors.Add("FlexiDrag", ProcessShpFlexiDrag);
@@ -1140,12 +1140,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessShpSculptType(PrimitiveBaseShape shp, XmlTextReader reader)
         {
             shp.SculptType = (byte)reader.ReadElementContentAsInt("SculptType", String.Empty);
-        }
-
-        private static void ProcessShpSculptData(PrimitiveBaseShape shp, XmlTextReader reader)
-        {
-            // Ignore this field. It shouldn't have been serialized. If we read it
-            // we'll just be wasting memory.
         }
 
         private static void ProcessShpFlexiSoftness(PrimitiveBaseShape shp, XmlTextReader reader)
