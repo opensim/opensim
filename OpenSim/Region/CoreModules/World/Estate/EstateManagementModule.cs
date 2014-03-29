@@ -40,6 +40,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using RegionFlags = OpenMetaverse.RegionFlags;
 
 namespace OpenSim.Region.CoreModules.World.Estate
@@ -1200,6 +1201,30 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     (float)Scene.RegionInfo.EstateSettings.SunPosition);
 
             sendRegionInfoPacketToAll();
+        }
+
+        public string setEstateOwner(int estateID, UserAccount account)
+        {
+            string response;
+
+            // get the current settings from DB
+            EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
+            if(account.PrincipalID != dbSettings.EstateOwner) {
+                dbSettings.EstateOwner = account.PrincipalID;
+                dbSettings.Save();
+                response = String.Format("Estate owner changed to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
+
+                // make sure there's a log entry to document the change
+                m_log.InfoFormat("[ESTATE]: Estate Owner for {0} changed to {1} ({2} {3})", dbSettings.EstateName,
+                                 account.PrincipalID, account.FirstName, account.LastName);
+
+                TriggerEstateInfoChange();
+            }
+            else
+            {
+                response = String.Format("Estate already belongs to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
+            }
+            return response;
         }
 
         #endregion

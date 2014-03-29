@@ -39,6 +39,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
@@ -50,9 +51,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected EstateManagementModule m_module;
-        
+
         protected Commander m_commander = new Commander("estate");
-        
+
+        // variable used in processing "estate set owner"
+        private static string[] m_ownerCmd = null;
+
+        // variable used in processing "estate set owner"
+        private static UserAccount m_ownerAccount;
+
+        // variable used in processing "estate set owner"
+        private static List<uint> m_ownerEstates;
+
         public EstateManagementCommands(EstateManagementModule module)
         {
             m_module = module;
@@ -85,7 +95,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_module.Scene.AddCommand(
                 "Estates", m_module, "estate show", "estate show", "Shows all estates on the simulator.", ShowEstatesCommand);
-        }       
+
+            m_module.Scene.AddCommand(
+                "Estates", m_module, "estate set owner", "estate set owner [ <UUID> | <Firstname> <Lastname> ]",
+                "Sets the owner of the current region's estate to the specified UUID or user. " +
+                "If called from root region, all estates will be prompted for change.", SetEstateOwnerCommand);
+        }
         
         public void Close() {}
         
@@ -226,5 +241,119 @@ namespace OpenSim.Region.CoreModules.World.Estate
             
             MainConsole.Instance.Output(report.ToString());
         }         
+
+        protected void SetEstateOwnerCommand(string module, string[] args)
+        {
+            string response = null;
+
+            EstateSettings es = m_module.Scene.RegionInfo.EstateSettings;
+
+            if(args != m_ownerCmd)
+            {
+                // new command... clear out the old values
+                m_ownerCmd = args;
+                m_ownerEstates = new List<uint>();
+                m_ownerAccount = null;
+            }
+
+            if (MainConsole.Instance.ConsoleScene == null)
+            {
+                if(m_ownerEstates.Contains(es.EstateID))
+                {
+                    // already checked this one
+                    return;
+                }
+                else if(m_ownerEstates.Count > 0 && m_ownerAccount == null)
+                {
+                    // lookup will have been tried and not found.
+                    return;
+                }
+                // flag this estate, so it is not tried multiple times
+                m_ownerEstates.Add(es.EstateID);
+            }
+            else if(MainConsole.Instance.ConsoleScene != m_module.Scene)
+            {
+                // trying to process a single region, and this isn't it
+                return;
+            }
+            UserAccount account = null;
+            if(m_ownerAccount == null)
+            {
+                if(args.Length == 3)
+                {
+                    response = "No user specified.";
+                }
+                else
+                {
+                    // TODO: Is there a better choice here?
+                    UUID scopeID = UUID.Zero;
+
+                    string s1 = args[3];
+                    if(args.Length == 4)
+                    {
+                        // attempt to get account by UUID
+                        UUID u;
+                        if(UUID.TryParse(s1, out u))
+                        {
+                            account = m_module.Scene.UserAccountService.GetUserAccount(scopeID, u);
+                            if(account == null)
+                            {
+                                response = String.Format("Could not find user {0}", s1);
+                            }
+                        }
+                        else
+                        {
+                            response = String.Format("Invalid UUID {0}", s1);
+                            account = null;
+                        }
+                    }
+                    else
+                    {
+                        // attempt to get account by Firstname, Lastname
+                        string s2 = args[4];
+                        account = m_module.Scene.UserAccountService.GetUserAccount(scopeID, s1, s2);
+                        if(account == null)
+                        {
+                            response = String.Format("Could not find user {0} {1}", s1, s2);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                account = m_ownerAccount;
+            }
+            if(account != null)
+            {
+                if (MainConsole.Instance.ConsoleScene == null)
+                    m_ownerAccount = account;
+
+                string choice;
+                do
+                {
+                    // Get user confirmation, in case there are multiple estates involved (from root)
+                    choice = MainConsole.Instance.CmdPrompt(
+                        string.Format("Change owner of Estate {0} ({1}) [y/n]? ",es.EstateID, es.EstateName),
+                        "Y");
+
+                    if("y".Equals(choice, StringComparison.OrdinalIgnoreCase))
+                    {
+                        response = m_module.setEstateOwner((int)es.EstateID, account);
+                    }
+                    else if(!"n".Equals(choice, StringComparison.OrdinalIgnoreCase))
+                    {
+                        MainConsole.Instance.Output("Invalid response. Please select y or n.");
+                        choice = null;
+                    }
+                }
+                while(choice == null);
+            }
+
+
+                // Give the user some feedback
+            if(response != null)
+                MainConsole.Instance.Output(response);
+        }
+
     }
 }
