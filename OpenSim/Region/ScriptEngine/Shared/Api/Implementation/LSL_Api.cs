@@ -5173,8 +5173,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // so the OR check may be a little redundant, but it's being done
             // for completion and should LSL_Key ever be implemented
             // as it's own struct
+            // NOTE: 3rd case is needed because a NULL_KEY comes through as
+            // type 'obj' and wrongly returns ""
             else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Key))
+                    src.Data[index] is LSL_Key ||
+                       src.Data[index] == "00000000-0000-0000-0000-000000000000"))
             {
                 return "";
             }
