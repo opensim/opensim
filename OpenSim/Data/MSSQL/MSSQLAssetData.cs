@@ -225,17 +225,38 @@ namespace OpenSim.Data.MSSQL
 //        }
 
         /// <summary>
-        /// Check if asset exist in m_database
+        /// Check if the assets exist in the database.
         /// </summary>
-        /// <param name="uuid"></param>
-        /// <returns>true if exist.</returns>
-        override public bool ExistsAsset(UUID uuid)
+        /// <param name="uuids">The assets' IDs</param>
+        /// <returns>For each asset: true if it exists, false otherwise</returns>
+        public override bool[] AssetsExist(UUID[] uuids)
         {
-            if (GetAsset(uuid) != null)
+            if (uuids.Length == 0)
+                return new bool[0];
+
+            HashSet<UUID> exist = new HashSet<UUID>();
+
+            string ids = "'" + string.Join("','", uuids) + "'";
+            string sql = string.Format("SELECT id FROM assets WHERE id IN ({0})", ids);
+
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                return true;
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        UUID id = DBGuid.FromDB(reader["id"]);
+                        exist.Add(id);
+                    }
+                }
             }
-            return false;
+
+            bool[] results = new bool[uuids.Length];
+            for (int i = 0; i < uuids.Length; i++)
+                results[i] = exist.Contains(uuids[i]);
+            return results;
         }
 
         /// <summary>

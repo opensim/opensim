@@ -25,28 +25,56 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Nini.Config;
+using log4net;
 using System;
-using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using OpenMetaverse;
+using System.Xml;
+using System.Xml.Serialization;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenMetaverse;
 
-namespace OpenSim.Data
+namespace OpenSim.Server.Handlers.Asset
 {
-    public abstract class AssetDataBase : IAssetDataPlugin
+    public class AssetsExistHandler : BaseStreamHandler
     {
-        public abstract AssetBase GetAsset(UUID uuid);
-        public abstract void StoreAsset(AssetBase asset);
-        public abstract bool[] AssetsExist(UUID[] uuids);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public abstract List<AssetMetadata> FetchAssetMetadataSet(int start, int count);
+        private IAssetService m_AssetService;
 
-        public abstract string Version { get; }
-        public abstract string Name { get; }
-        public abstract void Initialise(string connect);
-        public abstract void Initialise();
-        public abstract void Dispose();
-        public abstract bool Delete(string id);
+        public AssetsExistHandler(IAssetService service) :
+            base("POST", "/get_assets_exist")
+        {
+            m_AssetService = service;
+        }
+
+        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            XmlSerializer xs;
+
+            string[] ids;
+            try
+            {
+                xs = new XmlSerializer(typeof(string[]));
+                ids = (string[])xs.Deserialize(request);
+            }
+            catch (Exception)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return null;
+            }
+
+            bool[] exist = m_AssetService.AssetsExist(ids);
+
+            xs = new XmlSerializer(typeof(bool[]));
+            return ServerUtils.SerializeResult(xs, exist);
+        }
     }
 }

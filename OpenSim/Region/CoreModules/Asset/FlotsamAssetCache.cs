@@ -1038,6 +1038,18 @@ namespace OpenSim.Region.CoreModules.Asset
             return true;
         }
 
+        public bool[] AssetsExist(string[] ids)
+        {
+            bool[] exist = new bool[ids.Length];
+            
+            for (int i = 0; i < ids.Length; i++)
+            {
+                exist[i] = Check(ids[i]);
+            }
+            
+            return exist;
+        }
+
         public string Store(AssetBase asset)
         {
             if (asset.FullID == UUID.Zero)

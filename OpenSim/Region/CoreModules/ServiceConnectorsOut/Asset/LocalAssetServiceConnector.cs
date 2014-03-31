@@ -253,6 +253,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             });
         }
 
+        public bool[] AssetsExist(string[] ids)
+        {
+            return m_AssetService.AssetsExist(ids);
+        }
+
         public string Store(AssetBase asset)
         {
             if (m_Cache != null)

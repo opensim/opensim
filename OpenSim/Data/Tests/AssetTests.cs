@@ -107,10 +107,11 @@ namespace OpenSim.Data.Tests
         public void T001_LoadEmpty()
         {
             TestHelpers.InMethod();
-            
-            Assert.That(m_db.ExistsAsset(uuid1), Is.False);
-            Assert.That(m_db.ExistsAsset(uuid2), Is.False);
-            Assert.That(m_db.ExistsAsset(uuid3), Is.False);
+
+            bool[] exist = m_db.AssetsExist(new[] { uuid1, uuid2, uuid3 });
+            Assert.IsFalse(exist[0]);
+            Assert.IsFalse(exist[1]);
+            Assert.IsFalse(exist[2]);
         }
 
         [Test]
@@ -159,9 +160,10 @@ namespace OpenSim.Data.Tests
             AssetBase a3b = m_db.GetAsset(uuid3);
             Assert.That(a3b, Constraints.PropertyCompareConstraint(a3a));
 
-            Assert.That(m_db.ExistsAsset(uuid1), Is.True);
-            Assert.That(m_db.ExistsAsset(uuid2), Is.True);
-            Assert.That(m_db.ExistsAsset(uuid3), Is.True);
+            bool[] exist = m_db.AssetsExist(new[] { uuid1, uuid2, uuid3 });
+            Assert.IsTrue(exist[0]);
+            Assert.IsTrue(exist[1]);
+            Assert.IsTrue(exist[2]);
 
             List<AssetMetadata> metadatas = m_db.FetchAssetMetadataSet(0, 1000);
 

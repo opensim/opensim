@@ -52,6 +52,8 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Amib.Threading;
 using System.Collections.Concurrent;
+using System.Collections.Specialized;
+using System.Web;
 
 namespace OpenSim.Framework
 {
@@ -863,6 +865,54 @@ namespace OpenSim.Framework
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Parses a foreign asset ID.
+        /// </summary>
+        /// <param name="id">A possibly-foreign asset ID: http://grid.example.com:8002/00000000-0000-0000-0000-000000000000 </param>
+        /// <param name="url">The URL: http://grid.example.com:8002</param>
+        /// <param name="assetID">The asset ID: 00000000-0000-0000-0000-000000000000. Returned even if 'id' isn't foreign.</param>
+        /// <returns>True: this is a foreign asset ID; False: it isn't</returns>
+        public static bool ParseForeignAssetID(string id, out string url, out string assetID)
+        {
+            url = String.Empty;
+            assetID = String.Empty;
+
+            UUID uuid;
+            if (UUID.TryParse(id, out uuid))
+            {
+                assetID = uuid.ToString();
+                return false;
+            }
+
+            if ((id.Length == 0) || (id[0] != 'h' && id[0] != 'H'))
+                return false;
+
+            Uri assetUri;
+            if (!Uri.TryCreate(id, UriKind.Absolute, out assetUri) || assetUri.Scheme != Uri.UriSchemeHttp)
+                return false;
+
+            // Simian
+            if (assetUri.Query != string.Empty)
+            {
+                NameValueCollection qscoll = HttpUtility.ParseQueryString(assetUri.Query);
+                assetID = qscoll["id"];
+                if (assetID != null)
+                    url = id.Replace(assetID, ""); // Malformed again, as simian expects
+                else
+                    url = id; // !!! best effort
+            }
+            else // robust
+            {
+                url = "http://" + assetUri.Authority;
+                assetID = assetUri.LocalPath.Trim(new char[] { '/' });
+            }
+
+            if (!UUID.TryParse(assetID, out uuid))
+                return false;
+
+            return true;
         }
 
         /// <summary>

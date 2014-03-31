@@ -153,9 +153,24 @@ namespace OpenSim.Services.AssetService
             return true;
         }
 
+        public virtual bool[] AssetsExist(string[] ids)
+        {
+            try
+            {
+                UUID[] uuid = Array.ConvertAll(ids, id => UUID.Parse(id));
+                return m_Database.AssetsExist(uuid);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[ASSET SERVICE]: Exception getting assets ", e);
+                return new bool[ids.Length];
+            }
+        }
+        
         public virtual string Store(AssetBase asset)
         {
-            if (!m_Database.ExistsAsset(asset.FullID))
+            bool exists = m_Database.AssetsExist(new[] { asset.FullID })[0];
+            if (!exists)
             {
 //                m_log.DebugFormat(
 //                    "[ASSET SERVICE]: Storing asset {0} {1}, bytes {2}", asset.Name, asset.FullID, asset.Data.Length);

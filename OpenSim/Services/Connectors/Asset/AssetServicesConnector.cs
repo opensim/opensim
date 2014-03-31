@@ -254,6 +254,27 @@ namespace OpenSim.Services.Connectors
             return true;
         }
 
+        public virtual bool[] AssetsExist(string[] ids)
+        {
+            string uri = m_ServerURI + "/get_assets_exist";
+
+            bool[] exist = null;
+            try
+            {
+                exist = SynchronousRestObjectRequester.MakeRequest<string[], bool[]>("POST", uri, ids);
+            }
+            catch (Exception)
+            {
+                // This is most likely to happen because the server doesn't support this function,
+                // so just silently return "doesn't exist" for all the assets.
+            }
+            
+            if (exist == null)
+                exist = new bool[ids.Length];
+
+            return exist;
+        }
+
         public string Store(AssetBase asset)
         {
             if (asset.Local)

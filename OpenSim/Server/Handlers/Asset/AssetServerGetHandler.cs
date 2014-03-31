@@ -64,45 +64,61 @@ namespace OpenSim.Server.Handlers.Asset
             if (p.Length == 0)
                 return result;
 
-            if (p.Length > 1 && p[1] == "data")
+            if (p.Length > 1)
             {
-                result = m_AssetService.GetData(p[0]);
-                if (result == null)
+                string id = p[0];
+                string cmd = p[1];
+
+                if (cmd == "data")
                 {
-                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                    httpResponse.ContentType = "text/plain";
-                    result = new byte[0];
+                    result = m_AssetService.GetData(id);
+                    if (result == null)
+                    {
+                        httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                        httpResponse.ContentType = "text/plain";
+                        result = new byte[0];
+                    }
+                    else
+                    {
+                        httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                        httpResponse.ContentType = "application/octet-stream";
+                    }
+                }
+                else if (cmd == "metadata")
+                {
+                    AssetMetadata metadata = m_AssetService.GetMetadata(id);
+
+                    if (metadata != null)
+                    {
+                        XmlSerializer xs =
+                                new XmlSerializer(typeof(AssetMetadata));
+                        result = ServerUtils.SerializeResult(xs, metadata);
+
+                        httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                        httpResponse.ContentType =
+                                SLUtil.SLAssetTypeToContentType(metadata.Type);
+                    }
+                    else
+                    {
+                        httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                        httpResponse.ContentType = "text/plain";
+                        result = new byte[0];
+                    }
                 }
                 else
                 {
-                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType = "application/octet-stream";
-                }
-            }
-            else if (p.Length > 1 && p[1] == "metadata")
-            {
-                AssetMetadata metadata = m_AssetService.GetMetadata(p[0]);
-
-                if (metadata != null)
-                {
-                    XmlSerializer xs =
-                            new XmlSerializer(typeof(AssetMetadata));
-                    result = ServerUtils.SerializeResult(xs, metadata);
-
-                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType =
-                            SLUtil.SLAssetTypeToContentType(metadata.Type);
-                }
-                else
-                {
-                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    // Unknown request
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                     httpResponse.ContentType = "text/plain";
                     result = new byte[0];
                 }
             }
-            else
+            else if (p.Length == 1)
             {
-                AssetBase asset = m_AssetService.Get(p[0]);
+                // Get the entire asset (metadata + data)
+
+                string id = p[0];
+                AssetBase asset = m_AssetService.Get(id);
 
                 if (asset != null)
                 {
@@ -120,6 +136,14 @@ namespace OpenSim.Server.Handlers.Asset
                     result = new byte[0];
                 }
             }
+            else
+            {
+                // Unknown request
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                httpResponse.ContentType = "text/plain";
+                result = new byte[0];
+            }
+            
             return result;
         }
     }

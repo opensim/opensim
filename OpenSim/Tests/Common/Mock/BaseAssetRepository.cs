@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -37,7 +38,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public AssetBase FetchAsset(UUID uuid) 
         {
-            if (ExistsAsset(uuid))
+            if (AssetsExist(new[] { uuid })[0])
                 return Assets[uuid];
             else
                 return null;
@@ -53,9 +54,9 @@ namespace OpenSim.Tests.Common.Mock
             CreateAsset(asset);
         }
 
-        public bool ExistsAsset(UUID uuid) 
-        { 
-            return Assets.ContainsKey(uuid); 
+        public bool[] AssetsExist(UUID[] uuids) 
+        {
+            return Array.ConvertAll(uuids, id => Assets.ContainsKey(id));
         }
     }
 }

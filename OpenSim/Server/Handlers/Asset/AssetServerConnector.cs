@@ -86,6 +86,7 @@ namespace OpenSim.Server.Handlers.Asset
             server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowedRemoteDeleteTypes));
+            server.AddStreamHandler(new AssetsExistHandler(m_AssetService));
 
             MainConsole.Instance.Commands.AddCommand("Assets", false,
                     "show asset",

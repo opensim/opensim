@@ -407,6 +407,43 @@ namespace OpenSim.Data.PGSQL
         }
 
         /// <summary>
+        /// Check if the assets exist in the database.
+        /// </summary>
+        /// <param name="uuids">The assets' IDs</param>
+        /// <returns>For each asset: true if it exists, false otherwise</returns>
+        public bool[] AssetsExist(UUID[] uuids)
+        {
+            if (uuids.Length == 0)
+                return new bool[0];
+
+            HashSet<UUID> exist = new HashSet<UUID>();
+
+            string ids = "'" + string.Join("','", uuids) + "'";
+            string sql = string.Format(@"SELECT ""ID"" FROM XAssetsMeta WHERE ""ID"" IN ({0})", ids);
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            UUID id = DBGuid.FromDB(reader["id"]);
+                            exist.Add(id);
+                        }
+                    }
+                }
+            }
+
+            bool[] results = new bool[uuids.Length];
+            for (int i = 0; i < uuids.Length; i++)
+                results[i] = exist.Contains(uuids[i]);
+            return results;
+        }
+
+        /// <summary>
         /// Check if the asset exists in the database
         /// </summary>
         /// <param name="uuid">The asset UUID</param>

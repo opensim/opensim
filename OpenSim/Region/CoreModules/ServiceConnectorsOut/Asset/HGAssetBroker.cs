@@ -312,6 +312,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             }
         }
 
+        public virtual bool[] AssetsExist(string[] ids)
+        {
+            int numHG = 0;
+            foreach (string id in ids)
+            {
+                if (IsHG(id))
+                    ++numHG;
+            }
+
+            if (numHG == 0)
+                return m_GridService.AssetsExist(ids);
+            else if (numHG == ids.Length)
+                return m_HGService.AssetsExist(ids);
+            else
+                throw new Exception("[HG ASSET CONNECTOR]: AssetsExist: all the assets must be either local or foreign");
+        }
+
         public string Store(AssetBase asset)
         {
             bool isHG = IsHG(asset.ID);

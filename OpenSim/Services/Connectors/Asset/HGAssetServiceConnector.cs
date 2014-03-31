@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Services.Connectors.SimianGrid;
+using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
@@ -83,39 +84,6 @@ namespace OpenSim.Services.Connectors
             }
         }
 
-        private bool StringToUrlAndAssetID(string id, out string url, out string assetID)
-        {
-            url = String.Empty;
-            assetID = String.Empty;
-
-            Uri assetUri;
-
-            if (Uri.TryCreate(id, UriKind.Absolute, out assetUri) &&
-                    assetUri.Scheme == Uri.UriSchemeHttp)
-            {
-                // Simian
-                if (assetUri.Query != string.Empty)
-                {
-                    NameValueCollection qscoll = HttpUtility.ParseQueryString(assetUri.Query);
-                    assetID = qscoll["id"];
-                    if (assetID != null)
-                        url = id.Replace(assetID, ""); // Malformed again, as simian expects
-                    else
-                        url = id; // !!! best effort
-                }
-                else // robust
-                {
-                    url = "http://" + assetUri.Authority;
-                    assetID = assetUri.LocalPath.Trim(new char[] { '/' });
-                }
-
-                return true;
-            }
-
-            m_log.DebugFormat("[HG ASSET SERVICE]: Malformed URL {0}", id);
-            return false;
-        }
-
         private IAssetService GetConnector(string url)
         {
             IAssetService connector = null;
@@ -149,7 +117,7 @@ namespace OpenSim.Services.Connectors
             string url = string.Empty;
             string assetID = string.Empty;
 
-            if (StringToUrlAndAssetID(id, out url, out assetID))
+            if (Util.ParseForeignAssetID(id, out url, out assetID))
             {
                 IAssetService connector = GetConnector(url);
                 return connector.Get(assetID);
@@ -163,7 +131,7 @@ namespace OpenSim.Services.Connectors
             string url = string.Empty;
             string assetID = string.Empty;
 
-            if (StringToUrlAndAssetID(id, out url, out assetID))
+            if (Util.ParseForeignAssetID(id, out url, out assetID))
             {
                 IAssetService connector = GetConnector(url);
                 return connector.GetCached(assetID);
@@ -177,7 +145,7 @@ namespace OpenSim.Services.Connectors
             string url = string.Empty;
             string assetID = string.Empty;
 
-            if (StringToUrlAndAssetID(id, out url, out assetID))
+            if (Util.ParseForeignAssetID(id, out url, out assetID))
             {
                 IAssetService connector = GetConnector(url);
                 return connector.GetMetadata(assetID);
@@ -196,7 +164,7 @@ namespace OpenSim.Services.Connectors
             string url = string.Empty;
             string assetID = string.Empty;
 
-            if (StringToUrlAndAssetID(id, out url, out assetID))
+            if (Util.ParseForeignAssetID(id, out url, out assetID))
             {
                 IAssetService connector = GetConnector(url);
                 return connector.Get(assetID, sender, handler);
@@ -205,12 +173,72 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
+
+        private struct AssetAndIndex
+        {
+            public UUID assetID;
+            public int index;
+
+            public AssetAndIndex(UUID assetID, int index)
+            {
+                this.assetID = assetID;
+                this.index = index;
+            }
+        }
+
+        public virtual bool[] AssetsExist(string[] ids)
+        {
+            // This method is a bit complicated because it works even if the assets belong to different
+            // servers; that requires sending separate requests to each server.
+
+            // Group the assets by the server they belong to
+
+            var url2assets = new Dictionary<string, List<AssetAndIndex>>();
+
+            for (int i = 0; i < ids.Length; i++)
+            {
+                string url = string.Empty;
+                string assetID = string.Empty;
+
+                if (Util.ParseForeignAssetID(ids[i], out url, out assetID))
+                {
+                    if (!url2assets.ContainsKey(url))
+                        url2assets.Add(url, new List<AssetAndIndex>());
+                    url2assets[url].Add(new AssetAndIndex(UUID.Parse(assetID), i));
+                }
+            }
+
+            // Query each of the servers in turn
+
+            bool[] exist = new bool[ids.Length];
+
+            foreach (string url in url2assets.Keys)
+            {
+                IAssetService connector = GetConnector(url);
+                lock (EndPointLock(connector))
+                {
+                    List<AssetAndIndex> curAssets = url2assets[url];
+                    string[] assetIDs = curAssets.ConvertAll(a => a.assetID.ToString()).ToArray();
+                    bool[] curExist = connector.AssetsExist(assetIDs);
+
+                    int i = 0;
+                    foreach (AssetAndIndex ai in curAssets)
+                    {
+                        exist[ai.index] = curExist[i];
+                        ++i;
+                    }
+                }
+            }
+
+            return exist;
+        }
+
         public string Store(AssetBase asset)
         {
             string url = string.Empty;
             string assetID = string.Empty;
 
-            if (StringToUrlAndAssetID(asset.ID, out url, out assetID))
+            if (Util.ParseForeignAssetID(asset.ID, out url, out assetID))
             {
                 IAssetService connector = GetConnector(url);
                 // Restore the assetID to a simple UUID
