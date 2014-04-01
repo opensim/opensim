@@ -68,8 +68,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public event ChangeDelegate OnEstateInfoChange;
         public event MessageDelegate OnEstateMessage;
 
-        private int m_delayCount = 0;
-
         #region Region Module interface
         
         public string Name { get { return "EstateManagementModule"; } }
@@ -113,6 +111,189 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public void Close() 
         {
             m_commands.Close();
+        }
+
+        #endregion
+
+        #region IEstateModule Functions
+        public uint GetRegionFlags()
+        {
+            RegionFlags flags = RegionFlags.None;
+
+            // Fully implemented
+            //
+            if (Scene.RegionInfo.RegionSettings.AllowDamage)
+                flags |= RegionFlags.AllowDamage;
+            if (Scene.RegionInfo.RegionSettings.BlockTerraform)
+                flags |= RegionFlags.BlockTerraform;
+            if (!Scene.RegionInfo.RegionSettings.AllowLandResell)
+                flags |= RegionFlags.BlockLandResell;
+            if (Scene.RegionInfo.RegionSettings.DisableCollisions)
+                flags |= RegionFlags.SkipCollisions;
+            if (Scene.RegionInfo.RegionSettings.DisableScripts)
+                flags |= RegionFlags.SkipScripts;
+            if (Scene.RegionInfo.RegionSettings.DisablePhysics)
+                flags |= RegionFlags.SkipPhysics;
+            if (Scene.RegionInfo.RegionSettings.BlockFly)
+                flags |= RegionFlags.NoFly;
+            if (Scene.RegionInfo.RegionSettings.RestrictPushing)
+                flags |= RegionFlags.RestrictPushObject;
+            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+                flags |= RegionFlags.AllowParcelChanges;
+            if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
+                flags |= RegionFlags.BlockParcelSearch;
+
+            if (Scene.RegionInfo.RegionSettings.FixedSun)
+                flags |= RegionFlags.SunFixed;
+            if (Scene.RegionInfo.RegionSettings.Sandbox)
+                flags |= RegionFlags.Sandbox;
+            if (Scene.RegionInfo.EstateSettings.AllowVoice)
+                flags |= RegionFlags.AllowVoice;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
+            if (Scene.RegionInfo.EstateSettings.BlockDwell)
+                flags |= RegionFlags.BlockDwell;
+            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+                flags |= RegionFlags.ResetHomeOnTeleport;
+
+
+            // TODO: SkipUpdateInterestList
+
+            // Omitted
+            //
+            // Omitted: NullLayer (what is that?)
+            // Omitted: SkipAgentAction (what does it do?)
+
+            return (uint)flags;
+        }
+
+        public bool IsManager(UUID avatarID)
+        {
+            if (avatarID == Scene.RegionInfo.EstateSettings.EstateOwner)
+                return true;
+
+            List<UUID> ems = new List<UUID>(Scene.RegionInfo.EstateSettings.EstateManagers);
+            if (ems.Contains(avatarID))
+                return true;
+
+            return false;
+        }
+
+        public void sendRegionHandshakeToAll()
+        {
+            Scene.ForEachClient(sendRegionHandshake);
+        }
+
+        public void TriggerEstateInfoChange()
+        {
+            ChangeDelegate change = OnEstateInfoChange;
+
+            if (change != null)
+                change(Scene.RegionInfo.RegionID);
+        }
+
+        public void TriggerRegionInfoChange()
+        {
+            m_regionChangeTimer.Stop();
+            m_regionChangeTimer.Start();
+
+            ChangeDelegate change = OnRegionInfoChange;
+
+            if (change != null)
+                change(Scene.RegionInfo.RegionID);
+        }
+
+        public void setEstateTerrainBaseTexture(int level, UUID texture)
+        {
+            setEstateTerrainBaseTexture(null, level, texture);
+            sendRegionHandshakeToAll();
+        }
+
+        public void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue)
+        {
+            setEstateTerrainTextureHeights(null, corner, lowValue, highValue);
+        }
+
+        public bool IsTerrainXfer(ulong xferID)
+        {
+            lock (this)
+            {
+                if (TerrainUploader == null)
+                    return false;
+                else
+                    return TerrainUploader.XferID == xferID;
+            }
+        }
+
+        public string SetEstateOwner(int estateID, UserAccount account)
+        {
+            string response;
+
+            // get the current settings from DB
+            EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
+            if (dbSettings.EstateID == 0)
+            {
+                response = String.Format("No estate found with ID {0}", estateID);
+            }
+            else if (account.PrincipalID == dbSettings.EstateOwner)
+            {
+                response = String.Format("Estate already belongs to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
+            }
+            else
+            {
+                dbSettings.EstateOwner = account.PrincipalID;
+                dbSettings.Save();
+                response = String.Empty;
+
+                // make sure there's a log entry to document the change
+                m_log.InfoFormat("[ESTATE]: Estate Owner for {0} changed to {1} ({2} {3})", dbSettings.EstateName,
+                                 account.PrincipalID, account.FirstName, account.LastName);
+
+                TriggerEstateInfoChange();
+                sendRegionHandshakeToAll();
+            }
+            return response;
+        }
+
+        public string SetEstateName(int estateID, string newName)
+        {
+            string response;
+
+            // get the current settings from DB
+            EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
+
+            if (dbSettings.EstateID == 0)
+            {
+                response = String.Format("No estate found with ID {0}", estateID);
+            }
+            else if (newName == dbSettings.EstateName)
+            {
+                response = String.Format("Estate {0} is already named \"{1}\"", estateID, newName);
+            }
+            else
+            {
+                List<int> estates = Scene.EstateDataService.GetEstates(newName);
+                if (estates.Count() > 0)
+                {
+                    response = String.Format("An estate named \"{0}\" already exists.", newName);
+                }
+                else
+                {
+                    string oldName = dbSettings.EstateName;
+                    dbSettings.EstateName = newName;
+                    dbSettings.Save();
+                    response = String.Empty;
+
+                    // make sure there's a log entry to document the change
+                    m_log.InfoFormat("[ESTATE]: Estate {0} renamed from \"{1}\" to \"{2}\"", estateID, oldName, newName);
+
+                    TriggerEstateInfoChange();
+                    sendRegionHandshakeToAll();
+                }
+            }
+            return response;
         }
 
         #endregion
@@ -224,12 +405,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sendRegionInfoPacketToAll();
         }
 
-        public void setEstateTerrainBaseTexture(int level, UUID texture)
-        {
-            setEstateTerrainBaseTexture(null, level, texture);
-            sendRegionHandshakeToAll();
-        }
-
         public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int level, UUID texture)
         {
             if (texture == UUID.Zero)
@@ -254,11 +429,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
             sendRegionInfoPacketToAll();
-        }
-
-        public void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue)
-        {
-            setEstateTerrainTextureHeights(null, corner, lowValue, highValue);
         }
 
         public void setEstateTerrainTextureHeights(IClientAPI client, int corner, float lowValue, float highValue)
@@ -925,17 +1095,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }
 
-        public bool IsTerrainXfer(ulong xferID)
-        {
-            lock (this)
-            {
-                if (TerrainUploader == null)
-                    return false;
-                else
-                    return TerrainUploader.XferID == xferID;
-            }
-        }
-        
         private void handleTerrainRequest(IClientAPI remote_client, string clientFileName)
         {
             // Save terrain here
@@ -1117,11 +1276,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             remoteClient.SendRegionHandshake(Scene.RegionInfo,args);
         }
 
-        public void sendRegionHandshakeToAll()
-        {
-            Scene.ForEachClient(sendRegionHandshake);
-        }
-
         public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)
         {
             if (parms2 == 0)
@@ -1203,31 +1357,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sendRegionInfoPacketToAll();
         }
 
-        public string setEstateOwner(int estateID, UserAccount account)
-        {
-            string response;
 
-            // get the current settings from DB
-            EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
-            if(account.PrincipalID != dbSettings.EstateOwner) {
-                dbSettings.EstateOwner = account.PrincipalID;
-                dbSettings.Save();
-                response = String.Format("Estate owner changed to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
-
-                // make sure there's a log entry to document the change
-                m_log.InfoFormat("[ESTATE]: Estate Owner for {0} changed to {1} ({2} {3})", dbSettings.EstateName,
-                                 account.PrincipalID, account.FirstName, account.LastName);
-
-                TriggerEstateInfoChange();
-            }
-            else
-            {
-                response = String.Format("Estate already belongs to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
-            }
-            return response;
-        }
-
-        #endregion
+    #endregion
 
         private void EventManager_OnNewClient(IClientAPI client)
         {
@@ -1257,60 +1388,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sendRegionHandshake(client);
         }
 
-        public uint GetRegionFlags()
-        {
-            RegionFlags flags = RegionFlags.None;
-
-            // Fully implemented
-            //
-            if (Scene.RegionInfo.RegionSettings.AllowDamage)
-                flags |= RegionFlags.AllowDamage;
-            if (Scene.RegionInfo.RegionSettings.BlockTerraform)
-                flags |= RegionFlags.BlockTerraform;
-            if (!Scene.RegionInfo.RegionSettings.AllowLandResell)
-                flags |= RegionFlags.BlockLandResell;
-            if (Scene.RegionInfo.RegionSettings.DisableCollisions)
-                flags |= RegionFlags.SkipCollisions;
-            if (Scene.RegionInfo.RegionSettings.DisableScripts)
-                flags |= RegionFlags.SkipScripts;
-            if (Scene.RegionInfo.RegionSettings.DisablePhysics)
-                flags |= RegionFlags.SkipPhysics;
-            if (Scene.RegionInfo.RegionSettings.BlockFly)
-                flags |= RegionFlags.NoFly;
-            if (Scene.RegionInfo.RegionSettings.RestrictPushing)
-                flags |= RegionFlags.RestrictPushObject;
-            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
-                flags |= RegionFlags.AllowParcelChanges;
-            if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
-                flags |= RegionFlags.BlockParcelSearch;
-
-            if (Scene.RegionInfo.RegionSettings.FixedSun)
-                flags |= RegionFlags.SunFixed;
-            if (Scene.RegionInfo.RegionSettings.Sandbox)
-                flags |= RegionFlags.Sandbox;
-            if (Scene.RegionInfo.EstateSettings.AllowVoice)
-                flags |= RegionFlags.AllowVoice;
-            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
-                flags |= RegionFlags.AllowLandmark;
-            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
-                flags |= RegionFlags.AllowSetHome;
-            if (Scene.RegionInfo.EstateSettings.BlockDwell)
-                flags |= RegionFlags.BlockDwell;
-            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
-                flags |= RegionFlags.ResetHomeOnTeleport;
-
-
-            // TODO: SkipUpdateInterestList
-
-            // Omitted
-            //
-            // Omitted: NullLayer (what is that?)
-            // Omitted: SkipAgentAction (what does it do?)
-
-            return (uint)flags;
-        }
-
-        public uint GetEstateFlags()
+        private uint GetEstateFlags()
         {
             RegionFlags flags = RegionFlags.None;
 
@@ -1349,37 +1427,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= (RegionFlags)(1 << 30);
 
             return (uint)flags;
-        }
-
-        public bool IsManager(UUID avatarID)
-        {
-            if (avatarID == Scene.RegionInfo.EstateSettings.EstateOwner)
-                return true;
-
-            List<UUID> ems = new List<UUID>(Scene.RegionInfo.EstateSettings.EstateManagers);
-            if (ems.Contains(avatarID))
-                return true;
-
-            return false;
-        }
-
-        public void TriggerRegionInfoChange()
-        {
-            m_regionChangeTimer.Stop();
-            m_regionChangeTimer.Start();
-
-            ChangeDelegate change = OnRegionInfoChange;
-
-            if (change != null)
-                change(Scene.RegionInfo.RegionID);
-        }
-
-        public void TriggerEstateInfoChange()
-        {
-            ChangeDelegate change = OnEstateInfoChange;
-
-            if (change != null)
-                change(Scene.RegionInfo.RegionID);
         }
 
         public void TriggerEstateMessage(UUID fromID, string fromName, string message)

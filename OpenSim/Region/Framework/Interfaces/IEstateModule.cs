@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -40,6 +41,9 @@ namespace OpenSim.Region.Framework.Interfaces
 
         uint GetRegionFlags();
         bool IsManager(UUID avatarID);
+
+        string SetEstateOwner(int estateID, UserAccount account);
+        string SetEstateName(int estateID, string newName);
 
         /// <summary>
         /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
