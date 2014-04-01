@@ -1203,9 +1203,9 @@ namespace OpenSim.Framework
                         if (hwr != null && hwr.StatusCode == HttpStatusCode.NotFound)
                             return deserial;
                         else
-                            m_log.ErrorFormat(
-                                "[SynchronousRestObjectRequester]: WebException for {0} {1} {2}: {3} {4}",
-                                verb, requestUrl, typeof(TResponse).ToString(), e.Message, e.StackTrace);
+                            m_log.Error(string.Format(
+                                "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} ",
+                                verb, requestUrl, typeof(TResponse).ToString()), e);
                     }
                 }
                 catch (System.InvalidOperationException)
@@ -1217,9 +1217,9 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat(
-                        "[SynchronousRestObjectRequester]: Exception on response from {0} {1}: {2}{3}",
-                        verb, requestUrl, e.Message, e.StackTrace);
+                    m_log.Debug(string.Format(
+                        "[SynchronousRestObjectRequester]: Exception on response from {0} {1} ",
+                        verb, requestUrl), e);
                 }
 
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);

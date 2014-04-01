@@ -492,8 +492,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     byte[] buffer500 = SendHTML500(response);
-                    response.Body.Write(buffer500,0,buffer500.Length);
-                    response.Body.Close();
+                    response.OutputStream.Write(buffer500, 0, buffer500.Length);
+                    response.Send();
                 }
                 catch
                 {
@@ -746,8 +746,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     byte[] buffer500 = SendHTML500(response);
-                    response.Body.Write(buffer500, 0, buffer500.Length);
-                    response.Body.Close();
+                    response.OutputStream.Write(buffer500, 0, buffer500.Length);
+                    response.Send();
                 }
                 catch
                 {
