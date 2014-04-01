@@ -58,8 +58,6 @@ namespace OpenSim.Region.OptionalModules
         
         public void Initialise(IConfigSource config)
         {
-            //IConfig myConfig = config.Configs["Startup"];
-
             string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
                 new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule"); 
 
@@ -128,6 +126,11 @@ namespace OpenSim.Region.OptionalModules
             int objectCount = obj.ParentGroup.PrimCount;
             ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+
+            // newParcel will be null only if it outside of our current region.  If this is the case, then the 
+            // receiving permissions will perform the check.
+            if (newParcel == null)
+                return true;
 
             int usedPrims = newParcel.PrimCounts.Total;
             int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();

@@ -595,6 +595,32 @@ namespace OpenSim.Tests.Common
 
             return so;
         }
+
+        /// <summary>
+        /// Add a test object
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="parts">
+        /// The number of parts that should be in the scene object
+        /// </param>
+        /// <param name="ownerId"></param>
+        /// <param name="partNamePrefix">
+        /// The prefix to be given to part names.  This will be suffixed with "Part<part no>"
+        /// (e.g. mynamePart1 for the root part)
+        /// </param>
+        /// <param name="uuidTail">
+        /// The hexadecimal last part of the UUID for parts created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
+        /// will be given to the root part, and incremented for each part thereafter.
+        /// </param>
+        /// <returns></returns>
+        public static SceneObjectGroup AddSceneObject(Scene scene, int parts, UUID ownerId, string partNamePrefix, int uuidTail)
+        {
+            SceneObjectGroup so = CreateSceneObject(parts, ownerId, partNamePrefix, uuidTail);
+
+            scene.AddNewSceneObject(so, false);
+
+            return so;
+        }
         
         /// <summary>
         /// Create a scene object part.
