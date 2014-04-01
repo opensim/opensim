@@ -58,7 +58,7 @@ namespace OpenSim.Server.Handlers.Asset
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             AssetBase asset;
-            XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
+            XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
 
             try
             {
@@ -71,18 +71,21 @@ namespace OpenSim.Server.Handlers.Asset
             }
 
             string[] p = SplitParams(path);
-            if (p.Length > 1)
+            if (p.Length > 0)
             {
-                bool result = m_AssetService.UpdateContent(p[1], asset.Data);
+                string id = p[0];
+                bool result = m_AssetService.UpdateContent(id, asset.Data);
 
                 xs = new XmlSerializer(typeof(bool));
                 return ServerUtils.SerializeResult(xs, result);
             }
+            else
+            {
+                string id = m_AssetService.Store(asset);
 
-            string id = m_AssetService.Store(asset);
-
-            xs = new XmlSerializer(typeof(string));
-            return ServerUtils.SerializeResult(xs, id);
+                xs = new XmlSerializer(typeof(string));
+                return ServerUtils.SerializeResult(xs, id);
+            }
         }
     }
 }
