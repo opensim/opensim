@@ -52,8 +52,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         
         protected EstateManagementModule m_module;
 
-        protected Commander m_commander = new Commander("estate");
-
         // used to prevent multiple processing of commands when called from root region
         private static string[] m_currentCmd = null;
         private static EstateSettings m_estateSettings = null;
