@@ -772,7 +772,8 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> presences = GetScenePresences();
             foreach (ScenePresence presence in presences)
             {
-                if (presence.Firstname == firstName && presence.Lastname == lastName)
+                if (string.Equals(presence.Firstname, firstName, StringComparison.CurrentCultureIgnoreCase)
+                    && string.Equals(presence.Lastname, lastName, StringComparison.CurrentCultureIgnoreCase))
                     return presence;
             }
             return null;
