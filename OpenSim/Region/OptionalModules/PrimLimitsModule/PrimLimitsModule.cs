@@ -131,9 +131,6 @@ namespace OpenSim.Region.OptionalModules
             // receiving permissions will perform the check.
             if (newParcel == null)
                 return true;
-
-            int usedPrims = newParcel.PrimCounts.Total;
-            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
             
             // The prim hasn't crossed a region boundry so we don't need to worry
             // about prim counts here
@@ -150,8 +147,11 @@ namespace OpenSim.Region.OptionalModules
             }
 
             // TODO: Add Special Case here for temporary prims
+
+            int usedPrims = newParcel.PrimCounts.Total;
+            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
             
-            if(objectCount + usedPrims > simulatorCapacity)
+            if (objectCount + usedPrims > simulatorCapacity)
             {
                 m_dialogModule.SendAlertToUser(obj.OwnerID, "Unable to move object because the destination parcel  is too full");
                 return false;
