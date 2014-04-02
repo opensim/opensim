@@ -251,8 +251,17 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 m_log.InfoFormat("[ESTATE]: Estate Owner for {0} changed to {1} ({2} {3})", dbSettings.EstateName,
                                  account.PrincipalID, account.FirstName, account.LastName);
 
-                TriggerEstateInfoChange();
-                sendRegionHandshakeToAll();
+                // propagate the change
+                List<UUID> regions = Scene.GetEstateRegions(estateID);
+                UUID regionId = (regions.Count() > 0) ? regions.ElementAt(0) : UUID.Zero;
+                if (regionId != UUID.Zero)
+                {
+                    ChangeDelegate change = OnEstateInfoChange;
+
+                    if (change != null)
+                        change(regionId);
+                }
+
             }
             return response;
         }
@@ -289,8 +298,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     // make sure there's a log entry to document the change
                     m_log.InfoFormat("[ESTATE]: Estate {0} renamed from \"{1}\" to \"{2}\"", estateID, oldName, newName);
 
-                    TriggerEstateInfoChange();
-                    sendRegionHandshakeToAll();
+                   // propagate the change
+                    List<UUID> regions = Scene.GetEstateRegions(estateID);
+                    UUID regionId = (regions.Count() > 0) ? regions.ElementAt(0) : UUID.Zero;
+                    if (regionId != UUID.Zero)
+                    {
+                        ChangeDelegate change = OnEstateInfoChange;
+
+                        if (change != null)
+                            change(regionId);
+                    }
                 }
             }
             return response;

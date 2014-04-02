@@ -52,10 +52,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         
         protected EstateManagementModule m_module;
 
-        // used to prevent multiple processing of commands when called from root region
-        private static string[] m_currentCmd = null;
-        private static EstateSettings m_estateSettings = null;
-
         public EstateManagementCommands(EstateManagementModule module)
         {
             m_module = module;
@@ -87,15 +83,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_module.Scene.AddCommand(
                 "Estates", m_module, "estate show", "estate show", "Shows all estates on the simulator.", ShowEstatesCommand);
-
-            m_module.Scene.AddCommand(
-                "Estates", m_module, "estate set owner", "estate set owner <estate-id>[ <UUID> | <Firstname> <Lastname> ]",
-                "Sets the owner of the specified estate to the specified UUID or user. ", SetEstateOwnerCommand);
-
-            m_module.Scene.AddCommand(
-                "Estates", m_module, "estate set name", "estate set name <estate-id> <new name>",
-                "Sets the name of the specified estate to the specified value. " +
-                "New name must be unique.", SetEstateNameCommand);
         }
         
         public void Close() {}
@@ -237,178 +224,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 es.EstateName, es.EstateID, m_module.UserManager.GetUserName(es.EstateOwner));
             
             MainConsole.Instance.Output(report.ToString());
-        }         
-
-        protected void SetEstateOwnerCommand(string module, string[] args)
-        {
-            string response = null;
-
-            EstateSettings es = m_module.Scene.RegionInfo.EstateSettings;
-
-            if (args == m_currentCmd)
-            {
-                // HACK to propagate new estate info to Scene Regions
-                if (m_estateSettings != null && es.EstateID == m_estateSettings.EstateID)
-                    es.EstateOwner = m_estateSettings.EstateOwner;
-
-                return;
-            }
-
-            // new command... clear out the old value
-            m_currentCmd = args;
-
-            if (args.Length == 3)
-            {
-                response = "No estate specified.";
-            }
-            else
-            {
-                int estateId;
-                if (!int.TryParse(args[3], out estateId))
-                {
-                    response = String.Format("\"{0}\" is not a valid ID for an Estate", args[3]);
-                }
-                else
-                {
-                    if (args.Length == 4)
-                    {
-                        response = "No user specified.";
-                    }
-                    else
-                    {
-                        UserAccount account = null;
-
-                        // TODO: Is there a better choice here?
-                        UUID scopeID = UUID.Zero;
-
-                        string s1 = args[4];
-                        if (args.Length == 5)
-                        {
-                            // attempt to get account by UUID
-                            UUID u;
-                            if (UUID.TryParse(s1, out u))
-                            {
-                                account = m_module.Scene.UserAccountService.GetUserAccount(scopeID, u);
-                                if (account == null)
-                                    response = String.Format("Could not find user {0}", s1);
-                            }
-                            else
-                            {
-                                response = String.Format("Invalid UUID {0}", s1);
-                            }
-                        }
-                        else
-                        {
-                            // attempt to get account by Firstname, Lastname
-                            string s2 = args[5];
-                            account = m_module.Scene.UserAccountService.GetUserAccount(scopeID, s1, s2);
-                            if (account == null)
-                                response = String.Format("Could not find user {0} {1}", s1, s2);
-                        }
-
-                        // If it's valid, send it off for processing.
-                        if (account != null)
-                            response = m_module.SetEstateOwner(estateId, account);
-
-                        if (response == String.Empty)
-                        {
-                            response = String.Format("Estate owner changed to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
-
-                            // save data for propagation to other Scene Regions
-                            m_estateSettings = new EstateSettings();
-                            m_estateSettings.EstateID = (uint)estateId;
-                            m_estateSettings.EstateOwner = account.PrincipalID;
-
-                            // update current Scene Region if appropriate
-                            if (es.EstateID == estateId)
-                                es.EstateOwner = account.PrincipalID;
-                        }
-                        else
-                        {
-                            m_estateSettings = null;
-                        }
-                    }
-                }
-            }
-
-            // give the user some feedback
-            if (response != null)
-                MainConsole.Instance.Output(response);
         }
-
-        protected void SetEstateNameCommand(string module, string[] args)
-        {
-            string response = null;
-
-            EstateSettings es = m_module.Scene.RegionInfo.EstateSettings;
-
-            if (args == m_currentCmd)
-            {
-                // HACK to propagate new estate info to Scene Regions
-                if (m_estateSettings != null && es.EstateID == m_estateSettings.EstateID)
-                    es.EstateName = m_estateSettings.EstateName;
-
-                return;
-            }
-
-            // new command... clear out the old value
-            m_currentCmd = args;
-
-            if (args.Length == 3)
-            {
-                response = "No estate specified.";
-            }
-            else
-            {
-                int estateId;
-                if (!int.TryParse(args[3], out estateId))
-                {
-                    response = String.Format("\"{0}\" is not a valid ID for an Estate", args[3]);
-                }
-                else
-                {
-                    if (args.Length == 4)
-                    {
-                        response = "No name specified.";
-                    }
-                    else
-                    {
-                        // everything after the estate ID is "name"
-                        StringBuilder sb = new StringBuilder(args[4]);
-                        for (int i = 5; i < args.Length; i++)
-                            sb.Append (" " + args[i]);
-
-                        string estateName = sb.ToString();
-
-                        // send it off for processing.
-                        response = m_module.SetEstateName(estateId, estateName);
-
-                        if (response == String.Empty)
-                        {
-                            response = String.Format("Estate {0} renamed from \"{1}\" to \"{2}\"", estateId, es.EstateName, estateName);
-
-                            // save data for propagation to other Scene Regions
-                            m_estateSettings = new EstateSettings();
-                            m_estateSettings.EstateID = (uint)estateId;
-                            m_estateSettings.EstateName = estateName;
-
-                            // update current Scene Region if appropriate
-                            if (es.EstateID == estateId)
-                                es.EstateName = estateName;
-                        }
-                        else
-                        {
-                            m_estateSettings = null;
-                        }
-                    }
-                }
-            }
-
-            // give the user some feedback
-            if (response != null)
-                MainConsole.Instance.Output(response);
-        }
-
         #endregion
     }
 }

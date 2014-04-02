@@ -45,6 +45,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim
 {
@@ -399,6 +400,16 @@ namespace OpenSim
                                           "delete-region <name>",
                                           "Delete a region from disk", 
                                           RunCommand);
+
+            m_console.Commands.AddCommand("Estates", false, "estate set owner",
+                                          "estate set owner <estate-id>[ <UUID> | <Firstname> <Lastname> ]",
+                                          "Sets the owner of the specified estate to the specified UUID or user. ",
+                                          SetEstateOwnerCommand);
+
+            m_console.Commands.AddCommand("Estates", false, "estate set name",
+                                          "estate set name <estate-id> <new name>",
+                                          "Sets the name of the specified estate to the specified value. New name must be unique.",
+                                          SetEstateNameCommand);
         }
 
         protected override void ShutdownSpecific()
@@ -1165,6 +1176,130 @@ namespace OpenSim
             SceneManager.SaveCurrentSceneToArchive(cmdparams);
         }
 
+        protected void SetEstateOwnerCommand(string module, string[] args)
+        {
+            string response = null;
+
+            Scene scene = SceneManager.CurrentOrFirstScene;
+            IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
+
+            if (args.Length == 3)
+            {
+                response = "No estate specified.";
+            }
+            else
+            {
+                int estateId;
+                if (!int.TryParse(args[3], out estateId))
+                {
+                    response = String.Format("\"{0}\" is not a valid ID for an Estate", args[3]);
+                }
+                else
+                {
+                    if (args.Length == 4)
+                    {
+                        response = "No user specified.";
+                    }
+                    else
+                    {
+                        UserAccount account = null;
+
+                        // TODO: Is there a better choice here?
+                        UUID scopeID = UUID.Zero;
+
+                        string s1 = args[4];
+                        if (args.Length == 5)
+                        {
+                            // attempt to get account by UUID
+                            UUID u;
+                            if (UUID.TryParse(s1, out u))
+                            {
+                                account = scene.UserAccountService.GetUserAccount(scopeID, u);
+                                if (account == null)
+                                    response = String.Format("Could not find user {0}", s1);
+                            }
+                            else
+                            {
+                                response = String.Format("Invalid UUID {0}", s1);
+                            }
+                        }
+                        else
+                        {
+                            // attempt to get account by Firstname, Lastname
+                            string s2 = args[5];
+                            account = scene.UserAccountService.GetUserAccount(scopeID, s1, s2);
+                            if (account == null)
+                                response = String.Format("Could not find user {0} {1}", s1, s2);
+                        }
+
+                        // If it's valid, send it off for processing.
+                        if (account != null)
+                            response = estateModule.SetEstateOwner(estateId, account);
+
+                        if (response == String.Empty)
+                        {
+                            response = String.Format("Estate owner changed to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
+                        }
+                    }
+                }
+            }
+
+            // give the user some feedback
+            if (response != null)
+                MainConsole.Instance.Output(response);
+        }
+
+        protected void SetEstateNameCommand(string module, string[] args)
+        {
+            string response = null;
+
+            Scene scene = SceneManager.CurrentOrFirstScene;
+            IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
+
+            if (args.Length == 3)
+            {
+                response = "No estate specified.";
+            }
+            else
+            {
+                int estateId;
+                if (!int.TryParse(args[3], out estateId))
+                {
+                    response = String.Format("\"{0}\" is not a valid ID for an Estate", args[3]);
+                }
+                else
+                {
+                    if (args.Length == 4)
+                    {
+                        response = "No name specified.";
+                    }
+                    else
+                    {
+                        // everything after the estate ID is "name"
+                        StringBuilder sb = new StringBuilder(args[4]);
+                        for (int i = 5; i < args.Length; i++)
+                            sb.Append (" " + args[i]);
+
+                        string estateName = sb.ToString();
+
+                        // send it off for processing.
+                        response = estateModule.SetEstateName(estateId, estateName);
+
+                        if (response == String.Empty)
+                        {
+                            response = String.Format("Estate {0} renamed to \"{1}\"", estateId, estateName);
+                        }
+                    }
+                }
+            }
+
+            // give the user some feedback
+            if (response != null)
+                MainConsole.Instance.Output(response);
+        }
+
+        #endregion
+
         private static string CombineParams(string[] commandParams, int pos)
         {
             string result = String.Empty;
@@ -1175,7 +1310,5 @@ namespace OpenSim
             result = result.TrimEnd(' ');
             return result;
         }
-
-        #endregion
     }
 }
