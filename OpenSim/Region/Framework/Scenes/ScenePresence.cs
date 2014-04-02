@@ -1023,6 +1023,7 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                     {
                         part.ParentGroup.AddAvatar(UUID);
+                        part.AddSittingAvatar(UUID);
                         if (part.SitTargetPosition != Vector3.Zero)
                             part.SitTargetAvatar = UUID;
     //                    ParentPosition = part.GetWorldPosition();
@@ -2847,7 +2848,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
-
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
         {

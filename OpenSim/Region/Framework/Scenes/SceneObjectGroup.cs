@@ -552,12 +552,29 @@ namespace OpenSim.Region.Framework.Scenes
 
                                         av.IsInTransit = true;
 
-                                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
-                                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                        // A temporary measure to allow regression tests to work.
+                                        // Quite possibly, all BeginInvoke() calls should be replaced by Util.FireAndForget
+                                        // or similar since BeginInvoke() always uses the system threadpool to launch
+                                        // threads rather than any replace threadpool that we might be using.
+                                        if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
+                                        { 
+                                            entityTransfer.CrossAgentToNewRegionAsync(av, val, destination, av.Flying, version);
+                                            CrossAgentToNewRegionCompleted(av);
+                                        }
+                                        else
+                                        {
+                                            CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
+                                            d.BeginInvoke(
+                                                av, val, destination, av.Flying, version, 
+                                                ar => CrossAgentToNewRegionCompleted(d.EndInvoke(ar)), null);
+                                        }
                                     }
                                     else
+                                    {
                                         m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
+                                    }
                                 }
+
                                 avsToCross.Clear();
                                 return;
                             }
@@ -630,11 +647,8 @@ namespace OpenSim.Region.Framework.Scenes
             set { RootPart.Velocity = value; }
         }
 
-        private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
+        private void CrossAgentToNewRegionCompleted(ScenePresence agent)
         {
-            CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
-            ScenePresence agent = icon.EndInvoke(iar);
-
             //// If the cross was successful, this agent is a child agent
             if (agent.IsChildAgent)
             {
@@ -1698,10 +1712,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public SceneObjectGroup Copy(bool userExposed)
         {
+            // FIXME: This is dangerous since it's easy to forget to reset some references when necessary and end up 
+            // with bugs that only occur in some circumstances (e.g. crossing between regions on the same simulator
+            // but not between regions on different simulators).  Really, all copying should be done explicitly.
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
+
             dupe.Backup = false;
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
             dupe.m_sittingAvatars = new List<UUID>();
+            dupe.m_linkedAvatars = new List<ScenePresence>();
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 

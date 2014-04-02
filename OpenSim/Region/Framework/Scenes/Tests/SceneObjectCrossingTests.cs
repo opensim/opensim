@@ -26,10 +26,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.CoreModules.World.Land;
@@ -101,7 +103,110 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test cross with no prim limit module.
         /// </summary>
         /// <remarks>
-        /// XXX: This test may be better off in a specific PrimLimitsModuleTest class in optional module tests in the
+        /// Possibly this should belong in ScenePresenceCrossingTests, though here it is the object that is being moved
+        /// where the avatar is just a passenger.
+        /// </remarks>
+        [Test]
+        public void TestCrossOnSameSimulatorWithSittingAvatar()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            int sceneObjectIdTail = 0x2;
+            Vector3 so1StartPos = new Vector3(128, 10, 20);
+
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etmA.Name);
+            modulesConfig.Set("SimulationServices", lscm.Name);
+            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
+
+            // In order to run a single threaded regression test we do not want the entity transfer module waiting
+            // for a callback from the destination scene before removing its avatar data.
+            entityTransferConfig.Set("wait_for_callback", false);
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1000, 999);
+
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
+            SceneHelpers.SetupSceneModules(sceneA, config, new CapabilitiesModule(), etmA);
+            SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), etmB);
+
+            SceneObjectGroup so1 = SceneHelpers.AddSceneObject(sceneA, 1, userId, "", sceneObjectIdTail);
+            UUID so1Id = so1.UUID;
+            so1.AbsolutePosition = so1StartPos;
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            TestClient tc = new TestClient(acd, sceneA);
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
+
+            ScenePresence sp1SceneA = SceneHelpers.AddScenePresence(sceneA, tc, acd);
+            sp1SceneA.AbsolutePosition = so1StartPos;
+            sp1SceneA.HandleAgentRequestSit(sp1SceneA.ControllingClient, sp1SceneA.UUID, so1.UUID, Vector3.Zero);
+
+            // Cross
+            sceneA.SceneGraph.UpdatePrimGroupPosition(
+                so1.LocalId, new Vector3(so1StartPos.X, so1StartPos.Y - 20, so1StartPos.Z), userId);
+
+            SceneObjectGroup so1PostCross;
+
+            {
+                ScenePresence sp1SceneAPostCross = sceneA.GetScenePresence(userId);
+                Assert.IsTrue(sp1SceneAPostCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly false");
+
+                ScenePresence sp1SceneBPostCross = sceneB.GetScenePresence(userId);
+                TestClient sceneBTc = ((TestClient)sp1SceneBPostCross.ControllingClient);
+                sceneBTc.CompleteMovement();
+
+                Assert.IsFalse(sp1SceneBPostCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly true");
+                Assert.IsTrue(sp1SceneBPostCross.IsSatOnObject);
+
+                Assert.IsNull(sceneA.GetSceneObjectGroup(so1Id), "uck");
+                so1PostCross = sceneB.GetSceneObjectGroup(so1Id);
+                Assert.NotNull(so1PostCross);
+                Assert.AreEqual(1, so1PostCross.GetSittingAvatarsCount());
+                Assert.AreEqual(1, so1PostCross.GetLinkedAvatars().Count);
+            }
+
+            Vector3 so1PostCrossPos = so1PostCross.AbsolutePosition;
+
+//            Console.WriteLine("CRISSCROSS");
+
+            // Recross
+            sceneB.SceneGraph.UpdatePrimGroupPosition(
+                so1PostCross.LocalId, new Vector3(so1PostCrossPos.X, so1PostCrossPos.Y + 20, so1PostCrossPos.Z), userId);
+
+            {
+                ScenePresence sp1SceneBPostReCross = sceneB.GetScenePresence(userId);
+                Assert.IsTrue(sp1SceneBPostReCross.IsChildAgent, "sp1SceneBPostReCross.IsChildAgent unexpectedly false");
+
+                ScenePresence sp1SceneAPostReCross = sceneA.GetScenePresence(userId);
+                TestClient sceneATc = ((TestClient)sp1SceneAPostReCross.ControllingClient);
+                sceneATc.CompleteMovement();
+
+                Assert.IsFalse(sp1SceneAPostReCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly true");
+                Assert.IsTrue(sp1SceneAPostReCross.IsSatOnObject);
+
+                Assert.IsNull(sceneB.GetSceneObjectGroup(so1Id), "uck2");
+                SceneObjectGroup so1PostReCross = sceneA.GetSceneObjectGroup(so1Id);
+                Assert.NotNull(so1PostReCross);
+                Assert.AreEqual(1, so1PostReCross.GetSittingAvatarsCount());
+                Assert.AreEqual(1, so1PostReCross.GetLinkedAvatars().Count);
+            }
+        }
+
+        /// <summary>
+        /// Test cross with no prim limit module.
+        /// </summary>
+        /// <remarks>
+        /// XXX: This test may FCbe better off in a specific PrimLimitsModuleTest class in optional module tests in the
         /// future (though it is configured as active by default, so not really optional).
         /// </remarks>
         [Test]

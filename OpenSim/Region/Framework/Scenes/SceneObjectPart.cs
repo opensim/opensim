@@ -1753,7 +1753,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public SceneObjectPart Copy(uint localID, UUID AgentID, UUID GroupID, int linkNum, bool userExposed)
         {
+            // FIXME: This is dangerous since it's easy to forget to reset some references when necessary and end up 
+            // with bugs that only occur in some circumstances (e.g. crossing between regions on the same simulator
+            // but not between regions on different simulators).  Really, all copying should be done explicitly.
             SceneObjectPart dupe = (SceneObjectPart)MemberwiseClone();
+
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
             if (userExposed)
@@ -1798,6 +1802,8 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
+
+            dupe.m_sittingAvatars = new HashSet<OpenMetaverse.UUID>();
 
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
