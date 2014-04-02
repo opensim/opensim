@@ -857,7 +857,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        private readonly string HANDLER_SEPARATORS = "/?&#";
+        private readonly string HANDLER_SEPARATORS = "/?&#-";
 
         private bool TryGetStreamHandler(string handlerKey, out IRequestHandler streamHandler)
         {
