@@ -99,6 +99,9 @@ namespace OpenSim.Data.Tests
                 if (Directory.Exists("/proc/ppc64") || Directory.Exists("/proc/dasd"))
                     Assert.Ignore();
 
+                if (Util.IsWindows())
+                    Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
                 // for SQLite, if no explicit conn string is specified, use a temp file
                 if (String.IsNullOrEmpty(m_connStr))
                 {
