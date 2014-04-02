@@ -44,7 +44,7 @@ namespace OpenSim.Region.RegionCombinerModule
     public class RegionCombinerModule : ISharedRegionModule, IRegionCombinerModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[REGION COMBINER MODULE]";
+//        private static string LogHeader = "[REGION COMBINER MODULE]";
 
         public string Name
         {
