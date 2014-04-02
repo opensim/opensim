@@ -486,7 +486,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
             int texturesRebaked = 0;
-            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+//            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
 
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
