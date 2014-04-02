@@ -226,11 +226,11 @@ namespace OpenSim.Data.SQLite
             HashSet<UUID> exist = new HashSet<UUID>();
 
             string ids = "'" + string.Join("','", uuids) + "'";
-            string sql = string.Format("SELECT id FROM assets WHERE id IN ({0})", ids);
+            string sql = string.Format("select UUID from assets where UUID in ({0})", ids);
 
             lock (this)
             {
-                using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
                 {
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
