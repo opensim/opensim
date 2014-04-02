@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCrossOnSameSimulator()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
             int sceneObjectIdTail = 0x2;
@@ -77,7 +77,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig modulesConfig = config.AddConfig("Modules");
             modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
-//            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
             SceneHelpers sh = new SceneHelpers();
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
@@ -109,7 +108,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCrossOnSameSimulatorPrimLimitsOkay()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
             int sceneObjectIdTail = 0x2;
@@ -124,9 +123,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig modulesConfig = config.AddConfig("Modules");
             modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
-
-            // Remove?
-//            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
             IConfig permissionsConfig = config.AddConfig("Permissions");
             permissionsConfig.Set("permissionmodules", "PrimLimitsModule");
