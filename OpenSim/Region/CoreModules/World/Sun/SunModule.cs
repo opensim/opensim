@@ -562,13 +562,13 @@ namespace OpenSim.Region.CoreModules
 
                 default:
                     throw new Exception("Unknown sun parameter.");
-
-                // Generate shared values
-                GenSunPos();
-
-                // When sun settings are updated, we should update all clients with new settings.
-                SunUpdateToAllClients();
             }
+
+            // Generate shared values
+            GenSunPos();
+
+            // When sun settings are updated, we should update all clients with new settings.
+            SunUpdateToAllClients();
         }
 
         public float GetCurrentSunHour()
