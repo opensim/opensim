@@ -526,7 +526,6 @@ namespace OpenSim.Region.Framework.Scenes
                                 av.ParentID = 0;
                             }
 
-                            //                            m_linkedAvatars.Clear();
                             m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
 
                             // Normalize
@@ -542,7 +541,6 @@ namespace OpenSim.Region.Framework.Scenes
                             // If it's deleted, crossing was successful
                             if (IsDeleted)
                             {
-                                //                                foreach (ScenePresence av in m_linkedAvatars)
                                 foreach (avtocrossInfo avinfo in avsToCross)
                                 {
                                     ScenePresence av = avinfo.av;
@@ -575,7 +573,6 @@ namespace OpenSim.Region.Framework.Scenes
                                     }
                                 }
 
-                                avsToCross.Clear();
                                 return;
                             }
                             else // cross failed, put avas back ??
@@ -585,11 +582,8 @@ namespace OpenSim.Region.Framework.Scenes
                                     ScenePresence av = avinfo.av;
                                     av.ParentUUID = UUID.Zero;
                                     av.ParentID = avinfo.ParentID;
-//                                    m_linkedAvatars.Add(av);
                                 }
                             }
-                            avsToCross.Clear();
-
                         }
                         else
                         {
@@ -601,6 +595,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 RootPart.PhysActor.CrossingFailure();
                             }
                         }
+
                         Vector3 oldp = AbsolutePosition;
                         val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)m_scene.RegionInfo.RegionSizeX - 0.5f);
                         val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)m_scene.RegionInfo.RegionSizeY - 0.5f);
