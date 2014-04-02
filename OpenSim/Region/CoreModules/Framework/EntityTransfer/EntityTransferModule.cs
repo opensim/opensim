@@ -1629,24 +1629,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
                                 bool isFlying, string version)
         {
-            m_log.DebugFormat("{0} CrossAgentToNewRegionAsync: new region={1} at <{2},{3}>. newpos={4}",
-                        LogHeader, neighbourRegion.RegionName, neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, pos);
-
-            if (!CrossAgentToNewRegionPrep(agent, neighbourRegion))
+            try
             {
-                m_log.DebugFormat("{0} CrossAgentToNewRegionAsync: prep failed. Resetting transfer state", LogHeader);
-                m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
-                return agent;
+                m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: new region={1} at <{2},{3}>. newpos={4}",
+                            LogHeader, neighbourRegion.RegionName, neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, pos);
+
+                if (!CrossAgentToNewRegionPrep(agent, neighbourRegion))
+                {
+                    m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: prep failed. Resetting transfer state", LogHeader);
+                    m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
+                }
+
+                if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying))
+                {
+                    m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: cross main failed. Resetting transfer state", LogHeader);
+                    m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
+                }
+
+                CrossAgentToNewRegionPost(agent, pos, neighbourRegion, isFlying, version);
+            }
+            catch (Exception e)
+            {
+                m_log.Error(string.Format("{0}: CrossAgentToNewRegionAsync: failed with exception  ", LogHeader), e);
             }
 
-            if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying))
-            {
-                m_log.DebugFormat("{0} CrossAgentToNewRegionAsync: cross main failed. Resetting transfer state", LogHeader);
-                m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
-                return agent;
-            }
-
-            CrossAgentToNewRegionPost(agent, pos, neighbourRegion, isFlying, version);
             return agent;
         }
 
