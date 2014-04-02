@@ -857,6 +857,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        private readonly string HANDLER_SEPARATORS = "/?&#";
+
         private bool TryGetStreamHandler(string handlerKey, out IRequestHandler streamHandler)
         {
             string bestMatch = null;
@@ -865,7 +867,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach (string pattern in m_streamHandlers.Keys)
                 {
-                    if (handlerKey.StartsWith(pattern))
+                    if ((handlerKey == pattern)
+                        || (handlerKey.StartsWith(pattern) && (HANDLER_SEPARATORS.IndexOf(handlerKey[pattern.Length]) >= 0)))
                     {
                         if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
                         {
@@ -895,7 +898,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach (string pattern in m_pollHandlers.Keys)
                 {
-                    if (handlerKey.StartsWith(pattern))
+                    if ((handlerKey == pattern)
+                        || (handlerKey.StartsWith(pattern) && (HANDLER_SEPARATORS.IndexOf(handlerKey[pattern.Length]) >= 0)))
                     {
                         if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
                         {
@@ -927,7 +931,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach (string pattern in m_HTTPHandlers.Keys)
                 {
-                    if (handlerKey.StartsWith(pattern))
+                    if ((handlerKey == pattern)
+                        || (handlerKey.StartsWith(pattern) && (HANDLER_SEPARATORS.IndexOf(handlerKey[pattern.Length]) >= 0)))
                     {
                         if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
                         {
