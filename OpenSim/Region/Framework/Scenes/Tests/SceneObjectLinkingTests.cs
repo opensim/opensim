@@ -148,6 +148,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(grp1.Parts.Length, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
             Assert.That(part2.AbsolutePosition == Vector3.Zero, "The absolute position should be zero");
+            Assert.NotNull(grp3);
         }
 
         [Test]
