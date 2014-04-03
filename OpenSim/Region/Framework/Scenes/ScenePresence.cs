@@ -1023,8 +1023,6 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                     {
                         part.AddSittingAvatar(this);
-                        if (part.SitTargetPosition != Vector3.Zero)
-                            part.SitTargetAvatar = UUID;
     //                    ParentPosition = part.GetWorldPosition();
                         ParentID = part.LocalId;
                         ParentPart = part;
