@@ -1022,8 +1022,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        part.ParentGroup.AddAvatar(UUID);
-                        part.AddSittingAvatar(UUID);
+                        part.AddSittingAvatar(this);
                         if (part.SitTargetPosition != Vector3.Zero)
                             part.SitTargetAvatar = UUID;
     //                    ParentPosition = part.GetWorldPosition();
@@ -2522,7 +2521,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                part.ParentGroup.DeleteAvatar(UUID);
                 Vector3 sitPartWorldPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
@@ -2578,7 +2576,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
-                part.RemoveSittingAvatar(UUID);
+                part.RemoveSittingAvatar(this);
 
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
             }
@@ -2688,7 +2686,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Velocity = Vector3.Zero;
 
-                part.AddSittingAvatar(UUID);
+                part.AddSittingAvatar(this);
 
                 cameraAtOffset = part.GetCameraAtOffset();
                 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -2821,7 +2819,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Velocity = Vector3.Zero;
 
-            part.AddSittingAvatar(UUID);
+            part.AddSittingAvatar(this);
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -2836,7 +2834,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_pos = offset;
 
             m_requestedSitTargetID = 0;
-            part.ParentGroup.AddAvatar(UUID);
 
             ParentPart = part;
             ParentID = part.LocalId;
@@ -2936,7 +2933,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
 
-                part.ParentGroup.AddAvatar(UUID);
                 ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;

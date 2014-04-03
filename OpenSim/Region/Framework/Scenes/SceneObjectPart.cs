@@ -1299,7 +1299,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// null if there are no sitting avatars.  This is to save us create a hashset for every prim in a scene.
         /// </value>
-        private HashSet<UUID> m_sittingAvatars;
+        private HashSet<ScenePresence> m_sittingAvatars;
 
         public virtual UUID RegionID
         {
@@ -1803,7 +1803,7 @@ namespace OpenSim.Region.Framework.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
-            dupe.m_sittingAvatars = new HashSet<OpenMetaverse.UUID>();
+            dupe.m_sittingAvatars = new HashSet<ScenePresence>();
 
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
@@ -4917,19 +4917,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// true if the avatar was not already recorded, false otherwise.
         /// </returns>
         /// <param name='avatarId'></param>
-        protected internal bool AddSittingAvatar(UUID avatarId)
+        protected internal bool AddSittingAvatar(ScenePresence sp)
         {
             lock (ParentGroup.m_sittingAvatars)
             {
                 if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
-                    SitTargetAvatar = avatarId;
+                    SitTargetAvatar = sp.UUID;
 
                 if (m_sittingAvatars == null)
-                    m_sittingAvatars = new HashSet<UUID>();
+                    m_sittingAvatars = new HashSet<ScenePresence>();
 
-                if (m_sittingAvatars.Add(avatarId))
+                if (m_sittingAvatars.Add(sp))
                 {
-                    ParentGroup.m_sittingAvatars.Add(avatarId);
+                    ParentGroup.m_sittingAvatars.Add(sp);
 
                     return true;
                 }
@@ -4946,22 +4946,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// true if the avatar was present and removed, false if it was not present.
         /// </returns>
         /// <param name='avatarId'></param>
-        protected internal bool RemoveSittingAvatar(UUID avatarId)
+        protected internal bool RemoveSittingAvatar(ScenePresence sp)
         {
             lock (ParentGroup.m_sittingAvatars)
             {
-                if (SitTargetAvatar == avatarId)
+                if (SitTargetAvatar == sp.UUID)
                     SitTargetAvatar = UUID.Zero;
 
                 if (m_sittingAvatars == null)
                     return false;
 
-                if (m_sittingAvatars.Remove(avatarId))
+                if (m_sittingAvatars.Remove(sp))
                 {
                     if (m_sittingAvatars.Count == 0)
                         m_sittingAvatars = null;
 
-                    ParentGroup.m_sittingAvatars.Remove(avatarId);
+                    ParentGroup.m_sittingAvatars.Remove(sp);
 
                     return true;
                 }
@@ -4975,14 +4975,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
         /// <returns>A hashset of the sitting avatars.  Returns null if there are no sitting avatars.</returns>
-        public HashSet<UUID> GetSittingAvatars()
+        public HashSet<ScenePresence> GetSittingAvatars()
         {
             lock (ParentGroup.m_sittingAvatars)
             {
                 if (m_sittingAvatars == null)
                     return null;
                 else
-                    return new HashSet<UUID>(m_sittingAvatars);
+                    return new HashSet<ScenePresence>(m_sittingAvatars);
             }
         }
 

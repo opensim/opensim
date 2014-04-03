@@ -172,7 +172,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 so1PostCross = sceneB.GetSceneObjectGroup(so1Id);
                 Assert.NotNull(so1PostCross);
                 Assert.AreEqual(1, so1PostCross.GetSittingAvatarsCount());
-                Assert.AreEqual(1, so1PostCross.GetLinkedAvatars().Count);
             }
 
             Vector3 so1PostCrossPos = so1PostCross.AbsolutePosition;
@@ -198,7 +197,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 SceneObjectGroup so1PostReCross = sceneA.GetSceneObjectGroup(so1Id);
                 Assert.NotNull(so1PostReCross);
                 Assert.AreEqual(1, so1PostReCross.GetSittingAvatarsCount());
-                Assert.AreEqual(1, so1PostReCross.GetLinkedAvatars().Count);
             }
         }
 

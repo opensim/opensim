@@ -335,14 +335,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             int actualPrimCount = part.ParentGroup.PrimCount;
-            List<UUID> sittingAvatarIds = part.ParentGroup.GetSittingAvatars();
-            int adjustedPrimCount = actualPrimCount + sittingAvatarIds.Count;
+            List<ScenePresence> sittingAvatars = part.ParentGroup.GetSittingAvatars();
+            int adjustedPrimCount = actualPrimCount + sittingAvatars.Count;
 
             // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
             // prim that has any avatars sat upon it (in which case the root prim is link 1).
             if (linknum == 0)
             {
-                if (actualPrimCount == 1 && sittingAvatarIds.Count == 0)
+                if (actualPrimCount == 1 && sittingAvatars.Count == 0)
                     return part;
 
                 return null;
@@ -351,7 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // here we must match 1 (ScriptBaseClass.LINK_ROOT).
             else if (linknum == ScriptBaseClass.LINK_ROOT && actualPrimCount == 1)
             {
-                if (sittingAvatarIds.Count > 0)
+                if (sittingAvatars.Count > 0)
                     return part.ParentGroup.RootPart;
                 else
                     return null;
@@ -364,11 +364,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                 {
-                    ScenePresence sp = World.GetScenePresence(sittingAvatarIds[linknum - actualPrimCount - 1]);
-                    if (sp != null)
-                        return sp;
-                    else
-                        return null;
+                    return sittingAvatars[linknum - actualPrimCount - 1];
                 }
             }
             else
@@ -3619,7 +3615,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (m_host.ParentGroup.GetSittingAvatars().Contains(agentID))
+                if (m_host.ParentGroup.GetSittingAvatars().SingleOrDefault(sp => sp.UUID == agentID) != null)
                 {
                     // When agent is sitting, certain permissions are implicit if requested from sitting agent
                     implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
@@ -3651,10 +3647,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             ScenePresence presence = World.GetScenePresence(agentID);
+            
             if (presence != null)
             {
                 // If permissions are being requested from an NPC and were not implicitly granted above then
-                // auto grant all reuqested permissions if the script is owned by the NPC or the NPCs owner
+                // auto grant all requested permissions if the script is owned by the NPC or the NPCs owner
                 INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
                 if (npcModule != null && npcModule.IsNPC(agentID, World))
                 {
