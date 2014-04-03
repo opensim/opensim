@@ -657,7 +657,7 @@ public sealed class BSCharacter : BSPhysObject
 
     private OMV.Vector3 ComputeAvatarScale(OMV.Vector3 size)
     {
-        OMV.Vector3 newScale;
+        OMV.Vector3 newScale = size;
 
         // Bullet's capsule total height is the "passed height + radius * 2";
         // The base capsule is 1 unit in diameter and 2 units in height (passed radius=0.5, passed height = 1)
@@ -670,8 +670,6 @@ public sealed class BSCharacter : BSPhysObject
         //     for a asymmetrical capsule, other parts of the code presume it is cylindrical.
 
         // Scale is multiplier of radius with one of "0.5"
-        newScale.X = size.X / 2f;
-        newScale.Y = size.Y / 2f;
 
         float heightAdjust = BSParam.AvatarHeightMidFudge;
         if (BSParam.AvatarHeightLowFudge != 0f || BSParam.AvatarHeightHighFudge != 0f)
@@ -692,8 +690,17 @@ public sealed class BSCharacter : BSPhysObject
                 heightAdjust += ((midHeightOffset) / (AVATAR_HI - AVATAR_MID)) * BSParam.AvatarHeightHighFudge;
             }
         }
-        // The total scale height is the central cylindar plus the caps on the two ends.
-        newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2) + heightAdjust) / 2f;
+        if (BSParam.AvatarShape == BSShapeCollection.AvatarShapeCapsule)
+        {
+            newScale.X = size.X / 2f;
+            newScale.Y = size.Y / 2f;
+            // The total scale height is the central cylindar plus the caps on the two ends.
+            newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2) + heightAdjust) / 2f;
+        }
+        else
+        {
+            newScale.Z = size.Z + heightAdjust;
+        }
         // m_log.DebugFormat("{0} ComputeAvatarScale: size={1},adj={2},scale={3}", LogHeader, size, heightAdjust, newScale);
 
         // If smaller than the endcaps, just fake like we're almost that small

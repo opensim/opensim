@@ -1765,11 +1765,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Next, let's close the child agent connections that are too far away.
             uint neighbourx;
             uint neighboury;
-
-            Utils.LongToUInts(neighbourRegion.RegionHandle, out neighbourx, out neighboury);
-
-            neighbourx /= Constants.RegionSize;
-            neighboury /= Constants.RegionSize;
+            Util.RegionHandleToRegionLoc(neighbourRegion.RegionHandle, out neighbourx, out neighboury);
 
             agent.CloseChildAgents(neighbourx, neighboury);
 

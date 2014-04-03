@@ -124,6 +124,10 @@ public sealed class BSShapeCollection : IDisposable
     // Info in prim.BSShape is updated to the new shape.
     // Returns 'true' if the geometry was rebuilt.
     // Called at taint-time!
+    public const int AvatarShapeCapsule = 0;
+    public const int AvatarShapeCube = 1;
+    public const int AvatarShapeOvoid = 2;
+    public const int AvatarShapeMesh = 3;
     private bool CreateGeom(bool forceRebuild, BSPhysObject prim, PhysicalDestructionCallback shapeCallback)
     {
         bool ret = false;
@@ -137,10 +141,32 @@ public sealed class BSShapeCollection : IDisposable
         if (theChar != null)
         {
             DereferenceExistingShape(prim, shapeCallback);
-            prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
+            switch (BSParam.AvatarShape)
+            {
+                case AvatarShapeCapsule:
+                    prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
                                             BSPhysicsShapeType.SHAPE_CAPSULE, FixedShapeKey.KEY_CAPSULE);
-            ret = true;
-            haveShape = true;
+                    ret = true;
+                    haveShape = true;
+                    break;
+                case AvatarShapeCube:
+                    prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
+                                            BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_CAPSULE);
+                    ret = true;
+                    haveShape = true;
+                    break;
+                case AvatarShapeOvoid:
+                    // Saddly, Bullet doesn't scale spheres so this doesn't work as an avatar shape
+                    prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
+                                            BSPhysicsShapeType.SHAPE_SPHERE, FixedShapeKey.KEY_CAPSULE);
+                    ret = true;
+                    haveShape = true;
+                    break;
+                case AvatarShapeMesh:
+                    break;
+                default:
+                    break;
+            }
         }
 
         // If the prim attributes are simple, this could be a simple Bullet native shape
