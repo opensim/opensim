@@ -1579,9 +1579,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetSize(Vector3 size, float feetoffset)
         {
-// TODO: Merge the physics bits
-//            if (PhysicsActor != null && !IsChildAgent)
-//                PhysicsActor.setAvatarSize(size, feetoffset);
+            if (PhysicsActor != null && !IsChildAgent)
+            {
+                // Eventually there will be a physics call that sets avatar size that includes offset info.
+                // For the moment, just set the size as passed.
+                PhysicsActor.Size = size;
+                //  PhysicsActor.setAvatarSize(size, feetoffset);
+            }
             
         }
 
