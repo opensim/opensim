@@ -750,9 +750,10 @@ namespace OpenSim.Services.LLLoginService
             UUID regionID;
             ulong handle;
             string imageURL = string.Empty, reason = string.Empty;
+            string message;
             if (m_GatekeeperConnector.LinkRegion(gatekeeper, out regionID, out handle, out domainName, out imageURL, out reason))
             {
-                GridRegion destination = m_GatekeeperConnector.GetHyperlinkRegion(gatekeeper, regionID);
+                GridRegion destination = m_GatekeeperConnector.GetHyperlinkRegion(gatekeeper, regionID, out message);
                 return destination;
             }
 

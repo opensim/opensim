@@ -204,15 +204,26 @@ namespace OpenSim.Services.HypergridService
             return true;
         }
 
-        public GridRegion GetHyperlinkRegion(UUID regionID)
+        public GridRegion GetHyperlinkRegion(UUID regionID, out string message)
         {
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get hyperlink region {0}", regionID);
+            message = null;
 
             if (!m_AllowTeleportsToAnyRegion)
+            {
                 // Don't even check the given regionID
+                message = "Teleporting to the default region.";
                 return m_DefaultGatewayRegion;
+            }
 
             GridRegion region = m_GridService.GetRegionByUUID(m_ScopeID, regionID);
+
+            if (region == null)
+            {
+                message = "The teleport destination could not be found.";
+                return null;
+            }
+
             return region;
         }
 

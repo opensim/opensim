@@ -529,14 +529,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (reg != null)
             {
-                finalDestination = GetFinalDestination(reg);
+                string message;
+                finalDestination = GetFinalDestination(reg, out message);
 
                 if (finalDestination == null)
                 {
-                    m_log.WarnFormat( "{0} Final destination is having problems. Unable to teleport {1} {2}",
-                                            LogHeader, sp.Name, sp.UUID);
+                    m_log.WarnFormat( "{0} Final destination is having problems. Unable to teleport {1} {2}: {3}",
+                                            LogHeader, sp.Name, sp.UUID, message);
 
-                    sp.ControllingClient.SendTeleportFailed("Problem at destination");
+                    sp.ControllingClient.SendTeleportFailed(message);
                     return;
                 }
 
@@ -556,6 +557,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.ControllingClient.SendTeleportFailed(reason);
                     return;
                 }
+
+                if (message != null)
+                    sp.ControllingClient.SendAgentAlertMessage(message, true);
 
                 //
                 // This is it
@@ -1327,8 +1331,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             scene.SendKillObject(new List<uint> { localID });
         }
 
-        protected virtual GridRegion GetFinalDestination(GridRegion region)
+        protected virtual GridRegion GetFinalDestination(GridRegion region, out string message)
         {
+            message = null;
             return region;
         }
 

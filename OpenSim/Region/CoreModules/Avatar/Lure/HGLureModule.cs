@@ -239,16 +239,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
                         GridRegion gatekeeper = new GridRegion();
                         gatekeeper.ServerURI = url;
-                        GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(im.RegionID));
+                        string message;
+                        GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(im.RegionID), out message);
                         if (finalDestination != null)
                         {
                             ScenePresence sp = scene.GetScenePresence(client.AgentId);
                             IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
 
                             if (transferMod != null && sp != null)
+                            {
+                                if (message != null)
+                                    sp.ControllingClient.SendAgentAlertMessage(message, true);
+
                                 transferMod.DoTeleport(
                                     sp, gatekeeper, finalDestination, im.Position + new Vector3(0.5f, 0.5f, 0f),
                                     Vector3.UnitX, teleportflags);
+                            }
+                        }
+                        else
+                        {
+                            m_log.InfoFormat("[HG LURE MODULE]: Lure failed: {0}", message);
+                            client.SendAgentAlertMessage(message, true);
                         }
                     }
                 }

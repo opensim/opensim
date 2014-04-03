@@ -202,7 +202,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return mapTile;
         }
 
-        public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID)
+        public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID, out string message)
         {
             Hashtable hash = new Hashtable();
             hash["region_uuid"] = regionID.ToString();
@@ -219,12 +219,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
+                message = "Error contacting grid.";
                 m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Exception " + e.Message);
                 return null;
             }
 
             if (response.IsFault)
             {
+                message = "Error contacting grid.";
                 m_log.ErrorFormat("[GATEKEEPER SERVICE CONNECTOR]: remote call returned an error: {0}", response.FaultString);
                 return null;
             }
@@ -236,6 +238,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             {
                 bool success = false;
                 Boolean.TryParse((string)hash["result"], out success);
+
+                if (hash["message"] != null)
+                    message = (string)hash["message"];
+                else if (success)
+                    message = null;
+                else
+                    message = "The teleport destination could not be found.";   // probably the dest grid is old and doesn't send 'message', but the most common problem is that the region is unavailable
+
                 if (success)
                 {
                     GridRegion region = new GridRegion();
@@ -305,6 +315,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
+                message = "Error parsing response from grid.";
                 m_log.Error("[GATEKEEPER SERVICE CONNECTOR]: Got exception while parsing hyperlink response " + e.StackTrace);
                 return null;
             }
