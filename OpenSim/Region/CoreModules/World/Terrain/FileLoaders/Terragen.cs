@@ -275,9 +275,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             bs.Write(enc.GetBytes("ALTW"));
             bs.Write(Convert.ToInt16(horizontalScale)); // range between max and min
             bs.Write(Convert.ToInt16(baseHeight)); // base height or mid point
-            
+
             double factor = 65536.0 / horizontalScale; // avoid computing this on each iteration
-            
+
             for (int y = 0; y < map.Height; y++)
             {
                 for (int x = 0; x < map.Width; x++)
