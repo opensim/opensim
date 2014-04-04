@@ -4227,6 +4227,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (pa != null)
                     {
                         pa.SetMaterial(Material);
+                        pa.Position = GetWorldPosition();
+                        pa.Orientation = GetWorldRotation();
                         DoPhysicsPropertyUpdate(UsePhysics, true);
 
                         SubscribeForCollisionEvents();
