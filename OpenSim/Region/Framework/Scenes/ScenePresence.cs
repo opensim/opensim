@@ -2866,7 +2866,6 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-
                 if (part.SitTargetAvatar == UUID)
                 {
                     Vector3 sitTargetPos = part.SitTargetPosition;
@@ -2935,7 +2934,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
 
-                ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+                ParentPart = part;
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
