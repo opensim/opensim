@@ -117,9 +117,7 @@ namespace OpenSim.Region.ClientStack.Linden.Caps.Tests
             PollServiceEventArgs pseArgs;
             userCaps.TryGetPollHandler("FetchInventoryDescendents2", out pseArgs);
             req.UriPath = pseArgs.Url;
-            Console.WriteLine("req.UriPath:{0}", req.UriPath);
             req.Uri = new Uri(req.UriPath);
-            Console.WriteLine("req.Uri:{0}", req.Uri);
 
             // Retrieve root folder details directly so that we can request
             InventoryFolderBase folder = scene.InventoryService.GetRootFolder(ua.PrincipalID);
