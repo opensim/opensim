@@ -524,8 +524,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
                     Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
-
-                return;
             }
             else 
             {
@@ -561,13 +559,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 else
                 {
                     remoteClient.SendTeleportFailed(message);
-                    return;
                 }
 
             }
-
-            // can't find the region: Tell viewer and abort
-            remoteClient.SendTeleportFailed("The teleport destination could not be found.");
         }
 
         #endregion
