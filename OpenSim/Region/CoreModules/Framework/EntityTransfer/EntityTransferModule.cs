@@ -742,7 +742,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string reason;
             string version;
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
+                finalDestination, sp.ControllingClient.AgentId, position, out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
