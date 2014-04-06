@@ -2676,6 +2676,18 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Returns the Home URI of the agent, or null if unknown.
+        /// </summary>
+        public string GetAgentHomeURI(UUID agentID)
+        {
+            AgentCircuitData circuit = AuthenticateHandler.GetAgentCircuitData(agentID);
+            if (circuit != null && circuit.ServiceURLs != null && circuit.ServiceURLs.ContainsKey("HomeURI"))
+                return circuit.ServiceURLs["HomeURI"].ToString();
+            else
+                return null;
+        }
+
+        /// <summary>
         /// Cache the user name for later use.
         /// </summary>
         /// <param name="sp"></param>

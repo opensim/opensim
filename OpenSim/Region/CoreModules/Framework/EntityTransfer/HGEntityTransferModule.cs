@@ -532,11 +532,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
                 GridRegion gatekeeper = new GridRegion();
                 gatekeeper.ServerURI = lm.Gatekeeper;
-
-                string homeURI = null;
-                AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(remoteClient.AgentId);
-                if (acd != null && acd.ServiceURLs != null && acd.ServiceURLs.ContainsKey("HomeURI"))
-                    homeURI = (string)acd.ServiceURLs["HomeURI"];
+                string homeURI = Scene.GetAgentHomeURI(remoteClient.AgentId);
 
                 string message;
                 GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID), remoteClient.AgentId, homeURI, out message);

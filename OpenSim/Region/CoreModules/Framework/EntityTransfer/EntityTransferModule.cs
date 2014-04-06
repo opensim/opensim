@@ -529,10 +529,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (reg != null)
             {
-                string homeURI = null;
-                AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.AgentId);
-                if (acd != null && acd.ServiceURLs != null && acd.ServiceURLs.ContainsKey("HomeURI"))
-                    homeURI = (string)acd.ServiceURLs["HomeURI"];
+                string homeURI = Scene.GetAgentHomeURI(sp.ControllingClient.AgentId);
 
                 string message;
                 finalDestination = GetFinalDestination(reg, sp.ControllingClient.AgentId, homeURI, out message);
