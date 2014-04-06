@@ -529,8 +529,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (reg != null)
             {
+                string homeURI = null;
+                AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.AgentId);
+                if (acd != null && acd.ServiceURLs != null && acd.ServiceURLs.ContainsKey("HomeURI"))
+                    homeURI = (string)acd.ServiceURLs["HomeURI"];
+
                 string message;
-                finalDestination = GetFinalDestination(reg, out message);
+                finalDestination = GetFinalDestination(reg, sp.ControllingClient.AgentId, homeURI, out message);
 
                 if (finalDestination == null)
                 {
@@ -1331,7 +1336,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             scene.SendKillObject(new List<uint> { localID });
         }
 
-        protected virtual GridRegion GetFinalDestination(GridRegion region, out string message)
+        protected virtual GridRegion GetFinalDestination(GridRegion region, UUID agentID, string agentHomeURI, out string message)
         {
             message = null;
             return region;

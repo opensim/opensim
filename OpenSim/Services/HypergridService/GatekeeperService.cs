@@ -204,9 +204,11 @@ namespace OpenSim.Services.HypergridService
             return true;
         }
 
-        public GridRegion GetHyperlinkRegion(UUID regionID, out string message)
+        public GridRegion GetHyperlinkRegion(UUID regionID, UUID agentID, string agentHomeURI, out string message)
         {
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get hyperlink region {0}", regionID);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get hyperlink region {0} for user {1}{2}",
+                regionID, agentID, (agentHomeURI == null) ? "" : " @ " + agentHomeURI);
+
             message = null;
 
             if (!m_AllowTeleportsToAnyRegion)

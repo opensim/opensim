@@ -202,10 +202,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return mapTile;
         }
 
-        public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID, out string message)
+        public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID, UUID agentID, string agentHomeURI, out string message)
         {
             Hashtable hash = new Hashtable();
             hash["region_uuid"] = regionID.ToString();
+            if (agentID != UUID.Zero)
+            {
+                hash["agent_id"] = agentID.ToString();
+                if (agentHomeURI != null)
+                    hash["agent_home_uri"] = agentHomeURI;
+            }
 
             IList paramList = new ArrayList();
             paramList.Add(hash);

@@ -688,8 +688,7 @@ namespace OpenSim.Services.LLLoginService
                             if (parts.Length > 1)
                                 UInt32.TryParse(parts[1], out port);
 
-//                            GridRegion region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
-                            region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
+                            region = FindForeignRegion(domainName, port, regionName, account, out gatekeeper);
                             return region;
                         }
                     }
@@ -738,7 +737,7 @@ namespace OpenSim.Services.LLLoginService
             return null;
         }
 
-        private GridRegion FindForeignRegion(string domainName, uint port, string regionName, out GridRegion gatekeeper)
+        private GridRegion FindForeignRegion(string domainName, uint port, string regionName, UserAccount account, out GridRegion gatekeeper)
         {
             m_log.Debug("[LLLOGIN SERVICE]: attempting to findforeignregion " + domainName + ":" + port.ToString() + ":" + regionName);
             gatekeeper = new GridRegion();
@@ -753,7 +752,11 @@ namespace OpenSim.Services.LLLoginService
             string message;
             if (m_GatekeeperConnector.LinkRegion(gatekeeper, out regionID, out handle, out domainName, out imageURL, out reason))
             {
-                GridRegion destination = m_GatekeeperConnector.GetHyperlinkRegion(gatekeeper, regionID, out message);
+                string homeURI = null;
+                if (account.ServiceURLs != null && account.ServiceURLs.ContainsKey("HomeURI"))
+                    homeURI = (string)account.ServiceURLs["HomeURI"];
+                
+                GridRegion destination = m_GatekeeperConnector.GetHyperlinkRegion(gatekeeper, regionID, account.PrincipalID, homeURI, out message);
                 return destination;
             }
 

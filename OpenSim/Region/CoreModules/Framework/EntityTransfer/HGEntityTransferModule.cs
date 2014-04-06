@@ -225,7 +225,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region HG overrides of IEntiryTransferModule
 
-        protected override GridRegion GetFinalDestination(GridRegion region, out string message)
+        protected override GridRegion GetFinalDestination(GridRegion region, UUID agentID, string agentHomeURI, out string message)
         {
             int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, region.RegionID);
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: region {0} flags: {1}", region.RegionName, flags);
@@ -234,7 +234,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if ((flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
             {
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Destination region is hyperlink");
-                GridRegion real_destination = m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID, out message);
+                GridRegion real_destination = m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID, agentID, agentHomeURI, out message);
                 if (real_destination != null)
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: GetFinalDestination: ServerURI={0}", real_destination.ServerURI);
                 else
@@ -534,8 +534,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
                 GridRegion gatekeeper = new GridRegion();
                 gatekeeper.ServerURI = lm.Gatekeeper;
+
+                string homeURI = null;
+                AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(remoteClient.AgentId);
+                if (acd != null && acd.ServiceURLs != null && acd.ServiceURLs.ContainsKey("HomeURI"))
+                    homeURI = (string)acd.ServiceURLs["HomeURI"];
+
                 string message;
-                GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID), out message);
+                GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID), remoteClient.AgentId, homeURI, out message);
 
                 if (finalDestination != null)
                 {
