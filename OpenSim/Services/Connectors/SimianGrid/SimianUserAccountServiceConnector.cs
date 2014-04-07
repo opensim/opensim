@@ -191,6 +191,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return accounts;
         }
 
+        public void InvalidateCache(UUID userID)
+        {
+            m_accountCache.Remove(userID);
+        }
+
         public bool StoreUserAccount(UserAccount data)
         {
 //            m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account for " + data.Name);

@@ -189,5 +189,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="data"></param>
         /// <returns></returns>
         bool StoreUserAccount(UserAccount data);
+
+        void InvalidateCache(UUID userID);
     }
 }

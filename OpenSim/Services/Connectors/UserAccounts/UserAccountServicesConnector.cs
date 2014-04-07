@@ -187,6 +187,10 @@ namespace OpenSim.Services.Connectors
             return accounts;
         }
 
+        public void InvalidateCache(UUID userID)
+        {
+        }
+
         public virtual bool StoreUserAccount(UserAccount data)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

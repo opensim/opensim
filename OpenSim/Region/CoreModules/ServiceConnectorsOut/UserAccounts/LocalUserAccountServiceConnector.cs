@@ -190,7 +190,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         //
         public bool StoreUserAccount(UserAccount data)
         {
-            return UserAccountService.StoreUserAccount(data);
+            bool ret = UserAccountService.StoreUserAccount(data);
+            if (ret)
+                m_Cache.Cache(data.PrincipalID, data);
+            return ret;
+        }
+
+        public void InvalidateCache(UUID userID)
+        {
+            m_Cache.Invalidate(userID);
         }
 
         #endregion

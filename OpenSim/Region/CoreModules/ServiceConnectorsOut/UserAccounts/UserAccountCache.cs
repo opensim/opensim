@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -59,6 +59,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_EXPIRATION_SECONDS);
 
             //m_log.DebugFormat("[USER CACHE]: cached user {0}", userID);
+        }
+
+        public void Invalidate(UUID userID)
+        {
+            m_UUIDCache.Remove(userID);
         }
 
         public UserAccount Get(UUID userID, out bool inCache)

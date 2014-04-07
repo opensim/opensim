@@ -256,6 +256,10 @@ namespace OpenSim.Services.UserAccountService
             return MakeUserAccount(d[0]);
         }
 
+        public void InvalidateCache(UUID userID)
+        {
+        }
+
         public bool StoreUserAccount(UserAccount data)
         {
 //            m_log.DebugFormat(

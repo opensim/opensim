@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -93,6 +93,11 @@ namespace OpenSim.Services.HypergridService
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
             return null;
+        }
+
+        public void InvalidateCache(UUID userID)
+        {
+            m_UUIDCache.Remove(userID);
         }
 
         public bool StoreUserAccount(UserAccount data)
