@@ -272,9 +272,7 @@ namespace OpenSim.Services.Connectors.Simulation
         }
 
 
-        /// <summary>
-        /// </summary>
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, Vector3 position, out string version, out string reason)
         {
             reason = "Failed to contact destination";
             version = "Unknown";
@@ -285,10 +283,12 @@ namespace OpenSim.Services.Connectors.Simulation
             if (ext == null) return false;
 
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            string uri = destination.ServerURI + AgentPath() + agentID + "/" + destination.RegionID.ToString() + "/";
 
             OSDMap request = new OSDMap();
             request.Add("position", OSD.FromString(position.ToString()));
+            if (agentHomeURI != null)
+                request.Add("agent_home_uri", OSD.FromString(agentHomeURI));
 
             try
             {

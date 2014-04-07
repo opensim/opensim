@@ -37,6 +37,19 @@ namespace OpenSim.Services.Interfaces
     public interface IGatekeeperService
     {
         bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason);
+        
+        /// <summary>
+        /// Returns the region a Hypergrid visitor should enter.
+        /// </summary>
+        /// <remarks>
+        /// Usually the returned region will be the requested region. But the grid can choose to
+        /// redirect the user to another region: e.g., a default gateway region.
+        /// </remarks>
+        /// <param name="regionID">The region the visitor *wants* to enter</param>
+        /// <param name="agentID">The visitor's User ID. Will be missing (UUID.Zero) in older OpenSims.</param>
+        /// <param name="agentHomeURI">The visitor's Home URI. Will be missing (null) in older OpenSims.</param>
+        /// <param name="message">[out] A message to show to the user (optional, may be null)</param>
+        /// <returns>The region the visitor should enter, or null if no region can be found / is allowed</returns>
         GridRegion GetHyperlinkRegion(UUID regionID, UUID agentID, string agentHomeURI, out string message);
 
         bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);

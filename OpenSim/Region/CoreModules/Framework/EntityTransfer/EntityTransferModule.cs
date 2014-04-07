@@ -700,6 +700,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            string homeURI = Scene.GetAgentHomeURI(sp.ControllingClient.AgentId);
+
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Teleporting {0} {1} from {2} to {3} ({4}) {5}/{6}",
                 sp.Name, sp.UUID, sp.Scene.RegionInfo.RegionName,
@@ -744,7 +746,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string reason;
             string version;
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, position, out version, out reason))
+                finalDestination, sp.ControllingClient.AgentId, homeURI, position, out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -1456,6 +1458,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             version = String.Empty;
             newpos = pos;
             failureReason = string.Empty;
+            string homeURI = scene.GetAgentHomeURI(agentID);
 
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
@@ -1489,7 +1492,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // Check to see if we have access to the target region.
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out failureReason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, newpos, out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);

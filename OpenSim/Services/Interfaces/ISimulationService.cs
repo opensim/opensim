@@ -75,7 +75,17 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         bool UpdateAgent(GridRegion destination, AgentPosition data);
 
-        bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason);
+        /// <summary>
+        /// Returns whether a propspective user is allowed to visit the region.
+        /// </summary>
+        /// <param name="destination">Desired destination</param>
+        /// <param name="agentID">The visitor's User ID</param>
+        /// <param name="agentHomeURI">The visitor's Home URI. Will be missing (null) in older OpenSims.</param>
+        /// <param name="position">Position in the region</param>
+        /// <param name="version"></param>
+        /// <param name="reason">[out] Optional error message</param>
+        /// <returns>True: ok; False: not allowed</returns>
+        bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, Vector3 position, out string version, out string reason);
 
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.

@@ -5466,11 +5466,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// or corssing the broder walking, but will NOT prevent
         /// child agent creation, thereby emulating the SL behavior.
         /// </remarks>
-        /// <param name='agentID'></param>
+        /// <param name='agentID'>The visitor's User ID</param>
+        /// <param name="agentHomeURI">The visitor's Home URI (may be null)</param>
         /// <param name='position'></param>
         /// <param name='reason'></param>
         /// <returns></returns>
-        public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
+        public bool QueryAccess(UUID agentID, string agentHomeURI, Vector3 position, out string reason)
         {
             reason = "You are banned from the region";
 

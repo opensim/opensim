@@ -117,7 +117,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         }
 
-        protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
+        protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID agentID, UUID regionID)
         {
             if (m_SimulationService == null)
             {
@@ -136,12 +136,16 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("position"))
                 position = Vector3.Parse(args["position"].AsString());
 
+            string agentHomeURI = null;
+            if (args.ContainsKey("agent_home_uri"))
+                agentHomeURI = args["agent_home_uri"].AsString();
+
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
             string reason;
             string version;
-            bool result = m_SimulationService.QueryAccess(destination, id, position, out version, out reason);
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, position, out version, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 
