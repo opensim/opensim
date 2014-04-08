@@ -75,6 +75,12 @@ namespace OpenSim.Services.Connectors
 
         public virtual string Helo()
         {
+            if (String.IsNullOrEmpty(m_ServerURI))
+            {
+                m_log.WarnFormat("[HELO SERVICE]: Unable to invoke HELO due to malformed URL");
+                return String.Empty;
+            }
+
             HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
             // Eventually we need to switch to HEAD
             /* req.Method = "HEAD"; */
