@@ -80,7 +80,7 @@ namespace OpenSim.Services.PresenceService
             
             m_Database.Store(data);
 
-            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent {0} with session {1} and ssession {2}",
+            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent {0} with session {1} and secure session {2}",
                 userID, sessionID, secureSessionID);
             return true;
         }
@@ -93,6 +93,7 @@ namespace OpenSim.Services.PresenceService
 
         public bool LogoutRegionAgents(UUID regionID)
         {
+            m_log.DebugFormat("[PRESENCE SERVICE]: Logout agents in region {0}", regionID);
             m_Database.LogoutRegionAgents(regionID);
 
             return true;
