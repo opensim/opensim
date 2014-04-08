@@ -841,11 +841,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 m_interRegionTeleportFailures.Value++;
 
-                sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
-
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Teleport of {0} from {1} to {2} was refused because {3}",
                     sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
+
+                sp.ControllingClient.SendTeleportFailed(reason);
 
                 return;
             }
@@ -1090,11 +1090,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 m_interRegionTeleportFailures.Value++;
 
-                sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
-
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Teleport of {0} from {1} to {2} was refused because {3}",
                     sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
+
+                sp.ControllingClient.SendTeleportFailed(reason);
 
                 return;
             }
