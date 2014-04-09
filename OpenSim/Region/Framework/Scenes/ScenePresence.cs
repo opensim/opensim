@@ -451,7 +451,19 @@ namespace OpenSim.Region.Framework.Scenes
         public string Firstname { get; private set; }
         public string Lastname { get; private set; }
 
-        public string Grouptitle { get; set; }
+        public string Grouptitle
+        {
+            get { return UseFakeGroupTitle ? "(Loading)" : m_groupTitle; }
+            set { m_groupTitle = value; }
+        }
+        private string m_groupTitle;
+
+        /// <summary>
+        /// When this is 'true', return a dummy group title instead of the real group title. This is
+        /// used as part of a hack to force viewers to update the displayed avatar name.
+        /// </summary>
+        public bool UseFakeGroupTitle { get; set; }
+
 
         // Agent's Draw distance.
         public float DrawDistance { get; set; }
@@ -1051,6 +1063,17 @@ namespace OpenSim.Region.Framework.Scenes
             if (gm != null)
                 Grouptitle = gm.GetGroupTitle(m_uuid);
 
+            AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode);
+            uint teleportFlags = (aCircuit == null) ? 0 : aCircuit.teleportFlags;
+            if ((teleportFlags & (uint)TeleportFlags.ViaHGLogin) != 0)
+            {
+                // The avatar is arriving from another grid. This means that we may have changed the
+                // avatar's name to or from the special Hypergrid format ("First.Last @grid.example.com").
+                // Unfortunately, due to a viewer bug, viewers don't always show the new name.
+                // But we have a trick that can force them to update the name anyway.
+                ForceViewersUpdateName();
+            }
+
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
@@ -1245,6 +1268,36 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
             return true;
+        }
+
+        /// <summary>
+        /// Force viewers to show the avatar's current name.
+        /// </summary>
+        /// <remarks>
+        /// The avatar name that is shown above the avatar in the viewers is sent in ObjectUpdate packets,
+        /// and they get the name from the ScenePresence. Unfortunately, viewers have a bug (as of April 2014)
+        /// where they ignore changes to the avatar name. However, tey don't ignore changes to the avatar's
+        /// Group Title. So the following trick makes viewers update the avatar's name by briefly changing
+        /// the group title (to "(Loading)"), and then restoring it.
+        /// </remarks>
+        public void ForceViewersUpdateName()
+        {
+            m_log.DebugFormat("[SCENE PRESENCE]: Forcing viewers to update the avatar name for " + Name);
+
+            UseFakeGroupTitle = true;
+            SendAvatarDataToAllAgents(false);
+
+            Util.FireAndForget(o =>
+            {
+                // Viewers only update the avatar name when idle. Therefore, we must wait long
+                // enough for the viewer to show the fake name that we had set above, and only
+                // then switch back to the true name. This delay was chosen because it has a high
+                // chance of succeeding (we don't want to choose a value that's too low).
+                Thread.Sleep(5000);
+
+                UseFakeGroupTitle = false;
+                SendAvatarDataToAllAgents(false);
+            });
         }
 
         public int GetStateSource()
@@ -3263,11 +3316,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void SendAvatarDataToAllAgents()
+        {
+            SendAvatarDataToAllAgents(true);
+        }
+
         /// <summary>
         /// Send this agent's avatar data to all other root and child agents in the scene
         /// This agent must be root. This avatar will receive its own update. 
         /// </summary>
-        public void SendAvatarDataToAllAgents()
+        public void SendAvatarDataToAllAgents(bool full)
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAllAgents: {0} ({1})", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
@@ -3284,10 +3342,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
-                                         {
-                                             SendAvatarDataToAgent(scenePresence);
-                                             count++;
-                                         });
+            {
+                if (full)
+                    SendAvatarDataToAgent(scenePresence);
+                else
+                    scenePresence.ControllingClient.SendAvatarDataImmediate(this);
+                count++;
+            });
 
             m_scene.StatsReporter.AddAgentUpdates(count);
         }
