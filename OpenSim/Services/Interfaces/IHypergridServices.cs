@@ -52,13 +52,14 @@ namespace OpenSim.Services.Interfaces
         /// <returns>The region the visitor should enter, or null if no region can be found / is allowed</returns>
         GridRegion GetHyperlinkRegion(UUID regionID, UUID agentID, string agentHomeURI, out string message);
 
-        bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
+        bool LoginAgent(GridRegion source, AgentCircuitData aCircuit, GridRegion destination, out string reason);
 
     }
 
     public interface IUserAgentService
     {
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
+        bool LoginAgentToGrid(GridRegion source, AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
+        
         void LogoutAgent(UUID userID, UUID sessionID);
 
         /// <summary>

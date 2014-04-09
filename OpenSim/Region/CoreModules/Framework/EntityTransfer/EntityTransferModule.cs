@@ -111,6 +111,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </remarks>
         private Stat m_interRegionTeleportFailures;
 
+        protected string m_ThisHomeURI;
+
         protected bool m_Enabled = false;
 
         public Scene Scene { get; private set; }
@@ -206,6 +208,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             string transferVersionName = "SIMULATION";
             float maxTransferVersion = 0.2f;
+
+            IConfig hypergridConfig = source.Configs["Hypergrid"];
+            if (hypergridConfig != null)
+            {
+                m_ThisHomeURI = hypergridConfig.GetString("HomeURI", string.Empty);
+                if (m_ThisHomeURI != string.Empty && !m_ThisHomeURI.EndsWith("/"))
+                    m_ThisHomeURI += '/';
+            }
 
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
@@ -1296,8 +1306,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
+            GridRegion source = new GridRegion(Scene.RegionInfo);
+            source.RawServerURI = m_ThisHomeURI;
+
             logout = false;
-            bool success = Scene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
+            bool success = Scene.SimulationService.CreateAgent(source, finalDestination, agentCircuit, teleportFlags, out reason);
 
             if (success)
                 sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
@@ -2262,7 +2275,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Thread.Sleep(500);
 
             Scene scene = sp.Scene;
-
+            
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Informing {0} {1} about neighbour {2} {3} at ({4},{5})",
                 sp.Name, sp.UUID, reg.RegionName, endPoint, reg.RegionCoordX, reg.RegionCoordY);
@@ -2271,7 +2284,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string reason = String.Empty;
 
-            bool regionAccepted = scene.SimulationService.CreateAgent(reg, a, (uint)TeleportFlags.Default, out reason);
+            bool regionAccepted = scene.SimulationService.CreateAgent(null, reg, a, (uint)TeleportFlags.Default, out reason);
 
             if (regionAccepted && newAgent)
             {

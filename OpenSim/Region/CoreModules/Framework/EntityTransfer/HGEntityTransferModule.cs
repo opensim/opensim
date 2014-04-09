@@ -53,7 +53,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private int m_levelHGTeleport = 0;
-        private string m_ThisHomeURI;
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
         private IUserAgentService m_UAS;
@@ -144,14 +143,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     InitialiseCommon(source);
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
-            }
-
-            moduleConfig = source.Configs["Hypergrid"];
-            if (moduleConfig != null)
-            {
-                m_ThisHomeURI = moduleConfig.GetString("HomeURI", string.Empty);
-                if (m_ThisHomeURI != string.Empty && !m_ThisHomeURI.EndsWith("/"))
-                    m_ThisHomeURI += '/';
             }
         }
 
@@ -296,7 +287,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     else
                         connector = new UserAgentServiceConnector(userAgentDriver);
 
-                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, false, out reason);
+                    GridRegion source = new GridRegion(Scene.RegionInfo);
+                    source.RawServerURI = m_ThisHomeURI;
+                    
+                    bool success = connector.LoginAgentToGrid(source, agentCircuit, reg, finalDestination, false, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)

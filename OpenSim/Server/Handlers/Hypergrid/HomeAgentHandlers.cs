@@ -117,9 +117,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
 
-        protected override bool CreateAgent(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
+        protected override bool CreateAgent(GridRegion source, GridRegion gatekeeper, GridRegion destination,
+            AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
-            return m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, fromLogin, out reason);
+            return m_UserAgentService.LoginAgentToGrid(source, aCircuit, gatekeeper, destination, fromLogin, out reason);
         }
 
     }

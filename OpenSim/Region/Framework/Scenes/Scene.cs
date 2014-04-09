@@ -3382,12 +3382,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="agent">CircuitData of the agent who is connecting</param>
         /// <param name="teleportFlags"></param>
+        /// <param name="source">Source region (may be null)</param>
         /// <param name="reason">Outputs the reason for the false response on this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-        public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason)
+        public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, GridRegion source, out string reason)
         {
-            return NewUserConnection(agent, teleportFlags, out reason, true);
+            return NewUserConnection(agent, teleportFlags, source, out reason, true);
         }
 
         /// <summary>
@@ -3407,12 +3408,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// the LLUDP stack).
         /// </remarks>
         /// <param name="acd">CircuitData of the agent who is connecting</param>
+        /// <param name="source">Source region (may be null)</param>
         /// <param name="reason">Outputs the reason for the false response on this string</param>
         /// <param name="requirePresenceLookup">True for normal presence. False for NPC
         /// or other applications where a full grid/Hypergrid presence may not be required.</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-        public bool NewUserConnection(AgentCircuitData acd, uint teleportFlags, out string reason, bool requirePresenceLookup)
+        public bool NewUserConnection(AgentCircuitData acd, uint teleportFlags, GridRegion source, out string reason, bool requirePresenceLookup)
         {
             bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
                 (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
@@ -3431,7 +3433,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Don't disable this log message - it's too helpful
             string curViewer = Util.GetViewerName(acd);
             m_log.DebugFormat(
-                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags ({8}), position {9})",
+                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags ({8}), position {9}. {10}",
                 RegionInfo.RegionName,
                 (acd.child ? "child" : "root"),
                 acd.firstname,
@@ -3441,7 +3443,8 @@ namespace OpenSim.Region.Framework.Scenes
                 acd.IPAddress,
                 curViewer,
                 ((TPFlags)teleportFlags).ToString(),
-                acd.startpos
+                acd.startpos,
+                (source == null) ? "" : string.Format("From region {0} ({1}){2}", source.RegionName, source.RegionID, (source.RawServerURI == null) ? "" : " @ " + source.ServerURI)
             );
 
             if (!LoginsEnabled)

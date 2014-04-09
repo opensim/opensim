@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
          * Agent-related communications
          */
 
-        public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
+        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
         {
             if (destination == null)
             {
@@ -172,13 +172,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             }
 
             // Try local first
-            if (m_localBackend.CreateAgent(destination, aCircuit, teleportFlags, out reason))
+            if (m_localBackend.CreateAgent(source, destination, aCircuit, teleportFlags, out reason))
                 return true;
 
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionID))
             {
-                return m_remoteConnector.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+                return m_remoteConnector.CreateAgent(source, destination, aCircuit, teleportFlags, out reason);
             }
             return false;
         }

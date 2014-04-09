@@ -215,7 +215,7 @@ namespace OpenSim.Services.HypergridService
             return home;
         }
 
-        public bool LoginAgentToGrid(AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason)
+        public bool LoginAgentToGrid(GridRegion source, AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason)
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
                 agentCircuit.firstname, agentCircuit.lastname, (fromLogin ? agentCircuit.IPAddress : "stored IP"), gatekeeper.ServerURI);
@@ -274,10 +274,12 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}, desired region: {2}", m_GridName, gridName, region.RegionID);
 
             if (m_GridName == gridName)
-                success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
+            {
+                success = m_GatekeeperService.LoginAgent(source, agentCircuit, finalDestination, out reason);
+            }
             else
             {
-                success = m_GatekeeperConnector.CreateAgent(region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out myExternalIP, out reason);
+                success = m_GatekeeperConnector.CreateAgent(source, region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out myExternalIP, out reason);
                 if (success)
                     // Report them as nowhere
                     m_PresenceService.ReportAgent(agentCircuit.SessionID, UUID.Zero);
@@ -307,10 +309,10 @@ namespace OpenSim.Services.HypergridService
             return true;
         }
 
-        public bool LoginAgentToGrid(AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, out string reason)
+        public bool LoginAgentToGrid(GridRegion source, AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, out string reason)
         {
             reason = string.Empty;
-            return LoginAgentToGrid(agentCircuit, gatekeeper, finalDestination, false, out reason);
+            return LoginAgentToGrid(source, agentCircuit, gatekeeper, finalDestination, false, out reason);
         }
 
         TravelingAgentInfo CreateTravelInfo(AgentCircuitData agentCircuit, GridRegion region, bool fromLogin, out TravelingAgentInfo existing)

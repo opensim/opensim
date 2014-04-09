@@ -307,13 +307,29 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
+            GridRegion source = null;
+
+            if (args.ContainsKey("source_uuid"))
+            {
+                source = new GridRegion();
+                source.RegionLocX = Int32.Parse(args["source_x"].AsString());
+                source.RegionLocY = Int32.Parse(args["source_y"].AsString());
+                source.RegionName = args["source_name"].AsString();
+                source.RegionID = UUID.Parse(args["source_uuid"].AsString());
+                
+                if (args.ContainsKey("source_server_uri"))
+                    source.RawServerURI = args["source_server_uri"].AsString();
+                else
+                    source.RawServerURI = null;
+            }
+
             OSDMap resp = new OSDMap(2);
             string reason = String.Empty;
 
             // This is the meaning of POST agent
             //m_regionClient.AdjustUserInformation(aCircuit);
             //bool result = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
-            bool result = CreateAgent(gatekeeper, destination, aCircuit, data.flags, data.fromLogin, out reason);
+            bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, data.fromLogin, out reason);
 
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
@@ -387,9 +403,10 @@ namespace OpenSim.Server.Handlers.Simulation
         }
 
         // subclasses can override this
-        protected virtual bool CreateAgent(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
+        protected virtual bool CreateAgent(GridRegion source, GridRegion gatekeeper, GridRegion destination,
+            AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
-            return m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            return m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, out reason);
         }
     }
 

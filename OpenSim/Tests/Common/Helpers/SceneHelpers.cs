@@ -548,7 +548,7 @@ namespace OpenSim.Tests.Common
             string reason;
 
             // Stage 1: tell the scene to expect a new user connection
-            if (!scene.NewUserConnection(agentData, (uint)tf, out reason))
+            if (!scene.NewUserConnection(agentData, (uint)tf, null, out reason))
                 Console.WriteLine("NewUserConnection failed: " + reason);
 
             // Stage 2: add the new client as a child agent to the scene

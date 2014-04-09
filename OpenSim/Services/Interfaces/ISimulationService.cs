@@ -53,11 +53,13 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Ask the simulator hosting the destination to create an agent on that region.
         /// </summary>
+        /// <param name="source">The region that the user is coming from. Will be null if the user
+        /// logged-in directly, or arrived from a simulator that doesn't send this parameter.</param>
         /// <param name="destination"></param>
         /// <param name="aCircuit"></param>
         /// <param name="flags"></param>
         /// <param name="reason">Reason message in the event of a failure.</param>        
-        bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason);
+        bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason);
 
         /// <summary>
         /// Full child agent update.

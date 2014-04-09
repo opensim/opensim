@@ -905,13 +905,6 @@ namespace OpenSim.Services.LLLoginService
             SetServiceURLs(aCircuit, account);
 
             return aCircuit;
-
-            //m_UserAgentService.LoginAgentToGrid(aCircuit, GatekeeperServiceConnector, region, out reason);
-            //if (simConnector.CreateAgent(region, aCircuit, 0, out reason))
-            //    return aCircuit;
-
-            //return null;
-
         }
 
         private void SetServiceURLs(AgentCircuitData aCircuit, UserAccount account)
@@ -966,13 +959,13 @@ namespace OpenSim.Services.LLLoginService
 
         private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, TeleportFlags flags, out string reason)
         {
-            return simConnector.CreateAgent(region, aCircuit, (uint)flags, out reason);
+            return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, out reason);
         }
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)
         {
             m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
-            if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, true, out reason))
+            if (m_UserAgentService.LoginAgentToGrid(null, aCircuit, gatekeeper, destination, true, out reason))
                 return true;
             return false;
         }

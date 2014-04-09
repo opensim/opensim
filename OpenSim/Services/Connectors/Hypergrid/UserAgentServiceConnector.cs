@@ -116,7 +116,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
         // The Login service calls this interface with fromLogin=true 
         // Sims call it with fromLogin=false
         // Either way, this is verified by the handler
-        public bool LoginAgentToGrid(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, bool fromLogin, out string reason)
+        public bool LoginAgentToGrid(GridRegion source, AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, bool fromLogin, out string reason)
         {
             reason = String.Empty;
 
@@ -138,54 +138,23 @@ namespace OpenSim.Services.Connectors.Hypergrid
             Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
 
             uint flags = fromLogin ? (uint)TeleportFlags.ViaLogin : (uint)TeleportFlags.ViaHome;
-            return CreateAgent(home, aCircuit, flags, out reason);
+            return CreateAgent(source, home, aCircuit, flags, out reason);
         }
 
 
         // The simulators call this interface
-        public bool LoginAgentToGrid(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, out string reason)
+        public bool LoginAgentToGrid(GridRegion source, AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, out string reason)
         {
-            return LoginAgentToGrid(aCircuit, gatekeeper, destination, false, out reason);
+            return LoginAgentToGrid(source, aCircuit, gatekeeper, destination, false, out reason);
         }
 
-        protected override void PackData(OSDMap args, AgentCircuitData aCircuit, GridRegion destination, uint flags)
+        protected override void PackData(OSDMap args, GridRegion source, AgentCircuitData aCircuit, GridRegion destination, uint flags)
         {
-            base.PackData(args, aCircuit, destination, flags);
+            base.PackData(args, source, aCircuit, destination, flags);
             args["gatekeeper_serveruri"] = OSD.FromString(m_Gatekeeper.ServerURI);
             args["gatekeeper_host"] = OSD.FromString(m_Gatekeeper.ExternalHostName);
             args["gatekeeper_port"] = OSD.FromString(m_Gatekeeper.HttpPort.ToString());
             args["destination_serveruri"] = OSD.FromString(destination.ServerURI);
-        }
-
-        protected OSDMap PackCreateAgentArguments(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, IPEndPoint ipaddress)
-        {
-            OSDMap args = null;
-            try
-            {
-                args = aCircuit.PackAgentCircuitData();
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[USER AGENT CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
-            }
-
-            // Add the input arguments
-            args["gatekeeper_serveruri"] = OSD.FromString(gatekeeper.ServerURI);
-            args["gatekeeper_host"] = OSD.FromString(gatekeeper.ExternalHostName);
-            args["gatekeeper_port"] = OSD.FromString(gatekeeper.HttpPort.ToString());
-            args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
-            args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
-            args["destination_name"] = OSD.FromString(destination.RegionName);
-            args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
-            args["destination_serveruri"] = OSD.FromString(destination.ServerURI);
-
-            // 10/3/2010
-            // I added the client_ip up to the regular AgentCircuitData, so this doesn't need to be here.
-            // This need cleaning elsewhere...
-            //if (ipaddress != null)
-            //    args["client_ip"] = OSD.FromString(ipaddress.Address.ToString());
-
-            return args;
         }
 
         public void SetClientToken(UUID sessionID, string token)
