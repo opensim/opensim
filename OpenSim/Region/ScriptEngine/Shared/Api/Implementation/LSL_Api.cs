@@ -4283,27 +4283,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             switch (data)
             {
-            case 1: // DATA_ONLINE (0|1)
+            case ScriptBaseClass.DATA_ONLINE:
                 if (pinfo != null && pinfo.RegionID != UUID.Zero)
                     reply = "1";
                 else
                     reply = "0";
                 break;
-            case 2: // DATA_NAME (First Last)
+            case ScriptBaseClass.DATA_NAME: // (First Last)
                 reply = account.FirstName + " " + account.LastName;
                 break;
-            case 3: // DATA_BORN (YYYY-MM-DD)
+            case ScriptBaseClass.DATA_BORN: // (YYYY-MM-DD)
                 DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
                 born = born.AddSeconds(account.Created);
                 reply = born.ToString("yyyy-MM-dd");
                 break;
-            case 4: // DATA_RATING (0,0,0,0,0,0)
+            case ScriptBaseClass.DATA_RATING: // (0,0,0,0,0,0)
                 reply = "0,0,0,0,0,0";
                 break;
-            case 7: // DATA_USERLEVEL (integer)
+            case 7: // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
                 reply = account.UserLevel.ToString();
                 break;
-            case 8: // DATA_PAYINFO (0|1|2|3)
+            case ScriptBaseClass.DATA_PAYINFO: // (0|1|2|3)
                 reply = "0";
                 break;
             default:
