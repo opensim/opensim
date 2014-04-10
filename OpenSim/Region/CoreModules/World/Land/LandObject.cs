@@ -385,9 +385,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.SalePrice = 0;
             newData.AuthBuyerID = UUID.Zero;
             newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
+
+            bool sellObjects = (LandData.Flags & (uint)(ParcelFlags.SellParcelObjects)) != 0
+                && !LandData.IsGroupOwned && !groupOwned;
+            UUID previousOwner = LandData.OwnerID;
+
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             SendLandUpdateToAvatarsOverMe(true);
+
+            if (sellObjects) SellLandObjects(previousOwner);
         }
 
         public void DeedToGroup(UUID groupID)
@@ -1063,6 +1070,43 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             }
             return ownersAndCount;
+        }
+
+        #endregion
+
+        #region Object Sales
+
+        public void SellLandObjects(UUID previousOwner)
+        {
+            // m_log.DebugFormat(
+            //    "[LAND OBJECT]: Request to sell objects in {0} from {1}", LandData.Name, previousOwner);
+
+            if (LandData.IsGroupOwned)
+                return;
+
+            IBuySellModule m_BuySellModule = m_scene.RequestModuleInterface<IBuySellModule>();
+            if (m_BuySellModule == null)
+            {
+                m_log.Error("[LAND OBJECT]: BuySellModule not found");
+                return;
+            }
+
+            ScenePresence sp;
+            if (!m_scene.TryGetScenePresence(LandData.OwnerID, out sp))
+            {
+                m_log.Error("[LAND OBJECT]: New owner is not present in scene");
+                return;
+            }
+
+            lock (primsOverMe)
+            {
+                foreach (SceneObjectGroup obj in primsOverMe)
+                {
+                    if (obj.OwnerID == previousOwner && obj.GroupID == UUID.Zero &&
+                        (obj.GetEffectivePermissions() & (uint)(OpenSim.Framework.PermissionMask.Transfer)) != 0)
+                        m_BuySellModule.BuyObject(sp.ControllingClient, UUID.Zero, obj.LocalId, 1, 0);
+                }
+            }
         }
 
         #endregion
