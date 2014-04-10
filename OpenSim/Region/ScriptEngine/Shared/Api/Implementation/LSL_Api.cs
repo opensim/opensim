@@ -87,6 +87,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public int LlRequestAgentDataCacheTimeoutMs { get; set; }
+
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
 
@@ -160,30 +162,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         private void LoadConfig()
         {
-            m_ScriptDelayFactor =
-                m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor =
-                m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
-            m_MinTimerInterval =
-                m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
-            m_automaticLinkPermission =
-                m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
-            m_notecardLineReadCharsMax =
-                m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
+            LlRequestAgentDataCacheTimeoutMs = 20000;
+
+            IConfig seConfig = m_ScriptEngine.Config;
+
+            if (seConfig != null)
+            {
+                m_ScriptDelayFactor =
+                    seConfig.GetFloat("ScriptDelayFactor", m_ScriptDelayFactor);
+                m_ScriptDistanceFactor =
+                    seConfig.GetFloat("ScriptDistanceLimitFactor", m_ScriptDistanceFactor);
+                m_MinTimerInterval =
+                    seConfig.GetFloat("MinTimerInterval", m_MinTimerInterval);
+                m_automaticLinkPermission =
+                    seConfig.GetBoolean("AutomaticLinkPermission", m_automaticLinkPermission);
+                m_notecardLineReadCharsMax =
+                    seConfig.GetInt("NotecardLineReadCharsMax", m_notecardLineReadCharsMax);
+
+                // Rezzing an object with a velocity can create recoil. This feature seems to have been
+                //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
+                //    it by this factor. May be zero to turn off recoil all together.
+                m_recoilScaleFactor = m_ScriptEngine.Config.GetFloat("RecoilScaleFactor", m_recoilScaleFactor);
+            }
+
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
 
             // load limits for particular subsystems.
-            IConfig SMTPConfig;
-            if ((SMTPConfig = m_ScriptEngine.ConfigSource.Configs["SMTP"]) != null) {
-                // there's an smtp config, so load in the snooze time.
-                EMAIL_PAUSE_TIME = SMTPConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
-            }
+            IConfigSource seConfigSource = m_ScriptEngine.ConfigSource;
 
-            // Rezzing an object with a velocity can create recoil. This feature seems to have been
-            //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
-            //    it by this factor. May be zero to turn off recoil all together.
-            m_recoilScaleFactor = m_ScriptEngine.Config.GetFloat("RecoilScaleFactor", m_recoilScaleFactor);
+            if (seConfigSource != null)
+            {
+                IConfig smtpConfig = seConfigSource.Configs["SMTP"];
+                if (smtpConfig != null) 
+                {
+                    // there's an smtp config, so load in the snooze time.
+                    EMAIL_PAUSE_TIME = smtpConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
+                }
+            }
         }
 
         public override Object InitializeLifetimeService()
@@ -4196,60 +4212,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UserAccount account;
 
             UserInfoCacheEntry ce;
-            if (!m_userInfoCache.TryGetValue(uuid, out ce))
+
+            lock (m_userInfoCache)
             {
-                account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
-                if (account == null)
+                if (!m_userInfoCache.TryGetValue(uuid, out ce))
                 {
-                    m_userInfoCache[uuid] = null; // Cache negative
-                    return UUID.Zero.ToString();
-                }
-
-
-                PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                if (pinfos != null && pinfos.Length > 0)
-                {
-                    foreach (PresenceInfo p in pinfos)
+                    account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+                    if (account == null)
                     {
-                        if (p.RegionID != UUID.Zero)
+                        m_userInfoCache[uuid] = null; // Cache negative
+                        return UUID.Zero.ToString();
+                    }
+
+                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                    if (pinfos != null && pinfos.Length > 0)
+                    {
+                        foreach (PresenceInfo p in pinfos)
                         {
-                            pinfo = p;
+                            if (p.RegionID != UUID.Zero)
+                            {
+                                pinfo = p;
+                            }
                         }
                     }
-                }
 
-                ce = new UserInfoCacheEntry();
-                ce.time = Util.EnvironmentTickCount();
-                ce.account = account;
-                ce.pinfo = pinfo;
-            }
-            else
-            {
-                if (ce == null)
-                    return UUID.Zero.ToString();
+                    ce = new UserInfoCacheEntry();
+                    ce.time = Util.EnvironmentTickCount();
+                    ce.account = account;
+                    ce.pinfo = pinfo;
 
-                account = ce.account;
-                pinfo = ce.pinfo;
-            }
-
-            if (Util.EnvironmentTickCount() < ce.time || (Util.EnvironmentTickCount() - ce.time) >= 20000)
-            {
-                PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                if (pinfos != null && pinfos.Length > 0)
-                {
-                    foreach (PresenceInfo p in pinfos)
-                    {
-                        if (p.RegionID != UUID.Zero)
-                        {
-                            pinfo = p;
-                        }
-                    }
+                    m_userInfoCache[uuid] = ce;
                 }
                 else
-                    pinfo = null;
+                {
+                    if (ce == null)
+                        return UUID.Zero.ToString();
 
-                ce.time = Util.EnvironmentTickCount();
-                ce.pinfo = pinfo;
+                    account = ce.account;
+
+                    if (Util.EnvironmentTickCount() < ce.time || (Util.EnvironmentTickCount() - ce.time) 
+                        >= LlRequestAgentDataCacheTimeoutMs)
+                    {
+                        PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                        if (pinfos != null && pinfos.Length > 0)
+                        {
+                            foreach (PresenceInfo p in pinfos)
+                            {
+                                if (p.RegionID != UUID.Zero)
+                                {
+                                    pinfo = p;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            pinfo = null;
+                        }
+
+                        ce.time = Util.EnvironmentTickCount();
+                        ce.pinfo = pinfo;
+                    }
+                    else
+                    {
+                        pinfo = ce.pinfo;
+                    }
+                }
             }
 
             string reply = String.Empty;

@@ -40,7 +40,7 @@ namespace OpenSim.Data.Null
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private static NullPresenceData Instance;
+        public static NullPresenceData Instance;
 
         Dictionary<UUID, PresenceData> m_presenceData = new Dictionary<UUID, PresenceData>();
 

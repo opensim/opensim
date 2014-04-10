@@ -30,6 +30,7 @@ using System.Net;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Data.Null;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
@@ -301,6 +302,11 @@ namespace OpenSim.Tests.Common
         /// <param name="testScene"></param>
         private static LocalPresenceServicesConnector StartPresenceService()
         {
+            // Unfortunately, some services share data via statics, so we need to null every time to stop interference
+            // between tests.
+            // This is a massive non-obvious pita.
+            NullPresenceData.Instance = null;
+
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("PresenceService");
