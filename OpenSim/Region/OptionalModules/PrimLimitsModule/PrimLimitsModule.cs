@@ -102,20 +102,34 @@ namespace OpenSim.Region.OptionalModules
         public void RegionLoaded(Scene scene)
         {
             m_dialogModule = scene.RequestModuleInterface<IDialogModule>();
-        }                
+        }
 
-        private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
+        private bool CanRezObject(int objectCount, UUID ownerID, Vector3 objectPosition, Scene scene)
         {
             ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
-            int usedPrims = lo.PrimCounts.Total;
-            int simulatorCapacity = lo.GetSimulatorMaxPrimCount();
 
-            if (objectCount + usedPrims > simulatorCapacity)
+            string response = DoCommonChecks(objectCount, ownerID, lo, scene);
+
+            if (response != null)
             {
-                m_dialogModule.SendAlertToUser(owner, "Unable to rez object because the parcel is too full");
+                m_dialogModule.SendAlertToUser(ownerID, response);
                 return false;
             }
+            return true;
+        }
 
+        //OnDuplicateObject
+        private bool CanDuplicateObject(int objectCount, UUID objectID, UUID ownerID, Scene scene, Vector3 objectPosition)
+        {
+            ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+
+            string response = DoCommonChecks(objectCount, ownerID, lo, scene);
+
+            if (response != null)
+            {
+                m_dialogModule.SendAlertToUser(ownerID, response);
+                return false;
+            }
             return true;
         }
 
@@ -127,12 +141,12 @@ namespace OpenSim.Region.OptionalModules
             ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
 
-            // newParcel will be null only if it outside of our current region.  If this is the case, then the 
+            // newParcel will be null only if it outside of our current region.  If this is the case, then the
             // receiving permissions will perform the check.
             if (newParcel == null)
                 return true;
-            
-            // The prim hasn't crossed a region boundry so we don't need to worry
+
+            // The prim hasn't crossed a region boundary so we don't need to worry
             // about prim counts here
             if(oldParcel.Equals(newParcel))
             {
@@ -148,32 +162,63 @@ namespace OpenSim.Region.OptionalModules
 
             // TODO: Add Special Case here for temporary prims
 
-            int usedPrims = newParcel.PrimCounts.Total;
-            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
-            
-            if (objectCount + usedPrims > simulatorCapacity)
+            string response = DoCommonChecks(objectCount, obj.OwnerID, newParcel, scene);
+
+            if (response != null)
             {
-                m_dialogModule.SendAlertToUser(obj.OwnerID, "Unable to move object because the destination parcel  is too full");
+                m_dialogModule.SendAlertToUser(obj.OwnerID, response);
                 return false;
             }
-
             return true;
         }
 
-        //OnDuplicateObject
-        private bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition)
+        private string DoCommonChecks(int objectCount, UUID ownerID, ILandObject lo, Scene scene)
         {
-            ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            string response = null;
+            EstateSettings estateSettings = scene.RegionInfo.EstateSettings;
+
+            // counts don't seem to be updated, so force it.
+            scene.EventManager.TriggerParcelPrimCountUpdate();
+
             int usedPrims = lo.PrimCounts.Total;
             int simulatorCapacity = lo.GetSimulatorMaxPrimCount();
 
-            if(objectCount + usedPrims > simulatorCapacity)
+            if ((objectCount + usedPrims) > simulatorCapacity)
             {
-                m_dialogModule.SendAlertToUser(owner, "Unable to duplicate object because the parcel is too full");
-                return false;
+                response = "Unable to rez object because the parcel is too full";
             }
-
-            return true;
+            else
+            {
+                int maxPrimsPerUser = scene.RegionInfo.MaxPrimsPerUser;
+                if (maxPrimsPerUser >= 0)
+                {
+                    // per-user prim limit is set
+                    if (ownerID != lo.LandData.OwnerID || lo.LandData.IsGroupOwned)
+                    {
+                        // caller is not the sole parcel owner
+                        if (ownerID != estateSettings.EstateOwner)
+                        {
+                            // caller is NOT the Estate owner
+                            List<UUID> mgrs = new List<UUID>(estateSettings.EstateManagers);
+                            if (!mgrs.Contains(ownerID))
+                            {
+                                // caller is NOT an Estate Manager, so check quota
+                                Dictionary<UUID, int> objectMap = lo.GetLandObjectOwners();
+                                int currentCount;
+                                if (!objectMap.TryGetValue(ownerID, out currentCount))
+                                {
+                                    currentCount = 0;
+                                }
+                                if ((currentCount + objectCount) >  maxPrimsPerUser)
+                                {
+                                    response = "Unable to rez object because you have reached your limit";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return response;
         }
     }
 }

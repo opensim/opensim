@@ -127,6 +127,7 @@ namespace OpenSim.Framework
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
+        private int m_maxPrimsPerUser = -1;
         private int m_linksetCapacity = 0;
         private int m_agentCapacity = 0;
         private string m_regionType = String.Empty;
@@ -323,6 +324,11 @@ namespace OpenSim.Framework
         public int ObjectCapacity
         {
             get { return m_objectCapacity; }
+        }
+
+        public int MaxPrimsPerUser
+        {
+            get { return m_maxPrimsPerUser; }
         }
 
         public int LinksetCapacity
@@ -709,6 +715,9 @@ namespace OpenSim.Framework
             m_objectCapacity = config.GetInt("MaxPrims", 15000);
             allKeys.Remove("MaxPrims");
 
+            m_maxPrimsPerUser = config.GetInt("MaxPrimsPerUser", -1);
+            allKeys.Remove("MaxPrimsPerUser");
+
             m_linksetCapacity = config.GetInt("LinksetPrims", 0);
             allKeys.Remove("LinksetPrims");
 
@@ -834,6 +843,9 @@ namespace OpenSim.Framework
             if (m_objectCapacity > 0)
                 config.Set("MaxPrims", m_objectCapacity);
 
+            if (m_maxPrimsPerUser > -1)
+                config.Set("MaxPrimsPerUser", m_maxPrimsPerUser);
+
             if (m_linksetCapacity > 0)
                 config.Set("LinksetPrims", m_linksetCapacity);
 
@@ -945,6 +957,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", m_objectCapacity.ToString(), true);
+
+            configMember.addConfigurationOption("prims_per_user", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max objects one user may rez", m_maxPrimsPerUser.ToString(), true);
 
             configMember.addConfigurationOption("linkset_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max prims an object will hold", m_linksetCapacity.ToString(), true);
@@ -1095,6 +1110,9 @@ namespace OpenSim.Framework
                     break;
                 case "object_capacity":
                     m_objectCapacity = (int)configuration_result;
+                    break;
+                case "prims_per_user":
+                    m_maxPrimsPerUser = (int)configuration_result;
                     break;
                 case "linkset_capacity":
                     m_linksetCapacity = (int)configuration_result;

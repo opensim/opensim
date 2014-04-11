@@ -38,6 +38,7 @@ namespace OpenSim.Framework
         int GetParcelMaxPrimCount();
         int GetSimulatorMaxPrimCount();
         int GetPrimsFree();
+        Dictionary<UUID, int> GetLandObjectOwners();
 
         LandData LandData { get; set; }
         bool[,] LandBitmap { get; set; }
