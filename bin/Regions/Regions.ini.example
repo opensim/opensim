@@ -34,6 +34,10 @@ ExternalHostName = "SYSTEMIP"
 ; MaxPrims = 15000
 ; MaxAgents = 100
 
+; * Max prims per user (per parcel).
+; * Negative values will disable the check.
+; MaxPrimsPerUser = -1
+
 ; *
 ; * Multi-Tenancy. Only set if needed
 ; *

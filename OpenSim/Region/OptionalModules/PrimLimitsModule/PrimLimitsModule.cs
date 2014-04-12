@@ -175,15 +175,9 @@ namespace OpenSim.Region.OptionalModules
         private string DoCommonChecks(int objectCount, UUID ownerID, ILandObject lo, Scene scene)
         {
             string response = null;
-            EstateSettings estateSettings = scene.RegionInfo.EstateSettings;
 
-            // counts don't seem to be updated, so force it.
-            scene.EventManager.TriggerParcelPrimCountUpdate();
-
-            int usedPrims = lo.PrimCounts.Total;
             int simulatorCapacity = lo.GetSimulatorMaxPrimCount();
-
-            if ((objectCount + usedPrims) > simulatorCapacity)
+            if ((objectCount + lo.PrimCounts.Total) > simulatorCapacity)
             {
                 response = "Unable to rez object because the parcel is too full";
             }
@@ -195,21 +189,16 @@ namespace OpenSim.Region.OptionalModules
                     // per-user prim limit is set
                     if (ownerID != lo.LandData.OwnerID || lo.LandData.IsGroupOwned)
                     {
-                        // caller is not the sole parcel owner
+                        // caller is not the sole Parcel owner
+                        EstateSettings estateSettings = scene.RegionInfo.EstateSettings;
                         if (ownerID != estateSettings.EstateOwner)
                         {
                             // caller is NOT the Estate owner
                             List<UUID> mgrs = new List<UUID>(estateSettings.EstateManagers);
                             if (!mgrs.Contains(ownerID))
                             {
-                                // caller is NOT an Estate Manager, so check quota
-                                Dictionary<UUID, int> objectMap = lo.GetLandObjectOwners();
-                                int currentCount;
-                                if (!objectMap.TryGetValue(ownerID, out currentCount))
-                                {
-                                    currentCount = 0;
-                                }
-                                if ((currentCount + objectCount) >  maxPrimsPerUser)
+                                // caller is not an Estate Manager
+                                if ((lo.PrimCounts.Users[ownerID] + objectCount) >  maxPrimsPerUser)
                                 {
                                     response = "Unable to rez object because you have reached your limit";
                                 }
