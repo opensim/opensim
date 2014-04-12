@@ -151,7 +151,7 @@ namespace OpenSim.Framework
         public uint RegionSizeY = Constants.RegionSize;
         public uint RegionSizeZ = Constants.RegionHeight;
 
-        private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
+        private Dictionary<String, String> m_extraSettings = new Dictionary<string, string>();
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -501,20 +501,20 @@ namespace OpenSim.Framework
             m_internalEndPoint = tmpEPE;
         }
 
-        public string GetOtherSetting(string key)
+        public string GetSetting(string key)
         {
             string val;
             string keylower = key.ToLower();
-            if (m_otherSettings.TryGetValue(keylower, out val))
+            if (m_extraSettings.TryGetValue(keylower, out val))
                 return val;
             m_log.DebugFormat("[RegionInfo] Could not locate value for parameter {0}", key);
             return null;
         }
 
-        public void SetOtherSetting(string key, string value)
+        private void SetExtraSetting(string key, string value)
         {
             string keylower = key.ToLower();
-            m_otherSettings[keylower] = value;
+            m_extraSettings[keylower] = value;
         }
 
         private void ReadNiniConfig(IConfigSource source, string name)
@@ -738,7 +738,7 @@ namespace OpenSim.Framework
 
             foreach (String s in allKeys)
             {
-                SetOtherSetting(s, config.GetString(s));
+                SetExtraSetting(s, config.GetString(s));
             }
         }
 
