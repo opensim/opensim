@@ -98,7 +98,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                                     xmlSource.Length);
                         XmlDocument xmlDoc = new XmlDocument();
                         xmlDoc.LoadXml(xmlSource);
-                        if (xmlDoc.FirstChild.Name == "Regions")
+                        if (xmlDoc.FirstChild.Name == "Nini")
                         {
                             regionCount = xmlDoc.FirstChild.ChildNodes.Count;
     

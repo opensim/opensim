@@ -102,7 +102,6 @@ namespace OpenSim.Framework
         private static readonly string LogHeader = "[REGION INFO]";
 
         public bool commFailTF = false;
-        public ConfigurationMember configMember;
         public string RegionFile = String.Empty;
         public bool isSandbox = false;
         public bool Persistent = true;
@@ -204,7 +203,6 @@ namespace OpenSim.Framework
             try
             {
                 // This will throw if it's not legal Nini XML format
-                // and thereby toss it to the legacy loader
                 //
                 IConfigSource xmlsource = new XmlConfigSource(filename);
 
@@ -217,21 +215,18 @@ namespace OpenSim.Framework
             catch (Exception)
             {
             }
-
-            configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
-            configMember.performConfigurationRetrieve();
-            RegionFile = filename;
         }
 
         // The web loader uses this
         //
         public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig, IConfigSource configSource)
         {
-            // m_configSource = configSource;
-            configMember =
-                new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
-            configMember.performConfigurationRetrieve();
+            XmlElement elem = (XmlElement)xmlNode;
+            string name = elem.GetAttribute("Name");
+            string xmlstr = "<Nini>" + xmlNode.OuterXml + "</Nini>";
+            XmlConfigSource source = new XmlConfigSource(XmlReader.Create(new StringReader(xmlstr)));
+            ReadNiniConfig(source, name);
+
             m_serverURI = string.Empty;
         }
 
@@ -889,264 +884,14 @@ namespace OpenSim.Framework
 
                 return;
             }
-            else if (filename.ToLower().EndsWith(".xml"))
-            {
-                configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe,
-                                                       ignoreIncomingConfiguration, false);
-                configMember.performConfigurationRetrieve();
-                RegionFile = filename;
-            }
             else
                 throw new Exception("Invalid file type for region persistence.");
-        }
-
-        public void loadConfigurationOptionsFromMe()
-        {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID_NULL_FREE,
-                                                "UUID of Region (Default is recommended, random UUID)",
-                                                RegionID.ToString(), true);
-            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Region Name", RegionName, true);
-
-            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", RegionLocX.ToString(), true);
-            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", RegionLocY.ToString(), true);
-            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in X dimension", RegionSizeX.ToString(), true);
-            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Y dimension", RegionSizeY.ToString(), true);
-            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Z dimension", RegionSizeZ.ToString(), true);
-
-            //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
-            configMember.addConfigurationOption("internal_ip_address",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
-                                                "Internal IP Address for incoming UDP client connections",
-                                                m_internalEndPoint.Address.ToString(),
-                                                true);
-            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Internal IP Port for incoming UDP client connections",
-                                                m_internalEndPoint.Port.ToString(), true);
-            configMember.addConfigurationOption("allow_alternate_ports",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Allow sim to find alternate UDP ports when ports are in use?",
-                                                m_allow_alternate_ports.ToString(), true);
-            configMember.addConfigurationOption("external_host_name",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "External Host Name", m_externalHostName, true);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Last Map UUID", lastMapUUID.ToString(), true);
-            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
-
-            configMember.addConfigurationOption("nonphysical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "Minimum size for nonphysical prims", m_nonphysPrimMin.ToString(), true);
-
-            configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for nonphysical prims", m_nonphysPrimMax.ToString(), true);
-
-            configMember.addConfigurationOption("physical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "Minimum size for nonphysical prims", m_physPrimMin.ToString(), true);
-
-            configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for physical prims", m_physPrimMax.ToString(), true);
-
-            configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Clamp prims to max size", m_clampPrimSize.ToString(), true);
-
-            configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max objects this sim will hold", m_objectCapacity.ToString(), true);
-
-            configMember.addConfigurationOption("prims_per_user", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max objects one user may rez", m_maxPrimsPerUser.ToString(), true);
-
-            configMember.addConfigurationOption("linkset_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max prims an object will hold", m_linksetCapacity.ToString(), true);
-
-            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max avatars this sim will hold", m_agentCapacity.ToString(), true);
-
-            configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Scope ID for this region", ScopeID.ToString(), true);
-
-            configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Free form string describing the type of region", String.Empty, true);
-            
-            configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "UUID of a texture to use as the map for this region", m_maptileStaticUUID.ToString(), true);
-
-            configMember.addConfigurationOption("region_static_mapfile", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Filename of a texture to use as the map for this region", MaptileStaticFile, true);
-        }
-
-        public void loadConfigurationOptions()
-        {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "UUID of Region (Default is recommended, random UUID)",
-                                                UUID.Random().ToString(), true);
-            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Region Name", "OpenSim Test", false);
-
-            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", "1000", false);
-            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", "1000", false);
-            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in X dimension", Constants.RegionSize.ToString(), false);
-            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Y dimension", Constants.RegionSize.ToString(), false);
-            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Z dimension", Constants.RegionHeight.ToString(), false);
-
-            //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
-            configMember.addConfigurationOption("internal_ip_address",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
-                                                "Internal IP Address for incoming UDP client connections", "0.0.0.0",
-                                                false);
-            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Internal IP Port for incoming UDP client connections",
-                                                ConfigSettings.DefaultRegionHttpPort.ToString(), false);
-            configMember.addConfigurationOption("allow_alternate_ports", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Allow sim to find alternate UDP ports when ports are in use?",
-                                                "false", true);
-            configMember.addConfigurationOption("external_host_name",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                    "Last Map UUID", lastMapUUID.ToString(), true);
-
-            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
-
-            configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for nonphysical prims", "0", true);
-
-            configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for physical prims", "0", true);
-
-            configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Clamp prims to max size", "false", true);
-
-            configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max objects this sim will hold", "15000", true);
-            
-            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max avatars this sim will hold", "100", true);
-
-            configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Scope ID for this region", UUID.Zero.ToString(), true);
-
-            configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Region Type", String.Empty, true);
-
-            configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "UUID of a texture to use as the map for this region", String.Empty, true);
-
-            configMember.addConfigurationOption("region_static_mapfile", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                 "Filename of a texture to use as the map for this region", String.Empty, true);
-        }
-
-        public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
-        {
-            switch (configuration_key)
-            {
-                case "sim_UUID":
-                    RegionID = (UUID) configuration_result;
-                    originRegionID = (UUID) configuration_result;
-                    break;
-                case "sim_name":
-                    RegionName = (string) configuration_result;
-                    break;
-                case "sim_location_x":
-                    RegionLocX = (uint) configuration_result;
-                    break;
-                case "sim_location_y":
-                    RegionLocY = (uint) configuration_result;
-                    break;
-                case "sim_size_x":
-                    RegionSizeX = (uint) configuration_result;
-                    break;
-                case "sim_size_y":
-                    RegionSizeY = (uint) configuration_result;
-                    break;
-                case "sim_size_z":
-                    RegionSizeZ = (uint) configuration_result;
-                    break;
-                case "internal_ip_address":
-                    IPAddress address = (IPAddress) configuration_result;
-                    m_internalEndPoint = new IPEndPoint(address, 0);
-                    break;
-                case "internal_ip_port":
-                    m_internalEndPoint.Port = (int) configuration_result;
-                    break;
-                case "allow_alternate_ports":
-                    m_allow_alternate_ports = (bool) configuration_result;
-                    break;
-                case "external_host_name":
-                    if ((string) configuration_result != "SYSTEMIP")
-                    {
-                        m_externalHostName = (string) configuration_result;
-                    }
-                    else
-                    {
-                        m_externalHostName = Util.GetLocalHost().ToString();
-                    }
-                    break;
-                case "lastmap_uuid":
-                    lastMapUUID = (UUID)configuration_result;
-                    break;
-                case "lastmap_refresh":
-                    lastMapRefresh = (string)configuration_result;
-                    break;
-                case "nonphysical_prim_max":
-                    m_nonphysPrimMax = (int)configuration_result;
-                    break;
-                case "physical_prim_max":
-                    m_physPrimMax = (int)configuration_result;
-                    break;
-                case "clamp_prim_size":
-                    m_clampPrimSize = (bool)configuration_result;
-                    break;
-                case "object_capacity":
-                    m_objectCapacity = (int)configuration_result;
-                    break;
-                case "prims_per_user":
-                    m_maxPrimsPerUser = (int)configuration_result;
-                    break;
-                case "linkset_capacity":
-                    m_linksetCapacity = (int)configuration_result;
-                    break;
-                case "agent_capacity":
-                    m_agentCapacity = (int)configuration_result;
-                    break;
-                case "scope_id":
-                    ScopeID = (UUID)configuration_result;
-                    break;
-                case "region_type":
-                    m_regionType = (string)configuration_result;
-                    break;
-                case "region_static_maptile":
-                    m_maptileStaticUUID = (UUID)configuration_result;
-                    break;
-                case "region_static_mapfile":
-                    MaptileStaticFile = (string)configuration_result;
-                    break;
-            }
-
-            return true;
         }
 
         public void SaveLastMapUUID(UUID mapUUID)
         {
             lastMapUUID = mapUUID;
             lastMapRefresh = Util.UnixTimeSinceEpoch().ToString();
-
-            if (configMember == null)
-                return;
-
-            configMember.forceSetConfigurationOption("lastmap_uuid", mapUUID.ToString());
-            configMember.forceSetConfigurationOption("lastmap_refresh", lastMapRefresh);
         }
 
         public OSDMap PackRegionInfoData()
