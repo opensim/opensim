@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         connector = new UserAgentServiceConnector(userAgentDriver);
 
                     GridRegion source = new GridRegion(Scene.RegionInfo);
-                    source.RawServerURI = m_ThisHomeURI;
+                    source.RawServerURI = m_GatekeeperURI;
                     
                     bool success = connector.LoginAgentToGrid(source, agentCircuit, reg, finalDestination, false, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
