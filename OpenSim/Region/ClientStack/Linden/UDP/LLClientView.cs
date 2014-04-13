@@ -1251,6 +1251,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
+                /* test code using the terrain compressor in libOpenMetaverse
+                int[] patchInd = new int[1];
+                patchInd[0] = px + (py * Constants.TerrainPatchSize);
+                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(terrData.GetFloatsSerialized(), patchInd);
+                 */
                 LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, px, py);
                 
                 // When a user edits the terrain, so much data is sent, the data queues up fast and presents a sub optimal editing experience.  
@@ -1322,6 +1327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_scene.RegionInfo.RegionSizeX > Constants.RegionSize || m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
                 layerType = (byte)TerrainPatch.LayerType.WindExtended;
 
+            // LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, (TerrainPatch.LayerType)layerType);
             LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacket(patches, layerType,
                                 (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY);
             layerpack.Header.Zerocoded = true;
@@ -1351,6 +1357,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_scene.RegionInfo.RegionSizeX > Constants.RegionSize || m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
                 layerType = (byte)TerrainPatch.LayerType.CloudExtended;
 
+            // LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, (TerrainPatch.LayerType)layerType);
             LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacket(patches, layerType,
                                 (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY);
             layerpack.Header.Zerocoded = true;

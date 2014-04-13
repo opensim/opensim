@@ -553,7 +553,7 @@ public static class BSParam
         new ParameterDefn<float>("TerrainContactProcessingThreshold", "Distance from terrain to stop processing collisions" ,
             0.0f ),
         new ParameterDefn<float>("TerrainCollisionMargin", "Margin where collision checking starts" ,
-            0.08f ),
+            0.04f ),
 
         new ParameterDefn<float>("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
             0.2f ),

@@ -81,7 +81,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             BuildQuantizeTable16();
         }
 
-        // Unused: left for historical reference.
+        // Used to send cloud and wind patches
         public static LayerDataPacket CreateLayerDataPacket(TerrainPatch[] patches, byte type, int pRegionSizeX,
                                                             int pRegionSizeY)
         {
@@ -275,7 +275,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             header.DCOffset = zmin;
-            header.Range = (int)(zmax - zmin + 1.0f);
+            header.Range = (int)((zmax - zmin) + 1.0f);
 
             return header;
         }
@@ -491,7 +491,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         lineout[CopyMatrix16[uptr + column]] = (int)(total * QuantizeTable16[uptr + column]);
                         }
                 }
-        */
 
         private static void DCTColumn16(float[] linein, int[] lineout, int column)
         {
@@ -524,6 +523,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lineout[CopyMatrix16[uptr + column]] = (int) (total*QuantizeTable16[uptr + column]);
             }
         }
+        */
 
         private static int DCTColumn16Wbits(float[] linein, int[] lineout, int column, int wbits, int maxwbits)
         {
