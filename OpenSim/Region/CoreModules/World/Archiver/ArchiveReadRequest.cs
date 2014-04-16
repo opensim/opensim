@@ -633,12 +633,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 
                 // Validate User and Group UUID's
 
+                if (!ResolveGroupUuid(parcel.GroupID))
+                    parcel.GroupID = UUID.Zero;
+
                 if (parcel.IsGroupOwned)
                 {
-                    if (!ResolveGroupUuid(parcel.GroupID))
+                    if (parcel.GroupID != UUID.Zero)
+                    {
+                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
+                        parcel.OwnerID = parcel.GroupID;
+                    }
+                    else
                     {
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
-                        parcel.GroupID = UUID.Zero;
                         parcel.IsGroupOwned = false;
                     }
                 }
@@ -646,9 +653,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     if (!ResolveUserUuid(scene, parcel.OwnerID))
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
-
-                    if (!ResolveGroupUuid(parcel.GroupID))
-                        parcel.GroupID = UUID.Zero;
                 }
 
                 List<LandAccessEntry> accessList = new List<LandAccessEntry>();

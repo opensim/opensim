@@ -1543,8 +1543,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void IncomingLandObjectFromStorage(LandData data)
         {
-            ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene);
-            new_land.LandData = data.Copy();
+            ILandObject new_land = new LandObject(data, m_scene);
             new_land.SetLandBitmapFromByteArray();            
             AddLandObject(new_land);
         }

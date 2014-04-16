@@ -120,6 +120,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Constructors
 
+        public LandObject(LandData landData, Scene scene)
+        {
+            LandData = landData.Copy();
+            m_scene = scene;
+        }
+
         public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
         {
             m_scene = scene;
@@ -163,12 +169,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public ILandObject Copy()
         {
-            ILandObject newLand = new LandObject(LandData.OwnerID, LandData.IsGroupOwned, m_scene);
-
-            //Place all new variables here!
+            ILandObject newLand = new LandObject(LandData, m_scene);
             newLand.LandBitmap = (bool[,]) (LandBitmap.Clone());
-            newLand.LandData = LandData.Copy();
-
             return newLand;
         }
 
