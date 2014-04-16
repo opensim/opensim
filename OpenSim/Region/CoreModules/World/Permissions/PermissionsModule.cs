@@ -1452,29 +1452,29 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            bool permission = false;
-
 //            m_log.DebugFormat("[PERMISSIONS MODULE]: Checking rez object at {0} in {1}", objectPosition, m_scene.Name);
 
-            ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
-            if (land == null) return false;
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            if (parcel == null)
+                return false;
 
-            if ((land.LandData.Flags & ((int)ParcelFlags.CreateObjects)) ==
-                (int)ParcelFlags.CreateObjects)
-                permission = true;
-
-            if (IsAdministrator(owner))
+            if ((parcel.LandData.Flags & (uint)ParcelFlags.CreateObjects) != 0)
             {
-                permission = true;
+                return true;
             }
-
-        // Powers are zero, because GroupPowers.AllowRez is not a precondition for rezzing objects
-            if (GenericParcelPermission(owner, objectPosition, 0))
+            else if ((owner == parcel.LandData.OwnerID) || IsAdministrator(owner))
             {
-                permission = true;
+                return true;
             }
-
-            return permission;
+            else if (((parcel.LandData.Flags & (uint)ParcelFlags.CreateGroupObjects) != 0)
+                && (parcel.LandData.GroupID != UUID.Zero) && IsGroupMember(parcel.LandData.GroupID, owner, 0))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private bool CanRunConsoleCommand(UUID user, Scene requestFromScene)
