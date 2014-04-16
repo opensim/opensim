@@ -397,9 +397,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         public UUID AgentId { get { return m_agentId; } }
         public ISceneAgent SceneAgent { get; set; }
-        public UUID ActiveGroupId { get { return m_activeGroupID; } }
-        public string ActiveGroupName { get { return m_activeGroupName; } }
-        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
+        public UUID ActiveGroupId { get { return m_activeGroupID; } private set { m_activeGroupID = value; } }
+        public string ActiveGroupName { get { return m_activeGroupName; } private set { m_activeGroupName = value; } }
+        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } private set { m_activeGroupPowers = value; } }
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
         /// <summary>
@@ -2271,9 +2271,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
-            m_activeGroupID = activegroupid;
-            m_activeGroupName = groupname;
-            m_activeGroupPowers = grouppowers;
+            if (agentid == AgentId)
+            {
+                ActiveGroupId = activegroupid;
+                ActiveGroupName = groupname;
+                ActiveGroupPowers = grouppowers;
+            }
 
             AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
             sendAgentDataUpdate.AgentData.ActiveGroupID = activegroupid;
@@ -5415,8 +5418,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public ulong GetGroupPowers(UUID groupID)
         {
-            if (groupID == m_activeGroupID)
-                return m_activeGroupPowers;
+            if (groupID == ActiveGroupId)
+                return ActiveGroupPowers;
 
             if (m_groupPowers.ContainsKey(groupID))
                 return m_groupPowers[groupID];
@@ -7166,7 +7169,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     handlerObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
                                            dupe.SharedData.DuplicateFlags, AgentId,
-                                           m_activeGroupID);
+                                           ActiveGroupId);
                 }
             }
 
@@ -7779,7 +7782,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerObjectDuplicateOnRay != null)
                 {
                     handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID, dupeOnRay.AgentData.DuplicateFlags,
-                                                AgentId, m_activeGroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
+                                                AgentId, ActiveGroupId, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
                                                 dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast, dupeOnRay.AgentData.RayEndIsIntersection,
                                                 dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
                 }
