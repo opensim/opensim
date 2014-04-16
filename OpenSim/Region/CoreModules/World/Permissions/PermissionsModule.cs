@@ -1009,9 +1009,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
 
             if (part.OwnerID == owner)
-                return ((part.OwnerMask & PERM_COPY) != 0);
-
-            if (part.GroupID != UUID.Zero)
+            {
+                if ((part.OwnerMask & PERM_COPY) == 0)
+                    return false;
+            }
+            else if (part.GroupID != UUID.Zero)
             {
                 if ((part.OwnerID == part.GroupID) && ((owner != part.LastOwnerID) || ((part.GroupMask & PERM_TRANS) == 0)))
                     return false;
