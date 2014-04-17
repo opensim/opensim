@@ -2238,7 +2238,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     account.ServiceURLs = new Dictionary<string, object>();
                     account.ServiceURLs["HomeURI"] = string.Empty;
-                    account.ServiceURLs["GatekeeperURI"] = string.Empty;
                     account.ServiceURLs["InventoryServerURI"] = string.Empty;
                     account.ServiceURLs["AssetServerURI"] = string.Empty;
                 }
