@@ -90,7 +90,7 @@ namespace OpenSim.Services.Interfaces
         /// Returns a random ID if none is passed via the asset argument.
         /// </remarks>
         /// <param name="asset"></param>
-        /// <returns></returns>
+        /// <returns>The Asset ID, or string.Empty if an error occurred</returns>
         string Store(AssetBase asset);
 
         /// <summary>

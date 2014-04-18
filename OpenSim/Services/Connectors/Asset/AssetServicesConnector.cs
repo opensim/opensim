@@ -221,7 +221,7 @@ namespace OpenSim.Services.Connectors
                     AsynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0,
                         delegate(AssetBase a)
                         {
-                            if (m_Cache != null)
+                            if (a != null && m_Cache != null)
                                 m_Cache.Cache(a);
 
                             AssetRetrievedEx handlers;
@@ -287,7 +287,7 @@ namespace OpenSim.Services.Connectors
 
             string uri = m_ServerURI + "/assets/";
 
-            string newID = string.Empty;
+            string newID;
             try
             {
                 newID = SynchronousRestObjectRequester.
@@ -295,19 +295,18 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ASSET CONNECTOR]: Unable to send asset {0} to asset server. Reason: {1}", asset.ID, e.Message);
+                m_log.Warn(string.Format("[ASSET CONNECTOR]: Unable to send asset {0} to asset server. Reason: {1} ", asset.ID, e.Message), e);
+                return string.Empty;
             }
 
-            if (newID != String.Empty)
-            {
-                // Placing this here, so that this work with old asset servers that don't send any reply back
-                // SynchronousRestObjectRequester returns somethins that is not an empty string
-                if (newID != null)
-                    asset.ID = newID;
+            if (string.IsNullOrEmpty(newID))
+                return string.Empty;
 
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
-            }
+            asset.ID = newID;
+
+            if (m_Cache != null)
+                m_Cache.Cache(asset);
+
             return newID;
         }
 

@@ -346,7 +346,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 return asset.ID;
             }
 
-            string id = string.Empty;
+            string id;
             if (IsHG(asset.ID))
             {
                 if (m_AssetPerms.AllowedExport(asset.Type))
@@ -357,18 +357,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             else
                 id = m_GridService.Store(asset);
 
-            if (id != String.Empty)
-            {
-                // Placing this here, so that this work with old asset servers that don't send any reply back
-                // SynchronousRestObjectRequester returns somethins that is not an empty string
-                if (id != null)
-                    asset.ID = id;
+            if (String.IsNullOrEmpty(id))
+                return string.Empty;
+            
+            asset.ID = id;
 
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
-            }
+            if (m_Cache != null)
+                m_Cache.Cache(asset);
+
             return id;
-
         }
 
         public bool UpdateContent(string id, byte[] data)
