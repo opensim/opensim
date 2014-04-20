@@ -2233,9 +2233,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
-            m_activeGroupID = activegroupid;
-            m_activeGroupName = groupname;
-            m_activeGroupPowers = grouppowers;
+            if (agentid == AgentId)
+            {
+                m_activeGroupID = activegroupid;
+                m_activeGroupName = groupname;
+                m_activeGroupPowers = grouppowers;
+            }
 
             AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
             sendAgentDataUpdate.AgentData.ActiveGroupID = activegroupid;
