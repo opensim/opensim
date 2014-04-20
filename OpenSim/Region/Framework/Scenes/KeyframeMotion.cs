@@ -180,7 +180,7 @@ namespace OpenSim.Region.Framework.Scenes
     [Serializable]
     public class KeyframeMotion
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public enum PlayMode : int
         {
@@ -206,6 +206,7 @@ namespace OpenSim.Region.Framework.Scenes
             public int TimeMS;
             public int TimeTotal;
             public Vector3 AngularVelocity;
+            public Vector3 StartPosition;
         };
 
         private Vector3 m_serializedPosition;
@@ -349,17 +350,19 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 grppos = grp.AbsolutePosition;
             Vector3 offset = grppos - m_serializedPosition;
             // avoid doing it more than once
-            // current this will happen draging a prim to other region
+            // current this will happen dragging a prim to other region
             m_serializedPosition = grppos;
 
             m_basePosition += offset;
-            m_currentFrame.Position += offset;
-
             m_nextPosition += offset;
+            
+            m_currentFrame.StartPosition += offset;
+            m_currentFrame.Position += offset;
 
             for (int i = 0; i < m_frames.Count; i++)
             {
                 Keyframe k = m_frames[i];
+                k.StartPosition += offset;
                 k.Position += offset;
                 m_frames[i]=k;
             }
@@ -513,6 +516,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Keyframe k = m_keyframes[i];
 
+                    k.StartPosition = pos;
                     if (k.Position.HasValue)
                     {
                         k.Position = (k.Position * direction);
@@ -657,9 +661,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_currentFrame.TimeMS -= (int)tickDuration;
 
             // Do the frame processing
-            double steps = (double)m_currentFrame.TimeMS / tickDuration;
+            double remainingSteps = (double)m_currentFrame.TimeMS / tickDuration;
 
-            if (steps <= 0.0)
+            if (remainingSteps <= 0.0)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_group.RootPart.AngularVelocity = Vector3.Zero;
@@ -679,27 +683,30 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                float complete = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
+                float completed = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
+                bool lastStep = m_currentFrame.TimeMS <= tickDuration;
 
-                Vector3 v = (Vector3)m_currentFrame.Position - m_group.AbsolutePosition;
-                Vector3 motionThisFrame = v / (float)steps;
-                v = v * 1000 / m_currentFrame.TimeMS;
+                Vector3 positionThisStep = m_currentFrame.StartPosition + (m_currentFrame.Position.Value - m_currentFrame.StartPosition) * completed;
+                Vector3 motionThisStep = positionThisStep - m_group.AbsolutePosition;
 
-                if (Vector3.Mag(motionThisFrame) >= 0.05f)
+                float mag = Vector3.Mag(motionThisStep);
+
+                if ((mag >= 0.02f) || lastStep)
                 {
-                    // m_group.AbsolutePosition += motionThisFrame;
-                    m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
+                    m_nextPosition = m_group.AbsolutePosition + motionThisStep;
                     m_group.AbsolutePosition = m_nextPosition;
-
-                    //m_group.RootPart.Velocity = v;
                     update = true;
                 }
+
+                //int totalSteps = m_currentFrame.TimeTotal / (int)tickDuration;
+                //m_log.DebugFormat("KeyframeMotion.OnTimer: step {0}/{1}, curPosition={2}, finalPosition={3}, motionThisStep={4} (scene {5})",
+                //    totalSteps - remainingSteps + 1, totalSteps, m_group.AbsolutePosition, m_currentFrame.Position, motionThisStep, m_scene.RegionInfo.RegionName);
 
                 if ((Quaternion)m_currentFrame.Rotation != m_group.GroupRotation)
                 {
                     Quaternion current = m_group.GroupRotation;
 
-                    Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, complete);
+                    Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, completed);
                     step.Normalize();
 /* use simpler change detection
 * float angle = 0;
@@ -734,7 +741,8 @@ namespace OpenSim.Region.Framework.Scenes
 */
                     if(Math.Abs(step.X - current.X) > 0.001f 
                         || Math.Abs(step.Y - current.Y) > 0.001f 
-                        || Math.Abs(step.Z - current.Z) > 0.001f)
+                        || Math.Abs(step.Z - current.Z) > 0.001f
+                        || lastStep)
                         // assuming w is a dependente var
 
                     {
