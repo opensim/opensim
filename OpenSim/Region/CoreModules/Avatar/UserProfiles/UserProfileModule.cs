@@ -1123,6 +1123,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             assetServerURI = UserManagementModule.GetUserServerURL(avatarId, "AssetServerURI");
 
+            if(string.IsNullOrEmpty(profileServerURI) || string.IsNullOrEmpty(assetServerURI))
+                return false;
+
             OSDMap parameters= new OSDMap();
             parameters.Add("avatarId", OSD.FromUUID(avatarId));
             OSD Params = (OSD)parameters;
