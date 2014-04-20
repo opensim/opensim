@@ -280,9 +280,6 @@ namespace OpenSim.Services.HypergridService
             else
             {
                 success = m_GatekeeperConnector.CreateAgent(source, region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out myExternalIP, out reason);
-                if (success)
-                    // Report them as nowhere
-                    m_PresenceService.ReportAgent(agentCircuit.SessionID, UUID.Zero);
             }
 
             if (!success)
