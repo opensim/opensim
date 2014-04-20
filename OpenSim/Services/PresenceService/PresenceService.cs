@@ -41,9 +41,7 @@ namespace OpenSim.Services.PresenceService
 {
     public class PresenceService : PresenceServiceBase, IPresenceService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_allowDuplicatePresences = false;
 
@@ -55,19 +53,15 @@ namespace OpenSim.Services.PresenceService
             IConfig presenceConfig = config.Configs["PresenceService"];
             if (presenceConfig != null)
             {
-                m_allowDuplicatePresences =
-                        presenceConfig.GetBoolean("AllowDuplicatePresences",
-                                                  m_allowDuplicatePresences);
+                m_allowDuplicatePresences = presenceConfig.GetBoolean("AllowDuplicatePresences", m_allowDuplicatePresences);
             }
         }
 
-        public bool LoginAgent(string userID, UUID sessionID,
-                UUID secureSessionID)
+        public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
         {
-            //PresenceData[] d = m_Database.Get("UserID", userID);
-            //m_Database.Get("UserID", userID);
+            PresenceData prevUser = GetUser(userID);
 
-            if (!m_allowDuplicatePresences)
+            if (!m_allowDuplicatePresences && (prevUser != null))
                 m_Database.Delete("UserID", userID.ToString());
 
             PresenceData data = new PresenceData();
@@ -80,20 +74,41 @@ namespace OpenSim.Services.PresenceService
             
             m_Database.Store(data);
 
-            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent {0} with session {1} and secure session {2}",
-                userID, sessionID, secureSessionID);
+            string prevUserStr = "";
+            if (prevUser != null)
+                prevUserStr = string.Format(". This user was already logged-in: session {0}, region {1}", prevUser.SessionID, prevUser.RegionID);
+
+            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, secure session {3}{4}",
+                data.SessionID, data.UserID, data.RegionID, secureSessionID, prevUserStr);
+            
             return true;
         }
 
         public bool LogoutAgent(UUID sessionID)
         {
-            m_log.DebugFormat("[PRESENCE SERVICE]: Session {0} logout", sessionID);
+            PresenceInfo presence = GetAgent(sessionID);
+
+            m_log.DebugFormat("[PRESENCE SERVICE]: LogoutAgent: session {0}, user {1}, region {2}",
+                sessionID,
+                (presence == null) ? null : presence.UserID,
+                (presence == null) ? null : presence.RegionID.ToString());
+            
             return m_Database.Delete("SessionID", sessionID.ToString());
         }
 
         public bool LogoutRegionAgents(UUID regionID)
         {
-            m_log.DebugFormat("[PRESENCE SERVICE]: Logout agents in region {0}", regionID);
+            PresenceData[] prevSessions = GetRegionAgents(regionID);
+
+            if ((prevSessions == null) || (prevSessions.Length == 0))
+                return true;
+
+            m_log.DebugFormat("[PRESENCE SERVICE]: Logout users in region {0}: {1}", regionID,
+                string.Join(", ", Array.ConvertAll(prevSessions, session => session.UserID)));
+
+            // There's a small chance that LogoutRegionAgents() will logout different users than the
+            // list that was logged above, but it's unlikely and not worth dealing with.
+
             m_Database.LogoutRegionAgents(regionID);
 
             return true;
@@ -102,20 +117,26 @@ namespace OpenSim.Services.PresenceService
 
         public bool ReportAgent(UUID sessionID, UUID regionID)
         {
-//            m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
             try
             {
-                PresenceData pdata = m_Database.Get(sessionID);
-                if (pdata == null)
-                    return false;
-                if (pdata.Data == null)
-                    return false;
+                PresenceData presence = m_Database.Get(sessionID);
 
-                return m_Database.ReportAgent(sessionID, regionID);
+                bool success;
+                if (presence == null)
+                    success = false;
+                else
+                    success = m_Database.ReportAgent(sessionID, regionID);
+
+                m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent{0}: session {1}, user {2}, region {3}. Previously: {4}",
+                    success ? "" : " failed",
+                    sessionID, (presence == null) ? null : presence.UserID, regionID,
+                    (presence == null) ? "not logged-in" : "region " + presence.RegionID);
+
+                return success;
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent threw exception {0}", e.StackTrace);
+                m_log.Debug(string.Format("[PRESENCE SERVICE]: ReportAgent for session {0} threw exception ", sessionID), e);
                 return false;
             }
         }
@@ -140,8 +161,7 @@ namespace OpenSim.Services.PresenceService
 
             foreach (string userIDStr in userIDs)
             {
-                PresenceData[] data = m_Database.Get("UserID",
-                        userIDStr);
+                PresenceData[] data = m_Database.Get("UserID", userIDStr);
 
                 foreach (PresenceData d in data)
                 {
@@ -159,5 +179,23 @@ namespace OpenSim.Services.PresenceService
 
             return info.ToArray();
         }
+
+        /// <summary>
+        /// Return the user's Presence. This only really works well if !AllowDuplicatePresences, but that's the default.
+        /// </summary>
+        private PresenceData GetUser(string userID)
+        {
+            PresenceData[] data = m_Database.Get("UserID", userID);
+            if (data.Length > 0)
+                return data[0];
+            else
+                return null;
+        }
+
+        private PresenceData[] GetRegionAgents(UUID regionID)
+        {
+            return m_Database.Get("RegionID", regionID.ToString());
+        }
+
     }
 }

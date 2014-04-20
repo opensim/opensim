@@ -1,4 +1,4 @@
-﻿:VERSION 1         # -------------------------- 
+:VERSION 1         # -------------------------- 
 
 BEGIN;
 
@@ -19,5 +19,13 @@ COMMIT;
 BEGIN;
 
 ALTER TABLE `Presence` ADD COLUMN LastSeen timestamp;
+
+COMMIT;
+
+:VERSION 3         # -------------------------- 
+
+BEGIN;
+
+CREATE INDEX RegionID ON Presence(RegionID);
 
 COMMIT;
