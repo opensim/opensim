@@ -9,13 +9,13 @@ people that make the day to day of OpenSim happen.
 * dahlia 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
-* Dan Lake (Intel)
+* Dan Lake 
 * Marck
-* Mic Bowman (Intel)
+* Mic Bowman
 * BlueWall (James Hughes)
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Snoopy Pfeffer
-* Robert Adams (Intel)
+* Robert Adams
 * Oren Hurvitz (Kitely)
 * Kevin Cozens
 
@@ -85,7 +85,7 @@ what it is today.
 * Dong Jun Lan (IBM)
 * DoranZemlja
 * dr0b3rts
-* dslake (Intel)
+* dslake
 * FredoChaplin
 * Garmin Kawaguichi
 * Gerhard
@@ -118,6 +118,7 @@ what it is today.
 * KittyLiu
 * Kurt Taylor (IBM)
 * Lani Global
+* lillith_xue
 * lkalif
 * LuciusSirnah
 * lulurun 
@@ -132,7 +133,7 @@ what it is today.
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
 * mikkopa/_someone - RealXtend
-* Misterblue (Intel)
+* Misterblue
 * Mircea Kitsune
 * mpallari
 * MrMonkE
