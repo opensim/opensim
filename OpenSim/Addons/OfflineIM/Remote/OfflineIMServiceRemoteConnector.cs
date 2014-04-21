@@ -82,8 +82,13 @@ namespace OpenSim.OfflineIM
             if (!ret.ContainsKey("RESULT"))
                 return ims;
 
-            if (ret["RESULT"].ToString() == "NULL")
+            string result = ret["RESULT"].ToString();
+            if (result == "NULL" || result.ToLower() == "false")
+            {
+                string reason = ret.ContainsKey("REASON") ? ret["REASON"].ToString() : "Unknown error";
+                m_log.DebugFormat("[OfflineIM.V2.RemoteConnector]: GetMessages for {0} failed: {1}", principalID, reason);
                 return ims;
+            }
 
             foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
             {
@@ -110,7 +115,7 @@ namespace OpenSim.OfflineIM
             string result = ret["RESULT"].ToString();
             if (result == "NULL" || result.ToLower() == "false")
             {
-                reason = ret["REASON"].ToString();
+                reason = ret.ContainsKey("REASON") ? ret["REASON"].ToString() : "Unknown error";
                 return false;
             }
 
