@@ -2472,35 +2472,44 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
 
             // Get terrain height for sub-region in a megaregion if necessary
-            int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
-            int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
-            GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
-            // If X and Y is NaN, target_region will be null
-            if (target_region == null)
-                return;
-            UUID target_regionID = target_region.RegionID;
-            Scene targetScene = m_scene;
 
-            if (!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))
-                targetScene = m_scene;
+				//COMMENT: If its only nessesary in a megaregion, why do it on normal region's too?
 
-            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
-            pos.Z = Math.Max(terrainHeight, pos.Z);
+			if (regionCombinerModule != null)
+			{
+	            int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
+	            int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
+	            GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
+	            // If X and Y is NaN, target_region will be null
+	            if (target_region == null)
+	                return;
+	            UUID target_regionID = target_region.RegionID;
+	            Scene targetScene = m_scene;
 
-            // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
-            // always slightly higher than the actual terrain height.
-            // FIXME: This constrains NPC movements as well, so should be somewhere else.
-            if (pos.Z - terrainHeight < 0.2)
-                pos.Z = terrainHeight;
+	            if (!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))
+	                targetScene = m_scene;
+
+	            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
+	            pos.Z = Math.Max(terrainHeight, pos.Z);
+
+	            // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
+	            // always slightly higher than the actual terrain height.
+	            // FIXME: This constrains NPC movements as well, so should be somewhere else.
+	            if (pos.Z - terrainHeight < 0.2)
+	                pos.Z = terrainHeight;
+
+				if (noFly)
+					Flying = false;
+				else if (pos.Z > terrainHeight)
+					Flying = true;
+			}
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
 //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
-            if (noFly)
-                Flying = false;
-            else if (pos.Z > terrainHeight)
-                Flying = true;
+			if (noFly)
+				Flying = false;
 
             LandAtTarget = landAtTarget;
             MovingToTarget = true;
