@@ -299,6 +299,13 @@ namespace OpenSim.Services.Connectors
                 return string.Empty;
             }
 
+            // TEMPORARY: SRAS returns 'null' when it's asked to store existing assets
+            if (newID == null)
+            {
+                m_log.DebugFormat("[ASSET CONNECTOR]: Storing of asset {0} returned null; assuming the asset already exists", asset.ID);
+                return asset.ID;
+            }
+
             if (string.IsNullOrEmpty(newID))
                 return string.Empty;
 
