@@ -239,6 +239,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     fList.Add(s.Substring(0, 36));
             }
 
+            // FIXME: also query the presence status of friends in other grids (like in HGStatusNotifier.Notify())
+
             PresenceInfo[] presence = PresenceService.GetAgents(fList.ToArray());
             foreach (PresenceInfo pi in presence)
             {

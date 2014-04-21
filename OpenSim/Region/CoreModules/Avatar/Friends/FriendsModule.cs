@@ -94,6 +94,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected Dictionary<UUID, UserFriendData> m_Friends = new Dictionary<UUID, UserFriendData>();
 
         /// <summary>
+        /// Maintain a record of clients that need to notify about their online status. This only
+        /// needs to be done on login.  Subsequent online/offline friend changes are sent by a different mechanism.
+        /// </summary>
+        protected HashSet<UUID> m_NeedsToNotifyStatus = new HashSet<UUID>();
+
+        /// <summary>
         /// Maintain a record of viewers that need to be sent notifications for friends that are online.  This only
         /// needs to be done on login.  Subsequent online/offline friend changes are sent by a different mechanism.
         /// </summary>
@@ -324,6 +330,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnMakeRootAgent(ScenePresence sp)
         {
             RecacheFriends(sp.ControllingClient);
+
+            lock (m_NeedsToNotifyStatus)
+            {
+                if (m_NeedsToNotifyStatus.Remove(sp.UUID))
+                {
+                    // Inform the friends that this user is online. This can only be done once the client is a Root Agent.
+                    StatusChange(sp.UUID, true);
+                }
+            }
         }
 
         private void OnClientLogin(IClientAPI client)
@@ -331,8 +346,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             UUID agentID = client.AgentId;
 
             //m_log.DebugFormat("[XXX]: OnClientLogin!");
-            // Inform the friends that this user is online
-            StatusChange(agentID, true);
+
+            // Register that we need to send this user's status to friends. This can only be done
+            // once the client becomes a Root Agent, because as part of sending out the presence
+            // we also get back the presence of the HG friends, and we need to send that to the
+            // client, but that can only be done when the client is a Root Agent.
+            lock (m_NeedsToNotifyStatus)
+                m_NeedsToNotifyStatus.Add(agentID);
 
             // Register that we need to send the list of online friends to this user
             lock (m_NeedsListOfOnlineFriends)
