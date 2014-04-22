@@ -514,6 +514,8 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                         scene.RegionInfo.RegionID.ToString());
                 asset.Data = assetData;
                 asset.Description = String.Format("URL image : {0}", Url);
+                if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
+                    asset.Description = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
                 asset.Local = false;
                 asset.Temporary = ((Disp & DISP_TEMP) != 0);
                 scene.AssetService.Store(asset);
