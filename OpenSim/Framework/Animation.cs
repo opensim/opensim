@@ -132,6 +132,11 @@ namespace OpenSim.Framework
             return base.Equals(obj);
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public override string ToString()
         {
             return "AnimID=" + AnimID.ToString()

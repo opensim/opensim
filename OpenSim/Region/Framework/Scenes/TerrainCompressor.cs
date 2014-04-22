@@ -46,7 +46,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public static class OpenSimTerrainCompressor
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+#pragma warning disable 414
         private static string LogHeader = "[TERRAIN COMPRESSOR]";
+#pragma warning restore 414
 
         public const int END_OF_PATCHES = 97;
 

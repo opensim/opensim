@@ -426,7 +426,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    return base.UpdateAgent(reg, finalDestination, agentData, sp);
         //}
 
-        public virtual void TriggerTeleportHome(UUID id, IClientAPI client)     
+        public override void TriggerTeleportHome(UUID id, IClientAPI client)     
         {                                                                       
             TeleportHome(id, client);                                           
         }                                                                       

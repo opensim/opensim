@@ -88,7 +88,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public BSConstraintCollection Constraints { get; private set; }
 
     // Simulation parameters
-    internal float m_physicsStepTime;   // if running independently, the interval simulated by default
+    //internal float m_physicsStepTime;   // if running independently, the interval simulated by default
 
     internal int m_maxSubSteps;
     internal float m_fixedTimeStep;

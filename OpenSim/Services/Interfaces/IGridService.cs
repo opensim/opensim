@@ -124,7 +124,10 @@ namespace OpenSim.Services.Interfaces
     public class GridRegion
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+#pragma warning disable 414
         private static readonly string LogHeader = "[GRID REGION]";
+#pragma warning restore 414
 
         /// <summary>
         /// The port by which http communication occurs with the region 

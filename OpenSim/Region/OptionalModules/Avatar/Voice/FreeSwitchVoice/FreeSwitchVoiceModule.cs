@@ -65,7 +65,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // Capability string prefixes
         private static readonly string m_parcelVoiceInfoRequestPath = "0207/";
         private static readonly string m_provisionVoiceAccountRequestPath = "0208/";
-        private static readonly string m_chatSessionRequestPath = "0209/";
+        //private static readonly string m_chatSessionRequestPath = "0209/";
 
         // Control info
         private static bool   m_Enabled  = false;

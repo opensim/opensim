@@ -51,7 +51,7 @@ namespace OpenSim.Data.PGSQL
         }
 
         
-        public bool Delete(string principalID, string friend)
+        public override bool Delete(string principalID, string friend)
         {
             UUID princUUID = UUID.Zero;
 

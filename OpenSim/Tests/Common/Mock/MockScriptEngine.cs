@@ -94,8 +94,10 @@ namespace OpenSim.Tests.Common
 
         public Type ReplaceableInterface { get { return null; } }
 
+#pragma warning disable 0067
         public event ScriptRemoved OnScriptRemoved;
         public event ObjectRemoved OnObjectRemoved;
+#pragma warning restore 0067
 
         public string GetXMLState (UUID itemID)
         {

@@ -37,7 +37,6 @@ using OpenSim.Data;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Services.UserAccountService;
 
 namespace OpenSim.Services.ProfilesService
 {

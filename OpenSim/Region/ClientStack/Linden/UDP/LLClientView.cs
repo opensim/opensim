@@ -71,7 +71,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Events
 
-        public event GenericMessage OnGenericMessage;
         public event BinaryGenericMessage OnBinaryGenericMessage;
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
@@ -79,13 +78,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ViewerEffectEventHandler OnViewerEffect;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatMessage OnChatFromClient;
-        public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event DeRezObject OnDeRezObject;
         public event ModifyTerrain OnModifyTerrain;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
-        public event CachedTextureRequest OnCachedTextureRequest;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
@@ -138,15 +135,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         public event UpdateVector OnUpdatePrimScale;
         public event UpdateVector OnUpdatePrimGroupScale;
-        public event StatusChange OnChildAgentStatus;
-        public event GenericCall2 OnStopMovement;
-        public event Action<UUID> OnRemoveAvatar;
         public event RequestMapBlocks OnRequestMapBlocks;
         public event RequestMapName OnMapNameRequest;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         public event TeleportCancel OnTeleportCancel;
-        public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
         public event FetchInventory OnAgentDataUpdateRequest;
@@ -176,7 +169,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UpdateTaskInventory OnUpdateTaskInventory;
         public event MoveTaskInventory OnMoveTaskItem;
         public event RemoveTaskInventory OnRemoveTaskItem;
-        public event RequestAsset OnRequestAsset;
         public event UUIDNameRequest OnNameFromUUIDRequest;
         public event ParcelAccessListRequest OnParcelAccessListRequest;
         public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
@@ -207,7 +199,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event RequestPayPrice OnRequestPayPrice;
         public event ObjectSaleInfo OnObjectSaleInfo;
         public event ObjectBuy OnObjectBuy;
-        public event BuyObjectInventory OnBuyObjectInventory;
         public event AgentSit OnUndo;
         public event AgentSit OnRedo;
         public event LandUndo OnLandUndo;
@@ -216,7 +207,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event RequestObjectPropertiesFamily OnObjectGroupRequest;
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
-        public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
         public event SetEstateTerrainDetailTexture OnSetEstateTerrainDetailTexture;
         public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
         public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
@@ -239,7 +229,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
         public event Action<Vector3, bool, bool> OnAutoPilotGo;
-        public event TerrainUnacked OnUnackedTerrain;
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
         public event ObjectOwner OnObjectOwner;
@@ -296,6 +285,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
+
+#pragma warning disable 0067
+        public event GenericMessage OnGenericMessage;
+        public event TextureRequest OnRequestTexture;
+        public event StatusChange OnChildAgentStatus;
+        public event GenericCall2 OnStopMovement;
+        public event Action<UUID> OnRemoveAvatar;
+        public event DisconnectUser OnDisconnectUser;
+        public event RequestAsset OnRequestAsset;
+        public event BuyObjectInventory OnBuyObjectInventory;
+        public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
+        public event TerrainUnacked OnUnackedTerrain;
+        public event CachedTextureRequest OnCachedTextureRequest;
+#pragma warning restore 0067
 
         #endregion Events
 

@@ -271,7 +271,6 @@ namespace OpenSim.Region.Framework.Scenes
         //private int m_moveToPositionStateStatus;
         //*****************************************************
 
-        private bool m_collisionEventFlag = false;
         private object m_collisionEventLock = new Object();
 
         private int m_movementAnimationUpdateCounter = 0;

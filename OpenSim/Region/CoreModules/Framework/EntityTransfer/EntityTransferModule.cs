@@ -1540,8 +1540,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public bool Cross(ScenePresence agent, bool isFlying)
         {
-            uint x;
-            uint y;
             Vector3 newpos;
             string version;
             string failureReason;

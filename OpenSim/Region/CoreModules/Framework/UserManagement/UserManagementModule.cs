@@ -686,8 +686,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (!ConsoleUtil.TryParseConsoleUuid(MainConsole.Instance, cmd[2], out userId))
                 return;
 
-            string[] names;
-
             UserData ud;
 
             lock (m_UserCache)

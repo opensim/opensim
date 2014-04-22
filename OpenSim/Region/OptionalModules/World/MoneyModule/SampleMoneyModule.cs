@@ -103,7 +103,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         #region IMoneyModule Members
 
+#pragma warning disable 0067
         public event ObjectPaid OnObjectPaid;
+#pragma warning restore 0067
 
         public int UploadCharge
         {

@@ -1605,7 +1605,7 @@ namespace OpenSim.Data.SQLite
             prim.SitName = (String)row["SitName"];
             prim.TouchName = (String)row["TouchName"];
             // permissions
-            prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
+            prim.Flags = (PrimFlags)Convert.ToUInt32(row["ObjectFlags"]);
             prim.CreatorIdentification = (String)row["CreatorID"];
             prim.OwnerID = new UUID((String)row["OwnerID"]);
             prim.GroupID = new UUID((String)row["GroupID"]);
@@ -2034,7 +2034,7 @@ namespace OpenSim.Data.SQLite
             row["SitName"] = prim.SitName;
             row["TouchName"] = prim.TouchName;
             // permissions
-            row["ObjectFlags"] = prim.ObjectFlags;
+            row["ObjectFlags"] = (uint)prim.Flags;
             row["CreatorID"] = prim.CreatorIdentification.ToString();
             row["OwnerID"] = prim.OwnerID.ToString();
             row["GroupID"] = prim.GroupID.ToString();

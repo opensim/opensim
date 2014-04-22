@@ -36,8 +36,6 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 {
     public class BasicActor : PhysicsActor
     {
-        private Vector3 _size;
-
         public BasicActor(Vector3 size)
         {
             Size = size;

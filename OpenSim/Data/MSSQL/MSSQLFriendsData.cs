@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -55,7 +55,7 @@ namespace OpenSim.Data.MSSQL
             return Delete(principalID.ToString(), friend);
         }
 
-        public bool Delete(string principalID, string friend)
+        public override bool Delete(string principalID, string friend)
         {
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand())

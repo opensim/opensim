@@ -262,7 +262,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             { 
                 map = new JsonStore(value);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 m_log.ErrorFormat("[JsonStore]: Unable to initialize store from {0}", value);
                 return false;
@@ -285,8 +285,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             lock (m_JsonValueStore)
                 return m_JsonValueStore.Remove(storeID);
-            
-            return true;
         }
 
         // -----------------------------------------------------------------

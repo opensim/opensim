@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     {
                         mapbmp = new Bitmap(m_scene.RegionInfo.MaptileStaticFile);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         m_log.ErrorFormat(
                             "[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", 

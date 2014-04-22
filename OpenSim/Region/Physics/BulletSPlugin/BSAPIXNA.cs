@@ -2255,7 +2255,6 @@ private sealed class BulletConstraintXNA : BulletConstraint
             world.LastCollisionDesc = 0;
             world.LastEntityProperty = 0;
             numSimSteps = world.StepSimulation(timeStep, m_maxSubSteps, m_fixedTimeStep);
-            int updates = 0;
 
             PersistentManifold contactManifold;
             CollisionObject objA;

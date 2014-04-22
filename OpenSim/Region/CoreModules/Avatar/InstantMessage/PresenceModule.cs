@@ -49,8 +49,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+#pragma warning disable 0067
         public event PresenceChange OnPresenceChange;
         public event BulkPresenceData OnBulkPresenceData;
+#pragma warning restore 0067
 
         protected List<Scene> m_Scenes = new List<Scene>();
 

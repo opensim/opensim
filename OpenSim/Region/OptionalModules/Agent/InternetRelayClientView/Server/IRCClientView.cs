@@ -1426,9 +1426,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             return new byte[0];
         }
 
+#pragma warning disable 0067
         public event ViewerEffectEventHandler OnViewerEffect;
         public event Action<IClientAPI> OnLogout;
         public event Action<IClientAPI> OnConnectionClosed;
+#pragma warning restore 0067
 
         public void SendBlueBoxMessage(UUID FromAvatarID, string FromAvatarName, string Message)
         {

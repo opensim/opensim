@@ -67,7 +67,7 @@ namespace OpenSim.Data.SQLite
             return Delete(principalID.ToString(), friend);
         }
 
-        public bool Delete(string principalID, string friend)
+        public override bool Delete(string principalID, string friend)
         {
             using (SqliteCommand cmd = new SqliteCommand())
             {

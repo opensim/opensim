@@ -40,7 +40,9 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class MockConsole : ICommandConsole
     {
+#pragma warning disable 0067
         public event OnOutputDelegate OnOutput;
+#pragma warning restore 0067
 
         private MockCommands m_commands = new MockCommands();
 

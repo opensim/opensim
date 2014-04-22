@@ -140,7 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
                 return ret.ToArray();
             }
-            catch (XmlException e)
+            catch (XmlException)
             {
                 return null;
             }

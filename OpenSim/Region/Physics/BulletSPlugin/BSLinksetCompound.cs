@@ -37,7 +37,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
 public sealed class BSLinksetCompound : BSLinkset
 {
+#pragma warning disable 414
     private static string LogHeader = "[BULLETSIM LINKSET COMPOUND]";
+#pragma warning restore 414
 
     public BSLinksetCompound(BSScene scene, BSPrimLinkable parent)
         : base(scene, parent)

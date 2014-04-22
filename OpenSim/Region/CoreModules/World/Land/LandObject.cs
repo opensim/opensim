@@ -927,7 +927,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         tempConvertMap[x, y] = bit;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         m_log.DebugFormat("{0} ConvertBytestoLandBitmap: i={1}, x={2}, y={3}", LogHeader, i, x, y);
                     }

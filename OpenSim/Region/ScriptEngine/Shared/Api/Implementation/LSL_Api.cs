@@ -5200,8 +5200,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // NOTE: 3rd case is needed because a NULL_KEY comes through as
             // type 'obj' and wrongly returns ""
             else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Key ||
-                       src.Data[index] == "00000000-0000-0000-0000-000000000000"))
+                       src.Data[index] is LSL_Key ||
+                       src.Data[index].ToString() == "00000000-0000-0000-0000-000000000000"))
             {
                 return "";
             }

@@ -36,7 +36,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public sealed class BSShapeCollection : IDisposable
 {
+#pragma warning disable 414
     private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
+#pragma warning restore 414
 
     private BSScene m_physicsScene { get; set; }
 

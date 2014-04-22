@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (ps.Texture != UUID.Zero)
                                 assetUuids[ps.Texture] = (sbyte)AssetType.Texture;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             m_log.WarnFormat(
                                 "[UUID GATHERER]: Could not check particle system for part {0} {1} in object {2} {3} since it is corrupt.  Continuing.", 

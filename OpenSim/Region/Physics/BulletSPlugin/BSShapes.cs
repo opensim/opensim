@@ -554,7 +554,10 @@ public class BSShapeMesh : BSShape
 // ============================================================================================================
 public class BSShapeHull : BSShape
 {
+#pragma warning disable 414
     private static string LogHeader = "[BULLETSIM SHAPE HULL]";
+#pragma warning restore 414
+
     public static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
 
     public BSShapeHull(BulletShape pShape) : base(pShape)
@@ -1002,7 +1005,10 @@ public class BSShapeCompound : BSShape
 // ============================================================================================================
 public class BSShapeConvexHull : BSShape
 {
+#pragma warning disable 414
     private static string LogHeader = "[BULLETSIM SHAPE CONVEX HULL]";
+#pragma warning restore 414
+
     public static Dictionary<System.UInt64, BSShapeConvexHull> ConvexHulls = new Dictionary<System.UInt64, BSShapeConvexHull>();
 
     public BSShapeConvexHull(BulletShape pShape) : base(pShape)
@@ -1098,7 +1104,10 @@ public class BSShapeConvexHull : BSShape
 // ============================================================================================================
 public class BSShapeGImpact : BSShape
 {
+#pragma warning disable 414
     private static string LogHeader = "[BULLETSIM SHAPE GIMPACT]";
+#pragma warning restore 414
+
     public static Dictionary<System.UInt64, BSShapeGImpact> GImpacts = new Dictionary<System.UInt64, BSShapeGImpact>();
 
     public BSShapeGImpact(BulletShape pShape) : base(pShape)
@@ -1205,8 +1214,12 @@ public class BSShapeGImpact : BSShape
 // ============================================================================================================
 public class BSShapeAvatar : BSShape
 {
+#pragma warning disable 414
     private static string LogHeader = "[BULLETSIM SHAPE AVATAR]";
-    public BSShapeAvatar() : base()
+#pragma warning restore 414
+
+    public BSShapeAvatar()
+        : base()
     {
     }
     public static BSShape GetReference(BSPhysObject prim)

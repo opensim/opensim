@@ -848,8 +848,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </param>
         private ILandObject GetLandObject(int x, int y, bool returnNullIfLandObjectOutsideBounds)
         {
-            ILandObject ret = null;
-
             if (x >= m_scene.RegionInfo.RegionSizeX || y >=  m_scene.RegionInfo.RegionSizeY || x < 0 || y < 0)
             {
                 // These exceptions here will cause a lot of complaints from the users specifically because

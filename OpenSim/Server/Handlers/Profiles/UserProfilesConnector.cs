@@ -53,11 +53,6 @@ namespace OpenSim.Server.Handlers.Profiles
             get; private set;
         }
 
-        public string ConfigName
-        {
-            get; private set;
-        }
-
         public bool Enabled
         {
             get; private set;

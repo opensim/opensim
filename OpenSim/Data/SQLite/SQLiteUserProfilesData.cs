@@ -50,7 +50,6 @@ namespace OpenSim.Data.SQLite
         private SqliteConnection m_connection;
         private string m_connectionString;
         
-        private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap =
             new Dictionary<string, FieldInfo>();
         

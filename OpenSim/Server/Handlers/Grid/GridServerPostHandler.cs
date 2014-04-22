@@ -48,7 +48,10 @@ namespace OpenSim.Server.Handlers.Grid
     public class GridServerPostHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+#pragma warning disable 414
         private static string LogHeader = "[GRID HANDLER]";
+#pragma warning restore 414
 
         private IGridService m_GridService;
 

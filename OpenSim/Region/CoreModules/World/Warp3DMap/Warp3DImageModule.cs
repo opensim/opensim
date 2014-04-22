@@ -61,7 +61,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private static readonly Color4 WATER_COLOR = new Color4(29, 72, 96, 216);
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+#pragma warning disable 414
         private static string LogHeader = "[WARP 3D IMAGE MODULE]";
+#pragma warning restore 414
 
         private Scene m_scene;
         private IRendering m_primMesher;

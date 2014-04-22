@@ -276,7 +276,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 {
                     ovalue = OSDParser.DeserializeJson(value);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     if (value.StartsWith("'") && value.EndsWith("'"))
                     {

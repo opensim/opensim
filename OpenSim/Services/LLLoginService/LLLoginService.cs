@@ -939,7 +939,7 @@ namespace OpenSim.Services.LLLoginService
                     if (!keyValue.EndsWith("/"))
                         keyValue = keyValue + "/";
 
-                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && account.ServiceURLs[keyName] != keyValue))
+                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && (string)account.ServiceURLs[keyName] != keyValue))
                     {
                         account.ServiceURLs[keyName] = keyValue;
                         newUrls = true;

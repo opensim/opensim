@@ -299,7 +299,7 @@ namespace OpenSim.Framework.Tests
             uint  z1 = 22;
             ulong regionHandle2;
             uint  x2, y2, z2;
-            UUID fakeParcelID1, fakeParcelID2, uuid;
+            UUID fakeParcelID1, uuid;
 
             ulong bigInt64 = Util.BytesToUInt64Big(hexBytes8);
             Assert.AreEqual(var64Bit, bigInt64,

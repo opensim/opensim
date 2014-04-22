@@ -346,7 +346,7 @@ namespace OpenSim.Data.MySQL
                             cmd.ExecuteNonQuery();
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         m_log.ErrorFormat(
                             "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}", 
