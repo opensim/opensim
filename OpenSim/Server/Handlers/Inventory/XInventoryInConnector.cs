@@ -114,8 +114,6 @@ namespace OpenSim.Server.Handlers.Asset
                         return HandleCreateUserInventory(request);
                     case "GETINVENTORYSKELETON":
                         return HandleGetInventorySkeleton(request);
-                    case "GETUSERINVENTORY":
-                        return HandleGetUserInventory(request);
                     case "GETROOTFOLDER":
                         return HandleGetRootFolder(request);
                     case "GETFOLDERFORTYPE":
@@ -243,45 +241,6 @@ namespace OpenSim.Server.Handlers.Asset
                 }
             }
             result["FOLDERS"] = sfolders;
-
-            string xmlString = ServerUtils.BuildXmlResponse(result);
-
-            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
-        }
-
-        byte[] HandleGetUserInventory(Dictionary<string, object> request)
-        {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            UUID principal = UUID.Zero;
-            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
-
-            InventoryCollection icoll = m_InventoryService.GetUserInventory(principal);
-            if (icoll != null)
-            {
-                Dictionary<string, object> folders = new Dictionary<string, object>();
-                int i = 0;
-                if (icoll.Folders != null)
-                {
-                    foreach (InventoryFolderBase f in icoll.Folders)
-                    {
-                        folders["folder_" + i.ToString()] = EncodeFolder(f);
-                        i++;
-                    }
-                    result["FOLDERS"] = folders;
-                }
-                if (icoll.Items != null)
-                {
-                    i = 0;
-                    Dictionary<string, object> items = new Dictionary<string, object>();
-                    foreach (InventoryItemBase it in icoll.Items)
-                    {
-                        items["item_" + i.ToString()] = EncodeItem(it);
-                        i++;
-                    }
-                    result["ITEMS"] = items;
-                }
-            }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
 

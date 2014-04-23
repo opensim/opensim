@@ -103,12 +103,6 @@ namespace OpenSim.Services.HypergridService
             return new List<InventoryFolderBase>();
         }
 
-        public override InventoryCollection GetUserInventory(UUID userID)
-        {
-            // NOGO for this inventory service
-            return null;
-        }
-
         public override InventoryFolderBase GetRootFolder(UUID principalID)
         {
             //m_log.DebugFormat("[HG INVENTORY SERVICE]: GetRootFolder for {0}", principalID);

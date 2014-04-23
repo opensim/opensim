@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -97,14 +97,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public void Cache(UUID userID, InventoryCollection inv)
         {
             m_Inventories.AddOrUpdate(userID, inv, 120);
-        }
-
-        public InventoryCollection GetUserInventory(UUID userID)
-        {
-            InventoryCollection inv = null;
-            if (m_Inventories.TryGetValue(userID, out inv))
-                return inv;
-            return null;
         }
 
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)

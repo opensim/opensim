@@ -316,29 +316,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetInventorySkeleton(userID);
         }
 
-        public InventoryCollection GetUserInventory(UUID userID)
-        {
-            string invURL = GetInventoryServiceURL(userID);
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetUserInventory for {0} {1}", userID, invURL);
-
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                return m_LocalGridInventoryService.GetUserInventory(userID);
-
-            InventoryCollection c = m_Cache.GetUserInventory(userID);
-            if (c != null)
-                return c;
-
-            IInventoryService connector = GetConnector(invURL);
-            c = connector.GetUserInventory(userID);
-
-            m_Cache.Cache(userID, c);
-            return c;
-        }
-
-        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
-        {
-        }
-
         public InventoryFolderBase GetRootFolder(UUID userID)
         {
             //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetRootFolder for {0}", userID);

@@ -86,10 +86,6 @@ namespace OpenSim.Server.Handlers.Inventory
         protected virtual void AddHttpHandlers(IHttpServer m_httpServer)
         {
             m_httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
-                    "POST", "/GetInventory/", GetUserInventory, CheckAuthSession));
-
-            m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, List<InventoryFolderBase>>(
                 "POST", "/SystemFolders/", GetSystemFolders, CheckAuthSession));
 
@@ -177,12 +173,6 @@ namespace OpenSim.Server.Handlers.Inventory
         }
 
         #region Wrappers for converting the Guid parameter
-
-        public InventoryCollection GetUserInventory(Guid guid)
-        {
-            UUID userID = new UUID(guid);
-            return m_InventoryService.GetUserInventory(userID);
-        }
 
         public List<InventoryFolderBase> GetSystemFolders(Guid guid)
         {

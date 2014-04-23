@@ -197,37 +197,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
 
         /// <summary>
-        /// Synchronous inventory fetch.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public InventoryCollection GetUserInventory(UUID userID)
-        {
-            m_log.Error("[SIMIAN INVENTORY CONNECTOR]: Obsolete GetUserInventory called for " + userID);
-
-            InventoryCollection inventory = new InventoryCollection();
-            inventory.UserID = userID;
-            inventory.Folders = new List<InventoryFolderBase>();
-            inventory.Items = new List<InventoryItemBase>();
-
-            return inventory;
-        }
-
-        /// <summary>
-        /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the
-        /// inventory has been received
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="callback"></param>
-        [Obsolete]
-        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
-        {
-            m_log.Error("[SIMIAN INVENTORY CONNECTOR]: Obsolete GetUserInventory called for " + userID);
-            callback(new List<InventoryFolderImpl>(0), new List<InventoryItemBase>(0));
-        }
-
-        /// <summary>
         /// Retrieve the root inventory folder for the given user.
         /// </summary>
         /// <param name="userID"></param>

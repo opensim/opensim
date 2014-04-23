@@ -142,22 +142,6 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         public List<InventoryFolderBase> GetInventorySkeleton(UUID userId) { return null; }
 
         /// <summary>
-        /// Synchronous inventory fetch.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        public InventoryCollection GetUserInventory(UUID userID) { return null; }
-
-        /// <summary>
-        /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the
-        /// inventory has been received
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="callback"></param>
-        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback) { }
-
-
-        /// <summary>
         /// Gets the user folder for the given folder-type
         /// </summary>
         /// <param name="userID"></param>

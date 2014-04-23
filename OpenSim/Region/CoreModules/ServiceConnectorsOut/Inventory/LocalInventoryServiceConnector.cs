@@ -164,16 +164,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.GetInventorySkeleton(userId);
         }
 
-        public InventoryCollection GetUserInventory(UUID id)
-        {
-            return m_InventoryService.GetUserInventory(id);
-        }
-
-        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
-        {
-            m_InventoryService.GetUserInventory(userID, callback);
-        }
-
         public InventoryFolderBase GetRootFolder(UUID userID)
         {
             return m_InventoryService.GetRootFolder(userID);

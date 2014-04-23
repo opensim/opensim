@@ -484,45 +484,6 @@ namespace OpenSim.Services.Connectors
             return 0;
         }
 
-        public InventoryCollection GetUserInventory(UUID principalID)
-        {
-            InventoryCollection inventory = new InventoryCollection();
-            inventory.Folders = new List<InventoryFolderBase>();
-            inventory.Items = new List<InventoryItemBase>();
-            inventory.UserID = principalID;
-
-            try
-            {
-                Dictionary<string, object> ret = MakeRequest("GETUSERINVENTORY",
-                        new Dictionary<string, object> {
-                            { "PRINCIPAL", principalID.ToString() }
-                        });
-
-                if (!CheckReturn(ret))
-                    return null;
-
-                Dictionary<string, object> folders =
-                        (Dictionary<string, object>)ret["FOLDERS"];
-                Dictionary<string, object> items =
-                        (Dictionary<string, object>)ret["ITEMS"];
-
-                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
-                    inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
-                foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
-                    inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetUserInventory: ", e);
-            }
-
-            return inventory;
-        }
-
-        public void GetUserInventory(UUID principalID, InventoryReceiptCallback callback)
-        {
-        }
-
         public bool HasInventoryForUser(UUID principalID)
         {
             return false;

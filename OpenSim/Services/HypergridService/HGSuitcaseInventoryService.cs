@@ -137,59 +137,6 @@ namespace OpenSim.Services.HypergridService
             return folders;
         }
 
-        public override InventoryCollection GetUserInventory(UUID userID)
-        {
-            m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Get Suitcase inventory for user {0}", userID);
-
-            InventoryCollection userInventory = new InventoryCollection();
-            userInventory.UserID = userID;
-            userInventory.Folders = new List<InventoryFolderBase>();
-            userInventory.Items = new List<InventoryItemBase>();
-
-            XInventoryFolder suitcase = GetSuitcaseXFolder(userID);
-
-            if (suitcase == null)
-            {
-                m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: Found no suitcase folder for user {0} when looking for user inventory", userID);
-                return null;
-            }
-
-            List<XInventoryFolder> tree = GetFolderTree(userID, suitcase.folderID);
-            if (tree == null || (tree != null && tree.Count == 0))
-            {
-                SetAsNormalFolder(suitcase);
-                userInventory.Folders.Add(ConvertToOpenSim(suitcase));
-                return userInventory;
-            }
-
-            List<InventoryItemBase> items;
-            foreach (XInventoryFolder f in tree)
-            {
-                // Add the items of this subfolder
-                items = GetFolderItems(userID, f.folderID);
-                if (items != null && items.Count > 0)
-                {
-                    userInventory.Items.AddRange(items);
-                }
-
-                // Add the folder itself
-                userInventory.Folders.Add(ConvertToOpenSim(f));
-            }
-
-            items = GetFolderItems(userID, suitcase.folderID);
-            if (items != null && items.Count > 0)
-            {
-                userInventory.Items.AddRange(items);
-            }
-
-            SetAsNormalFolder(suitcase);
-            userInventory.Folders.Add(ConvertToOpenSim(suitcase));
-
-            m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetUserInventory for user {0} returning {1} folders and {2} items",
-                userID, userInventory.Folders.Count, userInventory.Items.Count);
-            return userInventory;
-        }
-
         public override InventoryFolderBase GetRootFolder(UUID principalID)
         {
             m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetRootFolder for {0}", principalID);
