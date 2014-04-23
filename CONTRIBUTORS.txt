@@ -80,6 +80,7 @@ what it is today.
 * ctrlaltdavid (David Rowe)
 * Daedius
 * daTwitch 
+* Dev Random
 * devalnor-#708
 * dmiles (Daxtron Labs)
 * Dong Jun Lan (IBM)
