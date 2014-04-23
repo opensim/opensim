@@ -118,45 +118,44 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (string.IsNullOrEmpty(url))
                 return false;
 
-            if (asset != null)
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + "/";
+
+            if (asset == null)
             {
-                if (!url.EndsWith("/") && !url.EndsWith("="))
-                    url = url + "/";
-
-                bool success = true;
-                // See long comment in AssetCache.AddAsset
-                if (!asset.Temporary || asset.Local)
-                {
-                    // We need to copy the asset into a new asset, because
-                    // we need to set its ID to be URL+UUID, so that the
-                    // HGAssetService dispatches it to the remote grid.
-                    // It's not pretty, but the best that can be done while
-                    // not having a global naming infrastructure
-                    AssetBase asset1 = new AssetBase(asset.FullID, asset.Name, asset.Type, asset.Metadata.CreatorID);
-                    Copy(asset, asset1);
-                    asset1.ID = url + asset.ID;
-
-                    AdjustIdentifiers(asset1.Metadata);
-                    if (asset1.Metadata.Type == (sbyte)AssetType.Object)
-                        asset1.Data = AdjustIdentifiers(asset.Data);
-                    else
-                        asset1.Data = asset.Data;
-
-                    string id = m_scene.AssetService.Store(asset1);
-                    if (String.IsNullOrEmpty(id))
-                    {
-                        m_log.DebugFormat("[HG ASSET MAPPER]: Failed to post asset {0} to asset server {1}: the server did not accept the asset", asset.ID, url);
-                        success = false;
-                    }
-                    else
-                        m_log.DebugFormat("[HG ASSET MAPPER]: Posted asset {0} to asset server {1}", asset1.ID, url);
-                }
-                return success;
-            }
-            else
                 m_log.Warn("[HG ASSET MAPPER]: Tried to post asset to remote server, but asset not in local cache.");
+                return false;
+            }
 
-            return false;
+            // See long comment in AssetCache.AddAsset
+            if (asset.Temporary || asset.Local)
+                return true;
+
+            // We need to copy the asset into a new asset, because
+            // we need to set its ID to be URL+UUID, so that the
+            // HGAssetService dispatches it to the remote grid.
+            // It's not pretty, but the best that can be done while
+            // not having a global naming infrastructure
+            AssetBase asset1 = new AssetBase(asset.FullID, asset.Name, asset.Type, asset.Metadata.CreatorID);
+            Copy(asset, asset1);
+            asset1.ID = url + asset.ID;
+
+            AdjustIdentifiers(asset1.Metadata);
+            if (asset1.Metadata.Type == (sbyte)AssetType.Object)
+                asset1.Data = AdjustIdentifiers(asset.Data);
+            else
+                asset1.Data = asset.Data;
+
+            string id = m_scene.AssetService.Store(asset1);
+            if (String.IsNullOrEmpty(id))
+            {
+                m_log.DebugFormat("[HG ASSET MAPPER]: Asset server {0} did not accept {1}", url, asset.ID);
+                return false;
+            }
+            else {
+                m_log.DebugFormat("[HG ASSET MAPPER]: Posted copy of asset {0} from local asset server to {1}", asset1.ID, url);
+                return true;
+            }
         }
 
         private void Copy(AssetBase from, AssetBase to)
