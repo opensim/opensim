@@ -184,30 +184,31 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(m_sp.ParentID, Is.EqualTo(part.LocalId));
 
             // This section is copied from ScenePresence.HandleAgentSit().  Correctness is not guaranteed.
-            Quaternion r = part.SitTargetOrientation;
-            double x, y, z, m;
-            m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+            double x, y, z, m1, m2;
 
-            if (Math.Abs(1.0 - m) > 0.000001)
-            {
-                m = 1.0 / Math.Sqrt(m);
-                r.X *= (float)m;
-                r.Y *= (float)m;
-                r.Z *= (float)m;
-                r.W *= (float)m;
-            }
+            Quaternion r = part.SitTargetOrientation;;
+            m1 = r.X * r.X + r.Y * r.Y;
+            m2 = r.Z * r.Z + r.W * r.W;
 
+            // Rotate the vector <0, 0, 1>
             x = 2 * (r.X * r.Z + r.Y * r.W);
             y = 2 * (-r.X * r.W + r.Y * r.Z);
-            z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+            z = m2 - m1;
+
+            // Set m to be the square of the norm of r.
+            double m = m1 + m2;
+
+            // This constant is emperically determined to be what is used in SL.
+            // See also http://opensimulator.org/mantis/view.php?id=7096
+            double offset = 0.05;
 
             Vector3 up = new Vector3((float)x, (float)y, (float)z);
-            Vector3 sitOffset = up * m_sp.Appearance.AvatarHeight * 0.02638f;
+            Vector3 sitOffset = up * (float)offset;
             // End of copied section.
 
             Assert.That(
                 m_sp.AbsolutePosition,
-                Is.EqualTo(part.AbsolutePosition + part.SitTargetPosition + sitOffset + ScenePresence.SIT_TARGET_ADJUSTMENT));
+                Is.EqualTo(part.AbsolutePosition + part.SitTargetPosition - sitOffset + ScenePresence.SIT_TARGET_ADJUSTMENT));
             Assert.That(m_sp.PhysicsActor, Is.Null);
 
             Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(1));
