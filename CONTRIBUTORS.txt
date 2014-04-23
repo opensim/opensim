@@ -221,4 +221,3 @@ In addition, we would like to thank:
 * The Mono Project
 * The NANT Developers
 * Microsoft (.NET, MSSQL-Adapters)
-
