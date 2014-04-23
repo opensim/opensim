@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
@@ -367,12 +368,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.DenyAgeUnverified);
             }
 
-            uint preserve = LandData.Flags & ~allowedDelta;
-            newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
+            if (allowedDelta != 0)
+            {
+                uint preserve = LandData.Flags & ~allowedDelta;
+                newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
 
-            m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-
-            SendLandUpdateToAvatarsOverMe(snap_selection);
+                m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
+                SendLandUpdateToAvatarsOverMe(snap_selection);
+            }
         }
 
         public void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
