@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
@@ -368,7 +367,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.DenyAgeUnverified);
             }
 
-            if (allowedDelta != 0)
+            if (allowedDelta != (uint)ParcelFlags.None)
             {
                 uint preserve = LandData.Flags & ~allowedDelta;
                 newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
