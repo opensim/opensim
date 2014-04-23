@@ -2941,28 +2941,40 @@ namespace OpenSim.Region.Framework.Scenes
 
                     //Quaternion result = (sitTargetOrient * vq) * nq;
 
-                    double x, y, z, m;
+                    double x, y, z, m1, m2;
 
                     Quaternion r = sitTargetOrient;
-                    m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+                    m1 = r.X * r.X + r.Y * r.Y;
+                    m2 = r.Z * r.Z + r.W * r.W;
 
-                    if (Math.Abs(1.0 - m) > 0.000001)
-                    {
-                        m = 1.0 / Math.Sqrt(m);
-                        r.X *= (float)m;
-                        r.Y *= (float)m;
-                        r.Z *= (float)m;
-                        r.W *= (float)m;
-                    }
-
+                    // Rotate the vector <0, 0, 1>
                     x = 2 * (r.X * r.Z + r.Y * r.W);
                     y = 2 * (-r.X * r.W + r.Y * r.Z);
-                    z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+                    z = m2 - m1;
+
+                    // Set m to be the square of the norm of r.
+                    double m = m1 + m2;
+
+                    // This constant is emperically determined to be what is used in SL.
+                    // See also http://opensimulator.org/mantis/view.php?id=7096
+                    double offset = 0.05;
+
+                    // Normally m will be ~ 1, but if someone passed a handcrafted quaternion
+                    // to llSitTarget with values so small that squaring them is rounded off
+                    // to zero, then m could be zero. The result of this floating point
+                    // round off error (causing us to skip this impossible normalization)
+                    // is only 5 cm.
+                    if (m > 0.000001)
+                    {
+                        offset /= m;
+                    }
 
                     Vector3 up = new Vector3((float)x, (float)y, (float)z);
-                    Vector3 sitOffset = up * Appearance.AvatarHeight * 0.02638f;
+                    Vector3 sitOffset = up * (float)offset;
 
-                    Vector3 newPos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
+                    // sitOffset is in Avatar Center coordinates: from origin to 'sitTargetPos + SIT_TARGET_ADJUSTMENT'.
+                    // So, we need to _substract_ it to get to the origin of the Avatar Center.
+                    Vector3 newPos = sitTargetPos + SIT_TARGET_ADJUSTMENT - sitOffset;
                     Quaternion newRot;
 
                     if (part.IsRoot)
