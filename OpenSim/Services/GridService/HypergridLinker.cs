@@ -68,10 +68,6 @@ namespace OpenSim.Services.GridService
         protected string m_ThisGatekeeper = string.Empty;
         protected Uri m_ThisGatekeeperURI = null;
 
-        // Hyperlink regions are hyperlinks on the map
-        public readonly Dictionary<UUID, GridRegion> m_HyperlinkRegions = new Dictionary<UUID, GridRegion>();
-        protected Dictionary<UUID, ulong> m_HyperlinkHandles = new Dictionary<UUID, ulong>();
-
         protected GridRegion m_DefaultRegion;
         protected GridRegion DefaultRegion
         {
@@ -409,7 +405,7 @@ namespace OpenSim.Services.GridService
             // Store the origin's coordinates somewhere
             regInfo.RegionSecret = handle.ToString();
 
-            AddHyperlinkRegion(regInfo, handle);
+            AddHyperlinkRegion(ref regInfo, handle);
             m_log.InfoFormat("[HYPERGRID LINKER]: Successfully linked to region {0} with image {1}", regInfo.RegionName, regInfo.TerrainImage);
             return true;
         }
@@ -489,11 +485,11 @@ namespace OpenSim.Services.GridService
 //            return true;
 //        }
 
-        private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
+        private void AddHyperlinkRegion(ref GridRegion regionInfo, ulong regionHandle)
         {
             RegionData rdata = m_GridService.RegionInfo2RegionData(regionInfo);
-            int flags = (int)OpenSim.Framework.RegionFlags.Hyperlink + (int)OpenSim.Framework.RegionFlags.NoDirectLogin + (int)OpenSim.Framework.RegionFlags.RegionOnline;
-            rdata.Data["flags"] = flags.ToString();
+            regionInfo.Flags = OpenSim.Framework.RegionFlags.Hyperlink | OpenSim.Framework.RegionFlags.NoDirectLogin | OpenSim.Framework.RegionFlags.RegionOnline;
+            rdata.Data["flags"] = ((int)regionInfo.Flags).ToString();
 
             m_Database.Store(rdata);
         }
