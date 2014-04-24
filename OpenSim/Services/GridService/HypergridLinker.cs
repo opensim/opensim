@@ -200,10 +200,13 @@ namespace OpenSim.Services.GridService
             reason = string.Empty;
             GridRegion regInfo = null;
 
+            mapName = mapName.Trim();
+
             if (!mapName.StartsWith("http"))
             {
                 // Formats: grid.example.com:8002:region name
                 //          grid.example.com:region name
+                //          grid.example.com:8002
                 //          grid.example.com
 
                 string host;
@@ -222,11 +225,11 @@ namespace OpenSim.Services.GridService
                 
                 if (parts.Length >= 2)
                 {
-                    string portstr = parts[1];
-                    //m_log.Debug("-- port = " + portstr);
-                    if (!UInt32.TryParse(portstr, out port))
+                    // If it's a number then assume it's a port. Otherwise, it's a region name.
+                    if (!UInt32.TryParse(parts[1], out port))
                         regionName = parts[1];
                 }
+
                 // always take the last one
                 if (parts.Length >= 3)
                 {
@@ -245,21 +248,28 @@ namespace OpenSim.Services.GridService
             {
                 // Formats: http://grid.example.com region name
                 //          http://grid.example.com "region name"
-                
-                string regionName;
+                //          http://grid.example.com
+
+                string serverURI;
+                string regionName = "";
 
                 string[] parts = mapName.Split(new char[] { ' ' });
 
-                if (parts.Length < 2)
+                if (parts.Length == 0)
                 {
                     reason = "Wrong format for link-region";
                     return null;
                 }
-                
-                regionName = mapName.Substring(parts[0].Length + 1);
-                regionName = regionName.Trim(new char[] {'"'});
-                
-                if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, parts[0], ownerID, out regInfo, out reason))
+
+                serverURI = parts[0];
+
+                if (parts.Length >= 2)
+                {
+                    regionName = mapName.Substring(serverURI.Length);
+                    regionName = regionName.Trim(new char[] { '"', ' ' });
+                }
+
+                if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, serverURI, ownerID, out regInfo, out reason))
                 {
                     regInfo.RegionName = mapName; 
                     return regInfo;
