@@ -65,6 +65,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
         Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
 
+        private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
+
         public Scene Scene
         {
             get; private set;
@@ -114,7 +116,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             set;
         }
 
-        JsonRpcRequestManager rpc = new JsonRpcRequestManager();
 
         #region IRegionModuleBase implementation
         /// <summary>
@@ -920,7 +921,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
         public void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
-            if ( String.IsNullOrEmpty(avatarID.ToString()) || String.IsNullOrEmpty(remoteClient.AgentId.ToString()))
+            if (String.IsNullOrEmpty(avatarID.ToString()) || String.IsNullOrEmpty(remoteClient.AgentId.ToString()))
             {
                 // Looking for a reason that some viewers are sending null Id's
                 m_log.DebugFormat("[PROFILES]: This should not happen remoteClient.AgentId {0} - avatarID {1}", remoteClient.AgentId, avatarID);
@@ -998,29 +999,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             props.UserId = avatarID;
 
-            try
+            if (!GetProfileData(ref props, foreign, out result))
             {
-                GetProfileData(ref props, out result);
-            }
-            catch (Exception e)
-            {
-                if (foreign)
-                {
-                    // Check if the foreign grid is using OpenProfile.
-                    // If any error occurs then discard it, and report the original error.
-                    try
-                    {
-                        OpenProfileClient client = new OpenProfileClient(serverURI);
-                        if (!client.RequestAvatarPropertiesUsingOpenProfile(ref props))
-                            throw e;
-                    }
-                    catch (Exception)
-                    {
-                        throw e;
-                    }
-                }
-                else
-                    throw;
+                m_log.DebugFormat("Error getting profile for {0}: {1}", avatarID, result);
+                return;
             }
 
             remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, charterMember , props.FirstLifeText, flags,
@@ -1074,10 +1056,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <returns>
         /// The profile data.
         /// </returns>
-        /// <param name='userID'>
-        /// User I.
-        /// </param>
-        bool GetProfileData(ref UserProfileProperties properties, out string message)
+        bool GetProfileData(ref UserProfileProperties properties, bool foreign, out string message)
         {
             // Can't handle NPC yet...
             ScenePresence p = FindPresence(properties.UserId);
@@ -1096,14 +1075,42 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             // This is checking a friend on the home grid
             // Not HG friend
-            if ( String.IsNullOrEmpty(serverURI))
+            if (String.IsNullOrEmpty(serverURI))
             {
                 message = "No Presence - foreign friend";
                 return false;
             }
 
             object Prop = (object)properties;
-            rpc.JsonRpcRequest(ref Prop, "avatar_properties_request", serverURI, UUID.Random().ToString());
+            if (!rpc.JsonRpcRequest(ref Prop, "avatar_properties_request", serverURI, UUID.Random().ToString()))
+            {
+                // If it's a foreign user then try again using OpenProfile, in case that's what the grid is using
+                bool secondChanceSuccess = false;
+                if (foreign)
+                {
+                    try
+                    {
+                        OpenProfileClient client = new OpenProfileClient(serverURI);
+                        if (client.RequestAvatarPropertiesUsingOpenProfile(ref properties))
+                            secondChanceSuccess = true;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Debug(string.Format("Request using the OpenProfile API to {0} failed", serverURI), e);
+                        // Allow the return 'message' to say "JsonRpcRequest" and not "OpenProfile", because
+                        // the most likely reason that OpenProfile failed is that the remote server
+                        // doesn't support OpenProfile, and that's not very interesting.
+                    }
+                }
+
+                if (!secondChanceSuccess)
+                {
+                    message = string.Format("JsonRpcRequest to {0} failed", serverURI);
+                    return false;
+                }
+                // else, continue below
+            }
+            
             properties = (UserProfileProperties)Prop;
 
             message = "Success";
