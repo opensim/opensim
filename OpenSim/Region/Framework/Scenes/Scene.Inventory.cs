@@ -2040,7 +2040,7 @@ namespace OpenSim.Region.Framework.Scenes
                 deleteGroups.Add(grp);
 
                 // If child prims have invalid perms, fix them
-                grp.AdjustChildPrimPermissions();
+                grp.AdjustChildPrimPermissions(false);
 
                 if (remoteClient == null)
                 {

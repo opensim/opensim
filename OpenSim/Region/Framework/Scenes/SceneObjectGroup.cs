@@ -2352,7 +2352,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            objectGroup.m_rootPart = null;
 
             // If linking prims with different permissions, fix them
-            AdjustChildPrimPermissions();
+            AdjustChildPrimPermissions(false);
 
             GroupContainsForeignPrims = true;
 
@@ -2864,7 +2864,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void AdjustChildPrimPermissions()
+        public void AdjustChildPrimPermissions(bool forceTaskInventoryPermissive)
         {
             uint newOwnerMask = (uint)(PermissionMask.All | PermissionMask.Export) & 0xfffffff8; // Mask folded bits
             uint foldedPerms = RootPart.OwnerMask & 3;
@@ -2874,6 +2874,8 @@ namespace OpenSim.Region.Framework.Scenes
                 newOwnerMask &= part.BaseMask;
                 if (part != RootPart)
                     part.ClonePermissions(RootPart);
+                if (forceTaskInventoryPermissive)
+                    part.Inventory.ApplyGodPermissions(part.BaseMask);
             });
 
             uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
@@ -2887,7 +2889,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             RootPart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
 
-            AdjustChildPrimPermissions();
+            AdjustChildPrimPermissions(Scene.Permissions.IsGod(AgentID));
 
             HasGroupChanged = true;
 
