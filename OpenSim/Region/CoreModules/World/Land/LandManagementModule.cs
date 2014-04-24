@@ -75,7 +75,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private LandChannel landChannel;
         private Scene m_scene;
-        
+
+        protected IGroupsModule m_groupManager;
         protected IUserManagement m_userManager;
         protected IPrimCountModule m_primCountModule;
         protected IDialogModule m_Dialog;
@@ -150,9 +151,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void RegionLoaded(Scene scene)
         {
-             m_userManager = m_scene.RequestModuleInterface<IUserManagement>();         
-             m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
-             m_Dialog = m_scene.RequestModuleInterface<IDialogModule>();
+            m_userManager = m_scene.RequestModuleInterface<IUserManagement>();
+            m_groupManager = m_scene.RequestModuleInterface<IGroupsModule>();
+            m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
+            m_Dialog = m_scene.RequestModuleInterface<IDialogModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -2096,8 +2098,18 @@ namespace OpenSim.Region.CoreModules.World.Land
                 foreach (ILandObject lo in m_landList.Values)
                 {
                     LandData ld = lo.LandData;
+                    string ownerName;
+                    if (ld.IsGroupOwned)
+                    {
+                        GroupRecord rec = m_groupManager.GetGroupRecord(ld.GroupID);
+                        ownerName = (rec != null) ? rec.GroupName : "Unknown Group";
+                    }
+                    else
+                    {
+                        ownerName = m_userManager.GetUserName(ld.OwnerID);
+                    }
                     cdt.AddRow(
-                        ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, m_userManager.GetUserName(ld.OwnerID));
+                        ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, ownerName);
                 }
             }
 
@@ -2118,8 +2130,17 @@ namespace OpenSim.Region.CoreModules.World.Land
             cdl.AddRow("Ends", lo.EndPoint);
             cdl.AddRow("AABB Min", ld.AABBMin);
             cdl.AddRow("AABB Max", ld.AABBMax);
-
-            cdl.AddRow("Owner", m_userManager.GetUserName(ld.OwnerID));
+            string ownerName;
+            if (ld.IsGroupOwned)
+            {
+                GroupRecord rec = m_groupManager.GetGroupRecord(ld.GroupID);
+                ownerName = (rec != null) ? rec.GroupName : "Unknown Group";
+            }
+            else
+            {
+                ownerName = m_userManager.GetUserName(ld.OwnerID);
+            }
+            cdl.AddRow("Owner", ownerName);
             cdl.AddRow("Is group owned?", ld.IsGroupOwned);
             cdl.AddRow("GroupID", ld.GroupID);
 
