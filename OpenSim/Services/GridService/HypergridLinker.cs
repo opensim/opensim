@@ -405,7 +405,7 @@ namespace OpenSim.Services.GridService
             // Store the origin's coordinates somewhere
             regInfo.RegionSecret = handle.ToString();
 
-            AddHyperlinkRegion(ref regInfo, handle);
+            AddHyperlinkRegion(regInfo, handle);
             m_log.InfoFormat("[HYPERGRID LINKER]: Successfully linked to region {0} with image {1}", regInfo.RegionName, regInfo.TerrainImage);
             return true;
         }
@@ -485,11 +485,11 @@ namespace OpenSim.Services.GridService
 //            return true;
 //        }
 
-        private void AddHyperlinkRegion(ref GridRegion regionInfo, ulong regionHandle)
+        private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
         {
             RegionData rdata = m_GridService.RegionInfo2RegionData(regionInfo);
-            regionInfo.Flags = OpenSim.Framework.RegionFlags.Hyperlink | OpenSim.Framework.RegionFlags.NoDirectLogin | OpenSim.Framework.RegionFlags.RegionOnline;
-            rdata.Data["flags"] = ((int)regionInfo.Flags).ToString();
+            int flags = (int)OpenSim.Framework.RegionFlags.Hyperlink + (int)OpenSim.Framework.RegionFlags.NoDirectLogin + (int)OpenSim.Framework.RegionFlags.RegionOnline;
+            rdata.Data["flags"] = flags.ToString();
 
             m_Database.Store(rdata);
         }
