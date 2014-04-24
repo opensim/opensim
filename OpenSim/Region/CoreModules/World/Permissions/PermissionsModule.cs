@@ -901,7 +901,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return permission;
         }
     
-        protected bool GenericParcelOwnerPermission(UUID user, ILandObject parcel, ulong groupPowers)
+        protected bool GenericParcelOwnerPermission(UUID user, ILandObject parcel, ulong groupPowers, bool allowEstateManager)
         {
             if (parcel.LandData.OwnerID == user)
             {
@@ -916,7 +916,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return true;
             }
     
-            if (IsEstateManager(user))
+            if (allowEstateManager && IsEstateManager(user))
             {
                 return true;
             }
@@ -943,7 +943,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
         
-            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandRelease);
+            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandRelease, false);
         }
 
         private bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene)
@@ -951,7 +951,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericParcelOwnerPermission(user, parcel, 0);
+            return GenericParcelOwnerPermission(user, parcel, 0,true);
         }
 
         private bool CanDeedParcel(UUID user, ILandObject parcel, Scene scene)
@@ -968,7 +968,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if ((client.GetGroupPowers(parcel.LandData.GroupID) & (ulong)GroupPowers.LandDeed) == 0)
                 return false;
 
-            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandDeed);
+            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandDeed, false);
         }
 
         private bool CanDeedObject(UUID user, UUID group, Scene scene)
@@ -1055,7 +1055,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericParcelOwnerPermission(user, parcel, (ulong)p);
+            return GenericParcelOwnerPermission(user, parcel, (ulong)p, false);
         }
 
         /// <summary>
@@ -1501,7 +1501,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandSetSale);
+            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandSetSale, false);
         }
 
         private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
