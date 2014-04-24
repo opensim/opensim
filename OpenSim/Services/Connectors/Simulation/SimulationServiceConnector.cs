@@ -136,7 +136,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 }
               
                 // Try the old version, uncompressed
-                result = WebUtil.PostToService(uri, args, 30000);
+                result = WebUtil.PostToService(uri, args, 30000, false);
 
                 if (result["Success"].AsBoolean())
                 {
@@ -302,7 +302,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 30000, false);
+                OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 30000, false, false);
                 bool success = result["success"].AsBoolean();
                 if (result.ContainsKey("_Result"))
                 {
@@ -365,7 +365,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false);
+                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false, false);
             }
             catch (Exception e)
             {
@@ -384,7 +384,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false);
+                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false, false);
             }
             catch (Exception e)
             {
@@ -431,7 +431,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
-                OSDMap result = WebUtil.PostToService(uri, args, 40000);
+                OSDMap result = WebUtil.PostToService(uri, args, 40000, false);
 
                 if (result == null)
                     return false;

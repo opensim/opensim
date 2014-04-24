@@ -127,41 +127,41 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PutToServiceCompressed(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout, true);
+            return ServiceOSDRequest(url,data, "PUT", timeout, true, false);
         }
 
         public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout, false);
+            return ServiceOSDRequest(url,data, "PUT", timeout, false, false);
         }
 
-        public static OSDMap PostToService(string url, OSDMap data, int timeout)
+        public static OSDMap PostToService(string url, OSDMap data, int timeout, bool rpc)
         {
-            return ServiceOSDRequest(url, data, "POST", timeout, false);
+            return ServiceOSDRequest(url, data, "POST", timeout, false, rpc);
         }
 
         public static OSDMap PostToServiceCompressed(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url, data, "POST", timeout, true);
+            return ServiceOSDRequest(url, data, "POST", timeout, true, false);
         }
 
         public static OSDMap GetFromService(string url, int timeout)
         {
-            return ServiceOSDRequest(url, null, "GET", timeout, false);
+            return ServiceOSDRequest(url, null, "GET", timeout, false, false);
         }
-        
-        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed)
+
+        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
         {
             if (SerializeOSDRequestsPerEndpoint)
             {
                 lock (EndPointLock(url))
                 {
-                    return ServiceOSDRequestWorker(url, data, method, timeout, compressed);
+                    return ServiceOSDRequestWorker(url, data, method, timeout, compressed, rpc);
                 }
             }
             else
             {
-                return ServiceOSDRequestWorker(url, data, method, timeout, compressed);
+                return ServiceOSDRequestWorker(url, data, method, timeout, compressed, rpc);
             }
         }
 
@@ -217,7 +217,7 @@ namespace OpenSim.Framework
             LogOutgoingDetail("RESPONSE: ", input);
         }
 
-        private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed)
+        private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
         {
             int reqnum = RequestNumber++;
 
@@ -251,7 +251,7 @@ namespace OpenSim.Framework
 
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
 
-                    request.ContentType = "application/json";
+                    request.ContentType = rpc ? "application/json-rpc" : "application/json";
                     
                     if (compressed)
                     {
