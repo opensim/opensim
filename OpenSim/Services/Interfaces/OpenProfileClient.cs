@@ -35,11 +35,10 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using log4net;
-using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
+namespace OpenSim.Services.UserProfilesService
 {
     /// <summary>
     /// A client for accessing a profile server using the OpenProfile protocol.
@@ -79,7 +78,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Hashtable ReqHash = new Hashtable();
             ReqHash["avatar_id"] = props.UserId.ToString();
 
-            Hashtable profileData = GenericXMLRPCRequest(ReqHash, "avatar_properties_request", m_serverURI);
+            Hashtable profileData = XMLRPCRequester.SendRequest(ReqHash, "avatar_properties_request", m_serverURI);
+
+            if (profileData == null)
+                return false;
+            if (!profileData.ContainsKey("data"))
+                return false;
 
             ArrayList dataArray = (ArrayList)profileData["data"];
 
@@ -127,67 +131,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 props.Language = profileData["languages"].ToString();
 
             return true;
-        }
-
-        private Hashtable GenericXMLRPCRequest(Hashtable ReqParams, string method, string server)
-        {
-            ArrayList SendParams = new ArrayList();
-            SendParams.Add(ReqParams);
-
-            XmlRpcResponse Resp;
-            try
-            {
-                XmlRpcRequest Req = new XmlRpcRequest(method, SendParams);
-                Resp = Req.Send(server, 30000);
-            }
-            catch (WebException ex)
-            {
-                m_log.ErrorFormat("[PROFILE]: Unable to connect to Profile " +
-                        "Server {0}.  Exception {1}", server, ex);
-
-                Hashtable ErrorHash = new Hashtable();
-                ErrorHash["success"] = false;
-                ErrorHash["errorMessage"] = "Unable to fetch profile data at this time. ";
-                ErrorHash["errorURI"] = "";
-
-                return ErrorHash;
-            }
-            catch (SocketException ex)
-            {
-                m_log.ErrorFormat(
-                        "[PROFILE]: Unable to connect to Profile Server {0}. Method {1}, params {2}. " +
-                        "Exception {3}", server, method, ReqParams, ex);
-
-                Hashtable ErrorHash = new Hashtable();
-                ErrorHash["success"] = false;
-                ErrorHash["errorMessage"] = "Unable to fetch profile data at this time. ";
-                ErrorHash["errorURI"] = "";
-
-                return ErrorHash;
-            }
-            catch (XmlException ex)
-            {
-                m_log.ErrorFormat(
-                        "[PROFILE]: Unable to connect to Profile Server {0}. Method {1}, params {2}. " +
-                        "Exception {3}", server, method, ReqParams.ToString(), ex);
-                Hashtable ErrorHash = new Hashtable();
-                ErrorHash["success"] = false;
-                ErrorHash["errorMessage"] = "Unable to fetch profile data at this time. ";
-                ErrorHash["errorURI"] = "";
-
-                return ErrorHash;
-            }
-            if (Resp.IsFault)
-            {
-                Hashtable ErrorHash = new Hashtable();
-                ErrorHash["success"] = false;
-                ErrorHash["errorMessage"] = "Unable to fetch profile data at this time. ";
-                ErrorHash["errorURI"] = "";
-                return ErrorHash;
-            }
-            Hashtable RespData = (Hashtable)Resp.Value;
-
-            return RespData;
         }
     }
 }

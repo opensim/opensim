@@ -48,7 +48,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
         }
 
-        #region Web Util
         /// <summary>
         /// Sends json-rpc request with a serializable type.
         /// </summary>
@@ -70,64 +69,62 @@ namespace OpenSim.Framework.Servers.HttpServer
         public bool JsonRpcRequest(ref object parameters, string method, string uri, string jsonId)
         {
             if (jsonId == null)
-                throw new ArgumentNullException ("jsonId");
+                throw new ArgumentNullException("jsonId");
             if (uri == null)
-                throw new ArgumentNullException ("uri");
+                throw new ArgumentNullException("uri");
             if (method == null)
-                throw new ArgumentNullException ("method");
+                throw new ArgumentNullException("method");
             if (parameters == null)
-                throw new ArgumentNullException ("parameters");
-            
-            // Prep our payload
-            OSDMap json = new OSDMap();
-            
-            json.Add("jsonrpc", OSD.FromString("2.0"));
-            json.Add("id", OSD.FromString(jsonId));
-            json.Add("method", OSD.FromString(method));
-            
-            json.Add("params", OSD.SerializeMembers(parameters));
-            
-            string jsonRequestData = OSDParser.SerializeJsonString(json);
-            byte[] content = Encoding.UTF8.GetBytes(jsonRequestData);
-            
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
-            
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.Method = "POST";
-            
-            //Stream dataStream = webRequest.GetRequestStream();
-            //dataStream.Write(content, 0, content.Length);
-            //dataStream.Close();
+                throw new ArgumentNullException("parameters");
 
-            using (Stream dataStream = webRequest.GetRequestStream())
-                dataStream.Write(content, 0, content.Length);
-            
-            WebResponse webResponse = null;
+            OSDMap request = new OSDMap();
+            request.Add("jsonrpc", OSD.FromString("2.0"));
+            request.Add("id", OSD.FromString(jsonId));
+            request.Add("method", OSD.FromString(method));
+            request.Add("params", OSD.SerializeMembers(parameters));
+
+            OSDMap response;
             try
             {
-                webResponse = webRequest.GetResponse();
+                response = WebUtil.PostToService(uri, request, 10000, true);
             }
-            catch (WebException e)
+            catch (Exception e)
             {
-                Console.WriteLine("Web Error" + e.Message);
-                Console.WriteLine ("Please check input");
+                m_log.Debug(string.Format("JsonRpc request '{0}' failed", method), e);
                 return false;
             }
-            
-            using (webResponse)
-            using (Stream rstream = webResponse.GetResponseStream())
+
+            if (!response.ContainsKey("_Result"))
             {
-                OSDMap mret = (OSDMap)OSDParser.DeserializeJson(rstream);
-                        
-                if (mret.ContainsKey("error"))
-                    return false;
-            
-                // get params...
-                OSD.DeserializeMembers(ref parameters, (OSDMap)mret["result"]);
-                return true;
+                m_log.DebugFormat("JsonRpc request '{0}' returned an invalid response: {1}",
+                    method, OSDParser.SerializeJsonString(response));
+                return false;
             }
+            response = (OSDMap)response["_Result"];
+
+            OSD data;
+
+            if (response.ContainsKey("error"))
+            {
+                data = response["error"];
+                m_log.DebugFormat("JsonRpc request '{0}' returned an error: {1}",
+                    method, OSDParser.SerializeJsonString(data));
+                return false;
+            }
+
+            if (!response.ContainsKey("result"))
+            {
+                m_log.DebugFormat("JsonRpc request '{0}' returned an invalid response: {1}",
+                    method, OSDParser.SerializeJsonString(response));
+                return false;
+            }
+
+            data = response["result"];
+            OSD.DeserializeMembers(ref parameters, (OSDMap)data);
+
+            return true;
         }
-        
+
         /// <summary>
         /// Sends json-rpc request with OSD parameter.
         /// </summary>
@@ -135,7 +132,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// The rpc request.
         /// </returns>
         /// <param name='data'>
-        /// data - incoming as parameters, outgong as result/error
+        /// data - incoming as parameters, outgoing as result/error
         /// </param>
         /// <param name='method'>
         /// Json-rpc method to call.
@@ -148,64 +145,46 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </param>
         public bool JsonRpcRequest(ref OSD data, string method, string uri, string jsonId)
         {
-            OSDMap map = new OSDMap();
-            
-            map["jsonrpc"] = "2.0";
-            if(string.IsNullOrEmpty(jsonId))
-                map["id"] = UUID.Random().ToString();
-            else
-                map["id"] = jsonId;
-            
-            map["method"] = method;
-            map["params"] = data;
-            
-            string jsonRequestData = OSDParser.SerializeJsonString(map);
-            byte[] content = Encoding.UTF8.GetBytes(jsonRequestData);
-            
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.Method = "POST";
-            
-            using (Stream dataStream = webRequest.GetRequestStream())
-              dataStream.Write(content, 0, content.Length);
+            if (string.IsNullOrEmpty(jsonId))
+                jsonId = UUID.Random().ToString();
 
-            WebResponse webResponse = null;
+            OSDMap request = new OSDMap();
+            request.Add("jsonrpc", OSD.FromString("2.0"));
+            request.Add("id", OSD.FromString(jsonId));
+            request.Add("method", OSD.FromString(method));
+            request.Add("params", data);
+
+            OSDMap response;
             try
             {
-                webResponse = webRequest.GetResponse();
+                response = WebUtil.PostToService(uri, request, 10000, true);
             }
-            catch (WebException e)
+            catch (Exception e)
             {
-                Console.WriteLine("Web Error" + e.Message);
-                Console.WriteLine ("Please check input");
+                m_log.Debug(string.Format("JsonRpc request '{0}' failed", method), e);
                 return false;
             }
-            
-            using (webResponse)
-            using (Stream rstream = webResponse.GetResponseStream())
+
+            if (!response.ContainsKey("_Result"))
             {
-                OSDMap response = new OSDMap();
-                try
-                {
-                    response = (OSDMap)OSDParser.DeserializeJson(rstream);
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[JSONRPC]: JsonRpcRequest Error {0}", e.Message);
-                    return false;
-                }
-
-                if (response.ContainsKey("error"))
-                {
-                    data = response["error"];
-                    return false;
-                }
-
-                data = response;            
-
-                return true;
+                m_log.DebugFormat("JsonRpc request '{0}' returned an invalid response: {1}",
+                    method, OSDParser.SerializeJsonString(response));
+                return false;
             }
+            response = (OSDMap)response["_Result"];
+
+            if (response.ContainsKey("error"))
+            {
+                data = response["error"];
+                m_log.DebugFormat("JsonRpc request '{0}' returned an error: {1}",
+                    method, OSDParser.SerializeJsonString(data));
+                return false;
+            }
+
+            data = response;
+
+            return true;
         }
-        #endregion Web Util
+    
     }
 }

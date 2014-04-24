@@ -584,9 +584,6 @@ namespace OpenSim.Data.SQLite
                     }
                         if(reader != null && reader.Read())
                         {
-                            m_log.DebugFormat("[PROFILES_DATA]" +
-                                              ": Getting data for {0}.", props.UserId);
-
                             props.WebUrl = (string)reader["profileURL"];
                             UUID.TryParse((string)reader["profileImage"], out props.ImageId);
                             props.AboutText = (string)reader["profileAboutText"];
@@ -601,9 +598,6 @@ namespace OpenSim.Data.SQLite
                         }
                         else
                         {
-                            m_log.DebugFormat("[PROFILES_DATA]" +
-                                              ": No data for {0}", props.UserId);
-                            
                             props.WebUrl = string.Empty;
                             props.ImageId = UUID.Zero;
                             props.AboutText = string.Empty;
