@@ -2193,7 +2193,7 @@ namespace OpenSim.Framework
                     threadInfo.StackTrace = full;
                     threadInfo.LogThread = ShouldLogThread(partial);
 
-                    if (threadInfo.LogThread)
+                    if (loggingEnabled && threadInfo.LogThread)
                     {
                         m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
                             threadFuncNum, numQueued, numRunningThreadFuncs,
