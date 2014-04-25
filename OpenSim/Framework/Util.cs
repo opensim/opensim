@@ -127,12 +127,14 @@ namespace OpenSim.Framework
         /// 3 = full stack trace, including common threads
         /// </summary>
         public static int LogThreadPool { get; set; }
+        public static bool LogOverloads { get; set; }
 
         public static readonly int MAX_THREADPOOL_LEVEL = 3;
 
         static Util()
         {
             LogThreadPool = 0;
+            LogOverloads = true;
         }
 
         private static uint nextXferID = 5000;
@@ -2172,7 +2174,7 @@ namespace OpenSim.Framework
             {
                 long numRunning = numRunningThreadFuncs;
 
-                if (m_ThreadPool != null)
+                if (m_ThreadPool != null && LogOverloads)
                 {
                     if ((threadFuncOverloadMode == 0) && (numRunning >= m_ThreadPool.MaxThreads))
                     {
@@ -2193,7 +2195,7 @@ namespace OpenSim.Framework
                     threadInfo.StackTrace = full;
                     threadInfo.LogThread = ShouldLogThread(partial);
 
-                    if (loggingEnabled && threadInfo.LogThread)
+                    if (threadInfo.LogThread)
                     {
                         m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
                             threadFuncNum, numQueued, numRunningThreadFuncs,

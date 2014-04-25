@@ -154,6 +154,12 @@ namespace OpenSim
                 proxyUrl = networkConfig.GetString("proxy_url", "");
                 proxyOffset = Int32.Parse(networkConfig.GetString("proxy_offset", "0"));
             }
+
+            IConfig startupConfig = Config.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                Util.LogOverloads = startupConfig.GetBoolean("LogOverloads", true);
+            }
         }
 
         protected virtual void LoadPlugins()
