@@ -72,8 +72,8 @@ namespace OpenSim.Framework
             return new HeightmapTerrainData(pSizeX, pSizeY, pSizeZ, pFormatCode, pBlob);
         }
 
-        // return a special compressed representation of the heightmap in shorts
-        public abstract short[] GetCompressedMap();
+        // return a special compressed representation of the heightmap in ints
+        public abstract int[] GetCompressedMap();
         public abstract float CompressionFactor { get; }
 
         public abstract float[] GetFloatsSerialized();
@@ -99,7 +99,7 @@ namespace OpenSim.Framework
         Variable2D = 22,
         // Terrain is 'int32, int32, int32, int16[]' where the ints are X and Y dimensions
         //   and third int is the 'compression factor'. The heights are compressed as
-        //   "short compressedHeight = (short)(height * compressionFactor);"
+        //   "int compressedHeight = (int)(height * compressionFactor);"
         // The dimensions are presumed to be multiples of 16 and, more likely, multiples of 256.
         Compressed2D = 27,
         // A revision that is not listed above or any revision greater than this value is 'Legacy256'.
@@ -109,8 +109,8 @@ namespace OpenSim.Framework
     // Version of terrain that is a heightmap.
     // This should really be 'LLOptimizedHeightmapTerrainData' as it includes knowledge
     //    of 'patches' which are 16x16 terrain areas which can be sent separately to the viewer.
-    // The heighmap is kept as an array of short integers. The integer values are converted to
-    //    and from floats by TerrainCompressionFactor. Shorts are used to limit storage used.
+    // The heighmap is kept as an array of integers. The integer values are converted to
+    //    and from floats by TerrainCompressionFactor.
     public class HeightmapTerrainData : TerrainData
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -121,7 +121,7 @@ namespace OpenSim.Framework
         {
             get { return FromCompressedHeight(m_heightmap[x, y]); }
             set {
-                short newVal = ToCompressedHeight(value);
+                int newVal = ToCompressedHeight(value);
                 if (m_heightmap[x, y] != newVal)
                 {
                     m_heightmap[x, y] = newVal;
@@ -164,7 +164,7 @@ namespace OpenSim.Framework
         // TerrainData.ClearLand(float)
         public override void ClearLand(float pHeight)
         {
-            short flatHeight = ToCompressedHeight(pHeight);
+            int flatHeight = ToCompressedHeight(pHeight);
             for (int xx = 0; xx < SizeX; xx++)
                 for (int yy = 0; yy < SizeY; yy++)
                     m_heightmap[xx, yy] = flatHeight;
@@ -214,9 +214,9 @@ namespace OpenSim.Framework
         public override float CompressionFactor { get { return m_compressionFactor; } }
 
         // TerrainData.GetCompressedMap
-        public override short[] GetCompressedMap()
+        public override int[] GetCompressedMap()
         {
-            short[] newMap = new short[SizeX * SizeY];
+            int[] newMap = new int[SizeX * SizeY];
 
             int ind = 0;
             for (int xx = 0; xx < SizeX; xx++)
@@ -230,7 +230,7 @@ namespace OpenSim.Framework
         public override TerrainData Clone()
         {
             HeightmapTerrainData ret = new HeightmapTerrainData(SizeX, SizeY, SizeZ);
-            ret.m_heightmap = (short[,])this.m_heightmap.Clone();
+            ret.m_heightmap = (int[,])this.m_heightmap.Clone();
             return ret;
         }
 
@@ -267,19 +267,19 @@ namespace OpenSim.Framework
 
         // =============================================================
 
-        private short[,] m_heightmap;
+        private int[,] m_heightmap;
         // Remember subregions of the heightmap that has changed.
         private bool[,] m_taint;
 
         // To save space (especially for large regions), keep the height as a short integer
         //    that is coded as the float height times the compression factor (usually '100'
         //    to make for two decimal points).
-        public short ToCompressedHeight(double pHeight)
+        public int ToCompressedHeight(double pHeight)
         {
-            return (short)(pHeight * CompressionFactor);
+            return (int)(pHeight * CompressionFactor);
         }
 
-        public float FromCompressedHeight(short pHeight)
+        public float FromCompressedHeight(int pHeight)
         {
             return ((float)pHeight) / CompressionFactor;
         }
@@ -293,7 +293,7 @@ namespace OpenSim.Framework
             SizeZ = (int)Constants.RegionHeight;
             m_compressionFactor = 100.0f;
 
-            m_heightmap = new short[SizeX, SizeY];
+            m_heightmap = new int[SizeX, SizeY];
             for (int ii = 0; ii < SizeX; ii++)
             {
                 for (int jj = 0; jj < SizeY; jj++)
@@ -315,14 +315,14 @@ namespace OpenSim.Framework
             SizeY = pY;
             SizeZ = pZ;
             m_compressionFactor = 100.0f;
-            m_heightmap = new short[SizeX, SizeY];
+            m_heightmap = new int[SizeX, SizeY];
             m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
             // m_log.DebugFormat("{0} new by dimensions. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
             ClearTaint();
             ClearLand(0f);
         }
 
-        public HeightmapTerrainData(short[] cmap, float pCompressionFactor, int pX, int pY, int pZ) : this(pX, pY, pZ)
+        public HeightmapTerrainData(int[] cmap, float pCompressionFactor, int pX, int pY, int pZ) : this(pX, pY, pZ)
         {
             m_compressionFactor = pCompressionFactor;
             int ind = 0;
