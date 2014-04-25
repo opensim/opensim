@@ -52,6 +52,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class SceneTests : OpenSimTestCase
     {
+        [Test]
         public void TestCreateScene()
         {
             TestHelpers.InMethod();
