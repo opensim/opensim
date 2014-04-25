@@ -119,6 +119,11 @@ namespace OpenSim.Tests.Common
             return SetupScene(name, id, x, y, new IniConfigSource());
         }
 
+        public TestScene SetupScene(string name, UUID id, uint x, uint y, IConfigSource configSource)
+        {
+            return SetupScene(name, id, x, y, Constants.RegionSize, Constants.RegionSize, configSource);
+        }
+
         /// <summary>
         /// Set up a scene.
         /// </summary>
@@ -126,10 +131,12 @@ namespace OpenSim.Tests.Common
         /// <param name="id">ID of the region</param>
         /// <param name="x">X co-ordinate of the region</param>
         /// <param name="y">Y co-ordinate of the region</param>
+        /// <param name="sizeX">X size of scene</param>
+        /// <param name="sizeY">Y size of scene</param>
         /// <param name="configSource"></param>
         /// <returns></returns>
         public TestScene SetupScene(
-            string name, UUID id, uint x, uint y, IConfigSource configSource)
+            string name, UUID id, uint x, uint y, uint sizeX, uint sizeY, IConfigSource configSource)
         {
             Console.WriteLine("Setting up test scene {0}", name);
 
@@ -139,6 +146,8 @@ namespace OpenSim.Tests.Common
             RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
             regInfo.RegionName = name;
             regInfo.RegionID = id;
+            regInfo.RegionSizeX = sizeX;
+            regInfo.RegionSizeY = sizeY;
 
             SceneCommunicationService scs = new SceneCommunicationService();
 
