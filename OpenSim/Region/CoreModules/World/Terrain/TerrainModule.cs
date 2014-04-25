@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     m_channel[x, y] -= (double) args[0];
         }
 
-        private void InterfaceFillTerrain(Object[] args)
+        public void InterfaceFillTerrain(Object[] args)
         {
             int x, y;
 
