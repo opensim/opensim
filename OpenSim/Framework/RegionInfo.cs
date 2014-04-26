@@ -224,10 +224,12 @@ namespace OpenSim.Framework
         //
         public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig, IConfigSource configSource)
         {
-            // m_configSource = configSource;
-            configMember =
-                new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
-            configMember.performConfigurationRetrieve();
+            XmlElement elem = (XmlElement)xmlNode;
+            string name = elem.GetAttribute("Name");
+            string xmlstr = "<Nini>" + xmlNode.OuterXml + "</Nini>";
+            XmlConfigSource source = new XmlConfigSource(XmlReader.Create(new StringReader(xmlstr)));
+            ReadNiniConfig(source, name);
+
             m_serverURI = string.Empty;
         }
 
