@@ -100,13 +100,25 @@ namespace OpenSim.Region.ClientStack
             // "OOB" Server
             if (m_networkServersInfo.ssl_listener)
             {
-                BaseHttpServer server = new BaseHttpServer(
-                    m_networkServersInfo.https_port, m_networkServersInfo.ssl_listener, m_networkServersInfo.cert_path,
-                    m_networkServersInfo.cert_pass);
+                if (!m_networkServersInfo.ssl_external)
+                {
+                    BaseHttpServer server = new BaseHttpServer(
+                        m_networkServersInfo.https_port, m_networkServersInfo.ssl_listener, m_networkServersInfo.cert_path,
+                        m_networkServersInfo.cert_pass);
 
-                m_log.InfoFormat("[REGION SERVER]: Starting HTTPS server on port {0}", server.Port);
-                MainServer.AddHttpServer(server);
-                server.Start();
+                    m_log.InfoFormat("[REGION SERVER]: Starting HTTPS server on port {0}", server.Port);
+                    MainServer.AddHttpServer(server);
+                    server.Start();
+                }
+                else
+                {
+                    BaseHttpServer server = new BaseHttpServer(
+                        m_networkServersInfo.https_port);
+
+                    m_log.InfoFormat("[REGION SERVER]: Starting HTTP server on port {0} for external HTTPS", server.Port);
+                    MainServer.AddHttpServer(server);
+                    server.Start();
+                }
             }
             
             base.StartupSpecific();

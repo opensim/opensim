@@ -41,6 +41,7 @@ namespace OpenSim.Framework
 
         // "Out of band" managemnt https
         public bool ssl_listener = false;
+        public bool ssl_external = false;
         public uint https_port = 0;
         public string cert_path = String.Empty;
         public string cert_pass = String.Empty;
@@ -64,6 +65,7 @@ namespace OpenSim.Framework
 
             // "Out of band management https"
             ssl_listener = config.Configs["Network"].GetBoolean("https_listener",false);
+            ssl_external = config.Configs["Network"].GetBoolean("https_external",false);
             if( ssl_listener)
             {
                 cert_path = config.Configs["Network"].GetString("cert_path",String.Empty);
