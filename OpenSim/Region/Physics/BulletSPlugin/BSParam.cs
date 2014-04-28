@@ -97,6 +97,7 @@ public static class BSParam
 
     public static float TerrainImplementation { get; set; }
     public static int TerrainMeshMagnification { get; private set; }
+    public static float TerrainGroundPlane { get; private set; }
     public static float TerrainFriction { get; private set; }
     public static float TerrainHitFraction { get; private set; }
     public static float TerrainRestitution { get; private set; }
@@ -544,6 +545,8 @@ public static class BSParam
             (float)BSTerrainPhys.TerrainImplementation.Heightmap ),
         new ParameterDefn<int>("TerrainMeshMagnification", "Number of times the 256x256 heightmap is multiplied to create the terrain mesh" ,
             2 ),
+        new ParameterDefn<float>("TerrainGroundPlane", "Altitude of ground plane used to keep things from falling to infinity" ,
+            -500.0f ),
         new ParameterDefn<float>("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.3f ),
         new ParameterDefn<float>("TerrainHitFraction", "Distance to measure hit collisions" ,

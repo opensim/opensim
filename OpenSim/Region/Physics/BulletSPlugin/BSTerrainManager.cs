@@ -137,8 +137,9 @@ public sealed class BSTerrainManager : IDisposable
         DetailLog("{0},BSTerrainManager.CreateInitialGroundPlaneAndTerrain,region={1}", BSScene.DetailLogZero, m_physicsScene.RegionName);
         // The ground plane is here to catch things that are trying to drop to negative infinity
         BulletShape groundPlaneShape = m_physicsScene.PE.CreateGroundPlaneShape(BSScene.GROUNDPLANE_ID, 1f, BSParam.TerrainCollisionMargin);
+        Vector3 groundPlaneAltitude = new Vector3(0f, 0f, BSParam.TerrainGroundPlane);
         m_groundPlane = m_physicsScene.PE.CreateBodyWithDefaultMotionState(groundPlaneShape,
-                                        BSScene.GROUNDPLANE_ID, Vector3.Zero, Quaternion.Identity);
+                                        BSScene.GROUNDPLANE_ID, groundPlaneAltitude, Quaternion.Identity);
 
         // Everything collides with the ground plane.
         m_groundPlane.collisionType = CollisionType.Groundplane;
