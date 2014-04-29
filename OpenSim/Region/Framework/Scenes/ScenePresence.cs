@@ -2498,10 +2498,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
-			if (noFly)
-				Flying = false;
-			else if (pos.Z > terrainHeight)
-				Flying = true;
+            if (noFly)
+                Flying = false;
+            else if (pos.Z > terrainHeight)
+                Flying = true;
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
