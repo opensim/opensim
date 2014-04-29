@@ -2460,6 +2460,8 @@ namespace OpenSim.Region.Framework.Scenes
                 || pos.Z < 0)
                 return;
 
+            Scene targetScene = m_scene;
+
 //            Vector3 heightAdjust = new Vector3(0, 0, Appearance.AvatarHeight / 2);
 //            pos += heightAdjust;
 //
@@ -2474,34 +2476,32 @@ namespace OpenSim.Region.Framework.Scenes
 
 				//COMMENT: If its only nessesary in a megaregion, why do it on normal region's too?
 
-			if (regionCombinerModule != null)
-			{
-	            int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
-	            int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
-	            GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
-	            // If X and Y is NaN, target_region will be null
-	            if (target_region == null)
-	                return;
-	            UUID target_regionID = target_region.RegionID;
-	            Scene targetScene = m_scene;
+        	if (regionCombinerModule != null)
+            {
+                int x = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
+                int y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
+                GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, x, y);
 
-	            if (!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))
-	                targetScene = m_scene;
+                // If X and Y is NaN, target_region will be null
+                if (target_region == null)
+                    return;
+               
+                SceneManager.Instance.TryGetScene(target_region.RegionID, out targetScene);
+            }
 
-	            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
-	            pos.Z = Math.Max(terrainHeight, pos.Z);
+            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
+            pos.Z = Math.Max(terrainHeight, pos.Z);
 
-	            // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
-	            // always slightly higher than the actual terrain height.
-	            // FIXME: This constrains NPC movements as well, so should be somewhere else.
-	            if (pos.Z - terrainHeight < 0.2)
-	                pos.Z = terrainHeight;
+            // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
+            // always slightly higher than the actual terrain height.
+            // FIXME: This constrains NPC movements as well, so should be somewhere else.
+            if (pos.Z - terrainHeight < 0.2)
+                pos.Z = terrainHeight;
 
-				if (noFly)
-					Flying = false;
-				else if (pos.Z > terrainHeight)
-					Flying = true;
-			}
+			if (noFly)
+				Flying = false;
+			else if (pos.Z > terrainHeight)
+				Flying = true;
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
