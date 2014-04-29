@@ -951,8 +951,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if (allowed)
                     {
                         StoreUndoState();
-                        m_floodeffects[(StandardTerrainEffects) action].FloodEffect(
-                            m_channel, fillArea, size);
+                        m_floodeffects[(StandardTerrainEffects) action].FloodEffect(m_channel, fillArea, size);
 
                         //revert changes outside estate limits
                         if (!god)
