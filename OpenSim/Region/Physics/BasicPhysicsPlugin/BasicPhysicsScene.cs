@@ -46,6 +46,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private List<BasicActor> _actors = new List<BasicActor>();
         private List<BasicPhysicsPrim> _prims = new List<BasicPhysicsPrim>();
         private float[] _heightMap;
+        private Vector3 m_regionExtent;
 
         //protected internal string sceneIdentifier;
 
@@ -58,6 +59,12 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
+            throw new Exception("Should not be called.");
+        }
+
+        public override void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
+        {
+            m_regionExtent = regionExtent;
         }
 
         public override void Dispose() {}
@@ -121,23 +128,23 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 {
                     actorPosition.Y = 0.1F;
                 }
-                else if (actor.Position.Y >= Constants.RegionSize)
+                else if (actor.Position.Y >= m_regionExtent.Y)
                 {
-                    actorPosition.Y = ((int)Constants.RegionSize - 0.1f);
+                    actorPosition.Y = (m_regionExtent.Y - 0.1f);
                 }
 
                 if (actor.Position.X < 0)
                 {
                     actorPosition.X = 0.1F;
                 }
-                else if (actor.Position.X >= Constants.RegionSize)
+                else if (actor.Position.X >= m_regionExtent.X)
                 {
-                    actorPosition.X = ((int)Constants.RegionSize - 0.1f);
+                    actorPosition.X = (m_regionExtent.X - 0.1f);
                 }
 
                 float terrainHeight = 0;
                 if (_heightMap != null)
-                    terrainHeight = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X];
+                    terrainHeight = _heightMap[(int)actor.Position.Y * (int)m_regionExtent.Y + (int)actor.Position.X];
 
                 float height = terrainHeight + actor.Size.Z;
 
