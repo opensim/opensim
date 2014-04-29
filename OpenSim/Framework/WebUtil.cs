@@ -214,10 +214,9 @@ namespace OpenSim.Framework
             LogOutgoingDetail(string.Format("RESPONSE {0}: ", reqnum), inputStream);
         }
 
-        public static void LogResponseDetail(int? reqnum, string input)
+        public static void LogResponseDetail(int reqnum, string input)
         {
-            string context = (reqnum == null) ? "" : string.Format("RESPONSE {0}: ", reqnum.Value);
-            LogOutgoingDetail(context, input);
+            LogOutgoingDetail(string.Format("RESPONSE {0}: ", reqnum), input);
         }
 
         private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)

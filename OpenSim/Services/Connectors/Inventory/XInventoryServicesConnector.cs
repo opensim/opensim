@@ -494,7 +494,12 @@ namespace OpenSim.Services.Connectors
         private Dictionary<string,object> MakeRequest(string method,
                 Dictionary<string,object> sendData)
         {
-            sendData["METHOD"] = method;
+            // Add "METHOD" as the first key in the dictionary. This ensures that it will be
+            // visible even when using partial logging ("debug http all 5").
+            Dictionary<string, object> temp = sendData;
+            sendData = new Dictionary<string,object>{ { "METHOD", method } };
+            foreach (KeyValuePair<string, object> kvp in temp)
+                sendData.Add(kvp.Key, kvp.Value);
 
             string reply = string.Empty;
             lock (m_Lock)

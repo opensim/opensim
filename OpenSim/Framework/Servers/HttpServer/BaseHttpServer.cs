@@ -705,7 +705,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             }
                         }
 
-                        WebUtil.LogResponseDetail(null, output);
+                        WebUtil.LogResponseDetail(RequestNumber, output);
                     }
 
                     if (!response.SendChunked && response.ContentLength64 <= 0)
