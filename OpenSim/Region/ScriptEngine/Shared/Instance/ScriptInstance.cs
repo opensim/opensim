@@ -827,7 +827,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             Part.AbsolutePosition, 
                             Part.ParentGroup.Scene.Name);
 
-                    AsyncCommandManager.RemoveScript(Engine,
+                    AsyncCommandManager.StateChange(Engine,
                         LocalID, ItemID);
 
                     Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
