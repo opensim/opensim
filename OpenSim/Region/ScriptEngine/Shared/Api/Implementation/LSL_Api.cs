@@ -1884,9 +1884,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
                 part.Shape.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
                 part.Shape.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
-                part.Shape.LightIntensity = intensity;
-                part.Shape.LightRadius = radius;
-                part.Shape.LightFalloff = falloff;
+                part.Shape.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
+                part.Shape.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
+                part.Shape.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
             }
             else
             {
