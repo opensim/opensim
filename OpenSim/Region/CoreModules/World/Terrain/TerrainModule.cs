@@ -39,6 +39,7 @@ using Mono.Addins;
 
 using OpenSim.Data;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.CoreModules.World.Terrain.FileLoaders;
 using OpenSim.Region.CoreModules.World.Terrain.FloodBrushes;
@@ -1203,6 +1204,21 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
         }
 
+        private void InterfaceShow(Object[] args)
+        {
+            Vector2 point;
+
+            if (!ConsoleUtil.TryParseConsole2DVector((string)args[0], null, out point))
+            {
+                Console.WriteLine("ERROR: {0} is not a valid vector", args[0]);
+                return;
+            }
+
+            double height = m_channel[(int)point.X, (int)point.Y];
+
+            Console.WriteLine("Terrain height at {0} is {1}", point, height);
+        }
+
         private void InterfaceShowDebugStats(Object[] args)
         {
             double max = Double.MinValue;
@@ -1355,6 +1371,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 new Command("stats", CommandIntentions.COMMAND_STATISTICAL, InterfaceShowDebugStats,
                             "Shows some information about the regions heightmap for debugging purposes.");
 
+            Command showCommand =
+                new Command("show", CommandIntentions.COMMAND_NON_HAZARDOUS, InterfaceShow,
+                            "Shows terrain height at a given co-ordinate.");
+            showCommand.AddArgument("point", "point in <x>,<y> format with no spaces (e.g. 45,45)", "String");
+
             Command experimentalBrushesCommand =
                 new Command("newbrushes", CommandIntentions.COMMAND_HAZARDOUS, InterfaceEnableExperimentalBrushes,
                             "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
@@ -1376,6 +1397,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_commander.RegisterCommand("bake", bakeRegionCommand);
             m_commander.RegisterCommand("revert", revertRegionCommand);
             m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
+            m_commander.RegisterCommand("show", showCommand);
             m_commander.RegisterCommand("stats", showDebugStatsCommand);
             m_commander.RegisterCommand("effect", pluginRunCommand);
             m_commander.RegisterCommand("flip", flipCommand);

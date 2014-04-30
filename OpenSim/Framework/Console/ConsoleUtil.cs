@@ -252,24 +252,80 @@ namespace OpenSim.Framework.Console
         /// The strings "~" and "-~" are valid in components.  The first substitutes float.MaxValue whilst the second is float.MinValue
         /// Other than that, component values must be numeric.
         /// </param>
-        /// <param name='blankComponentFunc'></param>
+        /// <param name='blankComponentFunc'>
+        /// Behaviour if component is blank.  If null then conversion fails on a blank component.
+        /// </param>
         /// <param name='vector'></param>
         /// <returns></returns>
         public static bool TryParseConsoleVector(
             string rawConsoleVector, Func<string, string> blankComponentFunc, out Vector3 vector)
         {
-            List<string> components = rawConsoleVector.Split(VectorSeparatorChars).ToList();
-    
-            if (components.Count < 1 || components.Count > 3)
+            return Vector3.TryParse(CookVector(rawConsoleVector, 3, blankComponentFunc), out vector);
+        }
+
+        /// <summary>
+        /// Convert a vector input from the console to an OpenMetaverse.Vector2
+        /// </summary>
+        /// <param name='rawConsoleVector'>
+        /// A string in the form <x>,<y> where there is no space between values.
+        /// Any component can be missing (e.g. ,40).  blankComponentFunc is invoked to replace the blank with a suitable value
+        /// Also, if the blank component is at the end, then the comma can be missed off entirely (e.g. 40)
+        /// The strings "~" and "-~" are valid in components.  The first substitutes float.MaxValue whilst the second is float.MinValue
+        /// Other than that, component values must be numeric.
+        /// </param>
+        /// <param name='blankComponentFunc'>
+        /// Behaviour if component is blank.  If null then conversion fails on a blank component.
+        /// </param>
+        /// <param name='vector'></param>
+        /// <returns></returns>
+        public static bool TryParseConsole2DVector(
+            string rawConsoleVector, Func<string, string> blankComponentFunc, out Vector2 vector)
+        {
+            // We don't use Vector2.TryParse() for now because for some reason it expects an input with 3 components
+            // rather than 2.
+            string cookedVector = CookVector(rawConsoleVector, 2, blankComponentFunc);
+
+            if (cookedVector == null)
             {
-                vector = Vector3.Zero;
                 return false;
             }
+            else
+            {
+                string[] cookedComponents = cookedVector.Split(VectorSeparatorChars);
+
+                vector = new Vector2(float.Parse(cookedComponents[0]), float.Parse(cookedComponents[1]));
+
+                return true;
+            }
+
+            //return Vector2.TryParse(CookVector(rawConsoleVector, 2, blankComponentFunc), out vector);
+        }
+
+        /// <summary>
+        /// Convert a raw console vector into a vector that can be be parsed by the relevant OpenMetaverse.TryParse()
+        /// </summary>
+        /// <param name='rawConsoleVector'></param>
+        /// <param name='dimensions'></param>
+        /// <param name='blankComponentFunc'></param>
+        /// <returns>null if conversion was not possible</returns>
+        private static string CookVector(
+            string rawConsoleVector, int dimensions, Func<string, string> blankComponentFunc)
+        {
+            List<string> components = rawConsoleVector.Split(VectorSeparatorChars).ToList();
     
-            for (int i = components.Count; i < 3; i++)
-                components.Add("");
+            if (components.Count < 1 || components.Count > dimensions)
+                return null;
     
-            List<string> semiDigestedComponents
+            if (components.Count < dimensions)
+            {
+                if (blankComponentFunc == null)
+                    return null;
+                else
+                    for (int i = components.Count; i < dimensions; i++)
+                        components.Add("");
+            }
+
+            List<string> cookedComponents
                 = components.ConvertAll<string>(
                     c =>
                     {
@@ -283,11 +339,7 @@ namespace OpenSim.Framework.Console
                             return c;
                     });
     
-            string semiDigestedConsoleVector = string.Join(VectorSeparator, semiDigestedComponents.ToArray());
-    
-    //        m_log.DebugFormat("[CONSOLE UTIL]: Parsing {0} into OpenMetaverse.Vector3", semiDigestedConsoleVector);
-    
-            return Vector3.TryParse(semiDigestedConsoleVector, out vector);
+            return string.Join(VectorSeparator, cookedComponents.ToArray());
         }
     }
 }
