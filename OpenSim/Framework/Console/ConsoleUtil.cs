@@ -284,6 +284,7 @@ namespace OpenSim.Framework.Console
             // We don't use Vector2.TryParse() for now because for some reason it expects an input with 3 components
             // rather than 2.
             string cookedVector = CookVector(rawConsoleVector, 2, blankComponentFunc);
+            vector = new Vector2(0.0f);
 
             if (cookedVector == null)
             {
