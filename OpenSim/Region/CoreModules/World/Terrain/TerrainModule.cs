@@ -1082,10 +1082,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             else
             {
-                m_log.Error("Unrecognised direction - need x or y");
+                MainConsole.Instance.OutputFormat("ERROR: Unrecognised direction {0} - need  or y", direction);
             }
-
-
         }
 
         private void InterfaceRescaleTerrain(Object[] args)
@@ -1241,8 +1239,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             double avg = sum / (m_channel.Height * m_channel.Width);
 
-            m_log.Info("Channel " + m_channel.Width + "x" + m_channel.Height);
-            m_log.Info("max/min/avg/sum: " + max + "/" + min + "/" + avg + "/" + sum);
+            MainConsole.Instance.OutputFormat("Channel {0}x{1}", m_channel.Width, m_channel.Height);
+            MainConsole.Instance.OutputFormat("max/min/avg/sum: {0}/{1}/{2}/{3}", max, min, avg, sum);
         }
 
         private void InterfaceEnableExperimentalBrushes(Object[] args)
@@ -1262,27 +1260,30 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceRunPluginEffect(Object[] args)
         {
             string firstArg = (string)args[0];
+
             if (firstArg == "list")
             {
-                m_log.Info("List of loaded plugins");
+                MainConsole.Instance.Output("List of loaded plugins");
                 foreach (KeyValuePair<string, ITerrainEffect> kvp in m_plugineffects)
                 {
-                    m_log.Info(kvp.Key);
+                    MainConsole.Instance.Output(kvp.Key);
                 }
                 return;
             }
+
             if (firstArg == "reload")
             {
                 LoadPlugins();
                 return;
             }
+
             if (m_plugineffects.ContainsKey(firstArg))
             {
                 m_plugineffects[firstArg].RunEffect(m_channel);
             }
             else
             {
-                m_log.Warn("No such plugin effect loaded.");
+                MainConsole.Instance.Output("WARNING: No such plugin effect {0} loaded.", firstArg);
             }
         }
 
