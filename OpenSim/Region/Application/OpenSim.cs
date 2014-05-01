@@ -272,6 +272,7 @@ namespace OpenSim
                                              + " [--no-objects]"
                                              + " [--rotation degrees] [--rotation-center \"<x,y,z>\"]"
                                              + " [--displacement \"<x,y,z>\"]"
+                                             + " [--default-user \"User Name\"]"
                                              + " [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene (suppresses terrain and parcel info loading)." + Environment.NewLine
