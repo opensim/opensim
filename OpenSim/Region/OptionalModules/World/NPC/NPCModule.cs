@@ -178,8 +178,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             acd.lastname = lastname;
             acd.ServiceURLs = new Dictionary<string, object>();
 
-            AvatarAppearance npcAppearance = new AvatarAppearance(appearance,
-                    true);
+            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
             acd.Appearance = npcAppearance;
 
             /*

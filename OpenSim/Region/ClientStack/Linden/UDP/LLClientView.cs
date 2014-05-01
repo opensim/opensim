@@ -5304,10 +5304,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //update.JointType = 0;
             update.Material = data.Material;
             update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
+
             if (data.ParentGroup.IsAttachment)
             {
-                update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.ParentGroup.FromItemID);
+                update.NameValue 
+                    = Util.StringToBytes256(
+                        string.Format("AttachItemID STRING RW SV {0}", data.ParentGroup.FromItemID));
+
                 update.State = (byte)((data.ParentGroup.AttachmentPoint % 16) * 16 + (data.ParentGroup.AttachmentPoint / 16));
+
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Sending NameValue {0} for {1} {2} to {3}",
+//                    Util.UTF8.GetString(update.NameValue), data.Name, data.LocalId, Name);
+//
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Sending state {0} for {1} {2} to {3}",
+//                    update.State, data.Name, data.LocalId, Name);
             }
             else
             {
@@ -5317,10 +5329,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // case for attachments may contain conflicting values that can end up crashing the viewer.
                 update.State = data.ParentGroup.RootPart.Shape.State;
             }
-
-//                m_log.DebugFormat(
-//                    "[LLCLIENTVIEW]: Sending state {0} for {1} {2} to {3}",
-//                    update.State, data.Name, data.LocalId, Name);
 
             update.ObjectData = objectData;
             update.ParentID = data.ParentID;

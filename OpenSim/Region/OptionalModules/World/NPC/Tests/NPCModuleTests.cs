@@ -199,6 +199,59 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         }
 
         [Test]
+        public void TestCreateWithMultiAttachments()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            SetUpScene();
+//            m_attMod.DebugLevel = 1;
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userId);
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
+
+            InventoryItemBase att1Item 
+                = UserInventoryHelpers.CreateInventoryItem(
+                    m_scene, "att1", TestHelpers.ParseTail(0x2), TestHelpers.ParseTail(0x3), sp.UUID, InventoryType.Object);
+            InventoryItemBase att2Item 
+                = UserInventoryHelpers.CreateInventoryItem(
+                    m_scene, "att2", TestHelpers.ParseTail(0x12), TestHelpers.ParseTail(0x13), sp.UUID, InventoryType.Object);
+
+            m_attMod.RezSingleAttachmentFromInventory(sp, att1Item.ID, (uint)AttachmentPoint.Chest);
+            m_attMod.RezSingleAttachmentFromInventory(sp, att2Item.ID, (uint)AttachmentPoint.Chest | 0x80);
+
+            UUID npcId = m_npcMod.CreateNPC("John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, m_scene, sp.Appearance);
+
+            ScenePresence npc = m_scene.GetScenePresence(npcId);
+
+            // Check scene presence status
+            Assert.That(npc.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = npc.GetAttachments();
+            Assert.That(attachments.Count, Is.EqualTo(2));
+
+            // Just for now, we won't test the name since this is (wrongly) the asset part name rather than the item
+            // name.  TODO: Do need to fix ultimately since the item may be renamed before being passed on to an NPC.
+//            Assert.That(attSo.Name, Is.EqualTo(attName));
+
+            TestAttachedObject(attachments[0], AttachmentPoint.Chest, npc.UUID);
+            TestAttachedObject(attachments[1], AttachmentPoint.Chest, npc.UUID);
+
+            // Attached objects on the same point must have different FromItemIDs to be shown to other avatars, at least
+            // on Singularity 1.8.5.  Otherwise, only one (the first ObjectUpdate sent) appears.
+            Assert.AreNotEqual(attachments[0].FromItemID, attachments[1].FromItemID);
+        }
+
+        private void TestAttachedObject(SceneObjectGroup attSo, AttachmentPoint attPoint, UUID ownerId)
+        {
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)attPoint));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
+            Assert.That(attSo.OwnerID, Is.EqualTo(ownerId));
+        }
+
+        [Test]
         public void TestLoadAppearance()
         {
             TestHelpers.InMethod();

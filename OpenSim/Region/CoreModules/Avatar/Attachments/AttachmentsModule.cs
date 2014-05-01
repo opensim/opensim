@@ -991,6 +991,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 return null;
             }
+            else if (itemID == UUID.Zero)
+            {
+                // We need to have a FromItemID for multiple attachments on a single attach point to appear.  This is 
+                // true on Singularity 1.8.5 and quite possibly other viewers as well.  As NPCs don't have an inventory
+                // we will satisfy this requirement by inserting a random UUID.
+                objatt.FromItemID = UUID.Random();
+            }
 
             if (DebugLevel > 0)
                 m_log.DebugFormat(
