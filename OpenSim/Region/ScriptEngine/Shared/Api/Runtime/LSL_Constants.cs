@@ -249,6 +249,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_HUD_BOTTOM_LEFT = 36;
         public const int ATTACH_HUD_BOTTOM = 37;
         public const int ATTACH_HUD_BOTTOM_RIGHT = 38;
+        public const int ATTACH_NECK = 39;
+        public const int ATTACH_AVATAR_CENTER = 40;
 
         #region osMessageAttachments constants
 
