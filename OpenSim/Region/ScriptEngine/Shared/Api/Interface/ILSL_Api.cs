@@ -149,6 +149,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llGetLocalPos();
       LSL_Rotation llGetLocalRot();
          LSL_Float llGetMass();
+         LSL_Float llGetMassMKS();
        LSL_Integer llGetMemoryLimit();
               void llGetNextEmail(string address, string subject);
         LSL_String llGetNotecardLine(string name, int line);

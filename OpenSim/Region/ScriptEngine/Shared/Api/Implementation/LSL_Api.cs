@@ -3162,6 +3162,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Float llGetMassMKS()
+        {
+            // this is what the wiki says it does!
+            // http://wiki.secondlife.com/wiki/LlGetMassMKS
+            return llGetMass() * 100.0;
+        }
+
         public void llCollisionFilter(string name, string id, int accept)
         {
             m_host.AddScriptLPS(1);
