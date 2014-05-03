@@ -218,6 +218,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_merge = options.ContainsKey("merge");
             m_requestId = requestId;
 
+            m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
+     
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
 
