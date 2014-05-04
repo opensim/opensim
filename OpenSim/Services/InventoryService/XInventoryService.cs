@@ -631,8 +631,8 @@ namespace OpenSim.Services.InventoryService
             newFolder.ParentID = folder.parentFolderID;
             newFolder.Type = (short)folder.type;
             // Viewer can't understand anything that's not in it's LLFolderType enum
-            if (newFolder.Type == 100)
-                newFolder.Type = -1;
+            if (newFolder.Type == InventoryItemBase.SUITCASE_FOLDER_TYPE)
+                newFolder.Type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
             newFolder.Version = (ushort)folder.version;
             newFolder.Name = folder.folderName;
             newFolder.Owner = folder.agentID;

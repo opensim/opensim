@@ -156,9 +156,9 @@ namespace OpenSim.Services.HypergridService
             if (suitcase == null)
             {
                 m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: User {0} does not have a Suitcase folder. Creating it...", principalID);
-                // make one, and let's add it to the user's inventory as a direct child of the root folder
-                // In the DB we tag it as type 100, but we use -1 (Unknown) outside
-                suitcase = CreateFolder(principalID, root.folderID, 100, "My Suitcase");
+                // Create the My Suitcase folder under the user's root folder.
+                // In the DB we tag it as type 100, but we use type 8 (Folder) outside, as this affects the sort order.
+                suitcase = CreateFolder(principalID, root.folderID, InventoryItemBase.SUITCASE_FOLDER_TYPE, InventoryItemBase.SUITCASE_FOLDER_NAME);
                 if (suitcase == null)
                 {
                     m_log.ErrorFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to create suitcase folder");
@@ -464,7 +464,7 @@ namespace OpenSim.Services.HypergridService
             // Warp! Root folder for travelers
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "type" },
-                    new string[] { principalID.ToString(), "100" }); // This is a special folder type...
+                    new string[] { principalID.ToString(), InventoryItemBase.SUITCASE_FOLDER_TYPE.ToString() }); // This is a special folder type...
 
             if (folders != null && folders.Length > 0)
                 return folders[0];
@@ -472,13 +472,13 @@ namespace OpenSim.Services.HypergridService
             // check to see if we have the old Suitcase folder
             folders = m_Database.GetFolders(
                     new string[] { "agentID", "folderName", "parentFolderID" },
-                    new string[] { principalID.ToString(), "My Suitcase", UUID.Zero.ToString() });
+                    new string[] { principalID.ToString(), InventoryItemBase.SUITCASE_FOLDER_NAME, UUID.Zero.ToString() });
             if (folders != null && folders.Length > 0)
             {
                 // Move it to under the root folder
                 XInventoryFolder root = GetRootXFolder(principalID);
                 folders[0].parentFolderID = root.folderID;
-                folders[0].type = 100;
+                folders[0].type = InventoryItemBase.SUITCASE_FOLDER_TYPE;
                 m_Database.StoreFolder(folders[0]);
                 return folders[0];
             }
@@ -488,7 +488,7 @@ namespace OpenSim.Services.HypergridService
 
         private void SetAsNormalFolder(XInventoryFolder suitcase)
         {
-            suitcase.type = (short)AssetType.Folder;
+            suitcase.type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
         }
 
         private List<XInventoryFolder> GetFolderTree(UUID principalID, UUID folder)
