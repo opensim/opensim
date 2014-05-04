@@ -44,15 +44,17 @@ namespace OpenSim.Groups
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI;
+        private string m_SecretKey;
         private object m_Lock = new object();
 
-        public GroupsServiceRemoteConnector(string url)
+        public GroupsServiceRemoteConnector(string url, string secret)
         {
             m_ServerURI = url;
             if (!m_ServerURI.EndsWith("/"))
                 m_ServerURI += "/";
 
-            m_log.DebugFormat("[Groups.RemoteConnector]: Groups server at {0}", m_ServerURI);
+            m_SecretKey = secret;
+            m_log.DebugFormat("[Groups.RemoteConnector]: Groups server at {0}, secret key {1}", m_ServerURI, m_SecretKey);
         }
 
         public ExtendedGroupRecord CreateGroup(string RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment,
@@ -654,6 +656,8 @@ namespace OpenSim.Groups
         private Dictionary<string, object> MakeRequest(string method, Dictionary<string, object> sendData)
         {
             sendData["METHOD"] = method;
+            if (m_SecretKey != string.Empty)
+                sendData["KEY"] = m_SecretKey;
 
             string reply = string.Empty;
             lock (m_Lock)

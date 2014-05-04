@@ -77,7 +77,8 @@ namespace OpenSim.Groups
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
                 throw new Exception(string.Format("[Groups.RemoteConnector]: Malformed groups server URL {0}. Fix it or disable the Groups feature.", url));
 
-            m_GroupsService = new GroupsServiceRemoteConnector(url);
+            string secret = groupsConfig.GetString("SecretKey", string.Empty);
+            m_GroupsService = new GroupsServiceRemoteConnector(url, secret);
             m_Scenes = new List<Scene>();
 
         }

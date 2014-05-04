@@ -996,6 +996,10 @@
     ;; Used for V2 in HG only. If standalone, set this to local; if grided sim, set this to remote
     ; LocalService = local
 
+    ;# {SecretKey} {ServicesConnectorModule:Groups Remote Service Connector} {Secret key between sim and remote group service} {} ""
+    ;; Used for V2 in Remote only. 
+    ; SecretKey = ""
+
     ;# {GroupsServerURI} {Module:GroupsModule (ServicesConnectorModule:Groups Remote Service Connector or (ServicesConnectorModule:Groups HG Service Connector and LocalService:remote))} {Groups Server URI} {}
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
