@@ -160,12 +160,20 @@
     HomeURI = "http://mygridserver.com:8002"
     Gatekeeper = "http://mygridserver.com:8002"
     ;; If you want to protect your assets from being copied by foreign visitors
-    ;; uncomment the next line. You may want to do this on sims that have licensed content.
-    ; OutboundPermission = False
+    ;; set this to false. You may want to do this on sims that have licensed content.
+	;; Default is true.
+    ; OutboundPermission = True
 
     ;; Send visual reminder to local users that their inventories are unavailable while they are traveling
     ;; and available when they return. True by default.
     ;RestrictInventoryAccessAbroad = True
+
+	;; Warning: advanced and unusual. Default is false.
+	;; Enables configurations where grids share user services, including inventory,
+	;; while separating regions' assets from users' assets. Asset transfer between 
+	;; the users' asset server and the regions' asset server is done in HG-like manner.
+    ; CheckSeparateAssets = false
+    ; RegionHGAssetServerURI = http://mygridserver.com:8002
 
 
 [HGAssetService]

@@ -127,11 +127,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool AddInventoryItem(InventoryItemBase item)
+        {
+            return AddInventoryItem(item, true);
+        }
+
         /// <summary>
         /// Add the given inventory item to a user's inventory.
         /// </summary>
         /// <param name="item"></param>
-        public bool AddInventoryItem(InventoryItemBase item)
+        public bool AddInventoryItem(InventoryItemBase item, bool trigger)
         {
             if (item.Folder != UUID.Zero && InventoryService.AddItem(item))
             {
@@ -140,7 +145,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     userlevel = 1;
                 }
-                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
+                if (trigger)
+                    EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
 
                 return true;
             }
@@ -179,7 +185,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     userlevel = 1;
                 }
-                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
+                if (trigger)
+                    EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
 
                 if (originalFolder != UUID.Zero)
                 {
@@ -751,7 +758,7 @@ namespace OpenSim.Region.Framework.Scenes
             IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
             if (invAccess != null)
                 invAccess.TransferInventoryAssets(itemCopy, senderId, recipient);
-            AddInventoryItem(itemCopy);
+            AddInventoryItem(itemCopy, false);
 
             if (!Permissions.BypassPermissions())
             {
