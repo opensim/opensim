@@ -4127,10 +4127,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
                 // destination is an avatar
-                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
+                string message;
+                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId, out message);
 
                 if (agentItem == null)
+                {
+                    llSay(0, message); 
                     return;
+                }
 
                 if (m_TransferModule != null)
                 {

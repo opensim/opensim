@@ -1167,11 +1167,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 InventoryFolderBase destFolder = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.TrashFolder);
 
-                // Move the item to trash. If this is a copiable item, only
+                // Move the item to trash. If this is a copyable item, only
                 // a copy will be moved and we will still need to delete
-                // the item from the prim. If it was no copy, is will be
+                // the item from the prim. If it was no copy, it will be
                 // deleted by this method.
-                MoveTaskInventoryItem(remoteClient, destFolder.ID, part, itemID);
+                string message;
+                InventoryItemBase item2 = MoveTaskInventoryItem(remoteClient, destFolder.ID, part, itemID, out message);
+
+                if (item2 == null)
+                {
+                    m_log.WarnFormat("[SCENE INVENTORY]: RemoveTaskInventory of item {0} failed: {1}", itemID, message);
+                    remoteClient.SendAgentAlertMessage(message, false);
+                    return;
+                }
 
                 if (group.GetInventoryItem(localID, itemID) != null)
                 {
@@ -1183,11 +1191,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     group.RemoveInventoryItem(localID, itemID);
                 }
+
                 part.SendPropertiesToClient(remoteClient);
             }
         }
 
-        private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
+        private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId, out string message)
         {
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
@@ -1198,12 +1207,13 @@ namespace OpenSim.Region.Framework.Scenes
                         + " inventory item from a prim's inventory item "
                         + " but the required item does not exist in the prim's inventory",
                     itemId, part.Name, part.UUID);
-
+                message = "Item not found: " + itemId;
                 return null;
             }
 
             if ((destAgent != taskItem.OwnerID) && ((taskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0))
             {
+                message = "Item doesn't have the Transfer permission.";
                 return null;
             }
 
@@ -1263,6 +1273,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            message = null;
             return agentItem;
         }
 
@@ -1273,19 +1284,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="folderID"></param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public InventoryItemBase MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
+        public InventoryItemBase MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId, out string message)
         {
             m_log.DebugFormat(
                 "[PRIM INVENTORY]: Adding item {0} from {1} to folder {2} for {3}", 
                 itemId, part.Name, folderId, remoteClient.Name);
             
-            InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
-
+            InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId, out message);
             if (agentItem == null)
                 return null;
 
             agentItem.Folder = folderId;
             AddInventoryItem(remoteClient, agentItem);
+            message = null;
             return agentItem;
         }
 
@@ -1336,7 +1347,11 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            MoveTaskInventoryItem(remoteClient, folderId, part, itemId);
+            string message;
+            InventoryItemBase item = MoveTaskInventoryItem(remoteClient, folderId, part, itemId, out message);
+            
+            if (item == null)
+                remoteClient.SendAgentAlertMessage(message, false);
         }
 
         /// <summary>
@@ -1350,17 +1365,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public InventoryItemBase MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId)
+        public InventoryItemBase MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId, out string message)
         {
             ScenePresence avatar;
 
             if (TryGetScenePresence(avatarId, out avatar))
             {
-                return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
+                return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId, out message);
             }
             else
             {
-                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
+                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId, out message);
 
                 if (agentItem == null)
                     return null;
@@ -1474,6 +1489,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items)
         {
+            ScenePresence avatar;
+            IClientAPI remoteClient = null;
+            if (TryGetScenePresence(destID, out avatar))
+                remoteClient = avatar.ControllingClient;
+
             InventoryFolderBase rootFolder = InventoryService.GetRootFolder(destID);
 
             UUID newFolderID = UUID.Random();
@@ -1483,7 +1503,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (UUID itemID in items)
             {
-                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID);
+                string message;
+                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID, out message);
 
                 if (agentItem != null)
                 {
@@ -1491,18 +1512,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                     AddInventoryItem(agentItem);
                 }
+                else
+                {
+                    if (remoteClient != null)
+                        remoteClient.SendAgentAlertMessage(message, false);
+                }
             }
 
-            ScenePresence avatar = null;
-            if (TryGetScenePresence(destID, out avatar))
+            if (remoteClient != null)
             {
-                //profile.SendInventoryDecendents(avatar.ControllingClient,
-                //        profile.RootFolder.ID, true, false);
-                //profile.SendInventoryDecendents(avatar.ControllingClient,
-                //        newFolderID, false, true);
-
-                SendInventoryUpdate(avatar.ControllingClient, rootFolder, true, false);
-                SendInventoryUpdate(avatar.ControllingClient, newFolder, false, true);
+                SendInventoryUpdate(remoteClient, rootFolder, true, false);
+                SendInventoryUpdate(remoteClient, newFolder, false, true);
             }
 
             return newFolderID;
