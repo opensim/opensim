@@ -534,9 +534,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="recipientClient"></param>
         /// <param name="senderId">ID of the sender of the item</param>
         /// <param name="itemId"></param>
-        public virtual void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId)
+        public virtual void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId, out string message)
         {
-            InventoryItemBase itemCopy = GiveInventoryItem(recipientClient.AgentId, senderId, itemId);
+            InventoryItemBase itemCopy = GiveInventoryItem(recipientClient.AgentId, senderId, itemId, out message);
 
             if (itemCopy != null)
                 recipientClient.SendBulkUpdateInventory(itemCopy);
@@ -549,9 +549,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="senderId">ID of the sender of the item</param>
         /// <param name="itemId"></param>
         /// <returns>The inventory item copy given, null if the give was unsuccessful</returns>
-        public virtual InventoryItemBase GiveInventoryItem(UUID recipient, UUID senderId, UUID itemId)
+        public virtual InventoryItemBase GiveInventoryItem(UUID recipient, UUID senderId, UUID itemId, out string message)
         {
-            return GiveInventoryItem(recipient, senderId, itemId, UUID.Zero);
+            return GiveInventoryItem(recipient, senderId, itemId, UUID.Zero, out message);
         }
 
         /// <summary>
@@ -568,12 +568,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// The inventory item copy given, null if the give was unsuccessful
         /// </returns>
         public virtual InventoryItemBase GiveInventoryItem(
-            UUID recipient, UUID senderId, UUID itemId, UUID recipientFolderId)
+            UUID recipient, UUID senderId, UUID itemId, UUID recipientFolderId, out string message)
         {
             //Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
 
             if (!Permissions.CanTransferUserInventory(itemId, senderId, recipient))
+            {
+                message = "Not allowed to transfer this item.";
                 return null;
+            }
 
             InventoryItemBase item = new InventoryItemBase(itemId, senderId);
             item = InventoryService.GetItem(item);
@@ -582,6 +585,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat(
                     "[AGENT INVENTORY]: Failed to find item {0} sent by {1} to {2}", itemId, senderId, recipient);
+                message = string.Format("Item not found: {0}.", itemId);
                 return null;
             }
 
@@ -590,6 +594,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[AGENT INVENTORY]: Attempt to send item {0} {1} to {2} failed because sender {3} did not match item owner {4}",
                     item.Name, item.ID, recipient, senderId, item.Owner);
+                message = "Sender did not match item owner.";
                 return null;
             }
 
@@ -600,7 +605,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Permissions.BypassPermissions())
             {
                 if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+                {
+                    message = "Item doesn't have the Transfer permission.";
                     return null;
+                }
             }
 
             // Insert a copy of the item into the recipient
@@ -736,9 +744,14 @@ namespace OpenSim.Region.Framework.Scenes
                     InventoryFolderBase root = InventoryService.GetRootFolder(recipient);
 
                     if (root != null)
+                    {
                         itemCopy.Folder = root.ID;
+                    }
                     else
-                        return null; // No destination
+                    {
+                        message = "Can't find a folder to add the item to.";
+                        return null;
+                    }
                 }
             }
 
@@ -763,6 +776,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            message = null;
             return itemCopy;
         }
 
@@ -780,7 +794,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>
         /// The inventory folder copy given, null if the copy was unsuccessful
         /// </returns>
-        public virtual InventoryFolderBase GiveInventoryFolder(
+        public virtual InventoryFolderBase GiveInventoryFolder(IClientAPI client,
             UUID recipientId, UUID senderId, UUID folderId, UUID recipientParentFolderId)
         {
             //// Retrieve the folder from the sender
@@ -815,13 +829,18 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryCollection contents = InventoryService.GetFolderContent(senderId, folderId);
             foreach (InventoryFolderBase childFolder in contents.Folders)
             {
-                GiveInventoryFolder(recipientId, senderId, childFolder.ID, newFolder.ID);
+                GiveInventoryFolder(client, recipientId, senderId, childFolder.ID, newFolder.ID);
             }
 
             // Give all the items
             foreach (InventoryItemBase item in contents.Items)
             {
-                GiveInventoryItem(recipientId, senderId, item.ID, newFolder.ID);
+                string message;
+                if (GiveInventoryItem(recipientId, senderId, item.ID, newFolder.ID, out message) == null)
+                {
+                    if (client != null)
+                        client.SendAgentAlertMessage(message, false);
+                }
             }
 
             return newFolder;

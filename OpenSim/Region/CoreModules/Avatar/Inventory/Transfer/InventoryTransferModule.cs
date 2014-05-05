@@ -180,8 +180,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         "[INVENTORY TRANSFER]: Inserting original folder {0} into agent {1}'s inventory",
                         folderID, new UUID(im.toAgentID));
                     
-                    InventoryFolderBase folderCopy 
-                        = scene.GiveInventoryFolder(receipientID, client.AgentId, folderID, UUID.Zero);
+                    InventoryFolderBase folderCopy
+                        = scene.GiveInventoryFolder(client, receipientID, client.AgentId, folderID, UUID.Zero);
                     
                     if (folderCopy == null)
                     {
@@ -217,13 +217,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                             "into agent {1}'s inventory",
                             itemID, new UUID(im.toAgentID));
 
-                    InventoryItemBase itemCopy = scene.GiveInventoryItem(
-                            new UUID(im.toAgentID),
-                            client.AgentId, itemID);
+                    string message;
+                    InventoryItemBase itemCopy = scene.GiveInventoryItem(new UUID(im.toAgentID), client.AgentId, itemID, out message);
 
                     if (itemCopy == null)
                     {
-                        client.SendAgentAlertMessage("Can't find item to give. Nothing given.", false);
+                        client.SendAgentAlertMessage(message, false);
                         return;
                     }
                     
