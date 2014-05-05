@@ -1196,6 +1196,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        /// <summary>
+        /// Creates (in memory only) a user inventory item that will contain a copy of a task inventory item.
+        /// </summary>
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId, out string message)
         {
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
@@ -1259,11 +1263,24 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.GroupPermissions = taskItem.GroupPermissions;
             }
 
+            message = null;
+            return agentItem;
+        }
+
+        /// <summary>
+        /// If the task item is not-copyable then remove it from the prim.
+        /// </summary>
+        private void RemoveNonCopyTaskItemFromPrim(SceneObjectPart part, UUID itemId)
+        {
+            TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
+            if (taskItem == null)
+                return;
+
             if (!Permissions.BypassPermissions())
             {
                 if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                 {
-                    if (taskItem.Type == 10)
+                    if (taskItem.Type == (int)AssetType.LSLText)
                     {
                         part.RemoveScriptEvents(itemId);
                         EventManager.TriggerRemoveScript(part.LocalId, itemId);
@@ -1272,9 +1289,6 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Inventory.RemoveInventoryItem(itemId);
                 }
             }
-
-            message = null;
-            return agentItem;
         }
 
         /// <summary>
@@ -1296,6 +1310,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             agentItem.Folder = folderId;
             AddInventoryItem(remoteClient, agentItem);
+
+            RemoveNonCopyTaskItemFromPrim(part, itemId);
+
             message = null;
             return agentItem;
         }
@@ -1383,6 +1400,8 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.Folder = folderId;
 
                 AddInventoryItem(agentItem);
+
+                RemoveNonCopyTaskItemFromPrim(part, itemId);
 
                 return agentItem;
             }
@@ -1511,6 +1530,8 @@ namespace OpenSim.Region.Framework.Scenes
                     agentItem.Folder = newFolderID;
 
                     AddInventoryItem(agentItem);
+
+                    RemoveNonCopyTaskItemFromPrim(host, itemID);
                 }
                 else
                 {
