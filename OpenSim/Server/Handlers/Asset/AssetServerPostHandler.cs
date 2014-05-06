@@ -64,7 +64,7 @@ namespace OpenSim.Server.Handlers.Asset
             {
                 asset = (AssetBase)xs.Deserialize(request);
             }
-            catch (XmlException)
+            catch (Exception)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 return null;

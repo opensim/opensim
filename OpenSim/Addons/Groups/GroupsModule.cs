@@ -496,12 +496,13 @@ namespace OpenSim.Groups
                     Util.ParseUniversalUserIdentifier(notice.noticeData.AttachmentOwnerID, out giver, out tmp, out tmp, out tmp, out tmp);
 
                     m_log.DebugFormat("[Groups]: Giving inventory from {0} to {1}", giver, remoteClient.AgentId);
+                    string message;
                     InventoryItemBase itemCopy = ((Scene)(remoteClient.Scene)).GiveInventoryItem(remoteClient.AgentId, 
-                        giver, notice.noticeData.AttachmentItemID);
+                        giver, notice.noticeData.AttachmentItemID, out message);
 
                     if (itemCopy == null)
                     {
-                        remoteClient.SendAgentAlertMessage("Can't find item to give. Nothing given.", false);
+                        remoteClient.SendAgentAlertMessage(message, false);
                         return;
                     }
 
