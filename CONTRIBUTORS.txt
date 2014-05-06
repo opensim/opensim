@@ -127,6 +127,7 @@ what it is today.
 * maimedleech
 * Mana Janus
 * MarcelEdward
+* Matt Lehmann
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
