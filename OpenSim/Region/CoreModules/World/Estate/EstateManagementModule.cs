@@ -313,6 +313,69 @@ namespace OpenSim.Region.CoreModules.World.Estate
             return response;
         }
 
+        public string SetRegionEstate(RegionInfo regionInfo, int estateID)
+        {
+            string response;
+
+            if (regionInfo.EstateSettings.EstateID == estateID)
+            {
+                response = String.Format("\"{0}\" is already part of estate {1}", regionInfo.RegionName, estateID);
+            }
+            else
+            {
+                // get the current settings from DB
+                EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
+                if (dbSettings.EstateID == 0)
+                {
+                    response = String.Format("No estate found with ID {0}", estateID);
+                }
+                else if (Scene.EstateDataService.LinkRegion(regionInfo.RegionID, estateID))
+                {
+                    // make sure there's a log entry to document the change
+                    m_log.InfoFormat("[ESTATE]: Region {0} ({1}) moved to Estate {2} ({3}).", regionInfo.RegionID, regionInfo.RegionName, estateID, dbSettings.EstateName);
+
+                   // propagate the change
+                    ChangeDelegate change = OnEstateInfoChange;
+
+                    if (change != null)
+                        change(regionInfo.RegionID);
+
+                    response = String.Empty;
+                }
+                else
+                {
+                    response = String.Format("Could not move \"{0}\" to estate {1}", regionInfo.RegionName, estateID);
+                }
+            }
+            return response;
+        }
+
+        public string CreateEstate(string estateName, UUID ownerID)
+        {
+            string response;
+            if (string.IsNullOrEmpty(estateName))
+            {
+                response = "No estate name specified.";
+            }
+            else
+            {
+                List<int> estates = Scene.EstateDataService.GetEstates(estateName);
+                if (estates.Count() > 0)
+                {
+                    response = String.Format("An estate named \"{0}\" already exists.", estateName);
+                }
+                else
+                {
+                    EstateSettings settings = Scene.EstateDataService.CreateNewEstate();
+                    settings.EstateOwner = ownerID;
+                    settings.EstateName = estateName;
+                    settings.Save();
+                    response = String.Empty;
+                }
+            }
+            return response;
+        }
+
         #endregion
 
         #region Packet Data Responders
