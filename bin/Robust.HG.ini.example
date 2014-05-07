@@ -163,8 +163,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 
-    HypergridLinker = true
-
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
 
