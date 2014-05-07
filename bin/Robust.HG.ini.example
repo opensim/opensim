@@ -282,6 +282,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
+    GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
 
     ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2 
     ;; to show a default "Ruth" avatar rather than a cloud for a newly created user.
