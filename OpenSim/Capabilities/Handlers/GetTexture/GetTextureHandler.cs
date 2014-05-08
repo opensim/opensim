@@ -63,7 +63,7 @@ namespace OpenSim.Capabilities.Handlers
         {
             m_assetService = assService;
             m_RedirectURL = redirectURL;
-            if (!m_RedirectURL.EndsWith("/"))
+            if (m_RedirectURL != null && !m_RedirectURL.EndsWith("/"))
                 m_RedirectURL += "/";
         }
 
