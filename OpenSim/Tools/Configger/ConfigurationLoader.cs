@@ -71,7 +71,6 @@ namespace OpenSim.Tools.Configger
             List<string> sources = new List<string>();
 
             string iniFileName = startupConfig.GetString("inifile", Path.Combine(".", "OpenSim.ini"));
-            Console.WriteLine("---> " + iniFileName + " <---");
 
             if (IsUri(iniFileName))
             {
