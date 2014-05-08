@@ -63,7 +63,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_Enabled = false;
 
         // TODO: Change this to a config option
-        const string REDIRECT_URL = null;
+        private string m_RedirectURL = null;
 
         private string m_URL;
 
@@ -78,7 +78,10 @@ namespace OpenSim.Region.ClientStack.Linden
             m_URL = config.GetString("Cap_GetTexture", string.Empty);
             // Cap doesn't exist
             if (m_URL != string.Empty)
+            {
                 m_Enabled = true;
+                m_RedirectURL = config.GetString("GetTextureRedirectURL");
+            }
         }
 
         public void AddRegion(Scene s)
@@ -132,14 +135,14 @@ namespace OpenSim.Region.ClientStack.Linden
 //                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler(
                     "GetTexture",
-                    new GetTextureHandler("/CAPS/" + capID + "/", m_assetService, "GetTexture", agentID.ToString()));
+                    new GetTextureHandler("/CAPS/" + capID + "/", m_assetService, "GetTexture", agentID.ToString(), m_RedirectURL));
             }
             else
             {
 //                m_log.DebugFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
                 if (handler != null)
-                    handler.RegisterExternalUserCapsHandler(agentID,caps,"GetTexture",m_URL);
+                    handler.RegisterExternalUserCapsHandler(agentID,caps,"GetTexture", m_URL);
                 else
                     caps.RegisterHandler("GetTexture", m_URL);
             }

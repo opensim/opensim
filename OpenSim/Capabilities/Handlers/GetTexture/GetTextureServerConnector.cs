@@ -62,8 +62,10 @@ namespace OpenSim.Capabilities.Handlers
             if (m_AssetService == null)
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
+            string rurl = serverConfig.GetString("GetTextureRedirectURL");
+            ;
             server.AddStreamHandler(
-                new GetTextureHandler("/CAPS/GetTexture/" /*+ UUID.Random() */, m_AssetService, "GetTexture", null));
+                new GetTextureHandler("/CAPS/GetTexture/" /*+ UUID.Random() */, m_AssetService, "GetTexture", null, rurl));
         }
     }
 }
