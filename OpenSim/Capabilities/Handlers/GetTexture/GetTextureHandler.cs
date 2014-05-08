@@ -153,7 +153,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
                 else
                 {
-                    string textureUrl = m_RedirectURL + textureID.ToString();
+                    string textureUrl = m_RedirectURL + "?texture_id="+ textureID.ToString();
                     m_log.Debug("[GETTEXTURE]: Redirecting texture request to " + textureUrl);
                     httpResponse.StatusCode = (int)OSHttpStatusCode.RedirectMovedPermanently;
                     httpResponse.RedirectLocation = textureUrl;
