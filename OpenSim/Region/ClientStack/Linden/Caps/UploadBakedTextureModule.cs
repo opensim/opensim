@@ -129,12 +129,12 @@ namespace OpenSim.Region.ClientStack.Linden
             m_BakedTextureModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
             if (cacheItems.Length > 0)
             {
-                m_log.Debug("[Cacheitems]: " + cacheItems.Length);
-                for (int iter = 0; iter < maxCacheitemsLoop; iter++)
-                {
-                    m_log.Debug("[Cacheitems] {" + iter + "/" + cacheItems[iter].TextureIndex + "}: c-" + cacheItems[iter].CacheId + ", t-" +
-                                      cacheItems[iter].TextureID);
-                }
+//                m_log.Debug("[Cacheitems]: " + cacheItems.Length);
+//                for (int iter = 0; iter < maxCacheitemsLoop; iter++)
+//                {
+//                    m_log.Debug("[Cacheitems] {" + iter + "/" + cacheItems[iter].TextureIndex + "}: c-" + cacheItems[iter].CacheId + ", t-" +
+//                                      cacheItems[iter].TextureID);
+//                }
                
                 ScenePresence p = null;
                 if (m_scene.TryGetScenePresence(remoteClient.AgentId, out p))

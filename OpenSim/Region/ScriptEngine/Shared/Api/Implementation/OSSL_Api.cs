@@ -3397,14 +3397,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (sp == null)
                 return;
 
-            InventoryItemBase newItem = World.MoveTaskInventoryItem(sp.UUID, UUID.Zero, m_host, item.ItemID);
+            string message;
+            InventoryItemBase newItem = World.MoveTaskInventoryItem(sp.UUID, UUID.Zero, m_host, item.ItemID, out message);
 
             if (newItem == null)
             {
                 m_log.ErrorFormat(
-                    "[OSSL API]: Could not create user inventory item {0} for {1}, attach point {2} in {3}",
-                    itemName, m_host.Name, attachmentPoint, World.Name);
-
+                    "[OSSL API]: Could not create user inventory item {0} for {1}, attach point {2} in {3}: {4}",
+                    itemName, m_host.Name, attachmentPoint, World.Name, message);
+                ((LSL_Api)m_LSL_Api).llSay(0, message);
                 return;
             }
 

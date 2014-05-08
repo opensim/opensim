@@ -160,9 +160,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private IAssetService m_assetService = null;
 
 
+        private UUID m_defaultUser;
+
         public ArchiveReadRequest(Scene scene, string loadPath, Guid requestId, Dictionary<string,object>options)
         {
             m_rootScene = scene;
+
+            if (options.ContainsKey("default-user"))
+            {
+                m_defaultUser = (UUID)options["default-user"];
+                m_log.InfoFormat("Using User {0} as default user", m_defaultUser.ToString());
+            }
+            else 
+            {
+                m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
+            }
 
             m_loadPath = loadPath;
             try
@@ -206,6 +218,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_merge = options.ContainsKey("merge");
             m_requestId = requestId;
 
+            m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
+     
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
 
@@ -562,16 +576,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (string.IsNullOrEmpty(part.CreatorData))
                 {
                     if (!ResolveUserUuid(scene, part.CreatorID))
-                        part.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
+                        part.CreatorID = m_defaultUser;
                 }
                 if (UserManager != null)
                     UserManager.AddUser(part.CreatorID, part.CreatorData);
 
                 if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
-                    part.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
+                    part.OwnerID = m_defaultUser;
 
                 if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
-                    part.LastOwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
+                    part.LastOwnerID = m_defaultUser;
 
                 if (!ResolveGroupUuid(part.GroupID))
                     part.GroupID = UUID.Zero;
@@ -590,13 +604,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
                         {
-                            kvp.Value.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
+                            kvp.Value.OwnerID = m_defaultUser;
                         }
 
                         if (string.IsNullOrEmpty(kvp.Value.CreatorData))
                         {
                             if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
-                                kvp.Value.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
+                                kvp.Value.CreatorID = m_defaultUser;
                         }
 
                         if (UserManager != null)

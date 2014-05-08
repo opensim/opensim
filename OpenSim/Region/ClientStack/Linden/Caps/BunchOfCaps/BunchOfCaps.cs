@@ -865,18 +865,26 @@ namespace OpenSim.Region.ClientStack.Linden
                 item = m_Scene.InventoryService.GetItem(new InventoryItemBase(itemID));
                 if (item != null)
                 {
-                    copyItem = m_Scene.GiveInventoryItem(m_HostCapsObj.AgentID, item.Owner, itemID, folderID);
-                    if (copyItem != null && client != null)
+                    string message;
+                    copyItem = m_Scene.GiveInventoryItem(m_HostCapsObj.AgentID, item.Owner, itemID, folderID, out message);
+                    if (client != null)
                     {
-                        m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, ItemID:{0}, FolderID:{1}", copyItem.ID, copyItem.Folder);
-                        client.SendBulkUpdateInventory(copyItem);
+                        if (copyItem != null)
+                        {
+                            m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, ItemID:{0}, FolderID:{1}", copyItem.ID, copyItem.Folder);
+                            client.SendBulkUpdateInventory(copyItem);
+                        }
+                        else
+                        {
+                            client.SendAgentAlertMessage(message, false);
+                        }
                     }
                 }
                 else
                 {
                     m_log.ErrorFormat("[CAPS]: CopyInventoryFromNotecard - Failed to retrieve item {0} from notecard {1}", itemID, notecardID);
                     if (client != null)
-                        client.SendAlertMessage("Failed to retrieve item");
+                        client.SendAgentAlertMessage("Failed to retrieve item", false);
                 }
             }
             catch (Exception e)

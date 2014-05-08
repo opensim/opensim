@@ -108,6 +108,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             bool forceParcels = false;
             bool noObjects = false;
             Vector3 displacement = new Vector3(0f, 0f, 0f);
+            String defaultUser = "";
             float rotation = 0f;
             Vector3 rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0);
             
@@ -119,6 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             options.Add("force-parcels", delegate (string v) { forceParcels = (v != null); });
             options.Add("forceparcels", delegate (string v) { forceParcels = (v != null); });   // downward compatibility
             options.Add("no-objects", delegate (string v) { noObjects = (v != null); });
+            options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
             options.Add("displacement=", delegate (string v) {
                 try
                 {
@@ -131,7 +133,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     return;
                 }
             });
-            options.Add("rotation=", delegate (string v) {
+            options.Add("rotation=", delegate(string v)
+            {
                 try
                 {
                     rotation = v == null ? 0f : float.Parse(v);
@@ -181,6 +184,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (forceTerrain) archiveOptions.Add("force-terrain", null);
             if (forceParcels) archiveOptions.Add("force-parcels", null);
             if (noObjects) archiveOptions.Add("no-objects", null);
+            if (defaultUser != "")
+            {
+                UUID defaultUserUUID = UUID.Zero;
+                try
+                {
+                    defaultUserUUID = Scene.UserManagementModule.GetUserIdByName(defaultUser);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] default user must be in format \"First Last\"", defaultUser);
+                }
+                if (defaultUserUUID == UUID.Zero)
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] cannot find specified default user {0}", defaultUser);
+                    return;
+                }
+                else
+                {
+                    archiveOptions.Add("default-user", defaultUserUUID);
+                }
+            }
             archiveOptions.Add("displacement", displacement);
             archiveOptions.Add("rotation", rotation);
             archiveOptions.Add("rotation-center", rotationCenter);

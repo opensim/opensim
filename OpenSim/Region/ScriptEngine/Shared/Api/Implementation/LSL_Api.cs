@@ -1884,9 +1884,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
                 part.Shape.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
                 part.Shape.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
-                part.Shape.LightIntensity = intensity;
-                part.Shape.LightRadius = radius;
-                part.Shape.LightFalloff = falloff;
+                part.Shape.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
+                part.Shape.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
+                part.Shape.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
             }
             else
             {
@@ -3162,6 +3162,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Float llGetMassMKS()
+        {
+            // this is what the wiki says it does!
+            // http://wiki.secondlife.com/wiki/LlGetMassMKS
+            return llGetMass() * 100.0;
+        }
+
         public void llCollisionFilter(string name, string id, int accept)
         {
             m_host.AddScriptLPS(1);
@@ -4127,10 +4134,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
                 // destination is an avatar
-                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
+                string message;
+                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId, out message);
 
                 if (agentItem == null)
+                {
+                    llSay(0, message); 
                     return;
+                }
 
                 if (m_TransferModule != null)
                 {
@@ -6144,10 +6155,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(id, out key))
             {
                 ScenePresence av = World.GetScenePresence(key);
+                List<ScenePresence> sittingAvatars = m_host.ParentGroup.GetSittingAvatars();
 
                 if (av != null)
                 {
-                    if (llAvatarOnSitTarget() == id)
+                    if (sittingAvatars.Contains(av))
                     {
                         // if the avatar is sitting on this object, then
                         // we can unsit them.  We don't want random scripts unsitting random people

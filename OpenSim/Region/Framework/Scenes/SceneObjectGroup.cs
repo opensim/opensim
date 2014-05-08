@@ -1421,7 +1421,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Scene.ForEachScenePresence(sp =>
                 {
-                    if (!sp.IsChildAgent && sp.ParentID == LocalId)
+                    if (!sp.IsChildAgent && sp.ParentID == part.LocalId)
                         sp.StandUp();
 
                     if (!silent)
