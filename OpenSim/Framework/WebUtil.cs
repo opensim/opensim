@@ -36,6 +36,7 @@ using System.Net;
 using System.Net.Security;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Xml;
 using System.Xml.Serialization;
@@ -1091,7 +1092,7 @@ namespace OpenSim.Framework
         /// </returns>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
-            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0);
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, Timeout.Infinite);
         }
 
         /// <summary>
@@ -1100,7 +1101,7 @@ namespace OpenSim.Framework
         /// <param name="verb"></param>
         /// <param name="requestUrl"></param>
         /// <param name="obj"></param>
-        /// <param name="pTimeout">Request timeout in milliseconds.</param>
+        /// <param name="pTimeout">Request timeout in milliseconds.  Timeout.Infinite indicates no timeout.</param>
         /// <returns>
         /// The response.  If there was an internal exception or the request timed out, 
         /// then the default(TResponse) is returned.
@@ -1116,7 +1117,7 @@ namespace OpenSim.Framework
         /// <param name="verb"></param>
         /// <param name="requestUrl"></param>
         /// <param name="obj"></param>
-        /// <param name="pTimeout">Request timeout in milliseconds.</param>
+        /// <param name="pTimeout">Request timeout in milliseconds.  Timeout.Infinite indicates no timeout.</param>
         /// <param name="maxConnections"></param>
         /// <returns>
         /// The response.  If there was an internal exception or the request timed out, 
