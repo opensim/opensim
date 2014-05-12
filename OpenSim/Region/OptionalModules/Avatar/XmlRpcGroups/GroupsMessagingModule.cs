@@ -431,8 +431,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         // Add them to the session for now, and Invite them
                         m_groupData.AgentInvitedToGroupChatSession(AgentID, GroupID);
 
-                        UUID toAgentID = new UUID(msg.toAgentID);
-
                         GroupRecord groupInfo = m_groupData.GetGroupRecord(UUID.Zero, GroupID, null);
                         if (groupInfo != null)
                         {
