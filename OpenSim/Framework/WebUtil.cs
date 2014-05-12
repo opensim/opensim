@@ -1116,6 +1116,8 @@ namespace OpenSim.Framework
 
             WebRequest request = WebRequest.Create(requestUrl);
             HttpWebRequest ht = (HttpWebRequest)request;
+            ht.Timeout = pTimeout;
+
             if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
                 ht.ServicePoint.ConnectionLimit = maxConnections;
 
