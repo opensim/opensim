@@ -226,10 +226,6 @@ namespace OpenSim.OfflineIM
                     return;
             }
 
-            Scene scene = FindScene(new UUID(im.fromAgentID));
-            if (scene == null)
-                scene = m_SceneList[0];
-
             string reason = string.Empty;
             bool success = m_OfflineIMService.StoreMessage(im, out reason);
 

@@ -226,10 +226,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     return;
             }
 
-            Scene scene = FindScene(new UUID(im.fromAgentID));
-            if (scene == null)
-                scene = m_SceneList[0];
-
             bool success = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
                     "POST", m_RestURL+"/SaveMessage/", im);
 
