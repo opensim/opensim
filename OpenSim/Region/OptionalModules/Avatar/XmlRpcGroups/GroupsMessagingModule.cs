@@ -248,6 +248,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(sendingAgentForGroupCalls, groupID);
             int groupMembersCount = groupMembers.Count;
+            HashSet<string> attemptDeliveryUuidSet = null;
 
             if (m_messageOnlineAgentsOnly)
             {
@@ -263,10 +264,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_usersOnlineCache.Add(groupID, onlineAgents, m_usersOnlineCacheExpirySeconds);
                 }
 
-                HashSet<string> onlineAgentsUuidSet = new HashSet<string>();
-                Array.ForEach<PresenceInfo>(onlineAgents, pi => onlineAgentsUuidSet.Add(pi.UserID));
+                attemptDeliveryUuidSet 
+                    = new HashSet<string>(Array.ConvertAll<PresenceInfo, string>(onlineAgents, pi => pi.UserID));
 
-                groupMembers = groupMembers.Where(gmd => onlineAgentsUuidSet.Contains(gmd.AgentID.ToString())).ToList();
+                //Array.ForEach<PresenceInfo>(onlineAgents, pi => attemptDeliveryUuidSet.Add(pi.UserID));
+
+                //groupMembers = groupMembers.Where(gmd => onlineAgentsUuidSet.Contains(gmd.AgentID.ToString())).ToList();
 
     //            if (m_debugEnabled)
 //                    m_log.DebugFormat(
@@ -275,6 +278,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
             else
             {
+                attemptDeliveryUuidSet 
+                    = new HashSet<string>(groupMembers.ConvertAll<string>(gmd => gmd.AgentID.ToString()));
+
                 if (m_debugEnabled)
                     m_log.DebugFormat(
                         "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members",
@@ -325,26 +331,33 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 msg.toAgentID = member.AgentID.Guid;
 
-                IClientAPI client = GetActiveClient(member.AgentID);
-                if (client == null)
+                if (attemptDeliveryUuidSet.Contains(member.AgentID.ToString()))
                 {
-                    // If they're not local, forward across the grid
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Delivering to {0} via Grid", member.AgentID);
-                    m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
+                    IClientAPI client = GetActiveClient(member.AgentID);
+                    if (client == null)
+                    {
+                        // If they're not local, forward across the grid
+                        if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Delivering to {0} via Grid", member.AgentID);
+                        m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
+                    }
+                    else
+                    {
+                        // Deliver locally, directly
+                        if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
+                        ProcessMessageFromGroupSession(msg, client);
+                    }
                 }
                 else
                 {
-                    // Deliver locally, directly
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
-                    ProcessMessageFromGroupSession(msg, client);
+                    m_msgTransferModule.HandleUndeliverableMessage(msg, delegate(bool success) { });
                 }
             }
 
             // Temporary for assessing how long it still takes to send messages to large online groups.
             if (m_messageOnlineAgentsOnly)
                 m_log.DebugFormat(
-                    "[GROUPS-MESSAGING]: SendMessageToGroup for group {0} with {1} visible members, {2} online took {3}ms",
-                    groupID, groupMembersCount, groupMembers.Count(), Environment.TickCount - requestStartTick);
+                    "[GROUPS-MESSAGING]: SendMessageToGroup for group {0} with {1} members, {2} candidates for delivery took {3}ms",
+                    groupID, groupMembersCount, attemptDeliveryUuidSet.Count(), Environment.TickCount - requestStartTick);
         }
         
         #region SimGridEventHandlers

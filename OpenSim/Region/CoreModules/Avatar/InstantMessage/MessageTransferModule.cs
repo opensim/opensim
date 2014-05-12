@@ -181,7 +181,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             SendGridInstantMessageViaXMLRPC(im, result);
         }
 
-        private void HandleUndeliveredMessage(GridInstantMessage im, MessageResultNotification result)
+        public void HandleUndeliverableMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UndeliveredMessage handlerUndeliveredMessage = OnUndeliveredMessage;
 
@@ -511,14 +511,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     if (upd.RegionID == prevRegionID)
                     {
                         // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                        HandleUndeliveredMessage(im, result);
+                        HandleUndeliverableMessage(im, result);
                         return;
                     }
                 }
                 else
                 {
                     // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                    HandleUndeliveredMessage(im, result);
+                    HandleUndeliverableMessage(im, result);
                     return;
                 }
             }
@@ -567,12 +567,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 else
                 {
                     m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find region {0}", upd.RegionID);
-                    HandleUndeliveredMessage(im, result);
+                    HandleUndeliverableMessage(im, result);
                 }
             }
             else
             {
-                HandleUndeliveredMessage(im, result);
+                HandleUndeliverableMessage(im, result);
             }
         }
 
