@@ -122,7 +122,7 @@ namespace OpenSim.Services.HypergridService
             }
 
             List<XInventoryFolder> tree = GetFolderTree(principalID, suitcase.folderID);
-            if (tree == null || (tree != null && tree.Count == 0))
+            if (tree.Count == 0)
                 return null;
 
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
@@ -537,13 +537,13 @@ namespace OpenSim.Services.HypergridService
 
         private List<XInventoryFolder> GetFolderTree(UUID principalID, UUID folder)
         {
-            List<XInventoryFolder> t = null;
+            List<XInventoryFolder> t;
             if (m_SuitcaseTrees.TryGetValue(principalID, out t))
                 return t;
 
             // Get the tree of the suitcase folder
             t = GetFolderTreeRecursive(folder);
-            m_SuitcaseTrees.AddOrUpdate(principalID, t, 5*60); // 5minutes
+            m_SuitcaseTrees.AddOrUpdate(principalID, t, 5*60); // 5 minutes
             return t;
         }
 
@@ -554,8 +554,10 @@ namespace OpenSim.Services.HypergridService
                     new string[] { "parentFolderID" },
                     new string[] { root.ToString() });
 
-            if (folders == null || (folders != null && folders.Length == 0))
+            if (folders == null || folders.Length == 0)
+            {
                 return tree; // empty tree
+            }
             else
             {
                 foreach (XInventoryFolder f in folders)
@@ -588,17 +590,18 @@ namespace OpenSim.Services.HypergridService
             List<XInventoryFolder> tree = new List<XInventoryFolder>();
             tree.Add(suitcase); // Warp! the tree is the real root folder plus the children of the suitcase folder
             tree.AddRange(GetFolderTree(principalID, suitcase.folderID));
+
             // Also add the Current Outfit folder to the list of available folders
-            tree.Add(GetCurrentOutfitXFolder(principalID));
+            XInventoryFolder folder = GetCurrentOutfitXFolder(principalID);
+            if (folder != null)
+                tree.Add(folder);
 
             XInventoryFolder f = tree.Find(delegate(XInventoryFolder fl)
             {
-                if (fl.folderID == folderID) return true;
-                else return false;
+                return (fl.folderID == folderID);
             });
 
-            if (f == null) return false;
-            else return true;
+            return (f != null);
         }
         #endregion
 
