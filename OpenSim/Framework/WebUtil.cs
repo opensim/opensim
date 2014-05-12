@@ -1085,21 +1085,43 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="verb"></param>
         /// <param name="requestUrl"></param>
-        /// <param name="obj"> </param>
-        /// <returns></returns>
-        ///
-        /// <exception cref="System.Net.WebException">Thrown if we encounter a network issue while posting
-        /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
+        /// <param name="obj"></param>
+        /// <returns>
+        /// The response.  If there was an internal exception, then the default(TResponse) is returned.
+        /// </returns>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
             return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0);
         }
 
+        /// <summary>
+        /// Perform a synchronous REST request.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <param name="requestUrl"></param>
+        /// <param name="obj"></param>
+        /// <param name="pTimeout">Request timeout in milliseconds.</param>
+        /// <returns>
+        /// The response.  If there was an internal exception or the request timed out, 
+        /// then the default(TResponse) is returned.
+        /// </returns>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout)
         {
             return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, 0);
         }
 
+        /// <summary>
+        /// Perform a synchronous REST request.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <param name="requestUrl"></param>
+        /// <param name="obj"></param>
+        /// <param name="pTimeout">Request timeout in milliseconds.</param>
+        /// <param name="maxConnections"></param>
+        /// <returns>
+        /// The response.  If there was an internal exception or the request timed out, 
+        /// then the default(TResponse) is returned.
+        /// </returns>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, int maxConnections)
         {
             int reqnum = WebUtil.RequestNumber++;
