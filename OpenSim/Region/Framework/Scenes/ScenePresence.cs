@@ -1328,6 +1328,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1}", Name, Scene.RegionInfo.RegionName);
 
+            // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
+            // from the source simulator has completed on a V2 teleport.
+            lock (m_originRegionIDAccessLock)
+                m_originRegionID = UUID.Zero;
+
             // Reset these so that teleporting in and walking out isn't seen
             // as teleporting back
             TeleportFlags = TeleportFlags.Default;
