@@ -3876,9 +3876,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CopyFrom(AgentData cAgent)
         {
-            lock (m_originRegionIDAccessLock)
-                m_originRegionID = cAgent.RegionID;
-
             m_callbackURI = cAgent.CallbackURI;
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Set callback for {0} in {1} to {2} in CopyFrom()",
@@ -3951,6 +3948,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+
+            // This must occur after attachments are copied, as it releases the CompleteMovement() calling thread
+            // originating from the client completing a teleport.  Otherwise, CompleteMovement() code to restart
+            // script attachments can outrace this thread.
+            lock (m_originRegionIDAccessLock)
+                m_originRegionID = cAgent.RegionID;
         }
 
         public bool CopyAgent(out IAgentData agent)
