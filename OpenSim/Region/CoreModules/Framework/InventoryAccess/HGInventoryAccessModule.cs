@@ -297,9 +297,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             SceneObjectGroup sog = base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                                    RezSelected, RemoveItem, fromTaskID, attachment);
 
-            if (sog == null)
-                remoteClient.SendAgentAlertMessage("Unable to rez: problem accessing inventory or locating assets", false);
-
             return sog;
 
         }
