@@ -89,7 +89,7 @@ namespace OpenSim.Data.PGSQL
             }
             else
             {
-                pattern = string.Format(" lower(\"Name\") LIKE lower('%:pattern%') ORDER BY lower(\"Name\") LIMIT 100");
+                pattern = " lower(\"Name\") LIKE lower('%:pattern%') ORDER BY lower(\"Name\") LIMIT 100";
                 return m_Groups.Get(pattern, new NpgsqlParameter("pattern", pattern));
             }
         }
