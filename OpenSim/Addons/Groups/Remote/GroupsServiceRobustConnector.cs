@@ -64,8 +64,8 @@ namespace OpenSim.Groups
                 key = groupsConfig.GetString("SecretKey", string.Empty);
                 m_log.DebugFormat("[Groups.RobustConnector]: Starting with secret key {0}", key);
             }
-            else
-                m_log.WarnFormat("[Groups.RobustConnector]: Unable to find {0} section in configuration", m_ConfigName);
+//            else
+//                m_log.DebugFormat("[Groups.RobustConnector]: Unable to find {0} section in configuration", m_ConfigName);
 
             m_GroupsService = new GroupsService(config);
 
