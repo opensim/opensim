@@ -88,7 +88,7 @@ namespace OpenSim.Data.MySQL
             if (string.IsNullOrEmpty(pattern))
                 pattern = "1";
             else
-                pattern = string.Format("Name LIKE '%{0}%'", pattern);
+                pattern = string.Format("Name LIKE '%{0}%'", MySqlHelper.EscapeString(pattern));
 
             return m_Groups.Get(string.Format("ShowInList=1 AND ({0}) ORDER BY Name LIMIT 100", pattern));
         }
