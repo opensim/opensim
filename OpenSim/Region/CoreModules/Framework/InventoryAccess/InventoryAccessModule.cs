@@ -203,7 +203,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_Scene.AssetService.Store(asset);
                     m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                        name, description, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
+                        name, description, 0, callbackID, asset.FullID, asset.Type, invType, nextOwnerMask, creationDate);
                 }
                 else
                 {
