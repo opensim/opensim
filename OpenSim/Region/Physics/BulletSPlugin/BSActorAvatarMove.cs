@@ -399,8 +399,8 @@ public class BSActorAvatarMove : BSActor
                     m_controllingPrim.ForcePosition = m_controllingPrim.RawPosition + displacement;
                 }
             }
-            m_physicsScene.DetailLog("{0},BSCharacter.WalkUpStairs.ComputeStairCorrection,disp={1},force={2}",
-                                        m_controllingPrim.LocalID, displacement, ret);
+            m_physicsScene.DetailLog("{0},BSCharacter.WalkUpStairs.ComputeStairCorrection,stepUp={1},isp={2},force={3}",
+                                        m_controllingPrim.LocalID, stepUp, displacement, ret);
 
         }
         return ret;
