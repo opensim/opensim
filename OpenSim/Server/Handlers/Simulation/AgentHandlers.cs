@@ -132,6 +132,10 @@ namespace OpenSim.Server.Handlers.Simulation
             // m_log.DebugFormat("[AGENT HANDLER]: Received QUERYACCESS with {0}", (string)request["body"]);
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
 
+            bool viaTeleport = true;
+            if (args.ContainsKey("viaTeleport"))
+                viaTeleport = args["viaTeleport"].AsBoolean();
+
             Vector3 position = Vector3.Zero;
             if (args.ContainsKey("position"))
                 position = Vector3.Parse(args["position"].AsString());
@@ -145,7 +149,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             string reason;
             string version;
-            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, position, out version, out reason);
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, out version, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 

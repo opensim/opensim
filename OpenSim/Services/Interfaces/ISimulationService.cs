@@ -83,11 +83,12 @@ namespace OpenSim.Services.Interfaces
         /// <param name="destination">Desired destination</param>
         /// <param name="agentID">The visitor's User ID</param>
         /// <param name="agentHomeURI">The visitor's Home URI. Will be missing (null) in older OpenSims.</param>
+        /// <param name="viaTeleport">True: via teleport; False: via cross (walking)</param>
         /// <param name="position">Position in the region</param>
         /// <param name="version"></param>
         /// <param name="reason">[out] Optional error message</param>
         /// <returns>True: ok; False: not allowed</returns>
-        bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, Vector3 position, out string version, out string reason);
+        bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, out string version, out string reason);
 
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.

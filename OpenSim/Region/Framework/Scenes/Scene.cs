@@ -5463,7 +5463,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='position'></param>
         /// <param name='reason'></param>
         /// <returns></returns>
-        public bool QueryAccess(UUID agentID, string agentHomeURI, Vector3 position, out string reason)
+        public bool QueryAccess(UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, out string reason)
         {
             reason = string.Empty;
 
@@ -5529,7 +5529,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            if (position == Vector3.Zero) // Teleport
+            if (viaTeleport)
             {
                 if (!RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
