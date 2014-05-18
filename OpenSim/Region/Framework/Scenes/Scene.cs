@@ -3865,7 +3865,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!AuthorizationService.IsAuthorizedForRegion(
                     agent.AgentID.ToString(), agent.firstname, agent.lastname, RegionInfo.RegionID.ToString(), out reason))
                 {
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because {4}",
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because: {4}",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName, reason);
                     
                     return false;
@@ -5465,7 +5465,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool QueryAccess(UUID agentID, string agentHomeURI, Vector3 position, out string reason)
         {
-            reason = "You are banned from the region";
+            reason = string.Empty;
 
             if (Permissions.IsGod(agentID))
             {
@@ -5525,6 +5525,7 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception e)
             {
                 m_log.DebugFormat("[SCENE]: Exception authorizing agent: {0} "+ e.StackTrace, e.Message);
+                reason = "Error authorizing agent: " + e.Message;
                 return false;
             }
 
@@ -5568,6 +5569,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!TestLandRestrictions(agentID, out reason, ref posX, ref posY))
                 {
                     // m_log.DebugFormat("[SCENE]: Denying {0} because they are banned on all parcels", agentID);
+                    reason = "You are banned from the region on all parcels";
                     return false;
                 }
             }
@@ -5575,13 +5577,22 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ILandObject land = LandChannel.GetLandObject(position.X, position.Y);
                 if (land == null)
+                {
+                    reason = "No parcel found";
                     return false;
+                }
 
                 bool banned = land.IsBannedFromLand(agentID);
                 bool restricted = land.IsRestrictedFromLand(agentID);
 
                 if (banned || restricted)
+                {
+                    if (banned)
+                        reason = "You are banned from the parcel";
+                    else
+                        reason = "The parcel is restricted";
                     return false;
+                }
             }
 
             reason = String.Empty;

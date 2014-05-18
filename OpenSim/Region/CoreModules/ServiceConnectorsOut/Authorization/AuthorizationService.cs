@@ -89,35 +89,43 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
         public bool IsAuthorizedForRegion(
             string user, string firstName, string lastName, string regionID, out string message)
         {
-            message = "authorized";
-
             // This should not happen
             if (m_Scene.RegionInfo.RegionID.ToString() != regionID)
             {
                 m_log.WarnFormat("[AuthorizationService]: Service for region {0} received request to authorize for region {1}",
                     m_Scene.RegionInfo.RegionID, regionID);
-                return true;
+                message = string.Format("Region {0} received request to authorize for region {1}", m_Scene.RegionInfo.RegionID, regionID);
+                return false;
             }
 
             if (m_accessValue == AccessFlags.None)
+            {
+                message = "Authorized";
                 return true;
+            }
 
             UUID userID = new UUID(user);
-            bool authorized = true;
-            if ((m_accessValue & AccessFlags.DisallowForeigners) == AccessFlags.DisallowForeigners)
+
+            if ((m_accessValue & AccessFlags.DisallowForeigners) != 0)
             {
-                authorized = m_UserManagement.IsLocalGridUser(userID);
-                if (!authorized)
-                    message = "no foreigner users allowed in this region";
-            }
-            if (authorized && (m_accessValue & AccessFlags.DisallowResidents) == AccessFlags.DisallowResidents)
-            {
-                authorized = m_Scene.Permissions.IsGod(userID) | m_Scene.Permissions.IsAdministrator(userID);
-                if (!authorized)
-                    message = "only Admins and Managers allowed in this region";
+                if (!m_UserManagement.IsLocalGridUser(userID))
+                {
+                    message = "No foreign users allowed in this region";
+                    return false;
+                }
             }
 
-            return authorized;
+            if ((m_accessValue & AccessFlags.DisallowResidents) != 0)
+            {
+                if (!(m_Scene.Permissions.IsGod(userID) || m_Scene.Permissions.IsAdministrator(userID)))
+                {
+                    message = "Only Admins and Managers allowed in this region";
+                    return false;
+                }
+            }
+
+            message = "Authorized";
+            return true;
         }
 
     }

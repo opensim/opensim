@@ -766,7 +766,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.ControllingClient.SendTeleportFailed(reason);
 
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: {0} was stopped from teleporting from {1} to {2} because {3}",
+                    "[ENTITY TRANSFER MODULE]: {0} was stopped from teleporting from {1} to {2} because: {3}",
                     sp.Name, sp.Scene.Name, finalDestination.RegionName, reason);
 
                 return;
