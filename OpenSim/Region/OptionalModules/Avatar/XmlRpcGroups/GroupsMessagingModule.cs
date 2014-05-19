@@ -274,6 +274,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public void SendMessageToGroup(
             GridInstantMessage im, UUID groupID, UUID sendingAgentForGroupCalls, Func<GroupMembersData, bool> sendCondition)
         {
+            int requestStartTick = Environment.TickCount;
+
             List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(sendingAgentForGroupCalls, groupID);
             int groupMembersCount = groupMembers.Count;
             HashSet<string> attemptDeliveryUuidSet = null;
@@ -313,9 +315,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_log.DebugFormat(
                         "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members",
                         groupID, groupMembers.Count);
-            }
-
-            int requestStartTick = Environment.TickCount;
+            }           
 
             foreach (GroupMembersData member in groupMembers)
             {

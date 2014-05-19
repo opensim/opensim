@@ -283,6 +283,8 @@ namespace OpenSim.Groups
         public void SendMessageToGroup(
             GridInstantMessage im, UUID groupID, UUID sendingAgentForGroupCalls, Func<GroupMembersData, bool> sendCondition)
         {
+            int requestStartTick = Environment.TickCount;
+
             UUID fromAgentID = new UUID(im.fromAgentID);
 
             // Unlike current XmlRpcGroups, Groups V2 can accept UUID.Zero when a perms check for the requesting agent
@@ -314,8 +316,6 @@ namespace OpenSim.Groups
 //                    m_log.DebugFormat(
 //                        "[Groups.Messaging]: SendMessageToGroup called for group {0} with {1} visible members, {2} online",
 //                        groupID, groupMembersCount, groupMembers.Count());
-
-            int requestStartTick = Environment.TickCount;
 
             im.imSessionID = groupID.Guid;
             im.fromGroup = true;
