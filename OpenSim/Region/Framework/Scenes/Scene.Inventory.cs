@@ -891,7 +891,7 @@ namespace OpenSim.Region.Framework.Scenes
                     remoteClient, item.CreatorId, item.CreatorData, newFolderID,
                     newName, item.Description, item.Flags, callbackID, item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
                     item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions,
-                    item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
+                    item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
             }
             else
             {  
@@ -904,7 +904,7 @@ namespace OpenSim.Region.Framework.Scenes
                         remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Description, item.Flags, callbackID,
                         item.AssetID, (sbyte)item.AssetType, (sbyte) item.InvType,
                         item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
-                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
+                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
                 }
             }
         }
@@ -960,7 +960,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             CreateNewInventoryItem(
                 remoteClient, creatorID, creatorData, folderID, name, description, flags, callbackID, assetID, assetType, invType,
-                (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, 0, nextOwnerMask, 0, creationDate);
+                (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, 0, nextOwnerMask, 0, 
+                creationDate, true);
         }
 
         /// <summary>
@@ -985,7 +986,8 @@ namespace OpenSim.Region.Framework.Scenes
         private void CreateNewInventoryItem(
             IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID,
             string name, string description, uint flags, uint callbackID, UUID assetID, sbyte assetType, sbyte invType,
-            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate,
+            bool assetUpload)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = remoteClient.AgentId;
@@ -1006,7 +1008,7 @@ namespace OpenSim.Region.Framework.Scenes
             item.BasePermissions = baseMask;
             item.CreationDate = creationDate;
 
-            if (AddInventoryItem(item))
+            if (AddInventoryItem(item, assetUpload))
             {
                 remoteClient.SendInventoryItemCreateUpdate(item, callbackID);
             }
@@ -1073,7 +1075,8 @@ namespace OpenSim.Region.Framework.Scenes
                     remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
                     name, description, 0, callbackID, olditemID, type, invType,
                     (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All,
-                    (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, Util.UnixTimeSinceEpoch());
+                    (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, Util.UnixTimeSinceEpoch(),
+                    false);
             }
             else
             {
