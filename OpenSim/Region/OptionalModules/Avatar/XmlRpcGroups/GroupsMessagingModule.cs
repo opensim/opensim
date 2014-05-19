@@ -315,7 +315,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 // Copy Message
                 GridInstantMessage msg = new GridInstantMessage();
-                msg.imSessionID = groupID.Guid;
+                msg.imSessionID = im.imSessionID;
                 msg.fromAgentName = im.fromAgentName;
                 msg.message = im.message;
                 msg.dialog = im.dialog;
@@ -420,7 +420,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void ProcessMessageFromGroupSession(GridInstantMessage msg, IClientAPI client)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Session message from {0} going to agent {1}", msg.fromAgentName, msg.toAgentID);
+            if (m_debugEnabled) 
+                m_log.DebugFormat(
+                    "[GROUPS-MESSAGING]: Session message from {0} going to agent {1}, sessionID {2}, type {3}",
+                    msg.fromAgentName, msg.toAgentID, msg.imSessionID, (InstantMessageDialog)msg.dialog);
 
             UUID AgentID = new UUID(msg.fromAgentID);
             UUID GroupID = new UUID(msg.imSessionID);

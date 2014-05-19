@@ -357,7 +357,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void OnInstantMessage(IClientAPI remoteClient, GridInstantMessage im)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) 
+                m_log.DebugFormat(
+                    "[GROUPS]: {0} called for {1}, message type {2}", 
+                    System.Reflection.MethodBase.GetCurrentMethod().Name, remoteClient.Name, (InstantMessageDialog)im.dialog);
 
             // Group invitations
             if ((im.dialog == (byte)InstantMessageDialog.GroupInvitationAccept) || (im.dialog == (byte)InstantMessageDialog.GroupInvitationDecline))
@@ -551,6 +554,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 UUID noticeID = new UUID(im.imSessionID);
 
+                if (m_debugEnabled) 
+                    m_log.DebugFormat("[GROUPS]: Requesting notice {0} for {1}", noticeID, remoteClient.AgentId);
+
                 GroupNoticeInfo notice = m_groupData.GetGroupNotice(GetRequestingAgentID(remoteClient), noticeID);
                 if (notice != null)
                 {
@@ -571,6 +577,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     }
 
                     remoteClient.SendInventoryItemCreateUpdate(itemCopy, 0);
+                }
+                else
+                {
+                    if (m_debugEnabled) 
+                        m_log.DebugFormat(
+                            "[GROUPS]: Could not find notice {0} for {1} on GroupNoticeInventoryAccepted.", 
+                            noticeID, remoteClient.AgentId);                   
                 }
             }
 

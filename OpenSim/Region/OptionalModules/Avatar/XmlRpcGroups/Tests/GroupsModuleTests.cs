@@ -132,6 +132,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
             MessageTransferModule mtm = new MessageTransferModule();
             GroupsModule gm = new GroupsModule();
             GroupsMessagingModule gmm = new GroupsMessagingModule();
+            MockGroupsServicesConnector mgsc = new MockGroupsServicesConnector();
 
             IConfigSource configSource = new IniConfigSource();
 
@@ -149,7 +150,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
                 config.Set("MessagingEnabled", true);
             }
 
-            SceneHelpers.SetupSceneModules(scene, configSource, new MockGroupsServicesConnector(), mtm, gm, gmm);
+            SceneHelpers.SetupSceneModules(scene, configSource, mgsc, mtm, gm, gmm);
 
             UUID userId = TestHelpers.ParseTail(0x1);
             string subjectText = "newman";
@@ -184,6 +185,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
 
             Assert.That(spReceivedMessages.Count, Is.EqualTo(1));
             Assert.That(spReceivedMessages[0].message, Is.EqualTo(combinedSubjectMessage));
+
+            List<GroupNoticeData> notices = mgsc.GetGroupNotices(UUID.Zero, groupID);
+            Assert.AreEqual(1, notices.Count);
+
+            // OpenSimulator (possibly also SL) transport the notice ID as the session ID!
+            Assert.AreEqual(notices[0].NoticeID.Guid, spReceivedMessages[0].imSessionID);
 
             Assert.That(sp2ReceivedMessages.Count, Is.EqualTo(0));
         }
