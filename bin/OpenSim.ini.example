@@ -1033,8 +1033,11 @@
     ; Applies Flotsam Group only. V2 has this always on, no other option
     ; MessageOnlineUsersOnly = false
 
-    ;; This makes the Groups modules very chatty on the console.
+    ;; This makes the Group module very chatty on the console.
     ; DebugEnabled = false
+
+    ; This makes the Group Messaging module very chatty on the console.
+    ; DebugMessagingEnabled = false
 
     ;; XmlRpc Security settings.  These must match those set on your backend
     ;; groups service if the service is using these keys
