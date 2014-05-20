@@ -208,7 +208,6 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_lastColCount = -1;		//KF: Look for Collision chnages
 //        private int m_updateCount = 0;			//KF: Update Anims for a while
 //        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
-        private List<uint> m_lastColliders = new List<uint>();
 
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
@@ -270,8 +269,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool CameraConstraintActive;
         //private int m_moveToPositionStateStatus;
         //*****************************************************
-
-        private object m_collisionEventLock = new Object();
 
         private int m_movementAnimationUpdateCounter = 0;
 
