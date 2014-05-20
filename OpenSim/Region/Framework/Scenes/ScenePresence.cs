@@ -3777,10 +3777,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsChildAgent)
                 return;
 
-            //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: ChildAgentPositionUpdate for {0} in {1}, tRegion {2},{3}, rRegion {4},{5}, pos {6}",
+//                Name, Scene.Name, tRegionX, tRegionY, rRegionX, rRegionY, cAgentData.Position);
+
             // Find  the distance (in meters) between the two regions
-            uint shiftx = Util.RegionToWorldLoc(rRegionX - tRegionX);
-            uint shifty = Util.RegionToWorldLoc(rRegionY - tRegionY);
+            // XXX: We cannot use Util.RegionLocToHandle() here because a negative value will silently overflow the
+            // uint
+            int shiftx = (int)(((int)rRegionX - (int)tRegionX) * Constants.RegionSize);
+            int shifty = (int)(((int)rRegionY - (int)tRegionY) * Constants.RegionSize);
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
