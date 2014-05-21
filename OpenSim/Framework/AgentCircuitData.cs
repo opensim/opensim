@@ -321,6 +321,8 @@ namespace OpenSim.Framework
                 Mac = args["mac"].AsString();
             if (args["id0"] != null)
                 Id0 = args["id0"].AsString();
+            if (args["teleport_flags"] != null)
+                teleportFlags = args["teleport_flags"].AsUInteger();
 
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
