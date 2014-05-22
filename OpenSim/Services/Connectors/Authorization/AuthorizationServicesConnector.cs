@@ -105,7 +105,7 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat("[AUTHORIZATION CONNECTOR]: Unable to send authorize {0} for region {1} error thrown during comms with remote server. Reason: {2}", userID, regionID, e.Message);
-                message = "";
+                message = e.Message;
                 return m_ResponseOnFailure;
             }
             if (response == null)

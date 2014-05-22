@@ -324,7 +324,29 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<GroupNoticeData> GetGroupNotices(UUID requestingAgentID, UUID groupID)
         {
-            return null;
+            XGroup group = GetXGroup(groupID, null);
+
+            if (group == null)
+                return null;
+
+            List<GroupNoticeData> notices = new List<GroupNoticeData>();
+
+            foreach (XGroupNotice notice in group.notices.Values)
+            {
+                GroupNoticeData gnd = new GroupNoticeData()
+                {
+                    NoticeID = notice.noticeID,
+                    Timestamp = notice.timestamp,
+                    FromName = notice.fromName,
+                    Subject = notice.subject,
+                    HasAttachment = notice.hasAttachment,
+                    AssetType = (byte)notice.assetType
+                };
+
+                notices.Add(gnd);
+            }
+
+            return notices;
         }
         
         public GroupNoticeInfo GetGroupNotice(UUID requestingAgentID, UUID noticeID)

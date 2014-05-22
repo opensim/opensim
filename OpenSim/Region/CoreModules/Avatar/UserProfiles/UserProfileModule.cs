@@ -484,6 +484,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error updating classified", false);
+                return;
             }
         }
 
@@ -510,6 +511,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error classified delete", false);
+                return;
             }
 
             parameters = (OSDMap)Params;
@@ -612,6 +614,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error selecting pick", false);
+                return;
             }
             pick = (UserProfilePick) Pick;
              
@@ -714,6 +717,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error updating pick", false);
+                return;
             }
 
             m_log.DebugFormat("[PROFILES]: Finish PickInfoUpdate {0} {1}", pick.Name, pick.PickId.ToString());
@@ -740,6 +744,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error picks delete", false);
+                return;
             }
         }
         #endregion Picks
@@ -807,6 +812,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             object Note = note;
             if(!rpc.JsonRpcRequest(ref Note, "avatar_notes_update", serverURI, UUID.Random().ToString()))
             {
+                remoteClient.SendAgentAlertMessage(
+                        "Error updating note", false);
                 return;
             }
         }
@@ -916,6 +923,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error updating interests", false);
+                return;
             }
         }
 
@@ -1044,6 +1052,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 {
                     remoteClient.SendAgentAlertMessage(
                             "Error updating properties", false);
+                    return;
                 }
 
                 RequestAvatarProperties(remoteClient, newProfile.ID);

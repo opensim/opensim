@@ -143,28 +143,32 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
 
 
-            //m_log.DebugFormat("MAP NAME=({0})", mapName);
-
-            // Hack to get around the fact that ll V3 now drops the port from the
-            // map name. See https://jira.secondlife.com/browse/VWR-28570
-            //
-            // Caller, use this magic form instead:
-            // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
-            // or url encode if possible.
-            // the hacks we do with this viewer...
-            //
-            string mapNameOrig = mapName;
-            if (mapName.Contains("|"))
-                mapName = mapName.Replace('|', ':');
-            if (mapName.Contains("+"))
-                mapName = mapName.Replace('+', ' ');
-            if (mapName.Contains("!"))
-                mapName = mapName.Replace('!', '/');
-            
-            // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-
+            
+            string mapNameOrig = mapName;
+            if (regionInfos.Count == 0)
+            {
+                // Hack to get around the fact that ll V3 now drops the port from the
+                // map name. See https://jira.secondlife.com/browse/VWR-28570
+                //
+                // Caller, use this magic form instead:
+                // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
+                // or url encode if possible.
+                // the hacks we do with this viewer...
+                //
+                if (mapName.Contains("|"))
+                    mapName = mapName.Replace('|', ':');
+                if (mapName.Contains("+"))
+                    mapName = mapName.Replace('+', ' ');
+                if (mapName.Contains("!"))
+                    mapName = mapName.Replace('!', '/');
+                
+                if (mapName != mapNameOrig)
+                    regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
+            }
+            
             m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions. Flags={2}", mapName, regionInfos.Count, flags);
+            
             if (regionInfos.Count > 0)
             {
                 foreach (GridRegion info in regionInfos)
@@ -178,7 +182,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         data.MapImageId = info.TerrainImage;
                     // ugh! V2-3 is very sensitive about the result being
                     // exactly the same as the requested name
-                    if (regionInfos.Count == 1 && mapNameOrig.Contains("|") || mapNameOrig.Contains("+"))
+                    if (regionInfos.Count == 1 && (mapName != mapNameOrig))
                         data.Name = mapNameOrig;
                     else
                         data.Name = info.RegionName;

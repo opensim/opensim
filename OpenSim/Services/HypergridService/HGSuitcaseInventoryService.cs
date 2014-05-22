@@ -249,7 +249,7 @@ namespace OpenSim.Services.HypergridService
 
             if (!IsWithinSuitcaseTree(principalID, folderID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetFolderContent: folder {0} is not within Suitcase tree", folderID);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetFolderContent: folder {0} (user {1}) is not within Suitcase tree", folderID, principalID);
                 return new InventoryCollection();
             }
 
@@ -269,7 +269,7 @@ namespace OpenSim.Services.HypergridService
             // make sure the given folder exists under the suitcase tree of this user
             if (!IsWithinSuitcaseTree(principalID, folderID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetFolderItems: folder {0} is not within Suitcase tree", folderID);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetFolderItems: folder {0} (user {1}) is not within Suitcase tree", folderID, principalID);
                 return new List<InventoryItemBase>();
             }
 
@@ -284,7 +284,7 @@ namespace OpenSim.Services.HypergridService
 
             if (!IsWithinSuitcaseTree(folder.Owner, folder.ParentID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: AddFolder: folder {0} is not within Suitcase tree", folder.ParentID);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: AddFolder: folder {0} (user {1}) is not within Suitcase tree", folder.ParentID, folder.Owner);
                 return false;
             }
 
@@ -306,7 +306,7 @@ namespace OpenSim.Services.HypergridService
             //m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Update folder {0}, version {1}", folder.ID, folder.Version);
             if (!IsWithinSuitcaseTree(folder.Owner, folder.ID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: UpdateFolder: folder {0}/{1} is not within Suitcase tree", folder.Name, folder.ID);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: UpdateFolder: folder {0}/{1} (user {2}) is not within Suitcase tree", folder.Name, folder.ID, folder.Owner);
                 return false;
             }
 
@@ -318,13 +318,13 @@ namespace OpenSim.Services.HypergridService
         {
             if (!IsWithinSuitcaseTree(folder.Owner, folder.ID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveFolder: folder {0} is not within Suitcase tree", folder.ID);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveFolder: folder {0} (user {1}) is not within Suitcase tree", folder.ID, folder.Owner);
                 return false;
             }
             
             if (!IsWithinSuitcaseTree(folder.Owner, folder.ParentID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveFolder: folder {0} is not within Suitcase tree", folder.ParentID);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveFolder: folder {0} (user {1}) is not within Suitcase tree", folder.ParentID, folder.Owner);
                 return false;
             }
 
@@ -349,7 +349,7 @@ namespace OpenSim.Services.HypergridService
             // make sure the given folder's parent folder exists under the suitcase tree of this user
             if (!IsWithinSuitcaseTree(item.Owner, item.Folder))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: AddItem: folder {0} is not within Suitcase tree", item.Folder);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: AddItem: folder {0} (user {1}) is not within Suitcase tree", item.Folder, item.Owner);
                 return false;
             }
 
@@ -362,7 +362,7 @@ namespace OpenSim.Services.HypergridService
         {
             if (!IsWithinSuitcaseTree(item.Owner, item.Folder))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: UpdateItem: folder {0} is not within Suitcase tree", item.Folder);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: UpdateItem: folder {0} (user {1}) is not within Suitcase tree", item.Folder, item.Owner);
                 return false;
             }
 
@@ -378,7 +378,7 @@ namespace OpenSim.Services.HypergridService
             {
                 if (!IsWithinSuitcaseTree(item.Owner, item.Folder))
                 {
-                    m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveItems: folder {0} is not within Suitcase tree", item.Folder);
+                    m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveItems: folder {0} (user {1}) is not within Suitcase tree", item.Folder, item.Owner);
                     return false;
                 }
             }
@@ -389,7 +389,7 @@ namespace OpenSim.Services.HypergridService
                 InventoryItemBase originalItem = base.GetItem(item);
                 if (!IsWithinSuitcaseTree(originalItem.Owner, originalItem.Folder))
                 {
-                    m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveItems: folder {0} is not within Suitcase tree", originalItem.Folder);
+                    m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveItems: folder {0} (user {1}) is not within Suitcase tree", item.Folder, item.Owner);
                     return false;
                 }
             }
@@ -414,8 +414,8 @@ namespace OpenSim.Services.HypergridService
 
             if (!IsWithinSuitcaseTree(it.Owner, it.Folder) && !IsPartOfAppearance(it.Owner, it.ID))
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Item {0}/{1} (folder {2}) is not within Suitcase tree or Appearance",
-                    it.Name, it.ID, it.Folder);
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetItem: item {0}/{1} (folder {2}) (user {3}) is not within Suitcase tree or Appearance",
+                    it.Name, it.ID, it.Folder, it.Owner);
                 return null;
             }
 
@@ -437,8 +437,8 @@ namespace OpenSim.Services.HypergridService
             {
                 if (!IsWithinSuitcaseTree(f.Owner, f.ID))
                 {
-                    m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Folder {0}/{1} is not within Suitcase tree",
-                        f.Name, f.ID);
+                    m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetFolder: folder {0}/{1} (user {2}) is not within Suitcase tree",
+                        f.Name, f.ID, f.Owner);
                     return null;
                 }
             }

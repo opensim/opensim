@@ -208,7 +208,6 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_lastColCount = -1;		//KF: Look for Collision chnages
 //        private int m_updateCount = 0;			//KF: Update Anims for a while
 //        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
-        private List<uint> m_lastColliders = new List<uint>();
 
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
@@ -270,8 +269,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool CameraConstraintActive;
         //private int m_moveToPositionStateStatus;
         //*****************************************************
-
-        private object m_collisionEventLock = new Object();
 
         private int m_movementAnimationUpdateCounter = 0;
 
@@ -3777,10 +3774,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsChildAgent)
                 return;
 
-            //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: ChildAgentPositionUpdate for {0} in {1}, tRegion {2},{3}, rRegion {4},{5}, pos {6}",
+//                Name, Scene.Name, tRegionX, tRegionY, rRegionX, rRegionY, cAgentData.Position);
+
             // Find  the distance (in meters) between the two regions
-            uint shiftx = Util.RegionToWorldLoc(rRegionX - tRegionX);
-            uint shifty = Util.RegionToWorldLoc(rRegionY - tRegionY);
+            // XXX: We cannot use Util.RegionLocToHandle() here because a negative value will silently overflow the
+            // uint
+            int shiftx = (int)(((int)rRegionX - (int)tRegionX) * Constants.RegionSize);
+            int shifty = (int)(((int)rRegionY - (int)tRegionY) * Constants.RegionSize);
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
