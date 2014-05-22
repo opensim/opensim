@@ -119,39 +119,60 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             // TODO: May need to create special complete no-op test physics module rather than basic physics, since
             // physics is irrelevant to this test.
             sp1.Flying = true;
+
+            // When sp1 logs in to sceneEast, it sets up a child agent in sceneWest and informs the sp2 client to 
+            // make the connection.  For this test, will simplify this chain by making the connection directly.
+            ScenePresence sp1Child = SceneHelpers.AddChildScenePresence(sceneWest, sp1Uuid);
+            TestClient sp1ChildClient = (TestClient)sp1Child.ControllingClient;
+
             sp1.AbsolutePosition = sp1Position;                
 
             ScenePresence sp2 = SceneHelpers.AddScenePresence(sceneWest, sp2Uuid);
             TestClient sp2Client = (TestClient)sp2.ControllingClient;
-
-            // When sp2 logs in to sceneWest, it sets up a child agent in sceneEast and informs the sp2 client to 
-            // make the connection.  For this test, will simplify this chain by making the connection separately here.
-            ScenePresence sp2Child = SceneHelpers.AddChildScenePresence(sceneEast, sp2Uuid);
-
             sp2.Flying = true;
-            sp2.AbsolutePosition = sp2Position;
 
+            ScenePresence sp2Child = SceneHelpers.AddChildScenePresence(sceneEast, sp2Uuid);
             TestClient sp2ChildClient = (TestClient)sp2Child.ControllingClient;
 
-            // We must update the scene in order to make the new root agent sp2 in sceneWest trigger a position update to its
-            // child in sceneEast.
-            sceneWest.Update(1);
+            sp2.AbsolutePosition = sp2Position;           
 
-            // Check child position is correct.
+            // We must update the scenes in order to make the root new root agents trigger position updates in their
+            // children.
+            sceneWest.Update(1);
+            sceneEast.Update(1);
+
+            // Check child positions are correct.
+            Assert.AreEqual(
+                new Vector3(sp1Position.X + sceneEast.RegionInfo.RegionSizeX, sp1Position.Y, sp1Position.Z), 
+                sp1ChildClient.SceneAgent.AbsolutePosition);
+
             Assert.AreEqual(
                 new Vector3(sp2Position.X - sceneWest.RegionInfo.RegionSizeX, sp2Position.Y, sp2Position.Z), 
                 sp2ChildClient.SceneAgent.AbsolutePosition);
 
-            // Check chat received
-            string receivedChatMessage = "";
+            // Check chat from sp1
+            {
+                string receivedChatMessage = "";
 
-            sp2ChildClient.OnReceivedChatMessage 
-                += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedChatMessage = message;
+                sp2ChildClient.OnReceivedChatMessage 
+                    += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedChatMessage = message;
 
-            string testMessage = "'ello darling";
-            sp1Client.Chat(0, ChatTypeEnum.Say, testMessage);
-                      
-            Assert.AreEqual(testMessage, receivedChatMessage);
+                string testMessage = "'ello darling";
+                sp1Client.Chat(0, ChatTypeEnum.Say, testMessage);
+            }
+
+            // Check chat from sp2
+            {
+                string receivedChatMessage = "";
+
+                sp1ChildClient.OnReceivedChatMessage 
+                    += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedChatMessage = message;
+
+                string testMessage = "fantastic cats";
+                sp2Client.Chat(0, ChatTypeEnum.Say, testMessage);
+                          
+                Assert.AreEqual(testMessage, receivedChatMessage);
+            }
         }
     }
 }
