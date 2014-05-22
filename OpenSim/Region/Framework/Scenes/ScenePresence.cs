@@ -2754,7 +2754,14 @@ namespace OpenSim.Region.Framework.Scenes
                 part.AddSittingAvatar(this);
 
                 cameraAtOffset = part.GetCameraAtOffset();
+
+                if (cameraAtOffset == Vector3.Zero)
+                    cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
+
                 cameraEyeOffset = part.GetCameraEyeOffset();
+
+                if (cameraEyeOffset == Vector3.Zero)
+                    cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
 
                 if (cameraEyeOffset != Vector3.Zero || cameraAtOffset != Vector3.Zero)
                     cameraEyeOffset += part.OffsetPosition;
