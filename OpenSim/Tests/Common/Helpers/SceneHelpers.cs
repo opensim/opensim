@@ -574,7 +574,11 @@ namespace OpenSim.Tests.Common
 
         public static ScenePresence AddChildScenePresence(Scene scene, UUID agentId)
         {
-            AgentCircuitData acd = GenerateAgentData(agentId);
+            return AddChildScenePresence(scene, GenerateAgentData(agentId));
+        }
+
+        public static ScenePresence AddChildScenePresence(Scene scene, AgentCircuitData acd)
+        {
             acd.child = true;
 
             // XXX: ViaLogin may not be correct for child agents

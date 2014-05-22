@@ -121,18 +121,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             sp1.Flying = true;
             sp1.AbsolutePosition = sp1Position;                
 
-            AgentCircuitData acd = SceneHelpers.GenerateAgentData(sp2Uuid);
-            TestClient tc = new TestClient(acd, sceneEast);
-            List<TestClient> destinationTestClients = new List<TestClient>();
-            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
-
-            ScenePresence sp2 = SceneHelpers.AddScenePresence(sceneWest, tc, acd);
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(sceneWest, sp2Uuid);
             TestClient sp2Client = (TestClient)sp2.ControllingClient;
+
+            // When sp2 logs in to sceneWest, it sets up a child agent in sceneEast and informs the sp2 client to 
+            // make the connection.  For this test, will simplify this chain by making the connection separately here.
+            ScenePresence sp2Child = SceneHelpers.AddChildScenePresence(sceneEast, sp2Uuid);
 
             sp2.Flying = true;
             sp2.AbsolutePosition = sp2Position;
 
-            TestClient sp2ChildClient = destinationTestClients[0];
+            TestClient sp2ChildClient = (TestClient)sp2Child.ControllingClient;
 
             // We must update the scene in order to make the new root agent sp2 in sceneWest trigger a position update to its
             // child in sceneEast.
