@@ -253,6 +253,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return newAssetID;
         }
 
+        /// 
+        /// UpdateInventoryItemAsset
+        ///
+        public override bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
+        {
+            if (base.UpdateInventoryItemAsset(ownerID, item, asset))
+            {
+                UploadInventoryItem(ownerID, (AssetType)asset.Type, asset.FullID, asset.Name, 0);
+                return true;
+            }
+
+            return false;
+        }
+
         ///
         /// Used in DeleteToInventory
         ///

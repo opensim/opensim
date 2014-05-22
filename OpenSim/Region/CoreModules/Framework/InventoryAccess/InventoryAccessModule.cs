@@ -292,7 +292,31 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             return UUID.Zero;
         }
-        
+
+        public virtual bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
+        {
+            if (item != null && item.Owner == ownerID && asset != null)
+            {
+                item.AssetID = asset.FullID;
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
+                item.InvType = (int)InventoryType.Object;
+
+                m_Scene.AssetService.Store(asset);
+                m_Scene.InventoryService.UpdateItem(item);
+
+                return true;
+            }
+            else
+            {
+                m_log.ErrorFormat("[INVENTORY ACCESS MODULE]: Given invalid item for inventory update: {0}",
+                    (item == null || asset == null? "null item or asset" : "wrong owner"));
+                return false;
+            }
+
+        }
+
         public virtual List<InventoryItemBase> CopyToInventory(
             DeRezAction action, UUID folderID,
             List<SceneObjectGroup> objectGroups, IClientAPI remoteClient, bool asAttachment)
