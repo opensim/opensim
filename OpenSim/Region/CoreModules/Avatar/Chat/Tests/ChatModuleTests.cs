@@ -150,28 +150,55 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
                 new Vector3(sp2Position.X - sceneWest.RegionInfo.RegionSizeX, sp2Position.Y, sp2Position.Z), 
                 sp2ChildClient.SceneAgent.AbsolutePosition);
 
+            string receivedSp1ChatMessage = "";
+            string receivedSp2ChatMessage = "";
+
+            sp1ChildClient.OnReceivedChatMessage 
+                += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedSp1ChatMessage = message;
+            sp2ChildClient.OnReceivedChatMessage 
+                += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedSp2ChatMessage = message;
+
             // Check chat from sp1
-            {
-                string receivedChatMessage = "";
-
-                sp2ChildClient.OnReceivedChatMessage 
-                    += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedChatMessage = message;
-
+            {               
                 string testMessage = "'ello darling";
                 sp1Client.Chat(0, ChatTypeEnum.Say, testMessage);
+
+//                Assert.AreEqual(testMessage, receivedSp1ChatMessage);
+                Assert.AreEqual(testMessage, receivedSp2ChatMessage);
             }
 
             // Check chat from sp2
-            {
-                string receivedChatMessage = "";
-
-                sp1ChildClient.OnReceivedChatMessage 
-                    += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedChatMessage = message;
-
+            {               
                 string testMessage = "fantastic cats";
                 sp2Client.Chat(0, ChatTypeEnum.Say, testMessage);
                           
-                Assert.AreEqual(testMessage, receivedChatMessage);
+                Assert.AreEqual(testMessage, receivedSp1ChatMessage);
+//                Assert.AreEqual(testMessage, receivedSp2ChatMessage);
+            }
+
+            sp1Position = new Vector3(30, 128, 20);
+            sp1.AbsolutePosition = sp1Position;
+            sceneEast.Update(1);
+
+            // Check child position is correct.
+            Assert.AreEqual(
+                new Vector3(sp1Position.X + sceneEast.RegionInfo.RegionSizeX, sp1Position.Y, sp1Position.Z), 
+                sp1ChildClient.SceneAgent.AbsolutePosition);
+
+            // sp2 should now be out of range for chat from sp1
+            {
+                string testMessage = "beef";
+                sp1Client.Chat(0, ChatTypeEnum.Say, testMessage);
+
+                Assert.AreNotEqual(testMessage, receivedSp2ChatMessage);
+            }
+
+            // sp1 should now be out of range for chat from sp2
+            {
+                string testMessage = "lentils";
+                sp2Client.Chat(0, ChatTypeEnum.Say, testMessage);
+
+                Assert.AreNotEqual(testMessage, receivedSp1ChatMessage);
             }
         }
     }
