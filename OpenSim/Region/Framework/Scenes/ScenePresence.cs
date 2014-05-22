@@ -2755,6 +2755,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 cameraAtOffset = part.GetCameraAtOffset();
                 cameraEyeOffset = part.GetCameraEyeOffset();
+
+                if (cameraEyeOffset != Vector3.Zero || cameraAtOffset != Vector3.Zero)
+                    cameraEyeOffset += part.OffsetPosition;
+
                 forceMouselook = part.GetForceMouselook();
 
                 // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
