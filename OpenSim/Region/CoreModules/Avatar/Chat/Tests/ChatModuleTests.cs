@@ -65,6 +65,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
+        private void SetupNeighbourRegions(TestScene sceneA, TestScene sceneB)
+        {            
+            // XXX: HTTP server is not (and should not be) necessary for this test, though it's absence makes the 
+            // CapabilitiesModule complain when it can't set up HTTP endpoints.
+            //            BaseHttpServer httpServer = new BaseHttpServer(99999);
+            //            MainServer.AddHttpServer(httpServer);
+            //            MainServer.Instance = httpServer;
+
+            // We need entity transfer modules so that when sp2 logs into the east region, the region calls 
+            // EntityTransferModuleto set up a child agent on the west region.
+            // XXX: However, this is not an entity transfer so is misleading.
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Chat");
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etmA.Name);
+            modulesConfig.Set("SimulationServices", lscm.Name);
+
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
+            SceneHelpers.SetupSceneModules(sceneA, config, new CapabilitiesModule(), etmA, new ChatModule());           
+            SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), etmB, new ChatModule());
+        }
+
         /// <summary>
         /// Tests chat between neighbour regions on the east-west axis
         /// </summary>
@@ -84,33 +110,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             Vector3 sp1Position = new Vector3(6, 128, 20);
             Vector3 sp2Position = new Vector3(250, 128, 20);
 
-            // XXX: HTTP server is not (and should not be) necessary for this test, though it's absence makes the 
-            // CapabilitiesModule complain when it can't set up HTTP endpoints.
-//            BaseHttpServer httpServer = new BaseHttpServer(99999);
-//            MainServer.AddHttpServer(httpServer);
-//            MainServer.Instance = httpServer;
-
-            // We need entity transfer modules so that when sp2 logs into the east region, the region calls 
-            // EntityTransferModuleto set up a child agent on the west region.
-            // XXX: However, this is not an entity transfer so is misleading.
-            EntityTransferModule etmA = new EntityTransferModule();
-            EntityTransferModule etmB = new EntityTransferModule();
-            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
-
-            IConfigSource config = new IniConfigSource();
-            config.AddConfig("Chat");
-            IConfig modulesConfig = config.AddConfig("Modules");
-            modulesConfig.Set("EntityTransferModule", etmA.Name);
-            modulesConfig.Set("SimulationServices", lscm.Name);
-
             SceneHelpers sh = new SceneHelpers();
-
             TestScene sceneWest = sh.SetupScene("sceneWest", TestHelpers.ParseTail(0x1), 1000, 1000);            
             TestScene sceneEast = sh.SetupScene("sceneEast", TestHelpers.ParseTail(0x2), 1001, 1000);            
-            SceneHelpers.SetupSceneModules(new Scene[] { sceneWest, sceneEast }, config, lscm);
 
-            SceneHelpers.SetupSceneModules(sceneWest, config, new CapabilitiesModule(), etmA, new ChatModule());           
-            SceneHelpers.SetupSceneModules(sceneEast, config, new CapabilitiesModule(), etmB, new ChatModule());
+            SetupNeighbourRegions(sceneWest, sceneEast);
 
             ScenePresence sp1 = SceneHelpers.AddScenePresence(sceneEast, sp1Uuid);
             TestClient sp1Client = (TestClient)sp1.ControllingClient;
@@ -158,23 +162,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             sp2ChildClient.OnReceivedChatMessage 
                 += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedSp2ChatMessage = message;
 
-            // Check chat from sp1
-            {               
-                string testMessage = "'ello darling";
-                sp1Client.Chat(0, ChatTypeEnum.Say, testMessage);
-
-//                Assert.AreEqual(testMessage, receivedSp1ChatMessage);
-                Assert.AreEqual(testMessage, receivedSp2ChatMessage);
-            }
-
-            // Check chat from sp2
-            {               
-                string testMessage = "fantastic cats";
-                sp2Client.Chat(0, ChatTypeEnum.Say, testMessage);
-                          
-                Assert.AreEqual(testMessage, receivedSp1ChatMessage);
-//                Assert.AreEqual(testMessage, receivedSp2ChatMessage);
-            }
+            TestUserInRange(sp1Client, "ello darling", ref receivedSp2ChatMessage);
+            TestUserInRange(sp2Client, "fantastic cats", ref receivedSp1ChatMessage);
 
             sp1Position = new Vector3(30, 128, 20);
             sp1.AbsolutePosition = sp1Position;
@@ -185,21 +174,113 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
                 new Vector3(sp1Position.X + sceneEast.RegionInfo.RegionSizeX, sp1Position.Y, sp1Position.Z), 
                 sp1ChildClient.SceneAgent.AbsolutePosition);
 
-            // sp2 should now be out of range for chat from sp1
-            {
-                string testMessage = "beef";
-                sp1Client.Chat(0, ChatTypeEnum.Say, testMessage);
+            TestUserOutOfRange(sp1Client, "beef", ref receivedSp2ChatMessage);
+            TestUserOutOfRange(sp2Client, "lentils", ref receivedSp1ChatMessage);
+        }
 
-                Assert.AreNotEqual(testMessage, receivedSp2ChatMessage);
-            }
+        /// <summary>
+        /// Tests chat between neighbour regions on the north-south axis
+        /// </summary>
+        /// <remarks>
+        /// Really, this is a combination of a child agent position update test and a chat range test.  These need
+        /// to be separated later on.
+        /// </remarks>
+        [Test]
+        public void TestInterRegionChatDistanceNorthSouth()
+        {
+            TestHelpers.InMethod();
+            //            TestHelpers.EnableLogging();
 
-            // sp1 should now be out of range for chat from sp2
-            {
-                string testMessage = "lentils";
-                sp2Client.Chat(0, ChatTypeEnum.Say, testMessage);
+            UUID sp1Uuid = TestHelpers.ParseTail(0x11);
+            UUID sp2Uuid = TestHelpers.ParseTail(0x12);
 
-                Assert.AreNotEqual(testMessage, receivedSp1ChatMessage);
-            }
+            Vector3 sp1Position = new Vector3(128, 250, 20);
+            Vector3 sp2Position = new Vector3(128, 6, 20);
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneNorth = sh.SetupScene("sceneNorth", TestHelpers.ParseTail(0x1), 1000, 1000);            
+            TestScene sceneSouth = sh.SetupScene("sceneSouth", TestHelpers.ParseTail(0x2), 1000, 1001);            
+
+            SetupNeighbourRegions(sceneNorth, sceneSouth);
+
+            ScenePresence sp1 = SceneHelpers.AddScenePresence(sceneNorth, sp1Uuid);
+            TestClient sp1Client = (TestClient)sp1.ControllingClient;
+
+            // If we don't set agents to flying, test will go wrong as they instantly fall to z = 0.
+            // TODO: May need to create special complete no-op test physics module rather than basic physics, since
+            // physics is irrelevant to this test.
+            sp1.Flying = true;
+
+            // When sp1 logs in to sceneEast, it sets up a child agent in sceneNorth and informs the sp2 client to 
+            // make the connection.  For this test, will simplify this chain by making the connection directly.
+            ScenePresence sp1Child = SceneHelpers.AddChildScenePresence(sceneSouth, sp1Uuid);
+            TestClient sp1ChildClient = (TestClient)sp1Child.ControllingClient;
+
+            sp1.AbsolutePosition = sp1Position;                
+
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(sceneSouth, sp2Uuid);
+            TestClient sp2Client = (TestClient)sp2.ControllingClient;
+            sp2.Flying = true;
+
+            ScenePresence sp2Child = SceneHelpers.AddChildScenePresence(sceneNorth, sp2Uuid);
+            TestClient sp2ChildClient = (TestClient)sp2Child.ControllingClient;
+
+            sp2.AbsolutePosition = sp2Position;           
+
+            // We must update the scenes in order to make the root new root agents trigger position updates in their
+            // children.
+            sceneNorth.Update(1);
+            sceneSouth.Update(1);
+
+            // Check child positions are correct.
+            Assert.AreEqual(
+                new Vector3(sp1Position.X, sp1Position.Y - sceneNorth.RegionInfo.RegionSizeY, sp1Position.Z), 
+                sp1ChildClient.SceneAgent.AbsolutePosition);
+
+            Assert.AreEqual(
+                new Vector3(sp2Position.X, sp2Position.Y + sceneSouth.RegionInfo.RegionSizeY, sp2Position.Z), 
+                sp2ChildClient.SceneAgent.AbsolutePosition);
+
+            string receivedSp1ChatMessage = "";
+            string receivedSp2ChatMessage = "";
+
+            sp1ChildClient.OnReceivedChatMessage 
+                += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedSp1ChatMessage = message;
+            sp2ChildClient.OnReceivedChatMessage 
+                += (message, type, fromPos, fromName, fromAgentID, ownerID, source, audible) => receivedSp2ChatMessage = message;
+
+            TestUserInRange(sp1Client, "ello darling", ref receivedSp2ChatMessage);
+            TestUserInRange(sp2Client, "fantastic cats", ref receivedSp1ChatMessage);
+
+            sp1Position = new Vector3(30, 128, 20);
+            sp1.AbsolutePosition = sp1Position;
+            sceneNorth.Update(1);
+
+            // Check child position is correct.
+            Assert.AreEqual(
+                new Vector3(sp1Position.X, sp1Position.Y - sceneNorth.RegionInfo.RegionSizeY, sp1Position.Z), 
+                sp1ChildClient.SceneAgent.AbsolutePosition);
+
+            TestUserOutOfRange(sp1Client, "beef", ref receivedSp2ChatMessage);
+            TestUserOutOfRange(sp2Client, "lentils", ref receivedSp1ChatMessage);
+        }
+    
+        private void TestUserInRange(TestClient speakClient, string testMessage, ref string receivedMessage)
+        {
+            receivedMessage = "";
+
+            speakClient.Chat(0, ChatTypeEnum.Say, testMessage);
+
+            Assert.AreEqual(testMessage, receivedMessage);
+        }
+
+        private void TestUserOutOfRange(TestClient speakClient, string testMessage, ref string receivedMessage)
+        {
+            receivedMessage = "";
+
+            speakClient.Chat(0, ChatTypeEnum.Say, testMessage);
+
+            Assert.AreNotEqual(testMessage, receivedMessage);
         }
     }
 }
