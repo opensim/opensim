@@ -122,10 +122,18 @@ namespace OpenSim.Services.InventoryService
             if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)AssetType.Bodypart) return true; return false; }))
                 CreateFolder(principalID, rootFolder.ID, (int)AssetType.Bodypart, "Body Parts");
             if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)AssetType.CallingCard) return true; return false; }))
-                CreateFolder(principalID, rootFolder.ID, (int)AssetType.CallingCard, "Calling Cards");
+            {
+                XInventoryFolder folder = CreateFolder(principalID, rootFolder.ID, (int)AssetType.CallingCard, "Calling Cards");
+                folder = CreateFolder(principalID, folder.folderID, (int)AssetType.CallingCard, "Friends");
+                CreateFolder(principalID, folder.folderID, (int)AssetType.CallingCard, "All");
+            }
             if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)AssetType.Clothing) return true; return false; }))
                 CreateFolder(principalID, rootFolder.ID, (int)AssetType.Clothing, "Clothing");
-            if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)AssetType.Gesture) return true; return false; }))
+            if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)AssetType.CurrentOutfitFolder) return true; return false; }))
+                CreateFolder(principalID, rootFolder.ID, (int)AssetType.CurrentOutfitFolder, "Current Outfit");
+            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.FavoriteFolder) return true; return false; }))
+                CreateFolder(principalID, rootFolder.ID, (int)AssetType.FavoriteFolder, "Favorites");
+            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.Gesture) return true; return false; }))
                 CreateFolder(principalID, rootFolder.ID, (int)AssetType.Gesture, "Gestures");
             if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)AssetType.Landmark) return true; return false; }))
                 CreateFolder(principalID, rootFolder.ID, (int)AssetType.Landmark, "Landmarks");

@@ -164,8 +164,6 @@ namespace OpenSim.Services.HypergridService
                     m_log.ErrorFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to create suitcase folder");
                     return null;
                 }
-                
-                m_Database.StoreFolder(suitcase);
 
                 CreateSystemFolders(principalID, suitcase.folderID);
             }
@@ -188,6 +186,10 @@ namespace OpenSim.Services.HypergridService
                 CreateFolder(principalID, rootID, (int)AssetType.CallingCard, "Calling Cards");
             if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.Clothing) return true; return false; }))
                 CreateFolder(principalID, rootID, (int)AssetType.Clothing, "Clothing");
+            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.CurrentOutfitFolder) return true; return false; }))
+                CreateFolder(principalID, rootID, (int)AssetType.CurrentOutfitFolder, "Current Outfit");
+            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.FavoriteFolder) return true; return false; }))
+                CreateFolder(principalID, rootID, (int)AssetType.FavoriteFolder, "Favorites");
             if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.Gesture) return true; return false; }))
                 CreateFolder(principalID, rootID, (int)AssetType.Gesture, "Gestures");
             if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.Landmark) return true; return false; }))
@@ -208,11 +210,6 @@ namespace OpenSim.Services.HypergridService
                 CreateFolder(principalID, rootID, (int)AssetType.Texture, "Textures");
             if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.TrashFolder) return true; return false; }))
                 CreateFolder(principalID, rootID, (int)AssetType.TrashFolder, "Trash");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.FavoriteFolder) return true; return false; }))
-                CreateFolder(principalID, rootID, (int)AssetType.FavoriteFolder, "Favorites");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)AssetType.CurrentOutfitFolder) return true; return false; }))
-                CreateFolder(principalID, rootID, (int)AssetType.CurrentOutfitFolder, "Current Outfit");
-
         }
 
         public override InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
