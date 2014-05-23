@@ -2768,7 +2768,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!part.IsRoot)
                     {
                         cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
-                        cameraAtOffset = part.OffsetPosition;
+                        cameraAtOffset += part.OffsetPosition;
                     }
 
                     cameraEyeOffset += part.OffsetPosition;
