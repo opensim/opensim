@@ -444,7 +444,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 //            return compileScript;
 //        }
 
-        private static string CreateCSCompilerScript(
+        public static string CreateCSCompilerScript(
             string compileScript, string className, string baseClassName, ParameterInfo[] constructorParameters)
         {
             compileScript = string.Format(    
@@ -472,7 +472,7 @@ namespace SecondLife
             return compileScript;
         }
 
-        private static string CreateVBCompilerScript(string compileScript, string className, string baseClassName)
+        public static string CreateVBCompilerScript(string compileScript, string className, string baseClassName)
         {
             compileScript = String.Empty +
                 "Imports OpenSim.Region.ScriptEngine.Shared: Imports System.Collections.Generic: " +
