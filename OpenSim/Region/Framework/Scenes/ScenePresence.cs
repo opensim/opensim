@@ -2754,7 +2754,34 @@ namespace OpenSim.Region.Framework.Scenes
                 part.AddSittingAvatar(this);
 
                 cameraAtOffset = part.GetCameraAtOffset();
+
+                if (!part.IsRoot && cameraAtOffset == Vector3.Zero)
+                    cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
+
+                bool cameraEyeOffsetFromRootForChild = false;
                 cameraEyeOffset = part.GetCameraEyeOffset();
+
+                if (!part.IsRoot && cameraEyeOffset == Vector3.Zero)
+                {                 
+                    cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
+                    cameraEyeOffsetFromRootForChild = true;
+                }
+
+                if ((cameraEyeOffset != Vector3.Zero && !cameraEyeOffsetFromRootForChild) || cameraAtOffset != Vector3.Zero)
+                {
+                    if (!part.IsRoot)
+                    {
+                        cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
+                        cameraAtOffset += part.OffsetPosition;
+                    }
+
+                    cameraEyeOffset += part.OffsetPosition;
+                }
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Using cameraAtOffset {0}, cameraEyeOffset {1} for sit on {2} by {3} in {4}", 
+//                    cameraAtOffset, cameraEyeOffset, part.Name, Name, Scene.Name);
+
                 forceMouselook = part.GetForceMouselook();
 
                 // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is

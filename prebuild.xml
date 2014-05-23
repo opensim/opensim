@@ -3082,6 +3082,7 @@
         <Match path="Asset/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/Attachments/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/AvatarFactory/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="Avatar/Chat/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/Friends/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/Inventory/Transfer/Tests" pattern="*.cs" recurse="true"/>

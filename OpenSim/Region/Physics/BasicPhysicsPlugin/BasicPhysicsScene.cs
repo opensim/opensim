@@ -147,6 +147,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     terrainHeight = _heightMap[(int)actor.Position.Y * (int)m_regionExtent.Y + (int)actor.Position.X];
 
                 float height = terrainHeight + actor.Size.Z;
+//                Console.WriteLine("height {0}, actorPosition {1}", height, actorPosition);
 
                 if (actor.Flying)
                 {

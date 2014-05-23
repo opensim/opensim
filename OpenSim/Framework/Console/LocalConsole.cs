@@ -46,6 +46,11 @@ namespace OpenSim.Framework.Console
         // private readonly object m_syncRoot = new object();
         private const string LOGLEVEL_NONE = "(none)";
 
+        // Used to extract categories for colourization.
+        private Regex m_categoryRegex 
+            = new Regex(
+                @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)", RegexOptions.Singleline | RegexOptions.Compiled);
+
         private int m_cursorYPosition = -1;
         private int m_cursorXPosition = 0;
         private StringBuilder m_commandLine = new StringBuilder();
@@ -280,11 +285,8 @@ namespace OpenSim.Framework.Console
             string outText = text;
 
             if (level != LOGLEVEL_NONE)
-            {
-                string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
-
-                Regex RE = new Regex(regex, RegexOptions.Multiline);
-                MatchCollection matches = RE.Matches(text);
+            {               
+                MatchCollection matches = m_categoryRegex.Matches(text);
 
                 if (matches.Count == 1)
                 {
