@@ -283,7 +283,7 @@ namespace OpenSim.Framework.Console
             {
                 string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
 
-                Regex RE = new Regex(regex, RegexOptions.Multiline);
+                Regex RE = new Regex(regex, RegexOptions.Singleline);
                 MatchCollection matches = RE.Matches(text);
 
                 if (matches.Count == 1)
