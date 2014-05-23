@@ -2755,15 +2755,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 cameraAtOffset = part.GetCameraAtOffset();
 
-                if (cameraAtOffset == Vector3.Zero)
+                if (!part.IsRoot && cameraAtOffset == Vector3.Zero)
                     cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
 
+                bool cameraEyeOffsetFromRootForChild = false;
                 cameraEyeOffset = part.GetCameraEyeOffset();
 
-                if (cameraEyeOffset == Vector3.Zero)
+                if (!part.IsRoot && cameraEyeOffset == Vector3.Zero)
+                {                 
                     cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
+                    cameraEyeOffsetFromRootForChild = true;
+                }
 
-                if (cameraEyeOffset != Vector3.Zero || cameraAtOffset != Vector3.Zero)
+                if ((cameraEyeOffset != Vector3.Zero && !cameraEyeOffsetFromRootForChild) || cameraAtOffset != Vector3.Zero)
                 {
                     if (!part.IsRoot)
                     {
