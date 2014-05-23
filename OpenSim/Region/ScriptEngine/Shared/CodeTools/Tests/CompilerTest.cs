@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         /// Test the C# compiler error message can be mapped to the correct
         /// line/column in the LSL source when an undeclared variable is used.
         /// </summary>
-        //[Test]
+        [Test]
         public void TestUseUndeclaredVariable()
         {
             TestHelpers.InMethod();
@@ -110,24 +110,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
 
-            output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);
-                        System.Console.WriteLine(output);           
+            output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);         
+//            System.Console.WriteLine(output);
 
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap = cg.PositionMap;
 
             m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
-
-            foreach (KeyValuePair<int, int> key in positionMap.Keys)
-            {
-                KeyValuePair<int, int> val = positionMap[key];
-
-                System.Console.WriteLine("{0},{1} => {2},{3}", key.Key, key.Value, val.Key, val.Value);
-            }
-
-            foreach (CompilerError compErr in m_compilerResults.Errors)
-            {
-                System.Console.WriteLine("Error: {0},{1} => {2}", compErr.Line, compErr.Column, compErr);
-            }
+//
+//            foreach (KeyValuePair<int, int> key in positionMap.Keys)
+//            {
+//                KeyValuePair<int, int> val = positionMap[key];
+//
+//                System.Console.WriteLine("{0},{1} => {2},{3}", key.Key, key.Value, val.Key, val.Value);
+//            }
+//
+//            foreach (CompilerError compErr in m_compilerResults.Errors)
+//            {
+//                System.Console.WriteLine("Error: {0},{1} => {2}", compErr.Line, compErr.Column, compErr);
+//            }
 
             Assert.AreEqual(
                 new KeyValuePair<int, int>(5, 21),

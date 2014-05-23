@@ -162,7 +162,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             m_braceCount++;
 
             // line number
-            m_CSharpLine += 3;
+            m_CSharpLine += 9;
 
             // here's the payload
             retstr += GenerateLine();
