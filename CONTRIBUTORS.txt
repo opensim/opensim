@@ -134,6 +134,7 @@ what it is today.
 * Micheil Merlin
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
+* mikemig
 * mikkopa/_someone - RealXtend
 * Misterblue
 * Mircea Kitsune
