@@ -381,7 +381,7 @@ namespace OpenSim.Region.DataSnapshot
                 cli.RequestMethod = "GET";
                 try
                 {
-                    reply = cli.Request();
+                    reply = cli.Request(null);
                 }
                 catch (WebException)
                 {

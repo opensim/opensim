@@ -38,18 +38,25 @@ using System.Xml.Serialization;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Asset
 {
     public class AssetServerGetHandler : BaseStreamHandler
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
 
         public AssetServerGetHandler(IAssetService service) :
                 base("GET", "/assets")
+        {
+            m_AssetService = service; 
+        }
+
+        public AssetServerGetHandler(IAssetService service, IServiceAuth auth) :
+            base("GET", "/assets", auth)
         {
             m_AssetService = service;
         }

@@ -38,6 +38,7 @@ using System.Xml.Serialization;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Asset
@@ -50,6 +51,12 @@ namespace OpenSim.Server.Handlers.Asset
 
         public AssetServerPostHandler(IAssetService service) :
                 base("POST", "/assets")
+        {
+            m_AssetService = service;
+        }
+
+        public AssetServerPostHandler(IAssetService service, IServiceAuth auth) :
+            base("POST", "/assets", auth)
         {
             m_AssetService = service;
         }

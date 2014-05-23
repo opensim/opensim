@@ -30,6 +30,7 @@ using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Server.Handlers.Base;
 
 namespace OpenSim.Server.Handlers.UserAccounts
@@ -55,7 +56,9 @@ namespace OpenSim.Server.Handlers.UserAccounts
             Object[] args = new Object[] { config };
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(service, args);
 
-            server.AddStreamHandler(new UserAccountServerPostHandler(m_UserAccountService, serverConfig));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+
+            server.AddStreamHandler(new UserAccountServerPostHandler(m_UserAccountService, serverConfig, auth));
         }
     }
 }

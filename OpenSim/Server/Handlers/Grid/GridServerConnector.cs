@@ -29,6 +29,7 @@ using System;
 using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 
@@ -55,7 +56,9 @@ namespace OpenSim.Server.Handlers.Grid
             Object[] args = new Object[] { config };
             m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
 
-            server.AddStreamHandler(new GridServerPostHandler(m_GridService));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+
+            server.AddStreamHandler(new GridServerPostHandler(m_GridService, auth));
         }
     }
 }

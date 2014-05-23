@@ -39,7 +39,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class AssetServicesConnector : IAssetService
+    public class AssetServicesConnector : BaseServiceConnector, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -71,6 +71,7 @@ namespace OpenSim.Services.Connectors
         }
 
         public AssetServicesConnector(IConfigSource source)
+            : base(source, "AssetService")
         {
             Initialise(source);
         }
@@ -126,7 +127,7 @@ namespace OpenSim.Services.Connectors
 //                    = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>(
 //                        "GET", uri, 0, m_maxAssetRequestConcurrency);
 
-                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0);
+                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
 
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -156,7 +157,7 @@ namespace OpenSim.Services.Connectors
 
             string uri = m_ServerURI + "/assets/" + id + "/metadata";
 
-            AssetMetadata asset = SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0);
+            AssetMetadata asset = SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0, m_Auth);
             return asset;
         }
 
@@ -177,7 +178,7 @@ namespace OpenSim.Services.Connectors
 
             rc.RequestMethod = "GET";
 
-            Stream s = rc.Request();
+            Stream s = rc.Request(m_Auth);
 
             if (s == null)
                 return null;
@@ -238,7 +239,7 @@ namespace OpenSim.Services.Connectors
                                 m_AssetHandlers.Remove(id);
                             }
                             handlers.Invoke(a);
-                        }, m_maxAssetRequestConcurrency);
+                        }, m_maxAssetRequestConcurrency, m_Auth);
                     
                     success = true;
                 }
@@ -268,7 +269,7 @@ namespace OpenSim.Services.Connectors
             bool[] exist = null;
             try
             {
-                exist = SynchronousRestObjectRequester.MakeRequest<string[], bool[]>("POST", uri, ids);
+                exist = SynchronousRestObjectRequester.MakeRequest<string[], bool[]>("POST", uri, ids, m_Auth);
             }
             catch (Exception)
             {
@@ -297,7 +298,7 @@ namespace OpenSim.Services.Connectors
             string newID;
             try
             {
-                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset);
+                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, m_Auth);
             }
             catch (Exception e)
             {
@@ -343,7 +344,7 @@ namespace OpenSim.Services.Connectors
 
             string uri = m_ServerURI + "/assets/" + id;
 
-            if (SynchronousRestObjectRequester.MakeRequest<AssetBase, bool>("POST", uri, asset))
+            if (SynchronousRestObjectRequester.MakeRequest<AssetBase, bool>("POST", uri, asset, m_Auth))
             {
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -357,7 +358,7 @@ namespace OpenSim.Services.Connectors
         {
             string uri = m_ServerURI + "/assets/" + id;
 
-            if (SynchronousRestObjectRequester.MakeRequest<int, bool>("DELETE", uri, 0))
+            if (SynchronousRestObjectRequester.MakeRequest<int, bool>("DELETE", uri, 0, m_Auth))
             {
                 if (m_Cache != null)
                     m_Cache.Expire(id);

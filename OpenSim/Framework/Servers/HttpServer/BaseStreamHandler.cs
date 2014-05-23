@@ -26,6 +26,8 @@
  */
 
 using System.IO;
+using System.Net;
+using OpenSim.Framework.ServiceAuth;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -37,15 +39,30 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// </remarks>
     public abstract class BaseStreamHandler : BaseRequestHandler, IStreamedRequestHandler
     {
-        protected BaseStreamHandler(string httpMethod, string path) : this(httpMethod, path, null, null) {}
+        protected IServiceAuth m_Auth;
+
+        protected BaseStreamHandler(string httpMethod, string path) : this(httpMethod, path, null, null) { }
 
         protected BaseStreamHandler(string httpMethod, string path, string name, string description)
             : base(httpMethod, path, name, description) {}
+
+        protected BaseStreamHandler(string httpMethod, string path, IServiceAuth auth)
+            : base(httpMethod, path, null, null) 
+        {
+            m_Auth = auth;
+        }
 
         public virtual byte[] Handle(
             string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             RequestsReceived++;
+            if (m_Auth != null && !m_Auth.Authenticate(httpRequest.Headers, httpResponse.AddHeader))
+            {
+                
+                httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
+                httpResponse.ContentType = "text/plain";
+                return new byte[0];
+            }
 
             byte[] result = ProcessRequest(path, request, httpRequest, httpResponse);
 

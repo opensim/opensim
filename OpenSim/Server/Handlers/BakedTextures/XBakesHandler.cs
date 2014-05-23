@@ -29,6 +29,7 @@ using System;
 using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 
@@ -59,8 +60,10 @@ namespace OpenSim.Server.Handlers.BakedTextures
             m_BakesService =
                     ServerUtils.LoadPlugin<IBakedTextureService>(assetService, args);
 
-            server.AddStreamHandler(new BakesServerGetHandler(m_BakesService));
-            server.AddStreamHandler(new BakesServerPostHandler(m_BakesService));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+            
+            server.AddStreamHandler(new BakesServerGetHandler(m_BakesService, auth));
+            server.AddStreamHandler(new BakesServerPostHandler(m_BakesService, auth));
         }
     }
 }

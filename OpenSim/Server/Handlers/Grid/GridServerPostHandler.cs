@@ -40,6 +40,7 @@ using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
 
@@ -55,8 +56,8 @@ namespace OpenSim.Server.Handlers.Grid
 
         private IGridService m_GridService;
 
-        public GridServerPostHandler(IGridService service) :
-                base("POST", "/grid")
+        public GridServerPostHandler(IGridService service, IServiceAuth auth) :
+                base("POST", "/grid", auth)
         {
             m_GridService = service;
         }

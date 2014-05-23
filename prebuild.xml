@@ -111,6 +111,7 @@
       <Files>
         <Match pattern="*.cs" recurse="false"/>
         <Match path="Client" pattern="*.cs" recurse="true"/>
+        <Match path="ServiceAuth" pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 

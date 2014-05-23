@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 
@@ -79,7 +80,8 @@ namespace OpenSim.Server.Handlers.MapImage
                 m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is OFF");
 
             bool proxy = serverConfig.GetBoolean("HasProxy", false);
-            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy, auth));
 
         }
     }
@@ -91,8 +93,8 @@ namespace OpenSim.Server.Handlers.MapImage
         private IGridService m_GridService;
         bool m_Proxy;
 
-        public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy) :
-            base("POST", "/map")
+        public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy, IServiceAuth auth) :
+            base("POST", "/map", auth)
         {
             m_MapService = service;
             m_GridService = grid;

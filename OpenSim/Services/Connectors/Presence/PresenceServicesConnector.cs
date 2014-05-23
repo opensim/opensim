@@ -33,6 +33,7 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
@@ -40,7 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class PresenceServicesConnector : IPresenceService
+    public class PresenceServicesConnector : BaseServiceConnector, IPresenceService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -80,6 +81,8 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Presence connector init error");
             }
             m_ServerURI = serviceURI;
+
+            base.Initialise(source, "PresenceService");
         }
 
 
@@ -104,7 +107,8 @@ namespace OpenSim.Services.Connectors
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString);
+                        reqString, 
+                        m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -149,7 +153,8 @@ namespace OpenSim.Services.Connectors
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString);
+                        reqString,
+                        m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -193,7 +198,8 @@ namespace OpenSim.Services.Connectors
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString);
+                        reqString,
+                        m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -238,7 +244,8 @@ namespace OpenSim.Services.Connectors
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString);
+                        reqString,
+                        m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -283,7 +290,8 @@ namespace OpenSim.Services.Connectors
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString);
+                        reqString,
+                        m_Auth);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
                     m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgent received null or empty reply");
@@ -327,7 +335,8 @@ namespace OpenSim.Services.Connectors
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString);
+                        reqString,
+                        m_Auth);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
                     m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgents received null or empty reply");

@@ -41,6 +41,7 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Services.UserAccountService;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.ServiceAuth;
 using OpenMetaverse;
 
 namespace OpenSim.Server.Handlers.UserAccounts
@@ -54,10 +55,10 @@ namespace OpenSim.Server.Handlers.UserAccounts
         private bool m_AllowSetAccount = false;
 
         public UserAccountServerPostHandler(IUserAccountService service)
-            : this(service, null) {}
+            : this(service, null, null) {}
 
-        public UserAccountServerPostHandler(IUserAccountService service, IConfig config) :
-                base("POST", "/accounts")
+        public UserAccountServerPostHandler(IUserAccountService service, IConfig config, IServiceAuth auth) :
+                base("POST", "/accounts", auth)
         {
             m_UserAccountService = service;
 
