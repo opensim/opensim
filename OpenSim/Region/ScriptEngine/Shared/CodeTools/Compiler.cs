@@ -729,7 +729,8 @@ namespace SecondLife
             public int Compare(KeyValuePair<int, int> a,
                     KeyValuePair<int, int> b)
             {
-                return a.Key.CompareTo(b.Key);
+                int kc = a.Key.CompareTo(b.Key);
+                return (kc != 0) ? kc : a.Value.CompareTo(b.Value);
             }
         }
 
@@ -751,27 +752,19 @@ namespace SecondLife
 
             sorted.Sort(new kvpSorter());
 
-            int l = 1;
-            int c = 1;
+            int l = sorted[0].Key;
+            int c = sorted[0].Value;
 
             foreach (KeyValuePair<int, int> cspos in sorted)
             {
-                if (cspos.Key >= line)
-                {
-                    if (cspos.Key > line)
-                        return new KeyValuePair<int, int>(l, c);
-                    if (cspos.Value > col)
-                        return new KeyValuePair<int, int>(l, c);
-                    c = cspos.Value;
-                    if (c == 0)
-                        c++;
-                }
-                else
-                {
-                    l = cspos.Key;
-                }
+                if (cspos.Key >= line &&
+                    !(cspos.Key == line && cspos.Value <= col))
+                  break;
+                l = cspos.Key;
+                c = cspos.Value;
             }
-            return new KeyValuePair<int, int>(l, c);
+            positionMap.TryGetValue(new KeyValuePair<int, int>(l, c), out ret);
+            return ret;
         }
 
         string ReplaceTypes(string message)
