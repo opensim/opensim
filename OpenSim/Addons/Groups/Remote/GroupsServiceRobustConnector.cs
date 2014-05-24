@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Server.Handlers.Base;
 using log4net;
 using OpenMetaverse;
@@ -69,7 +70,9 @@ namespace OpenSim.Groups
 
             m_GroupsService = new GroupsService(config);
 
-            server.AddStreamHandler(new GroupsServicePostHandler(m_GroupsService, key));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+
+            server.AddStreamHandler(new GroupsServicePostHandler(m_GroupsService, auth));
         }
     }
 
@@ -78,13 +81,11 @@ namespace OpenSim.Groups
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private GroupsService m_GroupsService;
-        private string m_SecretKey = String.Empty;
 
-        public GroupsServicePostHandler(GroupsService service, string key) :
-            base("POST", "/groups")
+        public GroupsServicePostHandler(GroupsService service, IServiceAuth auth) :
+            base("POST", "/groups", auth)
         {
             m_GroupsService = service;
-            m_SecretKey = key;
         }
 
         protected override byte[] ProcessRequest(string path, Stream requestData,
@@ -107,20 +108,6 @@ namespace OpenSim.Groups
 
                 string method = request["METHOD"].ToString();
                 request.Remove("METHOD");
-
-                if (!String.IsNullOrEmpty(m_SecretKey)) // Verification required
-                {
-                    // Sender didn't send key
-                    if (!request.ContainsKey("KEY") || (request["KEY"] == null))
-                        return FailureResult("This service requires a secret key");
-
-                    // Sender sent wrong key
-                    if (!m_SecretKey.Equals(request["KEY"]))
-                        return FailureResult("Provided key does not match existing one");
-
-                    // OK, key matches. Remove it.
-                    request.Remove("KEY");
-                }
 
                 m_log.DebugFormat("[Groups.Handler]: {0}", method);
                 switch (method)

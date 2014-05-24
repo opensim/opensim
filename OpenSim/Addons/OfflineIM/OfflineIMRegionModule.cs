@@ -66,7 +66,7 @@ namespace OpenSim.OfflineIM
             if (serviceLocation == string.Empty)
                 m_OfflineIMService = new OfflineIMService(config);
             else
-                m_OfflineIMService = new OfflineIMServiceRemoteConnector(serviceLocation);
+                m_OfflineIMService = new OfflineIMServiceRemoteConnector(config);
 
             m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", m_ForwardOfflineGroupMessages);
             m_log.DebugFormat("[OfflineIM.V2]: Offline messages enabled by {0}", Name);

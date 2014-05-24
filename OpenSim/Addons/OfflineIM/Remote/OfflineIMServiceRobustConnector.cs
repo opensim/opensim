@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Server.Handlers.Base;
 using log4net;
 using OpenMetaverse;
@@ -59,7 +60,9 @@ namespace OpenSim.OfflineIM
 
             m_OfflineIMService = new OfflineIMService(config);
 
-            server.AddStreamHandler(new OfflineIMServicePostHandler(m_OfflineIMService));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+
+            server.AddStreamHandler(new OfflineIMServicePostHandler(m_OfflineIMService, auth));
         }
     }
 
@@ -69,8 +72,8 @@ namespace OpenSim.OfflineIM
 
         private IOfflineIMService m_OfflineIMService;
 
-        public OfflineIMServicePostHandler(IOfflineIMService service) :
-            base("POST", "/offlineim")
+        public OfflineIMServicePostHandler(IOfflineIMService service, IServiceAuth auth) :
+            base("POST", "/offlineim", auth)
         {
             m_OfflineIMService = service;
         }
