@@ -3751,6 +3751,13 @@ namespace OpenSim.Region.Framework.Scenes
                             RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
                     }
 
+                    // Final permissions check; this time we don't allow changing the position
+                    if (!IsPositionAllowed(acd.AgentID, acd.startpos, ref reason))
+                    {
+                        m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                        return false;
+                    }
+
                     return true;
                 }
 
@@ -3760,8 +3767,30 @@ namespace OpenSim.Region.Framework.Scenes
                     if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
                     {
                         acd.startpos = land.LandData.UserLocation;
+
+                        // Final permissions check; this time we don't allow changing the position
+                        if (!IsPositionAllowed(acd.AgentID, acd.startpos, ref reason))
+                        {
+                            m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                            return false;
+                        }
                     }
                 }
+            }
+
+            return true;
+        }
+
+        private bool IsPositionAllowed(UUID agentID, Vector3 pos, ref string reason)
+        {
+            ILandObject land = LandChannel.GetLandObject(pos);
+            if (land == null)
+                return true;
+
+            if (land.IsBannedFromLand(agentID) || land.IsRestrictedFromLand(agentID))
+            {
+                reason = "You are banned from the region.";
+                return false;
             }
 
             return true;
@@ -5153,7 +5182,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3? nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
+                    m_log.Debug("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
                     return nearestPoint.Value;
                 }
 
@@ -5163,7 +5192,7 @@ namespace OpenSim.Region.Framework.Scenes
                 nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("They had a zero velocity, sending them to: " + nearestPoint.ToString());
+                    m_log.Debug("They had a zero velocity, sending them to: " + nearestPoint.ToString());
                     return nearestPoint.Value;
                 }
 
@@ -5172,7 +5201,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Ultimate backup if we have no idea where they are and
                     // the last allowed position was in another parcel
-                    Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
+                    m_log.Debug("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
                     return avatar.lastKnownAllowedPosition;
                 }
 
@@ -5182,7 +5211,7 @@ namespace OpenSim.Region.Framework.Scenes
             //Go to the edge, this happens in teleporting to a region with no available parcels
             Vector3 nearestRegionEdgePoint = GetNearestRegionEdgePosition(avatar);
 
-            //Debug.WriteLine("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
+            //m_log.Debug("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
 
             return nearestRegionEdgePoint;
         }
