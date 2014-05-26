@@ -121,7 +121,8 @@ namespace OpenSim.Framework.Serialization.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            LandData ld = LandDataSerializer.Deserialize(LandDataSerializer.Serialize(this.land, null));
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            LandData ld = LandDataSerializer.Deserialize(LandDataSerializer.Serialize(this.land, options));
             Assert.That(ld, Is.Not.Null, "Deserialize(string) returned null");
 //            Assert.That(ld.AABBMax, Is.EqualTo(land.AABBMax));
 //            Assert.That(ld.AABBMin, Is.EqualTo(land.AABBMin));
