@@ -70,6 +70,8 @@ namespace OpenSim.Server.Handlers.Asset
             bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
             bool allowDeleteAllTypes = serverConfig.GetBoolean("AllowRemoteDeleteAllTypes", false);
 
+            string redirectURL = serverConfig.GetString("RedirectURL", string.Empty);
+
             AllowedRemoteDeleteTypes allowedRemoteDeleteTypes;
 
             if (!allowDelete)
@@ -86,7 +88,7 @@ namespace OpenSim.Server.Handlers.Asset
 
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
 
-            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService, auth));
+            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService, auth, redirectURL));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService, auth));
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowedRemoteDeleteTypes, auth));
             server.AddStreamHandler(new AssetsExistHandler(m_AssetService));
