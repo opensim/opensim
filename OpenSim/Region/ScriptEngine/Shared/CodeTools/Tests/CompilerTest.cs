@@ -166,10 +166,11 @@ default
 
             m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
 
-//            foreach (CompilerError compErr in m_compilerResults.Errors)
-//            {
-//                System.Console.WriteLine("Error: {0}", compErr);
-//            }
+            System.Console.WriteLine("ERRORS: {0}", m_compilerResults.Errors.Count);
+            foreach (CompilerError compErr in m_compilerResults.Errors)
+            {
+                System.Console.WriteLine("Error: {0}", compErr);
+            }
 
             Assert.AreEqual(0, m_compilerResults.Errors.Count);
         }
