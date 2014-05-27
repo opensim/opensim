@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -67,7 +68,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             m_CSCodeProvider = new CSharpCodeProvider();
             m_compilerParameters = new CompilerParameters();
 
-            string rootPath = Path.Combine(Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory));
+            string rootPath = System.AppDomain.CurrentDomain.BaseDirectory;
+
+            System.AppDomain.CurrentDomain.AssemblyResolve +=
+                new ResolveEventHandler(
+                    AssemblyResolver.OnAssemblyResolve);
+
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenMetaverseTypes.dll"));
