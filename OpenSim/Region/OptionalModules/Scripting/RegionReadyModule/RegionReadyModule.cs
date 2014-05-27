@@ -105,8 +105,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_scene.LoginLock = true;
                 m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
 
-                // Warn level because the region cannot be used while logins are disabled
-                m_log.WarnFormat("[RegionReady]: Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
+                // This should always show up to the user but should not trigger warn/errors as these messages are
+                // expected and are not simulator problems.  Ideally, there would be a status level in log4net but 
+                // failing that, we will print out to console instead.
+                MainConsole.Instance.OutputFormat("Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
 
                 if (m_uri != string.Empty)
                 {
