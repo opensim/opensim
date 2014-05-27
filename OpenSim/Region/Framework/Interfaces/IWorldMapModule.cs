@@ -24,6 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System.Collections.Generic;
+using OpenSim.Framework;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -33,5 +36,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Generate a map tile for the scene. a terrain texture for this scene
         /// </summary>
         void GenerateMaptile();
+        List<MapBlockData> Map2BlockFromGridRegion(GridRegion r, uint flag);
+        MapBlockData MapBlockFromGridRegion(GridRegion r, uint flag);
     }
 }

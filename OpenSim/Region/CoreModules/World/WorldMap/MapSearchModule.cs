@@ -49,6 +49,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         List<Scene> m_scenes = new List<Scene>();
         List<UUID> m_Clients;
 
+        IWorldMapModule m_WorldMap;
+        IWorldMapModule WorldMap
+        {
+            get
+            {
+                if (m_WorldMap == null)
+                    m_WorldMap = m_scene.RequestModuleInterface<IWorldMapModule>();
+                return m_WorldMap;
+            }
+
+        }
+
         #region ISharedRegionModule Members
         public void Initialise(IConfigSource source)
         {
@@ -64,6 +76,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scenes.Add(scene);
             scene.EventManager.OnNewClient += OnNewClient;
             m_Clients = new List<UUID>();
+
         }
 
         public void RemoveRegion(Scene scene)
@@ -129,7 +142,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)
         {
             List<MapBlockData> blocks = new List<MapBlockData>();
-            MapBlockData data;
             if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
             {
                 // final block, closing the search result
@@ -173,24 +185,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 foreach (GridRegion info in regionInfos)
                 {
-                    data = new MapBlockData();
-                    data.Agents = 0;
-                    data.Access = info.Access;
-                    if (flags == 2) // V2 sends this
-                        data.MapImageId = UUID.Zero; 
+                    if ((flags & 2) == 2) // V2 sends this
+                    {
+                        List<MapBlockData> datas = WorldMap.Map2BlockFromGridRegion(info, flags);
+                        // ugh! V2-3 is very sensitive about the result being
+                        // exactly the same as the requested name
+                        if (regionInfos.Count == 1 && (mapName != mapNameOrig))
+                            datas.ForEach(d => d.Name = mapNameOrig);
+
+                        blocks.AddRange(datas);
+                    }
                     else
-                        data.MapImageId = info.TerrainImage;
-                    // ugh! V2-3 is very sensitive about the result being
-                    // exactly the same as the requested name
-                    if (regionInfos.Count == 1 && (mapName != mapNameOrig))
-                        data.Name = mapNameOrig;
-                    else
-                        data.Name = info.RegionName;
-                    data.RegionFlags = 0; // TODO not used?
-                    data.WaterHeight = 0; // not used
-                    data.X = (ushort)Util.WorldToRegionLoc((uint)info.RegionLocX);
-                    data.Y = (ushort)Util.WorldToRegionLoc((uint)info.RegionLocY);
-                    blocks.Add(data);
+                    {
+                        MapBlockData data = WorldMap.MapBlockFromGridRegion(info, flags);
+                    }
                 }
             }
 
