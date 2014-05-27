@@ -74,7 +74,7 @@ namespace OpenSim.Server.Handlers.Authentication
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            m_log.Error("[XXX]: Authenticating...");
+//            m_log.Error("[XXX]: Authenticating...");
             string[] p = SplitParams(path);
 
             if (p.Length > 0)

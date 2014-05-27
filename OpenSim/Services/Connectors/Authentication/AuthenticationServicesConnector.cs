@@ -108,7 +108,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Verify(UUID principalID, string token, int lifetime)
         {
-            m_log.Error("[XXX]: Verify");
+//            m_log.Error("[XXX]: Verify");
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["LIFETIME"] = lifetime.ToString();
             sendData["PRINCIPAL"] = principalID.ToString();
