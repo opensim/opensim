@@ -38,6 +38,7 @@ using System.Xml.Serialization;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
 
@@ -51,6 +52,12 @@ namespace OpenSim.Server.Handlers.Asset
 
         public AssetsExistHandler(IAssetService service) :
             base("POST", "/get_assets_exist")
+        {
+            m_AssetService = service;
+        }
+
+        public AssetsExistHandler(IAssetService service, IServiceAuth auth) :
+            base("POST", "/get_assets_exist", auth)
         {
             m_AssetService = service;
         }

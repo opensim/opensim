@@ -40,7 +40,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class XInventoryServicesConnector : IInventoryService
+    public class XInventoryServicesConnector : BaseServiceConnector, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -60,6 +60,7 @@ namespace OpenSim.Services.Connectors
         }
 
         public XInventoryServicesConnector(IConfigSource source)
+            : base(source, "InventoryService")
         {
             Initialise(source);
         }
@@ -505,7 +506,7 @@ namespace OpenSim.Services.Connectors
             lock (m_Lock)
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
                          m_ServerURI + "/xinventory",
-                         ServerUtils.BuildQueryString(sendData));
+                         ServerUtils.BuildQueryString(sendData), m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);

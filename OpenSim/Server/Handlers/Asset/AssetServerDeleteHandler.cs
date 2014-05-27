@@ -38,6 +38,7 @@ using System.Xml.Serialization;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Asset
@@ -70,6 +71,12 @@ namespace OpenSim.Server.Handlers.Asset
             m_allowedTypes = allowedTypes;
         }
 
+        public AssetServerDeleteHandler(IAssetService service, AllowedRemoteDeleteTypes allowedTypes, IServiceAuth auth) :
+            base("DELETE", "/assets", auth)
+        {
+            m_AssetService = service;
+            m_allowedTypes = allowedTypes;
+        }
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {

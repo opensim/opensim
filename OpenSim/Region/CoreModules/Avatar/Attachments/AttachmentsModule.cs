@@ -774,15 +774,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         (sbyte)AssetType.Object,
                         Utils.StringToBytes(sceneObjectXml),
                         sp.UUID);
-                    m_scene.AssetService.Store(asset);
 
-                    item.AssetID = asset.FullID;
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-                    item.InvType = (int)InventoryType.Object;
+                    IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
 
-                    m_scene.InventoryService.UpdateItem(item);
+                    invAccess.UpdateInventoryItemAsset(sp.UUID, item, asset);
 
                     // If the name of the object has been changed whilst attached then we want to update the inventory
                     // item in the viewer.

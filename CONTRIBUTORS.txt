@@ -127,12 +127,14 @@ what it is today.
 * maimedleech
 * Mana Janus
 * MarcelEdward
+* Matt Lehmann
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
 * Micheil Merlin
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
+* mikemig
 * mikkopa/_someone - RealXtend
 * Misterblue
 * Mircea Kitsune

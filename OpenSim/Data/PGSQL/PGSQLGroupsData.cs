@@ -83,11 +83,15 @@ namespace OpenSim.Data.PGSQL
         public GroupData[] RetrieveGroups(string pattern)
         {
             if (string.IsNullOrEmpty(pattern)) // True for where clause
+            {
                 pattern = " true ORDER BY lower(\"Name\") LIMIT 100";
+                return m_Groups.Get(pattern);
+            }
             else
-                pattern = string.Format(" lower(\"Name\") LIKE lower('%{0}%') ORDER BY lower(\"Name\") LIMIT 100", pattern);
-
-            return m_Groups.Get(pattern);
+            {
+                pattern = " lower(\"Name\") LIKE lower('%:pattern%') ORDER BY lower(\"Name\") LIMIT 100";
+                return m_Groups.Get(pattern, new NpgsqlParameter("pattern", pattern));
+            }
         }
 
         public bool DeleteGroup(UUID groupID)

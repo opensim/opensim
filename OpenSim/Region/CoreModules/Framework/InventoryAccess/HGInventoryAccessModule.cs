@@ -64,6 +64,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private bool m_bypassPermissions = true;
 
+        // This simple check makes it possible to support grids in which all the simulators
+        // share all central services of the Robust server EXCEPT assets. In other words,
+        // grids where the simulators' assets are kept in one DB and the users' inventory assets
+        // are kept on another. When users rez items from inventory or take objects from world,
+        // an HG-like asset copy takes place between the 2 servers, the world asset server and
+        // the user's asset server.
+        private bool m_CheckSeparateAssets = false;
+        private string m_LocalAssetsURL = string.Empty;
+
 //        private bool m_Initialized = false;
 
         #region INonSharedRegionModule
@@ -99,6 +108,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                         m_OutboundPermission = thisModuleConfig.GetBoolean("OutboundPermission", true);
                         m_RestrictInventoryAccessAbroad = thisModuleConfig.GetBoolean("RestrictInventoryAccessAbroad", true);
+                        m_CheckSeparateAssets = thisModuleConfig.GetBoolean("CheckSeparateAssets", false);
+                        m_LocalAssetsURL = thisModuleConfig.GetString("RegionHGAssetServerURI", string.Empty);
+                        m_LocalAssetsURL = m_LocalAssetsURL.Trim(new char[] { '/' });
+
                     }
                     else
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
@@ -240,6 +253,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return newAssetID;
         }
 
+        /// 
+        /// UpdateInventoryItemAsset
+        ///
+        public override bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
+        {
+            if (base.UpdateInventoryItemAsset(ownerID, item, asset))
+            {
+                UploadInventoryItem(ownerID, (AssetType)asset.Type, asset.FullID, asset.Name, 0);
+                return true;
+            }
+
+            return false;
+        }
+
         ///
         /// Used in DeleteToInventory
         ///
@@ -284,49 +311,97 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             SceneObjectGroup sog = base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                                    RezSelected, RemoveItem, fromTaskID, attachment);
 
-            if (sog == null)
-                remoteClient.SendAgentAlertMessage("Unable to rez: problem accessing inventory or locating assets", false);
-
             return sog;
 
         }
 
         public override void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
         {
-            string userAssetServer = string.Empty;
-            if (IsForeignUser(sender, out userAssetServer) && userAssetServer != string.Empty)
-                m_assMapper.Get(item.AssetID, sender, userAssetServer);
+            string senderAssetServer = string.Empty;
+            string receiverAssetServer = string.Empty;
+            bool isForeignSender, isForeignReceiver;
+            isForeignSender = IsForeignUser(sender, out senderAssetServer);
+            isForeignReceiver = IsForeignUser(receiver, out receiverAssetServer);
 
-            if (IsForeignUser(receiver, out userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
-                m_assMapper.Post(item.AssetID, receiver, userAssetServer);
+            // They're both local. Nothing to do.
+            if (!isForeignSender && !isForeignReceiver)
+                return;
+
+            // At least one of them is foreign.
+            // If both users have the same asset server, no need to transfer the asset
+            if (senderAssetServer.Equals(receiverAssetServer))
+            {
+                m_log.DebugFormat("[HGScene]: Asset transfer between foreign users, but they have the same server. No transfer.");
+                return;
+            }
+
+            if (isForeignSender && senderAssetServer != string.Empty)
+                m_assMapper.Get(item.AssetID, sender, senderAssetServer);
+
+            if (isForeignReceiver && receiverAssetServer != string.Empty && m_OutboundPermission)
+                m_assMapper.Post(item.AssetID, receiver, receiverAssetServer);
         }
 
         public override bool IsForeignUser(UUID userID, out string assetServerURL)
         {
             assetServerURL = string.Empty;
 
-            if (UserManagementModule != null && !UserManagementModule.IsLocalGridUser(userID))
-            { // foreign 
-                ScenePresence sp = null;
-                if (m_Scene.TryGetScenePresence(userID, out sp))
+            if (UserManagementModule != null)
+            {
+                if (!m_CheckSeparateAssets)
                 {
-                    AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                    if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
-                    {
-                        assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                        assetServerURL = assetServerURL.Trim(new char[] { '/' }); 
+                    if (!UserManagementModule.IsLocalGridUser(userID))
+                    { // foreign 
+                        ScenePresence sp = null;
+                        if (m_Scene.TryGetScenePresence(userID, out sp))
+                        {
+                            AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+                            if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                            {
+                                assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
+                                assetServerURL = assetServerURL.Trim(new char[] { '/' });
+                            }
+                        }
+                        else
+                        {
+                            assetServerURL = UserManagementModule.GetUserServerURL(userID, "AssetServerURI");
+                            assetServerURL = assetServerURL.Trim(new char[] { '/' });
+                        }
+                        return true;
                     }
                 }
                 else
                 {
-                    assetServerURL = UserManagementModule.GetUserServerURL(userID, "AssetServerURI");
-                    assetServerURL = assetServerURL.Trim(new char[] { '/' });
+                    if (IsLocalInventoryAssetsUser(userID, out assetServerURL))
+                    {
+                        m_log.DebugFormat("[HGScene]: user {0} has local assets {1}", userID, assetServerURL);
+                        return false;
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[HGScene]: user {0} has foreign assets {1}", userID, assetServerURL);
+                        return true;
+                    }
                 }
-                return true;
             }
-
             return false;
         }
+
+        private bool IsLocalInventoryAssetsUser(UUID uuid, out string assetsURL)
+        {
+            assetsURL = UserManagementModule.GetUserServerURL(uuid, "AssetServerURI");
+            if (assetsURL == string.Empty)
+            {
+                AgentCircuitData agent = m_Scene.AuthenticateHandler.GetAgentCircuitData(uuid);
+                if (agent != null)
+                {
+                    assetsURL = agent.ServiceURLs["AssetServerURI"].ToString();
+                    assetsURL = assetsURL.Trim(new char[] { '/' });
+                }
+            }
+            return m_LocalAssetsURL.Equals(assetsURL);
+        }
+
 
         protected override InventoryItemBase GetItem(UUID agentID, UUID itemID)
         {

@@ -156,18 +156,18 @@ namespace OpenSim.Services.GridService
 
             if (MainConsole.Instance != null)
             {
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "link-region",
                     "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]",
                     "Link a HyperGrid Region. Examples for <ServerURI>: http://grid.net:8002/ or http://example.org/path/foo.php", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "link-region",
                     "link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RemoteRegionName>]",
                     "Link a hypergrid region (deprecated)", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
+                MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "unlink-region",
                     "unlink-region <local name>",
                     "Unlink a hypergrid region", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>]",
+                MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "link-mapping", "link-mapping [<x> <y>]",
                     "Set local coordinate to map HG regions to", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "show hyperlinks", "show hyperlinks",
+                MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "show hyperlinks", "show hyperlinks",
                     "List the HG regions", HandleShow);
             }
         }

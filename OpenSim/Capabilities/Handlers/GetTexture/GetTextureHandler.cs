@@ -56,12 +56,15 @@ namespace OpenSim.Capabilities.Handlers
         public const string DefaultFormat = "x-j2c";
 
         // TODO: Change this to a config option
-        const string REDIRECT_URL = null;
+        private string m_RedirectURL = null;
 
-        public GetTextureHandler(string path, IAssetService assService, string name, string description)
+        public GetTextureHandler(string path, IAssetService assService, string name, string description, string redirectURL)
             : base("GET", path, name, description)
         {
             m_assetService = assService;
+            m_RedirectURL = redirectURL;
+            if (m_RedirectURL != null && !m_RedirectURL.EndsWith("/"))
+                m_RedirectURL += "/";
         }
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
@@ -134,7 +137,7 @@ namespace OpenSim.Capabilities.Handlers
             if (format != DefaultFormat)
                 fullID = fullID + "-" + format;
 
-            if (!String.IsNullOrEmpty(REDIRECT_URL))
+            if (!String.IsNullOrEmpty(m_RedirectURL))
             {
                 // Only try to fetch locally cached textures. Misses are redirected
                 texture = m_assetService.GetCached(fullID);
@@ -150,8 +153,9 @@ namespace OpenSim.Capabilities.Handlers
                 }
                 else
                 {
-                    string textureUrl = REDIRECT_URL + textureID.ToString();
+                    string textureUrl = m_RedirectURL + "?texture_id="+ textureID.ToString();
                     m_log.Debug("[GETTEXTURE]: Redirecting texture request to " + textureUrl);
+                    httpResponse.StatusCode = (int)OSHttpStatusCode.RedirectMovedPermanently;
                     httpResponse.RedirectLocation = textureUrl;
                     return true;
                 }

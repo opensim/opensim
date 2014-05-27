@@ -104,7 +104,7 @@ namespace OpenSim.OfflineIM
             using (MemoryStream mstream = new MemoryStream())
             {
                 XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Encoding = Encoding.UTF8;
+                settings.Encoding = Util.UTF8NoBomEncoding;
 
                 using (XmlWriter writer = XmlWriter.Create(mstream, settings))
                 {
@@ -112,7 +112,7 @@ namespace OpenSim.OfflineIM
                     writer.Flush();
                 }
 
-                imXml = Util.UTF8.GetString(mstream.ToArray());
+                imXml = Util.UTF8NoBomEncoding.GetString(mstream.ToArray());
             }
 
             OfflineIMData data = new OfflineIMData();

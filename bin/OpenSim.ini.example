@@ -470,6 +470,16 @@
     ;; web server
     ; user_agent = "OpenSim LSL (Mozilla Compatible)"
 
+	;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
+	;; Use this if your central services in port 8003 need to be accessible on the Internet
+	;; but you want to protect them from unauthorized access. The username and password
+	;; here need to match the ones in the Robust service configuration.
+    ; AuthType = "BasicHttpAuthentication"
+    ; HttpAuthUsername = "some_username"
+    ; HttpAuthPassword = "some_password"
+	;;
+	;; Any of these 3 variables above can be overriden in any of the service sections.
+
 
 [XMLRPC]
     ;# {XmlRpcRouterModule} {} {Module used to route incoming llRemoteData calls} {XmlRpcRouterModule XmlRpcGridRouterModule} XmlRpcRouterModule
@@ -1033,8 +1043,11 @@
     ; Applies Flotsam Group only. V2 has this always on, no other option
     ; MessageOnlineUsersOnly = false
 
-    ;; This makes the Groups modules very chatty on the console.
+    ;; This makes the Group module very chatty on the console.
     ; DebugEnabled = false
+
+    ; This makes the Group Messaging module very chatty on the console.
+    ; DebugMessagingEnabled = false
 
     ;; XmlRpc Security settings.  These must match those set on your backend
     ;; groups service if the service is using these keys

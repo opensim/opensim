@@ -3751,6 +3751,13 @@ namespace OpenSim.Region.Framework.Scenes
                             RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
                     }
 
+                    // Final permissions check; this time we don't allow changing the position
+                    if (!IsPositionAllowed(acd.AgentID, acd.startpos, ref reason))
+                    {
+                        m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                        return false;
+                    }
+
                     return true;
                 }
 
@@ -3760,8 +3767,30 @@ namespace OpenSim.Region.Framework.Scenes
                     if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
                     {
                         acd.startpos = land.LandData.UserLocation;
+
+                        // Final permissions check; this time we don't allow changing the position
+                        if (!IsPositionAllowed(acd.AgentID, acd.startpos, ref reason))
+                        {
+                            m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                            return false;
+                        }
                     }
                 }
+            }
+
+            return true;
+        }
+
+        private bool IsPositionAllowed(UUID agentID, Vector3 pos, ref string reason)
+        {
+            ILandObject land = LandChannel.GetLandObject(pos);
+            if (land == null)
+                return true;
+
+            if (land.IsBannedFromLand(agentID) || land.IsRestrictedFromLand(agentID))
+            {
+                reason = "You are banned from the region.";
+                return false;
             }
 
             return true;
@@ -3865,7 +3894,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!AuthorizationService.IsAuthorizedForRegion(
                     agent.AgentID.ToString(), agent.firstname, agent.lastname, RegionInfo.RegionID.ToString(), out reason))
                 {
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because {4}",
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because: {4}",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName, reason);
                     
                     return false;
@@ -4133,7 +4162,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>true if we handled it.</returns>
         public virtual bool IncomingUpdateChildAgent(AgentPosition cAgentData)
         {
-            //m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: IncomingChildAgentDataUpdate POSITION for {0} in {1}, position {2}", 
+//                cAgentData.AgentID, Name, cAgentData.Position);
+
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
@@ -5150,7 +5182,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3? nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
+                    m_log.Debug("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
                     return nearestPoint.Value;
                 }
 
@@ -5160,7 +5192,7 @@ namespace OpenSim.Region.Framework.Scenes
                 nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("They had a zero velocity, sending them to: " + nearestPoint.ToString());
+                    m_log.Debug("They had a zero velocity, sending them to: " + nearestPoint.ToString());
                     return nearestPoint.Value;
                 }
 
@@ -5169,7 +5201,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Ultimate backup if we have no idea where they are and
                     // the last allowed position was in another parcel
-                    Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
+                    m_log.Debug("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
                     return avatar.lastKnownAllowedPosition;
                 }
 
@@ -5179,7 +5211,7 @@ namespace OpenSim.Region.Framework.Scenes
             //Go to the edge, this happens in teleporting to a region with no available parcels
             Vector3 nearestRegionEdgePoint = GetNearestRegionEdgePosition(avatar);
 
-            //Debug.WriteLine("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
+            //m_log.Debug("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
 
             return nearestRegionEdgePoint;
         }
@@ -5463,9 +5495,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='position'></param>
         /// <param name='reason'></param>
         /// <returns></returns>
-        public bool QueryAccess(UUID agentID, string agentHomeURI, Vector3 position, out string reason)
+        public bool QueryAccess(UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, out string reason)
         {
-            reason = "You are banned from the region";
+            reason = string.Empty;
 
             if (Permissions.IsGod(agentID))
             {
@@ -5525,10 +5557,11 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception e)
             {
                 m_log.DebugFormat("[SCENE]: Exception authorizing agent: {0} "+ e.StackTrace, e.Message);
+                reason = "Error authorizing agent: " + e.Message;
                 return false;
             }
 
-            if (position == Vector3.Zero) // Teleport
+            if (viaTeleport)
             {
                 if (!RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
@@ -5568,6 +5601,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!TestLandRestrictions(agentID, out reason, ref posX, ref posY))
                 {
                     // m_log.DebugFormat("[SCENE]: Denying {0} because they are banned on all parcels", agentID);
+                    reason = "You are banned from the region on all parcels";
                     return false;
                 }
             }
@@ -5575,13 +5609,22 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ILandObject land = LandChannel.GetLandObject(position.X, position.Y);
                 if (land == null)
+                {
+                    reason = "No parcel found";
                     return false;
+                }
 
                 bool banned = land.IsBannedFromLand(agentID);
                 bool restricted = land.IsRestrictedFromLand(agentID);
 
                 if (banned || restricted)
+                {
+                    if (banned)
+                        reason = "You are banned from the parcel";
+                    else
+                        reason = "The parcel is restricted";
                     return false;
+                }
             }
 
             reason = String.Empty;

@@ -208,7 +208,6 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_lastColCount = -1;		//KF: Look for Collision chnages
 //        private int m_updateCount = 0;			//KF: Update Anims for a while
 //        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
-        private List<uint> m_lastColliders = new List<uint>();
 
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
@@ -270,8 +269,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool CameraConstraintActive;
         //private int m_moveToPositionStateStatus;
         //*****************************************************
-
-        private object m_collisionEventLock = new Object();
 
         private int m_movementAnimationUpdateCounter = 0;
 
@@ -1327,6 +1324,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
 
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1}", Name, Scene.RegionInfo.RegionName);
+
+            // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
+            // from the source simulator has completed on a V2 teleport.
+            lock (m_originRegionIDAccessLock)
+                m_originRegionID = UUID.Zero;
 
             // Reset these so that teleporting in and walking out isn't seen
             // as teleporting back
@@ -2752,7 +2754,34 @@ namespace OpenSim.Region.Framework.Scenes
                 part.AddSittingAvatar(this);
 
                 cameraAtOffset = part.GetCameraAtOffset();
+
+                if (!part.IsRoot && cameraAtOffset == Vector3.Zero)
+                    cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
+
+                bool cameraEyeOffsetFromRootForChild = false;
                 cameraEyeOffset = part.GetCameraEyeOffset();
+
+                if (!part.IsRoot && cameraEyeOffset == Vector3.Zero)
+                {                 
+                    cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
+                    cameraEyeOffsetFromRootForChild = true;
+                }
+
+                if ((cameraEyeOffset != Vector3.Zero && !cameraEyeOffsetFromRootForChild) || cameraAtOffset != Vector3.Zero)
+                {
+                    if (!part.IsRoot)
+                    {
+                        cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
+                        cameraAtOffset += part.OffsetPosition;
+                    }
+
+                    cameraEyeOffset += part.OffsetPosition;
+                }
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Using cameraAtOffset {0}, cameraEyeOffset {1} for sit on {2} by {3} in {4}", 
+//                    cameraAtOffset, cameraEyeOffset, part.Name, Name, Scene.Name);
+
                 forceMouselook = part.GetForceMouselook();
 
                 // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
@@ -3772,10 +3801,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsChildAgent)
                 return;
 
-            //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: ChildAgentPositionUpdate for {0} in {1}, tRegion {2},{3}, rRegion {4},{5}, pos {6}",
+//                Name, Scene.Name, tRegionX, tRegionY, rRegionX, rRegionY, cAgentData.Position);
+
             // Find  the distance (in meters) between the two regions
-            uint shiftx = Util.RegionToWorldLoc(rRegionX - tRegionX);
-            uint shifty = Util.RegionToWorldLoc(rRegionY - tRegionY);
+            // XXX: We cannot use Util.RegionLocToHandle() here because a negative value will silently overflow the
+            // uint
+            int shiftx = (int)(((int)rRegionX - (int)tRegionX) * Constants.RegionSize);
+            int shifty = (int)(((int)rRegionY - (int)tRegionY) * Constants.RegionSize);
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
@@ -3876,9 +3910,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CopyFrom(AgentData cAgent)
         {
-            lock (m_originRegionIDAccessLock)
-                m_originRegionID = cAgent.RegionID;
-
             m_callbackURI = cAgent.CallbackURI;
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Set callback for {0} in {1} to {2} in CopyFrom()",
@@ -3951,6 +3982,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+
+            // This must occur after attachments are copied, as it releases the CompleteMovement() calling thread
+            // originating from the client completing a teleport.  Otherwise, CompleteMovement() code to restart
+            // script attachments can outrace this thread.
+            lock (m_originRegionIDAccessLock)
+                m_originRegionID = cAgent.RegionID;
         }
 
         public bool CopyAgent(out IAgentData agent)

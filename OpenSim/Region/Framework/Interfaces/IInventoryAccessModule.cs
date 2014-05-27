@@ -38,7 +38,9 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IInventoryAccessModule
     {
         UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data);
-        
+
+        bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset);
+
         /// <summary>
         /// Copy objects to a user's inventory.
         /// </summary>

@@ -30,6 +30,7 @@ using System.IO;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
@@ -69,6 +70,8 @@ namespace OpenSim.Server.Handlers.Asset
             bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
             bool allowDeleteAllTypes = serverConfig.GetBoolean("AllowRemoteDeleteAllTypes", false);
 
+            string redirectURL = serverConfig.GetString("RedirectURL", string.Empty);
+
             AllowedRemoteDeleteTypes allowedRemoteDeleteTypes;
 
             if (!allowDelete)
@@ -83,9 +86,11 @@ namespace OpenSim.Server.Handlers.Asset
                     allowedRemoteDeleteTypes = AllowedRemoteDeleteTypes.MapTile;
             }
 
-            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowedRemoteDeleteTypes));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+
+            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService, auth, redirectURL));
+            server.AddStreamHandler(new AssetServerPostHandler(m_AssetService, auth));
+            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowedRemoteDeleteTypes, auth));
             server.AddStreamHandler(new AssetsExistHandler(m_AssetService));
 
             MainConsole.Instance.Commands.AddCommand("Assets", false,

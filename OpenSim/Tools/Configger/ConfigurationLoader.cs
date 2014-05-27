@@ -64,14 +64,13 @@ namespace OpenSim.Tools.Configger
         /// <param name="configSettings"></param>
         /// <param name="networkInfo"></param>
         /// <returns>A configuration that gets passed to modules</returns>
-        public IConfigSource LoadConfigSettings()
+        public IConfigSource LoadConfigSettings(IConfig startupConfig)
         {
             bool iniFileExists = false;
 
             List<string> sources = new List<string>();
 
-            string iniFileName = "OpenSim.ini";
-            string iniFilePath = Path.Combine(".", iniFileName);
+            string iniFileName = startupConfig.GetString("inifile", Path.Combine(".", "OpenSim.ini"));
 
             if (IsUri(iniFileName))
             {
@@ -80,10 +79,10 @@ namespace OpenSim.Tools.Configger
             }
             else
             {
-                if (File.Exists(iniFilePath))
+                if (File.Exists(iniFileName))
                 {
-                    if (!sources.Contains(iniFilePath))
-                        sources.Add(iniFilePath);
+                    if (!sources.Contains(iniFileName))
+                        sources.Add(iniFileName);
                 }
             }
 

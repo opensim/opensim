@@ -32,14 +32,14 @@ using System.IO;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class AuthenticationServicesConnector : IAuthenticationService
+    public class AuthenticationServicesConnector : BaseServiceConnector, IAuthenticationService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -57,6 +57,7 @@ namespace OpenSim.Services.Connectors
         }
 
         public AuthenticationServicesConnector(IConfigSource source)
+            : base(source, "AuthenticationService")
         {
             Initialise(source);
         }
@@ -79,6 +80,8 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Authentication connector init error");
             }
             m_ServerURI = serviceURI;
+
+            base.Initialise(source, "AuthenticationService");
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
@@ -92,7 +95,7 @@ namespace OpenSim.Services.Connectors
 
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/auth/plain",
-                    ServerUtils.BuildQueryString(sendData));
+                    ServerUtils.BuildQueryString(sendData), m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);
@@ -105,6 +108,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Verify(UUID principalID, string token, int lifetime)
         {
+//            m_log.Error("[XXX]: Verify");
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["LIFETIME"] = lifetime.ToString();
             sendData["PRINCIPAL"] = principalID.ToString();
@@ -114,7 +118,7 @@ namespace OpenSim.Services.Connectors
 
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/auth/plain",
-                    ServerUtils.BuildQueryString(sendData));
+                    ServerUtils.BuildQueryString(sendData), m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);
@@ -135,7 +139,7 @@ namespace OpenSim.Services.Connectors
 
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/auth/plain",
-                    ServerUtils.BuildQueryString(sendData));
+                    ServerUtils.BuildQueryString(sendData), m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);

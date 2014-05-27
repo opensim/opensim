@@ -8949,7 +8949,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
             {
                 string assetServer = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                return ((Scene)Scene).AssetService.Get(assetServer + "/" + id);
+                if (!string.IsNullOrEmpty(assetServer))
+                    return ((Scene)Scene).AssetService.Get(assetServer + "/" + id);
             }
 
             return null;
@@ -12658,16 +12659,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (asset == null)
             {
-                req.AssetInf = null;
-                req.AssetRequestSource = source;
-                req.IsTextureRequest = false;
-                req.NumPackets = 0;
-                req.Params = transferRequest.TransferInfo.Params;
-                req.RequestAssetID = requestID;
-                req.TransferRequestID = transferRequest.TransferInfo.TransferID;
+                // Try the user's asset server
+                IInventoryAccessModule inventoryAccessModule = Scene.RequestModuleInterface<IInventoryAccessModule>();
 
-                SendAssetNotFound(req);
-                return;
+                string assetServerURL = string.Empty;
+                if (inventoryAccessModule.IsForeignUser(AgentId, out assetServerURL) && !string.IsNullOrEmpty(assetServerURL))
+                {
+                    if (!assetServerURL.EndsWith("/") && !assetServerURL.EndsWith("="))
+                        assetServerURL = assetServerURL + "/";
+
+                    //m_log.DebugFormat("[LLCLIENTVIEW]: asset {0} not found in local storage. Trying user's storage.", assetServerURL + id);
+                    asset = m_scene.AssetService.Get(assetServerURL + id);
+                }
+
+                if (asset == null)
+                {
+                    req.AssetInf = null;
+                    req.AssetRequestSource = source;
+                    req.IsTextureRequest = false;
+                    req.NumPackets = 0;
+                    req.Params = transferRequest.TransferInfo.Params;
+                    req.RequestAssetID = requestID;
+                    req.TransferRequestID = transferRequest.TransferInfo.TransferID;
+
+                    SendAssetNotFound(req);
+                    return;
+                }
+
             }
 
             if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)

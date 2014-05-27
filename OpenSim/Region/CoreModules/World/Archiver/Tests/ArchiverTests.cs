@@ -585,7 +585,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             ld.GlobalID = landID;
 
             string ldPath = ArchiveConstants.CreateOarLandDataPath(ld);
-            tar.WriteFile(ldPath, LandDataSerializer.Serialize(ld, null));
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            tar.WriteFile(ldPath, LandDataSerializer.Serialize(ld, options));
             tar.Close();
 
             oarStream = new MemoryStream(oarStream.ToArray());

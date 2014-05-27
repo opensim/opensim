@@ -104,6 +104,21 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; Password for cert
     ; cert_pass = "password"
 
+	;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
+	;; Use this if your central services in port 8003 need to be accessible on the Internet
+	;; but you want to protect them from unauthorized access.
+    ; AuthType = "BasicHttpAuthentication"
+    ; HttpAuthUsername = "some_username"
+    ; HttpAuthPassword = "some_password"
+	;;
+	;; AuthType above can be overriden in any of the service sections below by
+	; AuthType = "None"
+	;; This is useful in cases where you want to protect most of the services,
+	;; but unprotect individual services. Username and Password can also be
+	;; overriden if you want to use different credentials for the different services.
+	;; Hypgergrid services are not affected by this; they are publicly available 
+	;; by design.
+
 
 ; * The following are for the remote console
 ; * They have no effect for the local or basic console types
@@ -162,8 +177,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-
-    HypergridLinker = true
 
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
@@ -284,6 +297,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
+    GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
 
     ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2 
     ;; to show a default "Ruth" avatar rather than a cloud for a newly created user.

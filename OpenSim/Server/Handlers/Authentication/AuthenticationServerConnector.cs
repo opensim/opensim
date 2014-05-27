@@ -29,6 +29,7 @@ using System;
 using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 
@@ -58,7 +59,9 @@ namespace OpenSim.Server.Handlers.Authentication
             Object[] args = new Object[] { config };
             m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
 
-            server.AddStreamHandler(new AuthenticationServerPostHandler(m_AuthenticationService, serverConfig));
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+
+            server.AddStreamHandler(new AuthenticationServerPostHandler(m_AuthenticationService, serverConfig, auth));
         }
     }
 }

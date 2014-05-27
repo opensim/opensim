@@ -40,6 +40,7 @@ using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
 
@@ -51,8 +52,8 @@ namespace OpenSim.Server.Handlers.Friends
 
         private IFriendsService m_FriendsService;
 
-        public FriendsServerPostHandler(IFriendsService service) :
-                base("POST", "/friends")
+        public FriendsServerPostHandler(IFriendsService service, IServiceAuth auth) :
+                base("POST", "/friends", auth)
         {
             m_FriendsService = service;
         }

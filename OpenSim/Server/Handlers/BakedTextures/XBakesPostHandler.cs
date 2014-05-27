@@ -38,27 +38,28 @@ using System.Xml.Serialization;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.BakedTextures
 {
     public class BakesServerPostHandler : BaseStreamHandler
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IBakedTextureService m_BakesService;
 
         private System.Text.UTF8Encoding utf8 =
                 new System.Text.UTF8Encoding();
 
-        public BakesServerPostHandler(IBakedTextureService service) :
-                base("POST", "/bakes")
+        public BakesServerPostHandler(IBakedTextureService service, IServiceAuth auth) :
+                base("POST", "/bakes", auth)
         {
             m_BakesService = service;
         }
 
-        public override byte[] Handle(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(
+            string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string[] p = SplitParams(path);
 

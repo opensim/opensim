@@ -35,6 +35,8 @@ using System.Threading;
 using System.Web;
 using log4net;
 
+using OpenSim.Framework.ServiceAuth;
+
 namespace OpenSim.Framework.Communications
 {
     /// <summary>
@@ -297,7 +299,7 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Perform a synchronous request
         /// </summary>
-        public Stream Request()
+        public Stream Request(IServiceAuth auth)
         {
             lock (_lock)
             {
@@ -307,6 +309,8 @@ namespace OpenSim.Framework.Communications
                 _request.Timeout = 200000;
                 _request.Method = RequestMethod;
                 _asyncException = null;
+                if (auth != null)
+                    auth.AddAuthorization(_request.Headers);
 
 //                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
                 try
@@ -358,7 +362,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public Stream Request(Stream src)
+        public Stream Request(Stream src, IServiceAuth auth)
         {
             _request = (HttpWebRequest) WebRequest.Create(buildUri());
             _request.KeepAlive = false;
@@ -367,6 +371,8 @@ namespace OpenSim.Framework.Communications
             _request.Method = RequestMethod;
             _asyncException = null;
             _request.ContentLength = src.Length;
+            if (auth != null)
+                auth.AddAuthorization(_request.Headers);
 
             m_log.InfoFormat("[REST]: Request Length {0}", _request.ContentLength);
             m_log.InfoFormat("[REST]: Sending Web Request {0}", buildUri());
@@ -384,7 +390,22 @@ namespace OpenSim.Framework.Communications
                 length = src.Read(buf, 0, 1024);
             }
 
-            _response = (HttpWebResponse) _request.GetResponse();
+            try
+            {
+                _response = (HttpWebResponse)_request.GetResponse();
+            }
+            catch (WebException e)
+            {
+                m_log.WarnFormat("[REST]: Request {0} {1} failed with status {2} and message {3}",
+                                  RequestMethod, _request.RequestUri, e.Status, e.Message);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat(
+                    "[REST]: Request {0} {1} failed with exception {2} {3}",
+                    RequestMethod, _request.RequestUri, e.Message, e.StackTrace);
+            }
+        
 
 //            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
 
@@ -423,7 +444,7 @@ namespace OpenSim.Framework.Communications
             try
             {
                 // Perform the operation; if sucessful set the result
-                Stream s = Request();
+                Stream s = Request(null);
                 ar.SetAsCompleted(s, false);
             }
             catch (Exception e)

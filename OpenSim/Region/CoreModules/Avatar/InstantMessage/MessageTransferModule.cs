@@ -181,7 +181,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             SendGridInstantMessageViaXMLRPC(im, result);
         }
 
-        private void HandleUndeliveredMessage(GridInstantMessage im, MessageResultNotification result)
+        public void HandleUndeliverableMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UndeliveredMessage handlerUndeliveredMessage = OnUndeliveredMessage;
 
@@ -428,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// <summary>
         /// delegate for sending a grid instant message asynchronously
         /// </summary>
-        public delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result, UUID prevRegionID);
+        public delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result);
 
         protected virtual void GridInstantMessageCompleted(IAsyncResult iar)
         {
@@ -442,138 +442,87 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsync;
 
-            d.BeginInvoke(im, result, UUID.Zero, GridInstantMessageCompleted, d);
+            d.BeginInvoke(im, result, GridInstantMessageCompleted, d);
         }
 
         /// <summary>
-        /// Recursive SendGridInstantMessage over XMLRPC method.
-        /// This is called from within a dedicated thread.
-        /// The first time this is called, prevRegionHandle will be 0 Subsequent times this is called from 
-        /// itself, prevRegionHandle will be the last region handle that we tried to send.
-        /// If the handles are the same, we look up the user's location using the grid.
-        /// If the handles are still the same, we end.  The send failed.
+        /// Internal SendGridInstantMessage over XMLRPC method.
         /// </summary>
-        /// <param name="prevRegionHandle">
-        /// Pass in 0 the first time this method is called.  It will be called recursively with the last 
-        /// regionhandle tried
-        /// </param>
-        protected virtual void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result, UUID prevRegionID)
+        /// <remarks>
+        /// This is called from within a dedicated thread.
+        /// </remarks>
+        private void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result)
         {
             UUID toAgentID = new UUID(im.toAgentID);
-
-            PresenceInfo upd = null;
-
-            bool lookupAgent = false;
+            UUID regionID;
+            bool needToLookupAgent;
 
             lock (m_UserRegionMap)
-            {
-                if (m_UserRegionMap.ContainsKey(toAgentID))
-                {
-                    upd = new PresenceInfo();
-                    upd.RegionID = m_UserRegionMap[toAgentID];
+                needToLookupAgent = !m_UserRegionMap.TryGetValue(toAgentID, out regionID);
 
-                    // We need to compare the current regionhandle with the previous region handle
-                    // or the recursive loop will never end because it will never try to lookup the agent again
-                    if (prevRegionID == upd.RegionID)
-                    {
-                        lookupAgent = true;
-                    }
-                }
-                else
-                {
-                    lookupAgent = true;
-                }
-            }
-            
-
-            // Are we needing to look-up an agent?
-            if (lookupAgent)
+            while (true)
             {
-                // Non-cached user agent lookup.
-                PresenceInfo[] presences = PresenceService.GetAgents(new string[] { toAgentID.ToString() }); 
-                if (presences != null && presences.Length > 0)
+                if (needToLookupAgent)
                 {
-                    foreach (PresenceInfo p in presences)
+                    PresenceInfo[] presences = PresenceService.GetAgents(new string[] { toAgentID.ToString() }); 
+
+                    UUID foundRegionID = UUID.Zero;
+
+                    if (presences != null)
                     {
-                        if (p.RegionID != UUID.Zero)
+                        foreach (PresenceInfo p in presences)
                         {
-                            upd = p;
-                            break;
+                            if (p.RegionID != UUID.Zero)
+                            {
+                                foundRegionID = p.RegionID;
+                                break;
+                            }
                         }
                     }
+
+                    // If not found or the found region is the same as the last lookup, then message is undeliverable
+                    if (foundRegionID == UUID.Zero || foundRegionID == regionID)
+                        break;
+                    else
+                        regionID = foundRegionID;
                 }
 
-                if (upd != null)
+                GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, regionID);
+                if (reginfo == null)
                 {
-                    // check if we've tried this before..
-                    // This is one way to end the recursive loop
-                    //
-                    if (upd.RegionID == prevRegionID)
-                    {
-                        // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                        HandleUndeliveredMessage(im, result);
-                        return;
-                    }
+                    m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find region {0}", regionID);
+                    break;
                 }
-                else
+
+                // Try to send the message to the agent via the retrieved region.
+                Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(im);
+                msgdata["region_handle"] = 0;
+                bool imresult = doIMSending(reginfo, msgdata);
+
+                // If the message delivery was successful, then cache the entry.
+                if (imresult)
                 {
-                    // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                    HandleUndeliveredMessage(im, result);
+                    lock (m_UserRegionMap)
+                    {
+                        m_UserRegionMap[toAgentID] = regionID;
+                    }
+                    result(true);
                     return;
                 }
+
+                // If we reach this point in the first iteration of the while, then we may have unsuccessfully tried
+                // to use a locally cached region ID.  All subsequent attempts need to lookup agent details from
+                // the presence service.
+                needToLookupAgent = true;
             }
 
-            if (upd != null)
-            {
-                GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID,
-                    upd.RegionID);
-                if (reginfo != null)
-                {
-                    Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(im);
-                    // Not actually used anymore, left in for compatibility
-                    // Remove at next interface change
-                    //
-                    msgdata["region_handle"] = 0;
-                    bool imresult = doIMSending(reginfo, msgdata);
-                    if (imresult)
-                    {
-                        // IM delivery successful, so store the Agent's location in our local cache.
-                        lock (m_UserRegionMap)
-                        {
-                            if (m_UserRegionMap.ContainsKey(toAgentID))
-                            {
-                                m_UserRegionMap[toAgentID] = upd.RegionID;
-                            }
-                            else
-                            {
-                                m_UserRegionMap.Add(toAgentID, upd.RegionID);
-                            }
-                        }
-                        result(true);
-                    }
-                    else
-                    {
-                        // try again, but lookup user this time.
-                        // Warning, this must call the Async version
-                        // of this method or we'll be making thousands of threads
-                        // The version within the spawned thread is SendGridInstantMessageViaXMLRPCAsync
-                        // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
+            // If we reached this point then the message was not deliverable.  Remove the bad cache entry and 
+            // signal the delivery failure.
+            lock (m_UserRegionMap)
+                m_UserRegionMap.Remove(toAgentID);
 
-                        // This is recursive!!!!!
-                        SendGridInstantMessageViaXMLRPCAsync(im, result,
-                                upd.RegionID);
-                    }
-                }
-                else
-                {
-                    m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find region {0}", upd.RegionID);
-                    HandleUndeliveredMessage(im, result);
-                }
-            }
-            else
-            {
-                HandleUndeliveredMessage(im, result);
-            }
+            // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
+            HandleUndeliverableMessage(im, result);
         }
 
         /// <summary>
@@ -584,7 +533,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// <returns>Bool if the message was successfully delivered at the other side.</returns>
         protected virtual bool doIMSending(GridRegion reginfo, Hashtable xmlrpcdata)
         {
-
             ArrayList SendParams = new ArrayList();
             SendParams.Add(xmlrpcdata);
             XmlRpcRequest GridReq = new XmlRpcRequest("grid_instant_message", SendParams);

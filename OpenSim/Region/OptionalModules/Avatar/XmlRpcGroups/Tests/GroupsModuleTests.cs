@@ -132,6 +132,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
             MessageTransferModule mtm = new MessageTransferModule();
             GroupsModule gm = new GroupsModule();
             GroupsMessagingModule gmm = new GroupsMessagingModule();
+            MockGroupsServicesConnector mgsc = new MockGroupsServicesConnector();
 
             IConfigSource configSource = new IniConfigSource();
 
@@ -147,6 +148,83 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
                 config.Set("DebugEnabled", true);
                 config.Set("MessagingModule", gmm.Name);
                 config.Set("MessagingEnabled", true);
+            }
+
+            SceneHelpers.SetupSceneModules(scene, configSource, mgsc, mtm, gm, gmm);
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            string subjectText = "newman";
+            string messageText = "Hello";
+            string combinedSubjectMessage = string.Format("{0}|{1}", subjectText, messageText);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+            TestClient tc = (TestClient)sp.ControllingClient;
+
+            UUID groupID = gm.CreateGroup(tc, "group1", null, true, UUID.Zero, 0, true, true, true);
+            gm.JoinGroupRequest(tc, groupID);
+
+            // Create a second user who doesn't want to receive notices
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x2));
+            TestClient tc2 = (TestClient)sp2.ControllingClient;
+            gm.JoinGroupRequest(tc2, groupID);
+            gm.SetGroupAcceptNotices(tc2, groupID, false, true);
+
+            List<GridInstantMessage> spReceivedMessages = new List<GridInstantMessage>();
+            tc.OnReceivedInstantMessage += im => spReceivedMessages.Add(im);
+
+            List<GridInstantMessage> sp2ReceivedMessages = new List<GridInstantMessage>();
+            tc2.OnReceivedInstantMessage += im => sp2ReceivedMessages.Add(im);
+
+            GridInstantMessage noticeIm = new GridInstantMessage();
+            noticeIm.fromAgentID = userId.Guid;
+            noticeIm.toAgentID = groupID.Guid;
+            noticeIm.message = combinedSubjectMessage;
+            noticeIm.dialog = (byte)InstantMessageDialog.GroupNotice;
+
+            tc.HandleImprovedInstantMessage(noticeIm);
+
+            Assert.That(spReceivedMessages.Count, Is.EqualTo(1));
+            Assert.That(spReceivedMessages[0].message, Is.EqualTo(combinedSubjectMessage));
+
+            List<GroupNoticeData> notices = mgsc.GetGroupNotices(UUID.Zero, groupID);
+            Assert.AreEqual(1, notices.Count);
+
+            // OpenSimulator (possibly also SL) transport the notice ID as the session ID!
+            Assert.AreEqual(notices[0].NoticeID.Guid, spReceivedMessages[0].imSessionID);
+
+            Assert.That(sp2ReceivedMessages.Count, Is.EqualTo(0));
+        }
+
+        /// <summary>
+        /// Run test with the MessageOnlineUsersOnly flag set.
+        /// </summary>
+        [Test]
+        public void TestSendGroupNoticeOnlineOnly()
+        {
+            TestHelpers.InMethod();
+            //            TestHelpers.EnableLogging();
+
+            TestScene scene = new SceneHelpers().SetupScene();
+
+            MessageTransferModule mtm = new MessageTransferModule();
+            GroupsModule gm = new GroupsModule();
+            GroupsMessagingModule gmm = new GroupsMessagingModule();
+
+            IConfigSource configSource = new IniConfigSource();
+
+            {
+                IConfig config = configSource.AddConfig("Messaging");
+                config.Set("MessageTransferModule", mtm.Name);
+            }
+
+            {
+                IConfig config = configSource.AddConfig("Groups");
+                config.Set("Enabled", true);
+                config.Set("Module", gm.Name);
+                config.Set("DebugEnabled", true);
+                config.Set("MessagingModule", gmm.Name);
+                config.Set("MessagingEnabled", true);
+                config.Set("MessageOnlineUsersOnly", true);
             }
 
             SceneHelpers.SetupSceneModules(scene, configSource, new MockGroupsServicesConnector(), mtm, gm, gmm);

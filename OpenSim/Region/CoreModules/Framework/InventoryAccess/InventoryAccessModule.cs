@@ -203,7 +203,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_Scene.AssetService.Store(asset);
                     m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                        name, description, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
+                        name, description, 0, callbackID, asset.FullID, asset.Type, invType, nextOwnerMask, creationDate);
                 }
                 else
                 {
@@ -292,7 +292,31 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             return UUID.Zero;
         }
-        
+
+        public virtual bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
+        {
+            if (item != null && item.Owner == ownerID && asset != null)
+            {
+                item.AssetID = asset.FullID;
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
+                item.InvType = (int)InventoryType.Object;
+
+                m_Scene.AssetService.Store(asset);
+                m_Scene.InventoryService.UpdateItem(item);
+
+                return true;
+            }
+            else
+            {
+                m_log.ErrorFormat("[INVENTORY ACCESS MODULE]: Given invalid item for inventory update: {0}",
+                    (item == null || asset == null? "null item or asset" : "wrong owner"));
+                return false;
+            }
+
+        }
+
         public virtual List<InventoryItemBase> CopyToInventory(
             DeRezAction action, UUID folderID,
             List<SceneObjectGroup> objectGroups, IClientAPI remoteClient, bool asAttachment)
@@ -532,6 +556,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
+                // Changing ownership, so apply the "Next Owner" permissions to all of the
+                // inventory item's permissions.
+
                 uint perms = effectivePerms;
                 PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref perms);
 
@@ -546,6 +573,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
+                // Not changing ownership.
+                // In this case we apply the permissions in the object's items ONLY to the inventory
+                // item's "Next Owner" permissions, but NOT to its "Current", "Base", etc. permissions.
+                // E.g., if the object contains a No-Transfer item then the item's "Next Owner"
+                // permissions are also No-Transfer.
+                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref allObjectsNextOwnerPerms);
+
                 item.BasePermissions = effectivePerms;
                 item.CurrentPermissions = effectivePerms;
                 item.NextPermissions = allObjectsNextOwnerPerms & effectivePerms;
@@ -773,12 +807,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_log.WarnFormat(
                         "[InventoryAccessModule]: Could not find asset {0} for item {1} {2} for {3} in RezObject()",
                         assetID, item.Name, item.ID, remoteClient.Name);
+                    remoteClient.SendAgentAlertMessage(string.Format("Unable to rez: could not find asset {0} for item {1}.", assetID, item.Name), false);
                 }
                 else
                 {
                     m_log.WarnFormat(
                         "[INVENTORY ACCESS MODULE]: Could not find asset {0} for {1} in RezObject()",
                         assetID, remoteClient.Name);
+                    remoteClient.SendAgentAlertMessage(string.Format("Unable to rez: could not find asset {0}.", assetID), false);
                 }
 
                 return null;

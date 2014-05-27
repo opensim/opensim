@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Text;
 
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 
@@ -46,6 +47,7 @@ namespace OpenSim.OfflineIM
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = string.Empty;
+        private IServiceAuth m_Auth;
         private object m_Lock = new object();
 
         public OfflineIMServiceRemoteConnector(string url)
@@ -65,6 +67,18 @@ namespace OpenSim.OfflineIM
 
             m_ServerURI = cnf.GetString("OfflineMessageURL", string.Empty);
 
+            /// This is from BaseServiceConnector
+            string authType = Util.GetConfigVarFromSections<string>(config, "AuthType", new string[] { "Network", "Messaging" }, "None");
+
+            switch (authType)
+            {
+                case "BasicHttpAuthentication":
+                    m_Auth = new BasicHttpAuthentication(config, "Messaging");
+                    break;
+            }
+            ///
+            m_log.DebugFormat("[OfflineIM.V2.RemoteConnector]: Offline IM server at {0} with auth {1}", 
+                m_ServerURI, (m_Auth == null ? "None" : m_Auth.GetType().ToString()));
         }
 
         #region IOfflineIMService
@@ -143,7 +157,8 @@ namespace OpenSim.OfflineIM
             lock (m_Lock)
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
                          m_ServerURI + "/offlineim",
-                         ServerUtils.BuildQueryString(sendData));
+                         ServerUtils.BuildQueryString(sendData),
+                         m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);

@@ -32,7 +32,7 @@ using System.IO;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using IAvatarService = OpenSim.Services.Interfaces.IAvatarService;
@@ -41,7 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class AvatarServicesConnector : IAvatarService
+    public class AvatarServicesConnector : BaseServiceConnector, IAvatarService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -59,6 +59,7 @@ namespace OpenSim.Services.Connectors
         }
 
         public AvatarServicesConnector(IConfigSource source)
+            : base(source, "AvatarService")
         {
             Initialise(source);
         }
@@ -81,6 +82,8 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Avatar connector init error");
             }
             m_ServerURI = serviceURI;
+
+            base.Initialise(source, "AvatarService");
         }
 
 
@@ -114,7 +117,7 @@ namespace OpenSim.Services.Connectors
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
                     m_log.DebugFormat("[AVATAR CONNECTOR]: GetAgent received null or empty reply");
@@ -162,7 +165,7 @@ namespace OpenSim.Services.Connectors
             //m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -207,7 +210,7 @@ namespace OpenSim.Services.Connectors
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -250,7 +253,7 @@ namespace OpenSim.Services.Connectors
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -293,7 +296,7 @@ namespace OpenSim.Services.Connectors
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);

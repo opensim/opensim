@@ -39,6 +39,7 @@ using System.Collections.Generic;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
 
@@ -55,10 +56,10 @@ namespace OpenSim.Server.Handlers.Authentication
         private bool m_AllowSetPassword = false;
 
         public AuthenticationServerPostHandler(IAuthenticationService service) :
-                this(service, null) {}
+                this(service, null, null) {}
 
-        public AuthenticationServerPostHandler(IAuthenticationService service, IConfig config) :
-                base("POST", "/auth")
+        public AuthenticationServerPostHandler(IAuthenticationService service, IConfig config, IServiceAuth auth) :
+                base("POST", "/auth", auth)
         {
             m_AuthenticationService = service;
 
@@ -73,6 +74,7 @@ namespace OpenSim.Server.Handlers.Authentication
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+//            m_log.Error("[XXX]: Authenticating...");
             string[] p = SplitParams(path);
 
             if (p.Length > 0)

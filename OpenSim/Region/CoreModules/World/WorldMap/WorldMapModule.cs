@@ -1064,7 +1064,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         }
 
         // Fill a passed MapBlockData from a GridRegion
-        protected MapBlockData MapBlockFromGridRegion(GridRegion r, uint flag)
+        public MapBlockData MapBlockFromGridRegion(GridRegion r, uint flag)
         {
             MapBlockData block = new MapBlockData();
 
@@ -1090,7 +1090,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             return block;
         }
 
-        protected List<MapBlockData> Map2BlockFromGridRegion(GridRegion r, uint flag)
+        public List<MapBlockData> Map2BlockFromGridRegion(GridRegion r, uint flag)
         {
             List<MapBlockData> blocks = new List<MapBlockData>();
             MapBlockData block = new MapBlockData();
