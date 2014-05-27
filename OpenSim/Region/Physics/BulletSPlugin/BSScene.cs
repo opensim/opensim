@@ -639,15 +639,18 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             if (collidersCount > 0)
             {
-                for (int ii = 0; ii < collidersCount; ii++)
+                lock (PhysObjects)
                 {
-                    uint cA = m_collisionArray[ii].aID;
-                    uint cB = m_collisionArray[ii].bID;
-                    Vector3 point = m_collisionArray[ii].point;
-                    Vector3 normal = m_collisionArray[ii].normal;
-                    float penetration = m_collisionArray[ii].penetration;
-                    SendCollision(cA, cB, point, normal, penetration);
-                    SendCollision(cB, cA, point, -normal, penetration);
+                    for (int ii = 0; ii < collidersCount; ii++)
+                    {
+                        uint cA = m_collisionArray[ii].aID;
+                        uint cB = m_collisionArray[ii].bID;
+                        Vector3 point = m_collisionArray[ii].point;
+                        Vector3 normal = m_collisionArray[ii].normal;
+                        float penetration = m_collisionArray[ii].penetration;
+                        SendCollision(cA, cB, point, normal, penetration);
+                        SendCollision(cB, cA, point, -normal, penetration);
+                    }
                 }
             }
         }
@@ -658,14 +661,17 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             if (updatedEntityCount > 0)
             {
-                for (int ii = 0; ii < updatedEntityCount; ii++)
+                lock (PhysObjects)
                 {
-                    EntityProperties entprop = m_updateArray[ii];
-                    BSPhysObject pobj;
-                    if (PhysObjects.TryGetValue(entprop.ID, out pobj))
+                    for (int ii = 0; ii < updatedEntityCount; ii++)
                     {
-                        if (pobj.IsInitialized)
-                            pobj.UpdateProperties(entprop);
+                        EntityProperties entprop = m_updateArray[ii];
+                        BSPhysObject pobj;
+                        if (PhysObjects.TryGetValue(entprop.ID, out pobj))
+                        {
+                            if (pobj.IsInitialized)
+                                pobj.UpdateProperties(entprop);
+                        }
                     }
                 }
             }
