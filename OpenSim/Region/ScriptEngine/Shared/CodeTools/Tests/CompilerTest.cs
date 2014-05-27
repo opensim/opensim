@@ -49,6 +49,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         private CSharpCodeProvider m_CSCodeProvider;
         private CompilerParameters m_compilerParameters;
         private CompilerResults m_compilerResults;
+        private ResolveEventHandler m_resolveEventHandler;
 
         /// <summary>
         /// Creates a temporary directory where build artifacts are stored.
@@ -70,10 +71,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
 
             string rootPath = System.AppDomain.CurrentDomain.BaseDirectory;
 
-            System.AppDomain.CurrentDomain.AssemblyResolve +=
-                new ResolveEventHandler(
-                    AssemblyResolver.OnAssemblyResolve);
+            m_resolveEventHandler = new ResolveEventHandler(AssemblyResolver.OnAssemblyResolve);
 
+            System.AppDomain.CurrentDomain.AssemblyResolve += m_resolveEventHandler;
+                
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenMetaverseTypes.dll"));
@@ -87,6 +88,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         [TestFixtureTearDown]
         public void CleanUp()
         {
+            System.AppDomain.CurrentDomain.AssemblyResolve -= m_resolveEventHandler;
+
             if (Directory.Exists(m_testDir))
             {
                 // Blow away the temporary directory with artifacts.
