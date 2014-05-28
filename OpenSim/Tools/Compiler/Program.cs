@@ -255,13 +255,13 @@ namespace OpenSim.Tools.LSL.Compiler
             return FindErrorPosition(line, col, null);
         }
 
-        private class kvpSorter : IComparer<KeyValuePair<int, int>>
+        private class kvpSorter : IComparer<KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>>>
         {
-            public int Compare(KeyValuePair<int, int> a,
-                    KeyValuePair<int, int> b)
+            public int Compare(KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> a,
+                               KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> b)
             {
-                int kc = a.Key.CompareTo(b.Key);
-                return (kc != 0) ? kc : a.Value.CompareTo(b.Value);
+                int kc = a.Key.Key.CompareTo(b.Key.Key);
+                return (kc != 0) ? kc : a.Key.Value.CompareTo(b.Key.Value);
             }
         }
 
@@ -278,24 +278,48 @@ namespace OpenSim.Tools.LSL.Compiler
                     out ret))
                 return ret;
 
-            List<KeyValuePair<int, int>> sorted =
-                    new List<KeyValuePair<int, int>>(positionMap.Keys);
+            var sorted = new List<KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>>>(positionMap);
 
             sorted.Sort(new kvpSorter());
 
-            int l = sorted[0].Key;
-            int c = sorted[0].Value;
+            int l = 1;
+            int c = 1;
+            int pl = 1;
 
-            foreach (KeyValuePair<int, int> cspos in sorted)
+            foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> posmap in sorted)
             {
-                if (cspos.Key >= line &&
-                    !(cspos.Key == line && cspos.Value <= col))
+                //m_log.DebugFormat("[Compiler]: Scanning line map {0},{1} --> {2},{3}", posmap.Key.Key, posmap.Key.Value, posmap.Value.Key, posmap.Value.Value);
+                int nl = posmap.Value.Key + line - posmap.Key.Key;      // New, translated LSL line and column.
+                int nc = posmap.Value.Value + col - posmap.Key.Value;
+                // Keep going until we find the first point passed line,col.
+                if (posmap.Key.Key > line)
+                {
+                  //m_log.DebugFormat("[Compiler]: Line is larger than requested {0},{1}, returning {2},{3}", line, col, l, c);
+                  if (pl < line)
+                  {
+                    //m_log.DebugFormat("[Compiler]: Previous line ({0}) is less than requested line ({1}), setting column to 1.", pl, line);
+                    c = 1;
+                  }
                   break;
-                l = cspos.Key;
-                c = cspos.Value;
+                }
+                if (posmap.Key.Key == line && posmap.Key.Value > col)
+                {
+                  // Never move l,c backwards.
+                  if (nl > l || (nl == l && nc > c))
+                  {
+                    //m_log.DebugFormat("[Compiler]: Using offset relative to this: {0} + {1} - {2}, {3} + {4} - {5} = {6}, {7}",
+                    //    posmap.Value.Key, line, posmap.Key.Key, posmap.Value.Value, col, posmap.Key.Value, nl, nc);
+                    l = nl;
+                    c = nc;
+                  }
+                  //m_log.DebugFormat("[Compiler]: Column is larger than requested {0},{1}, returning {2},{3}", line, col, l, c);
+                  break;
+                }
+                pl = posmap.Key.Key;
+                l = posmap.Value.Key;
+                c = posmap.Value.Value;
             }
-            positionMap.TryGetValue(new KeyValuePair<int, int>(l, c), out ret);
-            return ret;
+            return new KeyValuePair<int, int>(l, c);
         }
     }
 }
