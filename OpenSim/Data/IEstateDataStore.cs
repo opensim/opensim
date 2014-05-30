@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Data
 {
     public interface IEstateDataStore
     {

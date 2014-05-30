@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Services.Interfaces
 {
     public interface IEstateDataService
     {
