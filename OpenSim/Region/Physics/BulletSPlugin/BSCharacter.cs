@@ -744,7 +744,18 @@ public sealed class BSCharacter : BSPhysObject
         //    and will send agent updates to the clients if velocity changes by more than
         //    0.001m/s. Bullet introduces a lot of jitter in the velocity which causes many
         //    extra updates.
-        if (!entprop.Velocity.ApproxEquals(RawVelocity, 0.1f))
+        //
+        // XXX: Contrary to the above comment, setting an update threshold here above 0.4 actually introduces jitter to 
+        // avatar movement rather than removes it.  The larger the threshold, the bigger the jitter.
+        // This is most noticeable in level flight and can be seen with
+        // the "show updates" option in a viewer.  With an update threshold, the RawVelocity cycles between a lower
+        // bound and an upper bound, where the difference between the two is enough to trigger a large delta v update
+        // and subsequently trigger an update in ScenePresence.SendTerseUpdateToAllClients().  The cause of this cycle (feedback?)
+        // has not yet been identified.
+        //
+        // If there is a threshold below 0.4 or no threshold check at all (as in ODE), then RawVelocity stays constant and extra
+        // updates are not triggered in ScenePresence.SendTerseUpdateToAllClients().
+//        if (!entprop.Velocity.ApproxEquals(RawVelocity, 0.1f))
             RawVelocity = entprop.Velocity;
 
         _acceleration = entprop.Acceleration;
