@@ -3259,6 +3259,10 @@ namespace OpenSim.Region.Framework.Scenes
             float speed = Velocity.Length();
             float velocidyDiff = Vector3.Distance(lastVelocitySentToAllClients, Velocity);
 
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Delta-v {0}, lastVelocity {1}, Velocity {2} for {3} in {4}",
+//                velocidyDiff, lastVelocitySentToAllClients, Velocity, Name, Scene.Name);
+
             // assuming 5 ms. worst case precision for timer, use 2x that 
             // for distance error threshold
             float distanceErrorThreshold = speed * 0.01f;
@@ -3267,6 +3271,10 @@ namespace OpenSim.Region.Framework.Scenes
                 || Math.Abs(distanceError) > distanceErrorThreshold
                 || velocidyDiff > 0.01f) // did velocity change from last update?
             {
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Update triggered with speed {0}, distanceError {1}, distanceThreshold {2}, delta-v {3} for {4} in {5}", 
+//                    speed, distanceError, distanceErrorThreshold, velocidyDiff, Name, Scene.Name);
+
                 lastVelocitySentToAllClients = Velocity;
                 lastTerseUpdateToAllClientsTick = currentTick;
                 lastPositionSentToAllClients = OffsetPosition;
