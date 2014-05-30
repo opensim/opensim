@@ -147,8 +147,29 @@ namespace OpenSim.Framework
         public uint WorldLocX = 0;
         public uint WorldLocY = 0;
         public uint WorldLocZ = 0;
+
+        /// <summary>
+        /// X dimension of the region.
+        /// </summary>
+        /// <remarks>
+        /// If this is a varregion then the default size set here will be replaced when we load the region config.
+        /// </remarks>
         public uint RegionSizeX = Constants.RegionSize;
+
+        /// <summary>
+        /// X dimension of the region.
+        /// </summary>
+        /// <remarks>
+        /// If this is a varregion then the default size set here will be replaced when we load the region config.
+        /// </remarks>
         public uint RegionSizeY = Constants.RegionSize;
+
+        /// <summary>
+        /// Z dimension of the region.
+        /// </summary>
+        /// <remarks>
+        /// XXX: Unknown if this accounts for regions with negative Z.
+        /// </remarks>
         public uint RegionSizeZ = Constants.RegionHeight;
 
         private Dictionary<String, String> m_extraSettings = new Dictionary<string, string>();
