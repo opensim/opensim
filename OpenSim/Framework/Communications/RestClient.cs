@@ -299,6 +299,14 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Perform a synchronous request
         /// </summary>
+        public Stream Request()
+        {
+            return Request(null);
+        }
+
+        /// <summary>
+        /// Perform a synchronous request
+        /// </summary>
         public Stream Request(IServiceAuth auth)
         {
             lock (_lock)
