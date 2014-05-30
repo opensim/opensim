@@ -109,7 +109,7 @@ namespace OpenSim.Groups
                 string method = request["METHOD"].ToString();
                 request.Remove("METHOD");
 
-                m_log.DebugFormat("[Groups.Handler]: {0}", method);
+//                m_log.DebugFormat("[Groups.Handler]: {0}", method);
                 switch (method)
                 {
                     case "PUTGROUP":
