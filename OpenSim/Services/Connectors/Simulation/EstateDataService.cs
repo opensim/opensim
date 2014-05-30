@@ -36,8 +36,8 @@ using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
+//using OpenSim.Region.Framework.Interfaces;
+//using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Services.Connectors
 {
