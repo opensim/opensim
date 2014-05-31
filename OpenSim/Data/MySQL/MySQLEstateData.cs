@@ -145,7 +145,11 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
 
-                return DoLoad(cmd, regionID, create);
+                EstateSettings e = DoLoad(cmd, regionID, create);
+                if (!create && e.EstateID == 0) // Not found
+                    return null;
+
+                return e;
             }
         }
 
@@ -427,7 +431,10 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?EstateID", estateID);
 
-                return DoLoad(cmd, UUID.Zero, false);
+                EstateSettings e =  DoLoad(cmd, UUID.Zero, false);
+                if (e.EstateID != estateID)
+                    return null;
+                return e;
             }
         }
         
