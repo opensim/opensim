@@ -174,6 +174,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
             }
         }
+
         // The flags of which terrain patches to send for each of the ScenePresence's
         private Dictionary<UUID, PatchUpdates> m_perClientPatchUpdates = new Dictionary<UUID, PatchUpdates>();
 
@@ -1030,8 +1031,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         List<PatchesToSend> toSend = GetModifiedPatchesInViewDistance(pups);
                         if (toSend.Count > 0)
                         {
-                            m_log.DebugFormat("{0} CheckSendingPatchesToClient: sending {1} patches to {2}",
-                                                LogHeader, toSend.Count, pups.Presence.Name);
+                            // m_log.DebugFormat("{0} CheckSendingPatchesToClient: sending {1} patches to {2} in region {3}",
+                            //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
                             // Sort the patches to send by the distance from the presence
                             toSend.Sort();
                             foreach (PatchesToSend pts in toSend)
@@ -1067,8 +1068,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int endY = (((int) (presence.AbsolutePosition.Y + presence.DrawDistance))/Constants.TerrainPatchSize) + 2;
             endY = Math.Max(endY, 0);
             endY = Math.Min(endY, (int)m_scene.RegionInfo.RegionSizeY/Constants.TerrainPatchSize);
-            m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. ddist={1}, start=<{2},{3}>, end=<{4},{5}>",
-                                                LogHeader, presence.DrawDistance, startX, startY, endX, endY);
+            // m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. rName={1}, ddist={2}, apos={3}, start=<{4},{5}>, end=<{6},{7}>",
+            //                                     LogHeader, m_scene.RegionInfo.RegionName,
+            //                                     presence.DrawDistance, presence.AbsolutePosition,
+            //                                     startX, startY, endX, endY);
             for (int x = startX; x < endX; x++)
             {
                 for (int y = startY; y < endY; y++)
@@ -1079,7 +1082,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if (pups.GetByPatch(x, y))
                     {
                         //Check which has less distance, camera or avatar position, both have to be done.
-                            //Its not a radius, its a diameter and we add 50 so that it doesn't look like it cuts off
+                        //Its not a radius, its a diameter and we add 50 so that it doesn't look like it cuts off
                         if (Util.DistanceLessThan(presencePos, patchPos, presence.DrawDistance + 50)
                             || Util.DistanceLessThan(presence.CameraPosition, patchPos, presence.DrawDistance + 50))
                         {

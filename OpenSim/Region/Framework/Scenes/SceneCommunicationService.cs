@@ -52,6 +52,7 @@ namespace OpenSim.Region.Framework.Scenes
     public class SceneCommunicationService //one instance per region
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[SCENE COMMUNIATION SERVICE]";
 
         protected RegionInfo m_regionInfo;
         protected Scene m_scene;
@@ -84,15 +85,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (neighbourService != null)
                 neighbour = neighbourService.HelloNeighbour(regionhandle, region);
             else
-                m_log.DebugFormat(
-                    "[SCENE COMMUNICATION SERVICE]: No neighbour service provided for region {0} to inform neigbhours of status",
-                    m_scene.Name);
+                m_log.DebugFormat( "{0} neighbour service provided for region {0} to inform neigbhours of status", LogHeader, m_scene.Name);
 
             if (neighbour != null)
             {
-                m_log.DebugFormat(
-                    "[SCENE COMMUNICATION SERVICE]: Region {0} successfully informed neighbour {1} at {2}-{3} that it is up",
-                    m_scene.Name, neighbour.RegionName, Util.WorldToRegionLoc(x), Util.WorldToRegionLoc(y));
+                m_log.DebugFormat( "{0} Region {1} successfully informed neighbour {2} at {3}-{4} that it is up",
+                    LogHeader, m_scene.Name, neighbour.RegionName, Util.WorldToRegionLoc(x), Util.WorldToRegionLoc(y));
 
                 m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
@@ -111,9 +109,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<GridRegion> neighbours
                 = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
 
-            m_log.DebugFormat(
-                "[SCENE COMMUNICATION SERVICE]: Informing {0} neighbours that region {1} is up",
-                neighbours.Count, m_scene.Name);
+            m_log.DebugFormat("{0} Informing {1} neighbours that region {2} is up", LogHeader, neighbours.Count, m_scene.Name);
 
             foreach (GridRegion n in neighbours)
             {

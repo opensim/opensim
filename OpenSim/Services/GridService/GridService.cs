@@ -46,6 +46,7 @@ namespace OpenSim.Services.GridService
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+        private string LogHeader = "[GRID SERVICE]";
 
         private bool m_DeleteOnUnregister = true;
         private static GridService m_RootInstance = null;
@@ -328,7 +329,11 @@ namespace OpenSim.Services.GridService
                     }
                 }
 
-//                m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
+                // string rNames = "";
+                // foreach (GridRegion gr in rinfos)
+                //     rNames += gr.RegionName + ",";
+                // m_log.DebugFormat("{0} region {1} has {2} neighbours ({3})",
+                //             LogHeader, region.RegionName, rinfos.Count, rNames);
             }
             else
             {
