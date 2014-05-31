@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -410,6 +411,24 @@ namespace OpenSim.Framework
         public bool GroupAccess(UUID groupID)
         {
             return l_EstateGroups.Contains(groupID);
+        }
+
+        public Dictionary<string, object> ToMap()
+        {
+            Dictionary<string, object> map = new Dictionary<string, object>();
+            PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo p in properties)
+                map[p.Name] = p.GetValue(this, null);
+
+            return map;
+        }
+
+        public EstateSettings(Dictionary<string, object> map)
+        {
+            PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo p in properties)
+                p.SetValue(this, map[p.Name], null);
+
         }
     }
 }
