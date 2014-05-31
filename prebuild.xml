@@ -1407,6 +1407,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="XMLRPC" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
