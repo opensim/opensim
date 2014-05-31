@@ -19,10 +19,14 @@ Prereqs:
 
 From the distribution type:
  * ./runprebuild.sh
- * nant (or xbuild)
+ * nant (or !* xbuild)
  * cd bin 
  * copy OpenSim.ini.example to OpenSim.ini and other appropriate files in bin/config-include
  * run mono OpenSim.exe
+ !* xbuild option switches
+ !*          clean:  xbuild /target:clean
+ !*          debug: (default) xbuild /property:Configuration=Debug
+ !*          release: xbuild /property:Configuration=Release
 
 # Using Monodevelop
 

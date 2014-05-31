@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -48,6 +49,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         private CSharpCodeProvider m_CSCodeProvider;
         private CompilerParameters m_compilerParameters;
         private CompilerResults m_compilerResults;
+        private ResolveEventHandler m_resolveEventHandler;
 
         /// <summary>
         /// Creates a temporary directory where build artifacts are stored.
@@ -67,7 +69,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             m_CSCodeProvider = new CSharpCodeProvider();
             m_compilerParameters = new CompilerParameters();
 
-            string rootPath = Path.Combine(Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory));
+            string rootPath = System.AppDomain.CurrentDomain.BaseDirectory;
+
+            m_resolveEventHandler = new ResolveEventHandler(AssemblyResolver.OnAssemblyResolve);
+
+            System.AppDomain.CurrentDomain.AssemblyResolve += m_resolveEventHandler;
+                
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenMetaverseTypes.dll"));
@@ -81,6 +88,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         [TestFixtureTearDown]
         public void CleanUp()
         {
+            System.AppDomain.CurrentDomain.AssemblyResolve -= m_resolveEventHandler;
+
             if (Directory.Exists(m_testDir))
             {
                 // Blow away the temporary directory with artifacts.
@@ -166,10 +175,11 @@ default
 
             m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
 
-//            foreach (CompilerError compErr in m_compilerResults.Errors)
-//            {
-//                System.Console.WriteLine("Error: {0}", compErr);
-//            }
+            System.Console.WriteLine("ERRORS: {0}", m_compilerResults.Errors.Count);
+            foreach (CompilerError compErr in m_compilerResults.Errors)
+            {
+                System.Console.WriteLine("Error: {0}", compErr);
+            }
 
             Assert.AreEqual(0, m_compilerResults.Errors.Count);
         }
