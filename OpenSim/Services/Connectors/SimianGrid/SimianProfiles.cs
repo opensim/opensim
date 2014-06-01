@@ -425,7 +425,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         estate.EstateID, admin.Name);
 
                     estate.EstateOwner = admin.PrincipalID;
-                    estate.Save();
+                    scene.EstateDataService.StoreEstateSettings(estate);
                 }
                 else
                 {

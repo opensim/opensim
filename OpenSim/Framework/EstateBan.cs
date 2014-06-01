@@ -25,6 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -111,5 +115,50 @@ namespace OpenSim.Framework
             }
         }
 
+        public EstateBan() { }
+
+        public Dictionary<string, object> ToMap()
+        {
+            Dictionary<string, object> map = new Dictionary<string, object>();
+            PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo p in properties)
+                map[p.Name] = p.GetValue(this, null);
+
+            return map;
+        }
+
+        public EstateBan(Dictionary<string, object> map)
+        {
+            foreach (KeyValuePair<string, object> kvp in map)
+            {
+                PropertyInfo p = this.GetType().GetProperty(kvp.Key, BindingFlags.Public | BindingFlags.Instance);
+                if (p == null)
+                    continue;
+                object value = p.GetValue(this, null);
+                if (value is String)
+                    p.SetValue(this, map[p.Name], null);
+                else if (value is UInt32)
+                    p.SetValue(this, UInt32.Parse((string)map[p.Name]), null);
+                else if (value is Boolean)
+                    p.SetValue(this, Boolean.Parse((string)map[p.Name]), null);
+                else if (value is UUID)
+                    p.SetValue(this, UUID.Parse((string)map[p.Name]), null);
+            }
+        }
+
+
+        /// <summary>
+        ///  For debugging
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            Dictionary<string, object> map = ToMap();
+            string result = string.Empty;
+            foreach (KeyValuePair<string, object> kvp in map)
+                result += string.Format("{0}: {1} {2}", kvp.Key, kvp.Value, Environment.NewLine);
+
+            return result;
+        }
     }
 }

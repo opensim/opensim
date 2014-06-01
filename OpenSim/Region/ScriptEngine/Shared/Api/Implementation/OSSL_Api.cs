@@ -1246,7 +1246,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.RegionInfo.EstateSettings.UseGlobalTime = !sunFixed;
             World.RegionInfo.EstateSettings.SunPosition = sunHour;
             World.RegionInfo.EstateSettings.FixedSun = sunFixed;
-            World.RegionInfo.EstateSettings.Save();
+            World.EstateDataService.StoreEstateSettings(World.RegionInfo.EstateSettings);
 
             World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle);
         }

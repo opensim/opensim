@@ -244,7 +244,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
             {
                 dbSettings.EstateOwner = account.PrincipalID;
-                dbSettings.Save();
+                Scene.EstateDataService.StoreEstateSettings(dbSettings);
                 response = String.Empty;
 
                 // make sure there's a log entry to document the change
@@ -292,7 +292,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 {
                     string oldName = dbSettings.EstateName;
                     dbSettings.EstateName = newName;
-                    dbSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(dbSettings);
                     response = String.Empty;
 
                     // make sure there's a log entry to document the change
@@ -367,10 +367,15 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 else
                 {
                     EstateSettings settings = Scene.EstateDataService.CreateNewEstate();
-                    settings.EstateOwner = ownerID;
-                    settings.EstateName = estateName;
-                    settings.Save();
-                    response = String.Empty;
+                    if (settings == null)
+                        response = String.Format("Unable to create estate \"{0}\" at this simulator", estateName);
+                    else
+                    {
+                        settings.EstateOwner = ownerID;
+                        settings.EstateName = estateName;
+                        Scene.EstateDataService.StoreEstateSettings(settings);
+                        response = String.Empty;
+                    }
                 }
             }
             return response;
@@ -636,13 +641,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             {
                                 estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                 estateSettings.AddEstateUser(user);
-                                estateSettings.Save();
+                                Scene.EstateDataService.StoreEstateSettings(estateSettings);
                             }
                         }
                     }
 
                     Scene.RegionInfo.EstateSettings.AddEstateUser(user);
-                    Scene.RegionInfo.EstateSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                     TriggerEstateInfoChange();
                     remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AccessOptions, Scene.RegionInfo.EstateSettings.EstateAccess, Scene.RegionInfo.EstateSettings.EstateID);
@@ -669,13 +674,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             {
                                 estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                 estateSettings.RemoveEstateUser(user);
-                                estateSettings.Save();
+                                Scene.EstateDataService.StoreEstateSettings(estateSettings);
                             }
                         }
                     }
 
                     Scene.RegionInfo.EstateSettings.RemoveEstateUser(user);
-                    Scene.RegionInfo.EstateSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                     TriggerEstateInfoChange();
                     remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AccessOptions, Scene.RegionInfo.EstateSettings.EstateAccess, Scene.RegionInfo.EstateSettings.EstateID);
@@ -701,13 +706,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             {
                                 estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                 estateSettings.AddEstateGroup(user);
-                                estateSettings.Save();
+                                Scene.EstateDataService.StoreEstateSettings(estateSettings);
                             }
                         }
                     }
 
                     Scene.RegionInfo.EstateSettings.AddEstateGroup(user);
-                    Scene.RegionInfo.EstateSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                     TriggerEstateInfoChange();
                     remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, Scene.RegionInfo.EstateSettings.EstateGroups, Scene.RegionInfo.EstateSettings.EstateID);
@@ -733,13 +738,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             {
                                 estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                 estateSettings.RemoveEstateGroup(user);
-                                estateSettings.Save();
+                                Scene.EstateDataService.StoreEstateSettings(estateSettings);
                             }
                         }
                     }
 
                     Scene.RegionInfo.EstateSettings.RemoveEstateGroup(user);
-                    Scene.RegionInfo.EstateSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                     TriggerEstateInfoChange();
                     remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, Scene.RegionInfo.EstateSettings.EstateGroups, Scene.RegionInfo.EstateSettings.EstateID);
@@ -788,7 +793,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                                     estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                     estateSettings.AddBan(bitem);
-                                    estateSettings.Save();
+                                    Scene.EstateDataService.StoreEstateSettings(estateSettings);
                                 }
                             }
                         }
@@ -801,7 +806,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         item.BannedHostIPMask = "0.0.0.0";
 
                         Scene.RegionInfo.EstateSettings.AddBan(item);
-                        Scene.RegionInfo.EstateSettings.Save();
+                        Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                         TriggerEstateInfoChange();
 
@@ -864,13 +869,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                 {
                                     estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                     estateSettings.RemoveBan(user);
-                                    estateSettings.Save();
+                                    Scene.EstateDataService.StoreEstateSettings(estateSettings);
                                 }
                             }
                         }
 
                         Scene.RegionInfo.EstateSettings.RemoveBan(listitem.BannedUserID);
-                        Scene.RegionInfo.EstateSettings.Save();
+                        Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                         TriggerEstateInfoChange();
                     }
@@ -903,13 +908,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             {
                                 estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                 estateSettings.AddEstateManager(user);
-                                estateSettings.Save();
+                                Scene.EstateDataService.StoreEstateSettings(estateSettings);
                             }
                         }
                     }
 
                     Scene.RegionInfo.EstateSettings.AddEstateManager(user);
-                    Scene.RegionInfo.EstateSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                     TriggerEstateInfoChange();
                     remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.EstateManagers, Scene.RegionInfo.EstateSettings.EstateManagers, Scene.RegionInfo.EstateSettings.EstateID);
@@ -935,13 +940,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             {
                                 estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                                 estateSettings.RemoveEstateManager(user);
-                                estateSettings.Save();
+                                Scene.EstateDataService.StoreEstateSettings(estateSettings);
                             }
                         }
                     }
 
                     Scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
-                    Scene.RegionInfo.EstateSettings.Save();
+                    Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
                     TriggerEstateInfoChange();
                     remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.EstateManagers, Scene.RegionInfo.EstateSettings.EstateManagers, Scene.RegionInfo.EstateSettings.EstateID);
@@ -1415,7 +1420,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.EstateSettings.DenyMinors = false;
 
-            Scene.RegionInfo.EstateSettings.Save();
+            Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
             TriggerEstateInfoChange();
 
             Scene.TriggerEstateSunUpdate();

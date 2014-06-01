@@ -730,7 +730,7 @@ namespace OpenSim
             CreateRegion(regInfo, true, out scene);
 
             if (changed)
-	            regInfo.EstateSettings.Save();
+	            m_estateDataService.StoreEstateSettings(regInfo.EstateSettings);
         }
 
         /// <summary>

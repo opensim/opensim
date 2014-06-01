@@ -232,13 +232,9 @@ namespace OpenSim
                         module));
 
             // Load the estate data service
-            IConfig estateDataConfig = Config.Configs["EstateDataStore"];
-            if (estateDataConfig == null)
-                throw new Exception("Configuration file is missing the [EstateDataStore] section.  Have you copied OpenSim.ini.example to OpenSim.ini to reference config-include/ files?");
-
-            module = estateDataConfig.GetString("LocalServiceModule", String.Empty);
+            module = Util.GetConfigVarFromSections<string>(Config, "LocalServiceModule", new string[]{"EstateDataStore", "EstateService"}, String.Empty); 
             if (String.IsNullOrEmpty(module))
-                throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] section");
+                throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] or [EstateService] section");
 
             m_estateDataService = ServerUtils.LoadPlugin<IEstateDataService>(module, new object[] { Config });
             if (m_estateDataService == null)
@@ -555,7 +551,7 @@ namespace OpenSim
             else
             {
                 regionInfo.EstateSettings.EstateOwner = account.PrincipalID;
-                regionInfo.EstateSettings.Save();
+                m_estateDataService.StoreEstateSettings(regionInfo.EstateSettings);
             }
         }
 
@@ -950,7 +946,7 @@ namespace OpenSim
             // back to the default.  The reloading of estate settings by scene could be eliminated if it
             // knows that the passed in settings in RegionInfo are already valid.  Also, it might be 
             // possible to eliminate some additional later saves made by callers of this method.
-            regInfo.EstateSettings.Save();   
+            EstateDataService.StoreEstateSettings(regInfo.EstateSettings);   
             
             return true;
         }

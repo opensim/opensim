@@ -694,7 +694,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     region.EstateSettings.EstateName = (string) requestData["estate_name"];
                     region.EstateSettings.EstateOwner = userID;
                     // Persistence does not seem to effect the need to save a new estate
-                    region.EstateSettings.Save();
+                    m_application.EstateDataService.StoreEstateSettings(region.EstateSettings);
 
                     if (!m_application.EstateDataService.LinkRegion(region.RegionID, (int) region.EstateSettings.EstateID))
                         throw new Exception("Failed to join estate.");
@@ -724,7 +724,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 // If an access specification was provided, use it.
                 // Otherwise accept the default.
                 newScene.RegionInfo.EstateSettings.PublicAccess = GetBoolean(requestData, "public", m_publicAccess);
-                newScene.RegionInfo.EstateSettings.Save();
+                m_application.EstateDataService.StoreEstateSettings(newScene.RegionInfo.EstateSettings);
 
                 // enable voice on newly created region if
                 // requested by either the XmlRpc request or the
@@ -910,7 +910,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 scene.RegionInfo.EstateSettings.PublicAccess =
                     GetBoolean(requestData,"public", scene.RegionInfo.EstateSettings.PublicAccess);
                 if (scene.RegionInfo.Persistent)
-                    scene.RegionInfo.EstateSettings.Save();
+                    m_application.EstateDataService.StoreEstateSettings(scene.RegionInfo.EstateSettings);
 
                 if (requestData.ContainsKey("enable_voice"))
                 {
@@ -1792,7 +1792,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             scene.RegionInfo.EstateSettings.EstateAccess = new UUID[]{};
 
             if (scene.RegionInfo.Persistent)
-                scene.RegionInfo.EstateSettings.Save();
+                m_application.EstateDataService.StoreEstateSettings(scene.RegionInfo.EstateSettings);
 
             m_log.Info("[RADMIN]: Access List Clear Request complete");
         }
@@ -1838,7 +1838,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 scene.RegionInfo.EstateSettings.EstateAccess = accessControlList.ToArray();
                 if (scene.RegionInfo.Persistent)
-                    scene.RegionInfo.EstateSettings.Save();
+                    m_application.EstateDataService.StoreEstateSettings(scene.RegionInfo.EstateSettings);
             }
 
             responseData["added"] = addedUsers;
@@ -1887,7 +1887,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 scene.RegionInfo.EstateSettings.EstateAccess = accessControlList.ToArray();
                 if (scene.RegionInfo.Persistent)
-                    scene.RegionInfo.EstateSettings.Save();
+                    m_application.EstateDataService.StoreEstateSettings(scene.RegionInfo.EstateSettings);
             }
 
             responseData["removed"] = removedUsers;

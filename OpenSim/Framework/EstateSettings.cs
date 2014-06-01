@@ -418,17 +418,106 @@ namespace OpenSim.Framework
             Dictionary<string, object> map = new Dictionary<string, object>();
             PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo p in properties)
-                map[p.Name] = p.GetValue(this, null);
+            {
+                // EstateBans is a complex type, let's treat it as special
+                if (p.Name == "EstateBans")
+                    continue;
 
+                object value = p.GetValue(this, null);
+                if (value != null)
+                {
+                    if (p.PropertyType.IsArray) // of UUIDs
+                    {
+                        if (((Array)value).Length > 0)
+                        {
+                            string[] args = new string[((Array)value).Length];
+                            int index = 0;
+                            foreach (object o in (Array)value)
+                                args[index++] = o.ToString();
+                            map[p.Name] = String.Join(",", args);
+                        }
+                    }
+                    else // simple types
+                        map[p.Name] = value;
+                }
+            }
+
+            // EstateBans are special
+            Dictionary<string, object> bans = new Dictionary<string, object>();
+            int i = 0;
+            foreach (EstateBan ban in EstateBans)
+                bans["ban" + i++] = ban.ToMap();
+            map["EstateBans"] = bans;
             return map;
+        }
+
+        /// <summary>
+        /// For debugging
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            Dictionary<string, object> map = ToMap();
+            String result = String.Empty;
+
+            foreach (KeyValuePair<string, object> kvp in map)
+            {
+                if (kvp.Key == "EstateBans")
+                {
+                    result += "EstateBans:" + Environment.NewLine;
+                    foreach (KeyValuePair<string, object> ban in (Dictionary<string, object>)kvp.Value)
+                        result += ban.Value.ToString();
+                }
+                else
+                    result += string.Format("{0}: {1} {2}", kvp.Key, kvp.Value.ToString(), Environment.NewLine);
+            }
+
+            return result;
         }
 
         public EstateSettings(Dictionary<string, object> map)
         {
-            PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (PropertyInfo p in properties)
-                p.SetValue(this, map[p.Name], null);
+            foreach (KeyValuePair<string, object> kvp in map)
+            {
+                PropertyInfo p = this.GetType().GetProperty(kvp.Key, BindingFlags.Public | BindingFlags.Instance);
+                if (p == null)
+                    continue;
 
+                // EstateBans is a complex type, let's treat it as special
+                if (p.Name == "EstateBans")
+                    continue;
+
+                if (p.PropertyType.IsArray)
+                {
+                    string[] elements = ((string)map[p.Name]).Split(new char[] { ',' });
+                    UUID[] uuids = new UUID[elements.Length];
+                    int i = 0;
+                    foreach (string e in elements)
+                        uuids[i++] = new UUID(e);
+                    p.SetValue(this, uuids, null);
+                }
+                else
+                {
+                    object value = p.GetValue(this, null);
+                    if (value is String)
+                        p.SetValue(this, map[p.Name], null);
+                    else if (value is UInt32)
+                        p.SetValue(this, UInt32.Parse((string)map[p.Name]), null);
+                    else if (value is Boolean)
+                        p.SetValue(this, Boolean.Parse((string)map[p.Name]), null);
+                    else if (value is UUID)
+                        p.SetValue(this, UUID.Parse((string)map[p.Name]), null);
+                }
+            }
+
+            // EstateBans are special
+            var banData = ((Dictionary<string, object>)map["EstateBans"]).Values;
+            EstateBan[] bans = new EstateBan[banData.Count];
+            int b = 0;
+            foreach (Dictionary<string, object> ban in banData)
+                bans[b++] = new EstateBan(ban);
+            PropertyInfo bansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
+            bansProperty.SetValue(this, bans, null);
         }
     }
 }

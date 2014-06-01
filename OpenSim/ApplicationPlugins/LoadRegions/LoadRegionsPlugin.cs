@@ -39,6 +39,7 @@ using OpenSim.Region.CoreModules.Avatar.InstantMessage;
 using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.CoreModules.Scripting.LoadImageURL;
 using OpenSim.Region.CoreModules.Scripting.XMLRPC;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
@@ -130,7 +131,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 createdScenes.Add(scene);
 
                 if (changed)
-                    regionsToLoad[i].EstateSettings.Save();
+                    m_openSim.EstateDataService.StoreEstateSettings(regionsToLoad[i].EstateSettings);
             }
 
             foreach (IScene scene in createdScenes)
