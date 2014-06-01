@@ -469,7 +469,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             return false;
         }
-            
+         
         /// <summary>
         /// Parse a user set configuration setting
         /// </summary>
@@ -1470,6 +1470,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
             else if (((parcel.LandData.Flags & (uint)ParcelFlags.CreateGroupObjects) != 0)
                 && (parcel.LandData.GroupID != UUID.Zero) && IsGroupMember(parcel.LandData.GroupID, owner, 0))
+            {
+                return true;
+            }
+            else if (parcel.LandData.GroupID != UUID.Zero && IsGroupMember(parcel.LandData.GroupID, owner, (ulong)GroupPowers.AllowRez))
             {
                 return true;
             }
