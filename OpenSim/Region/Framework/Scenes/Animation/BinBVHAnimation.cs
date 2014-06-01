@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -113,31 +113,34 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public byte[] ToBytes()
         {
-            byte[] outputbytes = new byte[0];
+            byte[] outputbytes;
 
-            BinaryWriter iostream = new BinaryWriter(new MemoryStream());
-            iostream.Write(BinBVHUtil.ES(Utils.UInt16ToBytes(unknown0)));
-            iostream.Write(BinBVHUtil.ES(Utils.UInt16ToBytes(unknown1)));
-            iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(Priority)));
-            iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(Length)));
-            iostream.Write(BinBVHUtil.WriteNullTerminatedString(ExpressionName));
-            iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(InPoint)));
-            iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(OutPoint)));
-            iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(Loop ? 1 : 0)));
-            iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(EaseInTime)));
-            iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(EaseOutTime)));
-            iostream.Write(BinBVHUtil.ES(Utils.UIntToBytes(HandPose)));
-            iostream.Write(BinBVHUtil.ES(Utils.UIntToBytes((uint)(Joints.Length))));
-            
-            for (int i = 0; i < Joints.Length; i++)
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter iostream = new BinaryWriter(ms))
             {
-                Joints[i].WriteBytesToStream(iostream, InPoint, OutPoint);
+                iostream.Write(BinBVHUtil.ES(Utils.UInt16ToBytes(unknown0)));
+                iostream.Write(BinBVHUtil.ES(Utils.UInt16ToBytes(unknown1)));
+                iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(Priority)));
+                iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(Length)));
+                iostream.Write(BinBVHUtil.WriteNullTerminatedString(ExpressionName));
+                iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(InPoint)));
+                iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(OutPoint)));
+                iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(Loop ? 1 : 0)));
+                iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(EaseInTime)));
+                iostream.Write(BinBVHUtil.ES(Utils.FloatToBytes(EaseOutTime)));
+                iostream.Write(BinBVHUtil.ES(Utils.UIntToBytes(HandPose)));
+                iostream.Write(BinBVHUtil.ES(Utils.UIntToBytes((uint)(Joints.Length))));
+
+                for (int i = 0; i < Joints.Length; i++)
+                {
+                    Joints[i].WriteBytesToStream(iostream, InPoint, OutPoint);
+                }
+                iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(0)));
+            
+                using (MemoryStream ms2 = (MemoryStream)iostream.BaseStream)
+                    outputbytes = ms2.ToArray();
             }
-            iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(0)));
-            MemoryStream ms = (MemoryStream)iostream.BaseStream;
-            outputbytes = ms.ToArray();
-            ms.Close();
-            iostream.Close();
+
             return outputbytes;
         }
         

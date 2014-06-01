@@ -918,17 +918,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
 
-            MemoryStream ms = new MemoryStream(data);
-            if (m_displacement != Vector3.Zero || m_rotation != 0f)
+            using (MemoryStream ms = new MemoryStream(data))
             {
-                Vector2 rotationCenter = new Vector2(m_rotationCenter.X, m_rotationCenter.Y);
-                terrainModule.LoadFromStream(terrainPath, m_displacement, m_rotation, rotationCenter, ms);
+                if (m_displacement != Vector3.Zero || m_rotation != 0f)
+                {
+                    Vector2 rotationCenter = new Vector2(m_rotationCenter.X, m_rotationCenter.Y);
+                    terrainModule.LoadFromStream(terrainPath, m_displacement, m_rotation, rotationCenter, ms);
+                }
+                else
+                {
+                    terrainModule.LoadFromStream(terrainPath, ms);
+                }
             }
-            else
-            {
-                terrainModule.LoadFromStream(terrainPath, ms);
-            }
-            ms.Close();
 
             m_log.DebugFormat("[ARCHIVER]: Restored terrain {0}", terrainPath);
 

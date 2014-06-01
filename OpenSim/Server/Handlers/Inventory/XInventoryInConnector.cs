@@ -191,18 +191,7 @@ namespace OpenSim.Server.Handlers.Asset
 
             rootElement.AppendChild(result);
 
-            return DocToBytes(doc);
-        }
-
-        private byte[] DocToBytes(XmlDocument doc)
-        {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, null);
-            xw.Formatting = Formatting.Indented;
-            doc.WriteTo(xw);
-            xw.Flush();
-
-            return ms.ToArray();
+            return Util.DocToBytes(doc);
         }
 
         byte[] HandleCreateUserInventory(Dictionary<string,object> request)

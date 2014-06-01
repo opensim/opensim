@@ -196,17 +196,19 @@ namespace OpenSim.Server.Base
 
         public static  byte[] SerializeResult(XmlSerializer xs, object data)
         {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, Util.UTF8);
-            xw.Formatting = Formatting.Indented;
-            xs.Serialize(xw, data);
-            xw.Flush();
+            using (MemoryStream ms = new MemoryStream())
+            using (XmlTextWriter xw = new XmlTextWriter(ms, Util.UTF8))
+            {
+                xw.Formatting = Formatting.Indented;
+                xs.Serialize(xw, data);
+                xw.Flush();
 
-            ms.Seek(0, SeekOrigin.Begin);
-            byte[] ret = ms.GetBuffer();
-            Array.Resize(ref ret, (int)ms.Length);
+                ms.Seek(0, SeekOrigin.Begin);
+                byte[] ret = ms.GetBuffer();
+                Array.Resize(ref ret, (int)ms.Length);
 
-            return ret;
+                return ret;
+            }
         }
 
         /// <summary>

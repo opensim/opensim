@@ -1145,7 +1145,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             if (myMapImageJPEG.Length == 0)
             {
-                MemoryStream imgstream = new MemoryStream();
+                MemoryStream imgstream = null;
                 Bitmap mapTexture = new Bitmap(1,1);
                 ManagedImage managedImage;
                 Image image = (Image)mapTexture;
@@ -1192,10 +1192,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         image.Dispose();
 
                     if (imgstream != null)
-                    {
-                        imgstream.Close();
                         imgstream.Dispose();
-                    }
                 }
             }
             else

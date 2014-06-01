@@ -308,10 +308,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                MemoryStream ms = new MemoryStream(data);
-                BinaryFormatter fmt = new BinaryFormatter();
-
-                newMotion = (KeyframeMotion)fmt.Deserialize(ms);
+                using (MemoryStream ms = new MemoryStream(data))
+                {
+                    BinaryFormatter fmt = new BinaryFormatter();
+                    newMotion = (KeyframeMotion)fmt.Deserialize(ms);
+                }
 
                 newMotion.m_group = grp;
 
@@ -764,19 +765,22 @@ namespace OpenSim.Region.Framework.Scenes
         public Byte[] Serialize()
         {
             StopTimer();
-            MemoryStream ms = new MemoryStream();
 
-            BinaryFormatter fmt = new BinaryFormatter();
             SceneObjectGroup tmp = m_group;
             m_group = null;
             if (!m_selected && tmp != null)
                 m_serializedPosition = tmp.AbsolutePosition;
-            fmt.Serialize(ms, this);
-            m_group = tmp;
-            if (m_running && !m_waitingCrossing)
-                StartTimer();
 
-            return ms.ToArray();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                BinaryFormatter fmt = new BinaryFormatter();
+                fmt.Serialize(ms, this);
+                m_group = tmp;
+                if (m_running && !m_waitingCrossing)
+                    StartTimer();
+
+                return ms.ToArray();
+            }
         }
 
         public void StartCrossingCheck()

@@ -1121,9 +1121,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 try
                 {
-                    MemoryStream terrainStream = new MemoryStream(terrainData);
-                    terr.LoadFromStream(filename, terrainStream);
-                    terrainStream.Close();
+                    using (MemoryStream terrainStream = new MemoryStream(terrainData))
+                        terr.LoadFromStream(filename, terrainStream);
 
                     FileInfo x = new FileInfo(filename);
                     remoteClient.SendAlertMessage("Your terrain was loaded as a " + x.Extension + " file. It may take a few moments to appear.");

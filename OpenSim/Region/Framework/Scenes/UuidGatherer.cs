@@ -458,35 +458,36 @@ namespace OpenSim.Region.Framework.Scenes
             if (null == assetBase)
                 return;
 
-            MemoryStream ms = new MemoryStream(assetBase.Data);
-            StreamReader sr = new StreamReader(ms);
-
-            sr.ReadLine(); // Unknown (Version?)
-            sr.ReadLine(); // Unknown
-            sr.ReadLine(); // Unknown
-            sr.ReadLine(); // Name
-            sr.ReadLine(); // Comment ?
-            int count = Convert.ToInt32(sr.ReadLine()); // Item count
-
-            for (int i = 0 ; i < count ; i++)
+            using (MemoryStream ms = new MemoryStream(assetBase.Data))
+            using (StreamReader sr = new StreamReader(ms))
             {
-                string type = sr.ReadLine();
-                if (type == null)
-                    break;
-                string name = sr.ReadLine();
-                if (name == null)
-                    break;
-                string id = sr.ReadLine();
-                if (id == null)
-                    break;
-                string unknown = sr.ReadLine();
-                if (unknown == null)
-                    break;
+                sr.ReadLine(); // Unknown (Version?)
+                sr.ReadLine(); // Unknown
+                sr.ReadLine(); // Unknown
+                sr.ReadLine(); // Name
+                sr.ReadLine(); // Comment ?
+                int count = Convert.ToInt32(sr.ReadLine()); // Item count
 
-                // If it can be parsed as a UUID, it is an asset ID
-                UUID uuid;
-                if (UUID.TryParse(id, out uuid))
-                    assetUuids[uuid] = (sbyte)AssetType.Animation;
+                for (int i = 0 ; i < count ; i++)
+                {
+                    string type = sr.ReadLine();
+                    if (type == null)
+                        break;
+                    string name = sr.ReadLine();
+                    if (name == null)
+                        break;
+                    string id = sr.ReadLine();
+                    if (id == null)
+                        break;
+                    string unknown = sr.ReadLine();
+                    if (unknown == null)
+                        break;
+
+                    // If it can be parsed as a UUID, it is an asset ID
+                    UUID uuid;
+                    if (UUID.TryParse(id, out uuid))
+                        assetUuids[uuid] = (sbyte)AssetType.Animation;    // the asset is either an Animation or a Sound, but this distinction isn't important
+                }
             }
         }
 

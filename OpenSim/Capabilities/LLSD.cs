@@ -68,7 +68,10 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static object LLSDDeserialize(byte[] b)
         {
-            return LLSDDeserialize(new MemoryStream(b, false));
+            using (MemoryStream ms = new MemoryStream(b, false))
+            {
+                return LLSDDeserialize(ms);
+            }
         }
 
         /// <summary>
@@ -78,21 +81,23 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static object LLSDDeserialize(Stream st)
         {
-            XmlTextReader reader = new XmlTextReader(st);
-            reader.Read();
-            SkipWS(reader);
+            using (XmlTextReader reader = new XmlTextReader(st))
+            {
+                reader.Read();
+                SkipWS(reader);
 
-            if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "llsd")
-                throw new LLSDParseException("Expected <llsd>");
+                if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "llsd")
+                    throw new LLSDParseException("Expected <llsd>");
 
-            reader.Read();
-            object ret = LLSDParseOne(reader);
-            SkipWS(reader);
+                reader.Read();
+                object ret = LLSDParseOne(reader);
+                SkipWS(reader);
 
-            if (reader.NodeType != XmlNodeType.EndElement || reader.LocalName != "llsd")
-                throw new LLSDParseException("Expected </llsd>");
+                if (reader.NodeType != XmlNodeType.EndElement || reader.LocalName != "llsd")
+                    throw new LLSDParseException("Expected </llsd>");
 
-            return ret;
+                return ret;
+            }
         }
 
         /// <summary>
