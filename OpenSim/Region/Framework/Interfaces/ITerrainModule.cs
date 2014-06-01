@@ -24,9 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
 using System.IO;
+
+using OpenSim.Framework;
+
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -42,6 +43,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Use this if you change terrain data outside of the terrain module (e.g. in osTerrainSetHeight)
         /// </summary>
         void TaintTerrain();
+        
+        /// <summary>
+        /// When a client initially connects, all the terrain must be pushed to the viewer.
+        /// This call causes all the terrain patches to be sent to the client.
+        /// </summary>
+        void PushTerrain(IClientAPI pClient);
         
         /// <summary>
         /// Load a terrain from a stream.

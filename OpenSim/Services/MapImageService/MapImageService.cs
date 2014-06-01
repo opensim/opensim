@@ -36,6 +36,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 
 using Nini.Config;
 using log4net;
@@ -53,6 +54,7 @@ namespace OpenSim.Services.MapImageService
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+        private string LogHeader = "[MAP IMAGE SERVICE]";
 
         private const int ZOOM_LEVELS = 8;
         private const int IMAGE_WIDTH = 256;
@@ -114,7 +116,7 @@ namespace OpenSim.Services.MapImageService
                 }
             }
 
-            return UpdateMultiResolutionFiles(x, y, out reason);
+            return UpdateMultiResolutionFilesAsync(x, y, out reason);
         }
 
         public bool RemoveMapTile(int x, int y, out string reason)
@@ -136,33 +138,81 @@ namespace OpenSim.Services.MapImageService
                 }
             }
 
-            return UpdateMultiResolutionFiles(x, y, out reason);
+            return UpdateMultiResolutionFilesAsync(x, y, out reason);
         }
 
-        private bool UpdateMultiResolutionFiles(int x, int y, out string reason)
+        // When large varregions start up, they can send piles of new map tiles. This causes
+        //    this multi-resolution routine to be called a zillion times an causes much CPU
+        //    time to be spent creating multi-resolution tiles that will be replaced when
+        //    the next maptile arrives.
+        private class mapToMultiRez
+        {
+            public int xx;
+            public int yy;
+            public mapToMultiRez(int pX, int pY)
+            {
+                xx = pX;
+                yy = pY;
+            }
+        };
+        private Queue<mapToMultiRez> multiRezToBuild = new Queue<mapToMultiRez>();
+        private bool UpdateMultiResolutionFilesAsync(int x, int y, out string reason)
         {
             reason = String.Empty;
-            lock (m_Sync)
+            lock (multiRezToBuild)
             {
-                // Stitch seven more aggregate tiles together
-                for (uint zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
-                {
-                    // Calculate the width (in full resolution tiles) and bottom-left
-                    // corner of the current zoom level
-                    int width = (int)Math.Pow(2, (double)(zoomLevel - 1));
-                    int x1 = x - (x % width);
-                    int y1 = y - (y % width);
+                // m_log.DebugFormat("{0} UpdateMultiResolutionFilesAsync: scheduling update for <{1},{2}>", LogHeader, x, y);
+                multiRezToBuild.Enqueue(new mapToMultiRez(x, y));
+                if (multiRezToBuild.Count == 1)
+                    Util.FireAndForget(DoUpdateMultiResolutionFilesAsync);
+            }
 
-                    if (!CreateTile(zoomLevel, x1, y1))
+            return true;
+        }
+
+        private void DoUpdateMultiResolutionFilesAsync(object o)
+        {
+            // This sleep causes the FireAndForget thread to be different than the invocation thread.
+            // It also allows other tiles to be uploaded so the multi-rez images are more likely
+            //     to be correct.
+            Thread.Sleep(1 * 1000);
+
+            while (multiRezToBuild.Count > 0)
+            {
+                mapToMultiRez toMultiRez = null;
+                lock (multiRezToBuild)
+                {
+                    if (multiRezToBuild.Count > 0)
+                        toMultiRez = multiRezToBuild.Dequeue();
+                }
+                if (toMultiRez != null)
+                {
+                    int x = toMultiRez.xx;
+                    int y = toMultiRez.yy;
+                    // m_log.DebugFormat("{0} DoUpdateMultiResolutionFilesAsync: doing build for <{1},{2}>", LogHeader, x, y);
+
+                    // Stitch seven more aggregate tiles together
+                    for (uint zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
                     {
-                        m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
-                        reason = string.Format("Map tile at zoom level {0} failed", zoomLevel);
-                        return false;
+                        // Calculate the width (in full resolution tiles) and bottom-left
+                        // corner of the current zoom level
+                        int width = (int)Math.Pow(2, (double)(zoomLevel - 1));
+                        int x1 = x - (x % width);
+                        int y1 = y - (y % width);
+
+                        lock (m_Sync)   // must lock the reading and writing of the maptile files
+                        {
+                            if (!CreateTile(zoomLevel, x1, y1))
+                            {
+                                m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
+                                return;
+                            }
+                        }
                     }
                 }
             }
 
-            return true;
+            return;
         }
 
         public byte[] GetMapTile(string fileName, out string format)

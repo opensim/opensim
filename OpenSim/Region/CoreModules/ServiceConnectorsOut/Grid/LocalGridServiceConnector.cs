@@ -199,6 +199,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             GridRegion region = null;
+            uint regionX = Util.WorldToRegionLoc((uint)x);
+            uint regionY = Util.WorldToRegionLoc((uint)y);
 
             // First see if it's a neighbour, even if it isn't on this sim.
             // Neighbour data is cached in memory, so this is fast
@@ -222,11 +224,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 region = m_GridService.GetRegionByPosition(scopeID, x, y);
                 if (region == null)
+                {
                     m_log.DebugFormat("{0} GetRegionByPosition. Region not found by grid service. Pos=<{1},{2}>",
-                                        LogHeader, x, y);
+                                        LogHeader, regionX, regionY);
+                }
                 else
+                {
                     m_log.DebugFormat("{0} GetRegionByPosition. Requested region {1} from grid service. Pos=<{2},{3}>",
-                                        LogHeader, region.RegionName, x, y);
+                                        LogHeader, region.RegionName, regionX, regionY);
+                }
             }
             return region;
         }
