@@ -198,6 +198,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     else
                     {
                         MapBlockData data = WorldMap.MapBlockFromGridRegion(info, flags);
+                        blocks.Add(data);
                     }
                 }
             }
