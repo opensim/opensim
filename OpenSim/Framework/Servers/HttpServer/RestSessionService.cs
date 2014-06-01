@@ -77,25 +77,24 @@ namespace OpenSim.Framework.Servers.HttpServer
             request.ContentType = "text/xml";
             request.Timeout = 20000;
 
-            MemoryStream buffer = new MemoryStream();
-
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Encoding = Encoding.UTF8;
-
-            using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+            using (MemoryStream buffer = new MemoryStream())
             {
-                XmlSerializer serializer = new XmlSerializer(type);
-                serializer.Serialize(writer, sobj);
-                writer.Flush();
+                XmlWriterSettings settings = new XmlWriterSettings();
+                settings.Encoding = Encoding.UTF8;
+
+                using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+                {
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    serializer.Serialize(writer, sobj);
+                    writer.Flush();
+                }
+
+                int length = (int)buffer.Length;
+                request.ContentLength = length;
+
+                using (Stream requestStream = request.GetRequestStream())
+                    requestStream.Write(buffer.ToArray(), 0, length);
             }
-
-            int length = (int)buffer.Length;
-            request.ContentLength = length;
-
-            Stream requestStream = request.GetRequestStream();
-            requestStream.Write(buffer.ToArray(), 0, length);
-            buffer.Close();
-            requestStream.Close();
 
             TResponse deserial = default(TResponse);
             using (WebResponse resp = request.GetResponse())
@@ -133,25 +132,25 @@ namespace OpenSim.Framework.Servers.HttpServer
             request.ContentType = "text/xml";
             request.Timeout = 10000;
 
-            MemoryStream buffer = new MemoryStream();
-
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Encoding = Encoding.UTF8;
-
-            using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+            using (MemoryStream buffer = new MemoryStream())
             {
-                XmlSerializer serializer = new XmlSerializer(type);
-                serializer.Serialize(writer, sobj);
-                writer.Flush();
+                XmlWriterSettings settings = new XmlWriterSettings();
+                settings.Encoding = Encoding.UTF8;
+
+                using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+                {
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    serializer.Serialize(writer, sobj);
+                    writer.Flush();
+                }
+
+                int length = (int)buffer.Length;
+                request.ContentLength = length;
+
+                using (Stream requestStream = request.GetRequestStream())
+                    requestStream.Write(buffer.ToArray(), 0, length);
             }
-            buffer.Close();
 
-            int length = (int)buffer.Length;
-            request.ContentLength = length;
-
-            Stream requestStream = request.GetRequestStream();
-            requestStream.Write(buffer.ToArray(), 0, length);
-            requestStream.Close();
             // IAsyncResult result = request.BeginGetResponse(AsyncCallback, request);
             request.BeginGetResponse(AsyncCallback, request);
         }

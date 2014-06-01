@@ -54,13 +54,14 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
         {
             string xmlstream = GetObjectXml(scene);
 
-            MemoryStream stream = ReformatXmlString(xmlstream);
+            using (MemoryStream stream = ReformatXmlString(xmlstream))
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                CreateXmlFile(stream, fileName);
 
-            stream.Seek(0, SeekOrigin.Begin);
-            CreateXmlFile(stream, fileName);
-
-            stream.Seek(0, SeekOrigin.Begin);
-            CreateCompressedXmlFile(stream, fileName);
+                stream.Seek(0, SeekOrigin.Begin);
+                CreateCompressedXmlFile(stream, fileName);
+            }
         }
 
         private static MemoryStream ReformatXmlString(string xmlstream)
@@ -112,13 +113,16 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
         {
             #region GZip Compressed Version
 
-            FileStream objectsFileCompressed = new FileStream(fileName + ".gzs", FileMode.Create);
-            MemoryStream gzipMSStream = new MemoryStream();
-            GZipStream gzipStream = new GZipStream(gzipMSStream, CompressionMode.Compress);
-            xmlStream.WriteTo(gzipStream);
-            gzipMSStream.WriteTo(objectsFileCompressed);
-            objectsFileCompressed.Flush();
-            objectsFileCompressed.Close();
+            using (FileStream objectsFileCompressed = new FileStream(fileName + ".gzs", FileMode.Create))
+            using (MemoryStream gzipMSStream = new MemoryStream())
+            {
+                using (GZipStream gzipStream = new GZipStream(gzipMSStream, CompressionMode.Compress, true))
+                {
+                    xmlStream.WriteTo(gzipStream);
+                }
+
+                gzipMSStream.WriteTo(objectsFileCompressed);
+            }
 
             #endregion
         }

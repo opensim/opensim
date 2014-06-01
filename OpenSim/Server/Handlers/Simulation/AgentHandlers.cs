@@ -250,14 +250,30 @@ namespace OpenSim.Server.Handlers.Simulation
                 return encoding.GetBytes("false");
             }
 
+            string requestBody;
+
             Stream inputStream = request;
-            if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
-                inputStream = new GZipStream(inputStream, CompressionMode.Decompress);
+            Stream innerStream = null;
+            try
+            {
+                if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
+                {
+                    innerStream = inputStream;
+                    inputStream = new GZipStream(innerStream, CompressionMode.Decompress);
+                }
 
-            StreamReader reader = new StreamReader(inputStream, encoding);
+                using (StreamReader reader = new StreamReader(inputStream, encoding))
+                {
+                    requestBody = reader.ReadToEnd();
+                }
+            }
+            finally
+            {
+                if (innerStream != null)
+                    innerStream.Dispose();
+                inputStream.Dispose();
+            }
 
-            string requestBody = reader.ReadToEnd();
-            reader.Close();
             keysvals.Add("body", requestBody);
 
             Hashtable responsedata = new Hashtable();
@@ -461,15 +477,31 @@ namespace OpenSim.Server.Handlers.Simulation
             keysvals.Add("headers", headervals);
             keysvals.Add("querystringkeys", querystringkeys);
 
-            Stream inputStream = request;
-            if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
-                inputStream = new GZipStream(inputStream, CompressionMode.Decompress);
-
+            String requestBody;
             Encoding encoding = Encoding.UTF8;
-            StreamReader reader = new StreamReader(inputStream, encoding);
 
-            string requestBody = reader.ReadToEnd();
-            reader.Close();
+            Stream inputStream = request;
+            Stream innerStream = null;
+            try
+            {
+                if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
+                {
+                    innerStream = inputStream;
+                    inputStream = new GZipStream(innerStream, CompressionMode.Decompress);
+                }
+
+                using (StreamReader reader = new StreamReader(inputStream, encoding))
+                {
+                    requestBody = reader.ReadToEnd();
+                }
+            }
+            finally
+            {
+                if (innerStream != null)
+                    innerStream.Dispose();
+                inputStream.Dispose();
+            }
+
             keysvals.Add("body", requestBody);
 
             httpResponse.StatusCode = 200;

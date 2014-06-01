@@ -209,7 +209,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             rootElement.AppendChild(result);
 
-            return DocToBytes(doc);
+            return Util.DocToBytes(doc);
         }
 
         byte[] GetAuthInfo(UUID principalID)
@@ -279,7 +279,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             rootElement.AppendChild(result);
 
-            return DocToBytes(doc);
+            return Util.DocToBytes(doc);
         }
 
         private byte[] SuccessResult(string token)
@@ -306,18 +306,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             rootElement.AppendChild(t);
 
-            return DocToBytes(doc);
-        }
-
-        private byte[] DocToBytes(XmlDocument doc)
-        {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, null);
-            xw.Formatting = Formatting.Indented;
-            doc.WriteTo(xw);
-            xw.Flush();
-
-            return ms.GetBuffer();
+            return Util.DocToBytes(doc);
         }
 
         private byte[] ResultToBytes(Dictionary<string, object> result)

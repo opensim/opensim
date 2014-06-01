@@ -171,27 +171,29 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Data;
             }
 
-            RestClient rc = new RestClient(m_ServerURI);
-            rc.AddResourcePath("assets");
-            rc.AddResourcePath(id);
-            rc.AddResourcePath("data");
-
-            rc.RequestMethod = "GET";
-
-            Stream s = rc.Request(m_Auth);
-
-            if (s == null)
-                return null;
-
-            if (s.Length > 0)
+            using (RestClient rc = new RestClient(m_ServerURI))
             {
-                byte[] ret = new byte[s.Length];
-                s.Read(ret, 0, (int)s.Length);
+                rc.AddResourcePath("assets");
+                rc.AddResourcePath(id);
+                rc.AddResourcePath("data");
 
-                return ret;
+                rc.RequestMethod = "GET";
+
+                Stream s = rc.Request(m_Auth);
+
+                if (s == null)
+                    return null;
+
+                if (s.Length > 0)
+                {
+                    byte[] ret = new byte[s.Length];
+                    s.Read(ret, 0, (int)s.Length);
+
+                    return ret;
+                }
+
+                return null;
             }
-
-            return null;
         }
 
         public bool Get(string id, Object sender, AssetRetrieved handler)

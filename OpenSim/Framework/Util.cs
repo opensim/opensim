@@ -509,6 +509,19 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        public static byte[] DocToBytes(XmlDocument doc)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (XmlTextWriter xw = new XmlTextWriter(ms, null))
+            {
+                xw.Formatting = Formatting.Indented;
+                doc.WriteTo(xw);
+                xw.Flush();
+
+                return ms.ToArray();
+            }
+        }
+
         /// <summary>
         /// Is the platform Windows?
         /// </summary>
@@ -1305,46 +1318,6 @@ namespace OpenSim.Framework
             }
 
             return ret;
-        }
-
-        public static string Compress(string text)
-        {
-            byte[] buffer = Util.UTF8.GetBytes(text);
-            MemoryStream memory = new MemoryStream();
-            using (GZipStream compressor = new GZipStream(memory, CompressionMode.Compress, true))
-            {
-                compressor.Write(buffer, 0, buffer.Length);
-            }
-
-            memory.Position = 0;
-           
-            byte[] compressed = new byte[memory.Length];
-            memory.Read(compressed, 0, compressed.Length);
-
-            byte[] compressedBuffer = new byte[compressed.Length + 4];
-            Buffer.BlockCopy(compressed, 0, compressedBuffer, 4, compressed.Length);
-            Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
-            return Convert.ToBase64String(compressedBuffer);
-        }
-
-        public static string Decompress(string compressedText)
-        {
-            byte[] compressedBuffer = Convert.FromBase64String(compressedText);
-            using (MemoryStream memory = new MemoryStream())
-            {
-                int msgLength = BitConverter.ToInt32(compressedBuffer, 0);
-                memory.Write(compressedBuffer, 4, compressedBuffer.Length - 4);
-
-                byte[] buffer = new byte[msgLength];
-
-                memory.Position = 0;
-                using (GZipStream decompressor = new GZipStream(memory, CompressionMode.Decompress))
-                {
-                    decompressor.Read(buffer, 0, buffer.Length);
-                }
-
-                return Util.UTF8.GetString(buffer);
-            }
         }
 
         /// <summary>

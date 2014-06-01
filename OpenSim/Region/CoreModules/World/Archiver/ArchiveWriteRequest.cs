@@ -569,10 +569,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             string terrainPath = String.Format("{0}{1}{2}.r32",
                 regionDir, ArchiveConstants.TERRAINS_PATH, scene.RegionInfo.RegionName);
 
-            MemoryStream ms = new MemoryStream();
-            scene.RequestModuleInterface<ITerrainModule>().SaveToStream(terrainPath, ms);
-            m_archiveWriter.WriteFile(terrainPath, ms.ToArray());
-            ms.Close();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                scene.RequestModuleInterface<ITerrainModule>().SaveToStream(terrainPath, ms);
+                m_archiveWriter.WriteFile(terrainPath, ms.ToArray());
+            }
 
             m_log.InfoFormat("[ARCHIVER]: Adding scene objects to archive.");
 

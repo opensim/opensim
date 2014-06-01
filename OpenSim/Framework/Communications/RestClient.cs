@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Communications
     /// other threads to execute, while it waits for a response from the web-service. RestClient itself can be
     /// invoked by the caller in either synchronous mode or asynchronous modes.
     /// </remarks>
-    public class RestClient
+    public class RestClient : IDisposable
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -147,6 +147,33 @@ namespace OpenSim.Framework.Communications
         private object _lock;
 
         #endregion constructors
+
+
+        #region Dispose
+
+        private bool disposed = false;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this); 
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                _resource.Dispose();
+            }
+
+            disposed = true;
+        }
+
+        #endregion Dispose
+
 
         /// <summary>
         /// Add a path element to the query, e.g. assets

@@ -176,7 +176,8 @@ namespace OpenSim.Framework
 
         public static void LogOutgoingDetail(string context, Stream outputStream)
         {
-            using (StreamReader reader = new StreamReader(Util.Copy(outputStream), Encoding.UTF8))
+            using (Stream stream = Util.Copy(outputStream))
+            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
             {
                 string output;
 
@@ -262,12 +263,12 @@ namespace OpenSim.Framework
 
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress))
+                            using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress, true))
                             {
                                 comp.Write(buffer, 0, buffer.Length);
                                 // We need to close the gzip stream before we write it anywhere
                                 // because apparently something important related to gzip compression
-                                // gets written on the strteam upon Dispose()
+                                // gets written on the stream upon Dispose()
                             }
                             byte[] buf = ms.ToArray();
                             request.ContentLength = buf.Length;   //Count bytes to send
