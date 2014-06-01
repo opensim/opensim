@@ -443,11 +443,15 @@ namespace OpenSim.Framework
             }
 
             // EstateBans are special
-            Dictionary<string, object> bans = new Dictionary<string, object>();
-            int i = 0;
-            foreach (EstateBan ban in EstateBans)
-                bans["ban" + i++] = ban.ToMap();
-            map["EstateBans"] = bans;
+            if (EstateBans.Length > 0)
+            {
+                Dictionary<string, object> bans = new Dictionary<string, object>();
+                int i = 0;
+                foreach (EstateBan ban in EstateBans)
+                    bans["ban" + i++] = ban.ToMap();
+                map["EstateBans"] = bans;
+            }
+
             return map;
         }
 
@@ -511,13 +515,16 @@ namespace OpenSim.Framework
             }
 
             // EstateBans are special
-            var banData = ((Dictionary<string, object>)map["EstateBans"]).Values;
-            EstateBan[] bans = new EstateBan[banData.Count];
-            int b = 0;
-            foreach (Dictionary<string, object> ban in banData)
-                bans[b++] = new EstateBan(ban);
-            PropertyInfo bansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
-            bansProperty.SetValue(this, bans, null);
+            if (map.ContainsKey("EstateBans"))
+            {
+                var banData = ((Dictionary<string, object>)map["EstateBans"]).Values;
+                EstateBan[] bans = new EstateBan[banData.Count];
+                int b = 0;
+                foreach (Dictionary<string, object> ban in banData)
+                    bans[b++] = new EstateBan(ban);
+                PropertyInfo bansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
+                bansProperty.SetValue(this, bans, null);
+            }
         }
     }
 }
