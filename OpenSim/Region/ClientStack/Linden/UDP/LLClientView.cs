@@ -1154,6 +1154,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>
         ///  Send the region heightmap to the client
+        ///  This method is only called when not doing intellegent terrain patch sending and
+        ///  is only called when the scene presence is initially created and sends all of the
+        ///  region's patches to the client.
         /// </summary>
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
@@ -1237,9 +1240,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         // Legacy form of invocation that passes around a bare data array.
         // Just ignore what was passed and use the real terrain info that is part of the scene.
+        // As a HORRIBLE kludge in an attempt to not change the definition of IClientAPI, 
+        //    there is a special form for specifying multiple terrain patches to send.
+        //    The form is to pass 'px' as negative the number of patches to send and to
+        //    pass the float array as pairs of patch X and Y coordinates. So, passing 'px'
+        //    as -2 and map= [3, 5, 8, 4] would mean to send two terrain heightmap patches
+        //    and the patches to send are <3,5> and <8,4>.
         public void SendLayerData(int px, int py, float[] map)
         {
-            SendLayerData(px, py, m_scene.Heightmap.GetTerrainData());
+            if (px >= 0)
+            {
+                SendLayerData(px, py, m_scene.Heightmap.GetTerrainData());
+            }
+            else
+            {
+                int numPatches = -px;
+                int[] xPatches = new int[numPatches];
+                int[] yPatches = new int[numPatches];
+                for (int pp = 0; pp < numPatches; pp++)
+                {
+                    xPatches[pp] = (int)map[pp * 2];
+                    yPatches[pp] = (int)map[pp * 2 + 1];
+                }
+
+                // DebugSendingPatches("SendLayerData", xPatches, yPatches);
+
+                SendLayerData(xPatches, yPatches, m_scene.Heightmap.GetTerrainData());
+            }
+        }
+
+        private void DebugSendingPatches(string pWho, int[] pX, int[] pY)
+        {
+            if (m_log.IsDebugEnabled)
+            {
+                int numPatches = pX.Length;
+                string Xs = "";
+                string Ys = "";
+                for (int pp = 0; pp < numPatches; pp++)
+                {
+                    Xs += String.Format("{0}", (int)pX[pp]) + ",";
+                    Ys += String.Format("{0}", (int)pY[pp]) + ",";
+                }
+                m_log.DebugFormat("{0} {1}: numPatches={2}, X={3}, Y={4}", LogHeader, pWho, numPatches, Xs, Ys);
+            }
         }
 
         /// <summary>
@@ -1252,6 +1295,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public void SendLayerData(int px, int py, TerrainData terrData)
         {
+            int[] xPatches = new[] { px };
+            int[] yPatches = new[] { py };
+            SendLayerData(xPatches, yPatches, terrData);
+        }
+
+        private void SendLayerData(int[] px, int[] py, TerrainData terrData)
+        {
             try
             {
                 /* test code using the terrain compressor in libOpenMetaverse
@@ -1259,35 +1309,61 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 patchInd[0] = px + (py * Constants.TerrainPatchSize);
                 LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(terrData.GetFloatsSerialized(), patchInd);
                  */
-                LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, px, py);
-                
-                // When a user edits the terrain, so much data is sent, the data queues up fast and presents a sub optimal editing experience.  
-                // To alleviate this issue, when the user edits the terrain, we start skipping the queues until they're done editing the terrain.
-                // We also make them unreliable because it's extremely likely that multiple packets will be sent for a terrain patch area 
-                // invalidating previous packets for that area.
-
-                // It's possible for an editing user to flood themselves with edited packets but the majority of use cases are such that only a 
-                // tiny percentage of users will be editing the terrain.     Other, non-editing users will see the edits much slower.
-                
-                // One last note on this topic, by the time users are going to be editing the terrain, it's extremely likely that the sim will 
-                // have rezzed already and therefore this is not likely going to cause any additional issues with lost packets, objects or terrain 
-                // patches.
-
-                // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we only have one cache miss.
-                if (m_justEditedTerrain)
+                // Many, many patches could have been passed to us. Since the patches will be compressed
+                //   into variable sized blocks, we cannot pre-compute how many will fit into one
+                //   packet. While some fancy packing algorithm is possible, 4 seems to always fit.
+                int PatchesAssumedToFit = 4;
+                for (int pcnt = 0; pcnt < px.Length; pcnt += PatchesAssumedToFit)
                 {
-                    layerpack.Header.Reliable = false;
-                    OutPacket(layerpack, ThrottleOutPacketType.Unknown );
+                    int remaining = Math.Min(px.Length - pcnt, PatchesAssumedToFit);
+                    int[] xPatches = new int[remaining];
+                    int[] yPatches = new int[remaining];
+                    for (int ii = 0; ii < remaining; ii++)
+                    {
+                        xPatches[ii] = px[pcnt + ii];
+                        yPatches[ii] = py[pcnt + ii];
+                    }
+                    LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, xPatches, yPatches);
+                    // DebugSendingPatches("SendLayerDataInternal", xPatches, yPatches);
+
+                    SendTheLayerPacket(layerpack);
                 }
-                else
-                {
-                    layerpack.Header.Reliable = true;
-                    OutPacket(layerpack, ThrottleOutPacketType.Land);
-                }
+                // LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, px, py);
+
             }
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
+            }
+        }
+
+        // When a user edits the terrain, so much data is sent, the data queues up fast and presents a
+        // sub optimal editing experience. To alleviate this issue, when the user edits the terrain, we
+        // start skipping the queues until they're done editing the terrain. We also make them
+        // unreliable because it's extremely likely that multiple packets will be sent for a terrain patch
+        // area invalidating previous packets for that area.
+
+        // It's possible for an editing user to flood themselves with edited packets but the majority
+        // of use cases are such that only a tiny percentage of users will be editing the terrain.
+        // Other, non-editing users will see the edits much slower.
+        
+        // One last note on this topic, by the time users are going to be editing the terrain, it's
+        // extremely likely that the sim will have rezzed already and therefore this is not likely going
+        // to cause any additional issues with lost packets, objects or terrain patches.
+
+        // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we
+        //    only have one cache miss.
+        private void SendTheLayerPacket(LayerDataPacket layerpack)
+        {
+            if (m_justEditedTerrain)
+            {
+                layerpack.Header.Reliable = false;
+                OutPacket(layerpack, ThrottleOutPacketType.Unknown );
+            }
+            else
+            {
+                layerpack.Header.Reliable = true;
+                OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
         }
 
