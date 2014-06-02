@@ -119,6 +119,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             xPieces[0] = patchX;  // patch X dimension
             yPieces[0] = patchY;
 
+            return CreateLandPacket(terrData, xPieces, yPieces);
+        }
+
+        public static LayerDataPacket CreateLandPacket(TerrainData terrData, int[] xPieces, int[] yPieces)
+        {
             byte landPacketType = (byte)TerrainPatch.LayerType.Land;
             if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
             {
@@ -148,8 +153,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         ///     Array of indexes in the grid of patches.
         /// </param>
         /// <param name="type"></param>
-        /// <param name="pRegionSizeX"></param>
-        /// <param name="pRegionSizeY"></param>
         /// <returns></returns>
         public static LayerDataPacket CreateLandPacket(TerrainData terrData, int[] x, int[] y, byte type)
         {

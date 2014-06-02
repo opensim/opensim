@@ -1035,12 +1035,24 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
                             // Sort the patches to send by the distance from the presence
                             toSend.Sort();
+                            /*
                             foreach (PatchesToSend pts in toSend)
                             {
-                                // TODO: one can send multiple patches in a packet. Do that.
                                 pups.Presence.ControllingClient.SendLayerData(pts.PatchX, pts.PatchY, null);
                                 // presence.ControllingClient.SendLayerData(xs.ToArray(), ys.ToArray(), null, TerrainPatch.LayerType.Land);
                             }
+                            */
+
+                            int[] xPieces = new int[toSend.Count];
+                            int[] yPieces = new int[toSend.Count];
+                            float[] patchPieces = new float[toSend.Count * 2];
+                            int pieceIndex = 0;
+                            foreach (PatchesToSend pts in toSend)
+                            {
+                                patchPieces[pieceIndex++] = pts.PatchX;
+                                patchPieces[pieceIndex++] = pts.PatchY;
+                            }
+                            pups.Presence.ControllingClient.SendLayerData(-toSend.Count, 0, patchPieces);
                         }
                     }
                 }
