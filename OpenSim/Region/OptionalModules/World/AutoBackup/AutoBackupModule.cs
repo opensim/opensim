@@ -76,6 +76,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// AutoBackupBusyCheck: True/False. Default: True. 
     /// 	If True, we will only take an auto-backup if a set of conditions are met. 
     /// 	These conditions are heuristics to try and avoid taking a backup when the sim is busy.
+    /// AutoBackupSkipAssets
+    ///     If true, assets are not saved to the oar file. Considerably reduces impact on simulator when backing up. Intended for when assets db is backed up separately
     /// AutoBackupScript: String. Default: not specified (disabled). 
     /// 	File path to an executable script or binary to run when an automatic backup is taken.
     ///  The file should really be (Windows) an .exe or .bat, or (Linux/Mac) a shell script or binary.
@@ -258,6 +260,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             AutoBackupModuleState abms = this.ParseConfig(scene, false);
             m_log.Debug("[AUTO BACKUP]: Config for " + scene.RegionInfo.RegionName);
             m_log.Debug((abms == null ? "DEFAULT" : abms.ToString()));
+
+            m_states.Add(scene, abms);
         }
 
         /// <summary>
@@ -334,7 +338,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             double interval =
                 this.ResolveDouble("AutoBackupInterval", this.m_defaultState.IntervalMinutes,
                  config, regionConfig) * 60000.0;
-            if (state == null && interval != this.m_defaultState.IntervalMinutes*60000.0)
+            if (state == null && interval != this.m_defaultState.IntervalMinutes * 60000.0)
             {
                 state = new AutoBackupModuleState();
             }
@@ -412,6 +416,19 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 state.BusyCheck = tmpBusyCheck;
             }
 
+            // Included Option To Skip Assets
+            bool tmpSkipAssets = ResolveBoolean("AutoBackupSkipAssets",
+                                                  this.m_defaultState.SkipAssets, config, regionConfig);
+            if (state == null && tmpSkipAssets != this.m_defaultState.SkipAssets)
+            {
+                state = new AutoBackupModuleState();
+            }
+
+            if (state != null)
+            {
+                state.SkipAssets = tmpSkipAssets;
+            }
+
             // Set file naming algorithm
             string stmpNamingType = ResolveString("AutoBackupNaming",
                                                      this.m_defaultState.NamingType.ToString(), config, regionConfig);
@@ -487,6 +504,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                     }
                 }
             }
+
+            if(state == null)
+                return m_defaultState;
 
             return state;
         }
@@ -640,7 +660,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <param name="scene"></param>
         private void DoRegionBackup(IScene scene)
         {
-            if (scene.RegionStatus != RegionStatus.Up)
+            if (!scene.Ready)
             {
                 // We won't backup a region that isn't operating normally.
                 m_log.Warn("[AUTO BACKUP]: Not backing up region " + scene.RegionInfo.RegionName +
@@ -662,7 +682,16 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             m_pendingSaves.Add(guid, scene);
             state.LiveRequests.Add(guid, savePath);
             ((Scene) scene).EventManager.OnOarFileSaved += new EventManager.OarFileSaved(EventManager_OnOarFileSaved);
-            iram.ArchiveRegion(savePath, guid, null);
+
+            m_log.Info("[AUTO BACKUP]: Backing up region " + scene.RegionInfo.RegionName);
+
+            // Must pass options, even if dictionary is empty!
+            Dictionary<string, object> options = new Dictionary<string, object>();
+
+            if (state.SkipAssets)
+                options["noassets"] = true;
+
+            iram.ArchiveRegion(savePath, guid, options);
         }
 
         /// <summary>
