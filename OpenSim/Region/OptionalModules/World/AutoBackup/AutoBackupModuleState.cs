@@ -45,6 +45,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             this.Enabled = false;
             this.BackupDir = ".";
             this.BusyCheck = true;
+            this.SkipAssets = false;
             this.Timer = null;
             this.NamingType = NamingType.Time;
             this.Script = null;
@@ -86,6 +87,12 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         }
 
         public bool BusyCheck
+        {
+            get;
+            set;
+        }
+
+        public bool SkipAssets
         {
             get;
             set;
