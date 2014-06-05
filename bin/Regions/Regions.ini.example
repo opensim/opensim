@@ -24,6 +24,13 @@ AllowAlternatePorts = False
 ExternalHostName = "SYSTEMIP"
 
 ; *
+; * Variable-sized regions allows the creation of large, borderless spaces.
+; * The default is 256 meters. For larger spaces, set these to multiples of 256.
+; *
+; SizeX = 512
+; SizeY = 512
+
+; *
 ; * Prim data
 ; * This allows limiting the sizes of prims and the region prim count
 ; *
