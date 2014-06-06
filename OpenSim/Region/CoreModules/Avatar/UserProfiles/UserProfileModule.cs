@@ -1166,7 +1166,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return true;
             }
             else
+            {
+                m_log.ErrorFormat("[PROFILES]: Problematic response for image_assets_request from {0}", profileServerURI);
                 return false;
+            }
         }
 
         /// <summary>
