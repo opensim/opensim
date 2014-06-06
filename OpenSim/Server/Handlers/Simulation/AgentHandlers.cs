@@ -144,12 +144,16 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("agent_home_uri"))
                 agentHomeURI = args["agent_home_uri"].AsString();
 
+            string theirVersion = string.Empty;
+            if (args.ContainsKey("my_version"))
+                theirVersion = args["my_version"].AsString();
+
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
             string reason;
             string version;
-            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, out version, out reason);
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, out version, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 
