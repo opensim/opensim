@@ -208,7 +208,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void InitialiseCommon(IConfigSource source)
         {
             string transferVersionName = "SIMULATION";
-            float maxTransferVersion = 0.2f;
+            float maxTransferVersion = 0.3f;
 
             IConfig hypergridConfig = source.Configs["Hypergrid"];
             if (hypergridConfig != null)
@@ -760,8 +760,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string reason;
             string version;
+            string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, out version, out reason))
+                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -833,7 +834,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (versionComponents.Length >= 2)
                 float.TryParse(versionComponents[1], out versionNumber);
 
-            if (versionNumber == 0.2f && MaxOutgoingTransferVersion >= versionNumber)
+            if (versionNumber >= 0.2f && MaxOutgoingTransferVersion >= versionNumber)
                 TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
             else
                 TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);           
@@ -1509,8 +1510,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 // Check to see if we have access to the target region.
+                string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, out version, out failureReason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, myversion, out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);

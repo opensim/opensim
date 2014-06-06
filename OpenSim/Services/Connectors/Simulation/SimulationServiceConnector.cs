@@ -282,7 +282,7 @@ namespace OpenSim.Services.Connectors.Simulation
         }
 
 
-        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, out string version, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string myversion, out string version, out string reason)
         {
             reason = "Failed to contact destination";
             version = "Unknown";
@@ -298,6 +298,7 @@ namespace OpenSim.Services.Connectors.Simulation
             OSDMap request = new OSDMap();
             request.Add("viaTeleport", OSD.FromBoolean(viaTeleport));
             request.Add("position", OSD.FromString(position.ToString()));
+            request.Add("my_version", OSD.FromString(myversion));
             if (agentHomeURI != null)
                 request.Add("agent_home_uri", OSD.FromString(agentHomeURI));
 
