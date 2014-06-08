@@ -305,6 +305,10 @@ public sealed class BSLinksetCompound : BSLinkset
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
     private bool UseBulletSimRootOffsetHack = false;    // Attempt to have Bullet track the coords of root compound shape
+    // Number of times to perform rebuilds on broken linkset children. This should only happen when
+    //    a linkset is initially being created and should happen only one or two times at the most.
+    //    This exists to cause a looping problem to be reported while not rebuilding a linkset forever.
+    private static int LinksetRebuildFailureLoopPrevention = 10;
     private void RecomputeLinksetCompound()
     {
         try
@@ -376,9 +380,32 @@ public sealed class BSLinksetCompound : BSLinkset
                 OMV.Quaternion offsetRot = OMV.Quaternion.Normalize(cPrim.RawOrientation) * invRootOrientation;
 
                 // Add the child shape to the compound shape being built
-                m_physicsScene.PE.AddChildShapeToCompoundShape(linksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
-                DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},cShape={2},offPos={3},offRot={4}",
-                                    LinksetRoot.LocalID, cPrim.LinksetChildIndex, childShape, offsetPos, offsetRot);
+                if (childShape.physShapeInfo.HasPhysicalShape)
+                {
+                    m_physicsScene.PE.AddChildShapeToCompoundShape(linksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
+                    DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},cShape={2},offPos={3},offRot={4}",
+                                LinksetRoot.LocalID, cPrim.LinksetChildIndex, childShape, offsetPos, offsetRot);
+                }
+                else
+                {
+                    // The linkset must be in an intermediate state where all the children have not yet
+                    //    been constructed. This sometimes happens on startup when everything is getting
+                    //    built and some shapes have to wait for assets to be read in.
+                    // Just skip this child for the moment and cause the shape to be rebuilt next tick.
+                    // One problem might be that the shape is broken somehow and it never becomes completely
+                    //    available. This might cause the rebuild to happen over and over.
+                    if (LinksetRebuildFailureLoopPrevention-- > 0)
+                    {
+                        LinksetRoot.ForceBodyShapeRebuild(false);
+                        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChildWithNoShape,indx={1},cShape={2},offPos={3},offRot={4}",
+                                        LinksetRoot.LocalID, cPrim.LinksetChildIndex, childShape, offsetPos, offsetRot);
+                        // Output an annoying warning. It should only happen once but if it keeps coming out,
+                        //    the user knows there is something wrong and will report it.
+                        m_physicsScene.Logger.WarnFormat("{0} Linkset rebuild warning. If this happens more than one or two times, please report in Mantis 7191", LogHeader);
+                        m_physicsScene.Logger.WarnFormat("{0} pName={1}, childIdx={2}, shape={3}",
+                                        LogHeader, LinksetRoot.Name, cPrim.LinksetChildIndex, childShape);
+                    }
+                }
 
                 // Since we are borrowing the shape of the child, disable the origional child body
                 if (!IsRoot(cPrim))
