@@ -665,7 +665,11 @@ namespace OpenSim.Groups
                     GroupInviteInfo invite = m_GroupsService.GetAgentToGroupInvite(request["RequestingAgentID"].ToString(), 
                         new UUID(request["InviteID"].ToString()));
 
-                    result["RESULT"] = GroupsDataUtils.GroupInviteInfo(invite);
+                    if (invite != null)
+                        result["RESULT"] = GroupsDataUtils.GroupInviteInfo(invite);
+                    else
+                        result["RESULT"] = "NULL";
+
                     return Util.UTF8NoBomEncoding.GetBytes(ServerUtils.BuildXmlResponse(result));
                 }
 
