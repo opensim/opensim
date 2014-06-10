@@ -3772,13 +3772,10 @@ namespace OpenSim.Region.Framework.Scenes
                 // who is granted god powers, but has no god level set.
                 //
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, agentID);
-                if (account != null)
-                {
-                    if (account.UserLevel > 0)
-                        GodLevel = account.UserLevel;
-                    else
-                        GodLevel = 200;
-                }
+                if (account != null && account.UserLevel > 0)
+                    GodLevel = account.UserLevel;
+                else
+                    GodLevel = 200; // local or HG
             }
             else
             {
