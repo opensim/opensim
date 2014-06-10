@@ -38,6 +38,7 @@ namespace OpenSim
             Dev,
             RC1,
             RC2,
+            RC3,
             Release,
             Post_Fixes,
             Extended
