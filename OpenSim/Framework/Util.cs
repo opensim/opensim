@@ -2000,7 +2000,7 @@ namespace OpenSim.Framework
             {
                 ThreadFuncNum = threadFuncNum;
                 this.context = context;
-                LogThread = true;
+                LogThread = false;
                 Thread = null;
                 Running = false;
                 Aborted = false;
@@ -2180,6 +2180,12 @@ namespace OpenSim.Framework
                             (context == null) ? "" : ("(" + context + ") "),
                             (LogThreadPool >= 2) ? full : partial);
                     }
+                }
+                else
+                {
+                    // Since we didn't log "Queue threadfunc", don't log "Run threadfunc" or "End threadfunc" either.
+                    // Those log lines aren't useful when we don't know which function is running in the thread.
+                    threadInfo.LogThread = false;
                 }
 
                 switch (FireAndForgetMethod)
