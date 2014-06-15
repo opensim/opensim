@@ -1985,15 +1985,17 @@ namespace OpenSim.Region.CoreModules.World.Land
                 telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
 
             // Can the user set home here?
-            if (// (a) gods and land managers can set home
-                m_scene.Permissions.IsAdministrator(remoteClient.AgentId) || 
-                m_scene.Permissions.IsGod(remoteClient.AgentId) ||
-                // (b) land owners can set home
-                remoteClient.AgentId == land.LandData.OwnerID ||
-                // (c) members of the land-associated group in roles that can set home
-                ((gpowers & (ulong)GroupPowers.AllowSetHome) == (ulong)GroupPowers.AllowSetHome) ||
-                // (d) parcels with telehubs can be the home of anyone
-                (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y)))
+            if (// Required: local user; foreign users cannot set home
+                m_scene.UserManagementModule.IsLocalGridUser(remoteClient.AgentId) &&
+                (// (a) gods and land managers can set home
+                 m_scene.Permissions.IsAdministrator(remoteClient.AgentId) || 
+                 m_scene.Permissions.IsGod(remoteClient.AgentId) ||
+                 // (b) land owners can set home
+                 remoteClient.AgentId == land.LandData.OwnerID ||
+                 // (c) members of the land-associated group in roles that can set home
+                 ((gpowers & (ulong)GroupPowers.AllowSetHome) == (ulong)GroupPowers.AllowSetHome) ||
+                 // (d) parcels with telehubs can be the home of anyone
+                 (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y))))
             {
                 if (m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
                     // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
