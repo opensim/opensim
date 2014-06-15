@@ -244,7 +244,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                             if (inventoryURL != null && inventoryURL != string.Empty)
                             {
                                 inventoryURL = inventoryURL.Trim(new char[] { '/' });
-                                m_InventoryURLs.Add(userID, inventoryURL);
+                                m_InventoryURLs[userID] = inventoryURL;
                                 m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
                                 return;
                             }
