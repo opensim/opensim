@@ -216,7 +216,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
             GetLegacyStoredMaterialsInPart(part);
 
-            GetStoredMaterialInFace(part, te.DefaultTexture);
+            if (te.DefaultTexture != null)
+                GetStoredMaterialInFace(part, te.DefaultTexture);
 
             foreach (Primitive.TextureEntryFace face in te.FaceTextures)
             {
