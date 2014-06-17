@@ -59,4 +59,4 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly : AssemblyVersion("0.8.0.*")]
+[assembly : AssemblyVersion("0.8.1.*")]
