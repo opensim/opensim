@@ -139,6 +139,21 @@ public class BSActorAvatarMove : BSActor
         }
     }
 
+    private float ComputeMinFlightHeight()
+    {
+        float waterHeight = m_physicsScene.TerrainManager.GetWaterLevelAtXYZ(m_controllingPrim.RawPosition);
+        float groundHeight = m_physicsScene.TerrainManager.GetTerrainHeightAtXYZ(m_controllingPrim.RawPosition);
+
+        if (groundHeight > waterHeight)
+        {
+            return groundHeight + 8f;
+        }
+        else
+        {
+            return waterHeight + 8f;
+        }
+    }
+
     private void DeactivateAvatarMove()
     {
         if (m_velocityMotor != null)
@@ -264,6 +279,17 @@ public class BSActorAvatarMove : BSActor
 
             // Add special movement force to allow avatars to walk up stepped surfaces.
             moveForce += WalkUpStairs();
+
+            //Alicia: Maintain minimum height when flying
+            if (m_controllingPrim.Flying)
+            {
+                float hover_height = ComputeMinFlightHeight();
+
+                if( m_controllingPrim.Position.Z < hover_height)
+                {
+                    moveForce.Z = moveForce.Z + 50f;
+                }
+            }
 
             m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
                             m_controllingPrim.LocalID, stepVelocity, m_controllingPrim.RawVelocity, m_controllingPrim.Mass, moveForce);
