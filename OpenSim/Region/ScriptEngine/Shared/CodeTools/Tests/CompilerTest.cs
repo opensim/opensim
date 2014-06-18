@@ -101,71 +101,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             }
         }
 
-        /// <summary>
-        /// Test that line number errors are resolved as expected when preceding code contains a jump.
-        /// </summary>
-        [Test]
-        public void TestJumpAndSyntaxError()
+        private CompilerResults CompileScript(
+            string input, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap)
         {
-            TestHelpers.InMethod();
-
             m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
-
-            string input = @"default
-{
-    state_entry()
-    {
-        jump l;
-        @l;
-        i = 1;
-    }
-}";
-
-            CSCodeGenerator cg = new CSCodeGenerator();
-            string output = cg.Convert(input);
-
-            output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);         
-//            System.Console.WriteLine(output);
-
-            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap = cg.PositionMap;
-
-            m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
-
-//            foreach (KeyValuePair<int, int> key in positionMap.Keys)
-//            {
-//                KeyValuePair<int, int> val = positionMap[key];
-//
-//                System.Console.WriteLine("{0},{1} => {2},{3}", key.Key, key.Value, val.Key, val.Value);
-//            }
-//
-//            foreach (CompilerError compErr in m_compilerResults.Errors)
-//            {
-//                System.Console.WriteLine("Error: {0},{1} => {2}", compErr.Line, compErr.Column, compErr);
-//            }
-
-            Assert.AreEqual(
-                new KeyValuePair<int, int>(7, 9),
-                positionMap[new KeyValuePair<int, int>(m_compilerResults.Errors[0].Line, m_compilerResults.Errors[0].Column)]);
-        }
-
-        /// <summary>
-        /// Test the C# compiler error message can be mapped to the correct
-        /// line/column in the LSL source when an undeclared variable is used.
-        /// </summary>
-        [Test]
-        public void TestUseUndeclaredVariable()
-        {
-            TestHelpers.InMethod();
-
-            m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
-
-            string input = @"default
-{
-    state_entry()
-    {
-        integer y = x + 3;
-    }
-}";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -173,10 +112,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);         
             //            System.Console.WriteLine(output);
 
-            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap = cg.PositionMap;
+            positionMap = cg.PositionMap;
 
-            m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
-            //
+            CompilerResults compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
+
             //            foreach (KeyValuePair<int, int> key in positionMap.Keys)
             //            {
             //                KeyValuePair<int, int> val = positionMap[key];
@@ -189,9 +128,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             //                System.Console.WriteLine("Error: {0},{1} => {2}", compErr.Line, compErr.Column, compErr);
             //            }
 
+            return compilerResults;
+        }
+
+        /// <summary>
+        /// Test that line number errors are resolved as expected when preceding code contains a jump.
+        /// </summary>
+        [Test]
+        public void TestJumpAndSyntaxError()
+        {
+            TestHelpers.InMethod();
+
+            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap;
+
+            CompilerResults compilerResults = CompileScript(
+@"default
+{
+    state_entry()
+    {
+        jump l;
+        @l;
+        i = 1;
+    }
+}", out positionMap);           
+
+            Assert.AreEqual(
+                new KeyValuePair<int, int>(7, 9),
+                positionMap[new KeyValuePair<int, int>(compilerResults.Errors[0].Line, compilerResults.Errors[0].Column)]);
+        }
+
+        /// <summary>
+        /// Test the C# compiler error message can be mapped to the correct
+        /// line/column in the LSL source when an undeclared variable is used.
+        /// </summary>
+        [Test]
+        public void TestUseUndeclaredVariable()
+        {
+            TestHelpers.InMethod();
+
+            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap;
+
+            CompilerResults compilerResults = CompileScript(
+@"default
+{
+    state_entry()
+    {
+        integer y = x + 3;
+    }
+}", out positionMap);
+
             Assert.AreEqual(
                 new KeyValuePair<int, int>(5, 21),
-                positionMap[new KeyValuePair<int, int>(m_compilerResults.Errors[0].Line, m_compilerResults.Errors[0].Column)]);
+                positionMap[new KeyValuePair<int, int>(compilerResults.Errors[0].Line, compilerResults.Errors[0].Column)]);
         }
 
         /// <summary>
@@ -203,9 +191,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         {
             TestHelpers.InMethod();
 
-            m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
+            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> positionMap;
 
-            string input = @"string s = "" a string"";
+            CompilerResults compilerResults = CompileScript(
+@"string s = "" a string"";
 
 default
 {
@@ -215,24 +204,9 @@ default
         string tmp = (string) gAvatarKey + s;
         llSay(0, tmp);
     }
-}";
+}", out positionMap);
 
-//            System.Console.WriteLine(input);
-            CSCodeGenerator cg = new CSCodeGenerator();
-            string output = cg.Convert(input);
-
-            output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);
-//            System.Console.WriteLine(output);
-
-            m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
-
-            System.Console.WriteLine("ERRORS: {0}", m_compilerResults.Errors.Count);
-            foreach (CompilerError compErr in m_compilerResults.Errors)
-            {
-                System.Console.WriteLine("Error: {0}", compErr);
-            }
-
-            Assert.AreEqual(0, m_compilerResults.Errors.Count);
+            Assert.AreEqual(0, compilerResults.Errors.Count);
         }
     }
 }
