@@ -139,21 +139,6 @@ public class BSActorAvatarMove : BSActor
         }
     }
 
-    private float ComputeMinFlightHeight()
-    {
-        float waterHeight = m_physicsScene.TerrainManager.GetWaterLevelAtXYZ(m_controllingPrim.RawPosition);
-        float groundHeight = m_physicsScene.TerrainManager.GetTerrainHeightAtXYZ(m_controllingPrim.RawPosition);
-
-        if (groundHeight > waterHeight)
-        {
-            return groundHeight + 8f;
-        }
-        else
-        {
-            return waterHeight + 8f;
-        }
-    }
-
     private void DeactivateAvatarMove()
     {
         if (m_velocityMotor != null)
@@ -283,7 +268,7 @@ public class BSActorAvatarMove : BSActor
             //Alicia: Maintain minimum height when flying
             if (m_controllingPrim.Flying)
             {
-                float hover_height = ComputeMinFlightHeight();
+                float hover_height = m_physicsScene.TerrainManager.GetTerrainHeightAtXYZ(m_controllingPrim.RawPosition) + 8f;
 
                 if( m_controllingPrim.Position.Z < hover_height)
                 {
