@@ -626,11 +626,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             string labelStatement;
 
             if (m_insertCoopTerminationChecks)
-                labelStatement = m_coopTerminationCheck + "\n";
+                labelStatement = m_coopTerminationCheck;
             else
-                labelStatement = "NoOp();\n";
+                labelStatement = "NoOp();";
 
-            return Generate(String.Format("{0}: ", CheckName(jl.LabelName)), jl) + labelStatement;
+            return GenerateLine(String.Format("{0}: {1}", CheckName(jl.LabelName), labelStatement), jl);
         }
 
         /// <summary>
