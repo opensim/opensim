@@ -64,7 +64,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
                 // Create the temporary directory for housing build artifacts.
                 Directory.CreateDirectory(m_testDir);
             }
+        }
 
+        [SetUp]
+        public void SetUp()
+        {
             // Create a CSCodeProvider and CompilerParameters.
             m_CSCodeProvider = new CSharpCodeProvider();
             m_compilerParameters = new CompilerParameters();
@@ -85,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         /// Removes the temporary build directory and any build artifacts
         /// inside it.
         /// </summary>
-        [TestFixtureTearDown]
+        [TearDown]
         public void CleanUp()
         {
             System.AppDomain.CurrentDomain.AssemblyResolve -= m_resolveEventHandler;
