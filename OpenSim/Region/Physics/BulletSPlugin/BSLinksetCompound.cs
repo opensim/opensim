@@ -404,6 +404,7 @@ public sealed class BSLinksetCompound : BSLinkset
                         m_physicsScene.Logger.WarnFormat("{0} Linkset rebuild warning. If this happens more than one or two times, please report in Mantis 7191", LogHeader);
                         m_physicsScene.Logger.WarnFormat("{0} pName={1}, childIdx={2}, shape={3}",
                                         LogHeader, LinksetRoot.Name, cPrim.LinksetChildIndex, childShape);
+                        return false;   // 'false' says to move onto the next child in the list
                     }
                 }
 
