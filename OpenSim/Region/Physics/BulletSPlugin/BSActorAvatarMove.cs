@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -227,7 +227,6 @@ public class BSActorAvatarMove : BSActor
                 stepVelocity.Z = m_controllingPrim.RawVelocity.Z;
             }
 
-
             // Colliding and not flying with an upward force. The avatar must be trying to jump.
             if (!m_controllingPrim.Flying && m_controllingPrim.IsColliding && stepVelocity.Z > 0)
             {
@@ -259,22 +258,24 @@ public class BSActorAvatarMove : BSActor
                 // DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
             }
 
+            //Alicia: Maintain minimum height when flying.
+            // SL has a flying effect that keeps the avatar flying above the ground by some margin
+            if (m_controllingPrim.Flying)
+            {
+                float hover_height = m_physicsScene.TerrainManager.GetTerrainHeightAtXYZ(m_controllingPrim.RawPosition)
+                                                        + BSParam.AvatarFlyingGroundMargin;
+
+                if( m_controllingPrim.Position.Z < hover_height)
+                {
+                    stepVelocity.Z += BSParam.AvatarFlyingGroundUpForce;
+                }
+            }
+
             // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
             OMV.Vector3 moveForce = (stepVelocity - m_controllingPrim.RawVelocity) * m_controllingPrim.Mass;
 
             // Add special movement force to allow avatars to walk up stepped surfaces.
             moveForce += WalkUpStairs();
-
-            //Alicia: Maintain minimum height when flying
-            if (m_controllingPrim.Flying)
-            {
-                float hover_height = m_physicsScene.TerrainManager.GetTerrainHeightAtXYZ(m_controllingPrim.RawPosition) + 8f;
-
-                if( m_controllingPrim.Position.Z < hover_height)
-                {
-                    moveForce.Z = moveForce.Z + 50f;
-                }
-            }
 
             m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
                             m_controllingPrim.LocalID, stepVelocity, m_controllingPrim.RawVelocity, m_controllingPrim.Mass, moveForce);
