@@ -43,7 +43,9 @@ public enum ConstraintType : int
 	SLIDER_CONSTRAINT_TYPE,
 	CONTACT_CONSTRAINT_TYPE,
 	D6_SPRING_CONSTRAINT_TYPE,
-	MAX_CONSTRAINT_TYPE
+	MAX_CONSTRAINT_TYPE,            // last type defined by Bullet
+    //
+    FIXED_CONSTRAINT_TYPE = 1234    // BulletSim constraint that is fixed and unmoving
 }
 
 // ===============================================================================
@@ -70,6 +72,8 @@ public enum BSPhysicsShapeType
 	SHAPE_COMPOUND  = 22,
 	SHAPE_HEIGHTMAP = 23,
     SHAPE_AVATAR    = 24,
+    SHAPE_CONVEXHULL= 25,
+    SHAPE_GIMPACT   = 26,
 };
 
 // The native shapes have predefined shape hash keys
@@ -245,7 +249,7 @@ public enum CollisionFlags : uint
     BS_VEHICLE_COLLISIONS            = 1 << 12, // return collisions for vehicle ground checking
     BS_RETURN_ROOT_COMPOUND_SHAPE    = 1 << 13, // return the pos/rot of the root shape in a compound shape
     BS_NONE                          = 0,
-    BS_ALL                           = 0xFFFFFFFF
+    BS_ALL                           = 0x7FFF   // collision flags are a signed short
 };
 
 // Values f collisions groups and masks
@@ -261,14 +265,14 @@ public enum CollisionFilterGroups : uint
     BDebrisGroup            = 1 << 3,   // 0008
     BSensorTrigger          = 1 << 4,   // 0010
     BCharacterGroup         = 1 << 5,   // 0020
-    BAllGroup               = 0x000FFFFF,
+    BAllGroup               = 0x0007FFF,        // collision flags are a signed short
     // Filter groups defined by BulletSim
-    BGroundPlaneGroup       = 1 << 10,  // 0400
-    BTerrainGroup           = 1 << 11,  // 0800
-    BRaycastGroup           = 1 << 12,  // 1000
-    BSolidGroup             = 1 << 13,  // 2000
+    BGroundPlaneGroup       = 1 << 8,  // 0400
+    BTerrainGroup           = 1 << 9,  // 0800
+    BRaycastGroup           = 1 << 10,  // 1000
+    BSolidGroup             = 1 << 11,  // 2000
     // BLinksetGroup        = xx  // a linkset proper is either static or dynamic
-    BLinksetChildGroup      = 1 << 14,  // 4000
+    BLinksetChildGroup      = 1 << 12,  // 4000
 };
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
@@ -288,7 +292,7 @@ public enum ConstraintParamAxis : int
     AXIS_ANGULAR_X,
     AXIS_ANGULAR_Y,
     AXIS_ANGULAR_Z,
-    AXIS_LINEAR_ALL = 20,    // these last three added by BulletSim so we don't have to do zillions of calls
+    AXIS_LINEAR_ALL = 20,    // added by BulletSim so we don't have to do zillions of calls
     AXIS_ANGULAR_ALL,
     AXIS_ALL
 };
@@ -297,7 +301,7 @@ public abstract class BSAPITemplate
 {
 // Returns the name of the underlying Bullet engine
 public abstract string BulletEngineName { get; }
-public abstract string BulletEngineVersion { get; protected set;} 
+public abstract string BulletEngineVersion { get; protected set;}
 
 // Initialization and simulation
 public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
@@ -320,10 +324,20 @@ public abstract BulletShape CreateMeshShape(BulletWorld world,
                 int indicesCount, int[] indices,
                 int verticesCount, float[] vertices );
 
+public abstract BulletShape CreateGImpactShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices );
+
 public abstract BulletShape CreateHullShape(BulletWorld world,
                 int hullCount, float[] hulls);
 
 public abstract BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape, HACDParams parms);
+
+public abstract BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape);
+
+public abstract BulletShape CreateConvexHullShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices );
 
 public abstract BulletShape BuildNativeShape(BulletWorld world, ShapeData shapeData);
 
@@ -366,7 +380,7 @@ public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 // =====================================================================================
 public abstract BulletShape CreateGroundPlaneShape(UInt32 id, float height, float collisionMargin);
 
-public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap, 
+public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
 								float scaleFactor, float collisionMargin);
 
 // =====================================================================================
@@ -381,7 +395,7 @@ public abstract BulletConstraint Create6DofConstraintToPoint(BulletWorld world, 
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
 public abstract BulletConstraint Create6DofConstraintFixed(BulletWorld world, BulletBody obj1,
-                    Vector3 frameInBloc, Quaternion frameInBrot, 
+                    Vector3 frameInBloc, Quaternion frameInBrot,
                     bool useLinearReferenceFrameB, bool disableCollisionsBetweenLinkedBodies);
 
 public abstract BulletConstraint Create6DofSpringConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
@@ -429,6 +443,38 @@ public abstract bool TranslationalLimitMotor(BulletConstraint constrain, float e
 
 public abstract bool SetBreakingImpulseThreshold(BulletConstraint constrain, float threshold);
 
+public const int HINGE_NOT_SPECIFIED = -1;
+public abstract bool HingeSetLimits(BulletConstraint constrain, float low, float high, float softness, float bias, float relaxation);
+
+public abstract bool SpringEnable(BulletConstraint constrain, int index, float numericTrueFalse);
+
+public const int SPRING_NOT_SPECIFIED = -1;
+public abstract bool SpringSetEquilibriumPoint(BulletConstraint constrain, int index, float equilibriumPoint);
+
+public abstract bool SpringSetStiffness(BulletConstraint constrain, int index, float stiffnesss);
+
+public abstract bool SpringSetDamping(BulletConstraint constrain, int index, float damping);
+
+public const int SLIDER_LOWER_LIMIT = 0;
+public const int SLIDER_UPPER_LIMIT = 1;
+public const int SLIDER_LINEAR = 2;
+public const int SLIDER_ANGULAR = 3;
+public abstract bool SliderSetLimits(BulletConstraint constrain, int lowerUpper, int linAng, float val);
+
+public const int SLIDER_SET_SOFTNESS = 4;
+public const int SLIDER_SET_RESTITUTION = 5;
+public const int SLIDER_SET_DAMPING = 6;
+public const int SLIDER_SET_DIRECTION = 7;
+public const int SLIDER_SET_LIMIT = 8;
+public const int SLIDER_SET_ORTHO = 9;
+public abstract bool SliderSet(BulletConstraint constrain, int softRestDamp, int dirLimOrtho, int linAng, float val);
+
+public abstract bool SliderMotorEnable(BulletConstraint constrain, int linAng, float numericTrueFalse);
+
+public const int SLIDER_MOTOR_VELOCITY = 10;
+public const int SLIDER_MAX_MOTOR_FORCE = 11;
+public abstract bool SliderMotor(BulletConstraint constrain, int forceVel, int linAng, float val);
+
 public abstract bool CalculateTransforms(BulletConstraint constrain);
 
 public abstract bool SetConstraintParam(BulletConstraint constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis);
@@ -451,6 +497,8 @@ public abstract void SetForceUpdateAllAabbs(BulletWorld world, bool force);
 public abstract bool AddObjectToWorld(BulletWorld world, BulletBody obj);
 
 public abstract bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj);
+
+public abstract bool ClearCollisionProxyCache(BulletWorld world, BulletBody obj);
 
 public abstract bool AddConstraintToWorld(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects);
 

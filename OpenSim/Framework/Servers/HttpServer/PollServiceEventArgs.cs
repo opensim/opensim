@@ -50,25 +50,39 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public enum EventType : int
         {
-            Normal = 0,
+            LongPoll = 0,
             LslHttp = 1,
             Inventory = 2,
             Texture = 3, 
             Mesh = 4
         }
 
+        public string Url { get; set; }
+
+        /// <summary>
+        /// Number of requests received for this poll service.
+        /// </summary>
+        public int RequestsReceived { get; set; }
+
+        /// <summary>
+        /// Number of requests handled by this poll service.
+        /// </summary>
+        public int RequestsHandled { get; set; }
+
         public PollServiceEventArgs(
             RequestMethod pRequest,
+            string pUrl,
             HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,
             UUID pId, int pTimeOutms)
         {
             Request = pRequest;
+            Url = pUrl;
             HasEvents = pHasEvents;
             GetEvents = pGetEvents;
             NoEvents = pNoEvents;
             Id = pId;
             TimeOutms = pTimeOutms;
-            Type = EventType.Normal;
+            Type = EventType.LongPoll;
         }
     }
 }

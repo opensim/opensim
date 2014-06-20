@@ -97,5 +97,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void InviteGroupRequest(IClientAPI remoteClient, UUID GroupID, UUID InviteeID, UUID RoleID);
         void InviteGroup(IClientAPI remoteClient, UUID agentID, UUID GroupID, UUID InviteeID, UUID RoleID);
         void NotifyChange(UUID GroupID);
+
+        List<DirGroupsReplyData> FindGroups(IClientAPI remoteClient, string query);
     }
 }

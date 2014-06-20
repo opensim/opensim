@@ -70,7 +70,7 @@ namespace OpenSim.Server.Handlers.Asset
             m_allowedTypes = allowedTypes;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             bool result = false;

@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.GridUser
             m_GridUserService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
@@ -185,10 +185,12 @@ namespace OpenSim.Server.Handlers.GridUser
             GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(user);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = guinfo.ToKeyValuePairs();
+            if (guinfo != null)
+                result["result"] = guinfo.ToKeyValuePairs();
+            else
+                result["result"] = "null";
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-
             //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }

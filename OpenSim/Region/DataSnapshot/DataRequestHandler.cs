@@ -63,7 +63,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public Hashtable OnGetSnapshot(Hashtable keysvals)
         {
-            m_log.Info("[DATASNAPSHOT] Received collection request");
+            m_log.Debug("[DATASNAPSHOT] Received collection request");
             Hashtable reply = new Hashtable();
             int statuscode = 200;
 
@@ -80,7 +80,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public Hashtable OnValidate(Hashtable keysvals)
         {
-            m_log.Info("[DATASNAPSHOT] Received validation request");
+            m_log.Debug("[DATASNAPSHOT] Received validation request");
             Hashtable reply = new Hashtable();
             int statuscode = 200;
 

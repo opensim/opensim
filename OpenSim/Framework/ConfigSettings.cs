@@ -31,7 +31,6 @@ namespace OpenSim.Framework
     {
         public string PhysicsEngine                 { get; set; }
         public string MeshEngineName                { get; set; }
-        public string StorageDll                    { get; set; }
         public string ClientstackDll                { get; set; }
         public string LibrariesXMLFile              { get; set; }
 

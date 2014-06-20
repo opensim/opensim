@@ -380,6 +380,7 @@ namespace OpenSim.Framework.Monitoring
             if (MemoryWatchdog.Enabled)
                 MemoryWatchdog.Update();
 
+            ChecksManager.CheckChecks();
             StatsManager.RecordStats();
 
             m_watchdogTimer.Start();

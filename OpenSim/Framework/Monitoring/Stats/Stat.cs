@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
-
+using log4net;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Monitoring
@@ -38,6 +40,10 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class Stat : IDisposable
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static readonly char[] DisallowedShortNameCharacters = { '.' };
+
         /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
         /// </summary>
@@ -95,7 +101,7 @@ namespace OpenSim.Framework.Monitoring
         /// <remarks>
         /// Will be null if no measures of interest require samples.
         /// </remarks>
-        private static Queue<double> m_samples;
+        private Queue<double> m_samples;
 
         /// <summary>
         /// Maximum number of statistical samples.
@@ -162,6 +168,12 @@ namespace OpenSim.Framework.Monitoring
                 throw new Exception(
                     string.Format("Stat cannot be in category '{0}' since this is reserved for a subcommand", category));
 
+            foreach (char c in DisallowedShortNameCharacters)
+            {
+                if (shortName.IndexOf(c) != -1)
+                    throw new Exception(string.Format("Stat name {0} cannot contain character {1}", shortName, c));
+            }
+
             ShortName = shortName;
             Name = name;
             Description = description;
@@ -204,6 +216,8 @@ namespace OpenSim.Framework.Monitoring
                 if (m_samples.Count >= m_maxSamples)
                     m_samples.Dequeue();
 
+//                m_log.DebugFormat("[STAT]: Recording value {0} for {1}", newValue, Name);
+
                 m_samples.Enqueue(newValue);
             }
         }
@@ -211,7 +225,13 @@ namespace OpenSim.Framework.Monitoring
         public virtual string ToConsoleString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("{0}.{1}.{2} : {3} {4}", Category, Container, ShortName, Value, UnitName);
+            sb.AppendFormat(
+                "{0}.{1}.{2} : {3}{4}", 
+                Category, 
+                Container, 
+                ShortName, 
+                Value, 
+                string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
 
             AppendMeasuresOfInterest(sb);
 
@@ -221,6 +241,8 @@ namespace OpenSim.Framework.Monitoring
         public virtual OSDMap ToOSDMap()
         {
             OSDMap ret = new OSDMap();
+            ret.Add("StatType", "Stat");    // used by overloading classes to denote type of stat
+
             ret.Add("Category", OSD.FromString(Category));
             ret.Add("Container", OSD.FromString(Container));
             ret.Add("ShortName", OSD.FromString(ShortName));
@@ -229,31 +251,74 @@ namespace OpenSim.Framework.Monitoring
             ret.Add("UnitName", OSD.FromString(UnitName));
             ret.Add("Value", OSD.FromReal(Value));
 
+            double lastChangeOverTime, averageChangeOverTime;
+            if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))
+            {
+                ret.Add("LastChangeOverTime", OSD.FromReal(lastChangeOverTime));
+                ret.Add("AverageChangeOverTime", OSD.FromReal(averageChangeOverTime));
+            }
+
             return ret;
         }
 
-        protected void AppendMeasuresOfInterest(StringBuilder sb)
+        // Compute the averages over time and return same.
+        // Return 'true' if averages were actually computed. 'false' if no average info.
+        public bool ComputeMeasuresOfInterest(out double lastChangeOverTime, out double averageChangeOverTime)
         {
-            if ((MeasuresOfInterest & MeasuresOfInterest.AverageChangeOverTime) 
-                == MeasuresOfInterest.AverageChangeOverTime)
+            bool ret = false;
+            lastChangeOverTime = 0;
+            averageChangeOverTime = 0;
+
+            if ((MeasuresOfInterest & MeasuresOfInterest.AverageChangeOverTime) == MeasuresOfInterest.AverageChangeOverTime)
             {
                 double totalChange = 0;
+                double? penultimateSample = null;
                 double? lastSample = null;
 
                 lock (m_samples)
                 {
+                    //                    m_log.DebugFormat(
+                    //                        "[STAT]: Samples for {0} are {1}", 
+                    //                        Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
+
                     foreach (double s in m_samples)
                     {
                         if (lastSample != null)
                             totalChange += s - (double)lastSample;
 
+                        penultimateSample = lastSample;
                         lastSample = s;
                     }
                 }
 
+                if (lastSample != null && penultimateSample != null)
+                {
+                    lastChangeOverTime
+                        = ((double)lastSample - (double)penultimateSample) / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+                }
+
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
 
-                sb.AppendFormat(", {0:0.##}{1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
+                averageChangeOverTime = totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+                ret = true;
+            }
+
+            return ret;
+        }
+
+        protected void AppendMeasuresOfInterest(StringBuilder sb)
+        {
+            double lastChangeOverTime = 0;
+            double averageChangeOverTime = 0;
+
+            if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))
+            {
+                sb.AppendFormat(
+                    ", {0:0.##}{1}/s, {2:0.##}{3}/s", 
+                    lastChangeOverTime, 
+                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName), 
+                    averageChangeOverTime,
+                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
             }
         }
     }

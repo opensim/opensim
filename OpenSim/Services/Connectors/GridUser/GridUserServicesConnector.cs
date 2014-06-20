@@ -214,7 +214,7 @@ namespace OpenSim.Services.Connectors
 
                 }
                 else
-                    m_log.DebugFormat("[GRID USER CONNECTOR]: Loggedin received empty reply");
+                    m_log.DebugFormat("[GRID USER CONNECTOR]: Get received empty reply");
             }
             catch (Exception e)
             {

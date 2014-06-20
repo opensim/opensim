@@ -86,7 +86,7 @@ namespace OpenSim.Services.GridService
                 {
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "deregister region id",
-                            "deregister region id <Region UUID>",
+                            "deregister region id <region-id>+",
                             "Deregister a region manually.",
                             String.Empty,
                             HandleDeregisterRegion);
@@ -265,8 +265,9 @@ namespace OpenSim.Services.GridService
                 m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
             }
 
-            m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
-                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY);
+            m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3} with flags {4}", 
+                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY, 
+                (OpenSim.Framework.RegionFlags)flags);
 
             return String.Empty;
         }
@@ -311,8 +312,9 @@ namespace OpenSim.Services.GridService
             if (region != null)
             {
                 // Not really? Maybe?
-                List<RegionData> rdatas = m_Database.Get(region.posX - (int)Constants.RegionSize - 1, region.posY - (int)Constants.RegionSize - 1, 
-                    region.posX + (int)Constants.RegionSize + 1, region.posY + (int)Constants.RegionSize + 1, scopeID);
+                List<RegionData> rdatas = m_Database.Get(
+                    region.posX - region.sizeX - 1, region.posY - region.sizeY - 1, 
+                    region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);
 
                 foreach (RegionData rdata in rdatas)
                 {
@@ -345,6 +347,11 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
+        // Get a region given its base coordinates.
+        // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
+        //     be the base coordinate of the region.
+        // The snapping is technically unnecessary but is harmless because regions are always
+        //     multiples of the legacy region size (256).
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;
@@ -439,6 +446,8 @@ namespace OpenSim.Services.GridService
             RegionData rdata = new RegionData();
             rdata.posX = (int)rinfo.RegionLocX;
             rdata.posY = (int)rinfo.RegionLocY;
+            rdata.sizeX = rinfo.RegionSizeX;
+            rdata.sizeY = rinfo.RegionSizeY;
             rdata.RegionID = rinfo.RegionID;
             rdata.RegionName = rinfo.RegionName;
             rdata.Data = rinfo.ToKeyValuePairs();
@@ -452,6 +461,8 @@ namespace OpenSim.Services.GridService
             GridRegion rinfo = new GridRegion(rdata.Data);
             rinfo.RegionLocX = rdata.posX;
             rinfo.RegionLocY = rdata.posY;
+            rinfo.RegionSizeX = rdata.sizeX;
+            rinfo.RegionSizeY = rdata.sizeY;
             rinfo.RegionID = rdata.RegionID;
             rinfo.RegionName = rdata.RegionName;
             rinfo.ScopeID = rdata.ScopeID;
@@ -474,6 +485,33 @@ namespace OpenSim.Services.GridService
             }
 
             m_log.DebugFormat("[GRID SERVICE]: GetDefaultRegions returning {0} regions", ret.Count);
+            return ret;
+        }
+
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetDefaultHypergridRegions(scopeID);
+
+            foreach (RegionData r in regions)
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
+                    ret.Add(RegionData2RegionInfo(r));
+            }
+
+            int hgDefaultRegionsFoundOnline = regions.Count;
+
+            // For now, hypergrid default regions will always be given precedence but we will also return simple default
+            // regions in case no specific hypergrid regions are specified.
+            ret.AddRange(GetDefaultRegions(scopeID));
+
+            int normalDefaultRegionsFoundOnline = ret.Count - hgDefaultRegionsFoundOnline;
+
+            m_log.DebugFormat(
+                "[GRID SERVICE]: GetDefaultHypergridRegions returning {0} hypergrid default and {1} normal default regions", 
+                hgDefaultRegionsFoundOnline, normalDefaultRegionsFoundOnline);
+
             return ret;
         }
 
@@ -525,40 +563,41 @@ namespace OpenSim.Services.GridService
 
         private void HandleDeregisterRegion(string module, string[] cmd)
         {
-            if (cmd.Length != 4)
+            if (cmd.Length < 4)
             {
-                MainConsole.Instance.Output("Syntax: degregister region id <Region UUID>");
+                MainConsole.Instance.Output("Usage: degregister region id <region-id>+");
                 return;
             }
 
-            string rawRegionUuid = cmd[3];
-            UUID regionUuid;
-
-            if (!UUID.TryParse(rawRegionUuid, out regionUuid))
+            for (int i = 3; i < cmd.Length; i++)
             {
-                MainConsole.Instance.OutputFormat("{0} is not a valid region uuid", rawRegionUuid);
-                return;
-            }
+                string rawRegionUuid = cmd[i];
+                UUID regionUuid;
 
-            GridRegion region = GetRegionByUUID(UUID.Zero, regionUuid);
+                if (!UUID.TryParse(rawRegionUuid, out regionUuid))
+                {
+                    MainConsole.Instance.OutputFormat("{0} is not a valid region uuid", rawRegionUuid);
+                    return;
+                }
 
-            if (region == null)
-            {
-                MainConsole.Instance.OutputFormat("No region with UUID {0}", regionUuid);
-                return;
-            }
+                GridRegion region = GetRegionByUUID(UUID.Zero, regionUuid);
 
-            if (DeregisterRegion(regionUuid))
-            {
-                MainConsole.Instance.OutputFormat("Deregistered {0} {1}", region.RegionName, regionUuid);
-            }
-            else
-            {
-                // I don't think this can ever occur if we know that the region exists.
-                MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
-            }
+                if (region == null)
+                {
+                    MainConsole.Instance.OutputFormat("No region with UUID {0}", regionUuid);
+                    return;
+                }
 
-            return;
+                if (DeregisterRegion(regionUuid))
+                {
+                    MainConsole.Instance.OutputFormat("Deregistered {0} {1}", region.RegionName, regionUuid);
+                }
+                else
+                {
+                    // I don't think this can ever occur if we know that the region exists.
+                    MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
+                }
+            }
         }
 
         private void HandleShowRegions(string module, string[] cmd)

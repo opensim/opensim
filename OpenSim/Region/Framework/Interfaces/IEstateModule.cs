@@ -40,7 +40,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         uint GetRegionFlags();
         bool IsManager(UUID avatarID);
-        
+
         /// <summary>
         /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
         /// </summary>
@@ -54,5 +54,10 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void setEstateTerrainBaseTexture(int level, UUID texture);
         void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue);
+
+        /// <summary>
+        /// Returns whether the transfer ID is being used for a terrain transfer.
+        /// </summary>
+        bool IsTerrainXfer(ulong xferID);
     }
 }

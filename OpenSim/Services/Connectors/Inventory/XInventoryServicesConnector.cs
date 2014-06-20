@@ -84,6 +84,30 @@ namespace OpenSim.Services.Connectors
             m_ServerURI = serviceURI;
         }
 
+        private bool CheckReturn(Dictionary<string, object> ret)
+        {
+            if (ret == null)
+                return false;
+
+            if (ret.Count == 0)
+                return false;
+
+            if (ret.ContainsKey("RESULT"))
+            {
+                if (ret["RESULT"] is string)
+                {
+                    bool result;
+
+                    if (bool.TryParse((string)ret["RESULT"], out result))
+                        return result;
+
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public bool CreateUserInventory(UUID principalID)
         {
             Dictionary<string,object> ret = MakeRequest("CREATEUSERINVENTORY",
@@ -91,12 +115,7 @@ namespace OpenSim.Services.Connectors
                         { "PRINCIPAL", principalID.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-            if (ret.Count == 0)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
@@ -106,9 +125,7 @@ namespace OpenSim.Services.Connectors
                         { "PRINCIPAL", principalID.ToString() }
                     });
 
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
+            if (!CheckReturn(ret))
                 return null;
 
             Dictionary<string, object> folders = (Dictionary<string, object>)ret["FOLDERS"];
@@ -135,9 +152,7 @@ namespace OpenSim.Services.Connectors
                         { "PRINCIPAL", principalID.ToString() }
                     });
 
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
+            if (!CheckReturn(ret))
                 return null;
 
             return BuildFolder((Dictionary<string, object>)ret["folder"]);
@@ -151,9 +166,7 @@ namespace OpenSim.Services.Connectors
                         { "TYPE", ((int)type).ToString() }
                     });
 
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
+            if (!CheckReturn(ret))
                 return null;
 
             return BuildFolder((Dictionary<string, object>)ret["folder"]);
@@ -174,9 +187,7 @@ namespace OpenSim.Services.Connectors
                             { "FOLDER", folderID.ToString() }
                         });
 
-                if (ret == null)
-                    return null;
-                if (ret.Count == 0)
+                if (!CheckReturn(ret))
                     return null;
 
                 Dictionary<string,object> folders =
@@ -205,9 +216,7 @@ namespace OpenSim.Services.Connectors
                         { "FOLDER", folderID.ToString() }
                     });
 
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
+            if (!CheckReturn(ret))
                 return null;
 
             Dictionary<string, object> items = (Dictionary<string, object>)ret["ITEMS"];
@@ -230,10 +239,7 @@ namespace OpenSim.Services.Connectors
                         { "ID", folder.ID.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool UpdateFolder(InventoryFolderBase folder)
@@ -248,10 +254,7 @@ namespace OpenSim.Services.Connectors
                         { "ID", folder.ID.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool MoveFolder(InventoryFolderBase folder)
@@ -263,10 +266,7 @@ namespace OpenSim.Services.Connectors
                         { "PRINCIPAL", folder.Owner.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
@@ -282,10 +282,7 @@ namespace OpenSim.Services.Connectors
                         { "FOLDERS", slist }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool PurgeFolder(InventoryFolderBase folder)
@@ -295,10 +292,7 @@ namespace OpenSim.Services.Connectors
                         { "ID", folder.ID.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool AddItem(InventoryItemBase item)
@@ -330,10 +324,7 @@ namespace OpenSim.Services.Connectors
                         { "CreationDate", item.CreationDate.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool UpdateItem(InventoryItemBase item)
@@ -365,10 +356,7 @@ namespace OpenSim.Services.Connectors
                         { "CreationDate", item.CreationDate.ToString() }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
@@ -389,10 +377,7 @@ namespace OpenSim.Services.Connectors
                         { "DESTLIST", destlist }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public bool DeleteItems(UUID principalID, List<UUID> itemIDs)
@@ -408,10 +393,7 @@ namespace OpenSim.Services.Connectors
                         { "ITEMS", slist }
                     });
 
-            if (ret == null)
-                return false;
-
-            return bool.Parse(ret["RESULT"].ToString());
+            return CheckReturn(ret);
         }
 
         public InventoryItemBase GetItem(InventoryItemBase item)
@@ -423,9 +405,7 @@ namespace OpenSim.Services.Connectors
                         { "ID", item.ID.ToString() }
                     });
 
-                if (ret == null)
-                    return null;
-                if (ret.Count == 0)
+                if (!CheckReturn(ret))
                     return null;
 
                 return BuildItem((Dictionary<string, object>)ret["item"]);
@@ -447,9 +427,7 @@ namespace OpenSim.Services.Connectors
                         { "ID", folder.ID.ToString() }
                     });
 
-                if (ret == null)
-                    return null;
-                if (ret.Count == 0)
+                if (!CheckReturn(ret))
                     return null;
 
                 return BuildFolder((Dictionary<string, object>)ret["folder"]);
@@ -469,7 +447,7 @@ namespace OpenSim.Services.Connectors
                         { "PRINCIPAL", principalID.ToString() }
                     });
 
-            if (ret == null)
+            if (!CheckReturn(ret))
                 return null;
 
             List<InventoryItemBase> items = new List<InventoryItemBase>();
@@ -488,10 +466,22 @@ namespace OpenSim.Services.Connectors
                         { "ASSET", assetID.ToString() }
                     });
 
+            // We cannot use CheckReturn() here because valid values for RESULT are "false" (in the case of request failure) or an int           
             if (ret == null)
                 return 0;
 
-            return int.Parse(ret["RESULT"].ToString());
+            if (ret.ContainsKey("RESULT"))
+            {
+                if (ret["RESULT"] is string)
+                {
+                    int intResult;
+
+                    if (int.TryParse ((string)ret["RESULT"], out intResult))
+                        return intResult;
+                }
+            }
+
+            return 0;
         }
 
         public InventoryCollection GetUserInventory(UUID principalID)
@@ -508,9 +498,7 @@ namespace OpenSim.Services.Connectors
                             { "PRINCIPAL", principalID.ToString() }
                         });
 
-                if (ret == null)
-                    return null;
-                if (ret.Count == 0)
+                if (!CheckReturn(ret))
                     return null;
 
                 Dictionary<string, object> folders =

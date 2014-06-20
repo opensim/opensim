@@ -108,7 +108,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_taintAngularLock = Vector3.One;
         private IntPtr Amotor = IntPtr.Zero;
 
-        private object m_assetsLock = new object();
         private bool m_assetFailed = false;
 
         private Vector3 m_PIDTarget;

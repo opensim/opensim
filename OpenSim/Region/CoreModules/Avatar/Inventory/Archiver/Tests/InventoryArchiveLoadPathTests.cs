@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             {
                 // Test replication of path1
-                new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null, false)
+                new InventoryArchiveReadRequest(scene.InventoryService, scene.AssetService, scene.UserAccountService, ua1, null, (Stream)null, false)
                     .ReplicateArchivePathToUserInventory(
                         iarPath1, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
                         foldersCreated, nodesLoaded);
@@ -246,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             {
                 // Test replication of path2
-                new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null, false)
+                new InventoryArchiveReadRequest(scene.InventoryService, scene.AssetService, scene.UserAccountService, ua1, null, (Stream)null, false)
                     .ReplicateArchivePathToUserInventory(
                         iarPath2, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
                         foldersCreated, nodesLoaded);
@@ -291,8 +291,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
             
             string itemArchivePath = string.Join("", new string[] { folder1ArchiveName, folder2ArchiveName });
-            
-            new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null, false)
+
+            new InventoryArchiveReadRequest(scene.InventoryService, scene.AssetService, scene.UserAccountService, ua1, null, (Stream)null, false)
                 .ReplicateArchivePathToUserInventory(
                     itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
                     new Dictionary<string, InventoryFolderBase>(), new HashSet<InventoryNodeBase>());
@@ -342,8 +342,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
             
             string itemArchivePath = string.Join("", new string[] { folder1ArchiveName, folder2ArchiveName });
-            
-            new InventoryArchiveReadRequest(scene, ua1, folder1ExistingName, (Stream)null, true)
+
+            new InventoryArchiveReadRequest(scene.InventoryService, scene.AssetService, scene.UserAccountService, ua1, folder1ExistingName, (Stream)null, true)
                 .ReplicateArchivePathToUserInventory(
                     itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
                     new Dictionary<string, InventoryFolderBase>(), new HashSet<InventoryNodeBase>());

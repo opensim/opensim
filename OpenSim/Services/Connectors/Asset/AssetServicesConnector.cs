@@ -66,6 +66,12 @@ namespace OpenSim.Services.Connectors
 
         private Thread[] m_fetchThreads;
 
+        public int MaxAssetRequestConcurrency
+        {
+            get { return m_maxAssetRequestConcurrency; }
+            set { m_maxAssetRequestConcurrency = value; }
+        }
+
         public AssetServicesConnector()
         {
         }

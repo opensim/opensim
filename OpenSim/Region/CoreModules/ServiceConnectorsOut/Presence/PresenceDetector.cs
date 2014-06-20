@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public void OnConnectionClose(IClientAPI client)
         {
-            if (!client.SceneAgent.IsChildAgent)
+            if (client != null && client.SceneAgent != null && !client.SceneAgent.IsChildAgent)
             {
 //                m_log.DebugFormat("[PRESENCE DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
                 m_PresenceService.LogoutAgent(client.SessionId);

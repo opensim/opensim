@@ -89,9 +89,30 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
+    /// Class for delivering SmartThreadPool statistical information
+    /// </summary>
+    /// <remarks>
+    /// We do it this way so that we do not directly expose STP.
+    /// </remarks>
+    public class STPInfo
+    {
+        public string Name { get; set; }
+        public STPStartInfo STPStartInfo { get; set; }
+        public WIGStartInfo WIGStartInfo { get; set; }
+        public bool IsIdle { get; set; }
+        public bool IsShuttingDown { get; set; }       
+        public int MaxThreads { get; set; }
+        public int MinThreads { get; set; }
+        public int InUseThreads { get; set; }
+        public int ActiveThreads { get; set; }
+        public int WaitingCallbacks { get; set; }
+        public int MaxConcurrentWorkItems { get; set; }
+    }
+
+    /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
-    public class Util
+    public static class Util
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -109,7 +130,7 @@ namespace OpenSim.Framework
         private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
-        private static readonly DateTime unixEpoch =
+        public static readonly DateTime UnixEpoch =
             DateTime.ParseExact("1970-01-01 00:00:00 +0", "yyyy-MM-dd hh:mm:ss z", DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
 
         private static readonly string rawUUIDPattern
@@ -119,6 +140,11 @@ namespace OpenSim.Framework
 
         public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
         public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
+
+        public static bool IsPlatformMono
+        {
+            get { return Type.GetType("Mono.Runtime") != null; }
+        }
 
         /// <summary>
         /// Gets the name of the directory where the current running executable
@@ -305,6 +331,49 @@ namespace OpenSim.Framework
         public static ulong UIntsToLong(uint X, uint Y)
         {
             return Utils.UIntsToLong(X, Y);
+        }
+
+        // Regions are identified with a 'handle' made up of its region coordinates packed into a ulong.
+        // Several places rely on the ability to extract a region's location from its handle.
+        // Note the location is in 'world coordinates' (see below).
+        // Region handles are based on the lowest coordinate of the region so trim the passed x,y to be the regions 0,0.
+        public static ulong RegionWorldLocToHandle(uint X, uint Y)
+        {
+            return Utils.UIntsToLong(X, Y);
+        }
+
+        public static ulong RegionLocToHandle(uint X, uint Y)
+        {
+            return Utils.UIntsToLong(Util.RegionToWorldLoc(X), Util.RegionToWorldLoc(Y));
+        }
+
+        public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
+        {
+            X = (uint)(handle >> 32);
+            Y = (uint)(handle & (ulong)uint.MaxValue);
+        }
+
+        public static void RegionHandleToRegionLoc(ulong handle, out uint X, out uint Y)
+        {
+            uint worldX, worldY;
+            RegionHandleToWorldLoc(handle, out worldX, out worldY);
+            X = WorldToRegionLoc(worldX);
+            Y = WorldToRegionLoc(worldY);
+        }
+
+        // A region location can be 'world coordinates' (meters from zero) or 'region coordinates'
+        //      (number of regions from zero). This measurement of regions relies on the legacy 256 region size.
+        // These routines exist to make what is being converted explicit so the next person knows what was meant.
+        // Convert a region's 'world coordinate' to its 'region coordinate'.
+        public static uint WorldToRegionLoc(uint worldCoord)
+        {
+            return worldCoord / Constants.RegionSize;
+        }
+
+        // Convert a region's 'region coordinate' to its 'world coordinate'.
+        public static uint RegionToWorldLoc(uint regionCoord)
+        {
+            return regionCoord * Constants.RegionSize;
         }
 
         public static T Clamp<T>(T x, T min, T max)
@@ -495,20 +564,18 @@ namespace OpenSim.Framework
 
         public static int ToUnixTime(DateTime stamp)
         {
-            TimeSpan t = stamp.ToUniversalTime() - unixEpoch;
-            return (int) t.TotalSeconds;
+            TimeSpan t = stamp.ToUniversalTime() - UnixEpoch;
+            return (int)t.TotalSeconds;
         }
 
         public static DateTime ToDateTime(ulong seconds)
         {
-            DateTime epoch = unixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         public static DateTime ToDateTime(int seconds)
         {
-            DateTime epoch = unixEpoch;
-            return epoch.AddSeconds(seconds);
+            return UnixEpoch.AddSeconds(seconds);
         }
 
         /// <summary>
@@ -976,7 +1043,7 @@ namespace OpenSim.Framework
                 else if (typeof(T) == typeof(Int32))
                     val = cnf.GetInt(varname, (int)val);
                 else if (typeof(T) == typeof(float))
-                    val = cnf.GetFloat(varname, (int)val);
+                    val = cnf.GetFloat(varname, (float)val);
                 else
                     m_log.ErrorFormat("[UTIL]: Unhandled type {0}", typeof(T));
             }
@@ -1233,7 +1300,7 @@ namespace OpenSim.Framework
             byte[] bytes =
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
-                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle >> 56),
                 (byte)x, (byte)(x >> 8), 0, 0,
                 (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);
@@ -1244,7 +1311,7 @@ namespace OpenSim.Framework
             byte[] bytes =
             {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
-                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
+                (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle >> 56),
                 (byte)x, (byte)(x >> 8), (byte)z, (byte)(z >> 8),
                 (byte)y, (byte)(y >> 8), 0, 0 };
             return new UUID(bytes, 0);
@@ -1317,7 +1384,7 @@ namespace OpenSim.Framework
                     ru = "OSX/Mono";
                 else
                 {
-                    if (Type.GetType("Mono.Runtime") != null)
+                    if (IsPlatformMono)
                         ru = "Win/Mono";
                     else
                         ru = "Win/.NET";
@@ -1765,10 +1832,12 @@ namespace OpenSim.Framework
             FireAndForget(callback, null);
         }
 
-        public static void InitThreadPool(int maxThreads)
+        public static void InitThreadPool(int minThreads, int maxThreads)
         {
             if (maxThreads < 2)
                 throw new ArgumentOutOfRangeException("maxThreads", "maxThreads must be greater than 2");
+            if (minThreads > maxThreads || minThreads < 2)
+                throw new ArgumentOutOfRangeException("minThreads", "minThreads must be greater than 2 and less than or equal to maxThreads");
             if (m_ThreadPool != null)
                 throw new InvalidOperationException("SmartThreadPool is already initialized");
 
@@ -1776,7 +1845,7 @@ namespace OpenSim.Framework
             startInfo.ThreadPoolName = "Util";
             startInfo.IdleTimeout = 2000;
             startInfo.MaxWorkerThreads = maxThreads;
-            startInfo.MinWorkerThreads = 2;
+            startInfo.MinWorkerThreads = minThreads;
 
             m_ThreadPool = new SmartThreadPool(startInfo);
         }
@@ -1851,8 +1920,8 @@ namespace OpenSim.Framework
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
                     if (m_ThreadPool == null)
-                        InitThreadPool(15); 
-                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { realCallback, obj });
+                        InitThreadPool(2, 15); 
+                    m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
                     break;
                 case FireAndForgetMethod.Thread:
                     Thread thread = new Thread(delegate(object o) { realCallback(o); });
@@ -1864,72 +1933,29 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Get a thread pool report.
+        /// Get information about the current state of the smart thread pool.
         /// </summary>
-        /// <returns></returns>
-        public static string GetThreadPoolReport()
+        /// <returns>
+        /// null if this isn't the pool being used for non-scriptengine threads.
+        /// </returns>
+        public static STPInfo GetSmartThreadPoolInfo()
         {
-            string threadPoolUsed = null;
-            int maxThreads = 0;
-            int minThreads = 0;
-            int allocatedThreads = 0;
-            int inUseThreads = 0;
-            int waitingCallbacks = 0;
-            int completionPortThreads = 0;
+            if (m_ThreadPool == null)
+                return null;
 
-            StringBuilder sb = new StringBuilder();
-            if (FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
-            {
-                // ROBUST currently leaves this the FireAndForgetMethod but never actually initializes the threadpool.
-                if (m_ThreadPool != null)
-                {
-                    threadPoolUsed = "SmartThreadPool";
-                    maxThreads = m_ThreadPool.MaxThreads;
-                    minThreads = m_ThreadPool.MinThreads;
-                    inUseThreads = m_ThreadPool.InUseThreads;
-                    allocatedThreads = m_ThreadPool.ActiveThreads;
-                    waitingCallbacks = m_ThreadPool.WaitingCallbacks;
-                }
-            }
-            else if (
-                FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem
-                    || FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
-            {
-                threadPoolUsed = "BuiltInThreadPool";
-                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
-                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
-                int availableThreads;
-                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
-                inUseThreads = maxThreads - availableThreads;
-                allocatedThreads = -1;
-                waitingCallbacks = -1;
-            }
+            STPInfo stpi = new STPInfo();
+            stpi.Name = m_ThreadPool.Name;
+            stpi.STPStartInfo = m_ThreadPool.STPStartInfo;
+            stpi.IsIdle = m_ThreadPool.IsIdle;
+            stpi.IsShuttingDown = m_ThreadPool.IsShuttingdown;
+            stpi.MaxThreads = m_ThreadPool.MaxThreads;
+            stpi.MinThreads = m_ThreadPool.MinThreads;
+            stpi.InUseThreads = m_ThreadPool.InUseThreads;
+            stpi.ActiveThreads = m_ThreadPool.ActiveThreads;
+            stpi.WaitingCallbacks = m_ThreadPool.WaitingCallbacks;
+            stpi.MaxConcurrentWorkItems = m_ThreadPool.Concurrency;
 
-            if (threadPoolUsed != null)
-            {
-                sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
-                sb.AppendFormat("Max threads                : {0}\n", maxThreads);
-                sb.AppendFormat("Min threads                : {0}\n", minThreads);
-                sb.AppendFormat("Allocated threads          : {0}\n", allocatedThreads < 0 ? "not applicable" : allocatedThreads.ToString());
-                sb.AppendFormat("In use threads             : {0}\n", inUseThreads);
-                sb.AppendFormat("Work items waiting         : {0}\n", waitingCallbacks < 0 ? "not available" : waitingCallbacks.ToString());
-            }
-            else
-            {
-                sb.AppendFormat("Thread pool not used\n");
-            }
-
-            return sb.ToString();
-        }
-
-        private static object SmartThreadPoolCallback(object o)
-        {
-            object[] array = (object[])o;
-            WaitCallback callback = (WaitCallback)array[0];
-            object obj = array[1];
-
-            callback(obj);
-            return null;
+            return stpi;
         }
 
         #endregion FireAndForget Threading Pattern
@@ -2058,8 +2084,10 @@ namespace OpenSim.Framework
         #region Xml Serialization Utilities
         public static bool ReadBoolean(XmlTextReader reader)
         {
+            // AuroraSim uses "int" for some fields that are boolean in OpenSim, e.g. "PassCollisions". Don't fail because of this.
             reader.ReadStartElement();
-            bool result = Boolean.Parse(reader.ReadContentAsString().ToLower());
+            string val = reader.ReadContentAsString().ToLower();
+            bool result = val.Equals("true") || val.Equals("1");
             reader.ReadEndElement();
 
             return result;
@@ -2148,7 +2176,7 @@ namespace OpenSim.Framework
         /// <param name="secret">the secret part</param>
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
-            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "User"; secret = string.Empty;
+            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "UserUPUUI"; secret = string.Empty;
 
             string[] parts = value.Split(';');
             if (parts.Length >= 1)
@@ -2282,7 +2310,7 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                m_lowQueue.Enqueue(data);
+                q.Enqueue(data);
                 m_s.WaitOne(0);
                 m_s.Release();
             }
@@ -2322,7 +2350,7 @@ namespace OpenSim.Framework
             {
                 if (m_highQueue.Count > 0)
                     res = m_highQueue.Dequeue();
-                else
+                else if (m_lowQueue.Count > 0)
                     res = m_lowQueue.Dequeue();
 
                 if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)

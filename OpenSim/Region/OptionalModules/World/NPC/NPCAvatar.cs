@@ -44,6 +44,20 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     {
         public bool SenseAsAgent { get; set; }
 
+        public delegate void ChatToNPC(
+            string message, byte type, Vector3 fromPos, string fromName, 
+            UUID fromAgentID, UUID ownerID, byte source, byte audible);
+
+        /// <summary>
+        /// Fired when the NPC receives a chat message.
+        /// </summary>
+        public event ChatToNPC OnChatToNPC;
+
+        /// <summary>
+        /// Fired when the NPC receives an instant message.
+        /// </summary>
+        public event Action<GridInstantMessage> OnInstantMessageToNPC;
+
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
@@ -259,6 +273,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
+        public event UpdateAgent OnAgentCameraUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
@@ -393,6 +408,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
         public event EstateChangeInfo OnEstateChangeInfo;
         public event EstateManageTelehub OnEstateManageTelehub;
+        public event CachedTextureRequest OnCachedTextureRequest;
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
@@ -573,6 +589,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
+        {
+
+        }
+
         public virtual void Kick(string message)
         {
         }
@@ -590,7 +611,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         }
 
-        public virtual void SendKillObject(ulong regionHandle, List<uint> localID)
+        public virtual void SendKillObject(List<uint> localID)
         {
         }
 
@@ -617,17 +638,18 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             string message, byte type, Vector3 fromPos, string fromName,
             UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
-        }
+            ChatToNPC ctn = OnChatToNPC;
 
-        public virtual void SendChatMessage(
-            byte[] message, byte type, Vector3 fromPos, string fromName,
-            UUID fromAgentID, UUID ownerID, byte source, byte audible)
-        {
+            if (ctn != null)
+                ctn(message, type, fromPos, fromName, fromAgentID, ownerID, source, audible);
         }
 
         public void SendInstantMessage(GridInstantMessage im)
         {
-            
+            Action<GridInstantMessage> oimtn = OnInstantMessageToNPC;
+
+            if (oimtn != null)
+                oimtn(im);
         }
 
         public void SendGenericMessage(string method, UUID invoice, List<string> message)
@@ -1236,7 +1258,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
         
-        public void StopFlying(ISceneEntity presence)
+        public void SendAgentTerseUpdate(ISceneEntity presence)
         {
         }
 

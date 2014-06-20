@@ -62,8 +62,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 = AssetHelpers.CreateAsset(corruptAssetUuid, AssetType.Notecard, "CORRUPT ASSET", UUID.Zero);
             m_assetService.Store(corruptAsset);
 
-            IDictionary<UUID, AssetType> foundAssetUuids = new Dictionary<UUID, AssetType>();
-            m_uuidGatherer.GatherAssetUuids(corruptAssetUuid, AssetType.Object, foundAssetUuids);
+            IDictionary<UUID, sbyte> foundAssetUuids = new Dictionary<UUID, sbyte>();
+            m_uuidGatherer.GatherAssetUuids(corruptAssetUuid, (sbyte)AssetType.Object, foundAssetUuids);
 
             // We count the uuid as gathered even if the asset itself is corrupt.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
@@ -78,9 +78,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
             
             UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            IDictionary<UUID, AssetType> foundAssetUuids = new Dictionary<UUID, AssetType>();
+            IDictionary<UUID, sbyte> foundAssetUuids = new Dictionary<UUID, sbyte>();
             
-            m_uuidGatherer.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
+            m_uuidGatherer.GatherAssetUuids(missingAssetUuid, (sbyte)AssetType.Object, foundAssetUuids);
 
             // We count the uuid as gathered even if the asset itself is missing.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
@@ -103,8 +103,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             AssetBase ncAsset = AssetHelpers.CreateNotecardAsset(ncAssetId, soAssetId.ToString());
             m_assetService.Store(ncAsset);
 
-            IDictionary<UUID, AssetType> foundAssetUuids = new Dictionary<UUID, AssetType>();
-            m_uuidGatherer.GatherAssetUuids(ncAssetId, AssetType.Notecard, foundAssetUuids);
+            IDictionary<UUID, sbyte> foundAssetUuids = new Dictionary<UUID, sbyte>();
+            m_uuidGatherer.GatherAssetUuids(ncAssetId, (sbyte)AssetType.Notecard, foundAssetUuids);
 
             // We count the uuid as gathered even if the asset itself is corrupt.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(2));

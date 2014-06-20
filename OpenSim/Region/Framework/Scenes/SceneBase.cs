@@ -42,7 +42,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public abstract class SceneBase : IScene
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly string LogHeader = "[SCENE]";
 
         #region Events
 
@@ -217,8 +218,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Agent/Avatar
 
-        public abstract ISceneAgent AddNewClient(IClientAPI client, PresenceType type);
-        public abstract void RemoveClient(UUID agentID, bool closeChildAgents);
+        public abstract ISceneAgent AddNewAgent(IClientAPI client, PresenceType type);
+
+        public abstract bool CloseAgent(UUID agentID, bool force);
 
         public bool TryGetScenePresence(UUID agentID, out object scenePresence)
         {
@@ -560,6 +562,10 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual bool AllowScriptCrossings
         {
             get { return false; }
+        }
+
+        public virtual void Start()
+        {
         }
 
         public void Restart()

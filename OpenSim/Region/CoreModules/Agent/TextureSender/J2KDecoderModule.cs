@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
                 // Do Decode!
                 if (decode)
-                    Decode(assetID, j2kData);
+                    Util.FireAndForget(delegate { Decode(assetID, j2kData); });
             }
         }
 

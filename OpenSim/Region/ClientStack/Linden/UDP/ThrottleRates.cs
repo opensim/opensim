@@ -59,6 +59,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag used to enable adaptive throttles</summary>
         public bool AdaptiveThrottlesEnabled;
         
+        /// <summary>Amount of the texture throttle to steal for the task throttle</summary>
+        public double CannibalizeTextureRate;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -80,6 +83,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
 
                 AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
+                
+                CannibalizeTextureRate = (double)throttleConfig.GetFloat("CannibalizeTextureRate", 0.0f);
+                CannibalizeTextureRate = Util.Clamp<double>(CannibalizeTextureRate,0.0, 0.9);
             }
             catch (Exception) { }
         }

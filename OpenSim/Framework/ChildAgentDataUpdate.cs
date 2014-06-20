@@ -171,9 +171,10 @@ namespace OpenSim.Framework
         /// Soon to be decommissioned
         /// </summary>
         /// <param name="cAgent"></param>
-        public void CopyFrom(ChildAgentDataUpdate cAgent)
+        public void CopyFrom(ChildAgentDataUpdate cAgent, UUID sid)
         {
             AgentID = new UUID(cAgent.AgentID);
+            SessionID = sid;
 
             // next: ???
             Size = new Vector3();
@@ -291,7 +292,13 @@ namespace OpenSim.Framework
         public Vector3 AtAxis;
         public Vector3 LeftAxis;
         public Vector3 UpAxis;
-        public bool ChangedGrid;
+
+        /// <summary>
+        /// Signal on a V2 teleport that Scene.IncomingChildAgentDataUpdate(AgentData ad) should wait for the 
+        /// scene presence to become root (triggered when the viewer sends a CompleteAgentMovement UDP packet after
+        /// establishing the connection triggered by it's receipt of a TeleportFinish EQ message).
+        /// </summary>
+        public bool SenderWantsToWaitForRoot;
 
         public float Far;
         public float Aspect;
@@ -362,8 +369,9 @@ namespace OpenSim.Framework
             args["left_axis"] = OSD.FromString(LeftAxis.ToString());
             args["up_axis"] = OSD.FromString(UpAxis.ToString());
 
-            
-            args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
+            //backwards compatibility
+            args["changed_grid"] = OSD.FromBoolean(SenderWantsToWaitForRoot);
+            args["wait_for_root"] = OSD.FromBoolean(SenderWantsToWaitForRoot);
             args["far"] = OSD.FromReal(Far);
             args["aspect"] = OSD.FromReal(Aspect);
 
@@ -536,8 +544,8 @@ namespace OpenSim.Framework
             if (args["up_axis"] != null)
                 Vector3.TryParse(args["up_axis"].AsString(), out AtAxis);
 
-            if (args["changed_grid"] != null)
-                ChangedGrid = args["changed_grid"].AsBoolean();
+            if (args.ContainsKey("wait_for_root") && args["wait_for_root"] != null)
+                SenderWantsToWaitForRoot = args["wait_for_root"].AsBoolean();
 
             if (args["far"] != null)
                 Far = (float)(args["far"].AsReal());

@@ -55,6 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         private int m_savetime = 5; // seconds to wait before saving changed appearance
         private int m_sendtime = 2; // seconds to wait before sending changed appearance
+        private bool m_reusetextures = false;
 
         private int m_checkTime = 500; // milliseconds to wait between checks for appearance updates
         private System.Timers.Timer m_updateTimer = new System.Timers.Timer();
@@ -73,6 +74,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 m_savetime = Convert.ToInt32(appearanceConfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
                 m_sendtime = Convert.ToInt32(appearanceConfig.GetString("DelayBeforeAppearanceSend",Convert.ToString(m_sendtime)));
+                m_reusetextures = appearanceConfig.GetBoolean("ReuseTextures",m_reusetextures);
+                
                 // m_log.InfoFormat("[AVFACTORY] configured for {0} save and {1} send",m_savetime,m_sendtime);
             }
 
@@ -131,6 +134,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             client.OnRequestWearables += Client_OnRequestWearables;
             client.OnSetAppearance += Client_OnSetAppearance;
             client.OnAvatarNowWearing += Client_OnAvatarNowWearing;
+            client.OnCachedTextureRequest += Client_OnCachedTextureRequest;
         }
 
         #endregion
@@ -1068,6 +1072,61 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 QueueAppearanceSave(client.AgentId);
             }
         }
+
+        /// <summary>
+        /// Respond to the cached textures request from the client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="serial"></param>
+        /// <param name="cachedTextureRequest"></param>
+        private void Client_OnCachedTextureRequest(IClientAPI client, int serial, List<CachedTextureRequestArg> cachedTextureRequest)
+        {
+            // m_log.WarnFormat("[AVFACTORY]: Client_OnCachedTextureRequest called for {0} ({1})", client.Name, client.AgentId);
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+
+            List<CachedTextureResponseArg> cachedTextureResponse = new List<CachedTextureResponseArg>();
+            foreach (CachedTextureRequestArg request in cachedTextureRequest)
+            {
+                UUID texture = UUID.Zero;
+                int index = request.BakedTextureIndex;
+                
+                if (m_reusetextures)
+                {
+                    // this is the most insanely dumb way to do this... however it seems to
+                    // actually work. if the appearance has been reset because wearables have
+                    // changed then the texture entries are zero'd out until the bakes are 
+                    // uploaded. on login, if the textures exist in the cache (eg if you logged
+                    // into the simulator recently, then the appearance will pull those and send
+                    // them back in the packet and you won't have to rebake. if the textures aren't
+                    // in the cache then the intial makeroot() call in scenepresence will zero
+                    // them out.
+                    //
+                    // a better solution (though how much better is an open question) is to
+                    // store the hashes in the appearance and compare them. Thats's coming.
+
+                    Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[index];
+                    if (face != null)
+                        texture = face.TextureID;
+
+                    // m_log.WarnFormat("[AVFACTORY]: reuse texture {0} for index {1}",texture,index);
+                }
+                
+                CachedTextureResponseArg response = new CachedTextureResponseArg();
+                response.BakedTextureIndex = index;
+                response.BakedTextureID = texture;
+                response.HostName = null;
+
+                cachedTextureResponse.Add(response);
+            }
+            
+            // m_log.WarnFormat("[AVFACTORY]: serial is {0}",serial);
+            // The serial number appears to be used to match requests and responses
+            // in the texture transaction. We just send back the serial number
+            // that was provided in the request. The viewer bumps this for us.
+            client.SendCachedTextureResponse(sp, serial, cachedTextureResponse);
+        }
+
+
         #endregion
 
         public void WriteBakedTexturesReport(IScenePresence sp, ReportOutputAction outputAction)

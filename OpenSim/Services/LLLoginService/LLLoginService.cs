@@ -50,6 +50,8 @@ namespace OpenSim.Services.LLLoginService
     public class LLLoginService : ILoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[LLOGIN SERVICE]";
+
         private static bool Initialized = false;
 
         protected IUserAccountService m_UserAccountService;
@@ -78,6 +80,9 @@ namespace OpenSim.Services.LLLoginService
         protected string m_OpenIDURL;
         protected string m_SearchURL;
         protected string m_Currency;
+        protected string m_ClassifiedFee;
+        protected string m_DestinationGuide;
+        protected string m_AvatarPicker;
 
         protected string m_AllowedClients;
         protected string m_DeniedClients;
@@ -117,6 +122,9 @@ namespace OpenSim.Services.LLLoginService
             m_OpenIDURL = m_LoginServerConfig.GetString("OpenIDServerURL", String.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
             m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
+            m_ClassifiedFee = m_LoginServerConfig.GetString("ClassifiedFee", string.Empty);
+            m_DestinationGuide = m_LoginServerConfig.GetString ("DestinationGuide", string.Empty);
+            m_AvatarPicker = m_LoginServerConfig.GetString ("AvatarPicker", string.Empty);
 
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
@@ -391,6 +399,7 @@ namespace OpenSim.Services.LLLoginService
                 if (guinfo == null)
                 {
                     // something went wrong, make something up, so that we don't have to test this anywhere else
+                    m_log.DebugFormat("{0} Failed to fetch GridUserInfo. Creating empty GridUserInfo as home", LogHeader);
                     guinfo = new GridUserInfo();
                     guinfo.LastPosition = guinfo.HomePosition = new Vector3(128, 128, 30);
                 }
@@ -461,7 +470,8 @@ namespace OpenSim.Services.LLLoginService
                     = new LLLoginResponse(
                         account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
                         where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
-                        m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone, realID);
+                        m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone,
+                        m_DestinationGuide, m_AvatarPicker, realID, m_ClassifiedFee);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
 
@@ -934,7 +944,7 @@ namespace OpenSim.Services.LLLoginService
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)
         {
             m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
-            if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, clientIP, out reason))
+            if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, true, out reason))
                 return true;
             return false;
         }

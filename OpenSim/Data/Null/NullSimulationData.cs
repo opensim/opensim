@@ -77,20 +77,34 @@ namespace OpenSim.Data.Null
         }
 
         #region Environment Settings
+
+        private Dictionary<UUID, string> EnvironmentSettings = new Dictionary<UUID, string>();
+
         public string LoadRegionEnvironmentSettings(UUID regionUUID)
         {
-            //This connector doesn't support the Environment module yet
+            lock (EnvironmentSettings)
+            {
+                if (EnvironmentSettings.ContainsKey(regionUUID))
+                    return EnvironmentSettings[regionUUID];
+            }
             return string.Empty;
         }
 
         public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
         {
-            //This connector doesn't support the Environment module yet
+            lock (EnvironmentSettings)
+            {
+                EnvironmentSettings[regionUUID] = settings;
+            }
         }
 
         public void RemoveRegionEnvironmentSettings(UUID regionUUID)
         {
-            //This connector doesn't support the Environment module yet
+            lock (EnvironmentSettings)
+            {
+                if (EnvironmentSettings.ContainsKey(regionUUID))
+                    EnvironmentSettings.Remove(regionUUID);
+            }
         }
         #endregion
 

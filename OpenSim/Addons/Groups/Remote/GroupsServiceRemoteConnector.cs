@@ -120,7 +120,7 @@ namespace OpenSim.Groups
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             if (GroupID != UUID.Zero)
                 sendData["GroupID"] = GroupID.ToString();
-            if (GroupName != null && GroupName != string.Empty)
+            if (!string.IsNullOrEmpty(GroupName))
                 sendData["Name"] = GroupsDataUtils.Sanitize(GroupName);
 
             sendData["RequestingAgentID"] = RequestingAgentID;

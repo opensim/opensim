@@ -54,7 +54,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
 
-
         /// <summary>
         /// This is a pending websocket request before it got an sucessful upgrade response.
         /// The consumer must call handler.HandshakeAndUpgrade() to signal to the handler to 
@@ -80,6 +79,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// opensim-request-id header but we are not currently logging this.
         /// </remarks>
         public int RequestNumber { get; private set; }
+
+        /// <summary>
+        /// Statistic for holding number of requests processed.
+        /// </summary>
+        private Stat m_requestsProcessedStat;
 
         private volatile int NotSocketErrors = 0;
         public volatile bool HTTPDRunning = false;
@@ -383,6 +387,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
                 {
+                    psEvArgs.RequestsReceived++;
+
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
 
                     if (psEvArgs.Request != null)
@@ -437,9 +443,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
+        private void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
         {
-
             OSHttpRequest req = new OSHttpRequest(context, request);
             WebSocketRequestDelegate dWebSocketRequestDelegate = null;
             lock (m_WebSocketHandlers)
@@ -454,9 +459,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            
-            HandleRequest(req, resp);
-           
+            resp.ReuseContext = true;
+            HandleRequest(req, resp);           
 
             // !!!HACK ALERT!!!
             // There seems to be a bug in the underlying http code that makes subsequent requests
@@ -687,7 +691,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (buffer != null)
                 {
-                    if (!response.SendChunked)
+                    if (!response.SendChunked && response.ContentLength64 <= 0)
                         response.ContentLength64 = buffer.LongLength;
 
                     response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -782,7 +786,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
                 RequestNumber,
                 Port,
-                (request.ContentType == null || request.ContentType == "") ? "not set" : request.ContentType,
+                string.IsNullOrEmpty(request.ContentType) ? "not set" : request.ContentType,
                 request.HttpMethod,
                 request.Url.PathAndQuery,
                 request.RemoteIPEndPoint);
@@ -1053,7 +1057,21 @@ namespace OpenSim.Framework.Servers.HttpServer
                     }
 
                     response.ContentType = "text/xml";
-                    responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
+                    using (MemoryStream outs = new MemoryStream())
+                    {
+                        using (XmlTextWriter writer = new XmlTextWriter(outs, Encoding.UTF8))
+                        {
+                            writer.Formatting = Formatting.None;
+                            XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);
+                            writer.Flush();
+                            outs.Flush();
+                            outs.Position = 0;
+                            using (StreamReader sr = new StreamReader(outs))
+                            {
+                                responseString = sr.ReadToEnd();
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -1850,8 +1868,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.Start(64);
 
                 // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
-//                m_PollServiceManager = new PollServiceRequestManager(this, 3, 25000);
                 m_PollServiceManager = new PollServiceRequestManager(this, 4, 25000);
+                m_PollServiceManager.Start();
                 HTTPDRunning = true;
 
                 //HttpListenerContext context;
@@ -1870,6 +1888,21 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // useful without inbound HTTP.
                 throw e;
             }
+
+            m_requestsProcessedStat 
+                = new Stat(
+                    "HTTPRequestsServed",
+                    "Number of inbound HTTP requests processed",
+                    "",
+                    "requests",
+                    "httpserver",
+                    Port.ToString(),
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = RequestNumber,
+                    StatVerbosity.Debug);
+          
+            StatsManager.RegisterStat(m_requestsProcessedStat);
         }
 
         public void httpServerDisconnectMonitor(IHttpClientContext source, SocketError err)
@@ -1902,9 +1935,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void Stop()
         {
             HTTPDRunning = false;
+
+            StatsManager.DeregisterStat(m_requestsProcessedStat);
+
             try
             {
-//                m_PollServiceManager.Stop();
+                m_PollServiceManager.Stop();
 
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;
@@ -1931,6 +1967,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
+            if (path == null) return; // Caps module isn't loaded, tries to remove handler where path = null
             lock (m_HTTPHandlers)
             {
                 if (httpMethod != null && httpMethod.Length == 0)

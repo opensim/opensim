@@ -252,8 +252,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.ParentGroup.RootPart.LocalId != part.LocalId)
                 return;
 
-            bool isAttachment = false;
-            
             // This is wrong, wrong, wrong. Selection should not be
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
@@ -262,17 +260,14 @@ namespace OpenSim.Region.Framework.Scenes
                 || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
                 part.ParentGroup.IsSelected = false;
             
-            if (part.ParentGroup.IsAttachment)
-                isAttachment = true;
-            else
-                part.ParentGroup.ScheduleGroupForFullUpdate();
+            part.ParentGroup.ScheduleGroupForFullUpdate();
 
             // If it's not an attachment, and we are allowed to move it,
             // then we might have done so. If we moved across a parcel
             // boundary, we will need to recount prims on the parcels.
             // For attachments, that makes no sense.
             //
-            if (!isAttachment)
+            if (!part.ParentGroup.IsAttachment)
             {
                 if (Permissions.CanEditObject(
                         part.UUID, remoteClient.AgentId) 
@@ -416,6 +411,7 @@ namespace OpenSim.Region.Framework.Scenes
         void ProcessViewerEffect(IClientAPI remoteClient, List<ViewerEffectEventHandlerArg> args)
         {
             // TODO: don't create new blocks if recycling an old packet
+            bool discardableEffects = true;
             ViewerEffectPacket.EffectBlock[] effectBlockArray = new ViewerEffectPacket.EffectBlock[args.Count];
             for (int i = 0; i < args.Count; i++)
             {
@@ -427,17 +423,34 @@ namespace OpenSim.Region.Framework.Scenes
                 effect.Type = args[i].Type;
                 effect.TypeData = args[i].TypeData;
                 effectBlockArray[i] = effect;
+
+                if ((EffectType)effect.Type != EffectType.LookAt && (EffectType)effect.Type != EffectType.Beam)
+                    discardableEffects = false;
+
+                //m_log.DebugFormat("[YYY]: VE {0} {1} {2}", effect.AgentID, effect.Duration, (EffectType)effect.Type);
             }
 
-            ForEachClient(
-                delegate(IClientAPI client)
+            ForEachScenePresence(sp =>
                 {
-                    if (client.AgentId != remoteClient.AgentId)
-                        client.SendViewerEffect(effectBlockArray);
-                }
-            );
+                    if (sp.ControllingClient.AgentId != remoteClient.AgentId)
+                    {
+                        if (!discardableEffects ||
+                            (discardableEffects && ShouldSendDiscardableEffect(remoteClient, sp)))
+                        {
+                            //m_log.DebugFormat("[YYY]: Sending to {0}", sp.UUID);
+                            sp.ControllingClient.SendViewerEffect(effectBlockArray);
+                        }
+                        //else
+                        //    m_log.DebugFormat("[YYY]: Not sending to {0}", sp.UUID);
+                    }
+                });
         }
         
+        private bool ShouldSendDiscardableEffect(IClientAPI thisClient, ScenePresence other)
+        {
+            return Vector3.Distance(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 10;
+        }
+
         private class DescendentsRequestData
         {
             public IClientAPI RemoteClient;

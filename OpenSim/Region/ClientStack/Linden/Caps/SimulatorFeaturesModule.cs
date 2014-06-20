@@ -68,7 +68,6 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </summary>
         private OSDMap m_features = new OSDMap();
 
-        private string m_MapImageServerURL = string.Empty;
         private string m_SearchURL = string.Empty;
         private bool m_ExportSupported = false;
 
@@ -78,15 +77,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             IConfig config = source.Configs["SimulatorFeatures"];
             if (config != null)
-            {
-                m_MapImageServerURL = config.GetString("MapImageServerURI", string.Empty);
-                if (m_MapImageServerURL != string.Empty)
-                {
-                    m_MapImageServerURL = m_MapImageServerURL.Trim();
-                    if (!m_MapImageServerURL.EndsWith("/"))
-                        m_MapImageServerURL = m_MapImageServerURL + "/";
-                }
-    
+            {    
                 m_SearchURL = config.GetString("SearchServerURI", string.Empty);
 
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
@@ -149,15 +140,16 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["PhysicsShapeTypes"] = typesMap;
     
                 // Extra information for viewers that want to use it
-                OSDMap gridServicesMap = new OSDMap();
-                if (m_MapImageServerURL != string.Empty)
-                    gridServicesMap["map-server-url"] = m_MapImageServerURL;
+                // TODO: Take these out of here into their respective modules, like map-server-url
+                OSDMap extrasMap = new OSDMap();
                 if (m_SearchURL != string.Empty)
-                    gridServicesMap["search"] = m_SearchURL;
-                m_features["GridServices"] = gridServicesMap;
-
+                    extrasMap["search-server-url"] = m_SearchURL;
                 if (m_ExportSupported)
-                    m_features["ExportSupported"] = true;
+                    extrasMap["ExportSupported"] = true;
+
+                if (extrasMap.Count > 0)
+                    m_features["OpenSimExtras"] = extrasMap;
+
             }
         }
 

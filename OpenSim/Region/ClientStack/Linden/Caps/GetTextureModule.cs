@@ -84,6 +84,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
 
+        private string m_URL;
+
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
@@ -215,7 +217,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private Scene m_scene;
             private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000,10000);
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
-                    base(null, null, null, null, pId, int.MaxValue)              
+                    base(null, "", null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
                 // x is request id, y is userid
@@ -368,7 +370,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     port = MainServer.Instance.SSLPort;
                     protocol = "https";
                 }
-                caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+                if (handler != null)
+                    handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", capUrl);
+                else
+                    caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
                 m_pollservices[agentID] = args;
                 m_capsDict[agentID] = capUrl;
             }
@@ -380,13 +386,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void DeregisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl;
             PollServiceTextureEventArgs args;
-            if (m_capsDict.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemoveHTTPHandler("", capUrl);
-                m_capsDict.Remove(agentID);
-            }
+
+            MainServer.Instance.RemoveHTTPHandler("", m_URL);
+            m_capsDict.Remove(agentID);
+
             if (m_pollservices.TryGetValue(agentID, out args))
             {
                 m_pollservices.Remove(agentID);

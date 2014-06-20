@@ -86,24 +86,21 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         protected virtual void StartupSpecific()
         {
-            if (m_console == null)
-                return;
-
+            StatsManager.SimExtraStats = new SimExtraStatsCollector();
             RegisterCommonCommands();
-            
-            m_console.Commands.AddCommand("General", false, "quit",
-                    "quit",
-                    "Quit the application", HandleQuit);
+            RegisterCommonComponents(Config);
+        }       
 
-            m_console.Commands.AddCommand("General", false, "shutdown",
-                    "shutdown",
-                    "Quit the application", HandleQuit);
+        protected override void ShutdownSpecific()
+        {            
+            m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
+
+            RemovePIDFile();
+
+            base.ShutdownSpecific();
+
+            Environment.Exit(0);
         }
-        
-        /// <summary>
-        /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
-        /// </summary>
-        public virtual void ShutdownSpecific() {}
         
         /// <summary>
         /// Provides a list of help topics that are available.  Overriding classes should append their topics to the
@@ -148,30 +145,13 @@ namespace OpenSim.Framework.Servers
             
             TimeSpan timeTaken = DateTime.Now - m_startuptime;
             
-            m_log.InfoFormat(
-                "[STARTUP]: Non-script portion of startup took {0}m {1}s.  PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.",
+            MainConsole.Instance.OutputFormat(
+                "PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.  Non-script portion of startup took {0}m {1}s.",
                 timeTaken.Minutes, timeTaken.Seconds);
         }
 
-        /// <summary>
-        /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
-        /// </summary>
-        public virtual void Shutdown()
+        public string osSecret 
         {
-            ShutdownSpecific();
-            
-            m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
-            RemovePIDFile();
-            
-            Environment.Exit(0);
-        }
-
-        private void HandleQuit(string module, string[] args)
-        {
-            Shutdown();
-        }      
-        
-        public string osSecret {
             // Secret uuid for the simulator
             get { return m_osSecret; }            
         }

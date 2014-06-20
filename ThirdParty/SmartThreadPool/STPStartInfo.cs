@@ -1,113 +1,212 @@
-// Ami Bar
-// amibar@gmail.com
-
+using System;
 using System.Threading;
 
 namespace Amib.Threading
 {
-    /// <summary>
-    /// Summary description for STPStartInfo.
-    /// </summary>
+	/// <summary>
+	/// Summary description for STPStartInfo.
+	/// </summary>
     public class STPStartInfo : WIGStartInfo
     {
-        /// <summary>
-        /// Idle timeout in milliseconds.
-        /// If a thread is idle for _idleTimeout milliseconds then 
-        /// it may quit.
-        /// </summary>
-        private int _idleTimeout;
+        private int _idleTimeout = SmartThreadPool.DefaultIdleTimeout;
+        private int _minWorkerThreads = SmartThreadPool.DefaultMinWorkerThreads;
+        private int _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
+#if !(WINDOWS_PHONE)
+        private ThreadPriority _threadPriority = SmartThreadPool.DefaultThreadPriority;
+#endif
+        private string _performanceCounterInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
+        private bool _areThreadsBackground = SmartThreadPool.DefaultAreThreadsBackground;
+        private bool _enableLocalPerformanceCounters;
+        private string _threadPoolName = SmartThreadPool.DefaultThreadPoolName;
+        private int? _maxStackSize = SmartThreadPool.DefaultMaxStackSize;
 
-        /// <summary>
-        /// The lower limit of threads in the pool.
-        /// </summary>
-        private int _minWorkerThreads;
-
-        /// <summary>
-        /// The upper limit of threads in the pool.
-        /// </summary>
-        private int _maxWorkerThreads;
-
-        /// <summary>
-        /// The priority of the threads in the pool
-        /// </summary>
-        private ThreadPriority _threadPriority;
-
-        /// <summary>
-        /// The thread pool name. Threads will get names depending on this.
-        /// </summary>
-        private string _threadPoolName;
-
-        /// <summary>
-        /// If this field is not null then the performance counters are enabled
-        /// and use the string as the name of the instance.
-        /// </summary>
-        private string _pcInstanceName;
-
-        private int _stackSize;
-
-        public STPStartInfo() : base()
+        public STPStartInfo()
         {
+            _performanceCounterInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
+#if !(WINDOWS_PHONE)
+            _threadPriority = SmartThreadPool.DefaultThreadPriority;
+#endif
+            _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
             _idleTimeout = SmartThreadPool.DefaultIdleTimeout;
             _minWorkerThreads = SmartThreadPool.DefaultMinWorkerThreads;
-            _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
-            _threadPriority = SmartThreadPool.DefaultThreadPriority;
-            _threadPoolName = SmartThreadPool.DefaultThreadPoolName;
-            _pcInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
-            _stackSize = SmartThreadPool.DefaultStackSize;
         }
 
-        public STPStartInfo(STPStartInfo stpStartInfo) : base(stpStartInfo)
+	    public STPStartInfo(STPStartInfo stpStartInfo)
+            : base(stpStartInfo)
         {
-            _idleTimeout = stpStartInfo._idleTimeout;
-            _minWorkerThreads = stpStartInfo._minWorkerThreads;
-            _maxWorkerThreads = stpStartInfo._maxWorkerThreads;
-            _threadPriority = stpStartInfo._threadPriority;
+            _idleTimeout = stpStartInfo.IdleTimeout;
+            _minWorkerThreads = stpStartInfo.MinWorkerThreads;
+            _maxWorkerThreads = stpStartInfo.MaxWorkerThreads;
+#if !(WINDOWS_PHONE)
+            _threadPriority = stpStartInfo.ThreadPriority;
+#endif
+            _performanceCounterInstanceName = stpStartInfo.PerformanceCounterInstanceName;
+            _enableLocalPerformanceCounters = stpStartInfo._enableLocalPerformanceCounters;
             _threadPoolName = stpStartInfo._threadPoolName;
-            _pcInstanceName = stpStartInfo._pcInstanceName;
-            _stackSize = stpStartInfo._stackSize;
+            _areThreadsBackground = stpStartInfo.AreThreadsBackground;
+#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
+            _apartmentState = stpStartInfo._apartmentState;
+#endif
         }
+	  
+	    /// <summary>
+	    /// Get/Set the idle timeout in milliseconds.
+	    /// If a thread is idle (starved) longer than IdleTimeout then it may quit.
+	    /// </summary>
+	    public virtual int IdleTimeout
+	    {
+	        get { return _idleTimeout; }
+	        set 
+            {
+                ThrowIfReadOnly();
+                _idleTimeout = value; 
+            }
+	    }
 
-        public int IdleTimeout
-        {
-            get { return _idleTimeout; }
-            set { _idleTimeout = value; }
-        }
 
-        public int MinWorkerThreads
-        {
-            get { return _minWorkerThreads; }
-            set { _minWorkerThreads = value; }
-        }
+	    /// <summary>
+	    /// Get/Set the lower limit of threads in the pool.
+	    /// </summary>
+	    public virtual int MinWorkerThreads
+	    {
+	        get { return _minWorkerThreads; }
+	        set 
+            {
+                ThrowIfReadOnly();
+                _minWorkerThreads = value; 
+            }
+	    }
 
-        public int MaxWorkerThreads
-        {
-            get { return _maxWorkerThreads; }
-            set { _maxWorkerThreads = value; }
-        }
 
-        public ThreadPriority ThreadPriority
-        {
-            get { return _threadPriority; }
-            set { _threadPriority = value; }
-        }
+	    /// <summary>
+	    /// Get/Set the upper limit of threads in the pool.
+	    /// </summary>
+	    public virtual int MaxWorkerThreads
+	    {
+	        get { return _maxWorkerThreads; }
+	        set 
+            {
+                ThrowIfReadOnly();
+                _maxWorkerThreads = value; 
+            }
+	    }
 
-        public virtual string ThreadPoolName
-        {
+#if !(WINDOWS_PHONE)
+	    /// <summary>
+	    /// Get/Set the scheduling priority of the threads in the pool.
+	    /// The Os handles the scheduling.
+	    /// </summary>
+	    public virtual ThreadPriority ThreadPriority
+	    {
+	        get { return _threadPriority; }
+	        set 
+            {
+                ThrowIfReadOnly();
+                _threadPriority = value; 
+            }
+	    }
+#endif
+        /// <summary>
+        /// Get/Set the thread pool name. Threads will get names depending on this.
+        /// </summary>
+        public virtual string ThreadPoolName {
             get { return _threadPoolName; }
-            set { _threadPoolName = value; }
+            set
+            {
+                ThrowIfReadOnly ();
+                _threadPoolName = value;
+            }
         }
 
+	    /// <summary>
+	    /// Get/Set the performance counter instance name of this SmartThreadPool
+	    /// The default is null which indicate not to use performance counters at all.
+	    /// </summary>
+	    public virtual string PerformanceCounterInstanceName
+	    {
+	        get { return _performanceCounterInstanceName; }
+	        set 
+            {
+                ThrowIfReadOnly();
+                _performanceCounterInstanceName = value; 
+            }
+	    }
 
-        public string PerformanceCounterInstanceName
+        /// <summary>
+        /// Enable/Disable the local performance counter.
+        /// This enables the user to get some performance information about the SmartThreadPool 
+        /// without using Windows performance counters. (Useful on WindowsCE, Silverlight, etc.)
+        /// The default is false.
+        /// </summary>
+        public virtual bool EnableLocalPerformanceCounters
+	    {
+	        get { return _enableLocalPerformanceCounters; }
+	        set 
+			{ 
+				ThrowIfReadOnly(); 
+				_enableLocalPerformanceCounters = value; 
+			}
+	    }
+
+        /// <summary>
+        /// Get/Set backgroundness of thread in thread pool.
+        /// </summary>
+	    public virtual bool AreThreadsBackground
+ 	    {
+ 	        get { return _areThreadsBackground; }
+ 	        set
+ 	        {
+ 	            ThrowIfReadOnly ();
+ 	            _areThreadsBackground = value;
+ 	        }
+ 	    }
+
+	    /// <summary>
+        /// Get a readonly version of this STPStartInfo.
+        /// </summary>
+        /// <returns>Returns a readonly reference to this STPStartInfo</returns>
+        public new STPStartInfo AsReadOnly()
         {
-            get { return _pcInstanceName; }
-            set { _pcInstanceName = value; }
+            return new STPStartInfo(this) { _readOnly = true };
         }
 
-        public int StackSize
+#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
+
+        private ApartmentState _apartmentState = SmartThreadPool.DefaultApartmentState;
+
+        /// <summary>
+        /// Get/Set the apartment state of threads in the thread pool
+        /// </summary>
+        public ApartmentState ApartmentState
         {
-            get { return _stackSize; }
-            set { _stackSize = value; }
+            get { return _apartmentState; }
+            set
+            {
+                ThrowIfReadOnly();
+                _apartmentState = value;
+            }
+        } 
+
+#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
+        
+        /// <summary>
+        /// Get/Set the max stack size of threads in the thread pool
+        /// </summary>
+        public int? MaxStackSize
+        {
+            get { return _maxStackSize; }
+            set
+            {
+                ThrowIfReadOnly();
+                if (value.HasValue && value.Value < 0)
+                {
+                    throw new ArgumentOutOfRangeException("value", "Value must be greater than 0.");
+                }
+                _maxStackSize = value;
+            }
         }
+#endif
+
+#endif
     }
 }

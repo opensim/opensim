@@ -34,6 +34,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using log4net;
+using NDesk.Options;
 using Nini.Config;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -62,26 +63,127 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer = new LLUDPServer(listenIP, ref port, proxyPortOffsetParm, allow_alternate_port, configSource, circuitManager);
         }
 
-        public void NetworkStop()
-        {
-            m_udpServer.Stop();
-        }
-
         public void AddScene(IScene scene)
         {
             m_udpServer.AddScene(scene);
 
             StatsManager.RegisterStat(
                 new Stat(
+                    "ClientLogoutsDueToNoReceives",
+                    "Number of times a client has been logged out because no packets were received before the timeout.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = m_udpServer.ClientLogoutsDueToNoReceives,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingUDPReceivesCount",
+                    "Number of UDP receives performed",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.UdpReceives,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
                     "IncomingPacketsProcessedCount",
-                    "Number of inbound UDP packets processed",
-                    "Number of inbound UDP packets processed",
+                    "Number of inbound LL protocol packets processed",
+                    "",
                     "",
                     "clientstack",
                     scene.Name,
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketsMalformedCount",
+                    "Number of inbound UDP packets that could not be recognized as LL protocol packets.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingMalformedPacketCount,
+                    StatVerbosity.Info));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketsOrphanedCount",
+                    "Number of inbound packets that were not initial connections packets and could not be associated with a viewer.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingOrphanedPacketCount,
+                    StatVerbosity.Info));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketsResentCount",
+                    "Number of inbound packets that clients indicate are resends.",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingPacketsResentCount,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "OutgoingUDPSendsCount",
+                    "Number of UDP sends performed",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.UdpSends,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "OutgoingPacketsResentCount",
+                    "Number of packets resent because a client did not acknowledge receipt",
+                    "",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.PacketsResentCount,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "AverageUDPProcessTime",
+                    "Average number of milliseconds taken to process each incoming UDP packet in a sample.",
+                    "This is for initial receive processing which is separate from the later client LL packet processing stage.",
+                    "ms",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond,
+//                    stat => 
+//                        stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond, 7),
                     StatVerbosity.Debug));
         }
 
@@ -107,10 +209,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLUDPServer : OpenSimUDPBase
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
         public const int MTU = 1400;
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /// <summary>Number of forced client logouts due to no receipt of packets before timeout.</summary>
+        public int ClientLogoutsDueToNoReceives { get; private set; }
+
+        /// <summary>
+        /// Default packet debug level given to new clients
+        /// </summary>
+        public int DefaultClientPacketDebugLevel { get; set; }
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public readonly float TickCountResolution;
@@ -184,6 +294,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected bool m_sendPing;
 
         private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
+
+        /// <summary>
+        /// Event used to signal when queued packets are available for sending.
+        /// </summary>
+        /// <remarks>
+        /// This allows the outbound loop to only operate when there is data to send rather than continuously polling.
+        /// Some data is sent immediately and not queued.  That data would not trigger this event.
+        /// </remarks>
+        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
+
         private Pool<IncomingPacket> m_incomingPacketPool;
 
         /// <summary>
@@ -204,7 +324,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public Socket Server { get { return null; } }
 
-        private int m_malformedCount = 0; // Guard against a spamming attack
+        /// <summary>
+        /// Record how many packets have been resent
+        /// </summary>
+        internal int PacketsResentCount { get; set; }
+
+        /// <summary>
+        /// Record how many packets have been sent
+        /// </summary>
+        internal int PacketsSentCount { get; set; }
+
+        /// <summary>
+        /// Record how many incoming packets are indicated as resends by clients.
+        /// </summary>
+        internal int IncomingPacketsResentCount { get; set; }
+
+        /// <summary>
+        /// Record how many inbound packets could not be recognized as LLUDP packets.
+        /// </summary>
+        public int IncomingMalformedPacketCount { get; private set; }
+
+        /// <summary>
+        /// Record how many inbound packets could not be associated with a simulator circuit.
+        /// </summary>
+        public int IncomingOrphanedPacketCount { get; private set; }
 
         /// <summary>
         /// Record current outgoing client for monitoring purposes.
@@ -461,6 +604,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
 
+            StatsManager.RegisterStat(
+                new Stat(
+                    "InboxPacketsCount",
+                    "Number of LL protocol packets waiting for the second stage of processing after initial receive.",
+                    "Number of LL protocol packets waiting for the second stage of processing after initial receive.",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = packetInbox.Count,
+                    StatVerbosity.Debug));
+
             // XXX: These stats are also pool stats but we register them separately since they are currently not
             // turned on and off by EnablePools()/DisablePools()
             StatsManager.RegisterStat(
@@ -521,6 +677,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 EnablePoolStats();
 
             MainConsole.Instance.Commands.AddCommand(
+                "Debug", false, "debug lludp packet",
+                 "debug lludp packet [--default] <level> [<avatar-first-name> <avatar-last-name>]",
+                 "Turn on packet debugging",
+                   "If level >  255 then all incoming and outgoing packets are logged.\n"
+                 + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
+                 + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
+                 + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
+                 + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
+                 + "If level <= 0 then no packets are logged.\n"
+                 + "If --default is specified then the level becomes the default logging level for all subsequent agents.\n"
+                 + "In this case, you cannot also specify an avatar name.\n"
+                 + "If an avatar name is given then only packets from that avatar are logged.",
+                 HandlePacketCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
                 "debug lludp start",
@@ -559,10 +730,78 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp status",
                 "Return status of LLUDP packet processing.",
                 HandleStatusCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp toggle agentupdate",
+                "debug lludp toggle agentupdate",
+                "Toggle whether agentupdate packets are processed or simply discarded.",
+                HandleAgentUpdateCommand);
+        }
+
+        private void HandlePacketCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            bool setAsDefaultLevel = false;
+            OptionSet optionSet = new OptionSet().Add("default", o => setAsDefaultLevel = o != null);
+            List<string> filteredArgs = optionSet.Parse(args);
+
+            string name = null;
+
+            if (filteredArgs.Count == 6)
+            {
+                if (!setAsDefaultLevel)
+                {
+                    name = string.Format("{0} {1}", filteredArgs[4], filteredArgs[5]);
+                }
+                else
+                {
+                    MainConsole.Instance.OutputFormat("ERROR: Cannot specify a user name when setting default logging level");
+                    return;
+                }
+            }
+
+            if (filteredArgs.Count > 3)
+            {
+                int newDebug;
+                if (int.TryParse(filteredArgs[3], out newDebug))
+                {
+                    if (setAsDefaultLevel)
+                    {
+                        DefaultClientPacketDebugLevel = newDebug;
+                        MainConsole.Instance.OutputFormat(
+                            "Debug packet debug for new clients set to {0} in {1}", DefaultClientPacketDebugLevel, m_scene.Name);
+                    }
+                    else
+                    {
+                        m_scene.ForEachScenePresence(sp =>
+                        {
+                            if (name == null || sp.Name == name)
+                            {
+                                MainConsole.Instance.OutputFormat(
+                                    "Packet debug for {0} ({1}) set to {2} in {3}",
+                                    sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_scene.Name);
+
+                                sp.ControllingClient.DebugPacketLevel = newDebug;
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    MainConsole.Instance.Output("Usage: debug lludp packet [--default] 0..255 [<first-name> <last-name>]");
+                }
+            }
         }
 
         private void HandleStartCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             if (args.Length != 4)
             {
                 MainConsole.Instance.Output("Usage: debug lludp start <in|out|all>");
@@ -580,6 +819,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleStopCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             if (args.Length != 4)
             {
                 MainConsole.Instance.Output("Usage: debug lludp stop <in|out|all>");
@@ -597,6 +839,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandlePoolCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             if (args.Length != 4)
             {
                 MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
@@ -627,8 +872,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        bool m_discardAgentUpdates;
+
+        private void HandleAgentUpdateCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            m_discardAgentUpdates = !m_discardAgentUpdates;
+
+            MainConsole.Instance.OutputFormat(
+                "Discard AgentUpdates now {0} for {1}", m_discardAgentUpdates, m_scene.Name);
+        }
+
         private void HandleStatusCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             MainConsole.Instance.OutputFormat(
                 "IN  LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningInbound ? "enabled" : "disabled");
 
@@ -636,6 +897,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "OUT LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningOutbound ? "enabled" : "disabled");
 
             MainConsole.Instance.OutputFormat("LLUDP pools in {0} are {1}", m_scene.Name, UsePools ? "on" : "off");
+
+            MainConsole.Instance.OutputFormat(
+                "Packet debug level for new clients is {0}", DefaultClientPacketDebugLevel);
         }
 
         public bool HandlesRegion(Location x)
@@ -643,44 +907,44 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return x == m_location;
         }
 
-        public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
-        {
-            // CoarseLocationUpdate and AvatarGroupsReply packets cannot be split in an automated way
-            if ((packet.Type == PacketType.CoarseLocationUpdate || packet.Type == PacketType.AvatarGroupsReply) && allowSplitting)
-                allowSplitting = false;
-
-            if (allowSplitting && packet.HasVariableBlocks)
-            {
-                byte[][] datas = packet.ToBytesMultiple();
-                int packetCount = datas.Length;
-
-                if (packetCount < 1)
-                    m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
-
-                for (int i = 0; i < packetCount; i++)
-                {
-                    byte[] data = datas[i];
-                    m_scene.ForEachClient(
-                        delegate(IClientAPI client)
-                        {
-                            if (client is LLClientView)
-                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
-                        }
-                    );
-                }
-            }
-            else
-            {
-                byte[] data = packet.ToBytes();
-                m_scene.ForEachClient(
-                    delegate(IClientAPI client)
-                    {
-                        if (client is LLClientView)
-                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
-                    }
-                );
-            }
-        }
+//        public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
+//        {
+//            // CoarseLocationUpdate and AvatarGroupsReply packets cannot be split in an automated way
+//            if ((packet.Type == PacketType.CoarseLocationUpdate || packet.Type == PacketType.AvatarGroupsReply) && allowSplitting)
+//                allowSplitting = false;
+//
+//            if (allowSplitting && packet.HasVariableBlocks)
+//            {
+//                byte[][] datas = packet.ToBytesMultiple();
+//                int packetCount = datas.Length;
+//
+//                if (packetCount < 1)
+//                    m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
+//
+//                for (int i = 0; i < packetCount; i++)
+//                {
+//                    byte[] data = datas[i];
+//                    m_scene.ForEachClient(
+//                        delegate(IClientAPI client)
+//                        {
+//                            if (client is LLClientView)
+//                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
+//                        }
+//                    );
+//                }
+//            }
+//            else
+//            {
+//                byte[] data = packet.ToBytes();
+//                m_scene.ForEachClient(
+//                    delegate(IClientAPI client)
+//                    {
+//                        if (client is LLClientView)
+//                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
+//                    }
+//                );
+//            }
+//        }
 
         /// <summary>
         /// Start the process of sending a packet to the client.
@@ -700,6 +964,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
                 allowSplitting = false;
 
+            bool packetQueued = false;
+
             if (allowSplitting && packet.HasVariableBlocks)
             {
                 byte[][] datas = packet.ToBytesMultiple();
@@ -711,16 +977,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    SendPacketData(udpClient, data, packet.Type, category, method);
+
+                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
+                        packetQueued = true;
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                SendPacketData(udpClient, data, packet.Type, category, method);
+                packetQueued = SendPacketData(udpClient, data, packet.Type, category, method);
             }
 
             PacketPool.Instance.ReturnPacket(packet);
+
+            if (packetQueued)
+                m_dataPresentEvent.Set();
         }
 
         /// <summary>
@@ -734,7 +1005,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// The method to call if the packet is not acked by the client.  If null, then a standard
         /// resend of the packet is done.
         /// </param>
-        public void SendPacketData(
+        /// <returns>true if the data was sent immediately, false if it was queued for sending</returns>
+        public bool SendPacketData(
             LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category, UnackedPacketMethod method)
         {
             int dataLength = data.Length;
@@ -807,7 +1079,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // packet so that it isn't sent before a queued update packet.
             bool requestQueue = type == PacketType.KillObject;
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue))
+            {
                 SendPacketFinal(outgoingPacket);
+                return true;
+            }
+
+            return false;
 
             #endregion Queue or Send
         }
@@ -883,7 +1161,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Fire this out on a different thread so that we don't hold up outgoing packet processing for
                 // everybody else if this is being called due to an ack timeout.
                 // This is the same as processing as the async process of a logout request.
-                Util.FireAndForget(o => DeactivateClientDueToTimeout(client));
+                Util.FireAndForget(o => DeactivateClientDueToTimeout(client, timeoutTicks));
 
                 return;
             }
@@ -988,6 +1266,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 Interlocked.Increment(ref udpClient.PacketsResent);
+
+                // We're not going to worry about interlock yet since its not currently critical that this total count
+                // is 100% correct
+                PacketsResentCount++;
             }
 
             #endregion Sequence Number Assignment
@@ -995,11 +1277,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsSent);
 
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            PacketsSentCount++;
+
             // Put the UDP payload on the wire
             AsyncBeginSend(buffer);
 
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
+        }
+
+        private void RecordMalformedInboundPacket(IPEndPoint endPoint)
+        {
+//                if (m_malformedCount < 100)
+//                    m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
+
+            IncomingMalformedPacketCount++;
+
+            if ((IncomingMalformedPacketCount % 10000) == 0)
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.  Last was from {1}", 
+                    IncomingMalformedPacketCount, endPoint);
         }
 
         public override void PacketReceived(UDPPacketBuffer buffer)
@@ -1023,6 +1322,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                    "[LLUDPSERVER]: Dropping undersized packet with {0} bytes received from {1} in {2}",
 //                    buffer.DataLength, buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
+                RecordMalformedInboundPacket(endPoint);
+
                 return; // Drop undersized packet
             }
 
@@ -1041,6 +1342,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                    "[LLUDPSERVER]: Dropping packet with malformed header received from {0} in {1}",
 //                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
+                RecordMalformedInboundPacket(endPoint);
+
                 return; // Malformed header
             }
 
@@ -1056,34 +1359,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Only allocate a buffer for zerodecoding if the packet is zerocoded
                     ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
             }
-            catch (MalformedDataException)
-            {
-            }
-            catch (IndexOutOfRangeException)
-            {
-//                m_log.WarnFormat(
-//                    "[LLUDPSERVER]: Dropping short packet received from {0} in {1}",
-//                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
-
-                return; // Drop short packet
-            }
             catch (Exception e)
             {
-                if (m_malformedCount < 100)
+                if (IncomingMalformedPacketCount < 100)
                     m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
-
-                m_malformedCount++;
-
-                if ((m_malformedCount % 100000) == 0)
-                    m_log.DebugFormat("[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.", m_malformedCount);
             }
 
             // Fail-safe check
             if (packet == null)
             {
-                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}:",
-                    buffer.DataLength, buffer.RemoteEndPoint);
-                m_log.Error(Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
+                if (IncomingMalformedPacketCount < 100)
+                {
+                    m_log.WarnFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}, data {2}:",
+                        buffer.DataLength, buffer.RemoteEndPoint, Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
+                }
+
+                RecordMalformedInboundPacket(endPoint);
+
                 return;
             }
 
@@ -1127,12 +1419,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue.Enqueue(buffer);
                     return;
                 }
+                else if (packet.Type == PacketType.CompleteAgentMovement)
+                {
+                    // Send ack straight away to let the viewer know that we got it.
+                    SendAckImmediate(endPoint, packet.Header.Sequence);
+
+                    // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
+                    // buffer.
+                    object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
+
+                    Util.FireAndForget(HandleCompleteMovementIntoRegion, array);
+
+                    return;
+                }
             }
 
             // Determine which agent this packet came from
             if (client == null || !(client is LLClientView))
             {
                 //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+
+                IncomingOrphanedPacketCount++;
+
+                if ((IncomingOrphanedPacketCount % 10000) == 0)
+                    m_log.WarnFormat(
+                        "[LLUDPSERVER]: Received {0} orphaned packets so far.  Last was from {1}", 
+                        IncomingOrphanedPacketCount, endPoint);
+
                 return;
             }
 
@@ -1211,6 +1524,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Incoming Packet Accounting
 
+            // We're not going to worry about interlock yet since its not currently critical that this total count
+            // is 100% correct
+            if (packet.Header.Resent)
+                IncomingPacketsResentCount++;
+
             // Check the archive of received reliable packet IDs to see whether we already received this packet
             if (packet.Header.Reliable && !udpClient.PacketArchive.TryEnqueue(packet.Header.Sequence))
             {
@@ -1232,6 +1550,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region BinaryStats
             LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
+
+            if (packet.Type == PacketType.AgentUpdate)
+            {
+                if (m_discardAgentUpdates)
+                    return;
+
+                ((LLClientView)client).TotalAgentUpdates++;
+
+                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+
+                LLClientView llClient = client as LLClientView;
+                if (agentUpdate.AgentData.SessionID != client.SessionId 
+                    || agentUpdate.AgentData.AgentID != client.AgentId
+                    || !(llClient == null || llClient.CheckAgentUpdateSignificance(agentUpdate.AgentData)) )
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
+                    return;
+                }
+            }
 
             #region Ping Check Handling
 
@@ -1421,7 +1758,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
                     // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
-                        client.SceneAgent.SendInitialDataToMe();
+                    {
+                        AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
+                        bool tp = (aCircuit.teleportFlags > 0);
+                        // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
+                        if (!tp)
+                            client.SceneAgent.SendInitialDataToMe();
+                    }
 
                     // Now we know we can handle more data
                     Thread.Sleep(200);
@@ -1468,6 +1811,116 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.ErrorFormat(
                     "[LLUDPSERVER]: UseCircuitCode handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
+                    endPoint != null ? endPoint.ToString() : "n/a",
+                    client != null ? client.Name : "unknown",
+                    client != null ? client.AgentId.ToString() : "unknown",
+                    e.Message,
+                    e.StackTrace);
+            }
+        }
+
+        private void HandleCompleteMovementIntoRegion(object o)
+        {
+            IPEndPoint endPoint = null;
+            IClientAPI client = null;
+
+            try
+            {
+                object[] array = (object[])o;
+                endPoint = (IPEndPoint)array[0];
+                CompleteAgentMovementPacket packet = (CompleteAgentMovementPacket)array[1];
+
+                m_log.DebugFormat(
+                    "[LLUDPSERVER]: Handling CompleteAgentMovement request from {0} in {1}", endPoint, m_scene.Name);
+
+                // Determine which agent this packet came from
+                // We need to wait here because in when using the OpenSimulator V2 teleport protocol to travel to a destination
+                // simulator with no existing child presence, the viewer (at least LL 3.3.4) will send UseCircuitCode 
+                // and then CompleteAgentMovement immediately without waiting for an ack.  As we are now handling these
+                // packets asynchronously, we need to account for this thread proceeding more quickly than the 
+                // UseCircuitCode thread.
+                int count = 40;
+                while (count-- > 0)
+                {
+                    if (m_scene.TryGetClient(endPoint, out client))
+                    {
+                        if (!client.IsActive)
+                        {
+                            // This check exists to catch a condition where the client has been closed by another thread
+                            // but has not yet been removed from the client manager (and possibly a new connection has
+                            // not yet been established).
+                            m_log.DebugFormat(
+                                "[LLUDPSERVER]: Received a CompleteAgentMovement from {0} for {1} in {2} but client is not active yet.  Waiting.",
+                                endPoint, client.Name, m_scene.Name);
+                        }
+                        else if (client.SceneAgent == null)
+                        {
+                            // This check exists to catch a condition where the new client has been added to the client
+                            // manager but the SceneAgent has not yet been set in Scene.AddNewAgent().  If we are too
+                            // eager, then the new ScenePresence may not have registered a listener for this messsage
+                            // before we try to process it.
+                            // XXX: A better long term fix may be to add the SceneAgent before the client is added to 
+                            // the client manager
+                            m_log.DebugFormat(
+                                "[LLUDPSERVER]: Received a CompleteAgentMovement from {0} for {1} in {2} but client SceneAgent not set yet.  Waiting.",
+                                endPoint, client.Name, m_scene.Name);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        m_log.DebugFormat(
+                            "[LLUDPSERVER]: Received a CompleteAgentMovement from {0} in {1} but no client exists yet.  Waiting.", 
+                            endPoint, m_scene.Name);
+                    }
+
+                    Thread.Sleep(200);
+                }
+
+                if (client == null)
+                {
+                    m_log.DebugFormat(
+                        "[LLUDPSERVER]: No client found for CompleteAgentMovement from {0} in {1} after wait.  Dropping.",
+                        endPoint, m_scene.Name);
+
+                    return;
+                }
+                else if (!client.IsActive || client.SceneAgent == null)
+                {
+                    // This check exists to catch a condition where the client has been closed by another thread
+                    // but has not yet been removed from the client manager.
+                    // The packet could be simply ignored but it is useful to know if this condition occurred for other debugging
+                    // purposes.
+                    m_log.DebugFormat(
+                        "[LLUDPSERVER]: Received a CompleteAgentMovement from {0} for {1} in {2} but client is not active after wait.  Dropping.",
+                        endPoint, client.Name, m_scene.Name);
+
+                    return;
+                }
+
+                IncomingPacket incomingPacket1;
+
+                // Inbox insertion
+                if (UsePools)
+                {
+                    incomingPacket1 = m_incomingPacketPool.GetObject();
+                    incomingPacket1.Client = (LLClientView)client;
+                    incomingPacket1.Packet = packet;
+                }
+                else
+                {
+                    incomingPacket1 = new IncomingPacket((LLClientView)client, packet);
+                }
+
+                packetInbox.Enqueue(incomingPacket1);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[LLUDPSERVER]: CompleteAgentMovement handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
                     endPoint != null ? endPoint.ToString() : "n/a",
                     client != null ? client.Name : "unknown",
                     client != null ? client.AgentId.ToString() : "unknown",
@@ -1544,6 +1997,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     client = new LLClientView(m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                     client.OnLogout += LogoutHandler;
+                    client.DebugPacketLevel = DefaultClientPacketDebugLevel;
     
                     ((LLClientView)client).DisableFacelights = m_disableFacelights;
     
@@ -1562,21 +2016,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// regular client pings.
         /// </remarks>
         /// <param name='client'></param>
-        private void DeactivateClientDueToTimeout(LLClientView client)
+        /// <param name='timeoutTicks'></param>
+        private void DeactivateClientDueToTimeout(LLClientView client, int timeoutTicks)
         {
             lock (client.CloseSyncLock)
-            {
+            {    
+                ClientLogoutsDueToNoReceives++;
+
                 m_log.WarnFormat(
-                    "[LLUDPSERVER]: Ack timeout, disconnecting {0} agent for {1} in {2}",
-                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, m_scene.RegionInfo.RegionName);
-    
-                StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
+                    "[LLUDPSERVER]: No packets received from {0} agent of {1} for {2}ms in {3}.  Disconnecting.",
+                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, timeoutTicks, m_scene.Name);
     
                 if (!client.SceneAgent.IsChildAgent)
-                     client.Kick("Simulator logged you out due to connection timeout");
-    
-                client.CloseWithoutChecks(true);
+                     client.Kick("Simulator logged you out due to connection timeout.");
             }
+
+            m_scene.CloseAgent(client.AgentId, true);
         }
 
         private void IncomingPacketHandler()
@@ -1592,6 +2047,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     IncomingPacket incomingPacket = null;
 
+                    /*
                     // HACK: This is a test to try and rate limit packet handling on Mono.
                     // If it works, a more elegant solution can be devised
                     if (Util.FireAndForgetCount() < 2)
@@ -1599,6 +2055,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //m_log.Debug("[LLUDPSERVER]: Incoming packet handler is sleeping");
                         Thread.Sleep(30);
                     }
+                     */
 
                     if (packetInbox.Dequeue(100, ref incomingPacket))
                     {
@@ -1694,8 +2151,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
+                    //if (!m_packetSent)
+                    //    Thread.Sleep((int)TickCountResolution);
+                    //
+                    // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
+                    // modern mono it reduces CPU base load since there is no more continuous polling.
                     if (!m_packetSent)
-                        Thread.Sleep((int)TickCountResolution);
+                        m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
                 }
@@ -1912,7 +2374,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!client.IsLoggingOut)
             {
                 client.IsLoggingOut = true;
-                client.Close(false, false);
+                m_scene.CloseAgent(client.AgentId, false);
             }
         }
     }

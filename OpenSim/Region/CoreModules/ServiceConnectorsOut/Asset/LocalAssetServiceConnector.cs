@@ -258,7 +258,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (m_Cache != null)
                 m_Cache.Cache(asset);
             
-            if (asset.Temporary || asset.Local)
+            if (asset.Local)
             {
 //                m_log.DebugFormat(
 //                    "[LOCAL ASSET SERVICE CONNECTOR]: Returning asset {0} {1} without querying database since status Temporary = {2}, Local = {3}",

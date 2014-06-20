@@ -32,7 +32,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public interface IRequestHandler
     {
-
         /// <summary>
         /// Name for this handler.
         /// </summary>
@@ -59,6 +58,19 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         // Return path
         string Path { get; }
+
+        /// <summary>
+        /// Number of requests received by this handler
+        /// </summary>
+        int RequestsReceived { get; }
+
+        /// <summary>
+        /// Number of requests handled.
+        /// </summary>
+        /// <remarks>
+        /// Should be equal to RequestsReceived unless requested are being handled slowly or there is deadlock.
+        /// </remarks>
+        int RequestsHandled { get; }
     }
 
     public interface IStreamedRequestHandler : IRequestHandler
@@ -69,7 +81,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public interface IStreamHandler : IRequestHandler
     {
-        // Handle request stream, return byte array
         void Handle(string path, Stream request, Stream response, IOSHttpRequest httpReqbuest, IOSHttpResponse httpResponse);
     }
     

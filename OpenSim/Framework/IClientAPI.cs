@@ -65,6 +65,7 @@ namespace OpenSim.Framework
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
     public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 AvSize, WearableCacheItem[] CacheItems);
+    public delegate void CachedTextureRequest(IClientAPI remoteClient, int serial, List<CachedTextureRequestArg> cachedTextureRequest);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
@@ -789,6 +790,7 @@ namespace OpenSim.Framework
         event EstateChangeInfo OnEstateChangeInfo;
         event EstateManageTelehub OnEstateManageTelehub;
         // [Obsolete("LLClientView Specific.")]
+        event CachedTextureRequest OnCachedTextureRequest;
         event SetAppearance OnSetAppearance;
         // [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
         event AvatarNowWearing OnAvatarNowWearing;
@@ -831,6 +833,8 @@ namespace OpenSim.Framework
         /// Listeners must not retain a reference to AgentUpdateArgs since this object may be reused for subsequent AgentUpdates.
         /// </remarks>
         event UpdateAgent OnAgentUpdate;
+
+        event UpdateAgent OnAgentCameraUpdate;
 
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
@@ -1100,14 +1104,15 @@ namespace OpenSim.Framework
         /// <param name="textureEntry"></param>
         void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry);
 
+        void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures);
+
         void SendStartPingCheck(byte seq);
 
         /// <summary>
         /// Tell the client that an object has been deleted
         /// </summary>
-        /// <param name="regionHandle"></param>
         /// <param name="localID"></param>
-        void SendKillObject(ulong regionHandle, List<uint> localID);
+        void SendKillObject(List<uint> localID);
 
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
@@ -1486,7 +1491,7 @@ namespace OpenSim.Framework
         void SendChangeUserRights(UUID agentID, UUID friendID, int rights);
         void SendTextBoxRequest(string message, int chatChannel, string objectname, UUID ownerID, string ownerFirstName, string ownerLastName, UUID objectId);
 
-        void StopFlying(ISceneEntity presence);
+        void SendAgentTerseUpdate(ISceneEntity presence);
 
         void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data);
     }

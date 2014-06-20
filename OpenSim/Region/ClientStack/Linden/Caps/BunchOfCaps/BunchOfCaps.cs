@@ -282,13 +282,19 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
-                IRequestHandler getObjectPhysicsDataHandler = new RestStreamHandler("POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData);
+
+                IRequestHandler getObjectPhysicsDataHandler 
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData, "GetObjectPhysicsData", null);
                 m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
                 IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
                 m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
                 IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
                 m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);       
-                IRequestHandler UpdateAgentInformationHandler = new RestStreamHandler("POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation);
+
+                IRequestHandler UpdateAgentInformationHandler
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation, "UpdateAgentInformation", null);
                 m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
 
                 m_HostCapsObj.RegisterHandler(
@@ -361,18 +367,7 @@ namespace OpenSim.Region.ClientStack.Linden
             foreach (OSD c in capsRequested)
                 validCaps.Add(c.AsString());
 
-            Hashtable caps = m_HostCapsObj.CapsHandlers.GetCapsDetails(true, validCaps);
-
-            // Add the external too
-            foreach (KeyValuePair<string, string> kvp in m_HostCapsObj.ExternalCapsHandlers)
-            {
-                if (!validCaps.Contains(kvp.Key))
-                    continue;
-
-                caps[kvp.Key] = kvp.Value;
-            }
-
-            string result = LLSDHelpers.SerialiseLLSDReply(caps);
+            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
 
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
 
@@ -747,6 +742,10 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 inType = (sbyte)InventoryType.Sound;
                 assType = (sbyte)AssetType.Sound;
+            }
+            else if (inventoryType == "snapshot")
+            {
+                inType = (sbyte)InventoryType.Snapshot;
             }
             else if (inventoryType == "animation")
             {

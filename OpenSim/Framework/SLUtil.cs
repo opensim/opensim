@@ -39,7 +39,31 @@ namespace OpenSim.Framework
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Asset types used only in OpenSim.
+        /// To avoid clashing with the code numbers used in Second Life, use only negative numbers here.
+        /// </summary>
+        public enum OpenSimAssetType : sbyte
+        {
+            Material = -2
+        }
+
+        
         #region SL / file extension / content-type conversions
+
+        /// <summary>
+        /// Returns the Enum entry corresponding to the given code, regardless of whether it belongs
+        /// to the AssetType or OpenSimAssetType enums.
+        /// </summary>
+        public static object AssetTypeFromCode(sbyte assetType)
+        {
+            if (Enum.IsDefined(typeof(OpenMetaverse.AssetType), assetType))
+                return (OpenMetaverse.AssetType)assetType;
+            else if (Enum.IsDefined(typeof(OpenSimAssetType), assetType))
+                return (OpenSimAssetType)assetType;
+            else
+                return OpenMetaverse.AssetType.Unknown;
+        }
 
         private class TypeMapping
         {
@@ -56,12 +80,7 @@ namespace OpenSim.Framework
 
             public object AssetType
             {
-                get {
-                    if (Enum.IsDefined(typeof(OpenMetaverse.AssetType), assetType))
-                        return (OpenMetaverse.AssetType)assetType;
-                    else
-                        return OpenMetaverse.AssetType.Unknown;
-                }
+                get { return AssetTypeFromCode(assetType); }
             }
 
             public InventoryType InventoryType
@@ -99,6 +118,11 @@ namespace OpenSim.Framework
             }
 
             public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string extension)
+                : this((sbyte)assetType, inventoryType, contentType, null, extension)
+            {
+            }
+
+            public TypeMapping(OpenSimAssetType assetType, InventoryType inventoryType, string contentType, string extension)
                 : this((sbyte)assetType, inventoryType, contentType, null, extension)
             {
             }
@@ -142,7 +166,9 @@ namespace OpenSim.Framework
             new TypeMapping(AssetType.CurrentOutfitFolder, InventoryType.Unknown, "application/vnd.ll.currentoutfitfolder", "currentoutfitfolder"),
             new TypeMapping(AssetType.OutfitFolder, InventoryType.Unknown, "application/vnd.ll.outfitfolder", "outfitfolder"),
             new TypeMapping(AssetType.MyOutfitsFolder, InventoryType.Unknown, "application/vnd.ll.myoutfitsfolder", "myoutfitsfolder"),
-            new TypeMapping(AssetType.Mesh, InventoryType.Mesh, "application/vnd.ll.mesh", "llm")
+            new TypeMapping(AssetType.Mesh, InventoryType.Mesh, "application/vnd.ll.mesh", "llm"),
+            
+            new TypeMapping(OpenSimAssetType.Material, InventoryType.Unknown, "application/llsd+xml", "material")
         };
 
         private static Dictionary<sbyte, string> asset2Content;
@@ -247,11 +273,17 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static List<string> ParseNotecardToList(string rawInput)
         {
-            string[] input = rawInput.Replace("\r", "").Split('\n');
+            string[] input;
             int idx = 0;
             int level = 0;
             List<string> output = new List<string>();
             string[] words;
+
+            //The Linden format always ends with a } after the input data.
+            //Strip off trailing } so there is nothing after the input data.
+            int i = rawInput.LastIndexOf("}");
+            rawInput = rawInput.Remove(i, rawInput.Length-i);
+            input = rawInput.Replace("\r", "").Split('\n');
 
             while (idx < input.Length)
             {
@@ -287,24 +319,18 @@ namespace OpenSim.Framework
                         break;
                     if (words[0] == "Text")
                     {
-                        int len = int.Parse(words[2]);
-                        idx++;
+                        idx++;  //Now points to first line of notecard text
 
-                        int count = -1;
+                        //Number of lines in notecard.
+                        int lines = input.Length - idx;
+                        int line = 0;
 
-                        while (count < len && idx < input.Length)
+                        while (line < lines)
                         {
-                            // int l = input[idx].Length;
-                            string ln = input[idx];
-
-                            int need = len-count-1;
-                            if (ln.Length > need)
-                                ln = ln.Substring(0, need);
-
-//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", ln);
-                            output.Add(ln);
-                            count += ln.Length + 1;
+//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", input[idx]);
+                            output.Add(input[idx]);
                             idx++;
+                            line++;
                         }
 
                         return output;

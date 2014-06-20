@@ -922,3 +922,20 @@ ALTER TABLE prims ADD COLUMN `Friction` double NOT NULL default '0.6';
 ALTER TABLE prims ADD COLUMN `Restitution` double NOT NULL default '0.5';
 
 COMMIT;
+
+:VERSION 48       #---------------- Keyframes
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN `KeyframeMotion` blob;
+
+COMMIT;
+
+:VERSION 49         #--------------------- Save attachment info
+
+BEGIN;
+ALTER TABLE prims ADD COLUMN AttachedPosX double default 0;
+ALTER TABLE prims ADD COLUMN AttachedPosY double default 0;
+ALTER TABLE prims ADD COLUMN AttachedPosZ double default 0;
+ALTER TABLE primshapes ADD COLUMN LastAttachPoint int(4) not null default '0';
+COMMIT;

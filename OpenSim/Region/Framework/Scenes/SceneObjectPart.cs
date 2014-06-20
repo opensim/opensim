@@ -231,6 +231,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public double SoundRadius;
 
+        /// <summary>
+        /// Should sounds played from this prim be queued?
+        /// </summary>
+        /// <remarks>
+        /// This should only be changed by sound modules.  It is up to sound modules as to how they interpret this setting.
+        /// </remarks>
+        public bool SoundQueueing { get; set; }
 
         public uint TimeStampFull;
 
@@ -383,8 +390,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SOPVehicle m_vehicleParams = null;
 
-        private KeyframeMotion m_keyframeMotion = null;
-
         public KeyframeMotion KeyframeMotion
         {
             get; set;
@@ -506,7 +511,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (CreatorData != null && CreatorData != string.Empty)
+                if (!string.IsNullOrEmpty(CreatorData))
                     return CreatorID.ToString() + ';' + CreatorData;
                 else
                     return CreatorID.ToString();
@@ -536,7 +541,11 @@ namespace OpenSim.Region.Framework.Scenes
                         CreatorID = uuid;
                     }
                     if (parts.Length >= 2)
+                    {
                         CreatorData = parts[1];
+                        if (!CreatorData.EndsWith("/"))
+                            CreatorData += "/";
+                    }
                     if (parts.Length >= 3)
                         name = parts[2];
 
@@ -815,7 +824,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 
                         // Tell the physics engines that this prim changed.
-                        ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                        if (ParentGroup != null && ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene != null)
+                            ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                     catch (Exception e)
                     {
@@ -933,7 +943,7 @@ namespace OpenSim.Region.Framework.Scenes
                             //m_log.Info("[PART]: RO2:" + actor.Orientation.ToString());
                         }
 
-                        if (ParentGroup != null)
+                        if (ParentGroup != null && ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene != null)
                             ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                         //}
                     }
@@ -1218,23 +1228,14 @@ namespace OpenSim.Region.Framework.Scenes
         // the mappings more consistant.
         public Vector3 SitTargetPositionLL
         {
-            get { return new Vector3(m_sitTargetPosition.X, m_sitTargetPosition.Y,m_sitTargetPosition.Z); }
+            get { return m_sitTargetPosition; }
             set { m_sitTargetPosition = value; }
         }
 
         public Quaternion SitTargetOrientationLL
         {
-            get
-            {
-                return new Quaternion(
-                                        m_sitTargetOrientation.X,
-                                        m_sitTargetOrientation.Y,
-                                        m_sitTargetOrientation.Z,
-                                        m_sitTargetOrientation.W
-                                        );
-            }
-
-            set { m_sitTargetOrientation = new Quaternion(value.X, value.Y, value.Z, value.W); }
+            get { return m_sitTargetOrientation; }
+            set { m_sitTargetOrientation = value; }
         }
 
         public bool Stopped
@@ -2959,6 +2960,26 @@ namespace OpenSim.Region.Framework.Scenes
                 //ParentGroup.RootPart.m_groupPosition = newpos;
             }
 
+            if (pa != null && ParentID != 0 && ParentGroup != null)
+            {
+                // Special case where a child object is requesting property updates.
+                // This happens when linksets are modified to use flexible links rather than
+                //    the default links.
+                // The simulator code presumes that child parts are only modified by scripts
+                //    so the logic for changing position/rotation/etc does not take into
+                //    account the physical object actually moving.
+                // This code updates the offset position and rotation of the child and then
+                //    lets the update code push the update to the viewer.
+                // Since physics engines do not normally generate this event for linkset children,
+                //    this code will not be active unless you have a specially configured
+                //    physics engine.
+                Quaternion invRootRotation = Quaternion.Normalize(Quaternion.Inverse(ParentGroup.RootPart.RotationOffset));
+                m_offsetPosition = pa.Position - m_groupPosition;
+                RotationOffset = pa.Orientation * invRootRotation;
+                // m_log.DebugFormat("{0} PhysicsRequestingTerseUpdate child: pos={1}, rot={2}, offPos={3}, offRot={4}",
+                //                     "[SCENE OBJECT PART]", pa.Position, pa.Orientation, m_offsetPosition, RotationOffset);
+            }
+
             ScheduleTerseUpdate();
         }
 
@@ -3137,7 +3158,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // This was pulled from SceneViewer. Attachments always receive full updates.
-            // I could not verify if this is a requirement but this maintains existing behavior
+            // This is needed because otherwise if only the root prim changes position, then
+            // it looks as if the entire object has moved (including the other prims).
             if (ParentGroup.IsAttachment)
             {
                 ScheduleFullUpdate();
@@ -4350,30 +4372,31 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void UpdateGroupPosition(Vector3 pos)
+        public void UpdateGroupPosition(Vector3 newPos)
         {
-            if ((pos.X != GroupPosition.X) ||
-                (pos.Y != GroupPosition.Y) ||
-                (pos.Z != GroupPosition.Z))
+            Vector3 oldPos = GroupPosition;
+
+            if ((newPos.X != oldPos.X) ||
+                (newPos.Y != oldPos.Y) ||
+                (newPos.Z != oldPos.Z))
             {
-                Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
                 GroupPosition = newPos;
                 ScheduleTerseUpdate();
             }
         }
 
         /// <summary>
-        ///
+        /// Update this part's offset position.
         /// </summary>
         /// <param name="pos"></param>
-        public void UpdateOffSet(Vector3 pos)
+        public void UpdateOffSet(Vector3 newPos)
         {
-            if ((pos.X != OffsetPosition.X) ||
-                (pos.Y != OffsetPosition.Y) ||
-                (pos.Z != OffsetPosition.Z))
-            {
-                Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
+            Vector3 oldPos = OffsetPosition;
 
+            if ((newPos.X != oldPos.X) ||
+                (newPos.Y != oldPos.Y) ||
+                (newPos.Z != oldPos.Z))
+            {
                 if (ParentGroup.RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(ParentGroup.RootPart.StatusSandboxPos, newPos) > 10)
@@ -4520,7 +4543,7 @@ namespace OpenSim.Region.Framework.Scenes
             // For now, we use the NINJA naming scheme for identifying joints.
             // In the future, we can support other joint specification schemes such as a 
             // custom checkbox in the viewer GUI.
-            if (ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
+            if (ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene != null && ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
             {
                 return IsHingeJoint() || IsBallJoint();
             }
@@ -4642,6 +4665,11 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
 */
+                        if (pa != null)
+                        {
+                            pa.SetMaterial(Material);
+                            DoPhysicsPropertyUpdate(UsePhysics, true);
+                        }
                     }
                     else // it already has a physical representation
                     {
@@ -5014,6 +5042,14 @@ namespace OpenSim.Region.Framework.Scenes
                 oldTex.DefaultTexture = fallbackOldFace;
             }
 
+            // Materials capable viewers can send a ObjectImage packet
+            // when nothing in TE has changed. MaterialID should be updated
+            // by the RenderMaterials CAP handler, so updating it here may cause a
+            // race condtion. Therefore, if no non-materials TE fields have changed, 
+            // we should ignore any changes and not update Shape.TextureEntry
+
+            bool otherFieldsChanged = false;
+
             for (int i = 0 ; i < GetNumberOfSides(); i++)
             {
 
@@ -5040,18 +5076,36 @@ namespace OpenSim.Region.Framework.Scenes
                 // Max change, skip the rest of testing
                 if (changeFlags == (Changed.TEXTURE | Changed.COLOR))
                     break;
+
+                if (!otherFieldsChanged)
+                {
+                    if (oldFace.Bump != newFace.Bump) otherFieldsChanged = true;
+                    if (oldFace.Fullbright != newFace.Fullbright) otherFieldsChanged = true;
+                    if (oldFace.Glow != newFace.Glow) otherFieldsChanged = true;
+                    if (oldFace.MediaFlags != newFace.MediaFlags) otherFieldsChanged = true;
+                    if (oldFace.OffsetU != newFace.OffsetU) otherFieldsChanged = true;
+                    if (oldFace.OffsetV != newFace.OffsetV) otherFieldsChanged = true;
+                    if (oldFace.RepeatU != newFace.RepeatU) otherFieldsChanged = true;
+                    if (oldFace.RepeatV != newFace.RepeatV) otherFieldsChanged = true;
+                    if (oldFace.Rotation != newFace.Rotation) otherFieldsChanged = true;
+                    if (oldFace.Shiny != newFace.Shiny) otherFieldsChanged = true;
+                    if (oldFace.TexMapType != newFace.TexMapType) otherFieldsChanged = true;
+                }
             }
 
-            m_shape.TextureEntry = newTex.GetBytes();
-            if (changeFlags != 0)
-                TriggerScriptChangedEvent(changeFlags);
-            UpdateFlag = UpdateRequired.FULL;
-            ParentGroup.HasGroupChanged = true;
+            if (changeFlags != 0 || otherFieldsChanged)
+            {
+                m_shape.TextureEntry = newTex.GetBytes();
+                if (changeFlags != 0)
+                    TriggerScriptChangedEvent(changeFlags);
+                UpdateFlag = UpdateRequired.FULL;
+                ParentGroup.HasGroupChanged = true;
 
-            //This is madness..
-            //ParentGroup.ScheduleGroupForFullUpdate();
-            //This is sparta
-            ScheduleFullUpdate();
+                //This is madness..
+                //ParentGroup.ScheduleGroupForFullUpdate();
+                //This is sparta
+                ScheduleFullUpdate();
+            }
         }
 
 
@@ -5238,6 +5292,64 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddScriptLPS(int count)
         {
             ParentGroup.AddScriptLPS(count);
+        }
+
+        /// <summary>
+        /// Sets a prim's owner and permissions when it's rezzed.
+        /// </summary>
+        /// <param name="item">The inventory item from which the item was rezzed</param>
+        /// <param name="userInventory">True: the item is being rezzed from the user's inventory. False: from a prim's inventory.</param>
+        /// <param name="scene">The scene the prim is being rezzed into</param>
+        public void ApplyPermissionsOnRez(InventoryItemBase item, bool userInventory, Scene scene)
+        {
+            if ((OwnerID != item.Owner) || ((item.CurrentPermissions & SceneObjectGroup.SLAM) != 0) || ((item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0))
+            {
+                if (scene.Permissions.PropagatePermissions())
+                {
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                    {
+                        // Apply the item's permissions to the object
+                        //LogPermissions("Before applying item permissions");
+                        if (userInventory)
+                        {
+                            EveryoneMask = item.EveryOnePermissions;
+                            NextOwnerMask = item.NextPermissions;
+                        }
+                        else
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                EveryoneMask = item.EveryOnePermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                NextOwnerMask = item.NextPermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                GroupMask = item.GroupPermissions;
+                        }
+                        //LogPermissions("After applying item permissions");
+                    }
+                }
+
+                GroupMask = 0; // DO NOT propagate here
+            }
+
+            if (OwnerID != item.Owner)
+            {
+                //LogPermissions("Before ApplyNextOwnerPermissions");
+                ApplyNextOwnerPermissions();
+                //LogPermissions("After ApplyNextOwnerPermissions");
+
+                LastOwnerID = OwnerID;
+                OwnerID = item.Owner;
+                Inventory.ChangeInventoryOwner(item.Owner);
+            }
+        }
+
+        /// <summary>
+        /// Logs the prim's permissions. Useful when debugging permission problems.
+        /// </summary>
+        /// <param name="message"></param>
+        private void LogPermissions(String message)
+        {
+            PermissionsUtil.LogPermissions(Name, message, BaseMask, OwnerMask, NextOwnerMask);
         }
         
         public void ApplyNextOwnerPermissions()

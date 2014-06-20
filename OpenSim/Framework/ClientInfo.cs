@@ -33,12 +33,13 @@ namespace OpenSim.Framework
 {
     public class ClientInfo
     {
-        public AgentCircuitData agentcircuit;
+        public readonly DateTime StartedTime = DateTime.Now;
+        public AgentCircuitData agentcircuit = null;
 
         public Dictionary<uint, byte[]> needAck;
 
-        public List<byte[]> out_packets;
-        public Dictionary<uint, uint> pendingAcks;
+        public List<byte[]> out_packets = new List<byte[]>();
+        public Dictionary<uint, uint> pendingAcks = new Dictionary<uint,uint>();
         public EndPoint proxyEP;
 
         public uint sequence;
@@ -53,5 +54,9 @@ namespace OpenSim.Framework
         public int assetThrottle;
         public int textureThrottle;
         public int totalThrottle;
+
+        public Dictionary<string, int> SyncRequests = new Dictionary<string,int>();
+        public Dictionary<string, int> AsyncRequests = new Dictionary<string,int>();
+        public Dictionary<string, int> GenericRequests = new Dictionary<string,int>();
     }
 }

@@ -464,7 +464,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // or creator data is present.  Otherwise, use the estate owner instead.
                 foreach (SceneObjectPart part in sceneObject.Parts)
                 {
-                    if (part.CreatorData == null || part.CreatorData == string.Empty)
+                    if (string.IsNullOrEmpty(part.CreatorData))
                     {
                         if (!ResolveUserUuid(scene, part.CreatorID))
                             part.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;
@@ -515,7 +515,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                 kvp.Value.OwnerID = scene.RegionInfo.EstateSettings.EstateOwner;
                             }
 
-                            if (kvp.Value.CreatorData == null || kvp.Value.CreatorData == string.Empty)
+                            if (string.IsNullOrEmpty(kvp.Value.CreatorData))
                             {
                                 if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
                                     kvp.Value.CreatorID = scene.RegionInfo.EstateSettings.EstateOwner;

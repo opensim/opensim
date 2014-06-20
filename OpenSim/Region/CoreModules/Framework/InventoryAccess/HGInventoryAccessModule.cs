@@ -62,6 +62,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         private string m_ThisGatekeeper;
         private bool m_RestrictInventoryAccessAbroad;
 
+        private bool m_bypassPermissions = true;
+
 //        private bool m_Initialized = false;
 
         #region INonSharedRegionModule
@@ -100,6 +102,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                     else
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
+
+                    m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(source, "serverside_object_permissions",
+                                            new string[] { "Startup", "Permissions" }, true); 
+
                 }
             }
         }
@@ -114,6 +120,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
             scene.EventManager.OnTeleportStart += TeleportStart;
             scene.EventManager.OnTeleportFail += TeleportFail;
+
+            // We're fgoing to enforce some stricter permissions if Outbound is false
+            scene.Permissions.OnTakeObject += CanTakeObject;
+            scene.Permissions.OnTakeCopyObject += CanTakeObject;
+            scene.Permissions.OnTransferUserInventory += OnTransferUserInventory;
         }
 
         #endregion
@@ -135,7 +146,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (sp is ScenePresence)
                 {
                     AgentCircuitData aCircuit = ((ScenePresence)sp).Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
-                    if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+                    if (aCircuit != null &&  (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
                     {
                         if (m_RestrictInventoryAccessAbroad)
                         {
@@ -185,8 +196,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
         }
 
-        public void UploadInventoryItem(UUID avatarID, UUID assetID, string name, int userlevel)
+        public void UploadInventoryItem(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel)
         {
+            if (type == AssetType.Link)
+                return;
+
             string userAssetServer = string.Empty;
             if (IsForeignUser(avatarID, out userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
             {
@@ -221,7 +235,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             UUID newAssetID = base.CapsUpdateInventoryItemAsset(remoteClient, itemID, data);
 
-            UploadInventoryItem(remoteClient.AgentId, newAssetID, "", 0);
+            UploadInventoryItem(remoteClient.AgentId, AssetType.Unknown, newAssetID, "", 0);
 
             return newAssetID;
         }
@@ -232,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override void ExportAsset(UUID agentID, UUID assetID)
         {
             if (!assetID.Equals(UUID.Zero))
-                UploadInventoryItem(agentID, assetID, "", 0);
+                UploadInventoryItem(agentID, AssetType.Unknown, assetID, "", 0);
             else
                 m_log.Debug("[HGScene]: Scene.Inventory did not create asset");
         }
@@ -244,7 +258,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            m_log.DebugFormat("[HGScene] RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
+            m_log.DebugFormat("[HGScene]: RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
 
             //if (fromTaskID.Equals(UUID.Zero))
             //{
@@ -297,7 +311,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (m_Scene.TryGetScenePresence(userID, out sp))
                 {
                     AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                    if (aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                    if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
                     {
                         assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
                         assetServerURL = assetServerURL.Trim(new char[] { '/' }); 
@@ -348,7 +362,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
                     InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
 
-                    inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
+                    List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+
+                    foreach (InventoryFolderBase f in content.Folders)
+                    {
+                        if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
+                            keep.Add(f);
+                    }
+
+                    inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
                 }
             }
         }
@@ -381,7 +403,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                         foreach (InventoryFolderBase f in content.Folders)
                         {
-                            if (f.Name != "My Suitcase")
+                            if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
                             {
                                 f.Name = f.Name + " (Unavailable)";
                                 keep.Add(f);
@@ -404,6 +426,37 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             // No-op for now
         }
+
+        #endregion
+
+        #region Permissions
+
+        private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
+        {
+            if (m_bypassPermissions) return true;
+
+            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(stealer))
+            {
+                SceneObjectGroup sog = null;
+                if (m_Scene.TryGetSceneObjectGroup(objectID, out sog) && sog.OwnerID == stealer)
+                    return true;
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool OnTransferUserInventory(UUID itemID, UUID userID, UUID recipientID)
+        {
+            if (m_bypassPermissions) return true;
+
+            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(recipientID))
+                return false;
+
+            return true;
+        }
+
 
         #endregion
     }

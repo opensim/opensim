@@ -1495,11 +1495,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetAlpha(alpha, face);
         }
 
-        public void llSetAngularVelocity(LSL_Vector angvelocity, int local)
-        {
-            m_LSL_Functions.llSetAngularVelocity(angvelocity, local);
-        }
-
         public void llSetBuoyancy(double buoyancy)
         {
             m_LSL_Functions.llSetBuoyancy(buoyancy);
@@ -1535,6 +1530,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetColor(color, face);
         }
 
+        public void llSetContentType(LSL_Key id, LSL_Integer type)
+        {
+            m_LSL_Functions.llSetContentType(id, type);
+        }
+
         public void llSetDamage(double damage)
         {
             m_LSL_Functions.llSetDamage(damage);
@@ -1548,6 +1548,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local)
         {
             m_LSL_Functions.llSetForceAndTorque(force, torque, local);
+        }
+
+        public void llSetAngularVelocity(LSL_Vector force, int local)
+        {
+            m_LSL_Functions.llSetAngularVelocity(force, local);
         }
 
         public void llSetHoverHeight(double height, int water, double tau)
@@ -1738,11 +1743,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)
         {
             m_LSL_Functions.llSetVehicleVectorParam(param, vec);
-        }
-
-        public void llSetVelocity(LSL_Vector velocity, int local)
-        {
-            m_LSL_Functions.llSetVelocity(velocity, local);
         }
 
         public void llShout(int channelID, string text)
@@ -2013,11 +2013,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_List llGetPhysicsMaterial()
         {
             return m_LSL_Functions.llGetPhysicsMaterial();
-        }
-
-        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
-        {
-            m_LSL_Functions.llSetContentType(id, content_type);
         }
     }
 }

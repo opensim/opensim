@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Configuration.XML
 
         public void Commit()
         {
-            if (fileName == null || fileName == String.Empty)
+            if (string.IsNullOrEmpty(fileName))
                 return;
 
             if (!Directory.Exists(Util.configDir()))

@@ -1,0 +1,404 @@
+:VERSION 1
+
+CREATE TABLE users (
+  "UUID" varchar(36) NOT NULL default '' Primary Key,
+  "username" varchar(32) NOT NULL,
+  "lastname" varchar(32) NOT NULL,
+  "passwordHash" varchar(32) NOT NULL,
+  "passwordSalt" varchar(32) NOT NULL,
+  "homeRegion" bigint default NULL,
+  "homeLocationX" double precision default NULL,
+  "homeLocationY" double precision default NULL,
+  "homeLocationZ" double precision default NULL,
+  "homeLookAtX" double precision default NULL,
+  "homeLookAtY" double precision default NULL,
+  "homeLookAtZ" double precision default NULL,
+  "created" int NOT NULL,
+  "lastLogin" int NOT NULL,
+  "userInventoryURI" varchar(255) default NULL,
+  "userAssetURI" varchar(255) default NULL,
+  "profileCanDoMask" int default NULL,
+  "profileWantDoMask" int default NULL,
+  "profileAboutText" text,
+  "profileFirstText" text,
+  "profileImage" varchar(36) default NULL,
+  "profileFirstImage" varchar(36) default NULL,
+  "webLoginKey" varchar(36) default NULL
+);
+
+CREATE INDEX "usernames" ON users
+(
+	"username" ASC,
+	"lastname" ASC
+);
+
+
+CREATE TABLE agents (
+  "UUID" varchar(36) NOT NULL Primary Key,
+  "sessionID" varchar(36) NOT NULL,
+  "secureSessionID" varchar(36) NOT NULL,
+  "agentIP" varchar(16) NOT NULL,
+  "agentPort" int NOT NULL,
+  "agentOnline" smallint NOT NULL,
+  "loginTime" int NOT NULL,
+  "logoutTime" int NOT NULL,
+  "currentRegion" varchar(36) NOT NULL,
+  "currentHandle" bigint NOT NULL,
+  "currentPos" varchar(64) NOT NULL
+);
+
+CREATE INDEX session ON agents
+(
+	"sessionID" ASC
+);
+
+CREATE INDEX ssession ON agents
+(
+	"secureSessionID" ASC
+);
+
+
+CREATE TABLE userfriends(
+	"ownerID" varchar(50) NOT NULL,
+	"friendID" varchar(50) NOT NULL,
+	"friendPerms" varchar(50)  NOT NULL,
+	"datetimestamp" varchar(50)  NOT NULL
+);
+
+CREATE TABLE avatarappearance  (
+  "Owner"  varchar(36) NOT NULL primary key,
+  "Serial"  int NOT NULL,
+  "Visual_Params" bytea NOT NULL,
+  "Texture" bytea NOT NULL,
+  "Avatar_Height" double precision NOT NULL,
+  "Body_Item" varchar(36) NOT NULL,
+  "Body_Asset" varchar(36) NOT NULL,
+  "Skin_Item" varchar(36) NOT NULL,
+  "Skin_Asset" varchar(36) NOT NULL,
+  "Hair_Item" varchar(36) NOT NULL,
+  "Hair_Asset" varchar(36) NOT NULL,
+  "Eyes_Item" varchar(36) NOT NULL,
+  "Eyes_Asset" varchar(36) NOT NULL,
+  "Shirt_Item" varchar(36) NOT NULL,
+  "Shirt_Asset" varchar(36) NOT NULL,
+  "Pants_Item" varchar(36) NOT NULL,
+  "Pants_Asset" varchar(36) NOT NULL,
+  "Shoes_Item" varchar(36) NOT NULL,
+  "Shoes_Asset" varchar(36) NOT NULL,
+  "Socks_Item" varchar(36) NOT NULL,
+  "Socks_Asset" varchar(36) NOT NULL,
+  "Jacket_Item" varchar(36) NOT NULL,
+  "Jacket_Asset" varchar(36) NOT NULL,
+  "Gloves_Item" varchar(36) NOT NULL,
+  "Gloves_Asset" varchar(36) NOT NULL,
+  "Undershirt_Item" varchar(36) NOT NULL,
+  "Undershirt_Asset" varchar(36) NOT NULL,
+  "Underpants_Item" varchar(36) NOT NULL,
+  "Underpants_Asset" varchar(36) NOT NULL,
+  "Skirt_Item" varchar(36) NOT NULL,
+  "Skirt_Asset" varchar(36) NOT NULL
+);
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+ALTER TABLE users ADD "homeRegionID" varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000';
+ALTER TABLE users ADD "userFlags" int NOT NULL default 0;
+ALTER TABLE users ADD "godLevel" int NOT NULL default 0;
+ALTER TABLE users ADD "customType" varchar(32) not null default '';
+ALTER TABLE users ADD "partner" varchar(36) not null default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
+
+
+:VERSION 3
+
+BEGIN TRANSACTION;
+
+CREATE TABLE avatarattachments (
+	"UUID" varchar(36) NOT NULL
+	, "attachpoint" int NOT NULL
+	, item varchar(36) NOT NULL
+	, asset varchar(36) NOT NULL);
+
+CREATE INDEX IX_avatarattachments ON avatarattachments
+	(
+	"UUID"
+	);
+
+COMMIT;
+
+
+:VERSION 4
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_userfriends
+	(
+	"ownerID" varchar(36) NOT NULL,
+	"friendID" varchar(36) NOT NULL,
+	"friendPerms" int NOT NULL,
+	"datetimestamp" int NOT NULL
+	);
+
+INSERT INTO Tmp_userfriends ("ownerID", "friendID", "friendPerms", "datetimestamp")
+ SELECT cast("ownerID" as varchar(36)), cast("friendID" as varchar(36)), cast("friendPerms" as int), cast("datetimestamp" as int) 
+ FROM userfriends;
+
+DROP TABLE userfriends;
+
+alter table Tmp_userfriends rename to userfriends;
+
+CREATE INDEX IX_userfriends_ownerID ON userfriends
+	(
+	"ownerID"
+	);
+
+CREATE INDEX IX_userfriends_friendID ON userfriends
+	(
+	"friendID"
+	);
+
+COMMIT;
+
+
+:VERSION 5
+
+BEGIN TRANSACTION;
+
+ ALTER TABLE users add "email" varchar(250);
+ 
+COMMIT;
+
+
+:VERSION 6
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_users
+	(
+	"UUID" uuid NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000'),
+	"username" varchar(32) NOT NULL,
+	"lastname" varchar(32) NOT NULL,
+	"passwordHash" varchar(32) NOT NULL,
+	"passwordSalt" varchar(32) NOT NULL,
+	"homeRegion" bigint NULL DEFAULT (NULL),
+	"homeLocationX" double precision NULL DEFAULT (NULL),
+	"homeLocationY" double precision NULL DEFAULT (NULL),
+	"homeLocationZ" double precision NULL DEFAULT (NULL),
+	"homeLookAtX" double precision NULL DEFAULT (NULL),
+	"homeLookAtY" double precision NULL DEFAULT (NULL),
+	"homeLookAtZ" double precision NULL DEFAULT (NULL),
+	"created" int NOT NULL,
+	"lastLogin" int NOT NULL,
+	"userInventoryURI" varchar(255) NULL DEFAULT (NULL),
+	"userAssetURI" varchar(255) NULL DEFAULT (NULL),
+	"profileCanDoMask" int NULL DEFAULT (NULL),
+	"profileWantDoMask" int NULL DEFAULT (NULL),
+	"profileAboutText" text NULL,
+	"profileFirstText" text NULL,
+	"profileImage" uuid NULL DEFAULT (NULL),
+	"profileFirstImage" uuid NULL DEFAULT (NULL),
+	"webLoginKey" uuid NULL DEFAULT (NULL),
+	"homeRegionID" uuid NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000'),
+	"userFlags" int NOT NULL DEFAULT ((0)),
+	"godLevel" int NOT NULL DEFAULT ((0)),
+	"customType" varchar(32) NOT NULL DEFAULT (''),
+	"partner" uuid NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000'),
+	email varchar(250) NULL
+	);
+
+INSERT INTO Tmp_users ("UUID", "username", "lastname", "passwordHash", "passwordSalt", "homeRegion", "homeLocationX", "homeLocationY", "homeLocationZ", "homeLookAtX", "homeLookAtY", "homeLookAtZ", "created", "lastLogin", "userInventoryURI", "userAssetURI", "profileCanDoMask", "profileWantDoMask", "profileAboutText", "profileFirstText", "profileImage", "profileFirstImage", "webLoginKey", "homeRegionID", "userFlags", "godLevel", "customType", "partner", email)
+	SELECT cast("UUID" as uuid), "username", "lastname", "passwordHash", "passwordSalt", "homeRegion", "homeLocationX", "homeLocationY", "homeLocationZ", "homeLookAtX", "homeLookAtY", "homeLookAtZ", "created", "lastLogin", "userInventoryURI", "userAssetURI", "profileCanDoMask", "profileWantDoMask", "profileAboutText", "profileFirstText", cast("profileImage" as uuid), cast("profileFirstImage" as uuid), cast("webLoginKey" as uuid), cast("homeRegionID" as uuid), "userFlags", "godLevel", "customType", cast("partner" as uuid), email 
+	FROM users ;
+
+DROP TABLE users;
+
+alter table Tmp_users rename to users;
+
+ALTER TABLE users ADD CONSTRAINT
+	PK__users__65A475E737A5467C PRIMARY KEY 
+	(
+	"UUID"
+	);
+
+CREATE INDEX "usernames" ON users
+	(
+	"username",
+	"lastname"
+	);
+
+COMMIT;
+
+
+:VERSION 7
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_agents
+	(
+	"UUID" uuid NOT NULL,
+	"sessionID" uuid NOT NULL,
+	"secureSessionID" uuid NOT NULL,
+	"agentIP" varchar(16) NOT NULL,
+	"agentPort" int NOT NULL,
+	"agentOnline" smallint NOT NULL,
+	"loginTime" int NOT NULL,
+	"logoutTime" int NOT NULL,
+	"currentRegion" uuid NOT NULL,
+	"currentHandle" bigint NOT NULL,
+	"currentPos" varchar(64) NOT NULL
+	);
+
+INSERT INTO Tmp_agents ("UUID", "sessionID", "secureSessionID", "agentIP", "agentPort", "agentOnline", "loginTime", "logoutTime", "currentRegion", "currentHandle", "currentPos")
+	SELECT cast("UUID" as uuid), cast("sessionID" as uuid), cast("secureSessionID" as uuid), "agentIP", "agentPort", "agentOnline", "loginTime", "logoutTime", cast("currentRegion" as uuid), "currentHandle", "currentPos" 
+	FROM agents ;
+
+DROP TABLE agents;
+
+alter table Tmp_agents rename to agents;
+
+ALTER TABLE agents ADD CONSTRAINT
+	PK__agents__65A475E749C3F6B7 PRIMARY KEY 
+	(
+	"UUID"
+	) ;
+
+CREATE INDEX session ON agents
+	(
+	"sessionID"
+	);
+
+CREATE INDEX ssession ON agents
+	(
+	"secureSessionID"
+	);
+
+COMMIT;
+
+
+:VERSION 8
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_userfriends
+	(
+	"ownerID" uuid NOT NULL,
+	"friendID" uuid NOT NULL,
+	"friendPerms" int NOT NULL,
+	"datetimestamp" int NOT NULL
+	);
+
+INSERT INTO Tmp_userfriends ("ownerID", "friendID", "friendPerms", "datetimestamp")
+		SELECT cast("ownerID" as uuid), cast( "friendID" as uuid), "friendPerms", "datetimestamp" 
+		FROM userfriends;
+
+DROP TABLE userfriends;
+
+alter table Tmp_userfriends rename to userfriends;
+
+CREATE INDEX IX_userfriends_ownerID ON userfriends
+	(
+	"ownerID"
+	);
+
+CREATE INDEX IX_userfriends_friendID ON userfriends
+	(
+	"friendID"
+	);
+
+COMMIT;
+
+
+:VERSION 9
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_avatarappearance
+	(
+	"Owner" uuid NOT NULL,
+	"Serial" int NOT NULL,
+	"Visual_Params" bytea NOT NULL,
+	"Texture" bytea NOT NULL,
+	"Avatar_Height" double precision NOT NULL,
+	"Body_Item" uuid NOT NULL,
+	"Body_Asset" uuid NOT NULL,
+	"Skin_Item" uuid NOT NULL,
+	"Skin_Asset" uuid NOT NULL,
+	"Hair_Item" uuid NOT NULL,
+	"Hair_Asset" uuid NOT NULL,
+	"Eyes_Item" uuid NOT NULL,
+	"Eyes_Asset" uuid NOT NULL,
+	"Shirt_Item" uuid NOT NULL,
+	"Shirt_Asset" uuid NOT NULL,
+	"Pants_Item" uuid NOT NULL,
+	"Pants_Asset" uuid NOT NULL,
+	"Shoes_Item" uuid NOT NULL,
+	"Shoes_Asset" uuid NOT NULL,
+	"Socks_Item" uuid NOT NULL,
+	"Socks_Asset" uuid NOT NULL,
+	"Jacket_Item" uuid NOT NULL,
+	"Jacket_Asset" uuid NOT NULL,
+	"Gloves_Item" uuid NOT NULL,
+	"Gloves_Asset" uuid NOT NULL,
+	"Undershirt_Item" uuid NOT NULL,
+	"Undershirt_Asset" uuid NOT NULL,
+	"Underpants_Item" uuid NOT NULL,
+	"Underpants_Asset" uuid NOT NULL,
+	"Skirt_Item" uuid NOT NULL,
+	"Skirt_Asset" uuid NOT NULL
+	);
+
+INSERT INTO Tmp_avatarappearance ("Owner", "Serial", "Visual_Params", "Texture", "Avatar_Height", "Body_Item", "Body_Asset", "Skin_Item", "Skin_Asset", "Hair_Item", "Hair_Asset", "Eyes_Item", "Eyes_Asset", "Shirt_Item", "Shirt_Asset", "Pants_Item", "Pants_Asset", "Shoes_Item", "Shoes_Asset", "Socks_Item", "Socks_Asset", "Jacket_Item", "Jacket_Asset", "Gloves_Item", "Gloves_Asset", "Undershirt_Item", "Undershirt_Asset", "Underpants_Item", "Underpants_Asset", "Skirt_Item", "Skirt_Asset")
+	SELECT cast("Owner" as uuid), "Serial", "Visual_Params", "Texture", "Avatar_Height", cast("Body_Item" as uuid), cast("Body_Asset" as uuid), cast("Skin_Item" as uuid), cast("Skin_Asset" as uuid), cast("Hair_Item" as uuid), cast("Hair_Asset" as uuid), cast("Eyes_Item" as uuid), cast("Eyes_Asset" as uuid), cast("Shirt_Item" as uuid), cast("Shirt_Asset" as uuid), cast("Pants_Item" as uuid), cast("Pants_Asset" as uuid), cast("Shoes_Item" as uuid), cast("Shoes_Asset" as uuid), cast("Socks_Item" as uuid), cast("Socks_Asset" as uuid), cast("Jacket_Item" as uuid), cast("Jacket_Asset" as uuid), cast("Gloves_Item" as uuid), cast("Gloves_Asset" as uuid), cast("Undershirt_Item" as uuid), cast("Undershirt_Asset" as uuid), cast("Underpants_Item" as uuid), cast("Underpants_Asset" as uuid), cast("Skirt_Item" as uuid), cast("Skirt_Asset" as uuid) 
+	FROM avatarappearance ;
+
+DROP TABLE avatarappearance;
+
+alter table Tmp_avatarappearance rename to avatarappearance;
+
+ALTER TABLE avatarappearance ADD CONSTRAINT
+	PK__avatarap__7DD115CC4E88ABD4 PRIMARY KEY 
+	(
+	"Owner"
+	);
+
+COMMIT;
+
+
+:VERSION 10
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_avatarattachments
+	(
+	"UUID" uuid NOT NULL,
+	"attachpoint" int NOT NULL,
+	item uuid NOT NULL,
+	asset uuid NOT NULL
+	);
+
+INSERT INTO Tmp_avatarattachments ("UUID", "attachpoint", item, asset)
+	SELECT cast("UUID" as uuid), "attachpoint", cast(item as uuid), cast(asset as uuid) 
+	FROM avatarattachments ;
+
+DROP TABLE avatarattachments;
+
+alter table Tmp_avatarattachments rename to avatarattachments;
+
+CREATE INDEX IX_avatarattachments ON avatarattachments
+	(
+	"UUID"
+	);
+
+COMMIT;
+
+
+:VERSION 11
+
+BEGIN TRANSACTION;
+
+ALTER TABLE users ADD "scopeID" uuid not null default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;

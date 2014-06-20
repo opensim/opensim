@@ -104,7 +104,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sound">Sound asset ID</param>
         /// <param name="volume">Sound volume</param>
         /// <param name="triggered">Triggered or not.</param>
-        /// <param name="flags"></param>
         /// <param name="radius">Sound radius</param>
         /// <param name="useMaster">Play using sound master</param>
         /// <param name="isMaster">Play as sound master</param>
@@ -123,5 +122,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="max">AABB top north-east corner</param>
         void TriggerSoundLimited(UUID objectID, UUID sound, double volume,
                 Vector3 min, Vector3 max);
+
+        /// <summary>
+        /// Set whether sounds on the given prim should be queued.
+        /// </summary>
+        /// <param name='objectID'></param>
+        /// <param name='shouldQueue'></param>
+        void SetSoundQueueing(UUID objectID, bool shouldQueue);
     }
 }

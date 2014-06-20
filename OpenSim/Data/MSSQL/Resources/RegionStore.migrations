@@ -1168,3 +1168,15 @@ ALTER TABLE prims ADD `Friction` double NOT NULL default '0.6';
 ALTER TABLE prims ADD `Restitution` double NOT NULL default '0.5';
 
 COMMIT
+
+:VERSION 40       #---------------- Save Attachment info
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD AttachedPosX float(53) default 0.0;
+ALTER TABLE prims ADD AttachedPosY float(53) default 0.0;
+ALTER TABLE prims ADD AttachedPosZ float(53) default 0.0;
+ALTER TABLE primshapes ADD LastAttachPoint int not null default 0;
+
+COMMIT
+

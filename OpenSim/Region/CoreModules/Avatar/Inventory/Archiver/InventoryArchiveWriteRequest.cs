@@ -78,7 +78,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <value>
         /// Used to collect the uuids of the assets that we need to save into the archive
         /// </value>
-        protected Dictionary<UUID, AssetType> m_assetUuids = new Dictionary<UUID, AssetType>();
+        protected Dictionary<UUID, sbyte> m_assetUuids = new Dictionary<UUID, sbyte>();
 
         /// <value>
         /// Used to collect the uuids of the users that we need to save into the archive
@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
-                m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
+                m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (sbyte)inventoryItem.AssetType, m_assetUuids);
         }
 
         /// <summary>

@@ -1664,6 +1664,75 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SetFaceColorAlpha(face, color, null);
         }
 
+        /*
+        public void llSetContentType(LSL_Key id, LSL_Integer type)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_UrlModule == null)
+                return;
+
+            // Make sure the content type is text/plain to start with
+            m_UrlModule.HttpContentType(new UUID(id), "text/plain");
+
+            // Is the object owner online and in the region
+            ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
+            if (agent == null || agent.IsChildAgent)
+                return;  // Fail if the owner is not in the same region
+
+            // Is it the embeded browser?
+            string userAgent = m_UrlModule.GetHttpHeader(new UUID(id), "user-agent");
+            if (userAgent.IndexOf("SecondLife") < 0)
+                return; // Not the embedded browser. Is this check good enough?
+
+            // Use the IP address of the client and check against the request
+            // seperate logins from the same IP will allow all of them to get non-text/plain as long
+            // as the owner is in the region. Same as SL!
+            string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
+            string requestFromIPAddress = m_UrlModule.GetHttpHeader(new UUID(id), "remote_addr");
+            //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
+            if (requestFromIPAddress == null || requestFromIPAddress.Trim() == "")
+                return;
+            if (logonFromIPAddress == null || logonFromIPAddress.Trim() == "")
+                return;
+
+            // If the request isnt from the same IP address then the request cannot be from the owner
+            if (!requestFromIPAddress.Trim().Equals(logonFromIPAddress.Trim()))
+                return;
+
+            switch (type)
+            {
+                case ScriptBaseClass.CONTENT_TYPE_HTML:
+                    m_UrlModule.HttpContentType(new UUID(id), "text/html");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_XML:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_XHTML:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/xhtml+xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_ATOM:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/atom+xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_JSON:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/json");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_LLSD:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/llsd+xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_FORM:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/x-www-form-urlencoded");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_RSS:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/rss+xml");
+                    break;
+                default:
+                    m_UrlModule.HttpContentType(new UUID(id), "text/plain");
+                    break;
+            }
+        }
+        */
+
         public void SetTexGen(SceneObjectPart part, int face,int style)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
@@ -2772,9 +2841,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in range
             if (m_SoundModule != null)
             {
-                m_SoundModule.SendSound(m_host.UUID,
-                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, false, 0,
-                        0, false, false);
+                m_SoundModule.SendSound(
+                    m_host.UUID,
+                    ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), 
+                    volume, false, m_host.SoundQueueing ? (byte)SoundFlags.Queue : (byte)SoundFlags.None,
+                    0, false, false);
             }
         }
 
@@ -3176,46 +3247,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // need the magnitude later
                 // float velmag = (float)Util.GetMagnitude(llvel);
 
-                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, rot, vel, param);
+                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, rot, vel, param);
 
                 // If either of these are null, then there was an unknown error.
-                if (new_group == null)
+                if (new_groups == null)
                     return;
 
-                // objects rezzed with this method are die_at_edge by default.
-                new_group.RootPart.SetDieAtEdge(true);
-
-                new_group.ResumeScripts();
-
-                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
-                        "object_rez", new Object[] {
-                        new LSL_String(
-                        new_group.RootPart.UUID.ToString()) },
-                        new DetectParams[0]));
-
-                // do recoil
-                SceneObjectGroup hostgrp = m_host.ParentGroup;
-                if (hostgrp == null)
-                    return;
-
-                if (hostgrp.IsAttachment) // don't recoil avatars
-                    return;
-
-                PhysicsActor pa = new_group.RootPart.PhysActor;
-
-                //Recoil.
-                if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
+                foreach (SceneObjectGroup group in new_groups)
                 {
-                    float groupmass = new_group.GetMass();
-                    Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
-                    if (recoil != Vector3.Zero)
-                    {
-                        llApplyImpulse(recoil, 0);
-                    }
-                }
-                // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                return;
+                    // objects rezzed with this method are die_at_edge by default.
+                    group.RootPart.SetDieAtEdge(true);
 
+                    group.ResumeScripts();
+
+                    m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                            "object_rez", new Object[] {
+                            new LSL_String(
+                            group.RootPart.UUID.ToString()) },
+                            new DetectParams[0]));
+
+                    float groupmass = group.GetMass();
+
+                    PhysicsActor pa = group.RootPart.PhysActor;
+
+                    //Recoil.
+                    if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
+                    {
+                        Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
+                        if (recoil != Vector3.Zero)
+                        {
+                            llApplyImpulse(recoil, 0);
+                        }
+                    }
+                    // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
+                }
+                return;
             });
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
@@ -4746,6 +4812,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(agent,out av))
             {
+                LSLError("First parameter to llTextBox needs to be a key");
                 return;
             }
 
@@ -5108,6 +5175,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             s = Math.Cos(angle * 0.5);
             t = Math.Sin(angle * 0.5); // temp value to avoid 2 more sin() calcs
+            axis =  LSL_Vector.Norm(axis);
             x = axis.x * t;
             y = axis.y * t;
             z = axis.z * t;
@@ -5115,41 +5183,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Rotation(x,y,z,s);
         }
 
-
-        // Xantor 29/apr/2008
-        // converts a Quaternion to X,Y,Z axis rotations
+        /// <summary>
+        /// Returns the axis of rotation for a quaternion
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='rot'></param>
         public LSL_Vector llRot2Axis(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z;
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-
-            }
-
-            // double angle = 2 * Math.Acos(rot.s);
             double s = Math.Sqrt(1 - rot.s * rot.s);
             if (s < 0.001)
             {
-                x = 1;
-                y = z = 0;
+                return new LSL_Vector(1, 0, 0);
             }
             else
             {
-                x = rot.x / s; // normalise axis
-                y = rot.y / s;
-                z = rot.z / s;
+                double invS = 1.0 / s;
+                if (rot.s < 0) invS = -invS;
+                return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
             }
-
-            return new LSL_Vector(x,y,z);
         }
 
 
@@ -5158,18 +5214,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
-
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-            }
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
+            if (angle > Math.PI) 
+                angle = 2 * Math.PI - angle;
 
             return angle;
         }
@@ -6687,7 +6737,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             PSYS_SRC_TARGET_KEY = 20,
             PSYS_SRC_OMEGA = 21,
             PSYS_SRC_ANGLE_BEGIN = 22,
-            PSYS_SRC_ANGLE_END = 23
+            PSYS_SRC_ANGLE_END = 23,
+            PSYS_PART_BLEND_FUNC_SOURCE = 24,
+            PSYS_PART_BLEND_FUNC_DEST = 25,
+            PSYS_PART_START_GLOW = 26,
+            PSYS_PART_END_GLOW = 27
         }
 
         internal Primitive.ParticleSystem.ParticleDataFlags ConvertUINTtoFlags(uint flags)
@@ -6713,6 +6767,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ps.BurstRate = 0.1f;
             ps.PartMaxAge = 10.0f;
             ps.BurstPartCount = 1;
+            ps.BlendFuncSource = ScriptBaseClass.PSYS_PART_BF_SOURCE_ALPHA;
+            ps.BlendFuncDest = ScriptBaseClass.PSYS_PART_BF_ONE_MINUS_SOURCE_ALPHA;
+            ps.PartStartGlow = 0.0f;
+            ps.PartEndGlow = 0.0f;
+
             return ps;
         }
 
@@ -6747,6 +6806,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSL_Vector tempv = new LSL_Vector();
 
                 float tempf = 0;
+                int tmpi = 0;
 
                 for (int i = 0; i < rules.Length; i += 2)
                 {
@@ -6805,7 +6865,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_PATTERN:
-                            int tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
 
@@ -6823,6 +6883,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.OuterAngle = (float)tempf;
                             prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_PART_BLEND_FUNC_SOURCE:
+                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            prules.BlendFuncSource = (byte)tmpi;
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_PART_BLEND_FUNC_DEST:
+                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            prules.BlendFuncDest = (byte)tmpi;
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_PART_START_GLOW:
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartStartGlow = (float)tempf;
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_PART_END_GLOW:
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartEndGlow = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
@@ -8255,7 +8335,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                  return null;
 
                              string ph = rules.Data[idx++].ToString();
-                             parentgrp.ScriptSetPhantomStatus(ph.Equals("1"));
+                             part.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
 
                              break;
 
@@ -8308,7 +8388,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return null;
                             string temp = rules.Data[idx++].ToString();
 
-                            parentgrp.ScriptSetTemporaryStatus(temp.Equals("1"));
+                            part.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
 
                             break;
 
@@ -8846,8 +8926,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int idx=0;
             while (idx < rules.Length)
             {
-                int code=(int)rules.GetLSLIntegerItem(idx++);
-                int remain=rules.Length-idx;
+                int code = (int)rules.GetLSLIntegerItem(idx++);
+                int remain = rules.Length - idx;
 
                 switch (code)
                 {
@@ -8920,7 +9000,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
 
                             case ScriptBaseClass.PRIM_TYPE_SCULPT:
-                                res.Add(Shape.SculptTexture.ToString());
+                                res.Add(new LSL_String(Shape.SculptTexture.ToString()));
                                 res.Add(new LSL_Integer(Shape.SculptType));
                                 break;
 
@@ -9262,7 +9342,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ));
                         break;
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
-                        if(remain < 3)
+
+                        // TODO: Should be issuing a runtime script warning in this case.
+                        if (remain < 2)
                             return null;
 
                         return rules.GetSublist(idx, -1);
@@ -12673,6 +12755,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetSoundQueueing(int queue)
         {
             m_host.AddScriptLPS(1);
+
+            if (m_SoundModule != null)
+                m_SoundModule.SetSoundQueueing(m_host.UUID, queue == ScriptBaseClass.TRUE.value);
         }
 
         public void llCollisionSprite(string impact_sprite)

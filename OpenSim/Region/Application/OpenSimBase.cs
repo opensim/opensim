@@ -75,6 +75,7 @@ namespace OpenSim
         protected int proxyOffset = 0;
         
         public string userStatsURI = String.Empty;
+        public string managedStatsURI = String.Empty;
 
         protected bool m_autoCreateClientStack = true;
 
@@ -199,6 +200,8 @@ namespace OpenSim
                     new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
                 m_permsModules = new List<string>(permissionModules.Split(','));
+
+                managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
             }
 
             // Load the simulation data service
@@ -248,10 +251,7 @@ namespace OpenSim
             }
 
             if (m_console != null)
-            {
-                StatsManager.RegisterConsoleCommands(m_console);
                 AddPluginCommands(m_console);
-            }
         }
 
         protected virtual void AddPluginCommands(ICommandConsole console)
@@ -495,9 +495,6 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("The region is operational", scene);
                 scene.SnmpService.LinkUp(scene);
             }
-
-            scene.Start();
-            scene.StartScripts();
 
             return clientServers;
         }
@@ -813,7 +810,7 @@ namespace OpenSim
 
             if (foundClientServer)
             {
-                m_clientServers[clientServerElement].NetworkStop();
+                m_clientServers[clientServerElement].Stop();
                 m_clientServers.RemoveAt(clientServerElement);
             }
         }
@@ -827,6 +824,7 @@ namespace OpenSim
             ShutdownClientServer(whichRegion);
             IScene scene;
             CreateRegion(whichRegion, true, out scene);
+            scene.Start();
         }
 
         # region Setup methods
@@ -840,31 +838,22 @@ namespace OpenSim
         /// <summary>
         /// Handler to supply the current status of this sim
         /// </summary>
+        /// <remarks>
         /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
-        public class SimStatusHandler : IStreamedRequestHandler
+        /// </remarks>
+        public class SimStatusHandler : BaseStreamHandler
         {
-            public byte[] Handle(string path, Stream request,
+            public SimStatusHandler() : base("GET", "/simstatus", "SimStatus", "Simulator Status") {}
+
+            protected override byte[] ProcessRequest(string path, Stream request,
                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes("OK");
             }
 
-            public string Name { get { return "SimStatus"; } }
-            public string Description { get { return "Simulator Status"; } }
-
-            public string ContentType
+            public override string ContentType
             {
                 get { return "text/plain"; }
-            }
-
-            public string HttpMethod
-            {
-                get { return "GET"; }
-            }
-
-            public string Path
-            {
-                get { return "/simstatus"; }
             }
         }
 
@@ -872,40 +861,25 @@ namespace OpenSim
         /// Handler to supply the current extended status of this sim
         /// Sends the statistical data in a json serialization 
         /// </summary>
-        public class XSimStatusHandler : IStreamedRequestHandler
+        public class XSimStatusHandler : BaseStreamHandler
         {
             OpenSimBase m_opensim;
-            string osXStatsURI = String.Empty;
-
-            public string Name { get { return "XSimStatus"; } }
-            public string Description { get { return "Simulator XStatus"; } }
         
-            public XSimStatusHandler(OpenSimBase sim)
+            public XSimStatusHandler(OpenSimBase sim) 
+                : base("GET", "/" + Util.SHA1Hash(sim.osSecret), "XSimStatus", "Simulator XStatus")
             {
                 m_opensim = sim;
-                osXStatsURI = Util.SHA1Hash(sim.osSecret);
             }
             
-            public byte[] Handle(string path, Stream request,
+            protected override byte[] ProcessRequest(string path, Stream request,
                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }
 
-            public string ContentType
+            public override string ContentType
             {
                 get { return "text/plain"; }
-            }
-
-            public string HttpMethod
-            {
-                get { return "GET"; }
-            }
-
-            public string Path
-            {
-                // This is for the OpenSimulator instance and is the osSecret hashed
-                get { return "/" + osXStatsURI; }
             }
         }
 
@@ -915,41 +889,25 @@ namespace OpenSim
         /// If the request contains a key, "callback" the response will be wrappend in the 
         /// associated value for jsonp used with ajax/javascript
         /// </summary>
-        public class UXSimStatusHandler : IStreamedRequestHandler
+        protected class UXSimStatusHandler : BaseStreamHandler
         {
             OpenSimBase m_opensim;
-            string osUXStatsURI = String.Empty;
-
-            public string Name { get { return "UXSimStatus"; } }
-            public string Description { get { return "Simulator UXStatus"; } }
         
             public UXSimStatusHandler(OpenSimBase sim)
+                : base("GET", "/" + sim.userStatsURI, "UXSimStatus", "Simulator UXStatus")
             {
-                m_opensim = sim;
-                osUXStatsURI = sim.userStatsURI;
-                
+                m_opensim = sim;                
             }
             
-            public byte[] Handle(string path, Stream request,
+            protected override byte[] ProcessRequest(string path, Stream request,
                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }
 
-            public string ContentType
+            public override string ContentType
             {
                 get { return "text/plain"; }
-            }
-
-            public string HttpMethod
-            {
-                get { return "GET"; }
-            }
-
-            public string Path
-            {
-                // This is for the OpenSimulator instance and is the user provided URI 
-                get { return "/" + osUXStatsURI; }
             }
         }
 
@@ -958,7 +916,7 @@ namespace OpenSim
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>
-        public override void ShutdownSpecific()
+        protected override void ShutdownSpecific()
         {
             if (proxyUrl.Length > 0)
             {
@@ -978,6 +936,8 @@ namespace OpenSim
             {
                 m_log.Error("[SHUTDOWN]: Ignoring failure during shutdown - ", e);
             }
+
+            base.ShutdownSpecific();
         }
 
         /// <summary>
@@ -1025,7 +985,7 @@ namespace OpenSim
             regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
 
             string newName;
-            if (estateName != null && estateName != "")
+            if (!string.IsNullOrEmpty(estateName))
                 newName = estateName;
             else
                 newName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);

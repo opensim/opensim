@@ -91,7 +91,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             m_HandlersType = handlersType;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             return OKResponse(httpResponse);

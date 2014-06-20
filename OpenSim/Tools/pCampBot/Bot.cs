@@ -59,22 +59,23 @@ namespace pCampBot
         public delegate void AnEvent(Bot callbot, EventType someevent); // event delegate for bot events
 
         /// <summary>
+        /// Controls whether bots request textures for the object information they receive
+        /// </summary>
+        public bool RequestObjectTextures { get; set; }
+
+        /// <summary>
         /// Bot manager.
         /// </summary>
         public BotManager Manager { get; private set; }
 
         /// <summary>
-        /// Bot config, passed from BotManager.
-        /// </summary>
-        private IConfig startupConfig;
-
-        /// <summary>
         /// Behaviours implemented by this bot.
         /// </summary>
         /// <remarks>
-        /// Lock this list before manipulating it.
+        /// Indexed by abbreviated name.  There can only be one instance of a particular behaviour.
+        /// Lock this structure before manipulating it.
         /// </remarks>
-        public List<IBehaviour> Behaviours { get; private set; }
+        public Dictionary<string, IBehaviour> Behaviours { get; private set; }
 
         /// <summary>
         /// Objects that the bot has discovered.
@@ -97,11 +98,35 @@ namespace pCampBot
         /// </summary>
         public ConnectionState ConnectionState { get; private set; }
 
+        public List<Simulator> Simulators
+        {
+            get
+            {
+                lock (Client.Network.Simulators)
+                    return new List<Simulator>(Client.Network.Simulators);
+            }
+        }
+
+        /// <summary>
+        /// The number of connections that this bot has to different simulators.
+        /// </summary>
+        /// <value>Includes both root and child connections.</value>
+        public int SimulatorsCount
+        {
+            get
+            {
+                lock (Client.Network.Simulators)
+                    return Client.Network.Simulators.Count;
+            }
+        }
+
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public string Name { get; private set; }
         public string Password { get; private set; }
         public string LoginUri { get; private set; }
+        public string StartLocation { get; private set; }
+
         public string saveDir;
         public string wear;
 
@@ -137,94 +162,178 @@ namespace pCampBot
         /// <param name="behaviours"></param>
         public Bot(
             BotManager bm, List<IBehaviour> behaviours,
-            string firstName, string lastName, string password, string loginUri)
+            string firstName, string lastName, string password, string startLocation, string loginUri)
         {
             ConnectionState = ConnectionState.Disconnected;
 
-            behaviours.ForEach(b => b.Initialize(this));
-            
-            Client = new GridClient();
-
-            Random = new Random(Environment.TickCount);// We do stuff randomly here
+            Random = new Random(bm.Rng.Next());
             FirstName = firstName;
             LastName = lastName;
             Name = string.Format("{0} {1}", FirstName, LastName);
             Password = password;
             LoginUri = loginUri;
+            StartLocation = startLocation;
 
             Manager = bm;
-            startupConfig = bm.Config;
-            readconfig();
 
-            Behaviours = behaviours;
+            Behaviours = new Dictionary<string, IBehaviour>();
+            foreach (IBehaviour behaviour in behaviours)
+                AddBehaviour(behaviour);
+
+            // Only calling for use as a template.
+            CreateLibOmvClient();
+        }
+
+        public bool TryGetBehaviour(string abbreviatedName, out IBehaviour behaviour)
+        {
+            lock (Behaviours)
+                return Behaviours.TryGetValue(abbreviatedName, out behaviour);
+        }
+
+        public bool AddBehaviour(IBehaviour behaviour)
+        {
+            lock (Behaviours)
+            {
+                if (!Behaviours.ContainsKey(behaviour.AbbreviatedName))
+                {                    
+                    behaviour.Initialize(this);
+                    Behaviours.Add(behaviour.AbbreviatedName, behaviour);
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool RemoveBehaviour(string abbreviatedName)
+        {
+            lock (Behaviours)
+            {
+                IBehaviour behaviour;
+
+                if (!Behaviours.TryGetValue(abbreviatedName, out behaviour))
+                    return false;
+
+                behaviour.Close();
+                Behaviours.Remove(abbreviatedName);
+
+                return true;
+            }
+        }
+
+        private void CreateLibOmvClient()
+        {
+            GridClient newClient = new GridClient();
+
+            if (Client != null)
+            {
+                newClient.Settings.LOGIN_SERVER = Client.Settings.LOGIN_SERVER;
+                newClient.Settings.ALWAYS_DECODE_OBJECTS = Client.Settings.ALWAYS_DECODE_OBJECTS;
+                newClient.Settings.AVATAR_TRACKING = Client.Settings.AVATAR_TRACKING;
+                newClient.Settings.OBJECT_TRACKING = Client.Settings.OBJECT_TRACKING;
+                newClient.Settings.SEND_AGENT_THROTTLE = Client.Settings.SEND_AGENT_THROTTLE;
+                newClient.Settings.SEND_AGENT_UPDATES = Client.Settings.SEND_AGENT_UPDATES;
+                newClient.Settings.SEND_PINGS = Client.Settings.SEND_PINGS;
+                newClient.Settings.STORE_LAND_PATCHES = Client.Settings.STORE_LAND_PATCHES;
+                newClient.Settings.USE_ASSET_CACHE = Client.Settings.USE_ASSET_CACHE;
+                newClient.Settings.MULTIPLE_SIMS = Client.Settings.MULTIPLE_SIMS;
+                newClient.Throttle.Asset = Client.Throttle.Asset;
+                newClient.Throttle.Land = Client.Throttle.Land;
+                newClient.Throttle.Task = Client.Throttle.Task;
+                newClient.Throttle.Texture = Client.Throttle.Texture;
+                newClient.Throttle.Wind = Client.Throttle.Wind;
+                newClient.Throttle.Total = Client.Throttle.Total;
+            }
+            else
+            {
+                newClient.Settings.LOGIN_SERVER = LoginUri;
+                newClient.Settings.ALWAYS_DECODE_OBJECTS = false;
+                newClient.Settings.AVATAR_TRACKING = false;
+                newClient.Settings.OBJECT_TRACKING = false;
+                newClient.Settings.SEND_AGENT_THROTTLE = true;
+                newClient.Settings.SEND_PINGS = true;
+                newClient.Settings.STORE_LAND_PATCHES = false;
+                newClient.Settings.USE_ASSET_CACHE = false;
+                newClient.Settings.MULTIPLE_SIMS = true;
+                newClient.Throttle.Asset = 100000;
+                newClient.Throttle.Land = 100000;
+                newClient.Throttle.Task = 100000;
+                newClient.Throttle.Texture = 100000;
+                newClient.Throttle.Wind = 100000;
+                newClient.Throttle.Total = 400000;
+            }
+
+            newClient.Network.LoginProgress += Network_LoginProgress;
+            newClient.Network.SimConnected += Network_SimConnected;
+            newClient.Network.SimDisconnected += Network_SimDisconnected;
+            newClient.Network.Disconnected += Network_OnDisconnected;
+            newClient.Objects.ObjectUpdate += Objects_NewPrim;
+
+            Client = newClient;
         }
 
         //We do our actions here.  This is where one would
         //add additional steps and/or things the bot should do
         private void Action()
         {
-            while (true)
+            while (ConnectionState == ConnectionState.Connected)
+            {
                 lock (Behaviours)
-                    Behaviours.ForEach(
-                        b =>
-                        {
-                            Thread.Sleep(Random.Next(3000, 10000));
-                        
-                            // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
-                            b.Action();
-                        }
-                    );
-        }
+                {
+                    foreach (IBehaviour behaviour in Behaviours.Values)
+                    {
+//                        Thread.Sleep(Random.Next(3000, 10000));
+                    
+                        // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
+                        behaviour.Action();
+                    }
+                }
 
-        /// <summary>
-        /// Read the Nini config and initialize
-        /// </summary>
-        public void readconfig()
-        {
-            wear = startupConfig.GetString("wear", "no");
+                // XXX: This is a really shitty way of yielding so that behaviours can be added/removed
+                Thread.Sleep(100);
+            }
+
+            lock (Behaviours)
+                foreach (IBehaviour b in Behaviours.Values)
+                    b.Close();
         }
 
         /// <summary>
         /// Tells LibSecondLife to logout and disconnect.  Raises the disconnect events once it finishes.
         /// </summary>
-        public void shutdown()
+        public void Disconnect()
         {
             ConnectionState = ConnectionState.Disconnecting;
 
-            if (m_actionThread != null)
-                m_actionThread.Abort();
+//            if (m_actionThread != null)
+//                m_actionThread.Abort();
 
             Client.Network.Logout();
+        }
+
+        public void Connect()
+        {            
+            Thread connectThread = new Thread(ConnectInternal);
+            connectThread.Name = Name;
+            connectThread.IsBackground = true;
+
+            connectThread.Start();
         }
 
         /// <summary>
         /// This is the bot startup loop.
         /// </summary>
-        public void startup()
+        private void ConnectInternal()
         {
-            Client.Settings.LOGIN_SERVER = LoginUri;
-            Client.Settings.ALWAYS_DECODE_OBJECTS = false;
-            Client.Settings.AVATAR_TRACKING = false;
-            Client.Settings.OBJECT_TRACKING = false;
-            Client.Settings.SEND_AGENT_THROTTLE = true;
-            Client.Settings.SEND_PINGS = true;
-            Client.Settings.STORE_LAND_PATCHES = false;
-            Client.Settings.USE_ASSET_CACHE = false;
-            Client.Settings.MULTIPLE_SIMS = true;
-            Client.Throttle.Asset = 100000;
-            Client.Throttle.Land = 100000;
-            Client.Throttle.Task = 100000;
-            Client.Throttle.Texture = 100000;
-            Client.Throttle.Wind = 100000;
-            Client.Throttle.Total = 400000;
-            Client.Network.LoginProgress += this.Network_LoginProgress;
-            Client.Network.SimConnected += this.Network_SimConnected;
-            Client.Network.Disconnected += this.Network_OnDisconnected;
-            Client.Objects.ObjectUpdate += Objects_NewPrim;
-
             ConnectionState = ConnectionState.Connecting;
 
-            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
+            // Current create a new client on each connect.  libomv doesn't seem to process new sim
+            // information (e.g. EstablishAgentCommunication events) if connecting after a disceonnect with the same
+            // client
+            CreateLibOmvClient();
+
+            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", StartLocation, "Your name"))
             {
                 ConnectionState = ConnectionState.Connected;
 
@@ -265,6 +374,30 @@ namespace pCampBot
                 {
                     OnDisconnected(this, EventType.DISCONNECTED);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Sit this bot on the ground.
+        /// </summary>
+        public void SitOnGround()
+        {
+            if (ConnectionState == ConnectionState.Connected)
+                Client.Self.SitOnGround();
+        }
+
+        /// <summary>
+        /// Stand this bot
+        /// </summary>
+        public void Stand()
+        {
+            if (ConnectionState == ConnectionState.Connected)
+            {
+                // Unlike sit on ground, here libomv checks whether we have SEND_AGENT_UPDATES enabled.
+                bool prevUpdatesSetting = Client.Settings.SEND_AGENT_UPDATES;
+                Client.Settings.SEND_AGENT_UPDATES = true;
+                Client.Self.Stand();
+                Client.Settings.SEND_AGENT_UPDATES = prevUpdatesSetting;
             }
         }
 
@@ -451,7 +584,13 @@ namespace pCampBot
         public void Network_SimConnected(object sender, SimConnectedEventArgs args)
         {
             m_log.DebugFormat(
-                "[BOT]: Bot {0} connected to {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
+                "[BOT]: Bot {0} connected to region {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
+        }
+
+        public void Network_SimDisconnected(object sender, SimDisconnectedEventArgs args)
+        {
+            m_log.DebugFormat(
+                "[BOT]: Bot {0} disconnected from region {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
         }
 
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
@@ -459,7 +598,7 @@ namespace pCampBot
             ConnectionState = ConnectionState.Disconnected;
 
             m_log.DebugFormat(
-                "[BOT]: Bot {0} disconnected reason {1}, message {2}", Name, args.Reason, args.Message);
+                "[BOT]: Bot {0} disconnected from grid, reason {1}, message {2}", Name, args.Reason, args.Message);
 
 //            m_log.ErrorFormat("Fired Network_OnDisconnected");
 
@@ -467,6 +606,8 @@ namespace pCampBot
 //               (args.Reason == NetworkManager.DisconnectType.SimShutdown
 //                    || args.Reason == NetworkManager.DisconnectType.NetworkTimeout)
 //               && OnDisconnected != null)
+
+
 
            if (
                (args.Reason == NetworkManager.DisconnectType.ClientInitiated
@@ -481,8 +622,8 @@ namespace pCampBot
 
         public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
-//            if (Name.EndsWith("4"))
-//                throw new Exception("Aaargh");
+            if (!RequestObjectTextures)
+                return;
 
             Primitive prim = args.Prim;
 

@@ -51,10 +51,17 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID = 5
     }
     
+    public struct JsonStoreStats
+    {
+        public int StoreCount;
+    }
+
     public delegate void TakeValueCallback(string s);
 
     public interface IJsonStoreModule
     {
+        JsonStoreStats GetStoreStats();
+
         bool AttachObjectStore(UUID objectID);
         bool CreateStore(string value, ref UUID result);
         bool DestroyStore(UUID storeID);

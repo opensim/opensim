@@ -1236,6 +1236,10 @@ namespace OpenSim.Data.SQLite
 
             createCol(prims, "MediaURL", typeof(String));
             
+            createCol(prims, "AttachedPosX", typeof(Double));
+            createCol(prims, "AttachedPosY", typeof(Double));
+            createCol(prims, "AttachedPosZ", typeof(Double));
+
             createCol(prims, "DynAttrs", typeof(String));
 
             createCol(prims, "PhysicsShapeType", typeof(Byte));
@@ -1244,6 +1248,7 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "Friction", typeof(Double));
             createCol(prims, "Restitution", typeof(Double));
 
+            createCol(prims, "KeyframeMotion", typeof(Byte[]));
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
 
@@ -1723,6 +1728,12 @@ namespace OpenSim.Data.SQLite
                 prim.MediaUrl = (string)row["MediaURL"];
             }
             
+            prim.AttachedPos = new Vector3(
+                Convert.ToSingle(row["AttachedPosX"]),
+                Convert.ToSingle(row["AttachedPosY"]),
+                Convert.ToSingle(row["AttachedPosZ"])
+                );
+
             if (!(row["DynAttrs"] is System.DBNull))
             {
                 //m_log.DebugFormat("[SQLITE]: DynAttrs type [{0}]", row["DynAttrs"].GetType());
@@ -1739,6 +1750,20 @@ namespace OpenSim.Data.SQLite
             prim.Friction = Convert.ToSingle(row["Friction"]);
             prim.Restitution = Convert.ToSingle(row["Restitution"]);
 
+            
+            if (!(row["KeyframeMotion"] is DBNull))
+            {
+                Byte[] data = (byte[])row["KeyframeMotion"];
+                if (data.Length > 0)
+                    prim.KeyframeMotion = KeyframeMotion.FromData(null, data);
+                else
+                    prim.KeyframeMotion = null;
+            }
+            else
+            {
+                prim.KeyframeMotion = null;
+            }
+            
             return prim;
         }
 
@@ -2161,7 +2186,11 @@ namespace OpenSim.Data.SQLite
 
             row["MediaURL"] = prim.MediaUrl;
 
-            if (prim.DynAttrs.Count > 0)
+            row["AttachedPosX"] = prim.AttachedPos.X;
+            row["AttachedPosY"] = prim.AttachedPos.Y;
+            row["AttachedPosZ"] = prim.AttachedPos.Z;
+
+            if (prim.DynAttrs.CountNamespaces > 0)
                 row["DynAttrs"] = prim.DynAttrs.ToXml();
             else
                 row["DynAttrs"] = null;
@@ -2171,6 +2200,13 @@ namespace OpenSim.Data.SQLite
             row["GravityModifier"] = (double)prim.GravityModifier;
             row["Friction"] = (double)prim.Friction;
             row["Restitution"] = (double)prim.Restitution;
+
+            if (prim.KeyframeMotion != null)
+                row["KeyframeMotion"] = prim.KeyframeMotion.Serialize();
+            else
+                row["KeyframeMotion"] = new Byte[0];
+            
+            
         }
 
         /// <summary>
@@ -2422,6 +2458,7 @@ namespace OpenSim.Data.SQLite
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
             s.State = Convert.ToByte(row["State"]);
+            s.LastAttachPoint = Convert.ToByte(row["LastAttachPoint"]);
 
             byte[] textureEntry = (byte[])row["Texture"];
             s.TextureEntry = textureEntry;
@@ -2471,6 +2508,7 @@ namespace OpenSim.Data.SQLite
             row["ProfileCurve"] = s.ProfileCurve;
             row["ProfileHollow"] = s.ProfileHollow;
             row["State"] = s.State;
+            row["LastAttachPoint"] = s.LastAttachPoint;
 
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;

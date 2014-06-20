@@ -29,6 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     public class PercentageStat : Stat
@@ -83,6 +85,20 @@ namespace OpenSim.Framework.Monitoring
             AppendMeasuresOfInterest(sb);
 
             return sb.ToString();
+        }
+
+        // PercentageStat is a basic stat plus percent calc
+        public override OSDMap ToOSDMap()
+        {
+            // Get the foundational instance
+            OSDMap map = base.ToOSDMap();
+
+            map["StatType"] = "PercentageStat";
+
+            map.Add("Antecedent", OSD.FromLong(Antecedent));
+            map.Add("Consequent", OSD.FromLong(Consequent));
+
+            return map;
         }
     }
 }

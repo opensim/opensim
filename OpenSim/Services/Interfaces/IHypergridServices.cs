@@ -43,15 +43,9 @@ namespace OpenSim.Services.Interfaces
 
     }
 
-    /// <summary>
-    /// HG1.5 only
-    /// </summary>
     public interface IUserAgentService
     {
-        // called by login service only
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint clientIP, out string reason);
-        // called by simulators
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
+        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
         Dictionary<string, object> GetServerURLs(UUID userID);

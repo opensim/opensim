@@ -67,6 +67,11 @@ namespace OpenSim.Framework
         public static int RequestNumber { get; internal set; }
 
         /// <summary>
+        /// Control where OSD requests should be serialized per endpoint.
+        /// </summary>
+        public static bool SerializeOSDRequestsPerEndpoint { get; set; }
+
+        /// <summary>
         /// this is the header field used to communicate the local request id
         /// used for performance and debugging
         /// </summary>
@@ -145,10 +150,50 @@ namespace OpenSim.Framework
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed)
         {
-            lock (EndPointLock(url))
+            if (SerializeOSDRequestsPerEndpoint)
             {
-                return ServiceOSDRequestWorker(url,data,method,timeout,compressed);
+                lock (EndPointLock(url))
+                {
+                    return ServiceOSDRequestWorker(url, data, method, timeout, compressed);
+                }
             }
+            else
+            {
+                return ServiceOSDRequestWorker(url, data, method, timeout, compressed);
+            }
+        }
+
+        public static void LogOutgoingDetail(Stream outputStream)
+        {
+            using (StreamReader reader = new StreamReader(Util.Copy(outputStream), Encoding.UTF8))
+            {
+                string output;
+
+                if (DebugLevel == 5)
+                {
+                    const int sampleLength = 80;
+                    char[] sampleChars = new char[sampleLength];
+                    reader.Read(sampleChars, 0, sampleLength);
+                    output = new string(sampleChars);
+                }
+                else
+                {
+                    output = reader.ReadToEnd();
+                }
+
+                LogOutgoingDetail(output);
+            }
+        }
+
+        public static void LogOutgoingDetail(string output)
+        {
+            if (DebugLevel == 5)
+            {
+                output = output.Substring(0, 80);
+                output = output + "...";
+            }
+
+            m_log.DebugFormat("[WEB UTIL]: {0}", output.Replace("\n", @"\n"));
         }
 
         private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed)
@@ -178,7 +223,11 @@ namespace OpenSim.Framework
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    strBuffer =  OSDParser.SerializeJsonString(data);
+                    strBuffer = OSDParser.SerializeJsonString(data);
+
+                    if (DebugLevel >= 5)
+                        LogOutgoingDetail(strBuffer);
+
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
 
                     if (compressed)
@@ -358,6 +407,10 @@ namespace OpenSim.Framework
                 if (data != null)
                 {
                     queryString = BuildQueryString(data);
+
+                    if (DebugLevel >= 5)
+                        LogOutgoingDetail(queryString);
+
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(queryString);
                     
                     request.ContentLength = buffer.Length;
@@ -668,7 +721,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static string[] GetPreferredImageTypes(string accept)
         {
-            if (accept == null || accept == string.Empty)
+            if (string.IsNullOrEmpty(accept))
                 return new string[0];
 
             string[] types = accept.Split(new char[] { ',' });
@@ -768,6 +821,9 @@ namespace OpenSim.Framework
 
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
+
+                if (WebUtil.DebugLevel >= 5)
+                    WebUtil.LogOutgoingDetail(buffer);
 
                 request.BeginGetRequestStream(delegate(IAsyncResult res)
                 {
@@ -928,11 +984,12 @@ namespace OpenSim.Framework
         /// <param name="verb"></param>
         /// <param name="requestUrl"></param>
         /// <param name="obj"> </param>
+        /// <param name="timeoutsecs"> </param>
         /// <returns></returns>
         ///
         /// <exception cref="System.Net.WebException">Thrown if we encounter a network issue while posting
         /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
-        public static string MakeRequest(string verb, string requestUrl, string obj)
+        public static string MakeRequest(string verb, string requestUrl, string obj, int timeoutsecs)
         {
             int reqnum = WebUtil.RequestNumber++;
 
@@ -946,6 +1003,8 @@ namespace OpenSim.Framework
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
+            if (timeoutsecs > 0)
+                request.Timeout = timeoutsecs * 1000;
             string respstring = String.Empty;
 
             int tickset = Util.EnvironmentTickCountSubtract(tickstart);
@@ -965,6 +1024,9 @@ namespace OpenSim.Framework
 
                     length = (int)obj.Length;
                     request.ContentLength = length;
+
+                    if (WebUtil.DebugLevel >= 5)
+                        WebUtil.LogOutgoingDetail(buffer);
 
                     Stream requestStream = null;
                     try
@@ -1039,6 +1101,11 @@ namespace OpenSim.Framework
 
             return respstring;
         }
+
+        public static string MakeRequest(string verb, string requestUrl, string obj)
+        {
+            return MakeRequest(verb, requestUrl, obj, -1);
+        }
     }
 
     public class SynchronousRestObjectRequester
@@ -1110,6 +1177,9 @@ namespace OpenSim.Framework
 
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
+
+                if (WebUtil.DebugLevel >= 5)
+                    WebUtil.LogOutgoingDetail(buffer);
 
                 Stream requestStream = null;
                 try

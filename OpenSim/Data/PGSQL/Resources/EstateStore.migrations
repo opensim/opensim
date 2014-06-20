@@ -1,0 +1,307 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE estate_managers(
+	"EstateID" int NOT NULL Primary Key,
+	uuid varchar(36) NOT NULL
+ );
+ 
+CREATE TABLE estate_groups(
+	"EstateID" int NOT NULL,
+	uuid varchar(36) NOT NULL
+	);
+
+
+CREATE TABLE estate_users(
+	"EstateID" int NOT NULL,
+	uuid varchar(36) NOT NULL
+	);
+
+
+CREATE TABLE estateban(
+	"EstateID" int NOT NULL,
+	"bannedUUID" varchar(36) NOT NULL,
+	"bannedIp" varchar(16) NOT NULL,
+	"bannedIpHostMask" varchar(16) NOT NULL,
+	"bannedNameMask" varchar(64) NULL DEFAULT NULL
+	);
+
+Create Sequence estate_settings_id increment by 100 start with 100;
+
+CREATE TABLE estate_settings(
+	"EstateID" integer DEFAULT nextval('estate_settings_id') NOT NULL,
+	"EstateName" varchar(64) NULL DEFAULT (NULL),
+	"AbuseEmailToEstateOwner" boolean NOT NULL,
+	"DenyAnonymous" boolean NOT NULL,
+	"ResetHomeOnTeleport" boolean NOT NULL,
+	"FixedSun" boolean NOT NULL,
+	"DenyTransacted" boolean NOT NULL,
+	"BlockDwell" boolean NOT NULL,
+	"DenyIdentified" boolean NOT NULL,
+	"AllowVoice" boolean NOT NULL,
+	"UseGlobalTime" boolean NOT NULL,
+	"PricePerMeter" int NOT NULL,
+	"TaxFree" boolean NOT NULL,
+	"AllowDirectTeleport" boolean NOT NULL,
+	"RedirectGridX" int NOT NULL,
+	"RedirectGridY" int NOT NULL,
+	"ParentEstateID" int NOT NULL,
+	"SunPosition" double precision NOT NULL,
+	"EstateSkipScripts" boolean NOT NULL,
+	"BillableFactor" double precision NOT NULL,
+	"PublicAccess" boolean NOT NULL,
+	"AbuseEmail" varchar(255) NOT NULL,
+	"EstateOwner" varchar(36) NOT NULL,
+	"DenyMinors" boolean NOT NULL
+	);
+
+
+CREATE TABLE estate_map(
+	"RegionID" varchar(36) NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000'),
+	"EstateID" int NOT NULL
+ );
+ 
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+CREATE INDEX IX_estate_managers ON estate_managers
+	(
+	"EstateID"
+	);
+
+
+CREATE INDEX IX_estate_groups ON estate_groups
+	(
+	"EstateID"
+	);
+
+
+CREATE INDEX IX_estate_users ON estate_users
+	(
+	"EstateID"
+	);
+
+COMMIT;
+
+:VERSION 3
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estateban
+	(
+	"EstateID" int NOT NULL,
+	"bannedUUID" varchar(36) NOT NULL,
+	"bannedIp" varchar(16) NULL,
+	"bannedIpHostMask" varchar(16) NULL,
+	"bannedNameMask" varchar(64) NULL
+	);
+
+ INSERT INTO Tmp_estateban ("EstateID", "bannedUUID", "bannedIp", "bannedIpHostMask", "bannedNameMask")
+   SELECT "EstateID", "bannedUUID", "bannedIp", "bannedIpHostMask", "bannedNameMask" FROM estateban;
+
+DROP TABLE estateban;
+
+Alter table Tmp_estateban
+  rename to estateban;
+
+CREATE INDEX IX_estateban ON estateban
+	(
+	"EstateID"
+	);
+
+COMMIT;
+
+
+:VERSION 4
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estate_managers
+	(
+	"EstateID" int NOT NULL,
+	uuid uuid NOT NULL
+	);
+
+INSERT INTO Tmp_estate_managers ("EstateID", uuid)
+	SELECT "EstateID", cast(uuid as uuid) FROM estate_managers;
+
+DROP TABLE estate_managers;
+
+Alter table Tmp_estate_managers
+  rename to estate_managers;
+
+CREATE INDEX IX_estate_managers ON estate_managers
+	(
+	"EstateID"
+	);
+
+COMMIT;
+
+
+:VERSION 5
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estate_groups
+	(
+	"EstateID" int NOT NULL,
+	uuid uuid NOT NULL
+	) ;
+
+ INSERT INTO Tmp_estate_groups ("EstateID", uuid)
+	SELECT "EstateID", cast(uuid as uuid) FROM estate_groups;
+
+DROP TABLE estate_groups;
+
+Alter table Tmp_estate_groups
+  rename to estate_groups;
+
+CREATE INDEX IX_estate_groups ON estate_groups
+	(
+	"EstateID"
+	);
+
+COMMIT;
+
+
+:VERSION 6
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estate_users
+	(
+	"EstateID" int NOT NULL,
+	uuid uuid NOT NULL
+	);
+
+INSERT INTO Tmp_estate_users ("EstateID", uuid)
+	SELECT "EstateID", cast(uuid as uuid) FROM estate_users ;
+
+DROP TABLE estate_users;
+
+Alter table Tmp_estate_users
+  rename to estate_users;
+
+CREATE INDEX IX_estate_users ON estate_users
+	(
+	"EstateID"
+	);
+
+COMMIT;
+
+
+:VERSION 7
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estateban
+	(
+	"EstateID" int NOT NULL,
+	"bannedUUID" uuid NOT NULL,
+	"bannedIp" varchar(16) NULL,
+	"bannedIpHostMask" varchar(16) NULL,
+	"bannedNameMask" varchar(64) NULL
+	);
+
+INSERT INTO Tmp_estateban ("EstateID", "bannedUUID", "bannedIp", "bannedIpHostMask", "bannedNameMask")
+	SELECT "EstateID", cast("bannedUUID" as uuid), "bannedIp", "bannedIpHostMask", "bannedNameMask" FROM estateban ;
+
+DROP TABLE estateban;
+
+Alter table Tmp_estateban
+  rename to estateban;
+
+CREATE INDEX IX_estateban ON estateban
+	(
+	"EstateID"
+	);
+
+COMMIT;
+
+
+:VERSION 8
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estate_settings
+	(
+	"EstateID" integer default nextval('estate_settings_id') NOT NULL,
+	"EstateName" varchar(64) NULL DEFAULT (NULL),
+	"AbuseEmailToEstateOwner" boolean NOT NULL,
+	"DenyAnonymous" boolean NOT NULL,
+	"ResetHomeOnTeleport" boolean NOT NULL,
+	"FixedSun" boolean NOT NULL,
+	"DenyTransacted" boolean NOT NULL,
+	"BlockDwell" boolean NOT NULL,
+	"DenyIdentified" boolean NOT NULL,
+	"AllowVoice" boolean NOT NULL,
+	"UseGlobalTime" boolean NOT NULL,
+	"PricePerMeter" int NOT NULL,
+	"TaxFree" boolean NOT NULL,
+	"AllowDirectTeleport" boolean NOT NULL,
+	"RedirectGridX" int NOT NULL,
+	"RedirectGridY" int NOT NULL,
+	"ParentEstateID" int NOT NULL,
+	"SunPosition" double precision NOT NULL,
+	"EstateSkipScripts" boolean NOT NULL,
+	"BillableFactor" double precision NOT NULL,
+	"PublicAccess" boolean NOT NULL,
+	"AbuseEmail" varchar(255) NOT NULL,
+	"EstateOwner" uuid NOT NULL,
+	"DenyMinors" boolean NOT NULL
+	);
+
+INSERT INTO Tmp_estate_settings ("EstateID", "EstateName", "AbuseEmailToEstateOwner", "DenyAnonymous", "ResetHomeOnTeleport", "FixedSun", "DenyTransacted", "BlockDwell", "DenyIdentified", "AllowVoice", "UseGlobalTime", "PricePerMeter", "TaxFree", "AllowDirectTeleport", "RedirectGridX", "RedirectGridY", "ParentEstateID", "SunPosition", "EstateSkipScripts", "BillableFactor", "PublicAccess", "AbuseEmail", "EstateOwner", "DenyMinors")
+	SELECT "EstateID", "EstateName", "AbuseEmailToEstateOwner", "DenyAnonymous", "ResetHomeOnTeleport", "FixedSun", "DenyTransacted", "BlockDwell", "DenyIdentified", "AllowVoice", "UseGlobalTime", "PricePerMeter", "TaxFree", "AllowDirectTeleport", "RedirectGridX", "RedirectGridY", "ParentEstateID", "SunPosition", "EstateSkipScripts", "BillableFactor", "PublicAccess", "AbuseEmail", cast("EstateOwner" as uuid), "DenyMinors" FROM estate_settings ;
+
+DROP TABLE estate_settings;
+
+
+Alter table Tmp_estate_settings
+  rename to estate_settings;
+
+
+Create index on estate_settings (lower("EstateName"));
+
+COMMIT;
+
+
+:VERSION 9
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_estate_map
+	(
+	"RegionID" uuid NOT NULL DEFAULT ('00000000-0000-0000-0000-000000000000'),
+	"EstateID" int NOT NULL
+	);
+
+INSERT INTO Tmp_estate_map ("RegionID", "EstateID")
+	SELECT cast("RegionID" as uuid), "EstateID" FROM estate_map ;
+
+DROP TABLE estate_map;
+
+Alter table Tmp_estate_map
+  rename to estate_map;
+
+COMMIT;
+
+:VERSION 10
+
+BEGIN TRANSACTION;
+ALTER TABLE estate_settings ADD COLUMN "AllowLandmark" boolean NOT NULL default true;
+ALTER TABLE estate_settings ADD COLUMN "AllowParcelChanges" boolean NOT NULL default true;
+ALTER TABLE estate_settings ADD COLUMN "AllowSetHome" boolean NOT NULL default true;
+COMMIT;
+
+:VERSION 11
+
+Begin transaction;
+
+
+Commit;
+

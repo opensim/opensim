@@ -307,7 +307,7 @@ namespace OpenSim.Region.DataSnapshot
             XmlNode regiondata = requestedSnap.CreateNode(XmlNodeType.Element, "regiondata", "");
             try
             {
-                if (regionName == null || regionName == "")
+                if (string.IsNullOrEmpty(regionName))
                 {
                     XmlNode timerblock = requestedSnap.CreateNode(XmlNodeType.Element, "expire", "");
                     timerblock.InnerText = m_period.ToString();

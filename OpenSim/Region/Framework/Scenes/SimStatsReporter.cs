@@ -290,6 +290,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void statsHeartBeat(object sender, EventArgs e)
         {
+            if (!m_scene.Active)
+                return;
+
             SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[23];
             SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
             

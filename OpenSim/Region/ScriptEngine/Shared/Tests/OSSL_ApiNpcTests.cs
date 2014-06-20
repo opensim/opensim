@@ -180,6 +180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TestOsNpcLoadAppearance()
         {
             TestHelpers.InMethod();
+            //TestHelpers.EnableLogging();
 
             // Store an avatar with a different height from default in a notecard.
             UUID userId = TestHelpers.ParseTail(0x1);

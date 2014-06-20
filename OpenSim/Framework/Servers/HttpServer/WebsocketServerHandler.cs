@@ -28,8 +28,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using HttpServer;
 
 namespace OpenSim.Framework.Servers.HttpServer
@@ -75,7 +77,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// This is a regular HTTP Request...    This may be removed in the future.   
         /// </summary>
-        public event RegularHttpRequestDelegate OnRegularHttpRequest;
+//        public event RegularHttpRequestDelegate OnRegularHttpRequest;
 
         /// <summary>
         /// When the upgrade from a HTTP request to a Websocket is completed, this will be fired
@@ -98,6 +100,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public ValidateHandshake HandshakeValidateMethodOverride = null;
 
+        private ManualResetEvent _receiveDone = new ManualResetEvent(false);
+
         private OSHttpRequest _request;
         private HTTPNetworkContext _networkContext;
         private IHttpClientContext _clientContext;
@@ -109,6 +113,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private bool _closing;
         private bool _upgraded;
         private int _maxPayloadBytes = 41943040;
+        private int _initialMsgTimeout = 0;
+        private int _defaultReadTimeout = 10000;
 
         private const string HandshakeAcceptText =
             "HTTP/1.1 101 Switching Protocols\r\n" +
@@ -131,6 +137,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             _request = preq;
             _networkContext = pContext.GiveMeTheNetworkStreamIKnowWhatImDoing();
+            _networkContext.Stream.ReadTimeout = _defaultReadTimeout;
             _clientContext = pContext;
             _bufferLength = bufferlen;
             _buffer = new byte[_bufferLength];
@@ -206,6 +213,16 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         /// <summary>
+        /// Set this to the maximum amount of milliseconds to wait for the first complete message to be sent or received on the websocket after upgrading
+        /// Default, it waits forever.  Use this when your Websocket consuming code opens a connection and waits for a message from the other side to avoid a Denial of Service vector.
+        /// </summary>
+        public int InitialMsgTimeout
+        {
+            get { return _initialMsgTimeout; }
+            set { _initialMsgTimeout = value; }
+        }
+
+        /// <summary>
         /// This triggers the websocket start the upgrade process
         /// </summary>
         public void HandshakeAndUpgrade()
@@ -245,6 +262,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     string rawaccept = string.Format(HandshakeAcceptText, acceptKey);
                     SendUpgradeSuccess(rawaccept);
                     
+
                 }
                 else
                 {
@@ -257,6 +275,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string rawaccept = string.Format(HandshakeAcceptText, acceptKey);
                 SendUpgradeSuccess(rawaccept);
             }
+        }
+        public IPEndPoint GetRemoteIPEndpoint()
+        {
+            return _request.RemoteIPEndPoint;
         }
 
         /// <summary>
@@ -290,9 +312,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             WebSocketState socketState = new WebSocketState() { ReceivedBytes = new List<byte>(), Header = WebsocketFrameHeader.HeaderDefault(), FrameComplete = true};
             
             byte[] bhandshakeResponse = Encoding.UTF8.GetBytes(pHandshakeResponse);
+
+            
+           
+
             try
             {
-                
+                if (_initialMsgTimeout > 0)
+                {
+                    _receiveDone.Reset();
+                }
                 // Begin reading the TCP stream before writing the Upgrade success message to the other side of the stream.
                 _networkContext.Stream.BeginRead(_buffer, 0, _bufferLength, OnReceive, socketState);
                 
@@ -303,16 +332,20 @@ namespace OpenSim.Framework.Servers.HttpServer
                 UpgradeCompletedDelegate d = OnUpgradeCompleted;
                 if (d != null)
                     d(this, new UpgradeCompletedEventArgs());
+                if (_initialMsgTimeout > 0)
+                {
+                    if (!_receiveDone.WaitOne(TimeSpan.FromMilliseconds(_initialMsgTimeout)))
+                        Close(string.Empty);
+                }
             }
-            catch (IOException fail)
+            catch (IOException)
             {
                 Close(string.Empty);
             }
-            catch (ObjectDisposedException fail)
+            catch (ObjectDisposedException)
             {
                 Close(string.Empty);
-            }
-            
+            }           
         }
 
         /// <summary>
@@ -414,8 +447,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 _socketState.Header = pheader;
                             }
 
-
-
                             if (_socketState.FrameComplete)
                             {
                                 ProcessFrame(_socketState);
@@ -424,7 +455,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 _socketState.ExpectedBytes = 0;
 
                             }
-
                         }
                     }
                     else
@@ -457,8 +487,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             _socketState.ReceivedBytes.Clear();
                             _socketState.ExpectedBytes = 0;
                             // do some processing
-                        }
-
+                        }                       
                     }
                 }
                 if (offset > 0)
@@ -477,13 +506,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     // We can't read the stream anymore...  
                 }
-
             }
-            catch (IOException fail)
+            catch (IOException)
             {
                 Close(string.Empty);
             }
-            catch (ObjectDisposedException fail)
+            catch (ObjectDisposedException)
             {
                 Close(string.Empty);
             }
@@ -495,6 +523,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="message">the string message that is to be sent</param>
         public void SendMessage(string message)
         {
+            if (_initialMsgTimeout > 0)
+            {
+                _receiveDone.Set();
+                _initialMsgTimeout = 0;
+            }
             byte[] messagedata = Encoding.UTF8.GetBytes(message);
             WebSocketFrame textMessageFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = messagedata };
             textMessageFrame.Header.Opcode = WebSocketReader.OpCode.Text;
@@ -505,6 +538,11 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void SendData(byte[] data)
         {
+            if (_initialMsgTimeout > 0)
+            {
+                _receiveDone.Set();
+                _initialMsgTimeout = 0;
+            }
             WebSocketFrame dataMessageFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = data};
             dataMessageFrame.Header.IsEnd = true;
             dataMessageFrame.Header.Opcode = WebSocketReader.OpCode.Binary;
@@ -537,6 +575,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public void SendPingCheck()
         {
+            if (_initialMsgTimeout > 0)
+            {
+                _receiveDone.Set();
+                _initialMsgTimeout = 0;
+            }
             WebSocketFrame pingFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = new byte[0] };
             pingFrame.Header.Opcode = WebSocketReader.OpCode.Ping;
             pingFrame.Header.IsEnd = true;
@@ -550,6 +593,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="message"></param>
         public void Close(string message)
         {
+            if (_initialMsgTimeout > 0)
+            {
+                _receiveDone.Set();
+                _initialMsgTimeout = 0;
+            }
             if (_networkContext == null)
                 return;
             if (_networkContext.Stream != null)
@@ -589,7 +637,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 WebSocketReader.Mask(psocketState.Header.Mask, unmask);
                 psocketState.ReceivedBytes = new List<byte>(unmask);
             }
-            
+            if (psocketState.Header.Opcode != WebSocketReader.OpCode.Continue  && _initialMsgTimeout > 0)
+            {
+                _receiveDone.Set();
+                _initialMsgTimeout = 0;
+            }
             switch (psocketState.Header.Opcode)
             {
                 case WebSocketReader.OpCode.Ping:
@@ -702,6 +754,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
         public void Dispose()
         {
+            if (_initialMsgTimeout > 0)
+            {
+                _receiveDone.Set();
+                _initialMsgTimeout = 0;
+            }
             if (_networkContext != null && _networkContext.Stream != null)
             {
                 if (_networkContext.Stream.CanWrite)

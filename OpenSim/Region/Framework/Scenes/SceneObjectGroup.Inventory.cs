@@ -67,6 +67,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int scriptsStarted = 0;
 
+            if (m_scene == null)
+            {
+                m_log.DebugFormat("[PRIM INVENTORY]: m_scene is null. Unable to create script instances");
+                return 0;
+            }
+
             // Don't start scripts if they're turned off in the region!
             if (!m_scene.RegionInfo.RegionSettings.DisableScripts)
             {

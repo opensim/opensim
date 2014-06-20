@@ -128,7 +128,31 @@ namespace OpenSim.Framework
         /// <summary>
         /// Viewer's version string as reported by the viewer at login
         /// </summary>
-        public string Viewer;
+        private string m_viewerInternal;
+
+        /// <summary>
+        /// Viewer's version string
+        /// </summary>
+        public string Viewer
+        {
+            set { m_viewerInternal = value; }
+
+            // Try to return consistent viewer string taking into account
+            // that viewers have chaagned how version is reported
+            // See http://opensimulator.org/mantis/view.php?id=6851
+            get
+            {
+                // Old style version string contains viewer name followed by a space followed by a version number
+                if (m_viewerInternal == null || m_viewerInternal.Contains(" "))
+                {
+                    return m_viewerInternal;
+                }
+                else // New style version contains no spaces, just version number
+                {
+                    return Channel + " " + m_viewerInternal;
+                }
+            }
+        }
 
         /// <summary>
         /// The channel strinf sent by the viewer at login

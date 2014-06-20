@@ -365,6 +365,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
             m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
+            m_SOPXmlProcessors.Add("AttachedPos", ProcessAttachedPos);
             m_SOPXmlProcessors.Add("DynAttrs", ProcessDynAttrs);
             m_SOPXmlProcessors.Add("TextureAnimation", ProcessTextureAnimation);
             m_SOPXmlProcessors.Add("ParticleSystem", ProcessParticleSystem);
@@ -443,6 +444,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_ShapeXmlProcessors.Add("ProfileEnd", ProcessShpProfileEnd);
             m_ShapeXmlProcessors.Add("ProfileHollow", ProcessShpProfileHollow);
             m_ShapeXmlProcessors.Add("Scale", ProcessShpScale);
+            m_ShapeXmlProcessors.Add("LastAttachPoint", ProcessShpLastAttach);
             m_ShapeXmlProcessors.Add("State", ProcessShpState);
             m_ShapeXmlProcessors.Add("ProfileShape", ProcessShpProfileShape);
             m_ShapeXmlProcessors.Add("HollowShape", ProcessShpHollowShape);
@@ -798,6 +800,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
         }
 
+        private static void ProcessAttachedPos(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.AttachedPos = Util.ReadVector(reader, "AttachedPos");
+        }
+
         private static void ProcessDynAttrs(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.DynAttrs.ReadXml(reader);
@@ -1099,6 +1106,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             shp.State = (byte)reader.ReadElementContentAsInt("State", String.Empty);
         }
 
+        private static void ProcessShpLastAttach(PrimitiveBaseShape shp, XmlTextReader reader)
+        {
+            shp.LastAttachPoint = (byte)reader.ReadElementContentAsInt("LastAttachPoint", String.Empty);
+        }
+
         private static void ProcessShpProfileShape(PrimitiveBaseShape shp, XmlTextReader reader)
         {
             shp.ProfileShape = Util.ReadEnum<ProfileShape>(reader, "ProfileShape");
@@ -1267,7 +1279,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             WriteUUID(writer, "CreatorID", sop.CreatorID, options);
 
-            if (sop.CreatorData != null && sop.CreatorData != string.Empty)
+            if (!string.IsNullOrEmpty(sop.CreatorData))
                 writer.WriteElementString("CreatorData", sop.CreatorData);
             else if (options.ContainsKey("home"))
             {
@@ -1345,8 +1357,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
+            WriteVector(writer, "AttachedPos", sop.AttachedPos);
             
-            if (sop.DynAttrs.Count > 0)
+            if (sop.DynAttrs.CountNamespaces > 0)
             {
                 writer.WriteStartElement("DynAttrs");
                 sop.DynAttrs.WriteXml(writer);
@@ -1451,7 +1464,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                     WriteUUID(writer, "CreatorID", item.CreatorID, options);
 
-                    if (item.CreatorData != null && item.CreatorData != string.Empty)
+                    if (!string.IsNullOrEmpty(item.CreatorData))
                         writer.WriteElementString("CreatorData", item.CreatorData);
                     else if (options.ContainsKey("home"))
                     {
@@ -1539,6 +1552,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("ProfileEnd", shp.ProfileEnd.ToString());
                 writer.WriteElementString("ProfileHollow", shp.ProfileHollow.ToString());
                 writer.WriteElementString("State", shp.State.ToString());
+                writer.WriteElementString("LastAttachPoint", shp.LastAttachPoint.ToString());
 
                 WriteFlags(writer, "ProfileShape", shp.ProfileShape.ToString(), options);
                 WriteFlags(writer, "HollowShape", shp.HollowShape.ToString(), options);

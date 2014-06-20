@@ -392,7 +392,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", client.AgentId.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             string email = response["Email"].AsString();
 
             if (!response["Success"].AsBoolean())
@@ -443,7 +443,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { key, OSDParser.SerializeJsonString(value) }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
 
             if (!success)
@@ -462,7 +462,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["User"] is OSDMap)
             {
                 return (OSDMap)response["User"];

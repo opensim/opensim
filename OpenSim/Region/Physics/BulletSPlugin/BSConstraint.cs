@@ -64,7 +64,7 @@ public abstract class BSConstraint : IDisposable
             {
                 bool success = PhysicsScene.PE.DestroyConstraint(m_world, m_constraint);
                 m_world.physicsScene.DetailLog("{0},BSConstraint.Dispose,taint,id1={1},body1={2},id2={3},body2={4},success={5}",
-                                    BSScene.DetailLogZero,
+                                    m_body1.ID,
                                     m_body1.ID, m_body1.AddrString,
                                     m_body2.ID, m_body2.AddrString,
                                     success);
@@ -77,7 +77,10 @@ public abstract class BSConstraint : IDisposable
     {
         bool ret = false;
         if (m_enabled)
+        {
+            m_world.physicsScene.DetailLog("{0},BSConstraint.SetLinearLimits,taint,low={1},high={2}", m_body1.ID, low, high);
             ret = PhysicsScene.PE.SetLinearLimits(m_constraint, low, high);
+        }
         return ret;
     }
 
@@ -86,6 +89,7 @@ public abstract class BSConstraint : IDisposable
         bool ret = false;
         if (m_enabled)
         {
+            m_world.physicsScene.DetailLog("{0},BSConstraint.SetAngularLimits,taint,low={1},high={2}", m_body1.ID, low, high);
             ret = PhysicsScene.PE.SetAngularLimits(m_constraint, low, high);
         }
         return ret;

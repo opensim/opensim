@@ -412,7 +412,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         //public bool HttpVerboseThrottle = true; // not implemented
         public List<string> HttpCustomHeaders = null;
         public bool HttpPragmaNoCache = true;
-        private Thread httpThread;
 
         // Request info
         private UUID _itemID;
@@ -501,9 +500,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         Request.Headers.Add(HttpCustomHeaders[i],
                                             HttpCustomHeaders[i+1]);
                 }
-                if (proxyurl != null && proxyurl.Length > 0)
+                if (!string.IsNullOrEmpty(proxyurl))
                 {
-                    if (proxyexcepts != null && proxyexcepts.Length > 0)
+                    if (!string.IsNullOrEmpty(proxyexcepts))
                     {
                         string[] elist = proxyexcepts.Split(';');
                         Request.Proxy = new WebProxy(proxyurl, true, elist);
@@ -521,7 +520,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         Request.Headers[entry.Key] = entry.Value;
 
                 // Encode outbound data
-                if (OutboundBody.Length > 0)
+                if (!string.IsNullOrEmpty(OutboundBody))
                 {
                     byte[] data = Util.UTF8.GetBytes(OutboundBody);
 
@@ -622,7 +621,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             {
                 if (!WorkItem.Cancel())
                 {
-                    WorkItem.Abort();
+                    WorkItem.Cancel(true);
                 }
             }
             catch (Exception)

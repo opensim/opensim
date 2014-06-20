@@ -1,0 +1,32 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE auth (
+  uuid uuid NOT NULL default '00000000-0000-0000-0000-000000000000',
+  "passwordHash" varchar(32) NOT NULL,
+  "passwordSalt" varchar(32) NOT NULL,
+  "webLoginKey" varchar(255) NOT NULL,
+  "accountType" VARCHAR(32) NOT NULL DEFAULT 'UserAccount'
+) ;
+
+CREATE TABLE tokens (
+  uuid uuid NOT NULL default '00000000-0000-0000-0000-000000000000',
+  token varchar(255) NOT NULL,
+  validity TIMESTAMP NOT NULL )
+  ;
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+   INSERT INTO auth (uuid, "passwordHash", "passwordSalt", "webLoginKey", "accountType") 
+	SELECT uuid AS UUID, passwordHash AS passwordHash, passwordSalt AS passwordSalt, webLoginKey AS webLoginKey, 'UserAccount' as accountType 
+	FROM users
+      where exists ( Select * from information_schema.tables where table_name = 'users' )
+	;
+
+COMMIT;
+

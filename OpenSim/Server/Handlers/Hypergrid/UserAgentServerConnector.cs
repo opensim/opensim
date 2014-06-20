@@ -62,10 +62,15 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private bool m_VerifyCallers = false;
 
         public UserAgentServerConnector(IConfigSource config, IHttpServer server) :
-                this(config, server, null)
+            this(config, server, (IFriendsSimConnector)null)
         {            
         }
 
+        public UserAgentServerConnector(IConfigSource config, IHttpServer server, string configName) :
+            this(config, server)
+        {
+        }
+        
         public UserAgentServerConnector(IConfigSource config, IHttpServer server, IFriendsSimConnector friendsConnector) :
                 base(config, server, String.Empty)
         {
@@ -103,7 +108,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("get_uui", GetUUI, false);
             server.AddXmlRPCHandler("get_uuid", GetUUID, false);
 
-            server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
+            server.AddStreamHandler(new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy));
         }
 
         public XmlRpcResponse GetHomeRegion(XmlRpcRequest request, IPEndPoint remoteClient)
@@ -448,7 +453,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;
-
         }
 
         /// <summary>
@@ -466,9 +470,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             //string portstr = (string)requestData["port"];
             if (requestData.ContainsKey("first") && requestData.ContainsKey("last"))
             {
-                UUID userID = UUID.Zero;
                 string first = (string)requestData["first"];
-
                 string last = (string)requestData["last"];
                 UUID uuid = m_HomeUsersService.GetUUID(first, last);
                 hash["UUID"] = uuid.ToString();
@@ -477,7 +479,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;
-
         }
     }
 }

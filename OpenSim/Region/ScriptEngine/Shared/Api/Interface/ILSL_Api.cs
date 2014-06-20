@@ -332,7 +332,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSensorRemove();
               void llSensorRepeat(string name, string id, int type, double range, double arc, double rate);
               void llSetAlpha(double alpha, int face);
-              void llSetAngularVelocity(LSL_Vector angvelocity, int local);
               void llSetBuoyancy(double buoyancy);
               void llSetCameraAtOffset(LSL_Vector offset);
               void llSetCameraEyeOffset(LSL_Vector offset);
@@ -340,9 +339,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetCameraParams(LSL_List rules);
               void llSetClickAction(int action);
               void llSetColor(LSL_Vector color, int face);
+              void llSetContentType(LSL_Key id, LSL_Integer type);
               void llSetDamage(double damage);
               void llSetForce(LSL_Vector force, int local);
               void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local);
+              void llSetAngularVelocity(LSL_Vector angularVelocity, int local);
               void llSetHoverHeight(double height, int water, double tau);
               void llSetInventoryPermMask(string item, int mask, int value);
               void llSetLinkAlpha(int linknumber, double alpha, int face);
@@ -383,7 +384,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetVehicleRotationParam(int param, LSL_Rotation rot);
               void llSetVehicleType(int type);
               void llSetVehicleVectorParam(int param, LSL_Vector vec);
-              void llSetVelocity(LSL_Vector velocity, int local);
               void llShout(int channelID, string text);
          LSL_Float llSin(double f);
               void llSitTarget(LSL_Vector offset, LSL_Rotation rot);
@@ -434,6 +434,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetKeyframedMotion(LSL_List frames, LSL_List options);
           LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
           LSL_List llGetPhysicsMaterial();
-              void llSetContentType(LSL_Key id, LSL_Integer content_type);
     }
 }

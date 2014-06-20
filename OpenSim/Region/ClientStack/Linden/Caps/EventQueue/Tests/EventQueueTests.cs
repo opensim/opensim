@@ -76,7 +76,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
         }
 
         [Test]
-        public void AddForClient()
+        public void TestAddForClient()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -88,15 +88,15 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
         }
 
         [Test]
-        public void RemoveForClient()
+        public void TestRemoveForClient()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             UUID spId = TestHelpers.ParseTail(0x1);
 
             SceneHelpers.AddScenePresence(m_scene, spId);
-            m_scene.IncomingCloseAgent(spId, false);
+            m_scene.CloseAgent(spId, false);
 
             // TODO: Add more assertions for the other aspects of event queues
             Assert.That(MainServer.Instance.GetPollServiceHandlerKeys().Count, Is.EqualTo(0));

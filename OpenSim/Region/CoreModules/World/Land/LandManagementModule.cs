@@ -42,7 +42,6 @@ using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
@@ -70,10 +69,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private LandChannel landChannel;
         private Scene m_scene;
-        protected Commander m_commander = new Commander("land");
         
         protected IUserManagement m_userManager;
         protected IPrimCountModule m_primCountModule;
+        protected IDialogModule m_Dialog;
 
         // Minimum for parcels to work is 64m even if we don't actually use them.
         #pragma warning disable 0429
@@ -147,52 +146,33 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
             m_scene.EventManager.OnSetAllowForcefulBan += EventManagerOnSetAllowedForcefulBan;            
             m_scene.EventManager.OnRegisterCaps += EventManagerOnRegisterCaps;
-            m_scene.EventManager.OnPluginConsole += EventManagerOnPluginConsole;
 
             lock (m_scene)
             {
                 m_scene.LandChannel = (ILandChannel)landChannel;
             }
             
-            InstallInterfaces();
+            RegisterCommands();
         }
 
         public void RegionLoaded(Scene scene)
         {
              m_userManager = m_scene.RequestModuleInterface<IUserManagement>();         
              m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
+             m_Dialog = m_scene.RequestModuleInterface<IDialogModule>();
         }
 
         public void RemoveRegion(Scene scene)
         {            
-            // TODO: Also release other event manager listeners here
-            
-            m_scene.EventManager.OnPluginConsole -= EventManagerOnPluginConsole;
-            m_scene.UnregisterModuleCommander(m_commander.Name);            
+            // TODO: Release event manager listeners here      
         }
 
-        /// <summary>
-        /// Processes commandline input. Do not call directly.
-        /// </summary>
-        /// <param name="args">Commandline arguments</param>
-        protected void EventManagerOnPluginConsole(string[] args)
-        {
-            if (args[0] == "land")
-            {
-                if (args.Length == 1)
-                {
-                    m_commander.ProcessConsoleCommand("help", new string[0]);
-                    return;
-                }
-
-                string[] tmpArgs = new string[args.Length - 2];
-                int i;
-                for (i = 2; i < args.Length; i++)
-                    tmpArgs[i - 2] = args[i];
-
-                m_commander.ProcessConsoleCommand(args[1], tmpArgs);
-            }
-        }        
+//        private bool OnVerifyUserConnection(ScenePresence scenePresence, out string reason)
+//        {
+//            ILandObject nearestParcel = m_scene.GetNearestAllowedParcel(scenePresence.UUID, scenePresence.AbsolutePosition.X, scenePresence.AbsolutePosition.Y);
+//            reason = "You are not allowed to enter this sim.";
+//            return nearestParcel != null;
+//        }     
 
         void EventManagerOnNewClient(IClientAPI client)
         {
@@ -213,6 +193,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
+            client.OnSetStartLocationRequest += ClientOnSetHome;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
@@ -1896,44 +1877,131 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land.LandData.ParcelAccessList.Add(entry);
             }
         }
-        
-        protected void InstallInterfaces()
+
+        /// <summary>
+        /// Sets the Home Point.   The LoginService uses this to know where to put a user when they log-in
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
+        public virtual void ClientOnSetHome(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
-            Command clearCommand
-                = new Command("clear", CommandIntentions.COMMAND_HAZARDOUS, ClearCommand, "Clears all the parcels from the region.");
-            Command showCommand 
-                = new Command("show", CommandIntentions.COMMAND_STATISTICAL, ShowParcelsCommand, "Shows all parcels on the region.");
+            // Let's find the parcel in question
+            ILandObject land = landChannel.GetLandObject(position);
+            if (land == null || m_scene.GridUserService == null)
+            {
+                m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
+                return;
+            }
 
-            m_commander.RegisterCommand("clear", clearCommand);
-            m_commander.RegisterCommand("show", showCommand);
+            // Gather some data
+            ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
+            SceneObjectGroup telehub = null;
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+                // Does the telehub exist in the scene?
+                telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
 
-            // Add this to our scene so scripts can call these functions
-            m_scene.RegisterModuleCommander(m_commander);
+            // Can the user set home here?
+            if (// (a) gods and land managers can set home
+                m_scene.Permissions.IsAdministrator(remoteClient.AgentId) || 
+                m_scene.Permissions.IsGod(remoteClient.AgentId) ||
+                // (b) land owners can set home
+                remoteClient.AgentId == land.LandData.OwnerID ||
+                // (c) members of the land-associated group in roles that can set home
+                ((gpowers & (ulong)GroupPowers.AllowSetHome) == (ulong)GroupPowers.AllowSetHome) ||
+                // (d) parcels with telehubs can be the home of anyone
+                (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y)))
+            {
+                if (m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
+                    // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
+                    m_Dialog.SendAlertToUser(remoteClient, "Home position set.");
+                else
+                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
+            }
+            else
+                m_Dialog.SendAlertToUser(remoteClient, "You are not allowed to set your home location in this parcel.");
+        }
+
+        protected void RegisterCommands()
+        {
+            ICommands commands = MainConsole.Instance.Commands;
+
+            commands.AddCommand(
+                "Land", false, "land clear",
+                "land clear",
+                "Clear all the parcels from the region.",
+                "Command will ask for confirmation before proceeding.",
+                HandleClearCommand);
+
+            commands.AddCommand(
+                "Land", false, "land show",
+                "land show [<local-land-id>]",
+                "Show information about the parcels on the region.",
+                "If no local land ID is given, then summary information about all the parcels is shown.\n"
+                    + "If a local land ID is given then full information about that parcel is shown.",
+                HandleShowCommand);
         }    
         
-        protected void ClearCommand(Object[] args)
+        protected void HandleClearCommand(string module, string[] args)
         {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
             string response = MainConsole.Instance.CmdPrompt(
                 string.Format(
-                    "Are you sure that you want to clear all land parcels from {0} (y or n)", 
-                    m_scene.RegionInfo.RegionName), 
+                    "Are you sure that you want to clear all land parcels from {0} (y or n)", m_scene.Name), 
                 "n");
             
             if (response.ToLower() == "y")
             {
                 Clear(true);
-                MainConsole.Instance.OutputFormat("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
+                MainConsole.Instance.OutputFormat("Cleared all parcels from {0}", m_scene.Name);
             }
             else
             {
-                MainConsole.Instance.OutputFormat("Aborting clear of all parcels from {0}", m_scene.RegionInfo.RegionName);
+                MainConsole.Instance.OutputFormat("Aborting clear of all parcels from {0}", m_scene.Name);
             }
         }        
         
-        protected void ShowParcelsCommand(Object[] args)
+        protected void HandleShowCommand(string module, string[] args)
         {
-            StringBuilder report = new StringBuilder();  
-            
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
+            StringBuilder report = new StringBuilder(); 
+
+            if (args.Length <= 2)
+            {
+                AppendParcelsSummaryReport(report);
+            }
+            else
+            {
+                int landLocalId;
+
+                if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[2], out landLocalId))
+                    return;
+
+                ILandObject lo;
+
+                lock (m_landList)
+                { 
+                    if (!m_landList.TryGetValue(landLocalId, out lo))
+                    {
+                        MainConsole.Instance.OutputFormat("No parcel found with local ID {0}", landLocalId);
+                        return;
+                    }
+                }
+
+                AppendParcelReport(report, lo);
+            }
+
+            MainConsole.Instance.Output(report.ToString());
+        }
+
+        private void AppendParcelsSummaryReport(StringBuilder report)
+        {           
             report.AppendFormat("Land information for {0}\n", m_scene.RegionInfo.RegionName);            
             report.AppendFormat(
                 "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n",
@@ -1979,6 +2047,69 @@ namespace OpenSim.Region.CoreModules.World.Land
                     ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
                 }
             }
+        } 
+
+        private void AppendParcelReport(StringBuilder report, ILandObject lo)
+        {
+            LandData ld = lo.LandData;
+
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            cdl.AddRow("Parcel name", ld.Name);
+            cdl.AddRow("Local ID", ld.LocalID);
+            cdl.AddRow("Description", ld.Description);
+            cdl.AddRow("Snapshot ID", ld.SnapshotID);
+            cdl.AddRow("Area", ld.Area);
+            cdl.AddRow("Starts", lo.StartPoint);
+            cdl.AddRow("Ends", lo.EndPoint);
+            cdl.AddRow("AABB Min", ld.AABBMin);
+            cdl.AddRow("AABB Max", ld.AABBMax);
+
+            cdl.AddRow("Owner", m_userManager.GetUserName(ld.OwnerID));
+            cdl.AddRow("Is group owned?", ld.IsGroupOwned);
+            cdl.AddRow("GroupID", ld.GroupID);
+
+            cdl.AddRow("Status", ld.Status);
+            cdl.AddRow("Flags", (ParcelFlags)ld.Flags);           
+
+            cdl.AddRow("Landing Type", (LandingType)ld.LandingType);
+            cdl.AddRow("User Location", ld.UserLocation);
+            cdl.AddRow("User look at", ld.UserLookAt);
+
+            cdl.AddRow("Other clean time", ld.OtherCleanTime);
+
+            cdl.AddRow("Max Prims", lo.GetParcelMaxPrimCount());
+            IPrimCounts pc = lo.PrimCounts;
+            cdl.AddRow("Owner Prims", pc.Owner);
+            cdl.AddRow("Group Prims", pc.Group);
+            cdl.AddRow("Other Prims", pc.Others);
+            cdl.AddRow("Selected Prims", pc.Selected);
+            cdl.AddRow("Total Prims", pc.Total);
+
+            cdl.AddRow("Music URL", ld.MusicURL);
+            cdl.AddRow("Obscure Music", ld.ObscureMusic);
+
+            cdl.AddRow("Media ID", ld.MediaID);
+            cdl.AddRow("Media Autoscale", Convert.ToBoolean(ld.MediaAutoScale));
+            cdl.AddRow("Media URL", ld.MediaURL);
+            cdl.AddRow("Media Type", ld.MediaType);
+            cdl.AddRow("Media Description", ld.MediaDescription);
+            cdl.AddRow("Media Width", ld.MediaWidth);
+            cdl.AddRow("Media Height", ld.MediaHeight);
+            cdl.AddRow("Media Loop", ld.MediaLoop);
+            cdl.AddRow("Obscure Media", ld.ObscureMedia);
+
+            cdl.AddRow("Parcel Category", ld.Category);
+
+            cdl.AddRow("Claim Date", ld.ClaimDate);
+            cdl.AddRow("Claim Price", ld.ClaimPrice);
+            cdl.AddRow("Pass Hours", ld.PassHours);
+            cdl.AddRow("Pass Price", ld.PassPrice);
+
+            cdl.AddRow("Auction ID", ld.AuctionID);
+            cdl.AddRow("Authorized Buyer ID", ld.AuthBuyerID);
+            cdl.AddRow("Sale Price", ld.SalePrice);
+
+            cdl.AddToStringBuilder(report);
         }
     }
 }

@@ -47,13 +47,10 @@ namespace OpenSim.Data.MySQL
 
         public void DeleteOld()
         {
-            uint now = (uint)Util.UnixTimeSinceEpoch();
-
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                cmd.CommandText = String.Format("delete from {0} where TMStamp < ?tstamp", m_Realm);
-                cmd.Parameters.AddWithValue("?tstamp", now - 14 * 24 * 60 * 60); // > 2 weeks old
-
+                cmd.CommandText = String.Format("delete from {0} where TMStamp < NOW() - INTERVAL 2 WEEK", m_Realm);
+         
                 ExecuteNonQuery(cmd);
             }
 

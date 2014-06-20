@@ -392,7 +392,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     gim.fromAgentName = fromAgentName;
                     gim.fromGroup = fromGroup;
                     gim.imSessionID = imSessionID.Guid;
-                    gim.RegionID = UUID.Zero.Guid; // RegionID.Guid;
+                    gim.RegionID = RegionID.Guid;
                     gim.timestamp = timestamp;
                     gim.toAgentID = toAgentID.Guid;
                     gim.message = message;
@@ -728,7 +728,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             gim["position_x"] = msg.Position.X.ToString();
             gim["position_y"] = msg.Position.Y.ToString();
             gim["position_z"] = msg.Position.Z.ToString();
-            gim["region_id"] = msg.RegionID.ToString();
+            gim["region_id"] = new UUID(msg.RegionID).ToString();
             gim["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket,Base64FormattingOptions.None);
             if (m_MessageKey != String.Empty)
                 gim["message_key"] = m_MessageKey;

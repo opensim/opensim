@@ -81,11 +81,11 @@ private sealed class BulletBodyXNA : BulletBody
 private sealed class BulletShapeXNA : BulletShape
 {
     public CollisionShape shape;
-    public BulletShapeXNA(CollisionShape xx, BSPhysicsShapeType typ) 
+    public BulletShapeXNA(CollisionShape xx, BSPhysicsShapeType typ)
         : base()
     {
         shape = xx;
-        type = typ;
+        shapeType = typ;
     }
     public override bool HasPhysicalShape
     {
@@ -97,7 +97,7 @@ private sealed class BulletShapeXNA : BulletShape
     }
     public override BulletShape Clone()
     {
-        return new BulletShapeXNA(shape, type);
+        return new BulletShapeXNA(shape, shapeType);
     }
     public override bool ReferenceSame(BulletShape other)
     {
@@ -137,8 +137,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
     internal int LastEntityProperty = 0;
 
     internal EntityProperties[] UpdatedObjects;
-    internal Dictionary<uint, GhostObject> specialCollisionObjects; 
-    
+    internal Dictionary<uint, GhostObject> specialCollisionObjects;
+
     private static int m_collisionsThisFrame;
     private BSScene PhysicsScene { get; set; }
 
@@ -151,7 +151,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="p"></param>
     /// <param name="p_2"></param>
@@ -169,12 +169,25 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return true;
     }
 
+    public override bool ClearCollisionProxyCache(BulletWorld pWorld, BulletBody pBody)
+    {
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody body = ((BulletBodyXNA)pBody).rigidBody;
+        CollisionObject collisionObject = ((BulletBodyXNA)pBody).body;
+        if (body != null && collisionObject != null && collisionObject.GetBroadphaseHandle() != null)
+        {
+            world.RemoveCollisionObject(collisionObject);
+            world.AddCollisionObject(collisionObject);
+        }
+        return true;
+    }
+
     public override bool AddConstraintToWorld(BulletWorld pWorld, BulletConstraint pConstraint, bool pDisableCollisionsBetweenLinkedObjects)
     {
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
         TypedConstraint constraint = (pConstraint as BulletConstraintXNA).constrain;
         world.AddConstraint(constraint, pDisableCollisionsBetweenLinkedObjects);
-        
+
         return true;
 
     }
@@ -300,7 +313,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     public override bool GetForceUpdateAllAabbs(BulletWorld pWorld) {
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
         return world.GetForceUpdateAllAabbs();
-        
+
     }
     public override void SetForceUpdateAllAabbs(BulletWorld pWorld, bool pForce)
     {
@@ -404,7 +417,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         IndexedMatrix mat = IndexedMatrix.CreateFromQuaternion(vquaternion);
         mat._origin = vposition;
         collisionObject.SetWorldTransform(mat);
-        
+
     }
 
     public override Vector3 GetPosition(BulletBody pCollisionObject)
@@ -457,7 +470,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
         collisionObject.Activate(pforceactivation);
-        
+
     }
 
     public override Quaternion GetOrientation(BulletBody pCollisionObject)
@@ -486,7 +499,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
         return collisionObject.GetCcdSweptSphereRadius();
-        
+
     }
 
     public override IntPtr GetUserPointer(BulletBody pCollisionObject)
@@ -559,8 +572,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 
 
-    public override BulletConstraint Create6DofConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2, 
-                                    Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot, 
+    public override BulletConstraint Create6DofConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                                    Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot,
                                     bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
 
     {
@@ -604,7 +617,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="pWorld"></param>
     /// <param name="pBody1"></param>
@@ -752,6 +765,214 @@ private sealed class BulletConstraintXNA : BulletConstraint
         constraint.SetBreakingImpulseThreshold(threshold);
         return true;
     }
+    public override bool HingeSetLimits(BulletConstraint pConstraint, float low, float high, float softness, float bias, float relaxation)
+    {
+        HingeConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as HingeConstraint;
+        if (softness == HINGE_NOT_SPECIFIED)
+            constraint.SetLimit(low, high);
+        else
+            constraint.SetLimit(low, high, softness, bias, relaxation);
+        return true;
+    }
+    public override bool SpringEnable(BulletConstraint pConstraint, int index, float numericTrueFalse)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        constraint.EnableSpring(index, (numericTrueFalse == 0f ? false : true));
+        return true;
+    }
+
+    public override bool SpringSetEquilibriumPoint(BulletConstraint pConstraint, int index, float equilibriumPoint)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        if (index == SPRING_NOT_SPECIFIED)
+        {
+            constraint.SetEquilibriumPoint();
+        }
+        else
+        {
+            if (equilibriumPoint == SPRING_NOT_SPECIFIED)
+                constraint.SetEquilibriumPoint(index);
+            else
+                constraint.SetEquilibriumPoint(index, equilibriumPoint);
+        }
+        return true;
+    }
+
+    public override bool SpringSetStiffness(BulletConstraint pConstraint, int index, float stiffness)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        constraint.SetStiffness(index, stiffness);
+        return true;
+    }
+
+    public override bool SpringSetDamping(BulletConstraint pConstraint, int index, float damping)
+    {
+        Generic6DofSpringConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofSpringConstraint;
+        constraint.SetDamping(index, damping);
+        return true;
+    }
+
+    public override bool SliderSetLimits(BulletConstraint pConstraint, int lowerUpper, int linAng, float val)
+    {
+        SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
+		switch (lowerUpper)
+		{
+			case SLIDER_LOWER_LIMIT:
+				switch (linAng)
+				{
+					case SLIDER_LINEAR:
+						constraint.SetLowerLinLimit(val);
+						break;
+					case SLIDER_ANGULAR:
+						constraint.SetLowerAngLimit(val);
+						break;
+				}
+				break;
+			case SLIDER_UPPER_LIMIT:
+				switch (linAng)
+				{
+					case SLIDER_LINEAR:
+						constraint.SetUpperLinLimit(val);
+						break;
+					case SLIDER_ANGULAR:
+						constraint.SetUpperAngLimit(val);
+						break;
+				}
+				break;
+		}
+        return true;
+    }
+    public override bool SliderSet(BulletConstraint pConstraint, int softRestDamp, int dirLimOrtho, int linAng, float val)
+    {
+        SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
+		switch (softRestDamp)
+		{
+			case SLIDER_SET_SOFTNESS:
+				switch (dirLimOrtho)
+				{
+					case SLIDER_SET_DIRECTION:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetSoftnessDirLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetSoftnessDirAng(val); break;
+						}
+						break;
+					case SLIDER_SET_LIMIT:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetSoftnessLimLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetSoftnessLimAng(val); break;
+						}
+						break;
+					case SLIDER_SET_ORTHO:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetSoftnessOrthoLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetSoftnessOrthoAng(val); break;
+						}
+						break;
+				}
+				break;
+			case SLIDER_SET_RESTITUTION:
+				switch (dirLimOrtho)
+				{
+					case SLIDER_SET_DIRECTION:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetRestitutionDirLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetRestitutionDirAng(val); break;
+						}
+						break;
+					case SLIDER_SET_LIMIT:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetRestitutionLimLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetRestitutionLimAng(val); break;
+						}
+						break;
+					case SLIDER_SET_ORTHO:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetRestitutionOrthoLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetRestitutionOrthoAng(val); break;
+						}
+						break;
+				}
+				break;
+			case SLIDER_SET_DAMPING:
+				switch (dirLimOrtho)
+				{
+					case SLIDER_SET_DIRECTION:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetDampingDirLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetDampingDirAng(val); break;
+						}
+						break;
+					case SLIDER_SET_LIMIT:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetDampingLimLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetDampingLimAng(val); break;
+						}
+						break;
+					case SLIDER_SET_ORTHO:
+						switch (linAng)
+						{
+							case SLIDER_LINEAR: constraint.SetDampingOrthoLin(val); break;
+							case SLIDER_ANGULAR: constraint.SetDampingOrthoAng(val); break;
+						}
+						break;
+				}
+				break;
+		}
+        return true;
+    }
+    public override bool SliderMotorEnable(BulletConstraint pConstraint, int linAng, float numericTrueFalse)
+    {
+        SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
+		switch (linAng)
+		{
+			case SLIDER_LINEAR:
+				constraint.SetPoweredLinMotor(numericTrueFalse == 0.0 ? false : true);
+				break;
+			case SLIDER_ANGULAR:
+				constraint.SetPoweredAngMotor(numericTrueFalse == 0.0 ? false : true);
+				break;
+		}
+        return true;
+    }
+    public override bool SliderMotor(BulletConstraint pConstraint, int forceVel, int linAng, float val)
+    {
+        SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
+		switch (forceVel)
+		{
+			case SLIDER_MOTOR_VELOCITY:
+				switch (linAng)
+				{
+					case SLIDER_LINEAR:
+						constraint.SetTargetLinMotorVelocity(val);
+						break;
+					case SLIDER_ANGULAR:
+						constraint.SetTargetAngMotorVelocity(val);
+						break;
+				}
+				break;
+			case SLIDER_MAX_MOTOR_FORCE:
+				switch (linAng)
+				{
+					case SLIDER_LINEAR:
+						constraint.SetMaxLinMotorForce(val);
+						break;
+					case SLIDER_ANGULAR:
+						constraint.SetMaxAngMotorForce(val);
+						break;
+				}
+				break;
+		}
+        return true;
+    }
+
     //BulletSimAPI.SetAngularDamping(Prim.PhysBody.ptr, angularDamping);
     public override void SetAngularDamping(BulletBody pBody, float angularDamping)
     {
@@ -824,7 +1045,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         RigidBody body = (pBody as BulletBodyXNA).rigidBody;
         float angularDamping = body.GetAngularDamping();
-        body.SetDamping(lin_damping, angularDamping); 
+        body.SetDamping(lin_damping, angularDamping);
     }
 
     public override float GetLinearDamping(BulletBody pBody)
@@ -907,7 +1128,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         RigidBody bo = co as RigidBody;
         if (bo == null)
         {
-            
+
             if (world.IsInWorld(co))
             {
                 world.RemoveCollisionObject(co);
@@ -915,7 +1136,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         }
         else
         {
-            
+
             if (world.IsInWorld(bo))
             {
                 world.RemoveRigidBody(bo);
@@ -947,7 +1168,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
         // TODO:  Turn this from a reference copy to a Value Copy.
         BulletShapeXNA shape2 = new BulletShapeXNA(shape1, BSShapeTypeFromBroadPhaseNativeType(shape1.GetShapeType()));
-        
+
         return shape2;
     }
 
@@ -957,7 +1178,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return false;
     }
     //(sim.ptr, shape.ptr, prim.LocalID, prim.RawPosition, prim.RawOrientation);
-               
+
     public override BulletBody CreateBodyFromShape(BulletWorld pWorld, BulletShape pShape, uint pLocalID, Vector3 pRawPosition, Quaternion pRawOrientation)
     {
         CollisionWorld world = (pWorld as BulletWorldXNA).world;
@@ -993,11 +1214,11 @@ private sealed class BulletConstraintXNA : BulletConstraint
             m_startWorldTransform = IndexedMatrix.Identity;
         */
         body.SetUserPointer(pLocalID);
-        
+
         return new BulletBodyXNA(pLocalID, body);
     }
 
-    
+
     public override BulletBody CreateBodyWithDefaultMotionState( BulletShape pShape, uint pLocalID, Vector3 pRawPosition, Quaternion pRawOrientation)
     {
 
@@ -1025,7 +1246,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     public override Vector3 GetAnisotripicFriction(BulletConstraint pconstrain)
     {
 
-        /* TODO */ 
+        /* TODO */
         return Vector3.Zero;
     }
     public override Vector3 SetAnisotripicFriction(BulletConstraint pconstrain, Vector3 frict) { /* TODO */ return Vector3.Zero; }
@@ -1035,7 +1256,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
         return collisionObject.IsStaticObject();
-        
+
     }
     public override bool IsKinematicObject(BulletBody pCollisionObject)
     {
@@ -1098,10 +1319,10 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return new BulletWorldXNA(1, PhysicsScene, BSAPIXNA.Initialize2(worldExtent, configparms, maxCollisions, ref collisionArray, maxUpdates, ref updateArray, null));
     }
 
-    private static DiscreteDynamicsWorld Initialize2(Vector3 worldExtent, 
+    private static DiscreteDynamicsWorld Initialize2(Vector3 worldExtent,
                         ConfigurationParameters[] o,
                         int mMaxCollisionsPerFrame, ref CollisionDesc[] collisionArray,
-                        int mMaxUpdatesPerFrame, ref EntityProperties[] updateArray, 
+                        int mMaxUpdatesPerFrame, ref EntityProperties[] updateArray,
                         object mDebugLogCallbackHandle)
     {
         CollisionWorld.WorldData.ParamData p = new CollisionWorld.WorldData.ParamData();
@@ -1138,9 +1359,9 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.avatarCapsuleDepth = BSParam.AvatarCapsuleDepth;
         p.avatarCapsuleHeight = BSParam.AvatarCapsuleHeight;
         p.avatarContactProcessingThreshold = BSParam.AvatarContactProcessingThreshold;
-       
+
         p.vehicleAngularDamping = BSParam.VehicleAngularDamping;
-        
+
         p.maxPersistantManifoldPoolSize = o[0].maxPersistantManifoldPoolSize;
         p.maxCollisionAlgorithmPoolSize = o[0].maxCollisionAlgorithmPoolSize;
         p.shouldDisableContactPoolDynamicAllocation = o[0].shouldDisableContactPoolDynamicAllocation;
@@ -1160,7 +1381,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.linkConstraintSolverIterations = BSParam.LinkConstraintSolverIterations;
         p.physicsLoggingFrames = o[0].physicsLoggingFrames;
         DefaultCollisionConstructionInfo ccci = new DefaultCollisionConstructionInfo();
-        
+
         DefaultCollisionConfiguration cci = new DefaultCollisionConfiguration();
         CollisionDispatcher m_dispatcher = new CollisionDispatcher(cci);
 
@@ -1221,6 +1442,50 @@ private sealed class BulletConstraintXNA : BulletConstraint
         //BSParam.TerrainImplementation = 0;
         world.SetGravity(new IndexedVector3(0,0,p.gravity));
 
+        // Turn off Pooling since globals and pooling are bad for threading.
+        BulletGlobals.VoronoiSimplexSolverPool.SetPoolingEnabled(false);
+        BulletGlobals.SubSimplexConvexCastPool.SetPoolingEnabled(false);
+        BulletGlobals.ManifoldPointPool.SetPoolingEnabled(false);
+        BulletGlobals.CastResultPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereShapePool.SetPoolingEnabled(false);
+        BulletGlobals.DbvtNodePool.SetPoolingEnabled(false);
+        BulletGlobals.SingleRayCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.SubSimplexClosestResultPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkPairDetectorPool.SetPoolingEnabled(false);
+        BulletGlobals.DbvtTreeColliderPool.SetPoolingEnabled(false);
+        BulletGlobals.SingleSweepCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BroadphaseRayTesterPool.SetPoolingEnabled(false);
+        BulletGlobals.ClosestNotMeConvexResultCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkEpaPenetrationDepthSolverPool.SetPoolingEnabled(false);
+        BulletGlobals.ContinuousConvexCollisionPool.SetPoolingEnabled(false);
+        BulletGlobals.DbvtStackDataBlockPool.SetPoolingEnabled(false);
+
+        BulletGlobals.BoxBoxCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.CompoundCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.ConvexConcaveCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.ConvexConvexAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.ConvexPlaneAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereBoxCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereSphereCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.SphereTriangleCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.GImpactCollisionAlgorithmPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkEpaSolver2MinkowskiDiffPool.SetPoolingEnabled(false);
+        BulletGlobals.PersistentManifoldPool.SetPoolingEnabled(false);
+        BulletGlobals.ManifoldResultPool.SetPoolingEnabled(false);
+        BulletGlobals.GJKPool.SetPoolingEnabled(false);
+        BulletGlobals.GIM_ShapeRetrieverPool.SetPoolingEnabled(false);
+        BulletGlobals.TriangleShapePool.SetPoolingEnabled(false);
+        BulletGlobals.SphereTriangleDetectorPool.SetPoolingEnabled(false);
+        BulletGlobals.CompoundLeafCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.GjkConvexCastPool.SetPoolingEnabled(false);
+        BulletGlobals.LocalTriangleSphereCastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BridgeTriangleRaycastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BridgeTriangleConcaveRaycastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.BridgeTriangleConvexcastCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.MyNodeOverlapCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.ClosestRayResultCallbackPool.SetPoolingEnabled(false);
+        BulletGlobals.DebugDrawcallbackPool.SetPoolingEnabled(false);
+
         return world;
     }
     //m_constraint.ptr, ConstraintParams.BT_CONSTRAINT_STOP_CFM, cfm, ConstraintParamAxis.AXIS_ALL
@@ -1263,7 +1528,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             }
         }
         return ret;
-        
+
     }
 
     public override float GetAngularMotionDisc(BulletShape pShape)
@@ -1353,10 +1618,10 @@ private sealed class BulletConstraintXNA : BulletConstraint
         CollisionShape shape = (pShape as BulletShapeXNA).shape;
         gObj.SetCollisionShape(shape);
         gObj.SetUserPointer(pLocalID);
-        
+
         if (specialCollisionObjects.ContainsKey(pLocalID))
             specialCollisionObjects[pLocalID] = gObj;
-        else 
+        else
             specialCollisionObjects.Add(pLocalID, gObj);
 
         // TODO: Add to Special CollisionObjects!
@@ -1447,8 +1712,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return new BulletShapeXNA(ret, BSShapeTypeFromBroadPhaseNativeType(ret.GetShapeType()));
     }
 
-    public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx) { 
-        
+    public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx) {
+
         if (cShape == null)
             return null;
         CompoundShape compoundShape = (cShape as BulletShapeXNA).shape as CompoundShape;
@@ -1456,7 +1721,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         BulletShape retShape = new BulletShapeXNA(shape, BSShapeTypeFromBroadPhaseNativeType(shape.GetShapeType()));
 
 
-        return retShape; 
+        return retShape;
     }
 
     public BSPhysicsShapeType BSShapeTypeFromBroadPhaseNativeType(BroadphaseNativeTypes pin)
@@ -1475,7 +1740,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE:
-                ret =  BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_CONVEXHULL;
                 break;
             case BroadphaseNativeTypes.CONVEX_HULL_SHAPE_PROXYTYPE:
                 ret =  BSPhysicsShapeType.SHAPE_HULL;
@@ -1503,7 +1768,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 ret =  BSPhysicsShapeType.SHAPE_CONE;
                 break;
             case BroadphaseNativeTypes.CONVEX_SHAPE_PROXYTYPE:
-                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_CONVEXHULL;
                 break;
             case BroadphaseNativeTypes.CYLINDER_SHAPE_PROXYTYPE:
                 ret =  BSPhysicsShapeType.SHAPE_CYLINDER;
@@ -1547,7 +1812,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 break;
             ///Used for GIMPACT Trimesh integration
             case BroadphaseNativeTypes.GIMPACT_SHAPE_PROXYTYPE:
-                ret =  BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_GIMPACT;
                 break;
             ///Multimaterial mesh
             case BroadphaseNativeTypes.MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE:
@@ -1598,8 +1863,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return new BulletShapeXNA(m_planeshape, BSPhysicsShapeType.SHAPE_GROUNDPLANE);
     }
 
-    public override BulletConstraint Create6DofSpringConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2, 
-                                    Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot, 
+    public override BulletConstraint Create6DofSpringConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                                    Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot,
                                     bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
 
     {
@@ -1745,7 +2010,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
         CompoundShape compoundshape = new CompoundShape(false);
-        
+
         compoundshape.SetMargin(world.WorldSettings.Params.collisionMargin);
         int ii = 1;
 
@@ -1761,7 +2026,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             int ender = ((ii + 4) + (vertexCount*3));
             for (int iii = ii + 4; iii < ender; iii+=3)
             {
-               
+
                 virts.Add(new IndexedVector3(pConvHulls[iii], pConvHulls[iii + 1], pConvHulls[iii +2]));
             }
             ConvexHullShape convexShape = new ConvexHullShape(virts, vertexCount);
@@ -1769,7 +2034,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             compoundshape.AddChildShape(ref childTrans, convexShape);
             ii += (vertexCount*3 + 4);
         }
-        
+
         return new BulletShapeXNA(compoundshape, BSPhysicsShapeType.SHAPE_HULL);
     }
 
@@ -1778,16 +2043,26 @@ private sealed class BulletConstraintXNA : BulletConstraint
         /* TODO */ return null;
     }
 
+    public override BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+    {
+        /* TODO */ return null;
+    }
+
+    public override BulletShape CreateConvexHullShape(BulletWorld pWorld, int pIndicesCount, int[] indices, int pVerticesCount, float[] verticesAsFloats)
+    {
+        /* TODO */ return null;
+    }
+
     public override BulletShape CreateMeshShape(BulletWorld pWorld, int pIndicesCount, int[] indices, int pVerticesCount, float[] verticesAsFloats)
     {
         //DumpRaw(indices,verticesAsFloats,pIndicesCount,pVerticesCount);
-        
+
         for (int iter = 0; iter < pVerticesCount; iter++)
         {
             if (verticesAsFloats[iter] > 0 && verticesAsFloats[iter] < 0.0001) verticesAsFloats[iter] = 0;
             if (verticesAsFloats[iter] < 0 && verticesAsFloats[iter] > -0.0001) verticesAsFloats[iter] = 0;
         }
-        
+
         ObjectArray<int> indicesarr = new ObjectArray<int>(indices);
         ObjectArray<float> vertices = new ObjectArray<float>(verticesAsFloats);
         DumpRaw(indicesarr,vertices,pIndicesCount,pVerticesCount);
@@ -1801,7 +2076,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         mesh.m_vertexStride = 3;
         mesh.m_vertexType = PHY_ScalarType.PHY_FLOAT;
         mesh.m_triangleIndexStride = 3;
-        
+
         TriangleIndexVertexArray tribuilder = new TriangleIndexVertexArray();
         tribuilder.AddIndexedMesh(mesh, PHY_ScalarType.PHY_INTEGER);
         BvhTriangleMeshShape meshShape = new BvhTriangleMeshShape(tribuilder, true,true);
@@ -1810,9 +2085,14 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return new BulletShapeXNA(meshShape, BSPhysicsShapeType.SHAPE_MESH);
 
     }
+    public override BulletShape CreateGImpactShape(BulletWorld pWorld, int pIndicesCount, int[] indices, int pVerticesCount, float[] verticesAsFloats)
+    {
+        // TODO:
+        return null;
+    }
     public static void DumpRaw(ObjectArray<int>indices, ObjectArray<float> vertices, int pIndicesCount,int pVerticesCount )
     {
-        
+
         String fileName = "objTest3.raw";
         String completePath = System.IO.Path.Combine(Util.configDir(), fileName);
         StreamWriter sw = new StreamWriter(completePath);
@@ -1838,7 +2118,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             string s = vertices[indices[i * 3]].ToString("0.0000");
             s += " " + vertices[indices[i * 3 + 1]].ToString("0.0000");
             s += " " + vertices[indices[i * 3 + 2]].ToString("0.0000");
-        
+
             sw.Write(s + "\n");
         }
 
@@ -1860,7 +2140,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         mesh.m_vertexStride = 3;
         mesh.m_vertexType = PHY_ScalarType.PHY_FLOAT;
         mesh.m_triangleIndexStride = 3;
-        
+
         TriangleIndexVertexArray tribuilder = new TriangleIndexVertexArray();
         tribuilder.AddIndexedMesh(mesh, PHY_ScalarType.PHY_INTEGER);
 
@@ -1891,7 +2171,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             sw.Close();
     }
 
-    public override BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap, 
+    public override BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
 								float scaleFactor, float collisionMargin)
     {
         const int upAxis = 2;
@@ -1899,7 +2179,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                                                                            heightMap,  scaleFactor,
                                                                            minHeight, maxHeight, upAxis,
                                                                             false);
-        terrainShape.SetMargin(collisionMargin + 0.5f);
+        terrainShape.SetMargin(collisionMargin);
         terrainShape.SetUseDiamondSubdivision(true);
         terrainShape.SetUserPointer(id);
         return new BulletShapeXNA(terrainShape, BSPhysicsShapeType.SHAPE_TERRAIN);
@@ -1933,14 +2213,14 @@ private sealed class BulletConstraintXNA : BulletConstraint
         /* TODO */
         updatedEntityCount = 0;
         collidersCount = 0;
-        
+
 
         int ret = PhysicsStep2(world,timeStep,maxSubSteps,fixedTimeStep,out updatedEntityCount,out world.physicsScene.m_updateArray, out collidersCount, out world.physicsScene.m_collisionArray);
 
         return ret;
     }
 
-    private int PhysicsStep2(BulletWorld pWorld, float timeStep, int m_maxSubSteps, float m_fixedTimeStep, 
+    private int PhysicsStep2(BulletWorld pWorld, float timeStep, int m_maxSubSteps, float m_fixedTimeStep,
                     out int updatedEntityCount, out EntityProperties[] updatedEntities,
                     out int collidersCount, out CollisionDesc[] colliders)
     {
@@ -1949,24 +2229,24 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return epic;
     }
 
-    private int PhysicsStepint(BulletWorld pWorld,float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, 
+    private int PhysicsStepint(BulletWorld pWorld,float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount,
         out  EntityProperties[] updatedEntities, out int collidersCount, out CollisionDesc[] colliders, int maxCollisions, int maxUpdates)
     {
         int numSimSteps = 0;
         Array.Clear(UpdatedObjects, 0, UpdatedObjects.Length);
         Array.Clear(UpdatedCollisions, 0, UpdatedCollisions.Length);
         LastEntityProperty=0;
-        
+
 
 
 
 
 
         LastCollisionDesc=0;
-       
+
         updatedEntityCount = 0;
         collidersCount = 0;
-        
+
 
         if (pWorld is BulletWorldXNA)
         {
@@ -2023,7 +2303,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
             collidersCount = LastCollisionDesc;
             colliders = UpdatedCollisions;
-                
+
 
         }
         else
@@ -2031,15 +2311,15 @@ private sealed class BulletConstraintXNA : BulletConstraint
             //if (updatedEntities is null)
             //updatedEntities = new List<BulletXNA.EntityProperties>();
             //updatedEntityCount = 0;
-            
-            
+
+
             //collidersCount = 0;
-           
+
             updatedEntities = new EntityProperties[0];
 
-            
+
             colliders = new CollisionDesc[0];
-        
+
         }
         return numSimSteps;
     }
@@ -2047,7 +2327,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         IOverlappingPairCache cache = obj.GetOverlappingPairCache();
         ObjectArray<BroadphasePair> pairs = cache.GetOverlappingPairArray();
-        
+
         DiscreteDynamicsWorld world = (PhysicsScene.World as BulletWorldXNA).world;
         PersistentManifoldArray manifoldArray = new PersistentManifoldArray();
         BroadphasePair collisionPair;
@@ -2059,7 +2339,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         ManifoldPoint pt;
 
         int numPairs = pairs.Count;
-        
+
         for (int i = 0; i < numPairs; i++)
         {
             manifoldArray.Clear();
@@ -2068,7 +2348,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             collisionPair = world.GetPairCache().FindPair(pairs[i].m_pProxy0, pairs[i].m_pProxy1);
             if (collisionPair == null)
                 continue;
-            
+
             collisionPair.m_algorithm.GetAllContactManifolds(manifoldArray);
             for (int j = 0; j < manifoldArray.Count; j++)
             {
@@ -2091,7 +2371,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
     private static void RecordCollision(BSAPIXNA world, CollisionObject objA, CollisionObject objB, IndexedVector3 contact, IndexedVector3 norm, float penetration)
     {
-       
+
         IndexedVector3 contactNormal = norm;
         if ((objA.GetCollisionFlags() & BulletXNA.BulletCollision.CollisionFlags.BS_WANTS_COLLISIONS) == 0 &&
             (objB.GetCollisionFlags() & BulletXNA.BulletCollision.CollisionFlags.BS_WANTS_COLLISIONS) == 0)
@@ -2161,11 +2441,11 @@ private sealed class BulletConstraintXNA : BulletConstraint
             if (NotMe is BulletBodyXNA && NotMe.HasPhysicalBody)
             {
                 CollisionObject AvoidBody = (NotMe as BulletBodyXNA).body;
-                
+
                 IndexedVector3 rOrigin = new IndexedVector3(_RayOrigin.X, _RayOrigin.Y, _RayOrigin.Z);
                 IndexedVector3 rEnd = new IndexedVector3(_RayOrigin.X, _RayOrigin.Y, _RayOrigin.Z - pRayHeight);
                 using (
-                    ClosestNotMeRayResultCallback rayCallback = 
+                    ClosestNotMeRayResultCallback rayCallback =
                                             new ClosestNotMeRayResultCallback(rOrigin, rEnd, AvoidBody)
                     )
                 {
@@ -2181,9 +2461,9 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return false;
     }
 }
-  
 
-   
+
+
 
     public class SimMotionState : DefaultMotionState
     {
@@ -2276,12 +2556,12 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 m_lastProperties = m_properties;
                 if (m_world.LastEntityProperty < m_world.UpdatedObjects.Length)
                     m_world.UpdatedObjects[m_world.LastEntityProperty++]=(m_properties);
-                
+
                 //(*m_updatesThisFrame)[m_properties.ID] = &m_properties;
             }
-                
-                
-                
+
+
+
 
         }
         public override void SetRigidBody(RigidBody body)
@@ -2304,7 +2584,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             (((v1.Z - nEpsilon) < v2.Z) && (v2.Z < (v1.Z + nEpsilon))) &&
             (((v1.W - nEpsilon) < v2.W) && (v2.W < (v1.W + nEpsilon)));
         }
-        
+
     }
 }
 

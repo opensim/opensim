@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         public void TerrainToBitmap(Bitmap mapbmp)
         {
             int tc = Environment.TickCount;
-            m_log.Debug("[MAPTILE]: Generating Maptile Step 1: Terrain");
+            m_log.Debug("[SHADED MAP TILE RENDERER]: Generating Maptile Step 1: Terrain");
 
             double[,] hm = m_scene.Heightmap.GetDoubles();
             bool ShadowDebugContinue = true;
@@ -199,7 +199,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                         {
                             if (!terraincorruptedwarningsaid)
                             {
-                                m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", m_scene.RegionInfo.RegionName);
+                                m_log.WarnFormat("[SHADED MAP TILE RENDERER]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", m_scene.RegionInfo.RegionName);
                                 terraincorruptedwarningsaid = true;
                             }
                             color = Color.Black;
@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                         {
                             if (!terraincorruptedwarningsaid)
                             {
-                                m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", m_scene.RegionInfo.RegionName);
+                                m_log.WarnFormat("[SHADED MAP TILE RENDERER]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", m_scene.RegionInfo.RegionName);
                                 terraincorruptedwarningsaid = true;
                             }
                             Color black = Color.Black;
@@ -238,7 +238,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     }
                 }
             }
-            m_log.Debug("[MAPTILE]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
+
+            m_log.Debug("[SHADED MAP TILE RENDERER]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
         }
     }
 }

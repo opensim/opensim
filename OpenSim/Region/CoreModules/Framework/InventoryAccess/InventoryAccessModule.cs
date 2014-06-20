@@ -358,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             bool asAttachment)
         {
             CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
-            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+//            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
@@ -379,7 +379,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                              objectGroup.AbsolutePosition.Z);
 
                 Quaternion inventoryStoredRotation = objectGroup.GroupRotation;
-                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
+                //originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
                 // Restore attachment data after trip through the sim
                 if (objectGroup.RootPart.AttachPoint > 0)
@@ -390,9 +390,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 // Trees could be attached and it's been done, but it makes
                 // no sense. State must be preserved because it's the tree type
-                if (objectGroup.RootPart.Shape.PCode != (byte)PCode.Tree &&
-                    objectGroup.RootPart.Shape.PCode != (byte)PCode.NewTree)
+                if (objectGroup.RootPart.Shape.PCode != (byte) PCode.Tree &&
+                    objectGroup.RootPart.Shape.PCode != (byte) PCode.NewTree)
+                {
                     objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
+                    if (objectGroup.RootPart.AttachPoint > 0)
+                        objectGroup.RootPart.Shape.LastAttachPoint = objectGroup.RootPart.AttachPoint;
+                }
 
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
                 objectGroup.RootPart.RotationOffset = inventoryStoredRotation;
@@ -423,9 +427,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
                 itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0], !asAttachment);
             
-            // Restore the position of each group now that it has been stored to inventory.
-            foreach (SceneObjectGroup objectGroup in objlist)
-                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+//            // Restore the position of each group now that it has been stored to inventory.
+//            foreach (SceneObjectGroup objectGroup in objlist)
+//                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
 
             InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
 
@@ -435,17 +439,28 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item == null)
                 return null;
+
+            item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
+            item.CreatorData = objlist[0].RootPart.CreatorData;
                             
-            // Can't know creator is the same, so null it in inventory
             if (objlist.Count > 1)
             {
-                item.CreatorId = UUID.Zero.ToString();
                 item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
+                
+                // If the objects have different creators then don't specify a creator at all
+                foreach (SceneObjectGroup objectGroup in objlist)
+                {
+                    if ((objectGroup.RootPart.CreatorID.ToString() != item.CreatorId)
+                        || (objectGroup.RootPart.CreatorData.ToString() != item.CreatorData))
+                    {
+                        item.CreatorId = UUID.Zero.ToString();
+                        item.CreatorData = string.Empty;
+                        break;
+                    }
+                }
             }
             else
             {
-                item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
-                item.CreatorData = objlist[0].RootPart.CreatorData;
                 item.SaleType = objlist[0].RootPart.ObjectSaleType;
                 item.SalePrice = objlist[0].RootPart.SalePrice;                    
             }              
@@ -466,12 +481,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
-                AddPermissions(item, objlist[0], objlist, remoteClient);
-
                 item.CreationDate = Util.UnixTimeSinceEpoch();
                 item.Description = asset.Description;
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
+
+                AddPermissions(item, objlist[0], objlist, remoteClient);
 
                 m_Scene.AddInventoryItem(item);
 
@@ -527,16 +542,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             effectivePerms |= (uint)PermissionMask.Move;
 
+            //PermissionsUtil.LogPermissions(item.Name, "Before AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);
+
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
                 uint perms = effectivePerms;
-                uint nextPerms = (perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
+                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref perms);
 
                 item.BasePermissions = perms & so.RootPart.NextOwnerMask;
                 item.CurrentPermissions = item.BasePermissions;
@@ -544,10 +555,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
                 
-                // Magic number badness. Maybe this deserves an enum.
-                // bit 4 (16) is the "Slam" bit, it means treat as passed
-                // and apply next owner perms on rez
-                item.CurrentPermissions |= 16; // Slam!
+                // apply next owner perms on rez
+                item.CurrentPermissions |= SceneObjectGroup.SLAM;
             }
             else
             {
@@ -564,8 +573,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
                          7); // Preserve folded permissions
-            }    
-            
+            }
+
+            //PermissionsUtil.LogPermissions(item.Name, "After AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);            
+
             return item;
         }
         
@@ -707,6 +718,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         InventoryFolderBase f = new InventoryFolderBase(so.FromFolderID, userID);
                         if (f != null)
                             folder = m_Scene.InventoryService.GetFolder(f);
+
+                        if(folder.Type == 14 || folder.Type == 16)
+                        {
+                            // folder.Type = 6;
+                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.Object);
+                        }
                     }
                 }
 
@@ -779,83 +796,29 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             SceneObjectGroup group = null;
 
-            string xmlData = Utils.BytesToString(rezAsset.Data);
-            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>();
-            List<Vector3> veclist = new List<Vector3>();
+            List<SceneObjectGroup> objlist;
+            List<Vector3> veclist;
+            Vector3 bbox;
+            float offsetHeight;
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 pos;
 
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xmlData);
-            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
-            Vector3 rez_pos;
-            if (e == null || attachment) // Single
+            bool single = m_Scene.GetObjectsToRez(rezAsset.Data, attachment, out objlist, out veclist, out bbox, out offsetHeight);
+
+            if (single)
             {
-                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-                if (!attachment)
-                {
-                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
-                    g.RootPart.AttachOffset = g.AbsolutePosition;
-                    g.RootPart.AttachRotation = g.GroupRotation;
-                    if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
-                        g.RootPart.Shape.PCode != (byte)PCode.Tree)
-                        g.RootPart.Shape.State = 0;
-                }
-
-                objlist.Add(g);
-                veclist.Add(new Vector3(0, 0, 0));
-
-                float offsetHeight = 0;
                 pos = m_Scene.GetNewRezLocation(
                     RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                    BypassRayCast, bRayEndIsIntersection, true, g.GetAxisAlignedBoundingBox(out offsetHeight), false);
+                    BypassRayCast, bRayEndIsIntersection, true, bbox, false);
                 pos.Z += offsetHeight;
-                rez_pos = pos;
             }
             else
             {
-                XmlElement coll = (XmlElement)e;
-                float bx = Convert.ToSingle(coll.GetAttribute("x"));
-                float by = Convert.ToSingle(coll.GetAttribute("y"));
-                float bz = Convert.ToSingle(coll.GetAttribute("z"));
-                Vector3 bbox = new Vector3(bx, by, bz);
-
                 pos = m_Scene.GetNewRezLocation(RayStart, RayEnd,
                         RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true,
                         bbox, false);
-
-                rez_pos = pos;
-
                 pos -= bbox / 2;
-
-                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
-                foreach (XmlNode n in groups)
-                {
-                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
-                    g.RootPart.AttachOffset = g.AbsolutePosition;
-                    g.RootPart.AttachRotation = g.GroupRotation;
-                    if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
-                        g.RootPart.Shape.PCode != (byte)PCode.Tree)
-                        g.RootPart.Shape.State = 0;
-
-                    objlist.Add(g);
-                    XmlElement el = (XmlElement)n;
-
-                    string rawX = el.GetAttribute("offsetx");
-                    string rawY = el.GetAttribute("offsety");
-                    string rawZ = el.GetAttribute("offsetz");
-//                        
-//                            m_log.DebugFormat(
-//                                "[INVENTORY ACCESS MODULE]: Converting coalesced object {0} offset <{1}, {2}, {3}>", 
-//                                g.Name, rawX, rawY, rawZ);
-
-                    float x = Convert.ToSingle(rawX);
-                    float y = Convert.ToSingle(rawY);
-                    float z = Convert.ToSingle(rawZ);
-                    veclist.Add(new Vector3(x, y, z));
-                }
             }
 
             int primcount = 0;
@@ -863,7 +826,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 primcount += g.PrimCount;
 
             if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, rez_pos)
+                primcount, remoteClient.AgentId, pos)
                 && !attachment)
             {
                 // The client operates in no fail mode. It will
@@ -880,7 +843,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, rez_pos, attachment))
+            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, veclist, attachment))
                 return null;
 
             for (int i = 0; i < objlist.Count; i++)
@@ -900,11 +863,23 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_log.Debug("[INVENTORY ACCESS MODULE]: Object has UUID.Zero! Position 3");
                 }
 
-                foreach (SceneObjectPart part in group.Parts)
+                // if this was previously an attachment and is now being rezzed,
+                // save the old attachment info.
+                if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
                 {
-                    // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = remoteClient.AgentId;
+                    group.RootPart.AttachedPos = group.AbsolutePosition;
+                    group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+                }
+
+                if (item == null)
+                {
+                    // Change ownership. Normally this is done in DoPreRezWhenFromItem(), but in this case we must do it here.
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = remoteClient.AgentId;
+                    }
                 }
 
                 if (!attachment)
@@ -979,10 +954,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="item"></param>
         /// <param name="objlist"></param>
         /// <param name="pos"></param>
+        /// <param name="veclist">
+        /// List of vector position adjustments for a coalesced objects.  For ordinary objects
+        /// this list will contain just Vector3.Zero.  The order of adjustments must match the order of objlist
+        /// </param>
         /// <param name="isAttachment"></param>
         /// <returns>true if we can processed with rezzing, false if we need to abort</returns>
         private bool DoPreRezWhenFromItem(
-            IClientAPI remoteClient, InventoryItemBase item, List<SceneObjectGroup> objlist, Vector3 pos, bool isAttachment)
+            IClientAPI remoteClient, InventoryItemBase item, List<SceneObjectGroup> objlist, 
+            Vector3 pos, List<Vector3> veclist, bool isAttachment)
         {
             UUID fromUserInventoryItemId = UUID.Zero;
 
@@ -1005,28 +985,29 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            int primcount = 0;
-            foreach (SceneObjectGroup g in objlist)
-                primcount += g.PrimCount;
-
-            if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, pos)
-                && !isAttachment)
+            for (int i = 0; i < objlist.Count; i++)
             {
-                // The client operates in no fail mode. It will
-                // have already removed the item from the folder
-                // if it's no copy.
-                // Put it back if it's not an attachment
-                //
-                if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
-                    remoteClient.SendBulkUpdateInventory(item);
+                SceneObjectGroup g = objlist[i];
 
-                ILandObject land = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
-                remoteClient.SendAlertMessage(string.Format(
-                    "Can't rez object '{0}' at <{1:F3}, {2:F3}, {3:F3}> on parcel '{4}' in region {5}.",
-                    item.Name, pos.X, pos.Y, pos.Z, land != null ? land.LandData.Name : "Unknown", m_Scene.RegionInfo.RegionName));
+                if (!m_Scene.Permissions.CanRezObject(
+                    g.PrimCount, remoteClient.AgentId, pos + veclist[i])
+                    && !isAttachment)
+                {
+                    // The client operates in no fail mode. It will
+                    // have already removed the item from the folder
+                    // if it's no copy.
+                    // Put it back if it's not an attachment
+                    //
+                    if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
+                        remoteClient.SendBulkUpdateInventory(item);
 
-                return false;
+                    ILandObject land = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                    remoteClient.SendAlertMessage(string.Format(
+                        "Can't rez object '{0}' at <{1:F3}, {2:F3}, {3:F3}> on parcel '{4}' in region {5}.",
+                        item.Name, pos.X, pos.Y, pos.Z, land != null ? land.LandData.Name : "Unknown", m_Scene.Name));
+
+                    return false;
+                }
             }
 
             for (int i = 0; i < objlist.Count; i++)
@@ -1107,7 +1088,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             part.GroupMask = item.GroupPermissions;
                     }
                 }
-    
+
                 rootPart.TrimPermissions();
 
                 if (isAttachment)

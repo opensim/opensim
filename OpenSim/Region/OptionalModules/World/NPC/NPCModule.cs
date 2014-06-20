@@ -116,7 +116,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     return false;
 
             // Delete existing npc attachments
-            scene.AttachmentsModule.DeleteAttachmentsFromScene(npc, false);
+            if(scene.AttachmentsModule != null)
+                scene.AttachmentsModule.DeleteAttachmentsFromScene(npc, false);
 
             // XXX: We can't just use IAvatarFactoryModule.SetAppearance() yet
             // since it doesn't transfer attachments
@@ -125,7 +126,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             npc.Appearance = npcAppearance;
 
             // Rez needed npc attachments
-            scene.AttachmentsModule.RezAttachments(npc);
+            if (scene.AttachmentsModule != null)
+                scene.AttachmentsModule.RezAttachments(npc);
 
             IAvatarFactoryModule module =
                     scene.RequestModuleInterface<IAvatarFactoryModule>();
@@ -174,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 lock (m_avatars)
                 {
                     scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
-                    scene.AddNewClient(npcAvatar, PresenceType.Npc);
+                    scene.AddNewAgent(npcAvatar, PresenceType.Npc);
 
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
@@ -205,8 +207,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     if (scene.TryGetScenePresence(agentID, out sp))
                     {
 //                        m_log.DebugFormat(
-//                            "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
-//                            sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
+//                                "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+//                                sp.Name, pos, scene.RegionInfo.RegionName,
+//                                noFly, landAtTarget);
 
                         sp.MoveToTarget(pos, noFly, landAtTarget);
                         sp.SetAlwaysRun = running;
@@ -283,9 +286,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(agentID, out sp))
                     {
-                        sp.HandleAgentRequestSit(m_avatars[agentID], agentID,
-                                partID, Vector3.Zero);
-                        //sp.HandleAgentSit(m_avatars[agentID], agentID);
+                        sp.HandleAgentRequestSit(m_avatars[agentID], agentID, partID, Vector3.Zero);
 
                         return true;
                     }
@@ -375,10 +376,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_log.DebugFormat("[NPC MODULE]: Found {0} {1} to remove",
                             agentID, av.Name);
                     */
-                    scene.RemoveClient(agentID, false);
+
+                    scene.CloseAgent(agentID, false);
+
                     m_avatars.Remove(agentID);
 
-//                    m_log.DebugFormat("[NPC MODULE]: Removed NPC {0} {1}", agentID, av.Name);
+                    /*
+                    m_log.DebugFormat("[NPC MODULE]: Removed NPC {0} {1}",
+                            agentID, av.Name);
+                    */
                     return true;
                 }
             }

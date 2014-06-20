@@ -1,8 +1,7 @@
-// Ami Bar
-// amibar@gmail.com
-
 using System;
+#if !(_WINDOWS_CE)
 using System.Runtime.Serialization;
+#endif
 
 namespace Amib.Threading
 {
@@ -11,22 +10,73 @@ namespace Amib.Threading
     /// <summary>
     /// Represents an exception in case IWorkItemResult.GetResult has been canceled
     /// </summary>
-    [Serializable]
-    public sealed class WorkItemCancelException : ApplicationException
+    public sealed partial class WorkItemCancelException : Exception
     {
-        public WorkItemCancelException() : base()
+        public WorkItemCancelException()
         {
         }
 
-        public WorkItemCancelException(string message) : base(message)
+        public WorkItemCancelException(string message)
+            : base(message)
         {
         }
 
-        public WorkItemCancelException(string message, Exception e) : base(message, e)
+        public WorkItemCancelException(string message, Exception e)
+            : base(message, e)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an exception in case IWorkItemResult.GetResult has been timed out
+    /// </summary>
+    public sealed partial class WorkItemTimeoutException : Exception
+    {
+        public WorkItemTimeoutException()
         {
         }
 
-        public WorkItemCancelException(SerializationInfo si, StreamingContext sc) : base(si, sc)
+        public WorkItemTimeoutException(string message)
+            : base(message)
+        {
+        }
+
+        public WorkItemTimeoutException(string message, Exception e)
+            : base(message, e)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an exception in case IWorkItemResult.GetResult has been timed out
+    /// </summary>
+    public sealed partial class WorkItemResultException : Exception
+    {
+        public WorkItemResultException()
+        {
+        }
+
+        public WorkItemResultException(string message)
+            : base(message)
+        {
+        }
+
+        public WorkItemResultException(string message, Exception e)
+            : base(message, e)
+        {
+        }
+    }
+
+
+#if !(_WINDOWS_CE) && !(_SILVERLIGHT) && !(WINDOWS_PHONE)
+    /// <summary>
+    /// Represents an exception in case IWorkItemResult.GetResult has been canceled
+    /// </summary>
+    [Serializable]
+    public sealed partial class WorkItemCancelException
+    {
+        public WorkItemCancelException(SerializationInfo si, StreamingContext sc)
+            : base(si, sc)
         {
         }
     }
@@ -35,21 +85,10 @@ namespace Amib.Threading
     /// Represents an exception in case IWorkItemResult.GetResult has been timed out
     /// </summary>
     [Serializable]
-    public sealed class WorkItemTimeoutException : ApplicationException
+    public sealed partial class WorkItemTimeoutException
     {
-        public WorkItemTimeoutException() : base()
-        {
-        }
-
-        public WorkItemTimeoutException(string message) : base(message)
-        {
-        }
-
-        public WorkItemTimeoutException(string message, Exception e) : base(message, e)
-        {
-        }
-
-        public WorkItemTimeoutException(SerializationInfo si, StreamingContext sc) : base(si, sc)
+        public WorkItemTimeoutException(SerializationInfo si, StreamingContext sc)
+            : base(si, sc)
         {
         }
     }
@@ -58,24 +97,15 @@ namespace Amib.Threading
     /// Represents an exception in case IWorkItemResult.GetResult has been timed out
     /// </summary>
     [Serializable]
-    public sealed class WorkItemResultException : ApplicationException
+    public sealed partial class WorkItemResultException
     {
-        public WorkItemResultException() : base()
-        {
-        }
-
-        public WorkItemResultException(string message) : base(message)
-        {
-        }
-
-        public WorkItemResultException(string message, Exception e) : base(message, e)
-        {
-        }
-
-        public WorkItemResultException(SerializationInfo si, StreamingContext sc) : base(si, sc)
+        public WorkItemResultException(SerializationInfo si, StreamingContext sc)
+            : base(si, sc)
         {
         }
     }
+
+#endif
 
     #endregion
 }

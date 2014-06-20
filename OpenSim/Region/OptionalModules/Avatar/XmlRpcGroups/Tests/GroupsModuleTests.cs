@@ -26,13 +26,23 @@
  */
 
 using System;
+using System.Collections;
+using System.Net;
 using System.Reflection;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
+using OpenMetaverse.Messages.Linden;
+using OpenMetaverse.Packets;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Region.ClientStack.Linden;
+using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
@@ -44,11 +54,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
     [TestFixture]
     public class GroupsModuleTests : OpenSimTestCase
     {
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+
+            uint port = 9999;
+            uint sslPort = 9998;
+
+            // This is an unfortunate bit of clean up we have to do because MainServer manages things through static
+            // variables and the VM is not restarted between tests.
+            MainServer.RemoveHttpServer(port);
+
+            BaseHttpServer server = new BaseHttpServer(port, false, sslPort, "");
+            MainServer.AddHttpServer(server);
+            MainServer.Instance = server;
+        }
+
         [Test]
-        public void TestBasic()
+        public void TestSendAgentGroupDataUpdate()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
             
             TestScene scene = new SceneHelpers().SetupScene();
             IConfigSource configSource = new IniConfigSource();
@@ -56,8 +83,40 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
             config.Set("Enabled", true);
             config.Set("Module", "GroupsModule");            
             config.Set("DebugEnabled", true);
+
+            GroupsModule gm = new GroupsModule();
+            EventQueueGetModule eqgm = new EventQueueGetModule();
+
+            // We need a capabilities module active so that adding the scene presence creates an event queue in the
+            // EventQueueGetModule
             SceneHelpers.SetupSceneModules(
-                scene, configSource, new object[] { new MockGroupsServicesConnector() });
+                scene, configSource, gm, new MockGroupsServicesConnector(), new CapabilitiesModule(), eqgm);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseStem("1"));
+
+            gm.SendAgentGroupDataUpdate(sp.ControllingClient);
+
+            Hashtable eventsResponse = eqgm.GetEvents(UUID.Zero, sp.UUID);
+
+            Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.OK));
+
+//            Console.WriteLine("Response [{0}]", (string)eventsResponse["str_response_string"]);
+
+            OSDMap rawOsd = (OSDMap)OSDParser.DeserializeLLSDXml((string)eventsResponse["str_response_string"]);
+            OSDArray eventsOsd = (OSDArray)rawOsd["events"];
+
+            bool foundUpdate = false;
+            foreach (OSD osd in eventsOsd)
+            {
+                OSDMap eventOsd = (OSDMap)osd;
+
+                if (eventOsd["message"] == "AgentGroupDataUpdate")
+                    foundUpdate = true;
+            }
+
+            Assert.That(foundUpdate, Is.True, "Did not find AgentGroupDataUpdate in response");
+
+            // TODO: More checking of more actual event data.           
         }
     }
 }

@@ -111,6 +111,9 @@ namespace OpenSim.Region.Framework.Scenes
             STATUS_ROTATE_Z = 0x008,
         }
 
+        // This flag has the same purpose as InventoryItemFlags.ObjectSlamPerm
+        public static readonly uint SLAM = 16;
+
         // private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
         /// <summary>
@@ -506,9 +509,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
         }
-
-
-
+        
         private struct avtocrossInfo
         {
             public ScenePresence av;
@@ -660,12 +661,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-/* don't see the need but worse don't see where is restored to false if things stay in
-                foreach (SceneObjectPart part in m_parts.GetArray())
-                {
-                    part.IgnoreUndoUpdate = true;
-                }
- */
                 if (RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
@@ -751,7 +746,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             agent.ParentUUID = UUID.Zero;
-
 //                agent.Reset();
 //            else // Not successful
 //                agent.RestoreInCurrentScene();
@@ -1667,7 +1661,8 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
             if (avatar == null)
                 return;
-
+            m_rootPart.Shape.LastAttachPoint = m_rootPart.Shape.State;
+            m_rootPart.AttachedPos = m_rootPart.OffsetPosition;
             avatar.RemoveAttachment(this);
 
             Vector3 detachedpos = new Vector3(127f,127f,127f);
@@ -1868,11 +1863,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Delete this group from its scene.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This only handles the in-world consequences of deletion (e.g. any avatars sitting on it are forcibly stood
         /// up and all avatars receive notification of its removal.  Removal of the scene object from database backup
         /// must be handled by the caller.
-        /// 
+        /// </remarks>
         /// <param name="silent">If true then deletion is not broadcast to clients</param>
         public void DeleteGroupFromScene(bool silent)
         {
@@ -1901,7 +1896,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (!IsAttachment
                                     || AttachedAvatar == avatar.ControllingClient.AgentId
                                     || !HasPrivateAttachmentPoint)
-                                    avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
+                                    avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
                             }
                         }
                     });
@@ -2109,6 +2104,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (RootPart.Shape.PCode == 9 && RootPart.Shape.State != 0)
                         {
+                            RootPart.Shape.LastAttachPoint = RootPart.Shape.State;
                             RootPart.Shape.State = 0;
                             ScheduleGroupForFullUpdate();
                         }
@@ -2210,7 +2206,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!userExposed)
                 dupe.IsAttachment = true;
 
-            dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
+            dupe.m_sittingAvatars = new List<UUID>();
 
             if (!userExposed)
             {
@@ -3813,20 +3809,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Update just the root prim position in a linkset
         /// </summary>
-        /// <param name="pos"></param>
-        public void UpdateRootPosition(Vector3 pos)
+        /// <param name="newPos"></param>
+        public void UpdateRootPosition(Vector3 newPos)
         {
             // needs to be called with phys building true
-            Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
-            Vector3 oldPos =
-                new Vector3(AbsolutePosition.X + m_rootPart.OffsetPosition.X,
-                              AbsolutePosition.Y + m_rootPart.OffsetPosition.Y,
-                              AbsolutePosition.Z + m_rootPart.OffsetPosition.Z);
+            Vector3 oldPos;
+
+            if (IsAttachment)
+                oldPos = m_rootPart.AttachedPos + m_rootPart.OffsetPosition;  // OffsetPosition should always be 0 in an attachments's root prim
+            else
+                oldPos = AbsolutePosition + m_rootPart.OffsetPosition;
+
             Vector3 diff = oldPos - newPos;
-            Vector3 axDiff = new Vector3(diff.X, diff.Y, diff.Z);
             Quaternion partRotation = m_rootPart.RotationOffset;
-            axDiff *= Quaternion.Inverse(partRotation);
-            diff = axDiff;
+            diff *= Quaternion.Inverse(partRotation);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
@@ -3837,6 +3833,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             AbsolutePosition = newPos;
+            
+            if (IsAttachment)
+                m_rootPart.AttachedPos = newPos;
 
             HasGroupChanged = true;
             if (m_rootPart.Undoing)

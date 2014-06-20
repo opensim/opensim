@@ -119,16 +119,14 @@ namespace OpenSim.Server.Handlers.Asset
 
             if (asset == null || asset.Data.Length == 0)
             {
-                MainConsole.Instance.Output("Asset not found");
+                MainConsole.Instance.OutputFormat("Could not find asset with ID {0}", args[2]);
                 return;
             }
 
-            m_AssetService.Delete(args[2]);
-
-            //MainConsole.Instance.Output("Asset deleted");
-            // TODO: Implement this
-
-            MainConsole.Instance.Output("Asset deletion not supported by database");
+            if (!m_AssetService.Delete(asset.ID))
+                MainConsole.Instance.OutputFormat("ERROR: Could not delete asset {0} {1}", asset.ID, asset.Name);
+            else
+                MainConsole.Instance.OutputFormat("Deleted asset {0} {1}", asset.ID, asset.Name);
         }
 
         void HandleDumpAsset(string module, string[] args)

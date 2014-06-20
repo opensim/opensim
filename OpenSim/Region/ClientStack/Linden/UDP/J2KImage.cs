@@ -424,12 +424,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // foreign user is visiting, we need to try again after the first fail to the local
                 // asset service.
                 string assetServerURL = string.Empty;
-                if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL))
+                if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL) && !string.IsNullOrEmpty(assetServerURL))
                 {
                     if (!assetServerURL.EndsWith("/") && !assetServerURL.EndsWith("="))
                         assetServerURL = assetServerURL + "/";
 
-                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", assetServerURL + id);
+//                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", assetServerURL + id);
                     AssetService.Get(assetServerURL + id, InventoryAccessModule, AssetReceived);
                     return;
                 }

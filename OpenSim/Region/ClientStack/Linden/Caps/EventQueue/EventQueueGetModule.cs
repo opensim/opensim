@@ -65,6 +65,13 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </value>
         public int DebugLevel { get; set; }
 
+        // Viewer post requests timeout in 60 secs
+        // https://bitbucket.org/lindenlab/viewer-release/src/421c20423df93d650cc305dc115922bb30040999/indra/llmessage/llhttpclient.cpp?at=default#cl-44
+        //
+        private const int VIEWER_TIMEOUT = 60 * 1000;
+        // Just to be safe, we work on a 10 sec shorter cycle
+        private const int SERVER_EQ_TIME_NO_EVENTS = VIEWER_TIMEOUT - (10 * 1000);
+
         protected Scene m_scene;
         
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
@@ -84,7 +91,6 @@ namespace OpenSim.Region.ClientStack.Linden
             scene.RegisterModuleInterface<IEventQueue>(this);
 
             scene.EventManager.OnClientClosed += ClientClosed;
-            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             scene.EventManager.OnRegisterCaps += OnRegisterCaps;
 
             MainConsole.Instance.Commands.AddCommand(
@@ -113,7 +119,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             scene.EventManager.OnClientClosed -= ClientClosed;
-            scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
             scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
 
             scene.UnregisterModuleInterface<IEventQueue>(this);
@@ -182,14 +187,12 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (!queues.ContainsKey(agentId))
                 {
-                    /*
                     m_log.DebugFormat(
                         "[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", 
                         agentId, m_scene.RegionInfo.RegionName);
-                    */
                     queues[agentId] = new Queue<OSD>();
                 }
-                
+
                 return queues[agentId];
             }
         }
@@ -221,8 +224,17 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Queue<OSD> queue = GetQueue(avatarID);
                 if (queue != null)
+                {
                     lock (queue)
                         queue.Enqueue(ev);
+                }
+                else
+                {
+                    OSDMap evMap = (OSDMap)ev;
+                    m_log.WarnFormat(
+                        "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} when placing message {1} in region {2}", 
+                        avatarID, evMap["message"], m_scene.Name);
+                }
             } 
             catch (NullReferenceException e)
             {
@@ -237,44 +249,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void ClientClosed(UUID agentID, Scene scene)
         {
-//            m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
-
-            int count = 0;
-            while (queues.ContainsKey(agentID) && queues[agentID].Count > 0 && count++ < 5)
-            {
-                Thread.Sleep(1000);
-            }
+            //m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
 
             lock (queues)
-            {
                 queues.Remove(agentID);
-            }
 
             List<UUID> removeitems = new List<UUID>();
             lock (m_AvatarQueueUUIDMapping)
-            {
-                foreach (UUID ky in m_AvatarQueueUUIDMapping.Keys)
-                {
-//                    m_log.DebugFormat("[EVENTQUEUE]: Found key {0} in m_AvatarQueueUUIDMapping while looking for {1}", ky, AgentID);
-                    if (ky == agentID)
-                    {
-                        removeitems.Add(ky);
-                    }
-                }
-
-                foreach (UUID ky in removeitems)
-                {
-                    UUID eventQueueGetUuid = m_AvatarQueueUUIDMapping[ky];
-                    m_AvatarQueueUUIDMapping.Remove(ky);
-
-                    string eqgPath = GenerateEqgCapPath(eventQueueGetUuid);
-                    MainServer.Instance.RemovePollServiceHTTPHandler("", eqgPath);
-
-//                    m_log.DebugFormat(
-//                        "[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1} in {2}",
-//                        eqgPath, agentID, m_scene.RegionInfo.RegionName);
-                }
-            }
+                m_AvatarQueueUUIDMapping.Remove(agentID);
 
             UUID searchval = UUID.Zero;
 
@@ -295,19 +277,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 foreach (UUID ky in removeitems)
                     m_QueueUUIDAvatarMapping.Remove(ky);
             }
-        }
 
-        private void MakeChildAgent(ScenePresence avatar)
-        {
-            //m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0} in region {1}.", avatar.UUID, m_scene.RegionInfo.RegionName);
-            //lock (m_ids)
-           // {
-                //if (m_ids.ContainsKey(avatar.UUID))
-                //{
-                    // close the event queue.
-                    //m_ids[avatar.UUID] = -1;
-                //}
-            //}
+            // m_log.DebugFormat("[EVENTQUEUE]: Deleted queues for {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
+
         }
 
         /// <summary>
@@ -323,9 +295,9 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             // Register an event queue for the client
 
-            //m_log.DebugFormat(
-            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
-            //    agentID, caps, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
+                agentID, caps, m_scene.RegionInfo.RegionName);
 
             // Let's instantiate a Queue for this agent right now
             TryGetQueue(agentID);
@@ -359,28 +331,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_AvatarQueueUUIDMapping.Add(agentID, eventQueueGetUUID);
             }
 
-            string eventQueueGetPath = GenerateEqgCapPath(eventQueueGetUUID);
-
-            // Register this as a caps handler
-            // FIXME: Confusingly, we need to register separate as a capability so that the client is told about
-            // EventQueueGet when it receive capability information, but then we replace the rest handler immediately
-            // afterwards with the poll service.  So for now, we'll pass a null instead to simplify code reading, but
-            // really it should be possible to directly register the poll handler as a capability.
-            caps.RegisterHandler("EventQueueGet", new RestHTTPHandler("POST", eventQueueGetPath, null));
-//                                                       delegate(Hashtable m_dhttpMethod)
-//                                                       {
-//                                                           return ProcessQueue(m_dhttpMethod, agentID, caps);
-//                                                       }));
-
-            // This will persist this beyond the expiry of the caps handlers
-            // TODO: Add EventQueueGet name/description for diagnostics
-            MainServer.Instance.AddPollServiceHTTPHandler(
-                eventQueueGetPath,
-                new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID, 40000));
-
-//            m_log.DebugFormat(
-//                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",
-//                eventQueueGetPath, agentID, m_scene.RegionInfo.RegionName);
+            caps.RegisterPollHandler(
+                "EventQueueGet",
+                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, SERVER_EQ_TIME_NO_EVENTS));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
@@ -398,7 +351,10 @@ namespace OpenSim.Region.ClientStack.Linden
             Queue<OSD> queue = GetQueue(agentID);
             if (queue != null)
                 lock (queue)
+                {
+                    //m_log.WarnFormat("POLLED FOR EVENTS BY {0} in {1} -- {2}", agentID, m_scene.RegionInfo.RegionName, queue.Count);
                     return queue.Count > 0;
+                }
 
             return false;
         }
@@ -414,16 +370,21 @@ namespace OpenSim.Region.ClientStack.Linden
                 OSDMap ev = (OSDMap)element;
                 m_log.DebugFormat(
                     "Eq OUT {0,-30} to {1,-20} {2,-20}",
-                    ev["message"], m_scene.GetScenePresence(agentId).Name, m_scene.RegionInfo.RegionName);
+                    ev["message"], m_scene.GetScenePresence(agentId).Name, m_scene.Name);
             }
         }
 
         public Hashtable GetEvents(UUID requestID, UUID pAgentId)
         {
             if (DebugLevel >= 2)
-                m_log.DebugFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.RegionInfo.RegionName);
+                m_log.WarnFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.Name);
 
-            Queue<OSD> queue = TryGetQueue(pAgentId);
+            Queue<OSD> queue = GetQueue(pAgentId);
+            if (queue == null)
+            {
+                return NoEvents(requestID, pAgentId);
+            }
+
             OSD element;
             lock (queue)
             {
@@ -750,34 +711,46 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(item, avatarID);
         }
 
-        public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID)
+        public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
-            OSD item = EventQueueHelper.EnableSimulator(handle, endPoint);
+            m_log.DebugFormat("{0} EnableSimulator. handle={1}, avatarID={2}, regionSize={3},{4}>",
+                "[EVENT QUEUE GET MODULE]", handle, avatarID, regionSizeX, regionSizeY);
+
+            OSD item = EventQueueHelper.EnableSimulator(handle, endPoint, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
 
-        public virtual void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath) 
+        public virtual void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath,
+                                ulong regionHandle, int regionSizeX, int regionSizeY) 
         {
-            OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath);
+            m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, avatarID={2}, regionSize={3},{4}>",
+                "[EVENT QUEUE GET MODULE]", regionHandle, avatarID, regionSizeX, regionSizeY);
+            OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath, regionHandle, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
 
         public virtual void TeleportFinishEvent(ulong regionHandle, byte simAccess, 
                                         IPEndPoint regionExternalEndPoint,
                                         uint locationID, uint flags, string capsURL, 
-                                        UUID avatarID)
+                                        UUID avatarID, int regionSizeX, int regionSizeY)
         {
+            m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, avatarID={2}, regionSize={3},{4}>",
+                "[EVENT QUEUE GET MODULE]", regionHandle, avatarID, regionSizeX, regionSizeY);
+
             OSD item = EventQueueHelper.TeleportFinishEvent(regionHandle, simAccess, regionExternalEndPoint,
-                                                            locationID, flags, capsURL, avatarID);
+                                                            locationID, flags, capsURL, avatarID, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
 
         public virtual void CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
                                 IPEndPoint newRegionExternalEndPoint,
-                                string capsURL, UUID avatarID, UUID sessionID)
+                                string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
+            m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
+                "[EVENT QUEUE GET MODULE]", handle, avatarID, regionSizeX, regionSizeY);
+
             OSD item = EventQueueHelper.CrossRegion(handle, pos, lookAt, newRegionExternalEndPoint,
-                                                    capsURL, avatarID, sessionID);
+                                                    capsURL, avatarID, sessionID, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
 
@@ -794,12 +767,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         }
 
-        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID toAgent, bool canVoiceChat, 
+        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
                                                       bool isModerator, bool textMute)
         {
             OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
                                                                           isModerator, textMute);
-            Enqueue(item, toAgent);
+            Enqueue(item, fromAgent);
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 

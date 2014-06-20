@@ -196,6 +196,7 @@ namespace OpenSim.Services.LLLoginService
         private BuddyList m_buddyList = null;
 
         private string currency;
+        private string classifiedFee;
 
         static LLLoginResponse()
         {
@@ -233,7 +234,7 @@ namespace OpenSim.Services.LLLoginService
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
             GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
-            string DSTZone, UUID realID)
+            string DSTZone, string destinationsURL, string avatarsURL, UUID realID, string classifiedFee)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -253,14 +254,18 @@ namespace OpenSim.Services.LLLoginService
             MapTileURL = mapTileURL;
             ProfileURL = profileURL;
             OpenIDURL = openIDURL;
+            DestinationsURL = destinationsURL;
+            AvatarsURL = avatarsURL;
 
             SearchURL = searchURL;
             Currency = currency;
+            ClassifiedFee = classifiedFee;
 
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
 
             FillOutRegionData(destination);
+            // m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX=<{0},{1}>", RegionSizeX, RegionSizeY);
 
             FillOutSeedCap(aCircuit, destination, clientIP);
 
@@ -387,6 +392,8 @@ namespace OpenSim.Services.LLLoginService
             SimPort = (uint)endPoint.Port;
             RegionX = (uint)destination.RegionLocX;
             RegionY = (uint)destination.RegionLocY;
+            RegionSizeX = destination.RegionSizeX;
+            RegionSizeY = destination.RegionSizeY;
         }
 
         private void FillOutSeedCap(AgentCircuitData aCircuit, GridRegion destination, IPEndPoint ipepClient)
@@ -470,6 +477,7 @@ namespace OpenSim.Services.LLLoginService
             searchURL = String.Empty;
 
             currency = String.Empty;
+            ClassifiedFee = "0";
         }
 
 
@@ -533,6 +541,9 @@ namespace OpenSim.Services.LLLoginService
                 responseData["message"] = welcomeMessage;
                 responseData["region_x"] = (Int32)(RegionX);
                 responseData["region_y"] = (Int32)(RegionY);
+                responseData["region_size_x"] = (Int32)RegionSizeX;
+                responseData["region_size_y"] = (Int32)RegionSizeY;
+                // m_log.DebugFormat("[LOGIN RESPONSE] returning sizeX=<{0},{1}>", RegionSizeX, RegionSizeY);
 
                 if (searchURL != String.Empty)
                     responseData["search"] = searchURL;
@@ -542,6 +553,12 @@ namespace OpenSim.Services.LLLoginService
 
                 if (profileURL != String.Empty)
                     responseData["profile-server-url"] = profileURL;
+
+                if (DestinationsURL != String.Empty)
+                    responseData["destination_guide_url"] = DestinationsURL;
+
+                if (AvatarsURL != String.Empty)
+                    responseData["avatar_picker_url"] = AvatarsURL;
 
                 // We need to send an openid_token back in the response too
                 if (openIDURL != String.Empty)
@@ -557,6 +574,9 @@ namespace OpenSim.Services.LLLoginService
                     // responseData["real_currency"] = currency;
                     responseData["currency"] = currency;
                 }
+                
+                if (ClassifiedFee != String.Empty)
+                    responseData["classified_fee"] = ClassifiedFee;
 
                 responseData["login"] = "true";
 
@@ -661,6 +681,9 @@ namespace OpenSim.Services.LLLoginService
 
                 if (searchURL != String.Empty)
                     map["search"] = OSD.FromString(searchURL);
+
+                if (ClassifiedFee != String.Empty)
+                    map["classified_fee"] = OSD.FromString(ClassifiedFee);
 
                 if (m_buddyList != null)
                 {
@@ -917,6 +940,9 @@ namespace OpenSim.Services.LLLoginService
             set { regionY = value; }
         }
 
+        public int RegionSizeX { get; private set; }
+        public int RegionSizeY { get; private set; }
+
         public string SunTexture
         {
             get { return sunTexture; }
@@ -1071,6 +1097,22 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return currency; }
             set { currency = value; }
+        }
+
+        public string ClassifiedFee
+        {
+            get { return classifiedFee; }
+            set { classifiedFee = value; }
+        }
+
+        public string DestinationsURL
+        {
+            get; set;
+        }
+
+        public string AvatarsURL
+        {
+            get; set;
         }
 
         #endregion

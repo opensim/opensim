@@ -315,6 +315,11 @@ namespace OpenSim.Data.MSSQL
             return Get((int)RegionFlags.DefaultRegion, scopeID);
         }
 
+        public List<RegionData> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.DefaultHGRegion, scopeID);
+        }
+
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             List<RegionData> regions = Get((int)RegionFlags.FallbackRegion, scopeID);

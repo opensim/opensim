@@ -85,7 +85,7 @@ namespace OpenSim.Capabilities.Handlers
 //                m_log.DebugFormat("[GETTEXTURE]: Received request for texture id {0}", textureID);
                 
                 string[] formats;
-                if (format != null && format != string.Empty)
+                if (!string.IsNullOrEmpty(format))
                 {
                     formats = new string[1] { format.ToLower() };
                 }
@@ -174,6 +174,7 @@ namespace OpenSim.Capabilities.Handlers
 
                         newTexture.Flags = AssetFlags.Collectable;
                         newTexture.Temporary = true;
+                        newTexture.Local = true;
                         m_assetService.Store(newTexture);
                         WriteTextureData(request, response, newTexture, format);
                         return true;

@@ -115,6 +115,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 Environment.Exit(1);
             }
 
+            List<IScene> createdScenes = new List<IScene>();
+
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
                 IScene scene;
@@ -123,17 +125,22 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                             ")");
                 
                 bool changed = m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
+
                 m_openSim.CreateRegion(regionsToLoad[i], true, out scene);
+                createdScenes.Add(scene);
+
                 if (changed)
-		  regionsToLoad[i].EstateSettings.Save();
-                
-                if (scene != null)
+                    regionsToLoad[i].EstateSettings.Save();
+            }
+
+            foreach (IScene scene in createdScenes)
+            {
+                scene.Start();
+
+                m_newRegionCreatedHandler = OnNewRegionCreated;
+                if (m_newRegionCreatedHandler != null)
                 {
-                    m_newRegionCreatedHandler = OnNewRegionCreated;
-                    if (m_newRegionCreatedHandler != null)
-                    {
-                        m_newRegionCreatedHandler(scene);
-                    }
+                    m_newRegionCreatedHandler(scene);
                 }
             }
         }

@@ -124,7 +124,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                if (_creatorData != null && _creatorData != string.Empty)
+                if (!string.IsNullOrEmpty(_creatorData))
                     return _creatorID.ToString() + ';' + _creatorData;
                 else
                     return _creatorID.ToString();

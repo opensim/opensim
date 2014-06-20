@@ -326,15 +326,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     "ParcelVoiceInfoRequest",
                     agentID.ToString()));
 
-            caps.RegisterHandler(
-                "ChatSessionRequest",
-                new RestStreamHandler(
-                    "POST",
-                    capsBase + m_chatSessionRequestPath,
-                            (request, path, param, httpRequest, httpResponse)
-                                => ChatSessionRequest(scene, request, path, param, agentID, caps),
-                    "ChatSessionRequest",
-                    agentID.ToString()));
+            //caps.RegisterHandler(
+            //    "ChatSessionRequest",
+            //    new RestStreamHandler(
+            //        "POST",
+            //        capsBase + m_chatSessionRequestPath,
+            //                (request, path, param, httpRequest, httpResponse)
+            //                    => ChatSessionRequest(scene, request, path, param, agentID, caps),
+            //        "ChatSessionRequest",
+            //        agentID.ToString()));
         }
 
         /// <summary>

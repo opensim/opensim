@@ -64,8 +64,8 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
 
         private Scene m_scene;
         private IDialogModule m_dialogMod;
-        
-        public string Name { get { return "DOExample Module"; } }        
+
+        public string Name { get { return "DO"; } }        
         public Type ReplaceableInterface { get { return null; } }        
 
         public void Initialise(IConfigSource source) {}
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
 
 //            Console.WriteLine("Here for {0}", so.Name);
 
-            if (rootPart.DynAttrs.TryGetValue(DAExampleModule.DANamespace, out attrs))
+            if (rootPart.DynAttrs.TryGetStore(DAExampleModule.Namespace, DAExampleModule.StoreName, out attrs))
             {
                 movesSoFar = attrs["moves"].AsInteger();
 
@@ -114,7 +114,7 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
                     "[DO EXAMPLE MODULE]: Found saved moves {0} for {1} in {2}", movesSoFar, so.Name, m_scene.Name);
             }
 
-            rootPart.DynObjs.Add(Name, new MyObject(movesSoFar));
+            rootPart.DynObjs.Add(DAExampleModule.Namespace, Name, new MyObject(movesSoFar));
         }
         
         private bool OnSceneGroupMove(UUID groupId, Vector3 delta)

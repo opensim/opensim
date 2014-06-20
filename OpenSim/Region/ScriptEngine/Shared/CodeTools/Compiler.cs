@@ -610,6 +610,7 @@ namespace SecondLife
                             results = CScodeProvider.CompileAssemblyFromSource(
                                 parameters, Script);
                         }
+
                         // Deal with an occasional segv in the compiler.
                         // Rarely, if ever, occurs twice in succession.
                         // Line # == 0 and no file name are indications that
@@ -617,7 +618,7 @@ namespace SecondLife
                         // error log.
                         if (results.Errors.Count > 0)
                         {
-                            if (!retried && (results.Errors[0].FileName == null || results.Errors[0].FileName == String.Empty) &&
+                            if (!retried && string.IsNullOrEmpty(results.Errors[0].FileName) &&
                                 results.Errors[0].Line == 0)
                             {
                                 // System.Console.WriteLine("retrying failed compilation");
@@ -647,15 +648,19 @@ namespace SecondLife
                                         "language type \"" + lang.ToString() + "\"");
             }
 
-            // Check result
-            // Go through errors
+//            foreach (Type type in results.CompiledAssembly.GetTypes())
+//            {
+//                foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+//                {
+//                    m_log.DebugFormat("[COMPILER]: {0}.{1}", type.FullName, method.Name);
+//                }
+//            }
 
             //
             // WARNINGS AND ERRORS
             //
             bool hadErrors = false;
             string errtext = String.Empty;
-
             if (results.Errors.Count > 0)
             {
                 foreach (CompilerError CompErr in results.Errors)

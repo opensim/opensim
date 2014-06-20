@@ -145,39 +145,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return packet;
         }
 
-        // private byte[] decoded_header = new byte[10];
         private static PacketType GetType(byte[] bytes)
         {
-            byte[] decoded_header = new byte[10 + 8];
             ushort id;
             PacketFrequency freq;
+            bool isZeroCoded = (bytes[0] & Helpers.MSG_ZEROCODED) != 0;
 
-            if ((bytes[0] & Helpers.MSG_ZEROCODED) != 0)
+            if (bytes[6] == 0xFF)
             {
-                Helpers.ZeroDecode(bytes, 16, decoded_header);
-            }
-            else
-            {
-                Buffer.BlockCopy(bytes, 0, decoded_header, 0, 10);
-            }
-
-            if (decoded_header[6] == 0xFF)
-            {
-                if (decoded_header[7] == 0xFF)
+                if (bytes[7] == 0xFF)
                 {
-                    id = (ushort) ((decoded_header[8] << 8) + decoded_header[9]);
                     freq = PacketFrequency.Low;
+                    if (isZeroCoded && bytes[8] == 0)
+                        id = bytes[10];
+                    else
+                        id = (ushort)((bytes[8] << 8) + bytes[9]);
                 }
                 else
                 {
-                    id = decoded_header[7];
                     freq = PacketFrequency.Medium;
+                    id = bytes[7];
                 }
             }
             else
             {
-                id = decoded_header[6];
                 freq = PacketFrequency.High;
+                id = bytes[6];
             }
 
             return Packet.GetType(id, freq);

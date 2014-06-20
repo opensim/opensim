@@ -47,13 +47,33 @@ namespace OpenSim.Region.Framework.Interfaces
         /// The handle of the destination region.  If it's the same as the region currently
         /// occupied by the agent then the teleport will be within that region.
         /// </param>
+        /// <param name='agent'></param>
+        /// <param name='regionHandle'></param>
         /// <param name='position'></param>
         /// <param name='lookAt'></param>
         /// <param name='teleportFlags'></param>
         void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags);
 
+        /// <summary>
+        /// Teleports the agent for the given client to their home destination.
+        /// </summary>
+        /// <param name='id'></param>
+        /// <param name='client'></param>
         bool TeleportHome(UUID id, IClientAPI client);
 
+        /// <summary>
+        /// Teleport an agent directly to a given region without checking whether the region should be substituted.
+        /// </summary>
+        /// <remarks>
+        /// Please use Teleport() instead unless you know exactly what you're doing.
+        /// Do not use for same region teleports.
+        /// </remarks>
+        /// <param name='sp'></param>
+        /// <param name='reg'></param>
+        /// <param name='finalDestination'>/param>
+        /// <param name='position'></param>
+        /// <param name='lookAt'></param>
+        /// <param name='teleportFlags'></param>
         void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination,
             Vector3 position, Vector3 lookAt, uint teleportFlags);
 

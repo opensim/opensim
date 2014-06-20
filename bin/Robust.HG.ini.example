@@ -21,18 +21,21 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
+  ; Place to create a PID file
+  ; If no path if specified then a PID file is not created.
+  ; PIDFile = "/tmp/Robust.exe.pid"
 
-	; Plugin Registry Location
-	; Set path to directory for plugin registry. Information
-	; about the registered repositories and installed plugins
-	; will be stored here
-	; The Robust.exe process must have R/W access to the location 
-	RegistryLocation = "."
+  ; Plugin Registry Location
+  ; Set path to directory for plugin registry. Information
+  ; about the registered repositories and installed plugins
+  ; will be stored here
+  ; The Robust.exe process must have R/W access to the location 
+  RegistryLocation = "."
 
-	; Modular configurations
-	; Set path to directory for modular ini files...
-	; The Robust.exe process must have R/W access to the location 
-	ConfigDirectory = "/home/opensim/etc/Configs"
+  ; Modular configurations
+  ; Set path to directory for modular ini files...
+  ; The Robust.exe process must have R/W access to the location 
+  ConfigDirectory = "."
 
 [ServiceList]
 
@@ -68,9 +71,11 @@ HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.d
 HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 ;; Uncomment this if you want Groups V2, HG to work
 ; HGGroupsServiceConnector = "8002/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
-
 ;; Additions for other add-on modules. For example:
 ;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
+
+;; Uncomment for UserProfiles see [UserProfilesService] to configure...
+; UserProfilesServiceConnector = "8002/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -121,6 +126,15 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	; GatekeeperURI = "http://127.0.0.1:8002"
 
 [DatabaseService]
+    ; PGSQL
+    ; Uncomment these lines if you want to use PGSQL storage
+    ; Change the connection string to your db details
+    ;StorageProvider = "OpenSim.Data.PGSQL.dll"
+    ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
+
+    ; MySQL
+    ; Uncomment these lines if you want to use MySQL storage
+    ; Change the connection string to your db details
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
 
@@ -146,7 +160,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-	HypergridLinker = true
+
+    HypergridLinker = true
 
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
@@ -163,16 +178,31 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
-    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
-    ;; For example: 
+    ;; where <flags> can be DefaultRegion, DefaultHGRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut, Reservation, NoMove, Authenticate
+    ;;  
+    ;; DefaultRegion    If a local login cannot be placed in the required region (e.g. home region does not exist, avatar is not allowed entry, etc.)
+    ;;                  then this region becomes the destination.  Only the first online default region will be used.  If no DefaultHGRegion
+    ;;                  is specified then this will also be used as the region for hypergrid connections that require it (commonly because they have not specified
+    ;;                  an explicit region.
+    ;;  
+    ;; DefaultHGRegion  If an avatar connecting via the hypergrid does not specify a region, then they are placed here.  Only the first online
+    ;;                  region will be used.
+    ;;  
+    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the 
+    ;;                  order specified.  This only applies to local logins at this time, not Hypergrid connections.
+    ;;  
+    ;; NoDirectLogin    A hypergrid user cannot directly connect to this region.  This does not apply to local logins.
+    ;;  
+    ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
+    ;;
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
 
-	;; Allow Hyperlinks to be created at the console
+    ;; Allow Hyperlinks to be created at the console
     HypergridLinker = true
 
-	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-	; GatekeeperURI = "http://127.0.0.1:8002"
+    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+    ; GatekeeperURI = "http://127.0.0.1:8002"
 
 
 ; * This is the configuration for the freeswitch server in grid mode
@@ -306,6 +336,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
+    ;; Set minimum fee to publish classified
+    ; ClassifiedFee = 0
+
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
 
@@ -321,6 +354,12 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;
     ; For V2/V3 webapp authentication SSO
     ; OpenIDServerURL = "http://127.0.0.1/openid/openidserver/"
+
+    ; For V3 destination guide
+    ; DestinationGuide = "http://127.0.0.1/guide"
+
+    ; For V3 avatar picker (( work in progress ))
+    ; AvatarPicker = "http://127.0.0.1/avatars"
 
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
@@ -586,4 +625,12 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	;; Can overwrite the default in [Hypergrid], but probably shouldn't
 	; HomeURI = "http://127.0.0.1:8002"
 
+[UserProfilesService]
+    LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
+    Enabled = false
+    ;; Configure this for separate profiles database
+    ;; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
+    ;; Realm = UserProfiles
+    UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 

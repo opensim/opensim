@@ -369,6 +369,15 @@ namespace OpenSim.Region.CoreModules.World.Sound
             });
         }
 
+        public void SetSoundQueueing(UUID objectID, bool shouldQueue)
+        {
+            SceneObjectPart part;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+                return;
+
+            part.SoundQueueing = shouldQueue;
+        }
+
         #endregion
     }
 }

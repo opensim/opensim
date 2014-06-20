@@ -183,6 +183,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                                 if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last, out tmp))
                                 {
                                     IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                                    m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
                                     uMan.AddUser(id, url + ";" + first + " " + last);
                                 }
                             }
@@ -251,7 +252,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
-//            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
+            //m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
 
             // First, let's divide the friends on a per-domain basis
             Dictionary<string, List<FriendInfo>> friendsPerDomain = new Dictionary<string, List<FriendInfo>>();
@@ -293,7 +294,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)
         {
-            first = "Unknown"; last = "User";
+            first = "Unknown"; last = "UserHGGAI";
             if (base.GetAgentInfo(scopeID, fid, out agentID, out first, out last))
                 return true;
 
@@ -349,7 +350,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public override FriendInfo[] GetFriendsFromService(IClientAPI client)
         {
-//            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
+            //            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
             Boolean agentIsLocal = true;
             if (UserManagementModule != null)
                 agentIsLocal = UserManagementModule.IsLocalGridUser(client.AgentId);
@@ -362,13 +363,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
             if (agentClientCircuit != null)
             {
-                //[XXX] string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
-
+                // Note that this is calling a different interface than base; this one calls with a string param!
                 finfos = FriendsService.GetFriends(client.AgentId.ToString());
                 m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, client.AgentId.ToString());
             }
 
-//            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetFriendsFromService for {0}", client.Name);
+            //            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetFriendsFromService for {0}", client.Name);
 
             return finfos;
         }

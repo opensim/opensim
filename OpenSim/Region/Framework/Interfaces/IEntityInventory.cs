@@ -236,15 +236,17 @@ namespace OpenSim.Region.Framework.Interfaces
         List<TaskInventoryItem> GetInventoryItems(InventoryType type);
 
         /// <summary>
-        /// Get the scene object referenced by an inventory item.
+        /// Get the scene object(s) referenced by an inventory item.
         /// </summary>
         /// 
         /// This is returned in a 'rez ready' state.  That is, name, description, permissions and other details have
         /// been adjusted to reflect the part and item from which it originates.
         /// 
-        /// <param name="item"></param>
-        /// <returns>The scene object.  Null if the scene object asset couldn't be found</returns>
-        SceneObjectGroup GetRezReadySceneObject(TaskInventoryItem item);
+        /// <param name="item">Inventory item</param>
+        /// <param name="objlist">The scene objects</param>
+        /// <param name="veclist">Relative offsets for each object</param>
+        /// <returns>true = success, false = the scene object asset couldn't be found</returns>
+        bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist);
 
         /// <summary>
         /// Update an existing inventory item.

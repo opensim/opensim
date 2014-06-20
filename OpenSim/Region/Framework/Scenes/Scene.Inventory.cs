@@ -31,6 +31,7 @@ using System.Collections;
 using System.Reflection;
 using System.Text;
 using System.Timers;
+using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
@@ -139,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     userlevel = 1;
                 }
-                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, item.AssetID, item.Name, userlevel);
+                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
 
                 return true;
             }
@@ -178,7 +179,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     userlevel = 1;
                 }
-                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, item.AssetID, item.Name, userlevel);
+                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
 
                 if (originalFolder != UUID.Zero)
                 {
@@ -411,19 +412,21 @@ namespace OpenSim.Region.Framework.Scenes
 //                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
 //                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
 
+                bool sendUpdate = false;
+
                 if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
                 {
                     // Create a set of base permissions that will not include export if the user
                     // is not allowed to change the export flag.
                     bool denyExportChange = false;
 
-                    m_log.InfoFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
+//                    m_log.DebugFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
 
                     // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
                     if ((item.BasePermissions & (uint)(PermissionMask.All | PermissionMask.Export)) != (uint)(PermissionMask.All | PermissionMask.Export) || (item.CurrentPermissions & (uint)PermissionMask.Export) == 0 || item.CreatorIdAsUuid != item.Owner)
                         denyExportChange = true;
 
-                    m_log.InfoFormat("[XXX]: Deny Export Update {0}", denyExportChange);
+//                    m_log.DebugFormat("[XXX]: Deny Export Update {0}", denyExportChange);
 
                     // If it is already set, force it set and also force full perm
                     // else prevent setting it. It can and should never be set unless
@@ -447,7 +450,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // If the new state is exportable, force full perm
                         if ((itemUpd.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
                         {
-                            m_log.InfoFormat("[XXX]: Force full perm");
+//                            m_log.DebugFormat("[XXX]: Force full perm");
                             itemUpd.NextPermissions = (uint)(PermissionMask.All);
                         }
                     }
@@ -484,8 +487,13 @@ namespace OpenSim.Region.Framework.Scenes
                     item.SalePrice = itemUpd.SalePrice;
                     item.SaleType = itemUpd.SaleType;
 
+                    if (item.InvType == (int)InventoryType.Wearable && (item.Flags & 0xf) == 0 && (itemUpd.Flags & 0xf) != 0)
+                    {
+                        item.Flags = (uint)(item.Flags & 0xfffffff0) | (itemUpd.Flags & 0xf);
+                        sendUpdate = true;
+                    }
+
                     InventoryService.UpdateItem(item);
-                    remoteClient.SendBulkUpdateInventory(item);
                 }
 
                 if (UUID.Zero != transactionID)
@@ -494,6 +502,17 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         AgentTransactionsModule.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
                     }
+                }
+                else
+                {
+                    // This MAY be problematic, if it is, another solution
+                    // needs to be found. If inventory item flags are updated
+                    // the viewer's notion of the item needs to be refreshed.
+                    //
+                    // In other situations we cannot send out a bulk update here, since this will cause editing of clothing to start 
+                    // failing frequently.  Possibly this is a race with a separate transaction that uploads the asset.
+                    if (sendUpdate)
+                        remoteClient.SendBulkUpdateInventory(item);
                 }
             }
             else
@@ -547,6 +566,9 @@ namespace OpenSim.Region.Framework.Scenes
             UUID recipient, UUID senderId, UUID itemId, UUID recipientFolderId)
         {
             //Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
+
+            if (!Permissions.CanTransferUserInventory(itemId, senderId, recipient))
+                return null;
 
             InventoryItemBase item = new InventoryItemBase(itemId, senderId);
             item = InventoryService.GetItem(item);
@@ -642,17 +664,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // a mask
                 if (item.InvType == (int)InventoryType.Object)
                 {
-                    // Create a safe mask for the current perms
-                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
-                    foldedPerms |= permsMask;
-
                     bool isRootMod = (item.CurrentPermissions &
                                       (uint)PermissionMask.Modify) != 0 ?
                                       true : false;
 
                     // Mask the owner perms to the folded perms
-                    ownerPerms &= foldedPerms;
-                    basePerms &= foldedPerms;
+                    PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref ownerPerms);
+                    PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref basePerms);
 
                     // If the root was mod, let the mask reflect that
                     // We also need to adjust the base here, because
@@ -1213,9 +1231,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                {
+                    uint perms = taskItem.CurrentPermissions;
+                    PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms);
+                    agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
+                    agentItem.CurrentPermissions = agentItem.BasePermissions;
+                }
                 else
+                {
                     agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
+                }
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.NextPermissions = taskItem.NextPermissions;
@@ -2124,7 +2149,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // If we don't have permission, stop right here
                     if (!permissionToTakeCopy)
+                    {
+                        remoteClient.SendAlertMessage("You don't have permission to take the object");
                         return;
+                    }
 
                     permissionToTake = true;
                     // Don't delete
@@ -2277,6 +2305,85 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Returns the list of Scene Objects in an asset.
+        /// </summary>
+        /// <remarks>
+        /// Returns one object if the asset is a regular object, and multiple objects for a coalesced object.
+        /// </remarks>
+        /// <param name="assetData">Asset data</param>
+        /// <param name="attachment">Whether the item is an attachment</param>
+        /// <param name="objlist">The objects included in the asset</param>
+        /// <param name="veclist">Relative positions of the objects</param>
+        /// <param name="bbox">Bounding box of all the objects</param>
+        /// <param name="offsetHeight">Offset in the Z axis from the centre of the bounding box
+        /// to the centre of the root prim (relevant only when returning a single object)</param>
+        /// <returns>true = returning a single object; false = multiple objects</returns>
+        public bool GetObjectsToRez(byte[] assetData, bool attachment, out List<SceneObjectGroup> objlist, out List<Vector3> veclist,
+            out Vector3 bbox, out float offsetHeight)
+        {
+            objlist = new List<SceneObjectGroup>();
+            veclist = new List<Vector3>();
+
+            XmlDocument doc = new XmlDocument();
+            string xmlData = Utils.BytesToString(assetData);
+            doc.LoadXml(xmlData);
+            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+
+            if (e == null || attachment) // Single
+            {
+                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+
+                g.RootPart.AttachPoint = g.RootPart.Shape.State;
+                g.RootPart.AttachOffset = g.AbsolutePosition;
+                g.RootPart.AttachRotation = g.GroupRotation;
+                if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
+                    g.RootPart.Shape.PCode != (byte)PCode.Tree)
+                g.RootPart.Shape.State = 0;
+
+                objlist.Add(g);
+                veclist.Add(new Vector3(0, 0, 0));
+                bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
+                return true;
+            }
+            else
+            {
+                XmlElement coll = (XmlElement)e;
+                float bx = Convert.ToSingle(coll.GetAttribute("x"));
+                float by = Convert.ToSingle(coll.GetAttribute("y"));
+                float bz = Convert.ToSingle(coll.GetAttribute("z"));
+                bbox = new Vector3(bx, by, bz);
+                offsetHeight = 0;
+
+                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                foreach (XmlNode n in groups)
+                {
+                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+
+                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
+                    g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.AttachRotation = g.GroupRotation;
+                    if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
+                        g.RootPart.Shape.PCode != (byte)PCode.Tree)
+                    g.RootPart.Shape.State = 0;
+
+                    objlist.Add(g);
+
+                    XmlElement el = (XmlElement)n;
+                    string rawX = el.GetAttribute("offsetx");
+                    string rawY = el.GetAttribute("offsety");
+                    string rawZ = el.GetAttribute("offsetz");
+
+                    float x = Convert.ToSingle(rawX);
+                    float y = Convert.ToSingle(rawY);
+                    float z = Convert.ToSingle(rawZ);
+                    veclist.Add(new Vector3(x, y, z));
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Event Handler Rez an object into a scene
         /// Calls the non-void event handler
         /// </summary>
@@ -2351,19 +2458,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// will be used if it exists.</param>
         /// <param name="vel">The velocity of the rezzed object.</param>
         /// <param name="param"></param>
-        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful</returns>
-        public virtual SceneObjectGroup RezObject(
+        /// <returns>The SceneObjectGroup(s) rezzed, or null if rez was unsuccessful</returns>
+        public virtual List<SceneObjectGroup> RezObject(
             SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param)
         {
             if (null == item)
                 return null;
+
+            List<SceneObjectGroup> objlist;
+            List<Vector3> veclist;
             
-            SceneObjectGroup group = sourcePart.Inventory.GetRezReadySceneObject(item);
-            
-            if (null == group)
+            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist);
+            if (!success)
                 return null;
-            
-            if (!Permissions.CanRezObject(group.PrimCount, item.OwnerID, pos))
+
+            int totalPrims = 0;
+            foreach (SceneObjectGroup group in objlist)
+                totalPrims += group.PrimCount;
+
+            if (!Permissions.CanRezObject(totalPrims, item.OwnerID, pos))
                 return null;
 
             if (!Permissions.BypassPermissions())
@@ -2372,16 +2485,28 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
 
-            group.FromPartID = sourcePart.UUID;
-            AddNewSceneObject(group, true, pos, rot, vel);
-            
-            // We can only call this after adding the scene object, since the scene object references the scene
-            // to find out if scripts should be activated at all.
-            group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
-            
-            group.ScheduleGroupForFullUpdate();
-        
-            return group;
+            for (int i = 0; i < objlist.Count; i++)
+            {
+                SceneObjectGroup group = objlist[i];
+                Vector3 curpos = pos + veclist[i];
+
+                if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
+                {
+                    group.RootPart.AttachedPos = group.AbsolutePosition;
+                    group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
+                }
+
+                group.FromPartID = sourcePart.UUID;
+                AddNewSceneObject(group, true, curpos, rot, vel);
+
+                // We can only call this after adding the scene object, since the scene object references the scene
+                // to find out if scripts should be activated at all.
+                group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
+
+                group.ScheduleGroupForFullUpdate();
+            }
+
+            return objlist;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,

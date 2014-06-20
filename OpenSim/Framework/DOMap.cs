@@ -42,22 +42,22 @@ namespace OpenSim.Framework
     /// This class stores and retrieves dynamic objects.
     /// </summary>
     /// <remarks>
-    /// Experimental - DO NOT USE.
+    /// Experimental - DO NOT USE.  Does not yet have namespace support.
     /// </remarks>
     public class DOMap
     {
         private IDictionary<string, object> m_map;
         
-        public void Add(string key, object dynObj)
+        public void Add(string ns, string objName, object dynObj)
         {
-            DAMap.ValidateKey(key);
+            DAMap.ValidateNamespace(ns);
 
             lock (this)
             {
                 if (m_map == null)
                     m_map = new Dictionary<string, object>();
 
-                m_map.Add(key, dynObj);
+                m_map.Add(objName, dynObj);
             }
         }
 

@@ -58,6 +58,7 @@ namespace OpenSim.Services.HypergridService
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
         private static IGridUserService m_GridUserService;
+        private static IBansService m_BansService;
 
         private static string m_AllowedClients = string.Empty;
         private static string m_DeniedClients = string.Empty;
@@ -87,6 +88,7 @@ namespace OpenSim.Services.HypergridService
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string simulationService = serverConfig.GetString("SimulationService", String.Empty);
                 string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
+                string bansService = serverConfig.GetString("BansService", String.Empty);
 
                 // These are mandatory, the others aren't
                 if (gridService == string.Empty || presenceService == string.Empty)
@@ -121,6 +123,8 @@ namespace OpenSim.Services.HypergridService
                     m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
                 if (gridUserService != string.Empty)
                     m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
+                if (bansService != string.Empty)
+                    m_BansService = ServerUtils.LoadPlugin<IBansService>(bansService, args);
 
                 if (simService != null)
                     m_SimulationService = simService;
@@ -167,7 +171,7 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", (regionName == string.Empty)? "default region" : regionName);
             if (!m_AllowTeleportsToAnyRegion || regionName == string.Empty)
             {
-                List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
+                List<GridRegion> defs = m_GridService.GetDefaultHypergridRegions(m_ScopeID);
                 if (defs != null && defs.Count > 0)
                 {
                     region = defs[0];
@@ -223,7 +227,7 @@ namespace OpenSim.Services.HypergridService
             m_log.InfoFormat("[GATEKEEPER SERVICE]: Login request for {0} {1} @ {2} ({3}) at {4} using viewer {5}, channel {6}, IP {7}, Mac {8}, Id0 {9} Teleport Flags {10}",
                 aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionName,
                 aCircuit.Viewer, aCircuit.Channel, aCircuit.IPAddress, aCircuit.Mac, aCircuit.Id0, aCircuit.teleportFlags.ToString());
-            
+
             //
             // Check client
             //
@@ -287,17 +291,16 @@ namespace OpenSim.Services.HypergridService
                     }
                 }
             }
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: User is ok");
 
             //
             // Foreign agents allowed? Exceptions?
             //
-            if (account == null) 
+            if (account == null)
             {
                 bool allowed = m_ForeignAgentsAllowed;
 
                 if (m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsAllowedExceptions))
-                        allowed = false;
+                    allowed = false;
 
                 if (!m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsDisallowedExceptions))
                     allowed = true;
@@ -310,6 +313,20 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
             }
+
+            //
+            // Is the user banned?
+            // This uses a Ban service that's more powerful than the configs
+            //
+            string uui = (account != null ? aCircuit.AgentID.ToString() : Util.ProduceUserUniversalIdentifier(aCircuit));
+            if (m_BansService != null && m_BansService.IsBanned(uui, aCircuit.IPAddress, aCircuit.Id0, authURL))
+            {
+                reason = "You are banned from this world";
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: user {0} is banned", uui);
+                return false;
+            }
+
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: User {0} is ok", aCircuit.Name);
 
             bool isFirstLogin = false;
             //
@@ -328,7 +345,8 @@ namespace OpenSim.Services.HypergridService
                         aCircuit.firstname, aCircuit.lastname);
                     return false;
                 }
-                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
+
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence {0} is ok", aCircuit.Name);
 
                 // Also login foreigners with GridUser service
                 if (m_GridUserService != null && account == null)
@@ -359,7 +377,9 @@ namespace OpenSim.Services.HypergridService
                 reason = "Destination region not found";
                 return false;
             }
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: destination ok: {0}", destination.RegionName);
+
+            m_log.DebugFormat(
+                "[GATEKEEPER SERVICE]: Destination {0} is ok for {1}", destination.RegionName, aCircuit.Name);
 
             //
             // Adjust the visible name
@@ -393,7 +413,8 @@ namespace OpenSim.Services.HypergridService
             // Preserve our TeleportFlags we have gathered so-far
             loginFlag |= (Constants.TeleportFlags) aCircuit.teleportFlags;
 
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: launching agent {0}", loginFlag);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Launching {0} {1}", aCircuit.Name, loginFlag);
+
             return m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason);
         }
 
@@ -401,6 +422,12 @@ namespace OpenSim.Services.HypergridService
         {
             if (!CheckAddress(aCircuit.ServiceSessionID))
                 return false;
+
+            if (string.IsNullOrEmpty(aCircuit.IPAddress))
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Agent did not provide a client IP address.");
+                return false;
+            }
 
             string userURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))

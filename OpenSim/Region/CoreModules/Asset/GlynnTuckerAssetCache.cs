@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public bool Check(string id)
         {
-            return false;
+            return m_Cache.Contains(id);
         }
 
         public void Cache(AssetBase asset)

@@ -32,6 +32,7 @@ using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -103,6 +104,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
         public virtual void RegionLoaded(Scene scene)
         {
+            if (!m_enabled)
+                return;
+
+            ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+
+            if (featuresModule != null)
+                featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
+
         }
 
         public virtual void RemoveRegion(Scene scene)
@@ -372,21 +381,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             UUID fromAgentID, UUID ownerID, string fromName, ChatTypeEnum type,
             string message, ChatSourceType src, bool ignoreDistance)
         {
-            // don't send chat to child agents
-            if (presence.IsChildAgent) return false;
-
-            Vector3 fromRegionPos = fromPos + regionPos;
-            Vector3 toRegionPos = presence.AbsolutePosition +
-                new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                            presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
-
-            int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
-            
-            if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
-                type == ChatTypeEnum.Say && dis > m_saydistance ||
-                type == ChatTypeEnum.Shout && dis > m_shoutdistance)
-            {
+            if (presence.LifecycleState != ScenePresenceState.Running)
                 return false;
+
+            if (!ignoreDistance)
+            {
+                Vector3 fromRegionPos = fromPos + regionPos;
+                Vector3 toRegionPos = presence.AbsolutePosition +
+                    new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
+                                presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+
+                int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
+
+                if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
+                    type == ChatTypeEnum.Say && dis > m_saydistance ||
+                    type == ChatTypeEnum.Shout && dis > m_shoutdistance)
+                {
+                    return false;
+                }
             }
 
             // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
@@ -426,5 +438,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             Timers.Remove(target);
             Timer.Dispose();
         }
+        #region SimulatorFeaturesRequest
+
+        static OSDInteger m_SayRange, m_WhisperRange, m_ShoutRange;
+
+        private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
+        {
+            OSD extras = new OSDMap();
+            if (features.ContainsKey("OpenSimExtras"))
+                extras = features["OpenSimExtras"];
+            else
+                features["OpenSimExtras"] = extras;
+
+            if (m_SayRange == null)
+            {
+                // Do this only once
+                m_SayRange = new OSDInteger(m_saydistance);
+                m_WhisperRange = new OSDInteger(m_whisperdistance);
+                m_ShoutRange = new OSDInteger(m_shoutdistance);
+            }
+
+            ((OSDMap)extras)["say-range"] = m_SayRange;
+            ((OSDMap)extras)["whisper-range"] = m_WhisperRange;
+            ((OSDMap)extras)["shout-range"] = m_ShoutRange;
+
+        }
+
+        #endregion
     }
 }

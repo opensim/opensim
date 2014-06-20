@@ -57,6 +57,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
         public void Initialise(IConfigSource config)
         {
+            if(config.Configs["UserProfiles"] != null)
+                return;
+
             m_log.DebugFormat("[PROFILE MODULE]: Basic Profile Module enabled");
             m_Enabled = true;
         }

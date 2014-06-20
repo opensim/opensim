@@ -70,13 +70,15 @@ namespace OpenSim.Region.ClientStack.Linden
             return llsdEvent;
         }
 
-        public static OSD EnableSimulator(ulong handle, IPEndPoint endPoint)
+        public static OSD EnableSimulator(ulong handle, IPEndPoint endPoint, int regionSizeX, int regionSizeY)
         {
-            OSDMap llsdSimInfo = new OSDMap(3);
+            OSDMap llsdSimInfo = new OSDMap(5);
 
             llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
+            llsdSimInfo.Add("RegionSizeX", new OSDInteger(regionSizeX));
+            llsdSimInfo.Add("RegionSizeY", new OSDInteger(regionSizeY));
 
             OSDArray arr = new OSDArray(1);
             arr.Add(llsdSimInfo);
@@ -104,7 +106,8 @@ namespace OpenSim.Region.ClientStack.Linden
         
         public static OSD CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
                                       IPEndPoint newRegionExternalEndPoint,
-                                      string capsURL, UUID agentID, UUID sessionID)
+                                      string capsURL, UUID agentID, UUID sessionID,
+                                      int regionSizeX, int regionSizeY)
         {
             OSDArray lookAtArr = new OSDArray(3);
             lookAtArr.Add(OSD.FromReal(lookAt.X));
@@ -130,11 +133,13 @@ namespace OpenSim.Region.ClientStack.Linden
             OSDArray agentDataArr = new OSDArray(1);
             agentDataArr.Add(agentDataMap);
 
-            OSDMap regionDataMap = new OSDMap(4);
+            OSDMap regionDataMap = new OSDMap(6);
             regionDataMap.Add("RegionHandle", OSD.FromBinary(ulongToByteArray(handle)));
             regionDataMap.Add("SeedCapability", OSD.FromString(capsURL));
             regionDataMap.Add("SimIP", OSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
             regionDataMap.Add("SimPort", OSD.FromInteger(newRegionExternalEndPoint.Port));
+            regionDataMap.Add("RegionSizeX", new OSDInteger(regionSizeX));
+            regionDataMap.Add("RegionSizeY", new OSDInteger(regionSizeY));
 
             OSDArray regionDataArr = new OSDArray(1);
             regionDataArr.Add(regionDataMap);
@@ -148,8 +153,9 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         public static OSD TeleportFinishEvent(
-            ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
-            uint locationID, uint flags, string capsURL, UUID agentID)
+                        ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
+                        uint locationID, uint flags, string capsURL, UUID agentID,
+                        int regionSizeX, int regionSizeY)
         {
             // not sure why flags get overwritten here
             if ((flags & (uint)TeleportFlags.IsFlying) != 0)
@@ -167,6 +173,8 @@ namespace OpenSim.Region.ClientStack.Linden
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
 //            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
             info.Add("TeleportFlags", OSD.FromUInteger(flags));
+            info.Add("RegionSizeX", new OSDInteger(regionSizeX));
+            info.Add("RegionSizeY", new OSDInteger(regionSizeY));
 
             OSDArray infoArr = new OSDArray();
             infoArr.Add(info);
@@ -194,12 +202,18 @@ namespace OpenSim.Region.ClientStack.Linden
             return BuildEvent("ScriptRunningReply", body);
         }
 
-        public static OSD EstablishAgentCommunication(UUID agentID, string simIpAndPort, string seedcap)
+        public static OSD EstablishAgentCommunication(UUID agentID, string simIpAndPort, string seedcap,
+                                    ulong regionHandle, int regionSizeX, int regionSizeY)
         {
-            OSDMap body = new OSDMap(3);
-            body.Add("agent-id", new OSDUUID(agentID));
-            body.Add("sim-ip-and-port", new OSDString(simIpAndPort));
-            body.Add("seed-capability", new OSDString(seedcap));
+            OSDMap body = new OSDMap(6)
+                              {
+                                  {"agent-id", new OSDUUID(agentID)},
+                                  {"sim-ip-and-port", new OSDString(simIpAndPort)},
+                                  {"seed-capability", new OSDString(seedcap)},
+                                  {"region-handle", OSD.FromULong(regionHandle)},
+                                  {"region-size-x", OSD.FromInteger(regionSizeX)},
+                                  {"region-size-y", OSD.FromInteger(regionSizeY)}
+                              };
 
             return BuildEvent("EstablishAgentCommunication", body);
         }

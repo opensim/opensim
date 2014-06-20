@@ -53,8 +53,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private int m_levelHGTeleport = 0;
+        private string m_ThisHomeURI;
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
+        private IUserAgentService m_UAS;
 
         protected bool m_RestrictAppearanceAbroad;
         protected string m_AccountName;
@@ -143,6 +145,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
             }
+
+            moduleConfig = source.Configs["Hypergrid"];
+            if (moduleConfig != null)
+            {
+                m_ThisHomeURI = moduleConfig.GetString("HomeURI", string.Empty);
+                if (m_ThisHomeURI != string.Empty && !m_ThisHomeURI.EndsWith("/"))
+                    m_ThisHomeURI += '/';
+            }
         }
 
         public override void AddRegion(Scene scene)
@@ -161,22 +171,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!so.IsAttachment)
                 return;
 
-            if (so.Scene.UserManagementModule.IsLocalGridUser(so.AttachedAvatar))
+            if (so.AttachedAvatar == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(so.AttachedAvatar))
                 return;
 
             // foreign user
-            AgentCircuitData aCircuit = so.Scene.AuthenticateHandler.GetAgentCircuitData(so.AttachedAvatar);
+            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.AttachedAvatar);
             if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
             {
                 if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
                 {
                     string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Incoming attachement {0} for HG user {1} with asset server {2}", so.Name, so.AttachedAvatar, url);
-                    Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
-                    HGUuidGatherer uuidGatherer = new HGUuidGatherer(so.Scene.AssetService, url);
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", so.Name, so.AttachedAvatar, url);
+                    Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
+                    HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url);
                     uuidGatherer.GatherAssetUuids(so, ids);
 
-                    foreach (KeyValuePair<UUID, AssetType> kvp in ids)
+                    foreach (KeyValuePair<UUID, sbyte> kvp in ids)
                         uuidGatherer.FetchAsset(kvp.Key);
                 }
             }
@@ -194,7 +204,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.RegionLoaded(scene);
 
             if (m_Enabled)
+            {
                 m_GatekeeperConnector = new GatekeeperServiceConnector(scene.AssetService);
+                m_UAS = scene.RequestModuleInterface<IUserAgentService>();
+                if (m_UAS == null)
+                    m_UAS = new UserAgentServiceConnector(m_ThisHomeURI);
+
+            }
         }
 
         public override void RemoveRegion(Scene scene)
@@ -272,8 +288,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (agentCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 {
                     string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
-                    IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
-                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
+                    IUserAgentService connector;
+
+                    if (userAgentDriver.Equals(m_ThisHomeURI) && m_UAS != null)
+                        connector = m_UAS;
+                    else
+                        connector = new UserAgentServiceConnector(userAgentDriver);
+
+                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, false, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)
@@ -552,12 +574,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (uMan != null && uMan.IsLocalGridUser(obj.AgentId))
             {
                 // local grid user
+                m_UAS.LogoutAgent(obj.AgentId, obj.SessionId);
                 return;
             }
 
             AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
-
-            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+            if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("HomeURI"))
             {
                 string url = aCircuit.ServiceURLs["HomeURI"].ToString();
                 IUserAgentService security = new UserAgentServiceConnector(url);

@@ -56,6 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public LocalGridServicesConnector()
         {
+            m_log.Debug("[LOCAL GRID SERVICE CONNECTOR]: LocalGridServicesConnector no parms.");
         }
 
         public LocalGridServicesConnector(IConfigSource source)
@@ -142,10 +143,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             scene.RegisterModuleInterface<IGridService>(this);
 
-            if (m_LocalCache.ContainsKey(scene.RegionInfo.RegionID))
-                m_log.ErrorFormat("[LOCAL GRID SERVICE CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
-            else
-                m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
+            lock (m_LocalCache)
+            {
+                if (m_LocalCache.ContainsKey(scene.RegionInfo.RegionID))
+                    m_log.ErrorFormat("[LOCAL GRID SERVICE CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
+                else
+                    m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -153,8 +157,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Enabled)
                 return;
 
-            m_LocalCache[scene.RegionInfo.RegionID].Clear();
-            m_LocalCache.Remove(scene.RegionInfo.RegionID);
+            lock (m_LocalCache)
+            {
+                m_LocalCache[scene.RegionInfo.RegionID].Clear();
+                m_LocalCache.Remove(scene.RegionInfo.RegionID);
+            }
         }
 
         public void RegionLoaded(Scene scene)
@@ -191,12 +198,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             // First see if it's a neighbour, even if it isn't on this sim.
             // Neighbour data is cached in memory, so this is fast
-            foreach (RegionCache rcache in m_LocalCache.Values)
+
+            lock (m_LocalCache)
             {
-                region = rcache.GetRegionByPosition(x, y);
-                if (region != null)
+                foreach (RegionCache rcache in m_LocalCache.Values)
                 {
-                    return region;
+                    region = rcache.GetRegionByPosition(x, y);
+                    if (region != null)
+                    {
+                        return region;
+                    }
                 }
             }
 
@@ -224,6 +235,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridService.GetDefaultRegions(scopeID);
         }
 
+        public List<GridRegion> GetDefaultHypergridRegions(UUID scopeID)
+        {
+            return m_GridService.GetDefaultHypergridRegions(scopeID);
+        }
+
         public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
         {
             return m_GridService.GetFallbackRegions(scopeID, x, y);
@@ -245,12 +261,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             System.Text.StringBuilder caps = new System.Text.StringBuilder();
 
-            foreach (KeyValuePair<UUID, RegionCache> kvp in m_LocalCache)
+            lock (m_LocalCache)
             {
-                caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", kvp.Value.RegionName, kvp.Key);
-                List<GridRegion> regions = kvp.Value.GetNeighbours();
-                foreach (GridRegion r in regions)
-                    caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
+                foreach (KeyValuePair<UUID, RegionCache> kvp in m_LocalCache)
+                {
+                    caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", kvp.Value.RegionName, kvp.Key);
+                    List<GridRegion> regions = kvp.Value.GetNeighbours();
+                    foreach (GridRegion r in regions)
+                        caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
+                }
             }
 
             MainConsole.Instance.Output(caps.ToString());

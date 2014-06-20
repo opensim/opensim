@@ -1,6 +1,29 @@
-// Proprietary code of Avination Virtual Limited
-// (c) 2012 Melanie Thielker
-//
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 using System;
 using System.Timers;
@@ -32,7 +55,6 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_lockObject = new object();
         private object m_timerLock = new object();
         private const double m_tickDuration = 50.0;
-        private Scene m_scene;
 
         public double TickDuration
         {
@@ -45,8 +67,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_timer.Interval = TickDuration;
             m_timer.AutoReset = true;
             m_timer.Elapsed += OnTimer;
-
-            m_scene = scene;
 
             m_timer.Start();
         }
@@ -71,13 +91,13 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m.OnTimer(TickDuration);
                     }
-                    catch (Exception inner)
+                    catch (Exception)
                     {
                         // Don't stop processing
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Keep running no matter what
             }
@@ -134,7 +154,7 @@ namespace OpenSim.Region.Framework.Scenes
     [Serializable]
     public class KeyframeMotion
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public enum PlayMode : int
         {
@@ -478,6 +498,7 @@ namespace OpenSim.Region.Framework.Scenes
                         k.Position = pos;
 //                        k.Velocity = Vector3.Zero;
                     }
+                    k.AngularVelocity = (Vector3)k.Position;
 
                     k.StartRotation = rot;
                     if (k.Rotation.HasValue)
@@ -618,7 +639,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_group.RootPart.AngularVelocity = Vector3.Zero;
 
-                m_nextPosition = (Vector3)m_currentFrame.Position;
+                m_nextPosition = NormalizeVector(m_currentFrame.AngularVelocity);
                 m_group.AbsolutePosition = m_nextPosition;
 
                 // we are sending imediate updates, no doing force a extra terseUpdate
@@ -706,7 +727,26 @@ namespace OpenSim.Region.Framework.Scenes
                 m_group.SendGroupRootTerseUpdate();
             }
         }
+        private Vector3 NormalizeVector(Vector3? pPosition)
+        {
+            if (pPosition == null)
+                return Vector3.Zero;
 
+            Vector3 tmp = (Vector3) pPosition;
+
+            while (tmp.X > Constants.RegionSize)
+                tmp.X -= Constants.RegionSize;
+            while (tmp.X < 0)
+                tmp.X += Constants.RegionSize;
+            while (tmp.Y > Constants.RegionSize)
+                tmp.Y -= Constants.RegionSize;
+            while (tmp.Y < 0)
+                tmp.Y += Constants.RegionSize;
+
+            return tmp;
+
+            
+        }
         public Byte[] Serialize()
         {
             StopTimer();

@@ -156,11 +156,31 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
-        /// Convert a minimum vector input from the console to an OpenMetaverse.Vector3
+        /// Convert a console integer to an int, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
         /// <param name='rawConsoleVector'>/param>
         /// <param name='vector'></param>
+        /// <returns></returns>
+        public static bool TryParseConsoleBool(ICommandConsole console, string rawConsoleString, out bool b)
+        {
+            if (!bool.TryParse(rawConsoleString, out b))
+            {
+                if (console != null)
+                    console.OutputFormat("ERROR: {0} is not a true or false value", rawConsoleString);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Convert a console integer to an int, automatically complaining if a console is given.
+        /// </summary>
+        /// <param name='console'>Can be null if no console is available.</param>
+        /// <param name='rawConsoleInt'>/param>
+        /// <param name='i'></param>
         /// <returns></returns>
         public static bool TryParseConsoleInt(ICommandConsole console, string rawConsoleInt, out int i)
         {
@@ -173,6 +193,31 @@ namespace OpenSim.Framework.Console
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Convert a console integer to a natural int, automatically complaining if a console is given.
+        /// </summary>
+        /// <param name='console'>Can be null if no console is available.</param>
+        /// <param name='rawConsoleInt'>/param>
+        /// <param name='i'></param>
+        /// <returns></returns>
+        public static bool TryParseConsoleNaturalInt(ICommandConsole console, string rawConsoleInt, out int i)
+        {
+            if (TryParseConsoleInt(console, rawConsoleInt, out i))
+            {
+                if (i < 0)
+                {
+                    if (console != null)
+                        console.OutputFormat("ERROR: {0} is not a positive integer", rawConsoleInt);
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
         }
     
         /// <summary>

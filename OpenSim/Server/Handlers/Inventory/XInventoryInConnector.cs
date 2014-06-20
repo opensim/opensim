@@ -87,7 +87,7 @@ namespace OpenSim.Server.Handlers.Asset
             m_InventoryService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
@@ -155,7 +155,7 @@ namespace OpenSim.Server.Handlers.Asset
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY HANDLER]: Exception {0}", e.StackTrace);
+                m_log.ErrorFormat("[XINVENTORY HANDLER]: Exception {0}", e.StackTrace);
             }
 
             return FailureResult();
