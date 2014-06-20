@@ -1153,7 +1153,7 @@ COMMIT
 
 BEGIN TRANSACTION
 
-ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
+ALTER TABLE prims ADD DynAttrs TEXT;
 
 COMMIT
 
@@ -1161,10 +1161,10 @@ COMMIT
 
 BEGIN TRANSACTION
 
-ALTER TABLE prims ADD COLUMN `PhysicsShapeType` tinyint(4) NOT NULL default '0';
-ALTER TABLE prims ADD COLUMN `Density` double NOT NULL default '1000';
-ALTER TABLE prims ADD COLUMN `GravityModifier` double NOT NULL default '1';
-ALTER TABLE prims ADD COLUMN `Friction` double NOT NULL default '0.6';
-ALTER TABLE prims ADD COLUMN `Restitution` double NOT NULL default '0.5';
+ALTER TABLE prims ADD `PhysicsShapeType` tinyint(4) NOT NULL default '0';
+ALTER TABLE prims ADD `Density` double NOT NULL default '1000';
+ALTER TABLE prims ADD `GravityModifier` double NOT NULL default '1';
+ALTER TABLE prims ADD `Friction` double NOT NULL default '0.6';
+ALTER TABLE prims ADD `Restitution` double NOT NULL default '0.5';
 
 COMMIT
