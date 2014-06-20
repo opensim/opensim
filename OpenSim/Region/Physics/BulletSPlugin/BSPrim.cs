@@ -72,7 +72,8 @@ public class BSPrim : BSPhysObject
 
     private int CrossingFailures { get; set; }
 
-    public BSDynamics VehicleController { get; private set; }
+    public BSDynamics VehicleActor;
+    public string VehicleActorName = "BasicVehicle";
 
     private BSVMotor _targetMotor;
     private OMV.Vector3 _PIDTarget;
@@ -100,11 +101,12 @@ public class BSPrim : BSPhysObject
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
 
-        VehicleController = new BSDynamics(PhysicsScene, this);            // add vehicleness
+        VehicleActor = new BSDynamics(PhysicsScene, this, VehicleActorName);
+        PhysicalActors.Add(VehicleActorName, VehicleActor);
 
         _mass = CalculateMass();
 
-        DetailLog("{0},BSPrim.constructor,call", LocalID);
+        // DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
         PhysicsScene.TaintedObject("BSPrim.create", delegate()
         {
@@ -126,7 +128,7 @@ public class BSPrim : BSPhysObject
         // Undo any vehicle properties
         this.VehicleType = (int)Vehicle.TYPE_NONE;
 
-        PhysicsScene.TaintedObject("BSPrim.destroy", delegate()
+        PhysicsScene.TaintedObject("BSPrim.Destroy", delegate()
         {
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
             // If there are physical body and shape, release my use of same.
@@ -257,97 +259,31 @@ public class BSPrim : BSPhysObject
         });
     }
 
-    bool TryExperimentalLockAxisCode = false;
-    BSConstraint LockAxisConstraint = null;
     public override void LockAngularMotion(OMV.Vector3 axis)
     {
         DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
 
         // "1" means free, "0" means locked
-        OMV.Vector3 locking = new OMV.Vector3(1f, 1f, 1f);
+        OMV.Vector3 locking = LockedAxisFree;
         if (axis.X != 1) locking.X = 0f;
         if (axis.Y != 1) locking.Y = 0f;
         if (axis.Z != 1) locking.Z = 0f;
         LockedAxis = locking;
 
-        if (TryExperimentalLockAxisCode && LockedAxis != LockedAxisFree)
+        if (LockedAxis != LockedAxisFree)
         {
-            // Lock that axis by creating a 6DOF constraint that has one end in the world and
-            //    the other in the object.
-            // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=20817
-            // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=26380
-
             PhysicsScene.TaintedObject("BSPrim.LockAngularMotion", delegate()
             {
-                CleanUpLockAxisPhysicals(true /* inTaintTime */);
-
-                BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(PhysicsScene.World, PhysBody, 
-                                    OMV.Vector3.Zero, OMV.Quaternion.Inverse(RawOrientation),
-                                    true /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);
-                LockAxisConstraint = axisConstrainer;
-                PhysicsScene.Constraints.AddConstraint(LockAxisConstraint);
-
-                // The constraint is tied to the world and oriented to the prim.
-
-                // Free to move linearly
-                OMV.Vector3 linearLow = OMV.Vector3.Zero;
-                OMV.Vector3 linearHigh = PhysicsScene.TerrainManager.DefaultRegionSize;
-                axisConstrainer.SetLinearLimits(linearLow, linearHigh);
-
-                // Angular with some axis locked
-                float f2PI = (float)Math.PI * 2f;
-                OMV.Vector3 angularLow = new OMV.Vector3(-f2PI, -f2PI, -f2PI);
-                OMV.Vector3 angularHigh = new OMV.Vector3(f2PI, f2PI, f2PI);
-                if (LockedAxis.X != 1f)
+                // If there is not already an axis locker, make one
+                if (!PhysicalActors.HasActor(LockedAxisActorName))
                 {
-                    angularLow.X = 0f;
-                    angularHigh.X = 0f;
+                    DetailLog("{0},BSPrim.LockAngularMotion,taint,registeringLockAxisActor", LocalID);
+                    PhysicalActors.Add(LockedAxisActorName, new BSActorLockAxis(PhysicsScene, this, LockedAxisActorName));
                 }
-                if (LockedAxis.Y != 1f)
-                {
-                    angularLow.Y = 0f;
-                    angularHigh.Y = 0f;
-                }
-                if (LockedAxis.Z != 1f)
-                {
-                    angularLow.Z = 0f;
-                    angularHigh.Z = 0f;
-                }
-                axisConstrainer.SetAngularLimits(angularLow, angularHigh);
-
-                DetailLog("{0},BSPrim.LockAngularMotion,create,linLow={1},linHi={2},angLow={3},angHi={4}",
-                                            LocalID, linearLow, linearHigh, angularLow, angularHigh);
-
-                // Constants from one of the posts mentioned above and used in Bullet's ConstraintDemo.
-                axisConstrainer.TranslationalLimitMotor(true /* enable */, 5.0f, 0.1f);
-
-                axisConstrainer.RecomputeConstraintVariables(RawMass);
+                UpdatePhysicalParameters();
             });
         }
-        else
-        {
-            // Everything seems unlocked
-            CleanUpLockAxisPhysicals(false /* inTaintTime */);
-        }
-
         return;
-    }
-    // Get rid of any constraint built for LockAxis
-    // Most often the constraint is removed when the constraint collection is cleaned for this prim.
-    private void CleanUpLockAxisPhysicals(bool inTaintTime)
-    {
-        if (LockAxisConstraint != null)
-        {
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.CleanUpLockAxisPhysicals", delegate()
-            {
-                if (LockAxisConstraint != null)
-                {
-                    PhysicsScene.Constraints.RemoveAndDestroyConstraint(LockAxisConstraint);
-                    LockAxisConstraint = null;
-                    DetailLog("{0},BSPrim.CleanUpLockAxisPhysicals,destroyingConstraint", LocalID);
-                }
-            });
-        }
     }
 
     public override OMV.Vector3 RawPosition
@@ -604,7 +540,7 @@ public class BSPrim : BSPhysObject
 
     public override int VehicleType {
         get {
-            return (int)VehicleController.Type;   // if we are a vehicle, return that type
+            return (int)VehicleActor.Type;   // if we are a vehicle, return that type
         }
         set {
             Vehicle type = (Vehicle)value;
@@ -613,20 +549,8 @@ public class BSPrim : BSPhysObject
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
-                VehicleController.ProcessTypeChange(type);
+                VehicleActor.ProcessTypeChange(type);
                 ActivateIfPhysical(false);
-
-                // If an active vehicle, register the vehicle code to be called before each step
-                if (VehicleController.Type == Vehicle.TYPE_NONE)
-                {
-                    UnRegisterPreStepAction("BSPrim.Vehicle", LocalID);
-                    UnRegisterPostStepAction("BSPrim.Vehicle", LocalID);
-                }
-                else
-                {
-                    RegisterPreStepAction("BSPrim.Vehicle", LocalID, VehicleController.Step);
-                    RegisterPostStepAction("BSPrim.Vehicle", LocalID, VehicleController.PostStep);
-                }
             });
         }
     }
@@ -634,7 +558,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleFloatParam", delegate()
         {
-            VehicleController.ProcessFloatVehicleParam((Vehicle)param, value);
+            VehicleActor.ProcessFloatVehicleParam((Vehicle)param, value);
             ActivateIfPhysical(false);
         });
     }
@@ -642,7 +566,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleVectorParam", delegate()
         {
-            VehicleController.ProcessVectorVehicleParam((Vehicle)param, value);
+            VehicleActor.ProcessVectorVehicleParam((Vehicle)param, value);
             ActivateIfPhysical(false);
         });
     }
@@ -650,7 +574,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleRotationParam", delegate()
         {
-            VehicleController.ProcessRotationVehicleParam((Vehicle)param, rotation);
+            VehicleActor.ProcessRotationVehicleParam((Vehicle)param, rotation);
             ActivateIfPhysical(false);
         });
     }
@@ -658,7 +582,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleFlags", delegate()
         {
-            VehicleController.ProcessVehicleFlags(param, remove);
+            VehicleActor.ProcessVehicleFlags(param, remove);
         });
     }
 
@@ -915,7 +839,8 @@ public class BSPrim : BSPhysObject
         MakeDynamic(IsStatic);
 
         // Update vehicle specific parameters (after MakeDynamic() so can change physical parameters)
-        VehicleController.Refresh();
+        VehicleActor.Refresh();
+        PhysicalActors.Refresh();
 
         // Arrange for collision events if the simulator wants them
         EnableCollisions(SubscribedEvents());
@@ -1721,9 +1646,9 @@ public class BSPrim : BSPhysObject
         volume *= (profileEnd - profileBegin);
 
         returnMass = Density * BSParam.DensityScaleFactor * volume;
-        DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
 
         returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
+        // DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
 
         return returnMass;
     }// end CalculateMass
@@ -1752,7 +1677,8 @@ public class BSPrim : BSPhysObject
 
     protected virtual void RemoveBodyDependencies()
     {
-        VehicleController.RemoveBodyDependencies(this);
+        VehicleActor.RemoveBodyDependencies();
+        PhysicalActors.RemoveBodyDependencies();
     }
 
     // The physics engine says that properties have updated. Update same and inform
@@ -1760,13 +1686,6 @@ public class BSPrim : BSPhysObject
     public override void UpdateProperties(EntityProperties entprop)
     {
         TriggerPreUpdatePropertyAction(ref entprop);
-
-        // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
-        // TODO: handle physics introduced by Bullet with computed vehicle physics.
-        if (VehicleController.IsActive)
-        {
-            entprop.RotationalVelocity = OMV.Vector3.Zero;
-        }
 
         // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 

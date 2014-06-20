@@ -78,6 +78,9 @@ public abstract class BSPhysObject : PhysicsActor
         Name = name;    // PhysicsActor also has the name of the object. Someday consolidate.
         TypeName = typeName;
 
+        // The collection of things that push me around
+        PhysicalActors = new BSActorCollection(PhysicsScene);
+
         // Initialize variables kept in base.
         GravModifier = 1.0f;
         Gravity = new OMV.Vector3(0f, 0f, BSParam.Gravity);
@@ -109,6 +112,10 @@ public abstract class BSPhysObject : PhysicsActor
     {
         UnRegisterAllPreStepActions();
         UnRegisterAllPostStepActions();
+        PhysicsScene.TaintedObject("BSPhysObject.Destroy", delegate()
+        {
+            PhysicalActors.Release();
+        });
     }
 
     public BSScene PhysicsScene { get; protected set; }
@@ -180,7 +187,7 @@ public abstract class BSPhysObject : PhysicsActor
         Friction = matAttrib.friction;
         Restitution = matAttrib.restitution;
         Density = matAttrib.density / BSParam.DensityScaleFactor;
-        DetailLog("{0},{1}.SetMaterial,Mat={2},frict={3},rest={4},den={5}", LocalID, TypeName, Material, Friction, Restitution, Density);
+        // DetailLog("{0},{1}.SetMaterial,Mat={2},frict={3},rest={4},den={5}", LocalID, TypeName, Material, Friction, Restitution, Density);
     }
 
     // Stop all physical motion.
@@ -230,6 +237,7 @@ public abstract class BSPhysObject : PhysicsActor
 
     public OMV.Vector3 LockedAxis { get; set; } // zero means locked. one means free.
     public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(1f, 1f, 1f);  // All axis are free
+    public readonly String LockedAxisActorName = "BSPrim.LockedAxis";
 
     #region Collisions
 
@@ -413,6 +421,9 @@ public abstract class BSPhysObject : PhysicsActor
     #endregion // Collisions
 
     #region Per Simulation Step actions
+
+    public BSActorCollection PhysicalActors;
+
     // There are some actions that must be performed for a physical object before each simulation step.
     // These actions are optional so, rather than scanning all the physical objects and asking them
     //     if they have anything to do, a physical object registers for an event call before the step is performed.
