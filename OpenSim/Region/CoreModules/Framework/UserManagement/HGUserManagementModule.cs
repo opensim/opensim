@@ -50,12 +50,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-
         #region ISharedRegionModule
 
         public new void Initialise(IConfigSource config)
         {
-            string umanmod = config.Configs["Modules"].GetString("UserManagementModule", base.Name);
+            string umanmod = config.Configs["Modules"].GetString("UserManagementModule", Name);
             if (umanmod == Name)
             {
                 m_Enabled = true;
