@@ -259,12 +259,12 @@ public override BulletShape CreateHullShape(BulletWorld world, int hullCount, fl
                     BSPhysicsShapeType.SHAPE_HULL);
 }
 
-public override BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+public override BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape, HACDParams parms)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletShapeUnman shapeu = meshShape as BulletShapeUnman;
     return new BulletShapeUnman(
-                    BSAPICPP.BuildHullShapeFromMesh2(worldu.ptr, shapeu.ptr),
+                    BSAPICPP.BuildHullShapeFromMesh2(worldu.ptr, shapeu.ptr, parms),
                     BSPhysicsShapeType.SHAPE_HULL);
 }
 
@@ -1411,7 +1411,7 @@ public static extern IntPtr CreateHullShape2(IntPtr world,
                 int hullCount, [MarshalAs(UnmanagedType.LPArray)] float[] hulls);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr BuildHullShapeFromMesh2(IntPtr world, IntPtr meshShape);
+public static extern IntPtr BuildHullShapeFromMesh2(IntPtr world, IntPtr meshShape, HACDParams parms);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData);

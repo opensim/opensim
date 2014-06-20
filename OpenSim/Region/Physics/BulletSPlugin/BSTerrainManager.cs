@@ -199,15 +199,8 @@ public sealed class BSTerrainManager : IDisposable
                 if (MegaRegionParentPhysicsScene is BSScene)
                 {
                     DetailLog("{0},SetTerrain.ToParent,offset={1},worldMax={2}", BSScene.DetailLogZero, m_worldOffset, m_worldMax);
-                    // This looks really odd but this region is passing its terrain to its mega-region root region
-                    //    and the creation of the terrain must happen on the root region's taint thread and not
-                    //    my taint thread.
-                    ((BSScene)MegaRegionParentPhysicsScene).PostTaintObject("TerrainManager.SetTerrain.Mega-" + m_worldOffset.ToString(), 0, delegate()
-                    {
-                        ((BSScene)MegaRegionParentPhysicsScene).TerrainManager.UpdateTerrain(
-                                        BSScene.CHILDTERRAIN_ID, localHeightMap,
-                                        m_worldOffset, m_worldOffset + DefaultRegionSize, true /* inTaintTime */);
-                    });
+                    ((BSScene)MegaRegionParentPhysicsScene).TerrainManager.AddMegaRegionChildTerrain(
+                                        BSScene.CHILDTERRAIN_ID, localHeightMap, m_worldOffset, m_worldOffset + DefaultRegionSize);
                 }
             }
             else
@@ -215,9 +208,20 @@ public sealed class BSTerrainManager : IDisposable
                 // If not doing the mega-prim thing, just change the terrain
                 DetailLog("{0},SetTerrain.Existing", BSScene.DetailLogZero);
 
-                UpdateTerrain(BSScene.TERRAIN_ID, localHeightMap,
-                                    m_worldOffset, m_worldOffset + DefaultRegionSize, true /* inTaintTime */);
+                UpdateTerrain(BSScene.TERRAIN_ID, localHeightMap, m_worldOffset, m_worldOffset + DefaultRegionSize);
             }
+        });
+    }
+
+    // Another region is calling this region passing a terrain.
+    // A region that is not the mega-region root will pass its terrain to the root region so the root region
+    //      physics engine will have all the terrains.
+    private void AddMegaRegionChildTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords)
+    {
+        // Since we are called by another region's thread, the action must be rescheduled onto our processing thread.
+        PhysicsScene.PostTaintObject("TerrainManager.AddMegaRegionChild" + m_worldOffset.ToString(), 0, delegate()
+        {
+            UpdateTerrain(id, heightMap, minCoords, maxCoords);
         });
     }
 
@@ -230,11 +234,10 @@ public sealed class BSTerrainManager : IDisposable
     //     This call is most often used to update the heightMap and parameters of the terrain.
     // (The above does suggest that some simplification/refactoring is in order.)
     // Called during taint-time.
-    private void UpdateTerrain(uint id, float[] heightMap, 
-                            Vector3 minCoords, Vector3 maxCoords, bool inTaintTime)
+    private void UpdateTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords)
     {
-        DetailLog("{0},BSTerrainManager.UpdateTerrain,call,id={1},minC={2},maxC={3},inTaintTime={4}",
-                            BSScene.DetailLogZero, id, minCoords, maxCoords, inTaintTime);
+        DetailLog("{0},BSTerrainManager.UpdateTerrain,call,id={1},minC={2},maxC={3}",
+                            BSScene.DetailLogZero, id, minCoords, maxCoords);
 
         // Find high and low points of passed heightmap.
         // The min and max passed in is usually the area objects can be in (maximum

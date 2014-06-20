@@ -609,7 +609,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
                 return;
 
-            MainConsole.Instance.OutputFormat(GetStatusReport());
+            MainConsole.Instance.Output(GetStatusReport());
         }
 
         public string GetStatusReport()
@@ -708,7 +708,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sb.AppendFormat("Containing part UUID: {0}\n", instance.ObjectID);
             sb.AppendFormat("Position            : {0}\n", sop.AbsolutePosition);
 
-            MainConsole.Instance.OutputFormat(sb.ToString());
+            MainConsole.Instance.Output(sb.ToString());
         }
 
         private void HandleSuspendScript(IScriptInstance instance)
