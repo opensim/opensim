@@ -205,6 +205,17 @@ public class BSActorAvatarMove : BSActor
                     // Flying and not colliding and velocity nearly zero.
                     m_controllingPrim.ZeroMotion(true /* inTaintTime */);
                 }
+                else
+                {
+                    //We are falling but are not touching any keys make sure not falling too fast
+                    if (m_controllingPrim.RawVelocity.Z < BSParam.AvatarTerminalVelocity)
+                    {
+
+                        OMV.Vector3 slowingForce = new OMV.Vector3(0f, 0f, BSParam.AvatarTerminalVelocity - m_controllingPrim.RawVelocity.Z) * m_controllingPrim.Mass;
+                        m_physicsScene.PE.ApplyCentralImpulse(m_controllingPrim.PhysBody, slowingForce);
+                    }
+
+                }
             }
 
             m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1},colliding={2}",
@@ -252,8 +263,17 @@ public class BSActorAvatarMove : BSActor
                 }
                 else
                 {
-                    // Since we're not affected by anything, whatever vertical motion the avatar has, continue that.
-                    stepVelocity.Z = m_controllingPrim.RawVelocity.Z;
+                    
+                    // Since we're not affected by anything, the avatar must be falling and we do not want that to be too fast.
+                    if (m_controllingPrim.RawVelocity.Z < BSParam.AvatarTerminalVelocity)
+                    {
+                        
+                        stepVelocity.Z = BSParam.AvatarTerminalVelocity;
+                    }
+                    else
+                    {
+                        stepVelocity.Z = m_controllingPrim.RawVelocity.Z;
+                    }
                 }
                 // DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
             }
