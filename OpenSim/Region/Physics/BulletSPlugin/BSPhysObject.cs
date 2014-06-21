@@ -462,7 +462,10 @@ public abstract class BSPhysObject : PhysicsActor
 
         // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
-            CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+            lock (PhysScene.CollisionLock)
+            {
+                CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+            }
             DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
                             LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
 
@@ -474,12 +477,14 @@ public abstract class BSPhysObject : PhysicsActor
     // Send the collected collisions into the simulator.
     // Called at taint time from within the Step() function thus no locking problems
     //      with CollisionCollection and ObjectsWithNoMoreCollisions.
+    // Called with BSScene.CollisionLock locked to protect the collision lists.
     // Return 'true' if there were some actual collisions passed up
     public virtual bool SendCollisions()
     {
         bool ret = true;
 
-        // If the 'no collision' call, force it to happen right now so quick collision_end
+        // If no collisions this call but there were collisions last call, force the collision
+        //     event to be happen right now so quick collision_end.
         bool force = (CollisionCollection.Count == 0 && CollisionsLastReported.Count != 0);
 
         // throttle the collisions to the number of milliseconds specified in the subscription
