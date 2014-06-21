@@ -1121,32 +1121,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 block.SizeX = (ushort)r.RegionSizeX;
                 block.SizeY = (ushort)r.RegionSizeY;
                 blocks.Add(block);
-                // If these are larger than legacy regions, create fake map entries for the covered
-                //    regions. The map system only does legacy sized regions so we have to fake map
-                //    entries for all the covered regions.
-                if (r.RegionSizeX > Constants.RegionSize || r.RegionSizeY > Constants.RegionSize)
-                {
-                    for (int x = 0; x < r.RegionSizeX / Constants.RegionSize; x++)
-                    {
-                        for (int y = 0; y < r.RegionSizeY / Constants.RegionSize; y++)
-                        {
-                            if (x == 0 && y == 0)
-                                continue;
-                            block = new MapBlockData
-                                        {
-                                            Access = r.Access,
-                                            MapImageId = r.TerrainImage,
-                                            Name = r.RegionName,
-                                            X = (ushort)((r.RegionLocX / Constants.RegionSize) + x),
-                                            Y = (ushort)((r.RegionLocY / Constants.RegionSize) + y),
-                                            SizeX = (ushort)r.RegionSizeX,
-                                            SizeY = (ushort)r.RegionSizeY
-                                        };
-                            //Child piece, so ignore it
-                            blocks.Add(block);
-                        }
-                    }
-                }
             }
             return blocks;
         }
