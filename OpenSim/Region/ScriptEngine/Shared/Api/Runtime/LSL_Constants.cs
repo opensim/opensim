@@ -410,6 +410,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_POS_LOCAL = 33;
         public const int PRIM_LINK_TARGET = 34;
         public const int PRIM_SLICE = 35;
+        public const int PRIM_SPECULAR = 36;
+        public const int PRIM_NORMAL = 37;
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
 
