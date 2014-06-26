@@ -973,7 +973,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-
                     if (!SendPacketData(udpClient, data, packet.Type, category, method))
                         packetQueued = true;
                 }
@@ -981,7 +980,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 byte[] data = packet.ToBytes();
-                packetQueued = SendPacketData(udpClient, data, packet.Type, category, method);
+                if (!SendPacketData(udpClient, data, packet.Type, category, method))
+                    packetQueued = true;
             }
 
             PacketPool.Instance.ReturnPacket(packet);
@@ -1065,8 +1065,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will 
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
             // packet so that it isn't sent before a queued update packet.
-            bool requestQueue = type == PacketType.KillObject;
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue))
+            bool forceQueue = (type == PacketType.KillObject);
+
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, forceQueue))
             {
                 SendPacketFinal(outgoingPacket);
                 return true;
