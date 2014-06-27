@@ -674,7 +674,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             MainConsole.Instance.Commands.AddCommand(
                 "Debug", false, "debug lludp packet",
-                 "debug lludp packet [--default] <level> [<avatar-first-name> <avatar-last-name>]",
+                 "debug lludp packet [--default | --all] <level> [<avatar-first-name> <avatar-last-name>]",
                  "Turn on packet debugging",
                    "If level >  255 then all incoming and outgoing packets are logged.\n"
                  + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
@@ -683,7 +683,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
                  + "If level <= 0 then no packets are logged.\n"
                  + "If --default is specified then the level becomes the default logging level for all subsequent agents.\n"
-                 + "In this case, you cannot also specify an avatar name.\n"
+                 + "If --all is specified then the level becomes the default logging level for all current and subsequent agents.\n"
+                 + "In these cases, you cannot also specify an avatar name.\n"
                  + "If an avatar name is given then only packets from that avatar are logged.",
                  HandlePacketCommand);
 
@@ -742,20 +743,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             bool setAsDefaultLevel = false;
-            OptionSet optionSet = new OptionSet().Add("default", o => setAsDefaultLevel = o != null);
+            bool setAll = false;
+            OptionSet optionSet = new OptionSet()
+                .Add("default", o => setAsDefaultLevel = (o != null))
+                .Add("all", o => setAll = (o != null));
             List<string> filteredArgs = optionSet.Parse(args);
 
             string name = null;
 
             if (filteredArgs.Count == 6)
             {
-                if (!setAsDefaultLevel)
+                if (!(setAsDefaultLevel || setAll))
                 {
                     name = string.Format("{0} {1}", filteredArgs[4], filteredArgs[5]);
                 }
                 else
                 {
-                    MainConsole.Instance.OutputFormat("ERROR: Cannot specify a user name when setting default logging level");
+                    MainConsole.Instance.OutputFormat("ERROR: Cannot specify a user name when setting default/all logging level");
                     return;
                 }
             }
@@ -765,11 +769,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int newDebug;
                 if (int.TryParse(filteredArgs[3], out newDebug))
                 {
-                    if (setAsDefaultLevel)
+                    if (setAsDefaultLevel || setAll)
                     {
                         DefaultClientPacketDebugLevel = newDebug;
+
                         MainConsole.Instance.OutputFormat(
-                            "Debug packet debug for new clients set to {0} in {1}", DefaultClientPacketDebugLevel, m_scene.Name);
+                            "Packet debug for {0} clients set to {1} in {2}",
+                            (setAll ? "all" : "future"), DefaultClientPacketDebugLevel, m_scene.Name);
+
+                        if (setAll)
+                        {
+                            m_scene.ForEachScenePresence(sp =>
+                            {
+                                MainConsole.Instance.OutputFormat(
+                                    "Packet debug for {0} ({1}) set to {2} in {3}",
+                                    sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_scene.Name);
+
+                                sp.ControllingClient.DebugPacketLevel = newDebug;
+                            });
+                        }
                     }
                     else
                     {
@@ -788,7 +806,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    MainConsole.Instance.Output("Usage: debug lludp packet [--default] 0..255 [<first-name> <last-name>]");
+                    MainConsole.Instance.Output("Usage: debug lludp packet [--default | --all] 0..255 [<first-name> <last-name>]");
                 }
             }
         }
