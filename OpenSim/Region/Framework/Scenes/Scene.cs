@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Maximum value of the size of a physical prim in each axis
         /// </summary>
-        public float m_maxPhys = 10;
+        public float m_maxPhys = 64;
 
         /// <summary>
         /// Max prims an object will hold
