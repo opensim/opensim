@@ -201,7 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool m_clampPrimSize;
         public bool m_trustBinaries;
-        public bool m_allowScriptCrossings;
+        public bool m_allowScriptCrossings = true;
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
