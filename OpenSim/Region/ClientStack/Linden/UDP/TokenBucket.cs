@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -335,13 +335,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // greater than this.
         // </summary>
         protected Int64 m_maxDripRate = 0;
-        protected Int64 MaxDripRate
+        public Int64 MaxDripRate
         {
             get { return (m_maxDripRate == 0 ? m_totalDripRequest : m_maxDripRate); }
-            set { m_maxDripRate = (value == 0 ? 0 : Math.Max(value,m_minimumFlow)); }
+            protected set { m_maxDripRate = (value == 0 ? 0 : Math.Max(value,m_minimumFlow)); }
         }
-        
-        private bool m_enabled = false;
+
+        public bool Enabled { get; private set; }
         
         // <summary>
         // 
@@ -362,9 +362,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // </summary>
         public AdaptiveTokenBucket(TokenBucket parent, Int64 maxDripRate, bool enabled) : base(parent,maxDripRate)
         {
-            m_enabled = enabled;
+            Enabled = enabled;
 
-            if (m_enabled)
+            if (Enabled)
             {
                 // m_log.DebugFormat("[TOKENBUCKET] Adaptive throttle enabled");
                 MaxDripRate = maxDripRate;
@@ -378,7 +378,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ExpirePackets(Int32 count)
         {
             // m_log.WarnFormat("[ADAPTIVEBUCKET] drop {0} by {1} expired packets",AdjustedDripRate,count);
-            if (m_enabled)
+            if (Enabled)
                 AdjustedDripRate = (Int64) (AdjustedDripRate / Math.Pow(2,count));
         }
 
@@ -387,7 +387,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // </summary>
         public void AcknowledgePackets(Int32 count)
         {
-            if (m_enabled)
+            if (Enabled)
                 AdjustedDripRate = AdjustedDripRate + count;
         }
     }
