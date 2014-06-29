@@ -487,7 +487,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));            
             
             report.AppendFormat(
-                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
+                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "Max",
                 "Total",
                 "Resend",
                 "Land",
@@ -499,7 +500,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
+                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "kb/s",
                 "kb/s",
                 "kb/s",
                 "kb/s",
@@ -548,7 +550,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                                             
                             
                                 report.AppendFormat(
-                                    "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
+                                    "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}",
+                                    (ci.maxThrottle * 8) / 1000,
                                     (ci.totalThrottle * 8) / 1000,
                                     (ci.resendThrottle * 8) / 1000,
                                     (ci.landThrottle * 8) / 1000,
@@ -584,7 +587,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             
             ThrottleRates throttleRates = udpServer.ThrottleRates;
             report.AppendFormat(
-                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
+                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}",
+                "-",
                 (throttleRates.Total * 8) / 1000,
                 (throttleRates.Resend * 8) / 1000,
                 (throttleRates.Land * 8) / 1000,
