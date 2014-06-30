@@ -321,7 +321,7 @@ namespace pCampBot
 
         private void ConnectBotsInternal(int botCount)
         {
-            MainConsole.Instance.OutputFormat(
+            m_log.InfoFormat(
                 "[BOT MANAGER]: Starting {0} bots connecting to {1}, location {2}, named {3} {4}_<n>",
                 botCount,
                 m_loginUri,
@@ -329,9 +329,9 @@ namespace pCampBot
                 m_firstName,
                 m_lastNameStem);
 
-            MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
-            MainConsole.Instance.OutputFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
-            MainConsole.Instance.OutputFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
+            m_log.DebugFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
+            m_log.DebugFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
+            m_log.DebugFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
 
             int connectedBots = 0;
 

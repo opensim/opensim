@@ -333,7 +333,7 @@ namespace pCampBot
             // client
             CreateLibOmvClient();
 
-            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", StartLocation, "Your name"))
+            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", StartLocation, "pCampBot"))
             {
                 ConnectionState = ConnectionState.Connected;
 
