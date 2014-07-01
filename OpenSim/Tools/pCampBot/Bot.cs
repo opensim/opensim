@@ -635,7 +635,7 @@ namespace pCampBot
                 {
                     if (prim.Textures.DefaultTexture.TextureID != UUID.Zero)
                     {
-                        GetTexture(prim.Textures.DefaultTexture.TextureID);
+                        GetTextureOrMesh(prim.Textures.DefaultTexture.TextureID, true);
                     }
 
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
@@ -647,32 +647,56 @@ namespace pCampBot
                             UUID textureID = prim.Textures.FaceTextures[i].TextureID;
 
                             if (textureID != UUID.Zero)
-                                GetTexture(textureID);
+                                GetTextureOrMesh(textureID, true);
                         }
                     }
                 }
 
                 if (prim.Sculpt != null && prim.Sculpt.SculptTexture != UUID.Zero)
-                    GetTexture(prim.Sculpt.SculptTexture);
+                {
+                    bool mesh = (prim.Sculpt.Type == SculptType.Mesh);
+                    GetTextureOrMesh(prim.Sculpt.SculptTexture, !mesh);
+                }
             }
         }
 
-        private void GetTexture(UUID textureID)
+        private void GetTextureOrMesh(UUID assetID, bool texture)
         {
             lock (Manager.AssetsReceived)
             {
                 // Don't request assets more than once.
-                if (Manager.AssetsReceived.ContainsKey(textureID))
+                if (Manager.AssetsReceived.ContainsKey(assetID))
                     return;
 
-                Manager.AssetsReceived[textureID] = false;
-                Client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
+                Manager.AssetsReceived[assetID] = false;
+            }
+
+            try
+            {
+                if (texture)
+                    Client.Assets.RequestImage(assetID, ImageType.Normal, Asset_TextureCallback_Texture);
+                else
+                    Client.Assets.RequestMesh(assetID, Asset_MeshCallback);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn(string.Format("Error requesting {0} {1}", texture ? "texture" : "mesh", assetID), e);
             }
         }
         
         public void Asset_TextureCallback_Texture(TextureRequestState state, AssetTexture assetTexture)
         {
-            //TODO: Implement texture saving and applying
+            if (state == TextureRequestState.Finished)
+            {
+                lock (Manager.AssetsReceived)
+                    Manager.AssetsReceived[assetTexture.AssetID] = true;
+            }
+        }
+
+        private void Asset_MeshCallback(bool success, AssetMesh assetMesh)
+        {
+            lock (Manager.AssetsReceived)
+                Manager.AssetsReceived[assetMesh.AssetID] = success;
         }
         
         public void Asset_ReceivedCallback(AssetDownload transfer, Asset asset)
