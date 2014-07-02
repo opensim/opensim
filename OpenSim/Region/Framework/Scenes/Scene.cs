@@ -1894,6 +1894,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 RegionInfo.RegionID,
                                 RegionInfo.RegionLocX, RegionInfo.RegionLocY,
                                 RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+
             if (error != String.Empty)
                 throw new Exception(error);
         }

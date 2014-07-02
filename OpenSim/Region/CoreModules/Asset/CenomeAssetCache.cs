@@ -316,9 +316,12 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         public void Close()
         {
-            m_enabled = false;
-            m_cache.Clear();
-            m_cache = null;
+            if (m_enabled)
+            {
+                m_enabled = false;
+                m_cache.Clear();
+                m_cache = null;
+            }
         }
 
         /// <summary>
