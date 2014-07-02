@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestLifecycle()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+            TestHelpers.EnableLogging();
 
             UUID estateOwnerId = TestHelpers.ParseTail(0x1);
             UUID regionId = TestHelpers.ParseTail(0x10);
