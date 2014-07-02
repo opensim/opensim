@@ -57,6 +57,11 @@ namespace OpenSim.Framework.Servers
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// Used by tests to suppress Environment.Exit(0) so that post-run operations are possible.
+        /// </summary>
+        public bool SuppressExit { get; set; }
+
+        /// <summary>
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
@@ -109,7 +114,8 @@ namespace OpenSim.Framework.Servers
 
             base.ShutdownSpecific();
 
-            Environment.Exit(0);
+            if (!SuppressExit)
+                Environment.Exit(0);
         }
         
         /// <summary>

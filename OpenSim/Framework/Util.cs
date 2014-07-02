@@ -1964,10 +1964,15 @@ namespace OpenSim.Framework
         {
             if (maxThreads < 2)
                 throw new ArgumentOutOfRangeException("maxThreads", "maxThreads must be greater than 2");
+
             if (minThreads > maxThreads || minThreads < 2)
                 throw new ArgumentOutOfRangeException("minThreads", "minThreads must be greater than 2 and less than or equal to maxThreads");
+
             if (m_ThreadPool != null)
-                throw new InvalidOperationException("SmartThreadPool is already initialized");
+            {
+                m_log.Warn("SmartThreadPool is already initialized.  Ignoring request.");
+                return;
+            }
 
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.ThreadPoolName = "Util";

@@ -71,6 +71,20 @@ namespace OpenSim
         // OpenSim.ini Section name for ESTATES Settings
         public const string ESTATE_SECTION_NAME = "Estates";
 
+        /// <summary>
+        /// Allow all plugin loading to be disabled for tests/debug.
+        /// </summary>
+        /// <remarks>
+        /// true by default
+        /// </remarks>
+        public bool EnableInitialPluginLoad { get; set; }
+
+        /// <summary>
+        /// Control whether we attempt to load an estate data service.
+        /// </summary>
+        /// <remarks>For tests/debugging</remarks>
+        public bool LoadEstateDataService { get; set; }
+
         protected string proxyUrl;
         protected int proxyOffset = 0;
         
@@ -96,7 +110,7 @@ namespace OpenSim
 
         public ConsoleCommand CreateAccount = null;
 
-        protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
+        public List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
         /// <value>
         /// The config information passed into the OpenSimulator region server.
@@ -135,6 +149,8 @@ namespace OpenSim
         /// <param name="configSource"></param>
         public OpenSimBase(IConfigSource configSource) : base()
         {
+            EnableInitialPluginLoad = true;
+            LoadEstateDataService = true;
             LoadConfigSettings(configSource);
         }
 
@@ -236,20 +252,25 @@ namespace OpenSim
             if (String.IsNullOrEmpty(module))
                 throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] or [EstateService] section");
 
-            m_estateDataService = ServerUtils.LoadPlugin<IEstateDataService>(module, new object[] { Config });
-            if (m_estateDataService == null)
-                throw new Exception(
-                    string.Format(
-                        "Could not load an IEstateDataService implementation from {0}, as configured in the LocalServiceModule parameter of the [EstateDataStore] config section.", 
-                        module));
+            if (LoadEstateDataService)
+            {
+                m_estateDataService = ServerUtils.LoadPlugin<IEstateDataService>(module, new object[] { Config });
+                if (m_estateDataService == null)
+                    throw new Exception(
+                        string.Format(
+                            "Could not load an IEstateDataService implementation from {0}, as configured in the LocalServiceModule parameter of the [EstateDataStore] config section.", 
+                            module));
+            }
 
             base.StartupSpecific();
 
-            LoadPlugins();
+            if (EnableInitialPluginLoad)
+                LoadPlugins();
+
+            // We still want to post initalize any plugins even if loading has been disabled since a test may have
+            // inserted them manually.
             foreach (IApplicationPlugin plugin in m_plugins)
-            {
                 plugin.PostInitialise();
-            }
 
             if (m_console != null)
                 AddPluginCommands(m_console);
@@ -874,6 +895,9 @@ namespace OpenSim
             try
             {
                 SceneManager.Close();
+
+                foreach (IApplicationPlugin plugin in m_plugins)
+                    plugin.Dispose();
             }
             catch (Exception e)
             {
