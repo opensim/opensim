@@ -43,7 +43,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 {
     public class SharedRegionModuleTests : OpenSimTestCase
     {
-        [Test]
+//        [Test]
         public void TestLifecycle()
         {
             TestHelpers.InMethod();
