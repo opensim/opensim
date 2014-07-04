@@ -821,7 +821,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.Id0 = currentAgentCircuit.Id0;
             }
 
+<<<<<<< HEAD
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+=======
+            // if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            float dist = (float)Math.Max(sp.Scene.DefaultDrawDistance,
+                (float)Math.Max(sp.Scene.RegionInfo.RegionSizeX, sp.Scene.RegionInfo.RegionSizeY));
+            if (NeedsNewAgent(dist, oldRegionX, newRegionX, oldRegionY, newRegionY))
+>>>>>>> d99c8e6... It turns out that child agent management has had a bug for a while: there was an inconsistency in the scope between opening and closing child agents in neighboring regions. For opening (in EnableChildAgents), the region's DrawDistance was being used; for closing (in IsOUtsideView) , the viewer's (SP) DrawDistance was being used. This fixes this inconsistency, therefore eliminating bugs observed in TPs between, at least, neighboring varregions.
             {
                 // brand new agent, let's create a new caps seed
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
@@ -895,7 +902,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             IClientIPEndpoint ipepClient;
             string capsPath = String.Empty;
+<<<<<<< HEAD
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+=======
+            float dist = (float)Math.Max(sp.Scene.DefaultDrawDistance,
+                (float)Math.Max(sp.Scene.RegionInfo.RegionSizeX, sp.Scene.RegionInfo.RegionSizeY));
+            if (NeedsNewAgent(dist, oldRegionX, newRegionX, oldRegionY, newRegionY))
+>>>>>>> d99c8e6... It turns out that child agent management has had a bug for a while: there was an inconsistency in the scope between opening and closing child agents in neighboring regions. For opening (in EnableChildAgents), the region's DrawDistance was being used; for closing (in IsOUtsideView) , the viewer's (SP) DrawDistance was being used. This fixes this inconsistency, therefore eliminating bugs observed in TPs between, at least, neighboring varregions.
             {
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for incoming agent {3} from {4}",
@@ -1141,7 +1154,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             IClientIPEndpoint ipepClient;
             string capsPath = String.Empty;
+<<<<<<< HEAD
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+=======
+            float dist = (float)Math.Max(sp.Scene.DefaultDrawDistance, 
+                (float)Math.Max(sp.Scene.RegionInfo.RegionSizeX, sp.Scene.RegionInfo.RegionSizeY));
+            if (NeedsNewAgent(dist, oldRegionX, newRegionX, oldRegionY, newRegionY))
+>>>>>>> d99c8e6... It turns out that child agent management has had a bug for a while: there was an inconsistency in the scope between opening and closing child agents in neighboring regions. For opening (in EnableChildAgents), the region's DrawDistance was being used; for closing (in IsOUtsideView) , the viewer's (SP) DrawDistance was being used. This fixes this inconsistency, therefore eliminating bugs observed in TPs between, at least, neighboring varregions.
             {
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for agent {3} from {4}",
