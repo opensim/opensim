@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             base.AddRegion(scene);
             m_assMapper = new HGAssetMapper(scene, m_HomeURI);
-            scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
+            scene.EventManager.OnNewInventoryItemUploadComplete += PostInventoryAsset;
             scene.EventManager.OnTeleportStart += TeleportStart;
             scene.EventManager.OnTeleportFail += TeleportFail;
 
@@ -209,7 +209,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
         }
 
-        public void UploadInventoryItem(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel)
+        public void PostInventoryAsset(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel)
         {
             if (type == AssetType.Link)
                 return;
@@ -248,7 +248,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             UUID newAssetID = base.CapsUpdateInventoryItemAsset(remoteClient, itemID, data);
 
-            UploadInventoryItem(remoteClient.AgentId, AssetType.Unknown, newAssetID, "", 0);
+            PostInventoryAsset(remoteClient.AgentId, AssetType.Unknown, newAssetID, "", 0);
 
             return newAssetID;
         }
@@ -260,7 +260,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (base.UpdateInventoryItemAsset(ownerID, item, asset))
             {
-                UploadInventoryItem(ownerID, (AssetType)asset.Type, asset.FullID, asset.Name, 0);
+                PostInventoryAsset(ownerID, (AssetType)asset.Type, asset.FullID, asset.Name, 0);
                 return true;
             }
 
@@ -273,7 +273,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override void ExportAsset(UUID agentID, UUID assetID)
         {
             if (!assetID.Equals(UUID.Zero))
-                UploadInventoryItem(agentID, AssetType.Unknown, assetID, "", 0);
+                PostInventoryAsset(agentID, AssetType.Unknown, assetID, "", 0);
             else
                 m_log.Debug("[HGScene]: Scene.Inventory did not create asset");
         }
