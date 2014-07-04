@@ -1867,6 +1867,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //foreach (ulong h in agent.ChildrenCapSeeds.Keys)
             //    m_log.DebugFormat("[XXX] --> {0}", h);
             //m_log.DebugFormat("[XXX] Adding {0}", region.RegionHandle);
+            if (agent.ChildrenCapSeeds.ContainsKey(region.RegionHandle))
+                agent.ChildrenCapSeeds.Remove(region.RegionHandle);
             agent.ChildrenCapSeeds.Add(region.RegionHandle, agent.CapsPath);
 
             if (sp.Scene.CapsModule != null)
