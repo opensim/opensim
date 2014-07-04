@@ -424,8 +424,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 ourClient.SendAlertMessage("Unable to create inventory item");
 
             m_transactions.RemoveXferUploader(m_transactionID);
-
-            m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(ourClient.AgentId, (AssetType)type, m_asset.FullID, m_asset.Name, 0);
         }
 
     }
