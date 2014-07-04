@@ -560,7 +560,10 @@ namespace OpenSim.Region.ClientStack.Linden
                             if (m_Scene.InventoryService.AddFolder(textureUploadFolder))
                             {
                                 foldersToUpdate.Add(textureUploadFolder);
-                                m_log.DebugFormat("Created new folder '{0}' ({1}) for textures uploaded with mesh object {2}", textureUploadFolder.Name, textureUploadFolder.ID, assetName);
+
+                                m_log.DebugFormat(
+                                    "[BUNCH OF CAPS]: Created new folder '{0}' ({1}) for textures uploaded with mesh object {2}", 
+                                    textureUploadFolder.Name, textureUploadFolder.ID, assetName);
                             }
                             else
                             {
@@ -599,7 +602,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         textureItem.CreationDate = Util.UnixTimeSinceEpoch();
                         m_Scene.InventoryService.AddItem(textureItem);
                         itemsToUpdate.Add(textureItem);
-                        m_log.DebugFormat("Created new inventory item '{0}' ({1}) for texture uploaded with mesh object {2}", textureItem.Name, textureItem.ID, assetName);
+
+                        m_log.DebugFormat(
+                            "[BUNCH OF CAPS]: Created new inventory item '{0}' ({1}) for texture uploaded with mesh object {2}", 
+                            textureItem.Name, textureItem.ID, assetName);
                     }
                 }
 
