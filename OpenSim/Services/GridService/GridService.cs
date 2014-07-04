@@ -615,7 +615,6 @@ namespace OpenSim.Services.GridService
             OutputRegionsToConsoleSummary(regions);
         }
 
-
         private void HandleShowRegion(string module, string[] cmd)
         {
             if (cmd.Length != 4)
@@ -674,7 +673,8 @@ namespace OpenSim.Services.GridService
             ConsoleDisplayList dispList = new ConsoleDisplayList();
             dispList.AddRow("Region Name", r.RegionName);
             dispList.AddRow("Region ID", r.RegionID);
-            dispList.AddRow("Location", string.Format("{0},{1}", r.coordX, r.coordY));
+            dispList.AddRow("Position", string.Format("{0},{1}", r.coordX, r.coordY));
+            dispList.AddRow("Size", string.Format("{0}x{1}", r.sizeX, r.sizeY));
             dispList.AddRow("URI", r.Data["serverURI"]);
             dispList.AddRow("Owner ID", r.Data["owner_uuid"]);
             dispList.AddRow("Flags", flags);
@@ -691,10 +691,10 @@ namespace OpenSim.Services.GridService
         private void OutputRegionsToConsoleSummary(List<RegionData> regions)
         {
             ConsoleDisplayTable dispTable = new ConsoleDisplayTable();
-            dispTable.AddColumn("Name", 16);
+            dispTable.AddColumn("Name", 44);
             dispTable.AddColumn("ID", 36);
             dispTable.AddColumn("Position", 11);
-            dispTable.AddColumn("Owner ID", 36);
+            dispTable.AddColumn("Size", 11);
             dispTable.AddColumn("Flags", 60);
 
             foreach (RegionData r in regions)
@@ -704,7 +704,7 @@ namespace OpenSim.Services.GridService
                     r.RegionName,
                     r.RegionID.ToString(),
                     string.Format("{0},{1}", r.coordX, r.coordY),
-                    r.Data["owner_uuid"].ToString(),
+                    string.Format("{0}x{1}", r.sizeX, r.sizeY),
                     flags.ToString());
             }
 
