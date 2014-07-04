@@ -31,6 +31,7 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using PermissionMask = OpenSim.Framework.PermissionMask;
@@ -376,6 +377,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_Scene.AssetService.Store(m_asset);
 
             m_transactions.RemoveXferUploader(m_transactionID);
+
+            m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(ourClient.AgentId, (AssetType)type, m_asset.FullID, m_asset.Name, 0);
         }
 
         /// <summary>
@@ -421,6 +424,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 ourClient.SendAlertMessage("Unable to create inventory item");
 
             m_transactions.RemoveXferUploader(m_transactionID);
+
+            m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(ourClient.AgentId, (AssetType)type, m_asset.FullID, m_asset.Name, 0);
         }
+
     }
 }
