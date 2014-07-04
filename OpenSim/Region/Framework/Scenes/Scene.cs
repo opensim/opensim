@@ -3219,10 +3219,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 return;
             }
-            else
-            {
-                m_authenticateHandler.RemoveCircuit(agentID);
-            }
 
             // TODO: Can we now remove this lock?
             lock (acd)
@@ -3238,7 +3234,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.ErrorFormat(
                         "[SCENE]: Called RemoveClient() with agent ID {0} but no such presence is in the scene.", agentID);
-    
+                    m_authenticateHandler.RemoveCircuit(agentID);
+
                     return;
                 }
 
@@ -3315,6 +3312,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // Always clean these structures up so that any failure above doesn't cause them to remain in the
                         // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
                         // the same cleanup exception continually.
+                        m_authenticateHandler.RemoveCircuit(agentID);
                         m_sceneGraph.RemoveScenePresence(agentID);
                         m_clientManager.Remove(agentID);
         
