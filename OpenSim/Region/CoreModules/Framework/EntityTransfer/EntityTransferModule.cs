@@ -1874,8 +1874,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //    m_log.DebugFormat("[XXX] --> {0}", h);
             //m_log.DebugFormat("[XXX] Adding {0}", region.RegionHandle);
             if (agent.ChildrenCapSeeds.ContainsKey(region.RegionHandle))
-                agent.ChildrenCapSeeds.Remove(region.RegionHandle);
-            agent.ChildrenCapSeeds.Add(region.RegionHandle, agent.CapsPath);
+            {
+                m_log.WarnFormat(
+                    "[ENTITY TRANSFER]: Overwriting caps seed {0} with {1} for region {2} (handle {3}) for {4} in {5}", 
+                    agent.ChildrenCapSeeds[region.RegionHandle], agent.CapsPath, 
+                    region.RegionName, region.RegionHandle, sp.Name, Scene.Name);
+            }
+
+            agent.ChildrenCapSeeds[region.RegionHandle] = agent.CapsPath;
 
             if (sp.Scene.CapsModule != null)
             {

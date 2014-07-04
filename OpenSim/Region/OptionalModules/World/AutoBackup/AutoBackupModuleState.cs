@@ -49,6 +49,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             this.Timer = null;
             this.NamingType = NamingType.Time;
             this.Script = null;
+            this.KeepFilesForDays = 0;
         }
 
         public Dictionary<Guid, string> LiveRequests
@@ -111,6 +112,12 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         }
 
         public NamingType NamingType
+        {
+            get;
+            set;
+        }
+
+        public int KeepFilesForDays
         {
             get;
             set;
