@@ -1069,18 +1069,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override void OtherRegionUp(GridRegion otherRegion)
         {
-            uint xcell = Util.WorldToRegionLoc((uint)otherRegion.RegionLocX);
-            uint ycell = Util.WorldToRegionLoc((uint)otherRegion.RegionLocY);
-
-            //m_log.InfoFormat("[SCENE]: (on region {0}): Region {1} up in coords {2}-{3}", 
-            //    RegionInfo.RegionName, otherRegion.RegionName, xcell, ycell);
-
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-                // If these are cast to INT because long + negative values + abs returns invalid data
-                int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
-                int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
-                if (resultX <= 1 && resultY <= 1)
+                //// If these are cast to INT because long + negative values + abs returns invalid data
+                //int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
+                //int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
+                //if (resultX <= 1 && resultY <= 1)
+                float dist = (float)Math.Max(DefaultDrawDistance,
+                             (float)Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY));
+                uint newRegionX, newRegionY, thisRegionX, thisRegionY;
+                Util.RegionHandleToRegionLoc(otherRegion.RegionHandle, out newRegionX, out newRegionY);
+                Util.RegionHandleToRegionLoc(RegionInfo.RegionHandle, out thisRegionX, out thisRegionY);
+
+                //m_log.InfoFormat("[SCENE]: (on region {0}): Region {1} up in coords {2}-{3}",
+                //    RegionInfo.RegionName, otherRegion.RegionName, newRegionX, newRegionY);
+
+                if (!Util.IsOutsideView(dist, thisRegionX, newRegionX, thisRegionY, newRegionY))
                 {
                     // Let the grid service module know, so this can be cached
                     m_eventManager.TriggerOnRegionUp(otherRegion);
