@@ -822,7 +822,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
-            if (NeedsNewAgent(sp.Scene.DefaultDrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            float dist = (float)Math.Max(sp.Scene.DefaultDrawDistance,
+                (float)Math.Max(sp.Scene.RegionInfo.RegionSizeX, sp.Scene.RegionInfo.RegionSizeY));
+            if (NeedsNewAgent(dist, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
                 // brand new agent, let's create a new caps seed
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
@@ -896,7 +898,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             IClientIPEndpoint ipepClient;
             string capsPath = String.Empty;
-            if (NeedsNewAgent(sp.Scene.DefaultDrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            float dist = (float)Math.Max(sp.Scene.DefaultDrawDistance,
+                (float)Math.Max(sp.Scene.RegionInfo.RegionSizeX, sp.Scene.RegionInfo.RegionSizeY));
+            if (NeedsNewAgent(dist, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for incoming agent {3} from {4}",
@@ -1142,7 +1146,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             IClientIPEndpoint ipepClient;
             string capsPath = String.Empty;
-            if (NeedsNewAgent(sp.Scene.DefaultDrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            float dist = (float)Math.Max(sp.Scene.DefaultDrawDistance, 
+                (float)Math.Max(sp.Scene.RegionInfo.RegionSizeX, sp.Scene.RegionInfo.RegionSizeY));
+            if (NeedsNewAgent(dist, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for agent {3} from {4}",
