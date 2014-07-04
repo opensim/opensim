@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Maximum value of the size of a physical prim in each axis
         /// </summary>
-        public float m_maxPhys = 10;
+        public float m_maxPhys = 64;
 
         /// <summary>
         /// Max prims an object will hold
@@ -201,7 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool m_clampPrimSize;
         public bool m_trustBinaries;
-        public bool m_allowScriptCrossings;
+        public bool m_allowScriptCrossings = true;
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
@@ -1894,6 +1894,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 RegionInfo.RegionID,
                                 RegionInfo.RegionLocX, RegionInfo.RegionLocY,
                                 RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+
             if (error != String.Empty)
                 throw new Exception(error);
         }

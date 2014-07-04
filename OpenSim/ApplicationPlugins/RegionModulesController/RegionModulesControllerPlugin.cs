@@ -32,6 +32,7 @@ using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenSim;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -44,6 +45,12 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Controls whether we load modules from Mono.Addins.
+        /// </summary>
+        /// <remarks>For debug purposes.  Defaults to true.</remarks>
+        public bool LoadModulesFromAddins { get; set; }
 
         // Config access
         private OpenSimBase m_openSim;
@@ -61,6 +68,11 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         private List<ISharedRegionModule> m_sharedInstances =
                 new List<ISharedRegionModule>();
 
+        public RegionModulesControllerPlugin()
+        {
+            LoadModulesFromAddins = true;
+        }
+
 #region IApplicationPlugin implementation
         
         public void Initialise (OpenSimBase openSim)
@@ -68,6 +80,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             m_openSim = openSim;
             m_openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
             m_log.DebugFormat("[REGIONMODULES]: Initializing...");
+
+            if (!LoadModulesFromAddins)
+                return;
 
             // Who we are
             string id = AddinManager.CurrentAddin.Id;
@@ -88,40 +103,8 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             Dictionary<RuntimeAddin, IList<int>> loadedModules = new Dictionary<RuntimeAddin, IList<int>>();
 
             // Scan modules and load all that aren't disabled
-            foreach (TypeExtensionNode node in
-                    AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
-            {
-                IList<int> loadedModuleData;
-
-                if (!loadedModules.ContainsKey(node.Addin))
-                    loadedModules.Add(node.Addin, new List<int> { 0, 0, 0 });
-
-                loadedModuleData = loadedModules[node.Addin];
-                      
-                if (node.Type.GetInterface(typeof(ISharedRegionModule).ToString()) != null)
-                {
-                    if (CheckModuleEnabled(node, modulesConfig))
-                    {
-                        m_log.DebugFormat("[REGIONMODULES]: Found shared region module {0}, class {1}", node.Id, node.Type);
-                        m_sharedModules.Add(node);
-                        loadedModuleData[0]++;
-                    }
-                }
-                else if (node.Type.GetInterface(typeof(INonSharedRegionModule).ToString()) != null)
-                {
-                    if (CheckModuleEnabled(node, modulesConfig))
-                    {
-                        m_log.DebugFormat("[REGIONMODULES]: Found non-shared region module {0}, class {1}", node.Id, node.Type);
-                        m_nonSharedModules.Add(node);
-                        loadedModuleData[1]++;
-                    }
-                }
-                else
-                {
-                    m_log.WarnFormat("[REGIONMODULES]: Found unknown type of module {0}, class {1}", node.Id, node.Type);
-                    loadedModuleData[2]++;
-                }
-            }
+            foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
+                AddNode(node, modulesConfig, loadedModules);
 
             foreach (KeyValuePair<RuntimeAddin, IList<int>> loadedModuleData in loadedModules)
             {
@@ -194,6 +177,41 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
 #region IPlugin implementation
 
+        private void AddNode(
+            TypeExtensionNode node, IConfig modulesConfig, Dictionary<RuntimeAddin, IList<int>> loadedModules)
+        {
+            IList<int> loadedModuleData;
+
+            if (!loadedModules.ContainsKey(node.Addin))
+                loadedModules.Add(node.Addin, new List<int> { 0, 0, 0 });
+
+            loadedModuleData = loadedModules[node.Addin];
+
+            if (node.Type.GetInterface(typeof(ISharedRegionModule).ToString()) != null)
+            {
+                if (CheckModuleEnabled(node, modulesConfig))
+                {
+                    m_log.DebugFormat("[REGIONMODULES]: Found shared region module {0}, class {1}", node.Id, node.Type);
+                    m_sharedModules.Add(node);
+                    loadedModuleData[0]++;
+                }
+            }
+            else if (node.Type.GetInterface(typeof(INonSharedRegionModule).ToString()) != null)
+            {
+                if (CheckModuleEnabled(node, modulesConfig))
+                {
+                    m_log.DebugFormat("[REGIONMODULES]: Found non-shared region module {0}, class {1}", node.Id, node.Type);
+                    m_nonSharedModules.Add(node);
+                    loadedModuleData[1]++;
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("[REGIONMODULES]: Found unknown type of module {0}, class {1}", node.Id, node.Type);
+                loadedModuleData[2]++;
+            }
+        }
+
         // We don't do that here
         //
         public void Initialise ()
@@ -215,6 +233,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 m_sharedInstances[0].Close();
                 m_sharedInstances.RemoveAt(0);
             }
+
             m_sharedModules.Clear();
             m_nonSharedModules.Clear();
         }

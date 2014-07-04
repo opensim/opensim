@@ -138,6 +138,7 @@ public static class BSParam
     public static float AvatarHeightHighFudge { get; private set; }
     public static float AvatarFlyingGroundMargin { get; private set; }
     public static float AvatarFlyingGroundUpForce { get; private set; }
+    public static float AvatarTerminalVelocity { get; private set; }
 	public static float AvatarContactProcessingThreshold { get; private set; }
     public static float AvatarStopZeroThreshold { get; private set; }
 	public static int AvatarJumpFrames { get; private set; }
@@ -589,6 +590,8 @@ public static class BSParam
             5f ),
         new ParameterDefn<float>("AvatarFlyingGroundUpForce", "Upward force applied to the avatar to keep it at flying ground margin",
             2.0f ),
+        new ParameterDefn<float>("AvatarTerminalVelocity", "Terminal Velocity of falling avatar",
+            -54.0f ),
 	    new ParameterDefn<float>("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions",
             0.1f ),
 	    new ParameterDefn<float>("AvatarStopZeroThreshold", "Movement velocity below which avatar is assumed to be stopped",
