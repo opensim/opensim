@@ -943,6 +943,7 @@ namespace OpenSim
                     cdt.AddColumn("Name", ConsoleDisplayUtil.RegionNameSize);
                     cdt.AddColumn("ID", ConsoleDisplayUtil.UuidSize);
                     cdt.AddColumn("Position", ConsoleDisplayUtil.CoordTupleSize);
+                    cdt.AddColumn("Size", 11);
                     cdt.AddColumn("Port", ConsoleDisplayUtil.PortSize);
                     cdt.AddColumn("Ready?", 6);
                     cdt.AddColumn("Estate", ConsoleDisplayUtil.EstateNameSize);
@@ -951,8 +952,13 @@ namespace OpenSim
                         { 
                             RegionInfo ri = scene.RegionInfo; 
                             cdt.AddRow(
-                                ri.RegionName, ri.RegionID, string.Format("{0},{1}", ri.RegionLocX, ri.RegionLocY), 
-                                ri.InternalEndPoint.Port, scene.Ready ? "Yes" : "No", ri.EstateSettings.EstateName);
+                                ri.RegionName, 
+                                ri.RegionID, 
+                                string.Format("{0},{1}", ri.RegionLocX, ri.RegionLocY), 
+                                string.Format("{0}x{1}", ri.RegionSizeX, ri.RegionSizeY),
+                                ri.InternalEndPoint.Port, 
+                                scene.Ready ? "Yes" : "No", 
+                                ri.EstateSettings.EstateName);
                         }
                     );
 
