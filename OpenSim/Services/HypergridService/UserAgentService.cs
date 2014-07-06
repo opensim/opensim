@@ -574,6 +574,8 @@ namespace OpenSim.Services.HypergridService
                 info.Add("user_flags", (object)account.UserFlags);
                 info.Add("user_created", (object)account.Created);
                 info.Add("user_title", (object)account.UserTitle);
+                info.Add("user_firstname", (object)account.FirstName);
+                info.Add("user_lastname", (object)account.LastName);
                 info.Add("result", "success");
             }
 
