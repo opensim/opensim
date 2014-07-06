@@ -571,6 +571,12 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Leave blank or commented for no exceptions.
     ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
 
+	;; This variable controls what is exposed to profiles of local users
+	;; as seen from outside of this grid. Leave it uncommented for exposing
+	;; UserTitle, UserFlags and the creation date. Uncomment and change to False
+	;; to block this info from being exposed.
+	; ShowUserDetailsInHGProfile = True
+
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the inventory operations while in other grids.

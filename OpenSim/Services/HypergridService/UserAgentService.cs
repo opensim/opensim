@@ -75,6 +75,7 @@ namespace OpenSim.Services.HypergridService
         protected static string m_GridName;
 
         protected static int m_LevelOutsideContacts;
+        protected static bool m_ShowDetails;
 
         protected static bool m_BypassClientVerification;
 
@@ -128,6 +129,7 @@ namespace OpenSim.Services.HypergridService
                 m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountService, args);
 
                 m_LevelOutsideContacts = serverConfig.GetInt("LevelOutsideContacts", 0);
+                m_ShowDetails = serverConfig.GetBoolean("ShowUserDetailsInHGProfile", true);
 
                 LoadTripPermissionsFromConfig(serverConfig, "ForeignTripsAllowed");
                 LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_TripsAllowedExceptions);
@@ -571,12 +573,22 @@ namespace OpenSim.Services.HypergridService
 
             if (account != null)
             {
-                info.Add("user_flags", (object)account.UserFlags);
-                info.Add("user_created", (object)account.Created);
-                info.Add("user_title", (object)account.UserTitle);
-                info.Add("user_firstname", (object)account.FirstName);
-                info.Add("user_lastname", (object)account.LastName);
+                info.Add("user_firstname", account.FirstName);
+                info.Add("user_lastname", account.LastName);
                 info.Add("result", "success");
+
+                if (m_ShowDetails)
+                {
+                    info.Add("user_flags", account.UserFlags);
+                    info.Add("user_created", account.Created);
+                    info.Add("user_title", account.UserTitle);
+                }
+                else
+                {
+                    info.Add("user_flags", 0);
+                    info.Add("user_created", 0);
+                    info.Add("user_title", string.Empty);
+                }
             }
 
             return info;
