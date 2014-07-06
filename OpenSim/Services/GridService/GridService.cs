@@ -118,12 +118,19 @@ namespace OpenSim.Services.GridService
                             "For example, show region at 1000 1000",
                             HandleShowRegionAt);
 
-                    MainConsole.Instance.Commands.AddCommand("Regions", true,
-                            "set region flags",
-                            "set region flags <Region name> <flags>",
-                            "Set database flags for region",
+                    MainConsole.Instance.Commands.AddCommand("General", true,
+                            "show grid size",
+                            "show grid size",
+                            "Show the current grid size (excluding hyperlink references)",
                             String.Empty,
-                            HandleSetFlags);
+                            HandleShowGridSize);
+
+                    MainConsole.Instance.Commands.AddCommand("Regions", true,
+                             "set region flags",
+                             "set region flags <Region name> <flags>",
+                             "Set database flags for region",
+                             String.Empty,
+                             HandleSetFlags);
                 }
                 m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
@@ -618,6 +625,28 @@ namespace OpenSim.Services.GridService
             List<RegionData> regions = m_Database.Get(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue, UUID.Zero);
 
             OutputRegionsToConsoleSummary(regions);
+        }
+
+        private void HandleShowGridSize(string module, string[] cmd)
+        {
+            List<RegionData> regions = m_Database.Get(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue, UUID.Zero);
+
+            double size = 0;
+
+            foreach (RegionData region in regions)
+            {
+                int flags = Convert.ToInt32(region.Data["flags"]);
+
+                if ((flags & (int)Framework.RegionFlags.Hyperlink) == 0)
+                    size += region.sizeX * region.sizeY;
+            }
+
+            MainConsole.Instance.Output("This is a very rough approximation.");
+            MainConsole.Instance.Output("Although it will not count regions that are actually links to others over the Hypergrid, ");
+            MainConsole.Instance.Output("it will count regions that are inactive but were not deregistered from the grid service");
+            MainConsole.Instance.Output("(e.g. simulator crashed rather than shutting down cleanly).\n");
+
+            MainConsole.Instance.OutputFormat("Grid size: {0} km squared.", size / 1000000);
         }
 
         private void HandleShowRegion(string module, string[] cmd)
