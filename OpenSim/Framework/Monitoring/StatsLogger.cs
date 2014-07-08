@@ -70,18 +70,18 @@ namespace OpenSim.Framework.Monitoring
         {
             ICommandConsole con = MainConsole.Instance;
 
-            if (cmd.Length != 4)
+            if (cmd.Length != 3)
             {
-                con.Output("Usage: debug stats record start|stop");
+                con.Output("Usage: stats record start|stop");
                 return;
             }
 
-            if (cmd[3] == "start")
+            if (cmd[2] == "start")
             {
                 Start();
                 con.OutputFormat("Now recording all stats to file every {0}ms", m_statsLogIntervalMs);
             }
-            else if (cmd[3] == "stop")
+            else if (cmd[2] == "stop")
             {
                 Stop();
                 con.Output("Stopped recording stats to file.");
