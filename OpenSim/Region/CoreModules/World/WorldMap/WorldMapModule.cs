@@ -1029,7 +1029,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     block.X = (ushort)minX;
                     block.Y = (ushort)minY;
                     block.Access = (byte)SimAccess.Down; // means 'simulator is offline'
-                    // block.Access = (byte)SimAccess.NonExistant;
+                    // block.Access = (byte)SimAccess.NonExistent;
                     response.Add(block);
                 }
                 // The lower 16 bits are an unsigned int16
@@ -1438,7 +1438,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void GenerateMaptile()
         {
-            // Cannot create a map for a nonexistant heightmap
+            // Cannot create a map for a nonexistent heightmap
             if (m_scene.Heightmap == null)
                 return;
 

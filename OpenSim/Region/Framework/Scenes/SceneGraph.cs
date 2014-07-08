@@ -1906,7 +1906,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (original == null)
                 {
                     m_log.WarnFormat(
-                        "[SCENEGRAPH]: Attempt to duplicate nonexistant prim id {0} by {1}", originalPrimID, AgentID);
+                        "[SCENEGRAPH]: Attempt to duplicate nonexistent prim id {0} by {1}", originalPrimID, AgentID);
 
                     return null;
                 }
