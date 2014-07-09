@@ -921,7 +921,7 @@ namespace OpenSim
 
                             foreach (IRegionModuleBase module in scene.RegionModules.Values)
                             {
-                                if (module.GetType().GetInterface("ISharedRegionModule") != null)
+                                if (module.GetType().GetInterface("ISharedRegionModule") == null)
                                     nonSharedModules.Add(module);
                                 else
                                     sharedModules.Add(module);
