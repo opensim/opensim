@@ -382,16 +382,16 @@ namespace OpenSim.Framework.Communications
             if (auth != null)
                 auth.AddAuthorization(_request.Headers);
 
-            m_log.InfoFormat("[REST]: Request Length {0}", _request.ContentLength);
-            m_log.InfoFormat("[REST]: Sending Web Request {0}", buildUri());
+//            m_log.DebugFormat("[REST]: Request Length {0}", _request.ContentLength);
+//            m_log.DebugFormat("[REST]: Sending Web Request {0}", buildUri());
             src.Seek(0, SeekOrigin.Begin);
-            m_log.Info("[REST]: Seek is ok");
+//            m_log.Debug("[REST]: Seek is ok");
             Stream dst = _request.GetRequestStream();
-            m_log.Info("[REST]: GetRequestStream is ok");
+//            m_log.Debug("[REST]: GetRequestStream is ok");
 
             byte[] buf = new byte[1024];
             int length = src.Read(buf, 0, 1024);
-            m_log.Info("[REST]: First Read is ok");
+//            m_log.Debug("[REST]: First Read is ok");
             while (length > 0)
             {
                 dst.Write(buf, 0, length);
