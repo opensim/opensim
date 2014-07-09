@@ -222,6 +222,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (region == null)
             {
                 region = m_GridService.GetRegionByPosition(scopeID, x, y);
+                /*
                 if (region == null)
                 {
                     m_log.DebugFormat("{0} GetRegionByPosition. Region not found by grid service. Pos=<{1},{2}>",
@@ -232,6 +233,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     m_log.DebugFormat("{0} GetRegionByPosition. Requested region {1} from grid service. Pos=<{2},{3}>",
                                         LogHeader, region.RegionName, regionX, regionY);
                 }
+                */
             }
             return region;
         }

@@ -60,7 +60,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
     public class WorldMapModule : INonSharedRegionModule, IWorldMapModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+#pragma warning disable 414
         private static string LogHeader = "[WORLD MAP]";
+#pragma warning restore 414
 
         private static readonly string DEFAULT_WORLD_MAP_EXPORT_PATH = "exportmap.jpg";
         private static readonly UUID STOP_UUID = UUID.Random();
@@ -1048,8 +1050,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
                         (int)Util.RegionToWorldLoc((uint)(minX - 4)), (int)Util.RegionToWorldLoc((uint)(maxX + 4)),
                         (int)Util.RegionToWorldLoc((uint)(minY - 4)), (int)Util.RegionToWorldLoc((uint)(maxY + 4)) );
-            m_log.DebugFormat("{0} GetAndSendBlocks. min=<{1},{2}>, max=<{3},{4}>, cntFound={5}",
-                                        LogHeader, minX, minY, maxX, maxY, regions.Count);
+            //m_log.DebugFormat("{0} GetAndSendBlocks. min=<{1},{2}>, max=<{3},{4}>, cntFound={5}",
+            //                            LogHeader, minX, minY, maxX, maxY, regions.Count);
             foreach (GridRegion r in regions)
             {
                 // Version 2 viewers can handle the larger regions
