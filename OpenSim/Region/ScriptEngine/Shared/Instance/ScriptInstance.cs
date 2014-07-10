@@ -237,12 +237,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = Part.ParentGroup.AttachedAvatar;
             m_RegionID = Part.ParentGroup.Scene.RegionInfo.RegionID;
-
-            if (Engine.Config.GetString("ScriptStopStrategy", "abort") == "co-op")
-            {
-                m_coopTermination = true;
-                m_coopSleepHandle = new XEngineEventWaitHandle(false, EventResetMode.AutoReset);
-            }
         }
 
         /// <summary>
@@ -252,54 +246,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <param name='assembly'></param>
         /// <param name='stateSource'></param>
         /// <returns>false if load failed, true if suceeded</returns>
-        public bool Load(AppDomain dom, string assembly, StateSource stateSource)
+        public bool Load(AppDomain dom, Assembly scriptAssembly, StateSource stateSource)
         {
-            m_Assembly = assembly;
+            //m_Assembly = scriptAssembly.CodeBase;
+            m_Assembly = scriptAssembly.Location;
             m_stateSource = stateSource;
-
-            ApiManager am = new ApiManager();
-
-            foreach (string api in am.GetApis())
-            {
-                m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(Engine, Part, ScriptTask, m_coopSleepHandle);
-            }
     
             try
             {
                 object[] constructorParams;
-
-                Assembly scriptAssembly = dom.Load(Path.GetFileNameWithoutExtension(assembly));
                 Type scriptType = scriptAssembly.GetType("SecondLife.XEngineScript");
 
                 if (scriptType != null)
                 {
+                    m_coopTermination = true;
+                    m_coopSleepHandle = new XEngineEventWaitHandle(false, EventResetMode.AutoReset);
                     constructorParams = new object[] { m_coopSleepHandle };
-                }
-                else if (!m_coopTermination)
-                {
-                    scriptType = scriptAssembly.GetType("SecondLife.Script");
-                    constructorParams = null;
                 }
                 else
                 {
-                    m_log.ErrorFormat(
-                        "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  You must remove all existing {6}* script DLL files before using enabling co-op termination"
-                        + ", either by setting DeleteScriptsOnStartup = true in [XEngine] for one run"
-                        + " or by deleting these files manually.",
-                        ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, assembly);
-
-                    return false;
+                    m_coopTermination = false;
+                    scriptType = scriptAssembly.GetType("SecondLife.Script");
+                    constructorParams = null;
                 }
 
 //                m_log.DebugFormat(
 //                    "[SCRIPT INSTANCE]: Looking to load {0} from assembly {1} in {2}", 
-//                    scriptType.FullName, Path.GetFileNameWithoutExtension(assembly), Engine.World.Name);
+//                    scriptType.FullName, m_Assembly, Engine.World.Name);
 
                 if (dom != System.AppDomain.CurrentDomain)
                     m_Script 
                         = (IScript)dom.CreateInstanceAndUnwrap(
-                            Path.GetFileNameWithoutExtension(assembly),
+                            Path.GetFileNameWithoutExtension(m_Assembly),
                             scriptType.FullName,
                             false,
                             BindingFlags.Default,
@@ -327,9 +305,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 m_log.ErrorFormat(
                     "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Error loading assembly {6}.  Exception {7}{8}",
-                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, assembly, e.Message, e.StackTrace);
+                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, m_Assembly, e.Message, e.StackTrace);
 
                 return false;
+            }
+
+            ApiManager am = new ApiManager();
+
+            foreach (string api in am.GetApis())
+            {
+                m_Apis[api] = am.CreateApi(api);
+                m_Apis[api].Initialize(Engine, Part, ScriptTask, m_coopSleepHandle);
             }
 
             try
@@ -341,8 +327,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 //                // m_log.Debug("[Script] Script instance created");
 
-                Part.SetScriptEvents(ItemID,
-                                     (int)m_Script.GetStateEventFlags(State));
+                Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
             }
             catch (Exception e)
             {
@@ -355,8 +340,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             m_SaveState = true;
 
-            string savedState = Path.Combine(Path.GetDirectoryName(assembly),
-                    ItemID.ToString() + ".state");
+            string savedState = Path.Combine(Path.GetDirectoryName(m_Assembly), ItemID.ToString() + ".state");
+
             if (File.Exists(savedState))
             {
                 string xml = String.Empty;

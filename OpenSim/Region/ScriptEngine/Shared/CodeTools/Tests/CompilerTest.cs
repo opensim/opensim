@@ -67,8 +67,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         }
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             // Create a CSCodeProvider and CompilerParameters.
             m_CSCodeProvider = new CSharpCodeProvider();
             m_compilerParameters = new CompilerParameters();

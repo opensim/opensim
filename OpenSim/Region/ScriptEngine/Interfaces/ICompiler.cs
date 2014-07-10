@@ -34,7 +34,36 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public interface ICompiler
     {
-        void PerformScriptCompile(string source, string asset, UUID ownerID, out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap);
+        /// <summary>
+        /// Performs the script compile.
+        /// </summary>
+        /// <param name="Script"></param>
+        /// <param name="asset"></param>
+        /// <param name="ownerUUID"></param>
+        /// <param name="alwaysRecompile">
+        /// If set to true then always recompile the script, even if we have a DLL already cached.
+        /// </param>
+        /// <param name="assembly"></param>
+        /// <param name="linemap"></param>
+        void PerformScriptCompile(
+            string source, string asset, UUID ownerID, 
+            out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap);
+
+        /// <summary>
+        /// Performs the script compile.
+        /// </summary>
+        /// <param name="Script"></param>
+        /// <param name="asset"></param>
+        /// <param name="ownerUUID"></param>
+        /// <param name="alwaysRecompile">
+        /// If set to true then always recompile the script, even if we have a DLL already cached.
+        /// </param>
+        /// <param name="assembly"></param>
+        /// <param name="linemap"></param>
+        void PerformScriptCompile(
+            string source, string asset, UUID ownerID, bool alwaysRecompile,
+            out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap);
+
         string[] GetWarnings();
     }
 }

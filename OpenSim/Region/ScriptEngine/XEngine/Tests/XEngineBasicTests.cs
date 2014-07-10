@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
         public void TestCompileAndStartScript()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 //            UUID objectId = TestHelpers.ParseTail(0x100);

@@ -284,12 +284,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             return GetCompilerOutput(assetID.ToString());
         }
 
-        /// <summary>
-        /// Converts script from LSL to CS and calls CompileFromCSText
-        /// </summary>
-        /// <param name="Script">LSL script</param>
-        /// <returns>Filename to .dll assembly</returns>
-        public void PerformScriptCompile(string Script, string asset, UUID ownerUUID,
+        public void PerformScriptCompile(
+            string source, string asset, UUID ownerUUID,
+            out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
+        {
+            PerformScriptCompile(source, asset, ownerUUID, false, out assembly, out linemap);
+        }
+
+        public void PerformScriptCompile(
+            string source, string asset, UUID ownerUUID, bool alwaysRecompile,
             out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
 //            m_log.DebugFormat("[Compiler]: Compiling script\n{0}", Script);
@@ -303,9 +306,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             CheckOrCreateScriptsDirectory();
 
-            // Don't recompile if we already have it
+            // Don't recompile if we're not forced to and we already have it
             // Performing 3 file exists tests for every script can still be slow
-            if (File.Exists(assembly) && File.Exists(assembly + ".text") && File.Exists(assembly + ".map"))
+            if (!alwaysRecompile && File.Exists(assembly) && File.Exists(assembly + ".text") && File.Exists(assembly + ".map"))
             {
                 // If we have already read this linemap file, then it will be in our dictionary. 
                 // Don't build another copy of the dictionary (saves memory) and certainly
@@ -316,29 +319,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 return;
             }
 
-            if (Script == String.Empty)
-            {
+            if (source == String.Empty)
                 throw new Exception("Cannot find script assembly and no script text present");
-            }
 
             enumCompileType language = DefaultCompileLanguage;
 
-            if (Script.StartsWith("//c#", true, CultureInfo.InvariantCulture))
+            if (source.StartsWith("//c#", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.cs;
-            if (Script.StartsWith("//vb", true, CultureInfo.InvariantCulture))
+            if (source.StartsWith("//vb", true, CultureInfo.InvariantCulture))
             {
                 language = enumCompileType.vb;
                 // We need to remove //vb, it won't compile with that
 
-                Script = Script.Substring(4, Script.Length - 4);
+                source = source.Substring(4, source.Length - 4);
             }
-            if (Script.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
+            if (source.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.lsl;
 
-            if (Script.StartsWith("//js", true, CultureInfo.InvariantCulture))
+            if (source.StartsWith("//js", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.js;
 
-            if (Script.StartsWith("//yp", true, CultureInfo.InvariantCulture))
+            if (source.StartsWith("//yp", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.yp;
 
 //            m_log.DebugFormat("[Compiler]: Compile language is {0}", language);
@@ -359,13 +360,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 throw new Exception(errtext);
             }
 
-            string compileScript = Script;
+            string compileScript = source;
 
             if (language == enumCompileType.lsl)
             {
                 // Its LSL, convert it to C#
                 LSL_Converter = (ICodeConverter)new CSCodeGenerator(comms, m_insertCoopTerminationCalls);
-                compileScript = LSL_Converter.Convert(Script);
+                compileScript = LSL_Converter.Convert(source);
 
                 // copy converter warnings into our warnings.
                 foreach (string warning in LSL_Converter.GetWarnings())
