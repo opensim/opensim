@@ -568,7 +568,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     }
                                     else
                                     {
-                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
+                                        m_log.DebugFormat("[SCENE OBJECT]: Not crossing avatar {0} to {1} because it's already in transit", av.Name, val);
                                     }
                                 }
 
