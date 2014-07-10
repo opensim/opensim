@@ -120,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (in_startup)
             {
                 in_startup = false;
-                CreateScriptsDirectory();
+                CheckOrCreateScriptsDirectory();
                 
                 // First time we start? Delete old files
                 if (DeleteScriptsOnStartup)
@@ -189,13 +189,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
 
             // We now have an allow-list, a mapping list, and a default language
-
         }
 
         /// <summary>
-        /// Create the directory where compiled scripts are stored.
+        /// Create the directory where compiled scripts are stored if it does not already exist.
         /// </summary>
-        private void CreateScriptsDirectory()
+        private void CheckOrCreateScriptsDirectory()
         {
             if (!Directory.Exists(ScriptEnginesPath))
             {
@@ -302,28 +301,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             assembly = GetCompilerOutput(asset);
 
-            if (!Directory.Exists(ScriptEnginesPath))
-            {
-                try
-                {
-                    Directory.CreateDirectory(ScriptEnginesPath);
-                }
-                catch (Exception)
-                {
-                }
-            }
-
-            if (!Directory.Exists(Path.Combine(ScriptEnginesPath,
-                                               m_scriptEngine.World.RegionInfo.RegionID.ToString())))
-            {
-                try
-                {
-                    Directory.CreateDirectory(ScriptEnginesPath);
-                }
-                catch (Exception)
-                {
-                }
-            }
+            CheckOrCreateScriptsDirectory();
 
             // Don't recompile if we already have it
             // Performing 3 file exists tests for every script can still be slow
