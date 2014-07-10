@@ -392,7 +392,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStartScript));
 
             MainConsole.Instance.Commands.AddCommand(
-                "Scripts", false, "debug scripts log", "debug scripts log <item-id> <log-level>", "Extra debug logging for a script",
+                "Debug", false, "debug scripts log", "debug scripts log <item-id> <log-level>", "Extra debug logging for a particular script.",
                 "Activates or deactivates extra debug logging for the given script.\n"
                     + "Level == 0, deactivate extra debug logging.\n"
                     + "Level >= 1, log state changes.\n"
