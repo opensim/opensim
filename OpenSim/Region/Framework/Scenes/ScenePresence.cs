@@ -1691,109 +1691,122 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
                 client.Name, Scene.Name, AbsolutePosition);
 
-            // Make sure it's not a login agent. We don't want to wait for updates during login
-            if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+            bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);   // Get this ahead of time because IsInTransit modifies 'm_AgentControlFlags'
+
+            IsInTransit = true;
+            try
             {
-                // Let's wait until UpdateAgent (called by departing region) is done
-                if (!WaitForUpdateAgent(client))
-                    // The sending region never sent the UpdateAgent data, we have to refuse
+                // Make sure it's not a login agent. We don't want to wait for updates during login
+                if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+                {
+                    // Let's wait until UpdateAgent (called by departing region) is done
+                    if (!WaitForUpdateAgent(client))
+                        // The sending region never sent the UpdateAgent data, we have to refuse
+                        return;
+                }
+
+                Vector3 look = Velocity;
+
+                //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
+                if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
+                {
+                    look = new Vector3(0.99f, 0.042f, 0);
+                }
+
+                // Prevent teleporting to an underground location
+                // (may crash client otherwise)
+                //
+                Vector3 pos = AbsolutePosition;
+                float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
+                if (pos.Z < ground + 1.5f)
+                {
+                    pos.Z = ground + 1.5f;
+                    AbsolutePosition = pos;
+                }
+
+                if (!MakeRootAgent(AbsolutePosition, flying))
+                {
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Aborting CompleteMovement call for {0} in {1} as they are already root", 
+                        Name, Scene.Name);
+
                     return;
+                }
+
+                // Tell the client that we're totally ready
+                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+
+                // Remember in HandleUseCircuitCode, we delayed this to here
+                if (m_teleportFlags > 0)
+                    SendInitialDataToMe();
+
+    //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
+
+                if (!string.IsNullOrEmpty(m_callbackURI))
+                {
+                    // We cannot sleep here since this would hold up the inbound packet processing thread, as
+                    // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
+                    // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
+                    // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
+                    // region as the current region, meaning that a close sent before then will fail the teleport.
+    //                System.Threading.Thread.Sleep(2000);
+
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
+                        client.Name, client.AgentId, m_callbackURI);
+
+                    UUID originID;
+
+                    lock (m_originRegionIDAccessLock)
+                        originID = m_originRegionID;
+
+                    Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
+                    m_callbackURI = null;
+                }
+    //            else
+    //            {
+    //                m_log.DebugFormat(
+    //                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
+    //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
+    //            }
+
+                ValidateAndSendAppearanceAndAgentData();
+
+                // Create child agents in neighbouring regions
+                if (openChildAgents && !IsChildAgent)
+                {
+                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                    if (m_agentTransfer != null)
+                    {
+                        // Note: this call can take a while, because it notifies each of the simulator's neighbours.
+                        // It's important that we don't allow the avatar to cross regions meanwhile, as that will
+                        // cause serious errors. We've prevented that from happening by setting IsInTransit=true.
+                        m_agentTransfer.EnableChildAgents(this);
+                    }
+
+                    IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                    if (friendsModule != null)
+                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+
+                }
+
+                // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
+                // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
+                // This may be due to viewer code or it may be something we're not doing properly simulator side.
+                lock (m_attachments)
+                {
+                    foreach (SceneObjectGroup sog in m_attachments)
+                        sog.ScheduleGroupForFullUpdate();
+                }
+
+    //            m_log.DebugFormat(
+    //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
+    //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
             }
-
-            Vector3 look = Velocity;
-
-            //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
-            if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
+            finally
             {
-                look = new Vector3(0.99f, 0.042f, 0);
+                IsInTransit = false;
             }
-
-            // Prevent teleporting to an underground location
-            // (may crash client otherwise)
-            //
-            Vector3 pos = AbsolutePosition;
-            float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
-            if (pos.Z < ground + 1.5f)
-            {
-                pos.Z = ground + 1.5f;
-                AbsolutePosition = pos;
-            }
-
-            bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            if (!MakeRootAgent(AbsolutePosition, flying))
-            {
-                m_log.DebugFormat(
-                    "[SCENE PRESENCE]: Aborting CompleteMovement call for {0} in {1} as they are already root", 
-                    Name, Scene.Name);
-
-                return;
-            }
-
-            // Tell the client that we're totally ready
-            ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-
-            // Remember in HandleUseCircuitCode, we delayed this to here
-            if (m_teleportFlags > 0)
-                SendInitialDataToMe();
-
-//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
-
-            if (!string.IsNullOrEmpty(m_callbackURI))
-            {
-                // We cannot sleep here since this would hold up the inbound packet processing thread, as
-                // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
-                // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
-                // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
-                // region as the current region, meaning that a close sent before then will fail the teleport.
-//                System.Threading.Thread.Sleep(2000);
-
-                m_log.DebugFormat(
-                    "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
-                    client.Name, client.AgentId, m_callbackURI);
-
-                UUID originID;
-
-                lock (m_originRegionIDAccessLock)
-                    originID = m_originRegionID;
-
-                Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
-                m_callbackURI = null;
-            }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
-//                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
-//            }
-
-            ValidateAndSendAppearanceAndAgentData();
-
-            // Create child agents in neighbouring regions
-            if (openChildAgents && !IsChildAgent)
-            {
-                IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                if (m_agentTransfer != null)
-                    m_agentTransfer.EnableChildAgents(this);
-
-                IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-                if (friendsModule != null)
-                    friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
-
-            }
-
-            // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
-            // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
-            // This may be due to viewer code or it may be something we're not doing properly simulator side.
-            lock (m_attachments)
-            {
-                foreach (SceneObjectGroup sog in m_attachments)
-                    sog.ScheduleGroupForFullUpdate();
-            }
-
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
-//                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
-
         }
 
         /// <summary>
@@ -3587,65 +3600,50 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentID != 0 || PhysicsActor == null || ParentUUID != UUID.Zero)
                 return;
 
-            if (!IsInTransit)
+            if (IsInTransit)
+                return;
+
+            Vector3 pos2 = AbsolutePosition;
+            Vector3 origPosition = pos2;
+            Vector3 vel = Velocity;
+
+            // Compute the avatar position in the next physics tick.
+            // If the avatar will be crossing, we force the crossing to happen now
+            //     in the hope that this will make the avatar movement smoother when crossing.
+            float timeStep = 0.1f;
+            pos2.X = pos2.X + (vel.X * timeStep);
+            pos2.Y = pos2.Y + (vel.Y * timeStep);
+            pos2.Z = pos2.Z + (vel.Z * timeStep);
+
+            if (m_scene.PositionIsInCurrentRegion(pos2))
+                return;
+
+            m_log.DebugFormat("{0} CheckForBorderCrossing: position outside region. {1} in {2} at pos {3}", 
+                                    LogHeader, Name, Scene.Name, pos2);
+
+            // Disconnect from the current region
+            bool isFlying = Flying;
+            RemoveFromPhysicalScene();
+            // pos2 is the forcasted position so make that the 'current' position so the crossing
+            //    code will move us into the newly addressed region.
+            m_pos = pos2;
+            if (CrossToNewRegion())
             {
-                Vector3 pos2 = AbsolutePosition;
-                Vector3 origPosition = pos2;
-                Vector3 vel = Velocity;
-
-                // Compute the avatar position in the next physics tick.
-                // If the avatar will be crossing, we force the crossing to happen now
-                //     in the hope that this will make the avatar movement smoother when crossing.
-                float timeStep = 0.1f;
-                pos2.X = pos2.X + (vel.X * timeStep);
-                pos2.Y = pos2.Y + (vel.Y * timeStep);
-                pos2.Z = pos2.Z + (vel.Z * timeStep);
-
-                if (!IsInTransit)
+                AddToPhysicalScene(isFlying);
+            }
+            else
+            {
+                // Tried to make crossing happen but it failed.
+                if (m_requestedSitTargetUUID == UUID.Zero)
                 {
-                    if (!m_scene.PositionIsInCurrentRegion(pos2))
-                    {
-                        m_log.DebugFormat("{0} CheckForBorderCrossing: position outside region. {1} in {2} at pos {3}", 
-                                                LogHeader, Name, Scene.Name, pos2);
+                    m_log.DebugFormat("{0} CheckForBorderCrossing: Crossing failed. Restoring old position.", LogHeader);
 
-                        // Disconnect from the current region
-                        bool isFlying = Flying;
-                        RemoveFromPhysicalScene();
-                        // pos2 is the forcasted position so make that the 'current' position so the crossing
-                        //    code will move us into the newly addressed region.
-                        m_pos = pos2;
-                        if (CrossToNewRegion())
-                        {
-                            AddToPhysicalScene(isFlying);
-                        }
-                        else
-                        {
-                            // Tried to make crossing happen but it failed.
-                            if (m_requestedSitTargetUUID == UUID.Zero)
-                            {
-                                m_log.DebugFormat("{0} CheckForBorderCrossing: Crossing failed. Restoring old position.", LogHeader);
+                    Velocity = Vector3.Zero;
+                    AbsolutePosition = EnforceSanityOnPosition(origPosition);
 
-                                Velocity = Vector3.Zero;
-                                AbsolutePosition = EnforceSanityOnPosition(origPosition);
-
-                                AddToPhysicalScene(isFlying);
-                            }
-                        }
-                    }
+                    AddToPhysicalScene(isFlying);
                 }
-                else
-                {
-                    // This constant has been inferred from experimentation
-                    // I'm not sure what this value should be, so I tried a few values.
-                    timeStep = 0.04f;
-                    pos2 = AbsolutePosition;
-                    pos2.X = pos2.X + (vel.X * timeStep);
-                    pos2.Y = pos2.Y + (vel.Y * timeStep);
-                    // Don't touch the Z
-                    m_pos = pos2;
-                    m_log.DebugFormat("[SCENE PRESENCE]: In transit m_pos={0}", m_pos);
-                }
-            }   
+            }
         }
 
         // Given a position, make sure it is within the current region.
