@@ -58,9 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             lsl = 0,
             cs = 1,
-            vb = 2,
-            js = 3,
-            yp = 4
+            vb = 2
         }
 
         /// <summary>
@@ -131,8 +129,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             LanguageMapping.Add(enumCompileType.cs.ToString(), enumCompileType.cs);
             LanguageMapping.Add(enumCompileType.vb.ToString(), enumCompileType.vb);
             LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
-            LanguageMapping.Add(enumCompileType.js.ToString(), enumCompileType.js);
-            LanguageMapping.Add(enumCompileType.yp.ToString(), enumCompileType.yp);
 
             // Allowed compilers
             string allowComp = m_scriptEngine.Config.GetString("AllowedCompilers", "lsl");
@@ -336,12 +332,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (source.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.lsl;
 
-            if (source.StartsWith("//js", true, CultureInfo.InvariantCulture))
-                language = enumCompileType.js;
-
-            if (source.StartsWith("//yp", true, CultureInfo.InvariantCulture))
-                language = enumCompileType.yp;
-
 //            m_log.DebugFormat("[Compiler]: Compile language is {0}", language);
 
             if (!AllowedCompilers.ContainsKey(language.ToString()))
@@ -526,12 +516,6 @@ namespace SecondLife
                 Array.ForEach<string>(
                     m_scriptEngine.ScriptReferencedAssemblies, 
                     a => parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, a)));
-
-            if (lang == enumCompileType.yp)
-            {
-                parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
-                        "OpenSim.Region.ScriptEngine.Shared.YieldProlog.dll"));
-            }
 
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = assembly;

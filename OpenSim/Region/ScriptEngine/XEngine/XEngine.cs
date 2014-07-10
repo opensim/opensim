@@ -964,8 +964,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             if (restOfFirstLine.StartsWith("c#")
                                 || restOfFirstLine.StartsWith("vb")
                                 || restOfFirstLine.StartsWith("lsl")
-                                || restOfFirstLine.StartsWith("js")
-                                || restOfFirstLine.StartsWith("yp")
                                 || restOfFirstLine.Length == 0)
                                 warnRunningInXEngine = true;
 

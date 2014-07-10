@@ -271,7 +271,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
 
 //                m_log.DebugFormat(
-//                    "[SCRIPT INSTANCE]: Looking to load {0} from assembly {1} in {2}", 
+//                    "[SCRIP
 //                    scriptType.FullName, m_Assembly, Engine.World.Name);
 
                 if (dom != System.AppDomain.CurrentDomain)
