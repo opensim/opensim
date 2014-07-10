@@ -91,13 +91,17 @@ namespace OpenSim.Region.CoreModules.World
 
         public void AddRegion(Scene scene)
         {
-            if (!m_SceneList.Contains(scene))
-                m_SceneList.Add(scene);
+            lock (m_SceneList)
+            {
+                if (!m_SceneList.Contains(scene))
+                    m_SceneList.Add(scene);
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
-            m_SceneList.Remove(scene);
+            lock (m_SceneList)
+                m_SceneList.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
