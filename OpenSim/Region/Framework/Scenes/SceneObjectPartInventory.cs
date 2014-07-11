@@ -870,8 +870,8 @@ namespace OpenSim.Region.Framework.Scenes
                 int type = m_items[itemID].InvType;
                 if (type == 10) // Script
                 {
-                    m_part.RemoveScriptEvents(itemID);
-                    m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
+                    // route it through here, to handle script cleanup tasks
+                    RemoveScriptInstance(itemID, false);
                 }
                 m_items.Remove(itemID);
                 m_inventorySerial++;
