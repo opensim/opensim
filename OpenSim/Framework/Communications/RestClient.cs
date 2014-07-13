@@ -347,6 +347,10 @@ namespace OpenSim.Framework.Communications
                 if (auth != null)
                     auth.AddAuthorization(_request.Headers);
 
+                int reqnum = WebUtil.RequestNumber++;
+                if (WebUtil.DebugLevel >= 3)
+                    m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} REST {1} to {2}", reqnum, _request.Method, _request.RequestUri);
+
 //                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
                 try
                 {
@@ -393,6 +397,9 @@ namespace OpenSim.Framework.Communications
                     _resource.Seek(0, SeekOrigin.Begin);
                 }
 
+                if (WebUtil.DebugLevel >= 5)
+                    WebUtil.LogResponseDetail(reqnum, _resource);
+
                 return _resource;
             }
         }
@@ -409,16 +416,18 @@ namespace OpenSim.Framework.Communications
             if (auth != null)
                 auth.AddAuthorization(_request.Headers);
 
-//            m_log.DebugFormat("[REST]: Request Length {0}", _request.ContentLength);
-//            m_log.DebugFormat("[REST]: Sending Web Request {0}", buildUri());
             src.Seek(0, SeekOrigin.Begin);
-//            m_log.Debug("[REST]: Seek is ok");
+
+            int reqnum = WebUtil.RequestNumber++;
+            if (WebUtil.DebugLevel >= 3)
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} REST {1} to {2}", reqnum, _request.Method, _request.RequestUri);
+            if (WebUtil.DebugLevel >= 5)
+                WebUtil.LogOutgoingDetail(string.Format("SEND {0}: ", reqnum), src);
+
             Stream dst = _request.GetRequestStream();
-//            m_log.Debug("[REST]: GetRequestStream is ok");
 
             byte[] buf = new byte[1024];
             int length = src.Read(buf, 0, 1024);
-//            m_log.Debug("[REST]: First Read is ok");
             while (length > 0)
             {
                 dst.Write(buf, 0, length);
@@ -433,14 +442,29 @@ namespace OpenSim.Framework.Communications
             {
                 m_log.WarnFormat("[REST]: Request {0} {1} failed with status {2} and message {3}",
                                   RequestMethod, _request.RequestUri, e.Status, e.Message);
+                return null;
             }
             catch (Exception e)
             {
                 m_log.WarnFormat(
                     "[REST]: Request {0} {1} failed with exception {2} {3}",
                     RequestMethod, _request.RequestUri, e.Message, e.StackTrace);
+                return null;
             }
-        
+
+            if (WebUtil.DebugLevel >= 5)
+            {
+                using (Stream responseStream = _response.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(responseStream))
+                    {
+                        string responseStr = reader.ReadToEnd();
+                        WebUtil.LogResponseDetail(reqnum, responseStr);
+                    }
+                }
+            }
+
+            _response.Close();
 
 //            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
 
