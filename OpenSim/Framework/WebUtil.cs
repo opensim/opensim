@@ -69,7 +69,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Request number for diagnostic purposes.
         /// </summary>
-        public static int RequestNumber { get; internal set; }
+        public static int RequestNumber { get; set; }
 
         /// <summary>
         /// Control where OSD requests should be serialized per endpoint.
