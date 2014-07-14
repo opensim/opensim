@@ -135,7 +135,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
                     sr.ReadEndElement();
                 }
-                m_log.DebugFormat("[XBakes]: Ended reading");
+                m_log.DebugFormat("[XBakes]: read {0} textures for user {1}", ret.Count, id);
                 sr.Close();
                 s.Close();
 
@@ -186,6 +186,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 delegate
                 {
                     rc.Request(reqStream, m_Auth);
+                    m_log.DebugFormat("[XBakes]: stored {0} textures for user {1}", data.Length, agentId);
                 }
             );
         }
