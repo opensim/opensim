@@ -46,7 +46,7 @@ namespace OpenSim.Services.GridService
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
-        private string LogHeader = "[GRID SERVICE]";
+//        private string LogHeader = "[GRID SERVICE]";
 
         private bool m_DeleteOnUnregister = true;
         private static GridService m_RootInstance = null;
