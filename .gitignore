@@ -54,6 +54,7 @@ bin/Regions/*
 bin/UserAssets
 bin/assetcache
 bin/maptiles
+bin/bakes
 bin/estate_settings.xml
 bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini
