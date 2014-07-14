@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
                         string path = (m_logDirectory.Length > 0 ? m_logDirectory
                                     + System.IO.Path.DirectorySeparatorChar.ToString() : "")
                                 + String.Format("{0}{1}.log", LogFileHeader, now.ToString("yyyyMMddHHmmss"));
-                        m_logFile = new StreamWriter(File.Open(path, FileMode.Append, FileAccess.Write));
+                        m_logFile = new StreamWriter(File.Open(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
                     }
                     if (m_logFile != null)
                     {
