@@ -195,7 +195,9 @@ namespace OpenSim
 
                 m_securePermissionsLoading = startupConfig.GetBoolean("SecurePermissionsLoading", true);
 
-                string permissionModules = startupConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+                string permissionModules = Util.GetConfigVarFromSections<string>(Config, "permissionmodules",
+                    new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
+
                 m_permsModules = new List<string>(permissionModules.Split(','));
             }
 
@@ -392,29 +394,19 @@ namespace OpenSim
             }
             else m_log.Error("[REGIONMODULES]: The new RegionModulesController is missing...");
 
-            // XPTO: Fix this
-//            if (m_securePermissionsLoading)
-//            {
-//                foreach (string s in m_permsModules)
-//                {
-//                    if (!scene.RegionModules.ContainsKey(s))
-//                    {
-//                        bool found = false;
-//                        foreach (IRegionModule m in modules)
-//                        {
-//                            if (m.Name == s)
-//                            {
-//                                found = true;
-//                            }
-//                        }
-//                        if (!found)
-//                        {
-//                            m_log.Fatal("[MODULES]: Required module " + s + " not found.");
-//                            Environment.Exit(0);
-//                        }
-//                    }
-//                }
-//            }
+            if (m_securePermissionsLoading)
+            {
+                foreach (string s in m_permsModules)
+                {
+                    if (!scene.RegionModules.ContainsKey(s))
+                    {
+                        m_log.Fatal("[MODULES]: Required module " + s + " not found.");
+                        Environment.Exit(0);
+                    }
+                }
+
+                m_log.InfoFormat("[SCENE]: Secure permissions loading enabled, modules loaded: {0}", String.Join(" ", m_permsModules.ToArray()));
+            }
 
             scene.SetModuleInterfaces();
 // First Step of bootreport sequence

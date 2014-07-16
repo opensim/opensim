@@ -186,7 +186,6 @@ namespace OpenSim.Groups
         public UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, 
             bool allowPublish, bool maturePublish, UUID founderID, out string reason)
         {
-            m_log.DebugFormat("[Groups]: Creating group {0}", name);
             reason = string.Empty;
             if (m_UserManagement.IsLocalGridUser(RequestingAgentID))
                 return m_LocalGroupsConnector.CreateGroup(RequestingAgentID, name, charter, showInList, insigniaID, 
@@ -255,7 +254,10 @@ namespace OpenSim.Groups
         {
             string url = string.Empty, gname = string.Empty;
             if (IsLocal(GroupID, out url, out gname))
-                return m_LocalGroupsConnector.GetGroupMembers(AgentUUI(RequestingAgentID), GroupID);
+            {
+                string agentID = AgentUUI(RequestingAgentID);
+                return m_LocalGroupsConnector.GetGroupMembers(agentID, GroupID);
+            }
             else if (!string.IsNullOrEmpty(url))
             {
                 ExtendedGroupMembershipData membership = m_LocalGroupsConnector.GetAgentGroupMembership(RequestingAgentID, RequestingAgentID, GroupID);
@@ -397,17 +399,21 @@ namespace OpenSim.Groups
 
                     if (success)
                     {
+                        // Here we always return true. The user has been added to the local group,
+                        // independent of whether the remote operation succeeds or not
                         url = m_UserManagement.GetUserServerURL(uid, "GroupsServerURI");
                         if (url == string.Empty)
                         {
-                            reason = "User doesn't have a groups server";
-                            return false;
+                            reason = "You don't have an accessible groups server in your home world. You membership to this group in only within this grid.";
+                            return true;
                         }
 
                         GroupsServiceHGConnector c = GetConnector(url);
                         if (c != null)
-                            return c.CreateProxy(AgentUUI(RequestingAgentID), AgentID, token, GroupID, m_LocalGroupsServiceLocation, name, out reason);
+                            c.CreateProxy(AgentUUI(RequestingAgentID), AgentID, token, GroupID, m_LocalGroupsServiceLocation, name, out reason);
+                        return true;
                     }
+                    return false;
                 }
             }
             else if (m_UserManagement.IsLocalGridUser(uid)) // local user
@@ -544,7 +550,6 @@ namespace OpenSim.Groups
                     List<string> urls = new List<string>();
                     foreach (GroupMembersData m in members)
                     {
-                        UUID userID = UUID.Zero;
                         if (!m_UserManagement.IsLocalGridUser(m.AgentID))
                         {
                             string gURL = m_UserManagement.GetUserServerURL(m.AgentID, "GroupsServerURI");
@@ -590,28 +595,6 @@ namespace OpenSim.Groups
         public List<ExtendedGroupNoticeData> GetGroupNotices(string RequestingAgentID, UUID GroupID)
         {
             return m_LocalGroupsConnector.GetGroupNotices(AgentUUI(RequestingAgentID), GroupID);
-        }
-
-        public void ResetAgentGroupChatSessions(string agentID)
-        {
-        }
-
-        public bool hasAgentBeenInvitedToGroupChatSession(string agentID, UUID groupID)
-        {
-            return false;
-        }
-
-        public bool hasAgentDroppedGroupChatSession(string agentID, UUID groupID)
-        {
-            return false;
-        }
-
-        public void AgentDroppedFromGroupChatSession(string agentID, UUID groupID)
-        {
-        }
-
-        public void AgentInvitedToGroupChatSession(string agentID, UUID groupID)
-        {
         }
 
         #endregion
@@ -685,6 +668,9 @@ namespace OpenSim.Groups
         {
             serviceLocation = string.Empty;
             name = string.Empty;
+            if (groupID.Equals(UUID.Zero))
+                return true;
+
             ExtendedGroupRecord group = m_LocalGroupsConnector.GetGroupRecord(UUID.Zero.ToString(), groupID, string.Empty);
             if (group == null)
             {

@@ -591,6 +591,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 avinfo.ParentID = av.ParentID;
                                 avsToCross.Add(avinfo);
 
+                                av.PrevSitOffset = av.OffsetPosition;
                                 av.ParentID = 0;
                             }
 
@@ -1072,6 +1073,11 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
+                if (part.KeyframeMotion != null)
+                {
+                    part.KeyframeMotion.UpdateSceneObject(this);
+                }
+
                 if (Object.ReferenceEquals(part, m_rootPart))
                     continue;
 
@@ -1880,25 +1886,27 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart part = parts[i];
 
-                Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
+                if (Scene != null)
                 {
-                    if (avatar.ParentID == LocalId)
-                        avatar.StandUp();
-
-                    if (!silent)
+                    Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
                     {
-                        part.ClearUpdateSchedule();
-                        if (part == m_rootPart)
-                        {
-                            if (!IsAttachment
-                                || AttachedAvatar == avatar.ControllingClient.AgentId
-                                || !HasPrivateAttachmentPoint)
-                                avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
-                        }
-                    }
-                });
-            }
+                        if (avatar.ParentID == LocalId)
+                            avatar.StandUp();
 
+                        if (!silent)
+                        {
+                            part.ClearUpdateSchedule();
+                            if (part == m_rootPart)
+                            {
+                                if (!IsAttachment
+                                    || AttachedAvatar == avatar.ControllingClient.AgentId
+                                    || !HasPrivateAttachmentPoint)
+                                    avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         public void AddScriptLPS(int count)
@@ -3483,8 +3491,8 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ClonePermissions(RootPart);
             });
 
-            uint lockMask = ~(uint)PermissionMask.Move;
-            uint lockBit = RootPart.OwnerMask & (uint)PermissionMask.Move;
+            uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
+            uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
             RootPart.ScheduleFullUpdate();
         }

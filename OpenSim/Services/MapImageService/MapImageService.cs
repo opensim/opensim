@@ -112,9 +112,38 @@ namespace OpenSim.Services.MapImageService
                     reason = e.Message;
                     return false;
                 }
+            }
 
-                // Also save in png format?
+            return UpdateMultiResolutionFiles(x, y, out reason);
+        }
 
+        public bool RemoveMapTile(int x, int y, out string reason)
+        {
+            reason = String.Empty;
+            string fileName = GetFileName(1, x, y);
+
+            lock (m_Sync)
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to save delete file {0}: {1}", fileName, e);
+                    reason = e.Message;
+                    return false;
+                }
+            }
+
+            return UpdateMultiResolutionFiles(x, y, out reason);
+        }
+
+        private bool UpdateMultiResolutionFiles(int x, int y, out string reason)
+        {
+            reason = String.Empty;
+            lock (m_Sync)
+            {
                 // Stitch seven more aggregate tiles together
                 for (uint zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
                 {
@@ -126,7 +155,7 @@ namespace OpenSim.Services.MapImageService
 
                     if (!CreateTile(zoomLevel, x1, y1))
                     {
-                        m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0} at zoom level {1}", fileName, zoomLevel);
+                        m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
                         reason = string.Format("Map tile at zoom level {0} failed", zoomLevel);
                         return false;
                     }

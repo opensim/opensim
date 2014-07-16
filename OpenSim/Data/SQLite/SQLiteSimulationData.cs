@@ -732,9 +732,12 @@ namespace OpenSim.Data.SQLite
                             }
 
                             SceneObjectGroup group = new SceneObjectGroup(prim);
+                            
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
+
+                           
                         }
                     }
                     catch (Exception e)

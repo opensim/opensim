@@ -3109,8 +3109,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
+                string reason;
                 money.ObjectGiveMoney(
-                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero, out reason);
             });
 
             return 0;
@@ -7105,7 +7106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned, false))
             {
                 int expires = 0;
                 if (hours != 0)
@@ -10430,7 +10431,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // according to the docs, this command only works if script owner and land owner are the same
             // lets add estate owners and gods, too, and use the generic permission check.
             ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, landObject, GroupPowers.ChangeMedia)) return;
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, landObject, GroupPowers.ChangeMedia, false)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)?
             byte loop = 0;
@@ -10873,7 +10874,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned, false))
             {
                 int expires = 0;
                 if (hours != 0)
@@ -10914,7 +10915,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed, false))
             {
                 if (UUID.TryParse(avatar, out key))
                 {
@@ -10941,7 +10942,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned, false))
             {
                 if (UUID.TryParse(avatar, out key))
                 {
@@ -12784,8 +12785,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
+                    string reason;
                     bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn);
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn, out reason);
 
                     if (result)
                     {
@@ -12793,7 +12795,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    replydata = "LINDENDOLLAR_INSUFFICIENTFUNDS";
+                    replydata = reason;
                 }
                 finally
                 {

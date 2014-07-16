@@ -203,8 +203,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
         }
 
-        public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount, UUID txn)
+        public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount, UUID txn, out string result)
         {
+            result = String.Empty;
             string description = String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
 
             bool give_result = doMoneyTransfer(fromID, toID, amount, 2, description);

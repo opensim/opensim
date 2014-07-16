@@ -2233,9 +2233,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
-            m_activeGroupID = activegroupid;
-            m_activeGroupName = groupname;
-            m_activeGroupPowers = grouppowers;
+            if (agentid == AgentId)
+            {
+                m_activeGroupID = activegroupid;
+                m_activeGroupName = groupname;
+                m_activeGroupPowers = grouppowers;
+            }
 
             AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
             sendAgentDataUpdate.AgentData.ActiveGroupID = activegroupid;
@@ -3932,6 +3935,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         part.Shape.ProfileEnd = 0;
                         part.Shape.ProfileHollow = 27500;
                     }
+                }
+                else if (update.Entity is ScenePresence)
+                {
+                    ScenePresence presence = (ScenePresence)update.Entity;
+
+                    // If ParentUUID is not UUID.Zero and ParentID is 0, this
+                    // avatar is in the process of crossing regions while
+                    // sat on an object. In this state, we don't want any
+                    // updates because they will visually orbit the avatar.
+                    // Update will be forced once crossing is completed anyway.
+                    if (presence.ParentUUID != UUID.Zero && presence.ParentID == 0)
+                        continue;
                 }
 
                 ++updatesThisCall;

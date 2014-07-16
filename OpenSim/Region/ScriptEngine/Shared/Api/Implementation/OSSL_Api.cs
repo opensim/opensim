@@ -1434,7 +1434,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, startLandObject, GroupPowers.LandOptions))
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, startLandObject, GroupPowers.LandOptions, false))
             {
                 OSSLShoutError("You do not have permission to modify the parcel");
                 return;
