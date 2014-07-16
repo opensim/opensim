@@ -86,6 +86,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// </summary>
         private int m_StartDelay;
 
+        /// <summary>
+        /// Are we stopping scripts co-operatively by inserting checks in them at C# compile time (true) or aborting
+        /// their threads (false)?
+        /// </summary>
         private bool m_coopTermination;
 
         private int m_IdleTimeout;
@@ -242,7 +246,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_ScriptConfig = configSource.Configs["XEngine"];
             m_ConfigSource = configSource;
 
-            string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "abort");
+            string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "coop");
 
             m_log.InfoFormat("[XEngine]: Script stop strategy is {0}", rawScriptStopStrategy);
 
