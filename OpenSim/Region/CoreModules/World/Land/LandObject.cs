@@ -286,7 +286,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             // ParcelFlags.ForSaleObjects
             // ParcelFlags.LindenHome
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandOptions))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandOptions, false))
             {
                 allowedDelta |= (uint)(ParcelFlags.AllowLandmark |
                         ParcelFlags.AllowTerraform |
@@ -301,7 +301,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.AllowFly);
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandSetSale))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandSetSale, true))
             {
                 if (args.AuthBuyerID != newData.AuthBuyerID ||
                     args.SalePrice != newData.SalePrice)
@@ -324,7 +324,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 allowedDelta |= (uint)ParcelFlags.ForSale;
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.FindPlaces))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.FindPlaces, false))
             {
                 newData.Category = args.Category;
 
@@ -333,21 +333,21 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.MaturePublish) | (uint)(1 << 23);
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandChangeIdentity))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandChangeIdentity, false))
             {
                 newData.Description = args.Desc;
                 newData.Name = args.Name;
                 newData.SnapshotID = args.SnapshotID;
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.SetLandingPoint))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.SetLandingPoint, false))
             {
                 newData.LandingType = args.LandingType;
                 newData.UserLocation = args.UserLocation;
                 newData.UserLookAt = args.UserLookAt;
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.ChangeMedia))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.ChangeMedia, false))
             {
                 newData.MediaAutoScale = args.MediaAutoScale;
                 newData.MediaID = args.MediaID;
@@ -368,7 +368,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.UseEstateVoiceChan);
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
             {
                 newData.PassHours = args.PassHours;
                 newData.PassPrice = args.PassPrice;
@@ -376,25 +376,27 @@ namespace OpenSim.Region.CoreModules.World.Land
                 allowedDelta |= (uint)ParcelFlags.UsePassList;
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageAllowed))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageAllowed, false))
             {
                 allowedDelta |= (uint)(ParcelFlags.UseAccessGroup |
                         ParcelFlags.UseAccessList);
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageBanned))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageBanned, false))
             {
                 allowedDelta |= (uint)(ParcelFlags.UseBanList |
                         ParcelFlags.DenyAnonymous |
                         ParcelFlags.DenyAgeUnverified);
             }
 
-            uint preserve = LandData.Flags & ~allowedDelta;
-            newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
+            if (allowedDelta != (uint)ParcelFlags.None)
+            {
+                uint preserve = LandData.Flags & ~allowedDelta;
+                newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
 
-            m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-
-            SendLandUpdateToAvatarsOverMe(snap_selection);
+                m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
+                SendLandUpdateToAvatarsOverMe(snap_selection);
+            }
         }
 
         public void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
@@ -950,7 +952,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client)
         {
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandOptions))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandOptions, true))
             {
                 List<uint> resultLocalIDs = new List<uint>();
                 try
@@ -1000,7 +1002,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </param>
         public void SendLandObjectOwners(IClientAPI remote_client)
         {
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandOptions))
+            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandOptions, true))
             {
                 Dictionary<UUID, int> primCount = new Dictionary<UUID, int>();
                 List<UUID> groups = new List<UUID>();

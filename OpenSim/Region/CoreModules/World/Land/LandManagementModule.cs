@@ -565,7 +565,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     requiredPowers = GroupPowers.LandManageBanned;
 
                 if (m_scene.Permissions.CanEditParcelProperties(agentID,
-                        land, requiredPowers))
+                        land, requiredPowers, false))
                 {
                     land.UpdateAccessList(flags, transactionID, sequenceID,
                             sections, entries, remote_client);
@@ -927,7 +927,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             //If we are still here, then they are subdividing within one piece of land
             //Check owner
-            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin))
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin, true))
             {
                 return;
             }
@@ -996,7 +996,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return;
             }
-            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, masterLandObject, GroupPowers.LandDivideJoin))
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, masterLandObject, GroupPowers.LandDivideJoin, true))
             {
                 return;
             }
@@ -1727,7 +1727,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land == null) return;
 
-            if (!m_scene.Permissions.CanEditParcelProperties(remoteClient.AgentId, land, GroupPowers.LandOptions))
+            if (!m_scene.Permissions.CanEditParcelProperties(remoteClient.AgentId, land, GroupPowers.LandOptions, false))
                 return;
 
             land.LandData.OtherCleanTime = otherCleanTime;
@@ -1827,7 +1827,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (targetAvatar.UserLevel == 0)
             {
                 ILandObject land = ((Scene)client.Scene).LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
-                if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze))
+                if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze, true))
                     return;
                 if (flags == 0)
                 {
@@ -1876,7 +1876,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             // Check if you even have permission to do this
             ILandObject land = m_scene.LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
-            if (!m_scene.Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze) &&
+            if (!m_scene.Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze, true) &&
                 !m_scene.Permissions.IsAdministrator(client.AgentId))
                 return;
 

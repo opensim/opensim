@@ -1047,7 +1047,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericObjectPermission(editorID, objectID, false);
         }
 
-        private bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p, Scene scene)
+        private bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p, Scene scene, bool allowManager)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
