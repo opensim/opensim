@@ -233,7 +233,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 //            testLLUDPServer.RemoveClientCircuit(myCircuitCode);
 //            Assert.IsFalse(testLLUDPServer.HasCircuit(myCircuitCode));
 //            
-//            // Check that removing a non-existant circuit doesn't have any bad effects
+//            // Check that removing a non-existent circuit doesn't have any bad effects
 //            testLLUDPServer.RemoveClientCircuit(101);
 //            Assert.IsFalse(testLLUDPServer.HasCircuit(101));
 //        }

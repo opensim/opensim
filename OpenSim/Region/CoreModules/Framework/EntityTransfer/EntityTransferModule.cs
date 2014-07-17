@@ -1529,7 +1529,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             else
             {
                 // The destination region just doesn't exist
-                failureReason = "Cannot cross into non-existant region";
+                failureReason = "Cannot cross into non-existent region";
             }
 
             if (neighbourRegion == null)
