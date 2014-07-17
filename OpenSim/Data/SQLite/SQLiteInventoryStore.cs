@@ -239,7 +239,7 @@ namespace OpenSim.Data.SQLite
                 if (inventoryRow == null)
                 {
                     if (! add)
-                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory folder: {0}", folder.ID);
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existent inventory folder: {0}", folder.ID);
 
                     inventoryRow = inventoryFolderTable.NewRow();
                     fillFolderRow(inventoryRow, folder);
@@ -298,7 +298,7 @@ namespace OpenSim.Data.SQLite
                 if (inventoryRow == null)
                 {
                     if (!add)
-                        m_log.ErrorFormat("[INVENTORY DB]: Interface Misuse: Attempting to Update non-existant inventory item: {0}", item.ID);
+                        m_log.ErrorFormat("[INVENTORY DB]: Interface Misuse: Attempting to Update non-existent inventory item: {0}", item.ID);
 
                     inventoryRow = inventoryItemTable.NewRow();
                     fillItemRow(inventoryRow, item);

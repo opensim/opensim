@@ -465,13 +465,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_VALUE));
             }
 
-            // Test for non-existant path
+            // Test for non-existent path
             {
                 int result = (int)InvokeOp("JsonGetNodeType", storeId, "foo");
                 Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
             }
 
-            // Test for non-existant store
+            // Test for non-existent store
             {
                 UUID fakeStoreId = TestHelpers.ParseTail(0x500);
                 int result = (int)InvokeOp("JsonGetNodeType", fakeStoreId, ".");

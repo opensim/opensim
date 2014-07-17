@@ -858,7 +858,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return null;
                 else
                     throw new Exception(
-                        String.Format("{0} GetLandObject for non-existant position. Region={1}, pos=<{2},{3}",
+                        String.Format("{0} GetLandObject for non-existent position. Region={1}, pos=<{2},{3}",
                                                 LogHeader, m_scene.RegionInfo.RegionName, x, y)
                 );
             }
