@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             dispList.AddRow("Telehub UUID", rs.TelehubObject);
             dispList.AddRow("Terrain lower limit", string.Format("{0} m", rs.TerrainLowerLimit));
             dispList.AddRow("Terrain raise limit", string.Format("{0} m", rs.TerrainRaiseLimit));
-            dispList.AddRow("Water height", rs.WaterHeight);
+            dispList.AddRow("Water height", string.Format("{0} m", rs.WaterHeight));
 
             dispList.AddRow("Maptile static file", ri.MaptileStaticFile);
             dispList.AddRow("Maptile static UUID", ri.MaptileStaticUUID);
