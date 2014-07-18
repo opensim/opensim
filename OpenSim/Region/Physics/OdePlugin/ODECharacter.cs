@@ -500,7 +500,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_pidControllerActive = true;
 
-                m_tainted_CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
+                m_tainted_CAPSULE_LENGTH = (size.Z) - CAPSULE_RADIUS * 2.0f;
 //                    m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH);
             }
             else
