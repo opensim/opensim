@@ -520,6 +520,12 @@ namespace OpenSim.Framework
                 if (!m_attachments.ContainsKey(attach.AttachPoint))
                     m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
     
+                foreach (AvatarAttachment prev in m_attachments[attach.AttachPoint])
+                {
+                    if (prev.ItemID == attach.ItemID)
+                        return;
+                }
+
                 m_attachments[attach.AttachPoint].Add(attach);
             }
         }
