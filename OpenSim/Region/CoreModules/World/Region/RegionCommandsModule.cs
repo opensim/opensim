@@ -81,7 +81,13 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.Commands.AddCommand(
                 "Regions", false, "show scene",
                 "show scene",
-                "Show live scene information for the currently selected region.", HandleShowScene);
+                "Show live information for the currently selected scene (fps, prims, etc.).", HandleShowScene);
+
+            m_console.Commands.AddCommand(
+                "Regions", false, "show region",
+                "show scene",
+                "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                HandleShowRegion);
         }
 
         public void RemoveRegion(Scene scene)
@@ -92,6 +98,72 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[REGION COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+        }
+
+        private void HandleShowRegion(string module, string[] cmd)
+        {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
+            RegionInfo ri = m_scene.RegionInfo;
+            RegionSettings rs = ri.RegionSettings;
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Region information for {0}\n", m_scene.Name);
+
+            ConsoleDisplayList dispList = new ConsoleDisplayList();
+            dispList.AddRow("Region ID", ri.RegionID);
+            dispList.AddRow("Region handle", ri.RegionHandle);
+            dispList.AddRow("Region location", string.Format("{0},{1}", ri.RegionLocX, ri.RegionLocY));
+            dispList.AddRow("Region size", string.Format("{0}x{1}", ri.RegionSizeX, ri.RegionSizeY));
+            //dispList.AddRow("Region type", ri.RegionType);
+            dispList.AddRow("Maturity", rs.Maturity);
+            dispList.AddRow("Region address", ri.ServerURI);
+            dispList.AddRow("From region file", ri.RegionFile);
+            dispList.AddRow("External endpoint", ri.ExternalEndPoint);
+            dispList.AddRow("Internal endpoint", ri.InternalEndPoint);
+            dispList.AddRow("Access level", ri.AccessLevel);
+            dispList.AddRow("Max agent limit", ri.AgentCapacity);
+            dispList.AddRow("Current agent limit", rs.AgentLimit);
+            dispList.AddRow("Linkset capacity", ri.LinksetCapacity <= 0 ? "not set" : ri.LinksetCapacity.ToString());
+            dispList.AddRow("Prim capacity", ri.ObjectCapacity);
+            dispList.AddRow("Prim bonus", rs.ObjectBonus);
+            dispList.AddRow("Max prims per user", ri.MaxPrimsPerUser < 0 ? "n/a" : ri.MaxPrimsPerUser.ToString());
+            dispList.AddRow("Clamp prim size", ri.ClampPrimSize);
+            dispList.AddRow("Non physical prim min size", ri.NonphysPrimMin <= 0 ? "not set" : string.Format("{0} m", ri.NonphysPrimMin));
+            dispList.AddRow("Non physical prim max size", ri.NonphysPrimMax <= 0 ? "not set" : string.Format("{0} m", ri.NonphysPrimMax));
+            dispList.AddRow("Physical prim min size", ri.PhysPrimMin <= 0 ? "not set" : string.Format("{0} m", ri.PhysPrimMin));
+            dispList.AddRow("Physical prim max size", ri.PhysPrimMax <= 0 ? "not set" : string.Format("{0} m", ri.PhysPrimMax));
+
+            dispList.AddRow("Allow Damage", rs.AllowDamage);
+            dispList.AddRow("Allow Land join/divide", rs.AllowLandJoinDivide);
+            dispList.AddRow("Allow land resell", rs.AllowLandResell);
+            dispList.AddRow("Block fly", rs.BlockFly);
+            dispList.AddRow("Block show in search", rs.BlockShowInSearch);
+            dispList.AddRow("Block terraform", rs.BlockTerraform);
+            dispList.AddRow("Covenant UUID", rs.Covenant);
+            dispList.AddRow("Convenant change Unix time", rs.CovenantChangedDateTime);
+            dispList.AddRow("Disable collisions", rs.DisableCollisions);
+            dispList.AddRow("Disable physics", rs.DisablePhysics);
+            dispList.AddRow("Disable scripts", rs.DisableScripts);
+            dispList.AddRow("Restrict pushing", rs.RestrictPushing);
+            dispList.AddRow("Fixed sun", rs.FixedSun);
+            dispList.AddRow("Sun position", rs.SunPosition);
+            dispList.AddRow("Sun vector", rs.SunVector);
+            dispList.AddRow("Use estate sun", rs.UseEstateSun);
+            dispList.AddRow("Telehub UUID", rs.TelehubObject);
+            dispList.AddRow("Terrain lower limit", string.Format("{0} m", rs.TerrainLowerLimit));
+            dispList.AddRow("Terrain raise limit", string.Format("{0} m", rs.TerrainRaiseLimit));
+            dispList.AddRow("Water height", rs.WaterHeight);
+
+            dispList.AddRow("Maptile static file", ri.MaptileStaticFile);
+            dispList.AddRow("Maptile static UUID", ri.MaptileStaticUUID);
+            dispList.AddRow("Last map refresh", ri.lastMapRefresh);
+            dispList.AddRow("Last map UUID", ri.lastMapUUID);
+
+            dispList.AddToStringBuilder(sb);
+
+            MainConsole.Instance.Output(sb.ToString());
         }
 
         private void HandleShowScene(string module, string[] cmd)
