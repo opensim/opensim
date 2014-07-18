@@ -385,6 +385,16 @@ public sealed class BSLinksetCompound : BSLinkset
                     m_physicsScene.PE.AddChildShapeToCompoundShape(linksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
                     DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},cShape={2},offPos={3},offRot={4}",
                                 LinksetRoot.LocalID, cPrim.LinksetChildIndex, childShape, offsetPos, offsetRot);
+
+                    // Since we are borrowing the shape of the child, disable the origional child body
+                    if (!IsRoot(cPrim))
+                    {
+                        m_physicsScene.PE.AddToCollisionFlags(cPrim.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+                        m_physicsScene.PE.ForceActivationState(cPrim.PhysBody, ActivationState.DISABLE_SIMULATION);
+                        // We don't want collisions from the old linkset children.
+                        m_physicsScene.PE.RemoveFromCollisionFlags(cPrim.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                        cPrim.PhysBody.collisionType = CollisionType.LinksetChild;
+                    }
                 }
                 else
                 {
@@ -404,18 +414,7 @@ public sealed class BSLinksetCompound : BSLinkset
                         m_physicsScene.Logger.WarnFormat("{0} Linkset rebuild warning. If this happens more than one or two times, please report in Mantis 7191", LogHeader);
                         m_physicsScene.Logger.WarnFormat("{0} pName={1}, childIdx={2}, shape={3}",
                                         LogHeader, LinksetRoot.Name, cPrim.LinksetChildIndex, childShape);
-                        return false;   // 'false' says to move onto the next child in the list
                     }
-                }
-
-                // Since we are borrowing the shape of the child, disable the origional child body
-                if (!IsRoot(cPrim))
-                {
-                    m_physicsScene.PE.AddToCollisionFlags(cPrim.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-                    m_physicsScene.PE.ForceActivationState(cPrim.PhysBody, ActivationState.DISABLE_SIMULATION);
-                    // We don't want collisions from the old linkset children.
-                    m_physicsScene.PE.RemoveFromCollisionFlags(cPrim.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
-                    cPrim.PhysBody.collisionType = CollisionType.LinksetChild;
                 }
 
                 return false;   // 'false' says to move onto the next child in the list
