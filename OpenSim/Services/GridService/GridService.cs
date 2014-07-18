@@ -64,6 +64,9 @@ namespace OpenSim.Services.GridService
 
             m_config = config;
             IConfig gridConfig = config.Configs["GridService"];
+
+            bool suppressConsoleCommands = false;
+
             if (gridConfig != null)
             {
                 m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
@@ -77,13 +80,17 @@ namespace OpenSim.Services.GridService
                 }
                 m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
                 m_AllowHypergridMapSearch = gridConfig.GetBoolean("AllowHypergridMapSearch", m_AllowHypergridMapSearch);
+
+                // This service is also used locally by a simulator running in grid mode.  This switches prevents
+                // inappropriate console commands from being registered
+                suppressConsoleCommands = gridConfig.GetBoolean("SuppressConsoleCommands", suppressConsoleCommands);
             }
-            
+
             if (m_RootInstance == null)
             {
                 m_RootInstance = this;
 
-                if (MainConsole.Instance != null)
+                if (!suppressConsoleCommands && MainConsole.Instance != null)
                 {
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "deregister region id",
@@ -92,17 +99,12 @@ namespace OpenSim.Services.GridService
                             String.Empty,
                             HandleDeregisterRegion);
 
-                    // A messy way of stopping this command being added if we are in standalone (since the simulator
-                    // has an identically named command
-                    //
-                    // XXX: We're relying on the OpenSimulator version being registered first, which is not well defined.
-                    if (!MainConsole.Instance.Commands.HasCommand("show regions"))
-                        MainConsole.Instance.Commands.AddCommand("Regions", true,
-                                "show regions",
-                                "show regions",
-                                "Show details on all regions",
-                                String.Empty,
-                                HandleShowRegions);
+                    MainConsole.Instance.Commands.AddCommand("Regions", true,
+                            "show regions",
+                            "show regions",
+                            "Show details on all regions",
+                            String.Empty,
+                            HandleShowRegions);
 
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "show region name",
@@ -132,6 +134,7 @@ namespace OpenSim.Services.GridService
                              String.Empty,
                              HandleSetFlags);
                 }
+
                 m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
         }
