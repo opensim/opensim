@@ -424,9 +424,9 @@ namespace OpenSim.Framework.Console
             return new string[] { new List<string>(current.Keys)[0] };
         }
 
-        public string[] Resolve(string[] cmd)
+        private CommandInfo ResolveCommand(string[] cmd, out string[] result)
         {
-            string[] result = cmd;
+            result = cmd;
             int index = -1;
 
             Dictionary<string, object> current = tree;
@@ -458,7 +458,7 @@ namespace OpenSim.Framework.Console
                 }
                 else if (found.Count > 0)
                 {
-                    return new string[0];
+                    return null;
                 }
                 else
                 {
@@ -467,21 +467,37 @@ namespace OpenSim.Framework.Console
             }
 
             if (current.ContainsKey(String.Empty))
+                return (CommandInfo)current[String.Empty];
+
+            return null;
+        }
+                
+        public bool HasCommand(string command)
+        {
+            string[] result;
+            return ResolveCommand(Parser.Parse(command), out result) != null;
+        }
+
+        public string[] Resolve(string[] cmd)
+        {
+            string[] result;
+            CommandInfo ci = ResolveCommand(cmd, out result);
+
+            if (ci == null)
+                return new string[0];
+
+            if (ci.fn.Count == 0)
+                return new string[0];
+
+            foreach (CommandDelegate fn in ci.fn)
             {
-                CommandInfo ci = (CommandInfo)current[String.Empty];
-                if (ci.fn.Count == 0)
+                if (fn != null)
+                    fn(ci.module, result);
+                else
                     return new string[0];
-                foreach (CommandDelegate fn in ci.fn)
-                {
-                    if (fn != null)
-                        fn(ci.module, result);
-                    else
-                        return new string[0];
-                }
-                return result;
             }
-            
-            return new string[0];
+
+            return result;
         }
 
         public XmlElement GetXml(XmlDocument doc)

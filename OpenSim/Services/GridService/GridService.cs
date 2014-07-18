@@ -96,7 +96,7 @@ namespace OpenSim.Services.GridService
                     // has an identically named command
                     //
                     // XXX: We're relying on the OpenSimulator version being registered first, which is not well defined.
-                    if (MainConsole.Instance.Commands.Resolve(new string[] { "show", "regions" }).Length == 0)
+                    if (!MainConsole.Instance.Commands.HasCommand("show regions"))
                         MainConsole.Instance.Commands.AddCommand("Regions", true,
                                 "show regions",
                                 "show regions",

@@ -82,6 +82,7 @@ namespace OpenSim.Framework.Console
         public void AddCommand(string module, bool shared, string command, string help, string longhelp, CommandDelegate fn) {}
         public void AddCommand(string module, bool shared, string command, string help, string longhelp, string descriptivehelp, CommandDelegate fn) {}
         public string[] FindNextOption(string[] cmd, bool term) { return null; }
+        public bool HasCommand(string cmd) { return false; }
         public string[] Resolve(string[] cmd) { return null; }
         public XmlElement GetXml(XmlDocument doc) { return null; }
     }

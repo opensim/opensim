@@ -67,9 +67,11 @@ namespace OpenSim.Framework
                 string help, string longhelp, string descriptivehelp,
                 CommandDelegate fn);
 
-        string[] FindNextOption(string[] cmd, bool term);
+        bool HasCommand(string command);
 
-        string[] Resolve(string[] cmd);
+        string[] FindNextOption(string[] command, bool term);
+
+        string[] Resolve(string[] command);
 
         XmlElement GetXml(XmlDocument doc);
     }
