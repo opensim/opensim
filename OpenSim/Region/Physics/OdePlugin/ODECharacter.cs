@@ -895,30 +895,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // We're colliding with something and we're not flying but we're moving
                     // This means we're walking or running.
                     d.Vector3 pos = d.BodyGetPosition(Body);
-                    vec.Z = (_target_velocity.Z - vel.Z)*PID_D + (_zeroPosition.Z - pos.Z)*PID_P;
-                    if (_target_velocity.X > 0)
-                    {
-                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
-                    }
-                    if (_target_velocity.Y > 0)
-                    {
-                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
-                    }
+                    vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                    vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
+                    vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
                 }
                 else if (!m_iscolliding && !flying)
                 {
                     // we're not colliding and we're not flying so that means we're falling!
                     // m_iscolliding includes collisions with the ground.
 
-                    // d.Vector3 pos = d.BodyGetPosition(Body);
-                    if (_target_velocity.X > 0)
-                    {
-                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
-                    }
-                    if (_target_velocity.Y > 0)
-                    {
-                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
-                    }
+                    vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
+                    vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
                 }
 
                 if (flying)
