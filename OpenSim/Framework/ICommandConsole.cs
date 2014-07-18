@@ -67,6 +67,11 @@ namespace OpenSim.Framework
                 string help, string longhelp, string descriptivehelp,
                 CommandDelegate fn);
 
+        /// <summary>
+        /// Has the given command already been registered?
+        /// </summary>
+        /// <returns></returns>
+        /// <param name="command">Command.</param>
         bool HasCommand(string command);
 
         string[] FindNextOption(string[] command, bool term);
