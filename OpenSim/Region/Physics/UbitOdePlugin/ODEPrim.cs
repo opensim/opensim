@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Revision 2011/12 by Ubit Umarov
+/* Revision 2011/12/13 by Ubit Umarov
  *
  * 
  */
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private int body_autodisable_frames;
         public int bodydisablecontrol;
-
+        private float m_gravmod = 1.0f;
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
@@ -912,6 +912,55 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_material = pMaterial;
             mu = _parent_scene.m_materialContactsData[pMaterial].mu;
             bounce = _parent_scene.m_materialContactsData[pMaterial].bounce;
+        }
+
+        public override float Density
+        {
+            get
+            {
+                return m_density * 100f;
+            }
+            set
+            {
+                m_density = value / 100f;
+                // for not prim mass is not updated since this implies full rebuild of body inertia TODO
+            }
+        }
+        public override float GravModifier
+        {
+            get
+            {
+                return m_gravmod;
+            }
+            set
+            {
+                m_gravmod = value;
+                if (m_vehicle != null)
+                    m_vehicle.GravMod = m_gravmod;
+            }
+        }
+        public override float Friction
+        {
+            get
+            {
+                return mu;
+            }
+            set
+            {
+                mu = value;
+            }
+        }
+
+        public override float Restitution
+        {
+            get
+            {
+                return bounce;
+            }
+            set
+            {
+                bounce = value;
+            }
         }
 
         public void setPrimForRemoval()
@@ -1736,7 +1785,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-            d.BodySetDamping(Body, .005f, .005f);
+            d.BodySetAutoDisableAngularThreshold(Body, 0.01f);
+            d.BodySetAutoDisableLinearThreshold(Body, 0.01f);
+            d.BodySetDamping(Body, .005f, .001f);
 
             if (m_targetSpace != IntPtr.Zero)
             {
@@ -2144,7 +2195,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _mass = primMass; // just in case
 
-            d.MassSetBoxTotal(out primdMass, primMass, m_OBB.X, m_OBB.Y, m_OBB.Z);
+            d.MassSetBoxTotal(out primdMass, primMass, 2.0f * m_OBB.X, 2.0f * m_OBB.Y, 2.0f * m_OBB.Z);
 
             d.MassTranslate(ref primdMass,
                                 m_OBBOffset.X,
@@ -2362,6 +2413,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             MakeBody();
         }
 
+ 
         #region changes
 
         private void changeadd()
@@ -3213,7 +3265,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (++bodydisablecontrol < 20)
                         return;
-
                     
                     d.BodyEnable(Body);
                 }
@@ -3334,7 +3385,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    float b = (1.0f - m_buoyancy);
+                    float b = (1.0f - m_buoyancy) * m_gravmod;
                     fx = _parent_scene.gravityx * b;
                     fy = _parent_scene.gravityy * b;
                     fz = _parent_scene.gravityz * b;
@@ -3381,11 +3432,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public void UpdatePositionAndVelocity()
+        public void UpdatePositionAndVelocity(int frame)
         {
             if (_parent == null && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
             {
-                if (d.BodyIsEnabled(Body) || !_zeroFlag)
+                bool bodyenabled = d.BodyIsEnabled(Body);
+                if (bodyenabled || !_zeroFlag)
                 {
                     bool lastZeroFlag = _zeroFlag;
 
@@ -3478,13 +3530,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // tolerance values depende a lot on simulation noise...
                     // use simple math.abs since we dont need to be exact
 
-                    if (
-                        (Math.Abs(_position.X - lpos.X) < 0.001f)
-                        && (Math.Abs(_position.Y - lpos.Y) < 0.001f)
-                        && (Math.Abs(_position.Z - lpos.Z) < 0.001f)
-                        && (Math.Abs(_orientation.X - ori.X) < 0.0001f)
-                        && (Math.Abs(_orientation.Y - ori.Y) < 0.0001f)
-                        && (Math.Abs(_orientation.Z - ori.Z) < 0.0001f)  // ignore W
+                    if (!bodyenabled ||
+                        (Math.Abs(_position.X - lpos.X) < 0.005f)
+                        && (Math.Abs(_position.Y - lpos.Y) < 0.005f)
+                        && (Math.Abs(_position.Z - lpos.Z) < 0.005f)
+                        && (Math.Abs(_orientation.X - ori.X) < 0.0005f)
+                        && (Math.Abs(_orientation.Y - ori.Y) < 0.0005f)
+                        && (Math.Abs(_orientation.Z - ori.Z) < 0.0005f)  // ignore W
                         )
                     {
                         _zeroFlag = true;
@@ -3499,9 +3551,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         _acceleration = _velocity;
 
-                        if ((Math.Abs(vel.X) < 0.001f) &&
-                            (Math.Abs(vel.Y) < 0.001f) &&
-                            (Math.Abs(vel.Z) < 0.001f))
+                        if ((Math.Abs(vel.X) < 0.005f) &&
+                            (Math.Abs(vel.Y) < 0.005f) &&
+                            (Math.Abs(vel.Z) < 0.005f))
                         {
                             _velocity = Vector3.Zero;
                             float t = -m_invTimeStep;
@@ -3538,6 +3590,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
 
+                    _position.X = lpos.X;
+                    _position.Y = lpos.Y;
+                    _position.Z = lpos.Z;
+
+                    _orientation.X = ori.X;
+                    _orientation.Y = ori.Y;
+                    _orientation.Z = ori.Z;
+                    _orientation.W = ori.W;
+
                     if (_zeroFlag)
                     {
                         if (lastZeroFlag)
@@ -3556,14 +3617,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         return;
                     }
 
-                    _position.X = lpos.X;
-                    _position.Y = lpos.Y;
-                    _position.Z = lpos.Z;
-
-                    _orientation.X = ori.X;
-                    _orientation.Y = ori.Y;
-                    _orientation.Z = ori.Z;
-                    _orientation.W = ori.W;
                     base.RequestPhysicsterseUpdate();
                     m_lastUpdateSent = false;
                 }

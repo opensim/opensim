@@ -816,15 +816,31 @@ namespace OpenSim.Region.Physics.Meshing
 
             float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
             float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
+
+            if (profileBegin < 0.0f)
+                profileBegin = 0.0f;
+
+            if (profileEnd < 0.02f)
+                profileEnd = 0.02f;
+            else if (profileEnd > 1.0f)
+                profileEnd = 1.0f;
+
+            if (profileBegin >= profileEnd)
+                profileBegin = profileEnd - 0.02f;
+
             float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
             if (profileHollow > 0.95f)
                 profileHollow = 0.95f;
-
+          
             int sides = 4;
             LevelOfDetail iLOD = (LevelOfDetail)lod;
-            if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+            byte profshape = (byte)(primShape.ProfileCurve & 0x07);
+
+            if (profshape == (byte)ProfileShape.EquilateralTriangle
+                || profshape == (byte)ProfileShape.IsometricTriangle
+                || profshape == (byte)ProfileShape.RightTriangle)
                 sides = 3;
-            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+            else if (profshape == (byte)ProfileShape.Circle)
             {
                 switch (iLOD)
                 {
@@ -835,7 +851,7 @@ namespace OpenSim.Region.Physics.Meshing
                     default:                    sides = 24;     break;
                 }
             }
-            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            else if (profshape == (byte)ProfileShape.HalfCircle)
             { // half circle, prim is a sphere
                 switch (iLOD)
                 {
@@ -865,10 +881,15 @@ namespace OpenSim.Region.Physics.Meshing
             else if (primShape.HollowShape == HollowShape.Square)
                 hollowSides = 4;
             else if (primShape.HollowShape == HollowShape.Triangle)
-                hollowSides = 3;
+            {
+                if (profshape == (byte)ProfileShape.HalfCircle)
+                    hollowSides = 6;
+                else
+                    hollowSides = 3;
+            }
 
             primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
-
+            
             if (primMesh.errorMessage != null)
                 if (primMesh.errorMessage.Length > 0)
                     m_log.Error("[ERROR] " + primMesh.errorMessage);
@@ -880,17 +901,11 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.PathCurve == (byte)Extrusion.Straight || primShape.PathCurve == (byte) Extrusion.Flexible)
             {
-                primMesh.twistBegin = primShape.PathTwistBegin * 18 / 10;
-                primMesh.twistEnd = primShape.PathTwist * 18 / 10;
+                primMesh.twistBegin = (primShape.PathTwistBegin * 18) / 10;
+                primMesh.twistEnd = (primShape.PathTwist * 18) / 10;
                 primMesh.taperX = pathScaleX;
                 primMesh.taperY = pathScaleY;
 
-                if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
-                {
-                    ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
-                    if (profileBegin < 0.0f) profileBegin = 0.0f;
-                    if (profileEnd > 1.0f) profileEnd = 1.0f;
-                }
 #if SPAM
             m_log.Debug("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
 #endif
@@ -911,17 +926,11 @@ namespace OpenSim.Region.Physics.Meshing
                 primMesh.radius = 0.01f * primShape.PathRadiusOffset;
                 primMesh.revolutions = 1.0f + 0.015f * primShape.PathRevolutions;
                 primMesh.skew = 0.01f * primShape.PathSkew;
-                primMesh.twistBegin = primShape.PathTwistBegin * 36 / 10;
-                primMesh.twistEnd = primShape.PathTwist * 36 / 10;
+                primMesh.twistBegin = (primShape.PathTwistBegin * 36) / 10;
+                primMesh.twistEnd = (primShape.PathTwist * 36) / 10;
                 primMesh.taperX = primShape.PathTaperX * 0.01f;
                 primMesh.taperY = primShape.PathTaperY * 0.01f;
 
-                if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
-                {
-                    ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
-                    if (profileBegin < 0.0f) profileBegin = 0.0f;
-                    if (profileEnd > 1.0f) profileEnd = 1.0f;
-                }
 #if SPAM
             m_log.Debug("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
 #endif
@@ -1031,14 +1040,19 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false,false,false,false);
+            return CreateMesh(primName, primShape, size, lod, false,false,false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
-            return CreateMesh(primName, primShape, size, lod, false,false,false,false);
+            return CreateMesh(primName, primShape, size, lod, false,false,false);
         }
 
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
+        {
+            return CreateMesh(primName, primShape, size, lod, false, false, false);
+        }
+        
         public IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
         {
             Mesh mesh = null;
@@ -1080,7 +1094,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         private static Vector3 m_MeshUnitSize = new Vector3(1.0f, 1.0f, 1.0f);
         
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);

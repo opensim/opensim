@@ -1325,12 +1325,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 (m_Scripts[itemID].AssetID != assetID))
             {
                 lockScriptsForRead(false);
-  instance = new ScriptInstance(this, part,
+                instance = new ScriptInstance(this, part,
                                           item,
                                           startParam, postOnRez,
                                           m_MaxScriptQueue);
-                
-                
 
                 if (part.ParentGroup.IsAttachment)
                     appDomain = part.ParentGroup.RootPart.UUID;
@@ -1392,8 +1390,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             sandbox = AppDomain.CurrentDomain;
                         }
 
-                    if (!instance.Load(m_AppDomains[appDomain], assembly, stateSource))
-                        return false;
+//                    if (!instance.Load(m_AppDomains[appDomain], assembly, stateSource))
+//                        return false;
 
                         m_AppDomains[appDomain] = sandbox;
 
@@ -1411,9 +1409,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         return false;
                     }
                 }
-                
 
-                instance.Load(m_AppDomains[appDomain], assembly, stateSource);
+
+                if (!instance.Load(m_AppDomains[appDomain], assembly, stateSource))
+                    return false;
 //                m_log.DebugFormat(
 //                        "[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}.{5}",
 //                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, 

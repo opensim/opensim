@@ -95,10 +95,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float m_feetOffset = 0;
         private float feetOff = 0;
-        private float feetSZ = 0.5f;
-        const float feetScale = 0.8f;
         private float boneOff = 0;
-        private float m_lastVelocitySqr = 0;
 
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
@@ -110,7 +107,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool _zeroFlag = false;
 
-        private int m_requestedUpdateFrequency = 0;
         private uint m_localID = 0;
         public bool m_returnCollisions = false;
         // taints and their non-tainted counterparts
@@ -127,7 +123,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         int m_colliderfilter = 0;
         int m_colliderGroundfilter = 0;
         int m_colliderObjectfilter = 0;
-        bool m_collisionException = false;
 
         // Default we're a Character
         private CollisionCategories m_collisionCategories = (CollisionCategories.Character);
@@ -140,18 +135,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         // we do land collisions not ode                | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
-        private IntPtr topbox = IntPtr.Zero;
-        private IntPtr midbox = IntPtr.Zero;
-        private IntPtr feetbox = IntPtr.Zero;
+        private IntPtr capsule = IntPtr.Zero;
         private IntPtr bbox = IntPtr.Zero;
         public IntPtr collider = IntPtr.Zero;
 
         public IntPtr Amotor = IntPtr.Zero;
 
         public d.Mass ShellMass;
-
-
-
 
         public int m_eventsubscription = 0;
         private int m_cureventsubscription = 0;
@@ -213,8 +203,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // force lower density for testing
             m_density = 3.0f;
-
-            m_density *= 1.4f; // scale to have mass similar to capsule
 
             mu = parent_scene.AvatarFriction;
 
@@ -704,58 +692,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 AddChange(changes.Momentum, momentum);
         }
 
-        private void ajustCollider()
-        {
-            float vq = _velocity.LengthSquared();
-            if (m_lastVelocitySqr != vq)
-            {
-                m_lastVelocitySqr = vq;
-                if (vq > 100.0f)
-                {
-                    Vector3 off = _velocity;
-                    float t = 0.5f * timeStep;
-                    off = off * t;
-                    d.Quaternion qtmp;
-                    d.GeomCopyQuaternion(bbox, out qtmp);
-                    Quaternion q;
-                    q.X = qtmp.X;
-                    q.Y = qtmp.Y;
-                    q.Z = qtmp.Z;
-                    q.W = qtmp.W;
-                    off *= Quaternion.Conjugate(q);
-
-                    d.GeomSetOffsetPosition(bbox, off.X, off.Y, off.Z);
-
-                    off.X = 2.0f * (m_size.X + Math.Abs(off.X));
-                    off.Y = 2.0f * (m_size.Y + Math.Abs(off.Y));
-                    off.Z = m_size.Z + 2.0f * Math.Abs(off.Z);
-                    d.GeomBoxSetLengths(bbox, off.X, off.Y, off.Z);
-
-                    d.GeomSetCategoryBits(bbox, (uint)m_collisionCategories);
-                    d.GeomSetCollideBits(bbox, (uint)m_collisionFlags);
-                    d.GeomSetCategoryBits(topbox, 0);
-                    d.GeomSetCollideBits(topbox, 0);
-                    d.GeomSetCategoryBits(midbox, 0);
-                    d.GeomSetCollideBits(midbox, 0);
-                    d.GeomSetCategoryBits(feetbox, 0);
-                    d.GeomSetCollideBits(feetbox, 0);
-                }
-                else
-                {
-                    d.GeomSetCategoryBits(bbox, 0);
-                    d.GeomSetCollideBits(bbox, 0);
-                    d.GeomSetCategoryBits(topbox, (uint)m_collisionCategories);
-                    d.GeomSetCollideBits(topbox, (uint)m_collisionFlags);
-                    d.GeomSetCategoryBits(midbox, (uint)m_collisionCategories);
-                    d.GeomSetCollideBits(midbox, (uint)m_collisionFlags);
-                    d.GeomSetCategoryBits(feetbox, (uint)m_collisionCategories);
-                    d.GeomSetCollideBits(feetbox, (uint)m_collisionFlags);
-                }
-                uint cat1 = d.GeomGetCategoryBits(bbox);
-                uint col1 = d.GeomGetCollideBits(bbox);
-
-            }
-        }
 
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ)
         {
@@ -764,37 +700,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             float sy = m_size.Y;
             float sz = m_size.Z;
 
-            float topsx = sx * 0.9f;
-            float midsx = sx;
-            float feetsx = sx * feetScale;
-            float bonesx = sx * 0.2f;
+            float bot = -sz * 0.5f + m_feetOffset;
+            boneOff = bot + 0.3f;
 
-            float topsy = sy * 0.4f;
-            float midsy = sy;
-            float feetsy = sy * feetScale * 0.8f;
-            float bonesy = feetsy * 0.2f;
-
-            float topsz = sz * 0.15f;
             float feetsz = sz * 0.45f;
             if (feetsz > 0.6f)
                 feetsz = 0.6f;
 
-            float midsz = sz - topsz - feetsz;
-            float bonesz = sz;
-
-            float bot = -sz * 0.5f + m_feetOffset;
-
-            boneOff = bot + 0.3f;
-
-            float feetz = bot + feetsz * 0.5f;
-            bot += feetsz;
-
-            feetOff = bot;
-            feetSZ = feetsz;
-
-            float midz = bot + midsz * 0.5f;
-            bot += midsz;
-            float topz = bot + topsz * 0.5f;
+            feetOff = bot + feetsz;
 
             _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
 
@@ -805,9 +718,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetCategoryBits(collider, (uint)m_collisionCategories);
             d.GeomSetCollideBits(collider, (uint)m_collisionFlags);
 
-            feetbox = d.CreateBox(collider, feetsx, feetsy, feetsz);
-            midbox = d.CreateBox(collider, midsx, midsy, midsz);
-            topbox = d.CreateBox(collider, topsx, topsy, topsz);
+            float r = m_size.X;
+            if (m_size.Y > r)
+                r = m_size.Y;
+            float l = m_size.Z - r;
+            r *= 0.5f;
+            capsule = d.CreateCapsule(collider, r, l);
+
             bbox = d.CreateBox(collider, m_size.X, m_size.Y, m_size.Z);
 
             m_mass = m_density * m_size.X * m_size.Y * m_size.Z;  // update mass
@@ -820,12 +737,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             Body = d.BodyCreate(_parent_scene.world);
 
             _zeroFlag = false;
-            m_collisionException = false;
             m_pidControllerActive = true;
             m_freemove = false;
 
             _velocity = Vector3.Zero;
-            m_lastVelocitySqr = 0;
 
             d.BodySetAutoDisableFlag(Body, false);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
@@ -835,17 +750,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position.Z = npositionZ;
 
             d.BodySetMass(Body, ref ShellMass);
-            d.GeomSetBody(feetbox, Body);
-            d.GeomSetBody(midbox, Body);
-            d.GeomSetBody(topbox, Body);
+
             d.GeomSetBody(bbox, Body);
-
-            d.GeomSetOffsetPosition(feetbox, 0, 0, feetz);
-            d.GeomSetOffsetPosition(midbox, 0, 0, midz);
-            d.GeomSetOffsetPosition(topbox, 0, 0, topz);
-
-            ajustCollider();
-
+            d.GeomSetBody(capsule, Body);
 
             // The purpose of the AMotor here is to keep the avatar's physical
             // surrogate from rotating while moving
@@ -906,26 +813,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             //kill the Geoms
-            if (topbox != IntPtr.Zero)
+            if (capsule != IntPtr.Zero)
             {
-                _parent_scene.actor_name_map.Remove(topbox);
+                _parent_scene.actor_name_map.Remove(capsule);
                 _parent_scene.waitForSpaceUnlock(collider);
-                d.GeomDestroy(topbox);
-                topbox = IntPtr.Zero;
-            }
-            if (midbox != IntPtr.Zero)
-            {
-                _parent_scene.actor_name_map.Remove(midbox);
-                _parent_scene.waitForSpaceUnlock(collider);
-                d.GeomDestroy(midbox);
-                midbox = IntPtr.Zero;
-            }
-            if (feetbox != IntPtr.Zero)
-            {
-                _parent_scene.actor_name_map.Remove(feetbox);
-                _parent_scene.waitForSpaceUnlock(collider);
-                d.GeomDestroy(feetbox);
-                feetbox = IntPtr.Zero;
+                d.GeomDestroy(capsule);
+                capsule = IntPtr.Zero;
             }
 
             if (bbox != IntPtr.Zero)
@@ -981,163 +874,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool Collide(IntPtr me, bool reverse, ref d.ContactGeom contact, ref bool feetcollision)
         {
             feetcollision = false;
-            if (m_collisionException)
-                return false;
 
             Vector3 offset;
-
-            if (me == bbox) // if moving fast
-            {
-                // force a full inelastic collision
-                m_collisionException = true;
-
-                offset = m_size * m_orientation2D;
-
-                offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
-                offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
-                offset.Z = (float)Math.Abs(offset.Z) * 0.5f + contact.depth;
-
-                if (reverse)
-                {
-                    offset.X *= -contact.normal.X;
-                    offset.Y *= -contact.normal.Y;
-                    offset.Z *= -contact.normal.Z;
-                }
-                else
-                {
-                    offset.X *= contact.normal.X;
-                    offset.Y *= contact.normal.Y;
-                    offset.Z *= contact.normal.Z;
-                }
-
-                offset.X += contact.pos.X;
-                offset.Y += contact.pos.Y;
-                offset.Z += contact.pos.Z;
-
-                //_position = offset;
-                //return false;
-            }
 
             offset.X = contact.pos.X - _position.X;
             offset.Y = contact.pos.Y - _position.Y;
 
-            if (me == topbox)
-            {
-                offset.Z = contact.pos.Z - _position.Z;
-
-                offset.Normalize();
-
-                if (reverse)
-                {
-                    contact.normal.X = offset.X;
-                    contact.normal.Y = offset.Y;
-                    contact.normal.Z = offset.Z;
-                }
-                else
-                {
-                    contact.normal.X = -offset.X;
-                    contact.normal.Y = -offset.Y;
-                    contact.normal.Z = -offset.Z;
-                }
-                return true;
-            }
-
-            if (me == midbox)
-            {
-                if (Math.Abs(contact.normal.Z) > 0.95f)
-                {
-                    offset.Z = contact.pos.Z - _position.Z;
-                    offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
-                    offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
-                    offset.Z = (float)Math.Abs(offset.Z) * 0.5f + contact.depth;
-
-                    if (reverse)
-                    {
-                        offset.X *= -contact.normal.X;
-                        offset.Y *= -contact.normal.Y;
-                        offset.Z *= -contact.normal.Z;
-                    }
-                    else
-                    {
-                        offset.X *= contact.normal.X;
-                        offset.Y *= contact.normal.Y;
-                        offset.Z *= contact.normal.Z;
-                    }
-
-                    offset.X += contact.pos.X;
-                    offset.Y += contact.pos.Y;
-                    offset.Z += contact.pos.Z;
-                    _position = offset;
-                    return true;
-                }
-                else
-                    offset.Z = contact.normal.Z;
-
-                offset.Normalize();
-
-                /*
-                if (reverse)
-                {
-                    contact.normal.X = offset.X;
-                    contact.normal.Y = offset.Y;
-                    contact.normal.Z = offset.Z;
-                }
-                else
-                {
-                    contact.normal.X = -offset.X;
-                    contact.normal.Y = -offset.Y;
-                    contact.normal.Z = -offset.Z;
-                }
-                */
-                //_position.Z = offset.Z;
-                return true;
-            }
-
-            else if (me == feetbox)
+            if (me == capsule)
             {
                 float h = contact.pos.Z - _position.Z;
-
-                // Only do this if the normal is sufficiently pointing in the 'up' direction
-                if (Math.Abs(contact.normal.Z) > 0.95f)
-                {
-                    // We Only want to do this if we're sunk into the object a bit and we're stuck and we're trying to move and feetcollision is false
-                    if ((contact.depth > 0.0010f && _velocity.X == 0f && _velocity.Y == 0 && _velocity.Z == 0)
-                        && (_target_velocity.X > 0 || _target_velocity.Y > 0 || _target_velocity.Z > 0) 
-                        &&  (!feetcollision) )
-                    {
-                        m_collisionException = true; // Stop looping, do this only once not X times Contacts
-                        _position.Z += contact.depth + 0.01f; // Move us Up the amount that we sank in, and add 0.01 meters to gently lift avatar up.
-                       
-                        return true;
-                    }
-
-                    if (contact.normal.Z > 0)
-                        contact.normal.Z = 1.0f;
-                    else
-                        contact.normal.Z = -1.0f;
-                    contact.normal.X = 0.0f;
-                    contact.normal.Y = 0.0f;
-                    feetcollision = true;
-                    if (h < boneOff)
-                        IsColliding = true;
-                    return true;
-                }
-
-                offset.Z = h - feetOff; // distance from top of feetbox
+                offset.Z = h - feetOff;
 
                 if (offset.Z > 0)
-                    return false;
+                    return true;
 
-                if (offset.Z > -0.01)
-                {
-                    offset.X = 0;
-                    offset.Y = 0;
-                    offset.Z = -1.0f;
-                }
-                else
-                {
-                    offset.Normalize();
-                }
+                offset.Normalize();
 
                 if (reverse)
                 {
@@ -1170,23 +921,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (Body == IntPtr.Zero)
                 return;
-
-            if (m_collisionException)
-            {
-                d.BodySetPosition(Body,_position.X, _position.Y, _position.Z);
-                d.BodySetLinearVel(Body, 0, 0, 0);
-
-                float v = _velocity.Length();
-                if (v != 0)
-                {
-                    v = 5.0f / v;
-                    _velocity = _velocity * v;
-                    d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
-                }
-                ajustCollider();
-                m_collisionException = false;
-                return;
-            }
 
             d.Vector3 dtmp = d.BodyGetPosition(Body);
             Vector3 localpos = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
@@ -1263,7 +997,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // colide with land
 
             d.AABB aabb;
-            d.GeomGetAABB(feetbox, out aabb);
+//            d.GeomGetAABB(feetbox, out aabb);
+            d.GeomGetAABB(capsule, out aabb);
             float chrminZ = aabb.MinZ; ; // move up a bit
             Vector3 posch = localpos;
 
@@ -1489,7 +1224,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_rotationalVelocity.Z = dtmp.Z;
                 Math.Round(m_rotationalVelocity.Z,3);
             }
-            ajustCollider();
         }
 
         public void round(ref Vector3 v, int digits)
@@ -1655,10 +1389,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z);
 
                     _parent_scene.actor_name_map[collider] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[feetbox] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[midbox] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[topbox] = (PhysicsActor)this;
+//                    _parent_scene.actor_name_map[feetbox] = (PhysicsActor)this;
+//                    _parent_scene.actor_name_map[midbox] = (PhysicsActor)this;
+//                    _parent_scene.actor_name_map[topbox] = (PhysicsActor)this;
                     _parent_scene.actor_name_map[bbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
                     _parent_scene.AddCharacter(this);
                 }
                 else
@@ -1714,13 +1449,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     
 
                     _parent_scene.actor_name_map[collider] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[feetbox] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[midbox] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[topbox] = (PhysicsActor)this;
                     _parent_scene.actor_name_map[bbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
                 }
                 m_freemove = false;
-                m_collisionException = false;
                 m_pidControllerActive = true;
             }
             else
@@ -1851,7 +1583,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (Body != IntPtr.Zero)
                 d.BodySetLinearVel(Body, newmomentum.X, newmomentum.Y, newmomentum.Z);
-            ajustCollider();
         }
 
         private void donullchange()

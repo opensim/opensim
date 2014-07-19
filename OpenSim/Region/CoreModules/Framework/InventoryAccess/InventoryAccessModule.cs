@@ -358,14 +358,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             bool asAttachment)
         {
             CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
-//            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+            // this possible is not needed if keyframes are saved
+            Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
                 if (objectGroup.RootPart.KeyframeMotion != null)
-                    objectGroup.RootPart.KeyframeMotion.Stop();
+                {
+                    objectGroup.RootPart.KeyframeMotion.Suspend();
+                }
                 objectGroup.RootPart.SetForce(Vector3.Zero);
                 objectGroup.RootPart.SetAngularImpulse(Vector3.Zero, false);
+
+                originalKeyframes[objectGroup.UUID] = objectGroup.RootPart.KeyframeMotion;
                 objectGroup.RootPart.KeyframeMotion = null;
 
                 Vector3 inventoryStoredPosition = new Vector3
@@ -427,9 +433,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
                 itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0], !asAttachment);
             
-//            // Restore the position of each group now that it has been stored to inventory.
-//            foreach (SceneObjectGroup objectGroup in objlist)
-//                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+            // Restore the position of each group now that it has been stored to inventory.
+            foreach (SceneObjectGroup objectGroup in objlist)
+            {
+                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+                objectGroup.RootPart.KeyframeMotion = originalKeyframes[objectGroup.UUID];
+                if (objectGroup.RootPart.KeyframeMotion != null)
+                    objectGroup.RootPart.KeyframeMotion.Resume();
+            }
 
             InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
 
