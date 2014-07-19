@@ -385,7 +385,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                              objectGroup.AbsolutePosition.Z);
 
                 Quaternion inventoryStoredRotation = objectGroup.GroupRotation;
-                //originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
+                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
                 // Restore attachment data after trip through the sim
                 if (objectGroup.RootPart.AttachPoint > 0)
