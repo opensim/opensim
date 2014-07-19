@@ -880,11 +880,6 @@ namespace OpenSim.Framework
                 config.Set("MaptileStaticFile", MaptileStaticFile);
         }
 
-        public bool ignoreIncomingConfiguration(string configuration_key, object configuration_result)
-        {
-            return true;
-        }
-
         public void SaveRegionToFile(string description, string filename)
         {
             if (filename.ToLower().EndsWith(".ini"))
