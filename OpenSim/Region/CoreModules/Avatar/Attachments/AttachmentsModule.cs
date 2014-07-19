@@ -715,6 +715,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             m_scene.EventManager.TriggerOnAttach(so.LocalId, so.UUID, UUID.Zero);
+
+            // Attach (NULL) stops scripts. We don't want that. Resume them.
+            so.ResumeScripts();
         }
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
@@ -1244,7 +1247,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             + ", AttachmentPoint: " + AttachmentPt);
 
                     // Save avatar attachment information
-                    m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.FromItemID, remoteClient.AgentId);
+                    m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
                 }
             }
             catch (Exception e)
