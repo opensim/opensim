@@ -1881,6 +1881,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
 //                m_updateCount = UPDATE_COUNT;
 
+
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
@@ -1949,10 +1950,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (AllowMovement && !SitGround)
             {
-//                m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
-
+//                m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);              
                 bool update_rotation = false;
-
                 if (agentData.BodyRotation != Rotation)
                 {
                     Rotation = agentData.BodyRotation;
@@ -2524,49 +2523,46 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 part.ParentGroup.DeleteAvatar(UUID);
-                Vector3 sitPartWorldPosition = part.GetWorldPosition();
+
+                Quaternion standRotation = part.ParentGroup.RootPart.RotationOffset;
+                Vector3 sitPartWorldPosition = part.ParentGroup.AbsolutePosition + m_pos * standRotation;
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
                 ParentID = 0;
                 ParentPart = null;
 
-                Quaternion standRotation;
 
                 if (part.SitTargetAvatar == UUID)
+                    standRotation = standRotation * part.SitTargetOrientation;
+                else
+                    standRotation = part.GetWorldRotation() * m_bodyRot;
+
+                m_bodyRot = standRotation;
+
+                Quaternion standRotationZ = new Quaternion(0,0,standRotation.Z,standRotation.W);
+
+                float t = standRotationZ.W * standRotationZ.W + standRotationZ.Z * standRotationZ.Z;
+                if (t > 0)
                 {
-                    standRotation = part.GetWorldRotation();
-
-                    if (!part.IsRoot)
-                        standRotation = standRotation * part.SitTargetOrientation;
-//                        standRotation = part.RotationOffset * part.SitTargetOrientation;
-//                    else
-//                        standRotation = part.SitTargetOrientation;
-
+                    t = 1.0f / (float)Math.Sqrt(t);
+                    standRotationZ.W *= t;
+                    standRotationZ.Z *= t;
                 }
                 else
                 {
-                    standRotation = Rotation;
+                    standRotationZ.W = 1.0f;
+                    standRotationZ.Z = 0f;
                 }
 
-                //Vector3 standPos = ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
-                //Vector3 standPos = ParentPosition;
+                Vector3 adjustmentForSitPose = new Vector3(0.75f, 0, m_sitAvatarHeight + .3f) * standRotationZ;
 
-//                Vector3 standPositionAdjustment 
-//                    = part.SitTargetPosition + new Vector3(0.5f, 0f, m_sitAvatarHeight / 2f);
-                Vector3 adjustmentForSitPosition = part.SitTargetPosition * part.GetWorldRotation();
-
-                // XXX: This is based on the physics capsule sizes.  Need to find a better way to read this rather than
-                // hardcoding here.
-                Vector3 adjustmentForSitPose = new Vector3(0.74f, 0f, 0f) * standRotation;
-
-                Vector3 standPos = sitPartWorldPosition + adjustmentForSitPosition + adjustmentForSitPose;
+                Vector3 standPos = sitPartWorldPosition + adjustmentForSitPose;
 
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
 //                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
 
-                Rotation = standRotation;
-                AbsolutePosition = standPos;
+                m_pos = standPos;
             }
 
             // We need to wait until we have calculated proper stand positions before sitting up the physical 
@@ -2824,8 +2820,7 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
             bool forceMouselook = part.GetForceMouselook();
 
-            Rotation = Orientation;
-            m_pos = offset;
+            m_bodyRot = Orientation;
 
             if (!part.IsRoot)
             {
@@ -2833,6 +2828,8 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = offset * part.RotationOffset;
                 offset += part.OffsetPosition;
             }
+
+            m_pos = offset;
 
             ControllingClient.SendSitResponse(
                 part.ParentGroup.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
