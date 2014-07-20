@@ -2332,16 +2332,17 @@ namespace OpenSim.Region.Framework.Scenes
             if (e == null || attachment) // Single
             {
                 SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+/*
                 if (!attachment)
                 {
                     g.RootPart.AttachPoint = g.RootPart.Shape.State;
-                    g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.AttachedPos = g.AbsolutePosition;
                     g.RootPart.AttachRotation = g.GroupRotation;
                     if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
                         g.RootPart.Shape.PCode != (byte)PCode.Tree)
                         g.RootPart.Shape.State = 0;
                 }
-
+*/
                 objlist.Add(g);
                 veclist.Add(new Vector3(0, 0, 0));
                 bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
@@ -2360,14 +2361,14 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (XmlNode n in groups)
                 {
                     SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-
+/*
                     g.RootPart.AttachPoint = g.RootPart.Shape.State;
-                    g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.AttachedPos = g.AbsolutePosition;
                     g.RootPart.AttachRotation = g.GroupRotation;
                     if (g.RootPart.Shape.PCode != (byte)PCode.NewTree &&
                         g.RootPart.Shape.PCode != (byte)PCode.Tree)
                     g.RootPart.Shape.State = 0;
-
+*/
                     objlist.Add(g);
 
                     XmlElement el = (XmlElement)n;
