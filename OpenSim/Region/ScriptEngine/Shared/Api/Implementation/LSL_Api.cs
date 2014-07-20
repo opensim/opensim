@@ -13242,29 +13242,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f *2.0f);
                         pos -= sitOffset;
 
-                        //if( sitPart != null)
-                        //    pos = sitPart.GetWorldPosition() + pos * sitPart.GetWorldRotation();
-
                         res.Add(new LSL_Vector(pos.X,pos.Y,pos.Z));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_SIZE:
-                        // as in llGetAgentSize above
-//                        res.Add(new LSL_Vector(0.45f, 0.6f, avatar.Appearance.AvatarHeight));
                         Vector3 s = avatar.Appearance.AvatarSize;
                         res.Add(new LSL_Vector(s.X, s.Y, s.Z));
 
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
-                        //Quaternion rot = avatar.Rotation / llGetRootRotation();
                         LSL_Rotation rot = new LSL_Rotation(avatar.Rotation.X, avatar.Rotation.Y, avatar.Rotation.Z, avatar.Rotation.W) / llGetRootRotation();
-                        //if (sitPart != null)
-                        //{
-                        //    rot = sitPart.GetWorldRotation() * rot; // apply sit part world rotation
-                        //}
 
-                        //res.Add(new LSL_Rotation (rot.X, rot.Y, rot.Z, rot.W));
                         res.Add(rot);
                         break;
 
