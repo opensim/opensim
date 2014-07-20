@@ -1193,19 +1193,17 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
-            if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
+            if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
             {
                 // Viewers which have a current outfit folder will actually rez their own attachments.  However,
                 // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
                 if (Scene.AttachmentsModule != null)
-                    Util.FireAndForget(
-                        o => 
-                        { 
-//                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
-//                                System.Threading.Thread.Sleep(7000); 
-
-                            Scene.AttachmentsModule.RezAttachments(this); 
-                        });
+                {
+                    Util.FireAndForget(o =>
+                    {
+                        Scene.AttachmentsModule.RezAttachments(this);
+                    });
+                }
             }
             else
             {
@@ -1265,6 +1263,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
             return true;
+        }
+
+        private static bool IsRealLogin(TeleportFlags teleportFlags)
+        {
+            return ((teleportFlags & TeleportFlags.ViaLogin) != 0) && ((teleportFlags & TeleportFlags.ViaHGLogin) == 0);
         }
 
         /// <summary>
@@ -1698,7 +1701,7 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
-                if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+                if (!(PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags)))
                 {
                     // Let's wait until UpdateAgent (called by departing region) is done
                     if (!WaitForUpdateAgent(client))
