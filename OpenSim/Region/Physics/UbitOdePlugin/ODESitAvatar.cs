@@ -78,11 +78,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             IntPtr geom = ((OdePrim)actor).prim_geom;
 
-//            Vector3 geopos = d.GeomGetPositionOMV(geom);
-//            Quaternion geomOri = d.GeomGetQuaternionOMV(geom);
+            Vector3 geopos = d.GeomGetPositionOMV(geom);
+            Quaternion geomOri = d.GeomGetQuaternionOMV(geom);
 
-            Vector3 geopos = actor.Position;
-            Quaternion geomOri = actor.Orientation;
+//            Vector3 geopos = actor.Position;
+//            Quaternion geomOri = actor.Orientation;
 
             Quaternion geomInvOri = Quaternion.Conjugate(geomOri);
 
