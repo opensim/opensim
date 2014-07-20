@@ -5132,22 +5132,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 position = presence.OffsetPosition;
                 rotation = presence.Rotation;
-
-                if (presence.ParentID != 0)
-                {
-                    SceneObjectPart part = m_scene.GetSceneObjectPart(presence.ParentID);
-                    if (part != null && part != part.ParentGroup.RootPart)
-                    {
-                        position = part.OffsetPosition + presence.OffsetPosition * part.RotationOffset;
-                        rotation = part.RotationOffset * presence.Rotation;
-                    }
-                    angularVelocity = Vector3.Zero;
-                }
-                else
-                {
-                    angularVelocity = presence.AngularVelocity;
-                    rotation = presence.Rotation;
-                }
+                angularVelocity = presence.AngularVelocity;
+                rotation = presence.Rotation;
 
                 attachPoint = 0;
 //                m_log.DebugFormat(
@@ -5266,17 +5252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Vector3 offsetPosition = data.OffsetPosition;
             Quaternion rotation = data.Rotation;
             uint parentID = data.ParentID;
-
-            if (parentID != 0)
-            {
-                SceneObjectPart part = m_scene.GetSceneObjectPart(parentID);
-                if (part != null && part != part.ParentGroup.RootPart)
-                {
-                    offsetPosition = part.OffsetPosition + data.OffsetPosition * part.RotationOffset;
-                    rotation = part.RotationOffset * data.Rotation;
-                    parentID = part.ParentGroup.RootPart.LocalId;
-                }
-            }
+  
 //            m_log.DebugFormat(
 //                "[LLCLIENTVIEW]: Sending full update to {0} with position {1} in {2}", Name, data.OffsetPosition, m_scene.Name);
 
