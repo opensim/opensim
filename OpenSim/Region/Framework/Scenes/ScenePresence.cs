@@ -2535,7 +2535,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.SitTargetAvatar == UUID)
                     standRotation = standRotation * part.SitTargetOrientation;
                 else
-                    standRotation = part.GetWorldRotation() * m_bodyRot;
+                    standRotation = standRotation * m_bodyRot;
 
                 m_bodyRot = standRotation;
 
