@@ -904,11 +904,11 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup group = objlist[i];
-
+/*
                 group.RootPart.AttachPoint = group.RootPart.Shape.State;
-                group.RootPart.AttachOffset = group.AbsolutePosition;
+                group.RootPart.AttachedPos = group.AbsolutePosition;
                 group.RootPart.AttachRotation = group.GroupRotation;
-
+*/
                 group.ResetIDs();
 
                 SceneObjectPart rootPart = group.GetPart(group.UUID);

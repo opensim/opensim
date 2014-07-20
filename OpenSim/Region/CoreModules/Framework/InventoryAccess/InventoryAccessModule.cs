@@ -390,7 +390,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // Restore attachment data after trip through the sim
                 if (objectGroup.RootPart.AttachPoint > 0)
                 {
-                    inventoryStoredPosition = objectGroup.RootPart.AttachOffset;
+                    inventoryStoredPosition = objectGroup.RootPart.AttachedPos;
                     inventoryStoredRotation = objectGroup.RootPart.AttachRotation;
                 }
 

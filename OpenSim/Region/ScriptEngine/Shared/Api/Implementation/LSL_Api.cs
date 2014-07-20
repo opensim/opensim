@@ -12801,7 +12801,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             group.RootPart.AttachPoint = group.RootPart.Shape.State;
-            group.RootPart.AttachOffset = group.AbsolutePosition;
+            group.RootPart.AttachedPos = group.AbsolutePosition;
 
             group.ResetIDs();
 
