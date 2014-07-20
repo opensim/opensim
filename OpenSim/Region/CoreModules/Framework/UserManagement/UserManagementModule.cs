@@ -388,10 +388,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     else
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
                 }
-                else
-                {
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
-                }
+//                else
+//                {
+//                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
+//                }
 
                 names[0] = "Unknown";
                 names[1] = "UserUMMTGUN9";
