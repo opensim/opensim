@@ -2631,6 +2631,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
+
             if (PhysicsActor != null)
                 m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
@@ -2638,22 +2639,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
             {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
-//                        Name, part.Name, part.LocalId);
-
                 offset = part.SitTargetPosition;
                 sitOrientation = part.SitTargetOrientation;
-
-                if (!part.IsRoot)
-                {
-                    //                m_log.DebugFormat("Old sit orient {0}", sitOrientation);
-                    sitOrientation = part.RotationOffset * sitOrientation;
-                    //                m_log.DebugFormat("New sit orient {0}", sitOrientation);
-//                m_log.DebugFormat("Old sit offset {0}", offset);
-                    offset = offset * part.RotationOffset;
-//                m_log.DebugFormat("New sit offset {0}", offset);
-                }
 
                 canSit = true;
             }
@@ -2691,9 +2678,18 @@ namespace OpenSim.Region.Framework.Scenes
                 cameraEyeOffset = part.GetCameraEyeOffset();
                 forceMouselook = part.GetForceMouselook();
 
-                // An viewer expects to specify sit positions as offsets to the root prim, even if a child prim is
-                // being sat upon.
-                offset += part.OffsetPosition;
+                if (!part.IsRoot)
+                {
+                    sitOrientation = part.RotationOffset * sitOrientation;
+                    offset = offset * part.RotationOffset;
+                    cameraAtOffset = cameraAtOffset * part.RotationOffset;
+                    cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
+
+                    offset += part.OffsetPosition;
+                    cameraAtOffset += part.OffsetPosition;
+                    cameraEyeOffset += part.OffsetPosition;
+                }
+
 
                 ControllingClient.SendSitResponse(
                     part.ParentGroup.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
@@ -2826,7 +2822,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Orientation = part.RotationOffset * Orientation;
                 offset = offset * part.RotationOffset;
+                cameraAtOffset = cameraAtOffset * part.RotationOffset;
+                cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
+
                 offset += part.OffsetPosition;
+                cameraAtOffset += part.OffsetPosition;
+                cameraEyeOffset += part.OffsetPosition;
             }
 
             m_pos = offset;
