@@ -2956,7 +2956,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 //ParentGroup.RootPart.m_groupPosition = newpos;
             }
-
+/* ubit:  there are no flexible links 
             if (pa != null && ParentID != 0 && ParentGroup != null)
             {
                 // Special case where a child object is requesting property updates.
@@ -2976,7 +2976,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // m_log.DebugFormat("{0} PhysicsRequestingTerseUpdate child: pos={1}, rot={2}, offPos={3}, offRot={4}",
                 //                     "[SCENE OBJECT PART]", pa.Position, pa.Orientation, m_offsetPosition, RotationOffset);
             }
-
+*/
             ScheduleTerseUpdate();
         }
 
