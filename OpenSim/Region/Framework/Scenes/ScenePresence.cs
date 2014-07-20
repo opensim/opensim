@@ -2824,13 +2824,19 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
             bool forceMouselook = part.GetForceMouselook();
 
-            ControllingClient.SendSitResponse(
-                part.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
-
-            // not using autopilot
-
             Rotation = Orientation;
             m_pos = offset;
+
+            if (!part.IsRoot)
+            {
+                Orientation = part.RotationOffset * Orientation;
+                offset = offset * part.RotationOffset;
+                offset += part.OffsetPosition;
+            }
+
+            ControllingClient.SendSitResponse(
+                part.ParentGroup.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+          
 
             m_requestedSitTargetID = 0;
             part.ParentGroup.AddAvatar(UUID);
