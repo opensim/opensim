@@ -96,6 +96,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_feetOffset = 0;
         private float feetOff = 0;
         private float boneOff = 0;
+        private float AvaAvaSizeXsq = 0.3f;
+        private float AvaAvaSizeYsq = 0.2f;
 
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
@@ -136,7 +138,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
         private IntPtr capsule = IntPtr.Zero;
-        private IntPtr bbox = IntPtr.Zero;
         public IntPtr collider = IntPtr.Zero;
 
         public IntPtr Amotor = IntPtr.Zero;
@@ -709,6 +710,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             feetOff = bot + feetsz;
 
+            AvaAvaSizeXsq = 0.4f * sx;
+            AvaAvaSizeXsq *= AvaAvaSizeXsq;
+            AvaAvaSizeYsq = 0.5f * sy;
+            AvaAvaSizeYsq *= AvaAvaSizeYsq;
+
             _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
 
             collider = d.HashSpaceCreate(_parent_scene.CharsSpace);
@@ -723,9 +729,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 r = m_size.Y;
             float l = m_size.Z - r;
             r *= 0.5f;
-            capsule = d.CreateCapsule(collider, r, l);
 
-            bbox = d.CreateBox(collider, m_size.X, m_size.Y, m_size.Z);
+            capsule = d.CreateCapsule(collider, r, l);
 
             m_mass = m_density * m_size.X * m_size.Y * m_size.Z;  // update mass
 
@@ -750,8 +755,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position.Z = npositionZ;
 
             d.BodySetMass(Body, ref ShellMass);
-
-            d.GeomSetBody(bbox, Body);
             d.GeomSetBody(capsule, Body);
 
             // The purpose of the AMotor here is to keep the avatar's physical
@@ -821,14 +824,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 capsule = IntPtr.Zero;
             }
 
-            if (bbox != IntPtr.Zero)
-            {
-                _parent_scene.actor_name_map.Remove(bbox);
-                _parent_scene.waitForSpaceUnlock(collider);
-                d.GeomDestroy(bbox);
-                bbox = IntPtr.Zero;
-            }
-
             if (collider != IntPtr.Zero)
             {
                 d.SpaceDestroy(collider);
@@ -871,19 +866,43 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        public bool Collide(IntPtr me, bool reverse, ref d.ContactGeom contact, ref bool feetcollision)
+        public bool Collide(IntPtr me,IntPtr other, bool reverse, ref d.ContactGeom contact, ref bool feetcollision)
         {
             feetcollision = false;
 
-            Vector3 offset;
-
-            offset.X = contact.pos.X - _position.X;
-            offset.Y = contact.pos.Y - _position.Y;
-
             if (me == capsule)
             {
+                Vector3 offset;
+
                 float h = contact.pos.Z - _position.Z;
                 offset.Z = h - feetOff;
+
+                offset.X = contact.pos.X - _position.X;
+                offset.Y = contact.pos.Y - _position.Y;
+
+                d.GeomClassID gtype = d.GeomGetClass(other);
+                if (gtype == d.GeomClassID.CapsuleClass)
+                {
+                    Vector3 roff = offset * Quaternion.Inverse(m_orientation2D);
+                    float r = roff.X *roff.X / AvaAvaSizeXsq;
+                    r += (roff.Y * roff.Y) / AvaAvaSizeYsq;
+                    if (r > 1.0f)
+                        return false;
+
+                    float dp = 1.0f -(float)Math.Sqrt((double)r);
+                    if (dp > 0.05f)
+                        dp = 0.05f;
+
+                    contact.depth = dp;
+
+                    if (offset.Z < 0)
+                    {
+                        feetcollision = true;
+                        if (h < boneOff)
+                            IsColliding = true;
+                    }
+                    return true;
+                }
 
                 if (offset.Z > 0)
                     return true;
@@ -905,11 +924,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 feetcollision = true;
                 if (h < boneOff)
                     IsColliding = true;
+                return true;
             }
-            else
-                return false;
-
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -1094,8 +1111,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // Avatar to Avatar collisions
                         // Prim to avatar collisions
 
-                        vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 2);
-                        vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 2);
+                        vec.X = -vel.X * PID_D * 2 + (_zeroPosition.X - localpos.X) * (PID_P * 5);
+                        vec.Y = -vel.Y * PID_D * 2 + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
                         if (flying)
                         {
                             vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
@@ -1389,10 +1406,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z);
 
                     _parent_scene.actor_name_map[collider] = (PhysicsActor)this;
-//                    _parent_scene.actor_name_map[feetbox] = (PhysicsActor)this;
-//                    _parent_scene.actor_name_map[midbox] = (PhysicsActor)this;
-//                    _parent_scene.actor_name_map[topbox] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[bbox] = (PhysicsActor)this;
                     _parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
                     _parent_scene.AddCharacter(this);
                 }
@@ -1449,7 +1462,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     
 
                     _parent_scene.actor_name_map[collider] = (PhysicsActor)this;
-                    _parent_scene.actor_name_map[bbox] = (PhysicsActor)this;
                     _parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
                 }
                 m_freemove = false;
