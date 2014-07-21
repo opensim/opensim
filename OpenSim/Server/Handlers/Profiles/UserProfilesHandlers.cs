@@ -128,12 +128,12 @@ namespace OpenSim.Server.Handlers
             OSDMap request = (OSDMap)json["params"];
             UUID classifiedId = new UUID(request["classifiedId"].AsString());
             
-			if(Service.ClassifiedDelete(classifiedId))
-				return true;
+            if (Service.ClassifiedDelete(classifiedId))
+                return true;
 
-			response.Error.Code = ErrorCode.InternalError;
-			response.Error.Message = "data error removing record";
-			return false;
+            response.Error.Code = ErrorCode.InternalError;
+            response.Error.Message = "data error removing record";
+            return false;
         }
         
         public bool ClassifiedInfoRequest(OSDMap json, ref JsonRpcResponse response)
