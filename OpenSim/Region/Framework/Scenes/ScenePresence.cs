@@ -2431,6 +2431,8 @@ namespace OpenSim.Region.Framework.Scenes
                 targetScene = m_scene;
 
             float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % Constants.RegionSize), (int)(pos.Y % Constants.RegionSize)];
+            // dont try to land underground
+            terrainHeight += Appearance.AvatarHeight / 2;
             pos.Z = Math.Max(terrainHeight, pos.Z);
 
             // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
@@ -2442,10 +2444,11 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
 //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
+                     
 
             if (noFly)
                 Flying = false;
-            else if (pos.Z > terrainHeight)
+            else if (pos.Z > terrainHeight + Appearance.AvatarHeight / 2 || Flying)
                 Flying = true;
 
             LandAtTarget = landAtTarget;
