@@ -833,13 +833,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         switch (p2.PhysicsActorType)
                         {
                             case (int)ActorTypes.Agent:
-                                p1.CollidingObj = true;
-                                p2.CollidingObj = true;
-                                break;
-
                             case (int)ActorTypes.Prim:
-                                if (p2.Velocity.LengthSquared() > 0.0f)
-                                    p2.CollidingObj = true;
                                 break;
 
                             default:
@@ -850,55 +844,53 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
 
                 case (int)ActorTypes.Prim:
-                    switch (p2.PhysicsActorType)
                     {
-                        case (int)ActorTypes.Agent:
+                        switch (p2.PhysicsActorType)
+                        {
+                            case (int)ActorTypes.Agent:
+                                dop2ava = true;
+                                break;
 
-                            dop2ava = true;
+                            case (int)ActorTypes.Prim:
+                                Vector3 relV = p1.Velocity - p2.Velocity;
+                                float relVlenSQ = relV.LengthSquared();
+                                if (relVlenSQ > 0.0001f)
+                                {
+                                    p1.CollidingObj = true;
+                                    p2.CollidingObj = true;
+                                }
+                                p1.getContactData(ref contactdata1);
+                                p2.getContactData(ref contactdata2);
+                                bounce = contactdata1.bounce * contactdata2.bounce;
+                                mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
-                            if (p1.Velocity.LengthSquared() > 0.0f)
-                                p1.CollidingObj = true;
-                            break;
+                                if (relVlenSQ > 0.01f)
+                                    mu *= frictionMovementMult;
 
-                        case (int)ActorTypes.Prim:
-                            Vector3 relV = p1.Velocity - p2.Velocity;
-                            float relVlenSQ = relV.LengthSquared();
-                            if (relVlenSQ > 0.0001f)
-                            {
-                                p1.CollidingObj = true;
-                                p2.CollidingObj = true;
-                            }
-                            p1.getContactData(ref contactdata1);
-                            p2.getContactData(ref contactdata2);
-                            bounce = contactdata1.bounce * contactdata2.bounce;
-                            mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
+                                break;
 
-                            if (relVlenSQ > 0.01f)
-                                mu *= frictionMovementMult;
+                            case (int)ActorTypes.Ground:
+                                p1.getContactData(ref contactdata1);
+                                bounce = contactdata1.bounce * TerrainBounce;
+                                mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
 
-                            break;
+                                if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
+                                    mu *= frictionMovementMult;
+                                p1.CollidingGround = true;
+                                /*
+                                                            if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
+                                                            {
+                                                                if (curContact.side1 > 0)
+                                                                    IgnoreNegSides = true;
+                                                            }
+                                 */
+                                break;
 
-                        case (int)ActorTypes.Ground:
-                            p1.getContactData(ref contactdata1);
-                            bounce = contactdata1.bounce * TerrainBounce;
-                            mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
-
-                            if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
-                                mu *= frictionMovementMult;
-                            p1.CollidingGround = true;
-/*
-                            if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
-                            {
-                                if (curContact.side1 > 0)
-                                    IgnoreNegSides = true;
-                            }
- */
-                            break;
-
-                        case (int)ActorTypes.Water:
-                        default:
-                            ignore = true;
-                            break;
+                            case (int)ActorTypes.Water:
+                            default:
+                                ignore = true;
+                                break;
+                        }
                     }
                     break;
 
@@ -950,14 +942,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                     bool noskip = true;
                     if (dop1ava)
                     {
-                        if (!(((OdeCharacter)p1).Collide(g1,g2, false, ref curContact, ref FeetCollision)))
-
+                        if (!(((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref FeetCollision)))
                             noskip = false;
+                        else
+                        {
+                            if(p2.PhysicsActorType == (int)ActorTypes.Agent)
+                            {
+                                p1.CollidingObj = true;
+                                p2.CollidingObj = true;
+                            }
+                            else if (p2.Velocity.LengthSquared() > 0.0f)
+                                    p2.CollidingObj = true;
+                        }
                     }
                     else if (dop2ava)
                     {
                         if (!(((OdeCharacter)p2).Collide(g2,g1, true, ref curContact, ref FeetCollision)))
                             noskip = false;
+                        else if (p1.Velocity.LengthSquared() > 0.0f)
+                            p1.CollidingObj = true;
                     }
 
                     if (noskip)
