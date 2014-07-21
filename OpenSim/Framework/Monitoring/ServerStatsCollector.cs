@@ -141,7 +141,7 @@ namespace OpenSim.Framework.Monitoring
                 processorPercentPerfCounter = new PerfCounterControl(tempPC);
                 // A long time bug in mono is that CPU percent is reported as CPU percent idle. Windows reports CPU percent busy.
                 tempStat = new Stat(tempName, tempName, "", "percent", CategoryServer, ContainerProcessor,
-                                StatType.Pull, (s) => { GetNextValue(s, processorPercentPerfCounter, Util.IsWindows() ? 1 : -1); },
+                                StatType.Pull, (s) => { GetNextValue(s, processorPercentPerfCounter); },
                                 StatVerbosity.Info);
                 StatsManager.RegisterStat(tempStat);
                 RegisteredStats.Add(tempName, tempStat);
@@ -253,11 +253,8 @@ namespace OpenSim.Framework.Monitoring
         //  "How to get the CPU Usage in C#": http://stackoverflow.com/questions/278071/how-to-get-the-cpu-usage-in-c
         //  "Mono Performance Counters": http://www.mono-project.com/Mono_Performance_Counters
         private delegate double PerfCounterNextValue();
+
         private void GetNextValue(Stat stat, PerfCounterControl perfControl)
-        {
-            GetNextValue(stat, perfControl, 1.0);
-        }
-        private void GetNextValue(Stat stat, PerfCounterControl perfControl, double factor)
         {
             if (Util.EnvironmentTickCountSubtract(perfControl.lastFetch) > performanceCounterSampleInterval)
             {
@@ -265,16 +262,13 @@ namespace OpenSim.Framework.Monitoring
                 {
                     try
                     {
-                        // Kludge for factor to run double duty. If -1, subtract the value from one
-                        if (factor == -1)
-                            stat.Value = 1 - perfControl.perfCounter.NextValue();
-                        else
-                            stat.Value = perfControl.perfCounter.NextValue() / factor;
+                        stat.Value = perfControl.perfCounter.NextValue();
                     }
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("{0} Exception on NextValue fetching {1}: {2}", LogHeader, stat.Name, e);
                     }
+
                     perfControl.lastFetch = Util.EnvironmentTickCount();
                 }
             }
