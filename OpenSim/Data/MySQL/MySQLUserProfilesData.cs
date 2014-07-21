@@ -250,7 +250,7 @@ namespace OpenSim.Data.MySQL
             string query = string.Empty;
             
             query += "DELETE FROM classifieds WHERE ";
-            query += "classifieduuid = ?ClasifiedId";
+            query += "classifieduuid = ?recordId";
             
             try
             {
@@ -260,12 +260,8 @@ namespace OpenSim.Data.MySQL
                     
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?ClassifiedId", recordId.ToString());
-                        
-                        lock(Lock)
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
+                        cmd.Parameters.AddWithValue("?recordId", recordId.ToString());
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
