@@ -950,13 +950,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     bool noskip = true;
                     if (dop1ava)
                     {
-                        if (!(((OdeCharacter)p1).Collide(g1, false, ref curContact, ref FeetCollision)))
+                        if (!(((OdeCharacter)p1).Collide(g1,g2, false, ref curContact, ref FeetCollision)))
 
                             noskip = false;
                     }
                     else if (dop2ava)
                     {
-                        if (!(((OdeCharacter)p2).Collide(g2, true, ref curContact, ref FeetCollision)))
+                        if (!(((OdeCharacter)p2).Collide(g2,g1, true, ref curContact, ref FeetCollision)))
                             noskip = false;
                     }
 
@@ -1095,10 +1095,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // do colisions with static space
                         d.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
 
-                        // chars with chars
-                        d.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
                         // no coll with gnd
                     }
+                    // chars with chars
+                    d.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
+
                 }
                 catch (AccessViolationException)
                 {
