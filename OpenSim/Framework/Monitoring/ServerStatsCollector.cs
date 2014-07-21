@@ -147,13 +147,13 @@ namespace OpenSim.Framework.Monitoring
                 RegisteredStats.Add(tempName, tempStat);
 
                 MakeStat("TotalProcessorTime", null, "sec", ContainerProcessor,
-                                    (s) => { s.Value = Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds; });
+                                    (s) => { s.Value = Math.Round(Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, 3); });
 
                 MakeStat("UserProcessorTime", null, "sec", ContainerProcessor,
-                                    (s) => { s.Value = Process.GetCurrentProcess().UserProcessorTime.TotalSeconds; });
+                                    (s) => { s.Value = Math.Round(Process.GetCurrentProcess().UserProcessorTime.TotalSeconds, 3); });
 
                 MakeStat("PrivilegedProcessorTime", null, "sec", ContainerProcessor,
-                                    (s) => { s.Value = Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds; });
+                                    (s) => { s.Value = Math.Round(Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds, 3); });
 
                 MakeStat("Threads", null, "threads", ContainerProcessor,
                                     (s) => { s.Value = Process.GetCurrentProcess().Threads.Count; });
@@ -262,7 +262,7 @@ namespace OpenSim.Framework.Monitoring
                 {
                     try
                     {
-                        stat.Value = perfControl.perfCounter.NextValue();
+                        stat.Value = Math.Round(perfControl.perfCounter.NextValue(), 3);
                     }
                     catch (Exception e)
                     {
