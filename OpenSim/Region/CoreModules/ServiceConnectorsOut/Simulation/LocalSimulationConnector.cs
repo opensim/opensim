@@ -283,18 +283,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
                 uint size = m_scenes[destination.RegionID].RegionInfo.RegionSizeX;
 
-                float theirVersionNumber = 0f;
-                string[] versionComponents = theirversion.Split(new char[] { '/' });
-                if (versionComponents.Length >= 2)
-                    float.TryParse(versionComponents[1], out theirVersionNumber);
-
-                // Var regions here, and the requesting simulator is in an older version.
-                // We will forbide this, because it crashes the viewers
-                if (theirVersionNumber < 0.3f && size > 256)
+                if (theirversion != null)
                 {
-                    reason = "Destination is a variable-sized region, and source is an old simulator. Consider upgrading.";
-                    m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from {0} simulator was denied", theirVersionNumber);
-                    return false;
+                    float theirVersionNumber = 0f;
+                    string[] versionComponents = theirversion.Split(new char[] { '/' });
+                    if (versionComponents.Length >= 2)
+                        float.TryParse(versionComponents[1], out theirVersionNumber);
+
+                    // Var regions here, and the requesting simulator is in an older version.
+                    // We will forbide this, because it crashes the viewers
+                    if (theirVersionNumber < 0.3f && size > 256)
+                    {
+                        reason = "Destination is a variable-sized region, and source is an old simulator. Consider upgrading.";
+                        m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from {0} simulator was denied", theirVersionNumber);
+                        return false;
+                    
+                    }
                 }
 
                 return m_scenes[destination.RegionID].QueryAccess(agentID, agentHomeURI, viaTeleport, position, out reason);

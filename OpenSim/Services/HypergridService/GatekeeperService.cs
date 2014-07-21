@@ -432,6 +432,13 @@ namespace OpenSim.Services.HypergridService
 
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Launching {0}, Teleport Flags: {1}", aCircuit.Name, loginFlag);
 
+            string version;
+
+            if (!m_SimulationService.QueryAccess(
+                destination, aCircuit.AgentID, aCircuit.ServiceURLs["HomeURI"].ToString(), 
+                true, aCircuit.startpos, null, out version, out reason))
+                return false;
+
             return m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, out reason);
         }
 

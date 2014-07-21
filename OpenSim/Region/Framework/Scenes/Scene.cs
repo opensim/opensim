@@ -5514,6 +5514,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             int num = m_sceneGraph.GetRootAgentCount();
 
+            Console.WriteLine("{0} {1}", num, RegionInfo.RegionSettings.AgentLimit);
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
                 if (!Permissions.IsAdministrator(agentID))

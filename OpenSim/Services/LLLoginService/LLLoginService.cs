@@ -959,12 +959,19 @@ namespace OpenSim.Services.LLLoginService
 
         private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, TeleportFlags flags, out string reason)
         {
+            string version;
+
+            if (!simConnector.QueryAccess(region, aCircuit.AgentID, null, true, aCircuit.startpos, null, out version, out reason))
+                return false;
+
             return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, out reason);
         }
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)
         {
-            m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
+            string version;
+
+            m_log.Debug("[LLOGIN SERVICE]: Launching agent at " + destination.RegionName);
             if (m_UserAgentService.LoginAgentToGrid(null, aCircuit, gatekeeper, destination, true, out reason))
                 return true;
             return false;
