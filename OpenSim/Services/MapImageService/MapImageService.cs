@@ -54,7 +54,9 @@ namespace OpenSim.Services.MapImageService
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+#pragma warning disable 414
         private string LogHeader = "[MAP IMAGE SERVICE]";
+#pragma warning restore 414
 
         private const int ZOOM_LEVELS = 8;
         private const int IMAGE_WIDTH = 256;

@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         private string m_testDir;
         private CSharpCodeProvider m_CSCodeProvider;
         private CompilerParameters m_compilerParameters;
-        private CompilerResults m_compilerResults;
+        // private CompilerResults m_compilerResults;
         private ResolveEventHandler m_resolveEventHandler;
 
         /// <summary>

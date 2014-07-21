@@ -546,7 +546,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (texture_list.Count > 0)
                 {
                     ScenePresence avatar = null;
-                    IClientAPI client = null;
                     m_Scene.TryGetScenePresence(m_HostCapsObj.AgentID, out avatar);
 
                     if (avatar != null)
