@@ -3805,7 +3805,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 SceneObjectPart e = (SceneObjectPart)entity;
                 SceneObjectGroup g = e.ParentGroup;
-                if (g.RootPart.Shape.State > 30) // HUD
+                if (g.RootPart.Shape.State > 30 && g.RootPart.Shape.State < 39) // HUD
                     if (g.OwnerID != AgentId)
                         return; // Don't send updates for other people's HUDs
             }
@@ -3925,7 +3925,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (part.ParentGroup.IsAttachment)
                     {   // Someone else's HUD, why are we getting these?
                         if (part.ParentGroup.OwnerID != AgentId &&
-                            part.ParentGroup.RootPart.Shape.State > 30)
+                            part.ParentGroup.RootPart.Shape.State > 30 && part.ParentGroup.RootPart.Shape.State < 39)
                             continue;
                         ScenePresence sp;
                         // Owner is not in the sim, don't update it to
