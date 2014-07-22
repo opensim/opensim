@@ -2565,6 +2565,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
 //                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
 
+                standPos.X = Util.Clamp<float>(standPos.X, 0.5f, (float)Constants.RegionSize - 0.5f);
+                standPos.Y = Util.Clamp<float>(standPos.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
                 m_pos = standPos;
             }
 
