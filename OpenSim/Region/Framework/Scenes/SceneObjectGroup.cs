@@ -1840,11 +1840,21 @@ namespace OpenSim.Region.Framework.Scenes
             // Setting this SOG's absolute position also loops through and sets the positions
             //    of the SOP's in this SOG's linkset. This has the side affect of making sure
             //    the physics world matches the simulated world.
-            AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
+            // AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
 
             // teravus: AbsolutePosition is NOT a normal property!
             // the code in the getter of AbsolutePosition is significantly different then the code in the setter!
             // jhurliman: Then why is it a property instead of two methods?
+
+            // do only what is supposed to do
+            Vector3 groupPosition = m_rootPart.GroupPosition;
+            SceneObjectPart[] parts = m_parts.GetArray();
+
+            foreach (SceneObjectPart part in parts)
+            {
+                if (part != m_rootPart)
+                    part.GroupPosition = groupPosition;
+            }
         }
 
         public UUID GetPartsFullID(uint localID)
