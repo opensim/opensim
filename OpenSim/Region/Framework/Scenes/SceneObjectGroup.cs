@@ -681,8 +681,13 @@ namespace OpenSim.Region.Framework.Scenes
                 bool triggerScriptEvent = m_rootPart.GroupPosition != val;
                 if (m_dupeInProgress)
                     triggerScriptEvent = false;
+                m_rootPart.GroupPosition = val;
+                if (triggerScriptEvent)
+                    m_rootPart.TriggerScriptChangedEvent(Changed.POSITION);
                 foreach (SceneObjectPart part in parts)
                 {
+                    if (part == m_rootPart)
+                        continue;
                     part.GroupPosition = val;
                     if (triggerScriptEvent)
                         part.TriggerScriptChangedEvent(Changed.POSITION);
