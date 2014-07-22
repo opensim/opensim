@@ -550,114 +550,126 @@ namespace OpenSim.Region.Framework.Scenes
                         Vector3 newpos = Vector3.Zero;
                         OpenSim.Services.Interfaces.GridRegion destination = null;
 
-                        if (m_rootPart.KeyframeMotion != null)
-                            m_rootPart.KeyframeMotion.StartCrossingCheck();
-
-                        bool canCross = true;
-                        foreach (ScenePresence av in m_linkedAvatars)
+                        if (m_rootPart.DIE_AT_EDGE || m_rootPart.RETURN_AT_EDGE)
                         {
-                            // We need to cross these agents. First, let's find
-                            // out if any of them can't cross for some reason.
-                            // We have to deny the crossing entirely if any
-                            // of them are banned. Alternatively, we could
-                            // unsit banned agents....
-
-
-                            // We set the avatar position as being the object
-                            // position to get the region to send to
-                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out x, out y, out version, out newpos)) == null)
-                            {
-                                canCross = false;
-                                break;
-                            }
-
-                            m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
-                        }
-
-                        if (canCross)
-                        {
-                            // We unparent the SP quietly so that it won't
-                            // be made to stand up
-
-                            List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
-
-                            foreach (ScenePresence av in m_linkedAvatars)
-                            {
-                                avtocrossInfo avinfo = new avtocrossInfo();
-                                SceneObjectPart parentPart = m_scene.GetSceneObjectPart(av.ParentID);
-                                if (parentPart != null)
-                                    av.ParentUUID = parentPart.UUID;
-
-                                avinfo.av = av;
-                                avinfo.ParentID = av.ParentID;
-                                avsToCross.Add(avinfo);
-
-                                av.PrevSitOffset = av.OffsetPosition;
-                                av.ParentID = 0;
-                            }
-
-                            //                            m_linkedAvatars.Clear();
+                            // this should delete the grp in this case
                             m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
-
-                            // Normalize
-                            if (val.X >= Constants.RegionSize)
-                                val.X -= Constants.RegionSize;
-                            if (val.Y >= Constants.RegionSize)
-                                val.Y -= Constants.RegionSize;
-                            if (val.X < 0)
-                                val.X += Constants.RegionSize;
-                            if (val.Y < 0)
-                                val.Y += Constants.RegionSize;
-
-                            // If it's deleted, crossing was successful
-                            if (IsDeleted)
-                            {
-                                //                                foreach (ScenePresence av in m_linkedAvatars)
-                                foreach (avtocrossInfo avinfo in avsToCross)
-                                {
-                                    ScenePresence av = avinfo.av;
-                                    if (!av.IsInTransit) // just in case...
-                                    {
-                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
-
-                                        av.IsInTransit = true;
-
-                                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
-                                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
-                                    }
-                                    else
-                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
-                                }
-                                avsToCross.Clear();
-                                return;
-                            }
-                            else // cross failed, put avas back ??
-                            {
-                                foreach (avtocrossInfo avinfo in avsToCross)
-                                {
-                                    ScenePresence av = avinfo.av;
-                                    av.ParentUUID = UUID.Zero;
-                                    av.ParentID = avinfo.ParentID;
-//                                    m_linkedAvatars.Add(av);
-                                }
-                            }
-                            avsToCross.Clear();
-
                         }
                         else
                         {
                             if (m_rootPart.KeyframeMotion != null)
-                                m_rootPart.KeyframeMotion.CrossingFailure();
+                                m_rootPart.KeyframeMotion.StartCrossingCheck();
 
-                            if (RootPart.PhysActor != null)
+                            bool canCross = true;
+
+                            foreach (ScenePresence av in m_linkedAvatars)
                             {
-                                RootPart.PhysActor.CrossingFailure();
+                                // We need to cross these agents. First, let's find
+                                // out if any of them can't cross for some reason.
+                                // We have to deny the crossing entirely if any
+                                // of them are banned. Alternatively, we could
+                                // unsit banned agents....
+
+
+                                // We set the avatar position as being the object
+                                // position to get the region to send to
+                                if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out x, out y, out version, out newpos)) == null)
+                                {
+                                    canCross = false;
+                                    break;
+                                }
+
+                                m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
                             }
+
+                            if (canCross)
+                            {
+                                // We unparent the SP quietly so that it won't
+                                // be made to stand up
+
+                                List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
+
+                                foreach (ScenePresence av in m_linkedAvatars)
+                                {
+                                    avtocrossInfo avinfo = new avtocrossInfo();
+                                    SceneObjectPart parentPart = m_scene.GetSceneObjectPart(av.ParentID);
+                                    if (parentPart != null)
+                                        av.ParentUUID = parentPart.UUID;
+
+                                    avinfo.av = av;
+                                    avinfo.ParentID = av.ParentID;
+                                    avsToCross.Add(avinfo);
+
+                                    av.PrevSitOffset = av.OffsetPosition;
+                                    av.ParentID = 0;
+                                }
+
+                                //                            m_linkedAvatars.Clear();
+                                m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+
+                                // Normalize
+                                if (val.X >= Constants.RegionSize)
+                                    val.X -= Constants.RegionSize;
+                                if (val.Y >= Constants.RegionSize)
+                                    val.Y -= Constants.RegionSize;
+                                if (val.X < 0)
+                                    val.X += Constants.RegionSize;
+                                if (val.Y < 0)
+                                    val.Y += Constants.RegionSize;
+
+                                // If it's deleted, crossing was successful
+                                if (IsDeleted)
+                                {
+                                    //                                foreach (ScenePresence av in m_linkedAvatars)
+                                    foreach (avtocrossInfo avinfo in avsToCross)
+                                    {
+                                        ScenePresence av = avinfo.av;
+                                        if (!av.IsInTransit) // just in case...
+                                        {
+                                            m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
+
+                                            av.IsInTransit = true;
+
+                                            CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
+                                            d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                        }
+                                        else
+                                            m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
+                                    }
+                                    avsToCross.Clear();
+                                    return;
+                                }
+                                else // cross failed, put avas back ??
+                                {
+                                    foreach (avtocrossInfo avinfo in avsToCross)
+                                    {
+                                        ScenePresence av = avinfo.av;
+                                        av.ParentUUID = UUID.Zero;
+                                        av.ParentID = avinfo.ParentID;
+                                        //                                    m_linkedAvatars.Add(av);
+                                    }
+                                }
+                                avsToCross.Clear();
+
+                            }
+                            //                        else
+                            // we need to do this on all fails
+
+                            {
+                                if (m_rootPart.KeyframeMotion != null)
+                                    m_rootPart.KeyframeMotion.CrossingFailure();
+
+                                if (RootPart.PhysActor != null)
+                                {
+                                    RootPart.PhysActor.CrossingFailure();
+                                }
+                            }
+                            Vector3 oldp = AbsolutePosition;
+                            val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
+                            val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
+                            // dont crash land StarShips
+                            // val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
                         }
-                        Vector3 oldp = AbsolutePosition;
-                        val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
-                        val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
-                        val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
                     }
                 }
 
