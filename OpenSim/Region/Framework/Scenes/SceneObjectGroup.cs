@@ -554,6 +554,8 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             // this should delete the grp in this case
                             m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+                            // actually assume this sog was removed from simulation
+                            return;
                         }
                         else
                         {
