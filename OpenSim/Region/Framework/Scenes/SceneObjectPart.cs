@@ -3289,9 +3289,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // Suppress full updates during attachment editing
-            //
-            if (ParentGroup.IsSelected && ParentGroup.IsAttachment)
-                return;
+            // sl Does send them
+ //           if (ParentGroup.IsSelected && ParentGroup.IsAttachment)
+ //               return;
             
             if (ParentGroup.IsDeleted)
                 return;
