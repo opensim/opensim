@@ -961,7 +961,9 @@ namespace OpenSim.Services.LLLoginService
         {
             string version;
 
-            if (!simConnector.QueryAccess(region, aCircuit.AgentID, null, true, aCircuit.startpos, null, out version, out reason))
+            if (
+                !simConnector.QueryAccess(
+                    region, aCircuit.AgentID, null, true, aCircuit.startpos, "SIMULATION/0.3", out version, out reason))
                 return false;
 
             return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, out reason);
@@ -969,9 +971,8 @@ namespace OpenSim.Services.LLLoginService
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)
         {
-            string version;
-
             m_log.Debug("[LLOGIN SERVICE]: Launching agent at " + destination.RegionName);
+
             if (m_UserAgentService.LoginAgentToGrid(null, aCircuit, gatekeeper, destination, true, out reason))
                 return true;
             return false;
