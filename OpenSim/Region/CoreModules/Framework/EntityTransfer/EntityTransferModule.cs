@@ -1679,6 +1679,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "[ENTITY TRANSFER MODULE]: Region {0} would not accept update for agent {1} on cross attempt.  Returning to original region.", 
                         neighbourRegion.RegionName, agent.Name);
 
+                    if (agent.ParentUUID != UUID.Zero && agent.ParentID == 0)
+                        return false;
+
                     ReInstantiateScripts(agent);
                     agent.AddToPhysicalScene(isFlying);
 
