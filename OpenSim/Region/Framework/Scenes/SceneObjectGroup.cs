@@ -687,22 +687,30 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Restuff the new GroupPosition into each SOP of the linkset.
-                //    This has the affect of resetting and tainting the physics actors.
-                SceneObjectPart[] parts = m_parts.GetArray();
                 bool triggerScriptEvent = m_rootPart.GroupPosition != val;
-                if (m_dupeInProgress)
+                if (m_dupeInProgress || IsDeleted)
                     triggerScriptEvent = false;
+
                 m_rootPart.GroupPosition = val;
-                if (triggerScriptEvent)
-                    m_rootPart.TriggerScriptChangedEvent(Changed.POSITION);
+
+                // Restuff the new GroupPosition into each child SOP of the linkset.
+                // this is needed because physics may not have linksets but just loose SOPs in world
+
+                SceneObjectPart[] parts = m_parts.GetArray();
+
                 foreach (SceneObjectPart part in parts)
                 {
-                    if (part == m_rootPart)
-                        continue;
-                    part.GroupPosition = val;
-                    if (triggerScriptEvent)
+                    if (part != m_rootPart)
+                        part.GroupPosition = val;
+                }
+
+                // now that position is changed tell it to scripts
+                if (triggerScriptEvent)
+                {
+                    foreach (SceneObjectPart part in parts)
+                    {
                         part.TriggerScriptChangedEvent(Changed.POSITION);
+                    }
                 }
 
 /*
