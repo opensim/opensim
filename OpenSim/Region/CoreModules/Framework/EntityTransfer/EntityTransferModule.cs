@@ -1680,9 +1680,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         neighbourRegion.RegionName, agent.Name);
 
                     ReInstantiateScripts(agent);
-                    if (agent.ParentUUID != UUID.Zero && agent.ParentID == 0)
-                        return false;
-                  
                     agent.AddToPhysicalScene(isFlying);
 
                     return false;
