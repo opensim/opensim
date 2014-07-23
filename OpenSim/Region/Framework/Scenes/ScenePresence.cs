@@ -534,10 +534,14 @@ namespace OpenSim.Region.Framework.Scenes
                     // in the sim unless the avatar is on a sit target. While
                     // on a sit target, m_pos will contain the desired offset
                     // without the parent rotation applied.
-                    SceneObjectPart sitPart = ParentPart;
-
-                    if (sitPart != null)
-                        return sitPart.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
+                    if (ParentPart != null)
+                    {
+                        SceneObjectPart rootPart = ParentPart.ParentGroup.RootPart;
+                        //                    if (sitPart != null)
+                        //                        return sitPart.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
+                        if (rootPart != null)
+                            return rootPart.AbsolutePosition + (m_pos * rootPart.GetWorldRotation());
+                    }
                 }
                 
                 return m_pos;
@@ -1274,6 +1278,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
 
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1}", Name, Scene.RegionInfo.RegionName);
+
+            // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
+            // from the source simulator has completed on a V2 teleport.
+            lock (m_originRegionIDAccessLock)
+                m_originRegionID = UUID.Zero;
 
             // Reset these so that teleporting in and walking out isn't seen
             // as teleporting back
@@ -3853,8 +3862,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CopyFrom(AgentData cAgent)
         {
-            lock (m_originRegionIDAccessLock)
-                m_originRegionID = cAgent.RegionID;
 
             m_callbackURI = cAgent.CallbackURI;
 //            m_log.DebugFormat(
@@ -3928,6 +3935,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+
+            lock (m_originRegionIDAccessLock)
+                m_originRegionID = cAgent.RegionID;
+            
         }
 
         public bool CopyAgent(out IAgentData agent)
