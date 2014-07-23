@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach (PollServiceHttpRequest req in m_retryRequests)
                 {
-                   DoHTTPGruntWork(m_server,req,
+                   req.DoHTTPGruntWork(m_server,
                         req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                 }
             }
@@ -176,7 +176,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     wreq = m_requests.Dequeue(0);
-                    DoHTTPGruntWork(m_server,wreq,
+                    wreq.DoHTTPGruntWork(m_server,
                         wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id));
                 }
                 catch
@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             {
                                 try
                                 {
-                                    DoHTTPGruntWork(m_server, req, responsedata);
+                                    req.DoHTTPGruntWork(m_server, responsedata);
                                 }
                                 catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                 {
@@ -224,7 +224,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 {
                                     try
                                     {
-                                        DoHTTPGruntWork(m_server, req, responsedata);
+                                        req.DoHTTPGruntWork(m_server, responsedata);
                                     }
                                     catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                     {
@@ -239,7 +239,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         {
                             if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
-                                DoHTTPGruntWork(m_server, req, 
+                                req.DoHTTPGruntWork(m_server, 
                                     req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                             }
                             else
@@ -256,41 +256,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        // DoHTTPGruntWork  changed, not sending response
-        // do the same work around as core
-
-        internal static void DoHTTPGruntWork(BaseHttpServer server, PollServiceHttpRequest req, Hashtable responsedata)
-        {
-            OSHttpResponse response
-                = new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext);
-
-            byte[] buffer = server.DoHTTPGruntWork(responsedata, response);
-
-            response.SendChunked = false;
-            response.ContentLength64 = buffer.Length;
-            response.ContentEncoding = Encoding.UTF8;
-
-            try
-            {
-                response.OutputStream.Write(buffer, 0, buffer.Length);
-            }
-            catch (Exception ex)
-            {
-                m_log.Warn(string.Format("[POLL SERVICE WORKER THREAD]: Error ", ex));
-            }
-            finally
-            {
-                try
-                {
-                    response.OutputStream.Flush();
-                    response.Send();
-                }
-                catch (Exception e)
-                {
-                    m_log.Warn(String.Format("[POLL SERVICE WORKER THREAD]: Error ", e));
-                }
-            }
-        }
     }
 }
 
