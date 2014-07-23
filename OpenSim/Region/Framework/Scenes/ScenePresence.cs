@@ -2705,12 +2705,20 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     sitOrientation = part.RotationOffset * sitOrientation;
                     offset = offset * part.RotationOffset;
-                    cameraAtOffset = cameraAtOffset * part.RotationOffset;
-                    cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
-
                     offset += part.OffsetPosition;
-                    cameraAtOffset += part.OffsetPosition;
-                    cameraEyeOffset += part.OffsetPosition;
+
+                    if (CameraAtAxis == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                    {
+                        CameraAtAxis = part.ParentGroup.RootPart.GetCameraAtOffset();
+                        cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
+                    }
+                    else
+                    {
+                        cameraAtOffset = cameraAtOffset * part.RotationOffset;
+                        cameraAtOffset += part.OffsetPosition;
+                        cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
+                        cameraEyeOffset += part.OffsetPosition;
+                    }
                 }
 
 
@@ -2845,12 +2853,21 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Orientation = part.RotationOffset * Orientation;
                 offset = offset * part.RotationOffset;
-                cameraAtOffset = cameraAtOffset * part.RotationOffset;
-                cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
-
                 offset += part.OffsetPosition;
-                cameraAtOffset += part.OffsetPosition;
-                cameraEyeOffset += part.OffsetPosition;
+
+                if (CameraAtAxis == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                {
+                    CameraAtAxis = part.ParentGroup.RootPart.GetCameraAtOffset();
+                    cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
+                }
+                else
+                {
+                    cameraAtOffset = cameraAtOffset * part.RotationOffset;
+                    cameraAtOffset += part.OffsetPosition;
+                    cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
+                    cameraEyeOffset += part.OffsetPosition;
+                }
+
             }
 
             m_pos = offset;
