@@ -1646,9 +1646,9 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
                 client.Name, Scene.Name, AbsolutePosition);
 
-            bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            
 
-            IsInTransit = true;
+            m_inTransit = true;
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
@@ -1679,7 +1679,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AbsolutePosition = pos;
                 }
 
-
+                bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
                 if (!MakeRootAgent(AbsolutePosition, flying))
                 {
                     m_log.DebugFormat(
@@ -1756,7 +1756,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
-                IsInTransit = false;
+                m_inTransit = false;
             }
         }
 
