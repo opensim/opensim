@@ -307,12 +307,12 @@ namespace OpenSim.Region.ClientStack.Linden
             lock (m_AvatarQueueUUIDMapping)
             {
                 // Reuse open queues.  The client does!
-                if (m_AvatarQueueUUIDMapping.ContainsKey(agentID))
-                {
+//                if (m_AvatarQueueUUIDMapping.ContainsKey(agentID))
+//                {
                     //m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID!");
-                    eventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
-                }
-                else
+//                    eventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
+//                }
+//                else
                 {
                     eventQueueGetUUID = UUID.Random();
                     //m_log.DebugFormat("[EVENTQUEUE]: Using random UUID!");
@@ -345,9 +345,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public bool HasEvents(UUID requestID, UUID agentID)
         {
-            // Don't use this, because of race conditions at agent closing time
-            //Queue<OSD> queue = TryGetQueue(agentID);
-
             Queue<OSD> queue = GetQueue(agentID);
             if (queue != null)
                 lock (queue)
@@ -356,7 +353,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     return queue.Count > 0;
                 }
 
-            return false;
+            m_log.WarnFormat("POLLED FOR EVENTS BY {0} unknown agent", agentID);
+            return true;
         }
 
         /// <summary>
@@ -382,7 +380,8 @@ namespace OpenSim.Region.ClientStack.Linden
             Queue<OSD> queue = GetQueue(pAgentId);
             if (queue == null)
             {
-                return NoEvents(requestID, pAgentId);
+                //return NoEvents(requestID, pAgentId);
+                return null;
             }
 
             OSD element;
