@@ -343,6 +343,12 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="femaleface.jp2"/>
   </Section>
+  <Section Name="Female Hair Texture">
+    <Key Name="assetID" Value="7ca39b4c-bd19-4699-aff7-f93fd03d3e7b"/>
+    <Key Name="name" Value="Female Hair Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="femalehair.jp2"/>
+  </Section>
   <Section Name="Hyperlink Map Texture">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000013"/>
     <Key Name="name" Value="Hyperlink Map Texture"/>
