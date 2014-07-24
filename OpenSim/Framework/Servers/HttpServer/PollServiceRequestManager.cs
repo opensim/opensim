@@ -204,9 +204,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         {
                             Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
 
-                            if (responsedata == null)
-                                continue;
-
                             if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll) // This is the event queue
                             {
                                 try

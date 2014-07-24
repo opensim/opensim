@@ -380,8 +380,7 @@ namespace OpenSim.Region.ClientStack.Linden
             Queue<OSD> queue = GetQueue(pAgentId);
             if (queue == null)
             {
-                //return NoEvents(requestID, pAgentId);
-                return null;
+                return NoEvents(requestID, pAgentId);
             }
 
             OSD element;
