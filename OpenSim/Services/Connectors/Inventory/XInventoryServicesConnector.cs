@@ -48,6 +48,14 @@ namespace OpenSim.Services.Connectors
 
         private string m_ServerURI = String.Empty;
 
+        /// <summary>
+        /// Timeout for remote requests.
+        /// </summary>
+        /// <remarks>
+        /// In this case, -1 is default timeout (100 seconds), not infinite.
+        /// </remarks>
+        private int m_requestTimeoutSecs = -1;
+
         private object m_Lock = new object();
 
         public XInventoryServicesConnector()
@@ -67,14 +75,14 @@ namespace OpenSim.Services.Connectors
 
         public virtual void Initialise(IConfigSource source)
         {
-            IConfig assetConfig = source.Configs["InventoryService"];
-            if (assetConfig == null)
+            IConfig config = source.Configs["InventoryService"];
+            if (config == null)
             {
                 m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
                 throw new Exception("Inventory connector init error");
             }
 
-            string serviceURI = assetConfig.GetString("InventoryServerURI",
+            string serviceURI = config.GetString("InventoryServerURI",
                     String.Empty);
 
             if (serviceURI == String.Empty)
@@ -83,6 +91,8 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Inventory connector init error");
             }
             m_ServerURI = serviceURI;
+
+            m_requestTimeoutSecs = config.GetInt("RemoteRequestTimeout", m_requestTimeoutSecs);
         }
 
         private bool CheckReturn(Dictionary<string, object> ret)
@@ -506,7 +516,7 @@ namespace OpenSim.Services.Connectors
             lock (m_Lock)
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
                          m_ServerURI + "/xinventory",
-                         ServerUtils.BuildQueryString(sendData), m_Auth);
+                         ServerUtils.BuildQueryString(sendData), m_requestTimeoutSecs, m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);
