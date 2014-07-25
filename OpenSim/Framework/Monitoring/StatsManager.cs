@@ -30,8 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Reflection;
-using log4net;
 
 using OpenSim.Framework;
 using OpenMetaverse.StructuredData;
@@ -43,8 +41,6 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public static class StatsManager
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
         // Subcommand used to list other stats.
         public const string AllSubCommand = "all";
 
@@ -102,7 +98,6 @@ namespace OpenSim.Framework.Monitoring
         public static void HandleShowStatsCommand(string module, string[] cmd)
         {
             ICommandConsole con = MainConsole.Instance;
-            StringBuilder report = new StringBuilder();
 
             if (cmd.Length > 2)
             {
@@ -116,8 +111,7 @@ namespace OpenSim.Framework.Monitoring
 
                     if (categoryName == AllSubCommand)
                     {
-                        foreach (string report2 in GetAllStatsReports())
-                            report.AppendLine(report2);
+                        OutputAllStatsToConsole(con);
                     }
                     else if (categoryName == ListSubCommand)
                     {
@@ -136,8 +130,7 @@ namespace OpenSim.Framework.Monitoring
                         {
                             if (String.IsNullOrEmpty(containerName))
                             {
-                                foreach (string report2 in GetCategoryStatsReports(category))
-                                    report.AppendLine(report2);
+                                OutputCategoryStatsToConsole(con, category);
                             }
                             else
                             {
@@ -146,15 +139,14 @@ namespace OpenSim.Framework.Monitoring
                                 {
                                     if (String.IsNullOrEmpty(statName))
                                     {
-                                        foreach (string report2 in GetContainerStatsReports(container))
-                                            report.AppendLine(report2);
+                                        OutputContainerStatsToConsole(con, container);
                                     }
                                     else
                                     {
                                         Stat stat;
                                         if (container.TryGetValue(statName, out stat))
                                         {
-                                            report.AppendLine(stat.ToConsoleString());
+                                            OutputStatToConsole(con, stat);
                                         }
                                         else
                                         {
@@ -176,18 +168,10 @@ namespace OpenSim.Framework.Monitoring
             {
                 // Legacy
                 if (SimExtraStats != null)
-                {
-                    report.Append(SimExtraStats.Report());
-                }
+                    con.Output(SimExtraStats.Report());
                 else
-                {
-                    foreach (string report2 in GetAllStatsReports())
-                        report.AppendLine(report2);
-                }
+                    OutputAllStatsToConsole(con);
             }
-            
-            if (report.Length > 0)
-                m_log.Debug(string.Join(" ", cmd) + "\n" + report.ToString());
         }
 
         public static List<string> GetAllStatsReports()
@@ -198,6 +182,12 @@ namespace OpenSim.Framework.Monitoring
                 reports.AddRange(GetCategoryStatsReports(category));
 
             return reports;
+        }
+
+        private static void OutputAllStatsToConsole(ICommandConsole con)
+        {
+            foreach (string report in GetAllStatsReports())
+                con.Output(report);
         }
 
         private static List<string> GetCategoryStatsReports(
@@ -211,6 +201,13 @@ namespace OpenSim.Framework.Monitoring
             return reports;
         }
 
+        private static void OutputCategoryStatsToConsole(
+            ICommandConsole con, SortedDictionary<string, SortedDictionary<string, Stat>> category)
+        {
+            foreach (string report in GetCategoryStatsReports(category))
+                con.Output(report);
+        }
+
         private static List<string> GetContainerStatsReports(SortedDictionary<string, Stat> container)
         {
             List<string> reports = new List<string>();
@@ -219,6 +216,18 @@ namespace OpenSim.Framework.Monitoring
                 reports.Add(stat.ToConsoleString());
 
             return reports;
+        }
+
+        private static void OutputContainerStatsToConsole(
+            ICommandConsole con, SortedDictionary<string, Stat> container)
+        {
+            foreach (string report in GetContainerStatsReports(container))
+                con.Output(report);
+        }
+
+        private static void OutputStatToConsole(ICommandConsole con, Stat stat)
+        {
+            con.Output(stat.ToConsoleString());
         }
 
         // Creates an OSDMap of the format:

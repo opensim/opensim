@@ -87,8 +87,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "show pqueues [full]",
                 "Show priority queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
-                  + "  With the 'full' option child agents are also shown.",
-                (mod, cmd) => m_log.Debug(string.Join(" ", cmd) + "\n" + GetPQueuesReport(cmd)));
+                  + "  With the 'full' option child agents are also shown.",                                          
+                (mod, cmd) => MainConsole.Instance.Output(GetPQueuesReport(cmd)));
             
             scene.AddCommand(
                 "Comms", this, "show queues",
@@ -103,27 +103,27 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                     + "Pkts Resent   - Number of packets resent to the client.\n"
                     + "Bytes Unacked - Number of bytes transferred to the client that are awaiting acknowledgement.\n"
                     + "Q Pkts *      - Number of packets of various types (land, wind, etc.) to be sent to the client that are waiting for available bandwidth.\n",
-                (mod, cmd) => m_log.Debug(string.Join(" ", cmd) + "\n" + GetQueuesReport(cmd)));
+                (mod, cmd) => MainConsole.Instance.Output(GetQueuesReport(cmd)));
 
             scene.AddCommand(
                 "Comms", this, "show image queues",
                 "show image queues <first-name> <last-name>",
                 "Show the image queues (textures downloaded via UDP) for a particular client.",
-                (mod, cmd) => m_log.Debug(string.Join(" ", cmd) + "\n" + GetImageQueuesReport(cmd)));
+                (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
 
             scene.AddCommand(
                 "Comms", this, "clear image queues",
                 "clear image queues <first-name> <last-name>",
                 "Clear the image queues (textures downloaded via UDP) for a particular client.",
-                (mod, cmd) => m_log.Debug(string.Join(" ", cmd) + "\n" + HandleImageQueuesClear(cmd)));
+                (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
             
             scene.AddCommand(
                 "Comms", this, "show throttles",
                 "show throttles [full]",
                 "Show throttle settings for each client and for the server overall", 
                 "Without the 'full' option, only root agents are shown."
-                  + "  With the 'full' option child agents are also shown.",
-                (mod, cmd) => m_log.Debug(string.Join(" ", cmd) + "\n" + GetThrottlesReport(cmd)));
+                  + "  With the 'full' option child agents are also shown.",                                          
+                (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
 
             scene.AddCommand(
                 "Comms", this, "emergency-monitoring",
@@ -138,7 +138,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Show client request stats",
                 "Without the 'first_name last_name' option, all clients are shown."
                   + "  With the 'first_name last_name' option only a specific client is shown.",
-                (mod, cmd) => m_log.Debug(string.Join(" ", cmd) + "\n" + HandleClientStatsReport(cmd)));
+                (mod, cmd) => MainConsole.Instance.Output(HandleClientStatsReport(cmd)));
 
         }
         
@@ -279,7 +279,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                     return;
                         
                                 string name = client.Name;
-                                if (pname != "" && name.ToLower() != pname.ToLower())
+                                if (pname != "" && name != pname)
                                     return;
                                 
                                 string regionName = scene.RegionInfo.RegionName;
@@ -440,7 +440,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                     return;
                         
                                 string name = client.Name;
-                                if (pname != "" && name.ToLower() != pname.ToLower())
+                                if (pname != "" && name != pname)
                                     return;
 
                                 string regionName = scene.RegionInfo.RegionName;
@@ -537,7 +537,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                     return;
                         
                                 string name = client.Name;
-                                if (pname != "" && name.ToLower() != pname.ToLower())
+                                if (pname != "" && name != pname)
                                     return;
 
                                 string regionName = scene.RegionInfo.RegionName;
@@ -608,12 +608,12 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         /// <returns></returns>
         protected string HandleClientStatsReport(string[] showParams)
         {
-            StringBuilder report = new StringBuilder();
-            
+            // NOTE: This writes to m_log on purpose. We want to store this information
+            // in case we need to analyze it later.
+            //
             if (showParams.Length <= 4)
             {
-                report.AppendFormat("{0,-30} {1,-30} {2,-6} {3,-11} {4,-11} {5,-16}\n", "Region", "Name", "Root", "Time", "Reqs/min", "AgentUpdates");
-
+                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", "Region", "Name", "Root", "Time", "Reqs/min", "AgentUpdates");
                 foreach (Scene scene in m_scenes.Values)
                 {
                     scene.ForEachClient(
@@ -633,10 +633,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 else
                                     childAgentStatus = "Off!";
 
-                                int agentUpdates = 0;
-                                cinfo.SyncRequests.TryGetValue("AgentUpdate", out agentUpdates);
-                                
-                                report.AppendFormat("{0,-30} {1,-30} {2,-6} {3,-11} {4,-11} {5,-16}\n", 
+                                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", 
                                     scene.RegionInfo.RegionName, llClient.Name,
                                          childAgentStatus, 
                                          (DateTime.Now - cinfo.StartedTime).Minutes,
@@ -644,12 +641,11 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                          string.Format(
                                             "{0} ({1:0.00}%)", 
                                             llClient.TotalAgentUpdates, 
-                                            ((float)agentUpdates) / llClient.TotalAgentUpdates * 100));
+                                            (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100));
                             }
                         });
                 }
-
-                return report.ToString();
+                return string.Empty;
             }
 
             string fname = "", lname = "";
@@ -668,7 +664,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                         {
                             LLClientView llClient = client as LLClientView;
 
-                            if (llClient.Name.ToLower() == (fname + " " + lname).ToLower())
+                            if (llClient.Name == fname + " " + lname)
                             {
 
                                 ClientInfo cinfo = llClient.GetClientInfo();
@@ -677,42 +673,41 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                     aCircuit = new AgentCircuitData();
 
                                 if (!llClient.SceneAgent.IsChildAgent)
-                                    report.AppendFormat("{0} # {1} # {2}\n", llClient.Name, Util.GetViewerName(aCircuit), aCircuit.Id0);
+                                    m_log.InfoFormat("[INFO]: {0} # {1} # {2}", llClient.Name, Util.GetViewerName(aCircuit), aCircuit.Id0);
 
                                 int avg_reqs = cinfo.AsyncRequests.Values.Sum() + cinfo.GenericRequests.Values.Sum() + cinfo.SyncRequests.Values.Sum();
                                 avg_reqs = avg_reqs / ((DateTime.Now - cinfo.StartedTime).Minutes + 1);
 
-                                report.AppendLine();
-                                report.AppendFormat("{0} # {1} # Time: {2}min # Avg Reqs/min: {3}\n", scene.RegionInfo.RegionName,
+                                m_log.InfoFormat("[INFO]:");
+                                m_log.InfoFormat("[INFO]: {0} # {1} # Time: {2}min # Avg Reqs/min: {3}", scene.RegionInfo.RegionName,
                                     (llClient.SceneAgent.IsChildAgent ? "Child" : "Root"), (DateTime.Now - cinfo.StartedTime).Minutes, avg_reqs);
 
                                 Dictionary<string, int> sortedDict = (from entry in cinfo.AsyncRequests orderby entry.Value descending select entry)
                                         .ToDictionary(pair => pair.Key, pair => pair.Value);
-                                PrintRequests(report, "TOP ASYNC", sortedDict, cinfo.AsyncRequests.Values.Sum());
+                                PrintRequests("TOP ASYNC", sortedDict, cinfo.AsyncRequests.Values.Sum());
 
                                 sortedDict = (from entry in cinfo.SyncRequests orderby entry.Value descending select entry)
                                         .ToDictionary(pair => pair.Key, pair => pair.Value);
-                                PrintRequests(report, "TOP SYNC", sortedDict, cinfo.SyncRequests.Values.Sum());
+                                PrintRequests("TOP SYNC", sortedDict, cinfo.SyncRequests.Values.Sum());
 
                                 sortedDict = (from entry in cinfo.GenericRequests orderby entry.Value descending select entry)
                                         .ToDictionary(pair => pair.Key, pair => pair.Value);
-                                PrintRequests(report, "TOP GENERIC", sortedDict, cinfo.GenericRequests.Values.Sum());
+                                PrintRequests("TOP GENERIC", sortedDict, cinfo.GenericRequests.Values.Sum());
                             }
                         }
                     });
             }
-            
-            return report.ToString();
+            return string.Empty;
         }
 
-        private void PrintRequests(StringBuilder report, string type, Dictionary<string, int> sortedDict, int sum)
+        private void PrintRequests(string type, Dictionary<string, int> sortedDict, int sum)
         {
-            report.AppendLine();
-            report.AppendFormat("{0,25}\n", type);
+            m_log.InfoFormat("[INFO]:");
+            m_log.InfoFormat("[INFO]: {0,25}", type);
             foreach (KeyValuePair<string, int> kvp in sortedDict.Take(12))
-                report.AppendFormat("{0,25} {1,-6}\n", kvp.Key, kvp.Value);
-            report.AppendFormat("{0,25}\n", "...");
-            report.AppendFormat("{0,25} {1,-6}\n", "Total", sum);
+                m_log.InfoFormat("[INFO]: {0,25} {1,-6}", kvp.Key, kvp.Value);
+            m_log.InfoFormat("[INFO]: {0,25}", "...");
+            m_log.InfoFormat("[INFO]: {0,25} {1,-6}", "Total", sum);
         }
     }
 }
