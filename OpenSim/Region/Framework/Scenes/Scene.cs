@@ -2469,7 +2469,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (UUID av in avatars)
             {
                 ScenePresence p = GetScenePresence(av);
-                if (p != null)
+                if (p != null &&  p.ParentUUID == UUID.Zero)
                     p.StandUp();
             }
 
@@ -3134,7 +3134,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // and the scene presence and the client, if they exist
                     try
                     {
-                        ScenePresence sp = GetScenePresence(agentID);
+                        ScenePresence sp = WaitGetScenePresence(agentID);
 
                         if (sp != null)
                         {
