@@ -159,6 +159,11 @@ public abstract class BSPhysObject : PhysicsActor
         Unknown, Waiting, FailedAssetFetch, FailedMeshing, Fetched
     }
     public PrimAssetCondition PrimAssetState { get; set; }
+    public virtual bool AssetFailed()
+    {
+        return ( (this.PrimAssetState == PrimAssetCondition.FailedAssetFetch)
+              || (this.PrimAssetState == PrimAssetCondition.FailedMeshing) );
+    }
 
     // The objects base shape information. Null if not a prim type shape.
     public PrimitiveBaseShape BaseShape { get; protected set; }
