@@ -63,18 +63,23 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_httpMethod = httpMethod;
             m_path = path;
 
-            StatsManager.RegisterStat(
-                new Stat(
-                "requests", 
-                "requests", 
-                "Number of requests received by this service endpoint", 
-                "requests", 
-                "service", 
-                string.Format("{0}:{1}", httpMethod, path), 
-                StatType.Pull, 
-                MeasuresOfInterest.AverageChangeOverTime,
-                s => s.Value = RequestsReceived,
-                StatVerbosity.Debug));
+            // FIXME: A very temporary measure to stop the simulator stats being overwhelmed with user CAPS info.
+            // Needs to be fixed properly in stats display
+            if (!path.StartsWith("/CAPS/"))
+            {
+                StatsManager.RegisterStat(
+                    new Stat(
+                    "requests", 
+                    "requests", 
+                    "Number of requests received by this service endpoint", 
+                    "requests", 
+                    "service", 
+                    string.Format("{0}:{1}", httpMethod, path), 
+                    StatType.Pull, 
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    s => s.Value = RequestsReceived,
+                    StatVerbosity.Debug));
+            }
         }
 
         public virtual string Path
