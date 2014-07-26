@@ -34,6 +34,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 using OpenMetaverse;
@@ -45,6 +46,11 @@ namespace OpenSim.Services.Connectors
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Number of requests made to the remote inventory service.
+        /// </summary>
+        public int RequestsMade { get; private set; }
 
         private string m_ServerURI = String.Empty;
 
@@ -83,6 +89,19 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Inventory connector init error");
             }
             m_ServerURI = serviceURI;
+
+            StatsManager.RegisterStat(
+                new Stat(
+                "RequestsMade", 
+                "Requests made", 
+                "Number of requests made to the remove inventory service", 
+                "requests", 
+                "inventory", 
+                serviceURI, 
+                StatType.Pull, 
+                MeasuresOfInterest.AverageChangeOverTime,
+                s => s.Value = RequestsMade,
+                StatVerbosity.Debug));
         }
 
         private bool CheckReturn(Dictionary<string, object> ret)
@@ -501,6 +520,8 @@ namespace OpenSim.Services.Connectors
             sendData = new Dictionary<string,object>{ { "METHOD", method } };
             foreach (KeyValuePair<string, object> kvp in temp)
                 sendData.Add(kvp.Key, kvp.Value);
+
+            RequestsMade++;
 
             string reply = string.Empty;
             lock (m_Lock)
