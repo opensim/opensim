@@ -761,6 +761,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (agent.ParentUUID != UUID.Zero)
                 {
+                    agent.ClearControls();
                     agent.ParentPart = null;
 //                    agent.ParentPosition = Vector3.Zero;
 //                    agent.ParentUUID = UUID.Zero;

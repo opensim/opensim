@@ -4512,6 +4512,15 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendTakeControls(int.MaxValue, false, false);
         }
 
+        public void ClearControls()
+        {
+            IgnoredControls = ScriptControlled.CONTROL_ZERO;
+            lock (scriptedcontrols)
+            {
+                scriptedcontrols.Clear();
+            }
+        }
+
         private void UnRegisterSeatControls(UUID obj)
         {
             List<UUID> takers = new List<UUID>();
