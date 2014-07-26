@@ -151,7 +151,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 if (addRemove)
                     m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero);
                 else
-                    m_animations.Remove(animID, true);
+                    m_animations.Remove(animID, false);
             }
             if(sendPack)
                 SendAnimPack();
