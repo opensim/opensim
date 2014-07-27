@@ -268,13 +268,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 else
                     sceneObject.RootPart.KeyframeMotion = null;
 
-
-                XmlNodeList SOGSound = doc.GetElementsByTagName("SOGSound");
-                if (SOGSound.Count > 0)
-                {
-
-                }
-
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
