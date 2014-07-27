@@ -2844,7 +2844,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_SoundModule.SendSound(
                     m_host.UUID,
                     ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), 
-                    volume, false, m_host.SoundQueueing ? (byte)SoundFlags.Queue : (byte)SoundFlags.None,
+                    volume, false, 0,
                     0, false, false);
             }
         }
@@ -2855,7 +2855,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule != null)
             {
                 m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, false);
+                        volume, 20, false,false);
             }
         }
 
@@ -2865,16 +2865,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule != null)
             {
                 m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, true);
+                        volume, 20, true, false);
             }
         }
 
         public void llLoopSoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            lock (m_host.ParentGroup.LoopSoundSlavePrims)
+            if (m_SoundModule != null)
             {
-                m_host.ParentGroup.LoopSoundSlavePrims.Add(m_host);
+                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
+                        volume, 20, false, true);
             }
         }
 

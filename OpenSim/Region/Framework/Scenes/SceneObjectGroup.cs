@@ -908,14 +908,14 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+        // PlaySoundMasterPrim no longer in use  to remove
         private SceneObjectPart m_PlaySoundMasterPrim = null;
         public SceneObjectPart PlaySoundMasterPrim
         {
             get { return m_PlaySoundMasterPrim; }
             set { m_PlaySoundMasterPrim = value; }
         }
-
+        // PlaySoundSlavePrims no longer in use  to remove
         private List<SceneObjectPart> m_PlaySoundSlavePrims = new List<SceneObjectPart>();
         public List<SceneObjectPart> PlaySoundSlavePrims
         {
@@ -923,6 +923,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_PlaySoundSlavePrims = value; }
         }
 
+        //  LoopSoundMasterPrim no longer in use  to remove
         private SceneObjectPart m_LoopSoundMasterPrim = null;
         public SceneObjectPart LoopSoundMasterPrim
         {
@@ -930,6 +931,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundMasterPrim = value; }
         }
 
+        //  m_LoopSoundSlavePrims no longer in use  to remove
         private List<SceneObjectPart> m_LoopSoundSlavePrims = new List<SceneObjectPart>();
         public List<SceneObjectPart> LoopSoundSlavePrims
         {

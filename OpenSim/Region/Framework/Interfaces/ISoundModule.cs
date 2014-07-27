@@ -95,7 +95,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="radius">Sound radius</param>
         /// <param name="isMaster">Set object to sync master if true</param>
         void LoopSound(UUID objectID, UUID soundID, double gain,
-                double radius, bool isMaster);
+                double radius, bool isMaster, bool isSlave);
 
         /// <summary>
         /// Trigger or play an attached sound in this part's inventory.
