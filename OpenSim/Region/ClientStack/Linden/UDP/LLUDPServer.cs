@@ -1079,7 +1079,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // packet so that it isn't sent before a queued update packet.
             bool requestQueue = type == PacketType.KillObject;
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue, highPriority))
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue))
             {
                 SendPacketFinal(outgoingPacket);
                 return true;
