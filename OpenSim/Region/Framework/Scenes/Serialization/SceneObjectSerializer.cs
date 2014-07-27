@@ -268,10 +268,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 else
                     sceneObject.RootPart.KeyframeMotion = null;
 
+
+                XmlNodeList SOGSound = doc.GetElementsByTagName("SOGSound");
+                if (SOGSound.Count > 0)
+                {
+
+                }
+
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
-                
+
                 return sceneObject;
             }
             catch (Exception e)
@@ -390,6 +397,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("GravityModifier", ProcessGravityModifier);
             m_SOPXmlProcessors.Add("CameraEyeOffset", ProcessCameraEyeOffset);
             m_SOPXmlProcessors.Add("CameraAtOffset", ProcessCameraAtOffset);
+
+            m_SOPXmlProcessors.Add("SoundID", ProcessSoundID);
+            m_SOPXmlProcessors.Add("SoundGain", ProcessSoundGain);
+            m_SOPXmlProcessors.Add("SoundFlags", ProcessSoundFlags);
+            m_SOPXmlProcessors.Add("SoundRadius", ProcessSoundRadius);
+            m_SOPXmlProcessors.Add("SoundQueueing", ProcessSoundQueueing);
 
             #endregion
 
@@ -654,6 +667,30 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.SetCameraAtOffset(Util.ReadVector(reader, "CameraAtOffset"));
         }
 
+        private static void ProcessSoundID(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Sound = Util.ReadUUID(reader, "SoundID");
+        }
+
+        private static void ProcessSoundGain(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.SoundGain = reader.ReadElementContentAsDouble("SoundGain", String.Empty);
+        }
+
+        private static void ProcessSoundFlags(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.SoundFlags = (byte)reader.ReadElementContentAsInt("SoundFlags", String.Empty);
+        }
+
+        private static void ProcessSoundRadius(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.SoundRadius = reader.ReadElementContentAsDouble("SoundRadius", String.Empty);
+        }
+
+        private static void ProcessSoundQueueing(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.SoundQueueing = Util.ReadBoolean(reader);
+        }
         private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
         {
             SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
@@ -1265,6 +1302,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteBase64(data, 0, data.Length);
                 writer.WriteEndElement();
             }
+            
 
             writer.WriteEndElement();
         }
@@ -1397,6 +1435,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "CameraEyeOffset", sop.GetCameraEyeOffset());
             WriteVector(writer, "CameraAtOffset", sop.GetCameraAtOffset());
 
+ //           if (sop.Sound != UUID.Zero)  force it till sop crossing does clear it on child prim
+            {
+                WriteUUID(writer, "SoundID", sop.Sound, options);
+                writer.WriteElementString("SoundGain", sop.SoundGain.ToString().ToLower());
+                writer.WriteElementString("SoundFlags", sop.SoundFlags.ToString().ToLower());
+                writer.WriteElementString("SoundRadius", sop.SoundRadius.ToString().ToLower());
+            }
+            writer.WriteElementString("SoundQueueing", sop.SoundQueueing.ToString().ToLower());
+            
             writer.WriteEndElement();
         }
 
