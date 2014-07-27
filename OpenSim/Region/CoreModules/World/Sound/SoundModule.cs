@@ -199,7 +199,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         private static void StopSound(SceneObjectPart m_host)
         {
-            m_host.AdjustSoundGain(0);
+//            m_host.AdjustSoundGain(0);
             m_host.Sound = UUID.Zero;
             m_host.SoundFlags = (byte)SoundFlags.STOP;
             m_host.SoundRadius = 0;
