@@ -895,13 +895,31 @@ namespace OpenSim.Region.CoreModules.World.Land
         private byte[] ConvertLandBitmapToBytes()
         {
             byte[] tempConvertArr = new byte[512];
-            byte tempByte = 0;
+            int tempByte = 0;
             int x, y, i, byteNum = 0;
+            int mask = 1;
             i = 0;
             for (y = 0; y < 64; y++)
             {
                 for (x = 0; x < 64; x++)
                 {
+                    if (LandBitmap[x, y])
+                        tempByte |= mask;
+                    mask = mask << 1;
+                    if (mask == 0x100)
+                    {
+                        mask = 1;
+                        tempConvertArr[byteNum++] = (byte)tempByte;
+                        tempByte = 0;
+                    }
+                }
+            }
+
+            if(tempByte != 0 && byteNum < 512)
+                tempConvertArr[byteNum] = (byte)tempByte;
+
+
+/*
                     tempByte = Convert.ToByte(tempByte | Convert.ToByte(LandBitmap[x, y]) << (i++ % 8));
                     if (i % 8 == 0)
                     {
@@ -910,8 +928,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         i = 0;
                         byteNum++;
                     }
-                }
-            }
+ */
             return tempConvertArr;
         }
 
