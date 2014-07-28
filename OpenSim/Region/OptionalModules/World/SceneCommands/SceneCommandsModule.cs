@@ -166,8 +166,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             }
             else
             {
-                MainConsole.Instance.Output(
-                    "Usage: debug scene set active|collisions|pbackup|physics|scripting|teleport|updates true|false");
+                MainConsole.Instance.Output("Usage: debug scene set <param> <value>");
             }
         }
 
