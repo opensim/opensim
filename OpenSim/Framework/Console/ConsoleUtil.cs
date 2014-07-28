@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
-        /// Convert a console integer to an int, automatically complaining if a console is given.
+        /// Convert a console input to a bool, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
         /// <param name='rawConsoleVector'>/param>
@@ -176,7 +176,7 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
-        /// Convert a console integer to an int, automatically complaining if a console is given.
+        /// Convert a console input to an int, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
         /// <param name='rawConsoleInt'>/param>
@@ -188,6 +188,46 @@ namespace OpenSim.Framework.Console
             {
                 if (console != null)
                     console.OutputFormat("ERROR: {0} is not a valid integer", rawConsoleInt);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Convert a console input to a float, automatically complaining if a console is given.
+        /// </summary>
+        /// <param name='console'>Can be null if no console is available.</param>
+        /// <param name='rawConsoleInput'>/param>
+        /// <param name='i'></param>
+        /// <returns></returns>
+        public static bool TryParseConsoleFloat(ICommandConsole console, string rawConsoleInput, out float i)
+        {
+            if (!float.TryParse(rawConsoleInput, out i))
+            {
+                if (console != null)
+                    console.OutputFormat("ERROR: {0} is not a valid float", rawConsoleInput);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Convert a console input to a double, automatically complaining if a console is given.
+        /// </summary>
+        /// <param name='console'>Can be null if no console is available.</param>
+        /// <param name='rawConsoleInput'>/param>
+        /// <param name='i'></param>
+        /// <returns></returns>
+        public static bool TryParseConsoleDouble(ICommandConsole console, string rawConsoleInput, out double i)
+        {
+            if (!double.TryParse(rawConsoleInput, out i))
+            {
+                if (console != null)
+                    console.OutputFormat("ERROR: {0} is not a valid double", rawConsoleInput);
 
                 return false;
             }

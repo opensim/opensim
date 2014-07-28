@@ -150,6 +150,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendChildAgentDataUpdate(AgentPosition cAgentData, ScenePresence presence)
         {
+//            m_log.DebugFormat(
+//                "[SCENE COMMUNICATION SERVICE]: Sending child agent position updates for {0} in {1}", 
+//                presence.Name, m_scene.Name);
+
             // This assumes that we know what our neighbors are.
             try
             {

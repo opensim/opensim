@@ -413,7 +413,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_reprioritizationEnabled = true;
         private double m_reprioritizationInterval = 5000.0;
         private double m_rootReprioritizationDistance = 10.0;
-        private double m_childReprioritizationDistance = 20.0;
 
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
@@ -650,7 +649,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsReprioritizationEnabled { get { return m_reprioritizationEnabled; } }
         public double ReprioritizationInterval { get { return m_reprioritizationInterval; } }
         public double RootReprioritizationDistance { get { return m_rootReprioritizationDistance; } }
-        public double ChildReprioritizationDistance { get { return m_childReprioritizationDistance; } }
+        public double ChildReprioritizationDistance { get; set; }
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -1002,7 +1001,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
                 m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
                 m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
-                m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
+                ChildReprioritizationDistance 
+                    = interestConfig.GetDouble("ChildReprioritizationDistance", ChildReprioritizationDistance);
             }
 
             m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
@@ -1022,6 +1022,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             PeriodicBackup = true;
             UseBackup = true;
+
+            ChildReprioritizationDistance = 20.0;
 
             m_eventManager = new EventManager();
 
