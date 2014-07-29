@@ -873,10 +873,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 presence.ControllingClient.OnLandUndo -= client_OnLandUndo;
                 presence.ControllingClient.OnUnackedTerrain -= client_OnUnackedTerrain;
             }
-            if (m_perClientPatchUpdates.ContainsKey(client))
-            {
+
+            lock (m_perClientPatchUpdates)
                 m_perClientPatchUpdates.Remove(client);
-            }
         }
         
         /// <summary>
