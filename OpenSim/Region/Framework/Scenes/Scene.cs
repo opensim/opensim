@@ -247,6 +247,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public float ClientVelocityUpdateTolerance { get; set; }
 
+        /// <summary>
+        /// If greater than 1, we only send terse updates to child agents on every n updates.
+        /// </summary>
+        public int ChildTerseUpdatePeriod { get; set; }
+
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
         {

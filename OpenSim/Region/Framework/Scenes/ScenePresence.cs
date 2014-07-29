@@ -859,6 +859,11 @@ namespace OpenSim.Region.Framework.Scenes
             get { return Util.GetViewerName(m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode)); }
         }
 
+        /// <summary>
+        /// Count of how many terse updates we have sent out.  It doesn't matter if this overflows.
+        /// </summary>
+        private int m_terseUpdateCount;
+
         #endregion
 
         #region Constructor(s)
@@ -3222,17 +3227,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Update Client(s)
 
-
         /// <summary>
         /// Sends a location update to the client connected to this scenePresence
         /// </summary>
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
+            m_terseUpdateCount++;
+
             // If the client is inactive, it's getting its updates from another
             // server.
             if (remoteClient.IsActive)
             {
+                if (Scene.ChildTerseUpdatePeriod > 1 
+                    && remoteClient.SceneAgent.IsChildAgent
+                    && m_terseUpdateCount % Scene.ChildTerseUpdatePeriod != 0 
+                    && !Velocity.ApproxEquals(Vector3.Zero, 0.001f))
+                        return;
+
                 //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
 
                 remoteClient.SendEntityUpdate(
