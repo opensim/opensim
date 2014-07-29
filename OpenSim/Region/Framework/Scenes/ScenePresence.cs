@@ -3182,10 +3182,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update()
         {
-            const float ROTATION_TOLERANCE = 0.01f;
-            const float VELOCITY_TOLERANCE = 0.001f;
-            const float POSITION_TOLERANCE = 0.05f;
-
             if (IsChildAgent == false)
             {
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
@@ -3202,9 +3198,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!updateClients)
                     updateClients 
-                        = !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) 
-                            || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
-                            || !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE);
+                        = !Rotation.ApproxEquals(m_lastRotation, Scene.ClientRotationUpdateTolerance) 
+                            || !Velocity.ApproxEquals(m_lastVelocity, Scene.ClientVelocityUpdateTolerance)
+                            || !m_pos.ApproxEquals(m_lastPosition, Scene.ClientPositionUpdateTolerance);
 
                 if (updateClients)
                 {

@@ -230,7 +230,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Temporarily setting to trigger appearance resends at 60 second intervals.
         /// </summary>
-        public bool SendPeriodicAppearanceUpdates { get; set; }
+        public bool SendPeriodicAppearanceUpdates { get; set; }               
+                
+        /// <summary>
+        /// How much a client has to change position before updates are sent to viewers.
+        /// </summary>
+        public float ClientPositionUpdateTolerance { get; set; }
+
+        /// <summary>
+        /// How much a client has to rotate before updates are sent to viewers.
+        /// </summary>
+        public float ClientRotationUpdateTolerance { get; set; }
+
+        /// <summary>
+        /// How much a client has to change velocity before updates are sent to viewers.
+        /// </summary>
+        public float ClientVelocityUpdateTolerance { get; set; }
 
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
@@ -1046,6 +1061,9 @@ namespace OpenSim.Region.Framework.Scenes
             PeriodicBackup = true;
             UseBackup = true;
 
+            ClientRotationUpdateTolerance = 0.01f;
+            ClientVelocityUpdateTolerance = 0.001f;
+            ClientPositionUpdateTolerance = 0.05f;
             ChildReprioritizationDistance = 20.0;
 
             m_eventManager = new EventManager();
