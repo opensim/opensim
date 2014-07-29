@@ -4974,7 +4974,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    eq.ParcelProperties(updateMessage, this.AgentId);
+                    OSD message_body = updateMessage.Serialize();
+                    // Add new fields here until OMV has them
+                    OSDMap parcelData = (OSDMap)message_body;
+                    parcelData["SeeAVs"] = OSD.FromBoolean(true);
+                    parcelData["AnyAVSounds"] = OSD.FromBoolean(true);
+                    parcelData["GroupAVSounds"] = OSD.FromBoolean(true);
+                    OSDMap message = new OSDMap();
+                    message.Add("message", OSD.FromString("ParcelProperties"));
+                    message.Add("body", message_body);
+                    eq.Enqueue (message, this.AgentId);
+                    //eq.ParcelProperties(updateMessage, this.AgentId);
                 } 
                 else 
                 {
