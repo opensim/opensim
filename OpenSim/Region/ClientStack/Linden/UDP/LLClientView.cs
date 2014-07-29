@@ -4976,10 +4976,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     OSD message_body = updateMessage.Serialize();
                     // Add new fields here until OMV has them
-                    OSDMap parcelData = (OSDMap)message_body;
-                    parcelData["SeeAVs"] = OSD.FromBoolean(true);
-                    parcelData["AnyAVSounds"] = OSD.FromBoolean(true);
-                    parcelData["GroupAVSounds"] = OSD.FromBoolean(true);
+                    OSDMap bodyMap = (OSDMap)message_body;
+                    OSDArray parcelDataArray = (OSDArray)bodyMap["ParcelData"];
+                    OSDMap parcelData = (OSDMap)parcelDataArray[0];
+                    parcelData["SeeAVs"] = OSD.FromBoolean(landData.SeeAVs);
+                    parcelData["AnyAVSounds"] = OSD.FromBoolean(landData.AnyAVSounds);
+                    parcelData["GroupAVSounds"] = OSD.FromBoolean(landData.GroupAVSounds);
                     OSDMap message = new OSDMap();
                     message.Add("message", OSD.FromString("ParcelProperties"));
                     message.Add("body", message_body);

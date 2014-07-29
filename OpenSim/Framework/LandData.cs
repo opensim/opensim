@@ -99,6 +99,10 @@ namespace OpenSim.Framework
         private bool _obscureMedia = false;
         private float _dwell = 0;
 
+        public bool SeeAVs { get; set; }
+        public bool AnyAVSounds { get; set; }
+        public bool GroupAVSounds { get; set; }
+
         /// <summary>
         /// Traffic count of parcel
         /// </summary>
@@ -728,6 +732,9 @@ namespace OpenSim.Framework
         public LandData()
         {
             _globalID = UUID.Random();
+            SeeAVs = true;
+            AnyAVSounds = true;
+            GroupAVSounds = true;
         }
 
         /// <summary>
@@ -778,6 +785,9 @@ namespace OpenSim.Framework
             landData._simwideArea = _simwideArea;
             landData._simwidePrims = _simwidePrims;
             landData._dwell = _dwell;
+            landData.SeeAVs = SeeAVs;
+            landData.AnyAVSounds = AnyAVSounds;
+            landData.GroupAVSounds = GroupAVSounds;
 
             landData._parcelAccessList.Clear();
             foreach (LandAccessEntry entry in _parcelAccessList)
@@ -793,21 +803,21 @@ namespace OpenSim.Framework
             return landData;
         }
 
-        public void ToXml(XmlWriter xmlWriter)
-        {
-            serializer.Serialize(xmlWriter, this);
-        }
+//        public void ToXml(XmlWriter xmlWriter)
+//        {
+//            serializer.Serialize(xmlWriter, this);
+//        }
 
         /// <summary>
         /// Restore a LandData object from the serialized xml representation.
         /// </summary>
         /// <param name="xmlReader"></param>
         /// <returns></returns>
-        public static LandData FromXml(XmlReader xmlReader)
-        {
-            LandData land = (LandData)serializer.Deserialize(xmlReader);
-
-            return land;
-        }
+//        public static LandData FromXml(XmlReader xmlReader)
+//        {
+//            LandData land = (LandData)serializer.Deserialize(xmlReader);
+//
+//            return land;
+//        }
     }
 }
