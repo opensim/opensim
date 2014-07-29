@@ -706,7 +706,8 @@ namespace OpenSim.Data.MySQL
                             "UserLocationX, UserLocationY, UserLocationZ, " +
                             "UserLookAtX, UserLookAtY, UserLookAtZ, " +
                             "AuthbuyerID, OtherCleanTime, MediaType, MediaDescription, " +
-                            "MediaSize, MediaLoop, ObscureMusic, ObscureMedia) values (" +
+                            "MediaSize, MediaLoop, ObscureMusic, ObscureMedia, " + 
+                            "SeeAVs, AnyAVSounds, GroupAVSounds) values (" +
                             "?UUID, ?RegionUUID, " +
                             "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
                             "?OwnerUUID, ?IsGroupOwned, ?Area, ?AuctionID, " +
@@ -717,7 +718,8 @@ namespace OpenSim.Data.MySQL
                             "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
                             "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
                             "?AuthbuyerID, ?OtherCleanTime, ?MediaType, ?MediaDescription, "+
-                            "CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia)";
+                            "CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia, " +
+                            "?SeeAVs, ?AnyAVSounds, ?GroupAVSounds)";
 
                         FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
 
@@ -1544,6 +1546,13 @@ namespace OpenSim.Data.MySQL
 
             newData.ParcelAccessList = new List<LandAccessEntry>();
 
+            if (!(row["SeeAVs"] is System.DBNull))
+                newData.SeeAVs = Convert.ToInt32(row["SeeAVs"]) != 0 ? true : false;
+            if (!(row["AnyAVSounds"] is System.DBNull))
+                newData.AnyAVSounds = Convert.ToInt32(row["AnyAVSounds"]) != 0 ? true : false;
+            if (!(row["GroupAVSounds"] is System.DBNull))
+                newData.GroupAVSounds = Convert.ToInt32(row["GroupAVSounds"]) != 0 ? true : false;
+
             return newData;
         }
 
@@ -1893,6 +1902,9 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("MediaLoop", land.MediaLoop);
             cmd.Parameters.AddWithValue("ObscureMusic", land.ObscureMusic);
             cmd.Parameters.AddWithValue("ObscureMedia", land.ObscureMedia);
+            cmd.Parameters.AddWithValue("SeeAVs", land.SeeAVs ? 1 : 0);
+            cmd.Parameters.AddWithValue("AnyAVSounds", land.AnyAVSounds ? 1 : 0);
+            cmd.Parameters.AddWithValue("GroupAVSounds", land.GroupAVSounds ? 1 : 0);
 
         }
 
