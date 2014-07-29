@@ -1044,29 +1044,29 @@ namespace OpenSim.Region.CoreModules.World.Land
                         if (currentParcelBlock.LandData.OwnerID == remote_client.AgentId)
                         {
                             //Owner Flag
-                            tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
+                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
                         }
                         else if (currentParcelBlock.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelBlock.LandData.GroupID))
                         {
-                            tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_GROUP;
+                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_GROUP;
                         }
                         else if (currentParcelBlock.LandData.SalePrice > 0 &&
                                  (currentParcelBlock.LandData.AuthBuyerID == UUID.Zero ||
                                   currentParcelBlock.LandData.AuthBuyerID == remote_client.AgentId))
                         {
                             //Sale type
-                            tempByte |= (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
+                            tempByte = (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
                         }
                         else if(currentParcelBlock.LandData.OwnerID == UUID.Zero)
                         {
                             //Public type 
-                            tempByte |= (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
+                            tempByte = (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
                         }
 // LAND_TYPE_IS_BEING_AUCTIONED still unsuported
                         else
                         {
                             //Other Flag
-                            tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_OTHER;
+                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_OTHER;
                         }
 
                         // now flags
