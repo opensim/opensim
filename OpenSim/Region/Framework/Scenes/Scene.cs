@@ -248,6 +248,11 @@ namespace OpenSim.Region.Framework.Scenes
         public float ClientVelocityUpdateTolerance { get; set; }
 
         /// <summary>
+        /// If greater than 1, we only send terse updates to other root agents on every n updates.
+        /// </summary>
+        public int RootTerseUpdatePeriod { get; set; }
+
+        /// <summary>
         /// If greater than 1, we only send terse updates to child agents on every n updates.
         /// </summary>
         public int ChildTerseUpdatePeriod { get; set; }

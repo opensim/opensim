@@ -3233,12 +3233,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
-            m_terseUpdateCount++;
-
             // If the client is inactive, it's getting its updates from another
             // server.
             if (remoteClient.IsActive)
             {
+                if (Scene.RootTerseUpdatePeriod > 1)
+                {
+//                    Console.WriteLine(
+//                        "{0} {1} {2} {3} {4} {5} for {6} to {7}", 
+//                        remoteClient.AgentId, UUID, remoteClient.SceneAgent.IsChildAgent, m_terseUpdateCount, Scene.RootTerseUpdatePeriod, Velocity.ApproxEquals(Vector3.Zero, 0.001f), Name, remoteClient.Name);
+                    if (remoteClient.AgentId != UUID
+                        && !remoteClient.SceneAgent.IsChildAgent
+                        && m_terseUpdateCount % Scene.RootTerseUpdatePeriod != 0 
+                        && !Velocity.ApproxEquals(Vector3.Zero, 0.001f))
+                    {
+//                        m_log.DebugFormat("[SCENE PRESENCE]: Discarded update from {0} to {1}, args {2} {3} {4} {5} {6} {7}",
+//                            Name, remoteClient.Name, remoteClient.AgentId, UUID, remoteClient.SceneAgent.IsChildAgent, m_terseUpdateCount, Scene.RootTerseUpdatePeriod, Velocity.ApproxEquals(Vector3.Zero, 0.001f));
+
+                        return;
+                    }
+                }
+
                 if (Scene.ChildTerseUpdatePeriod > 1 
                     && remoteClient.SceneAgent.IsChildAgent
                     && m_terseUpdateCount % Scene.ChildTerseUpdatePeriod != 0 
@@ -3303,6 +3318,8 @@ namespace OpenSim.Region.Framework.Scenes
                 lastVelocitySentToAllClients = Velocity;
                 lastTerseUpdateToAllClientsTick = currentTick;
                 lastPositionSentToAllClients = OffsetPosition;
+
+                m_terseUpdateCount++;
 
 //                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
                 m_scene.ForEachClient(SendTerseUpdateToClient);

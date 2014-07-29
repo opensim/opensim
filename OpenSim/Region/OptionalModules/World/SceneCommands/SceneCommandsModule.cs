@@ -100,7 +100,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                     + "client-pos-upd - the tolerance before clients are updated with new rotation information for an avatar.\n"
                     + "client-rot-upd - the tolerance before clients are updated with new rotation information for an avatar.\n"
                     + "client-vel-upd - the tolerance before clients are updated with new velocity information for an avatar.\n"
-                    + "client-upd-per - if greater than 1, terse updates are only sent to child agents on every n updates.\n"
+                    + "root-upd-per   - if greater than 1, terse updates are only sent to root agents other than the originator on every n updates.\n"
+                    + "child-upd-per  - if greater than 1, terse updates are only sent to child agents on every n updates.\n"                    
                     + "collisions     - if false then collisions with other objects are turned off.\n"
                     + "pbackup        - if false then periodic scene backup is turned off.\n"
                     + "physics        - if false then all physics objects are non-physical.\n"
@@ -120,7 +121,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                     + "client-pos-upd - the tolerance before clients are updated with new rotation information for an avatar.\n"
                     + "client-rot-upd - the tolerance before clients are updated with new rotation information for an avatar.\n"
                     + "client-vel-upd - the tolerance before clients are updated with new velocity information for an avatar.\n"
-                    + "client-upd-per - if greater than 1, terse updates are only sent to child agents on every n updates.\n"
+                    + "root-upd-per   - if greater than 1, terse updates are only sent to root agents other than the originator on every n updates.\n"
+                    + "child-upd-per - if greater than 1, terse updates are only sent to child agents on every n updates.\n"
                     + "collisions     - if false then collisions with other objects are turned off.\n"
                     + "pbackup        - if false then periodic scene backup is turned off.\n"
                     + "physics        - if false then all physics objects are non-physical.\n"
@@ -155,7 +157,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             cdl.AddRow("client-pos-upd", m_scene.ClientPositionUpdateTolerance);
             cdl.AddRow("client-rot-upd", m_scene.ClientRotationUpdateTolerance);
             cdl.AddRow("client-vel-upd", m_scene.ClientVelocityUpdateTolerance);
-            cdl.AddRow("client-upd-per", m_scene.ChildTerseUpdatePeriod);
+            cdl.AddRow("root-upd-per", m_scene.RootTerseUpdatePeriod);
+            cdl.AddRow("child-upd-per", m_scene.ChildTerseUpdatePeriod);
             cdl.AddRow("pbackup", m_scene.PeriodicBackup);
             cdl.AddRow("physics", m_scene.PhysicsEnabled);
             cdl.AddRow("scripting", m_scene.ScriptsEnabled);
@@ -248,12 +251,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                     m_scene.ClientVelocityUpdateTolerance = newValue;    
             }
 
-            if (options.ContainsKey("client-upd-per"))
+            if (options.ContainsKey("root-upd-per"))
             {
                 int newValue;
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
-                if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, options["client-upd-per"], out newValue))
+                if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, options["root-upd-per"], out newValue))
+                    m_scene.RootTerseUpdatePeriod = newValue;    
+            }
+
+            if (options.ContainsKey("child-upd-per"))
+            {
+                int newValue;
+
+                // FIXME: This can only come from the console at the moment but might not always be true.
+                if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, options["child-upd-per"], out newValue))
                     m_scene.ChildTerseUpdatePeriod = newValue;    
             }
 
