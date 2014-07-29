@@ -1553,11 +1553,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             land_update.ObscureMusic = properties.ObscureMusic;
             land_update.ObscureMedia = properties.ObscureMedia;
 
-            if (args.ContainsKey("SeeAVs"))
+            if (args.ContainsKey("see_avs"))
             {
-                land_update.SeeAVs = args["SeeAVs"].AsBoolean();
-                land_update.AnyAVSounds = args["AnyAVSounds"].AsBoolean();
-                land_update.GroupAVSounds = args["GroupAVSounds"].AsBoolean();
+                land_update.SeeAVs = args["see_avs"].AsBoolean();
+                land_update.AnyAVSounds = args["any_av_sounds"].AsBoolean();
+                land_update.GroupAVSounds = args["group_av_sounds"].AsBoolean();
             }
             else
             {
