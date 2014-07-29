@@ -50,8 +50,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         public const int LAND_SELECT_OBJECTS_GROUP = 4;
         public const int LAND_SELECT_OBJECTS_OTHER = 8;
 
-
+        
         public const byte LAND_TYPE_PUBLIC = 0; //Equals 00000000
+        // types 1 to 7 are exclusive
         public const byte LAND_TYPE_OWNED_BY_OTHER = 1; //Equals 00000001
         public const byte LAND_TYPE_OWNED_BY_GROUP = 2; //Equals 00000010
         public const byte LAND_TYPE_OWNED_BY_REQUESTER = 3; //Equals 00000011
@@ -59,11 +60,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         public const byte LAND_TYPE_IS_BEING_AUCTIONED = 5; //Equals 00000101
         public const byte LAND_TYPE_unused6 = 6;
         public const byte LAND_TYPE_unused7 = 7;
-        public const byte LAND_TYPE_unused8 = 8;
-        public const byte LAND_TYPE_HIDEAVATARS = 0x10;
-        public const byte LAND_TYPE_LOCALSOUND = 0x20;
-        public const byte LAND_TYPE_PROPERTY_BORDER_WEST = 0x40; //Equals 01000000
-        public const byte LAND_TYPE_PROPERTY_BORDER_SOUTH = 0x80; //Equals 10000000
+        // next are flags
+        public const byte LAND_FLAG_unused8 = 0x08; // this may become excluside in future
+        public const byte LAND_FLAG_HIDEAVATARS = 0x10;
+        public const byte LAND_FLAG_LOCALSOUND = 0x20;
+        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = 0x40; //Equals 01000000
+        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = 0x80; //Equals 10000000
 
 
         //These are other constants. Yay!

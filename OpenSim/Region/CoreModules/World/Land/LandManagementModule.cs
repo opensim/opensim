@@ -1040,38 +1040,37 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                     if (currentParcelBlock != null)
                     {
-                        if (currentParcelBlock.LandData.OwnerID == UUID.Zero)
-                        {
-                            //Public Flag
-                            tempByte |= (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing
-                        }
-                        else if (currentParcelBlock.LandData.OwnerID == remote_client.AgentId)
+                        // types 
+                        if (currentParcelBlock.LandData.OwnerID == remote_client.AgentId)
                         {
                             //Owner Flag
                             tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
                         }
+                        else if (currentParcelBlock.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelBlock.LandData.GroupID))
+                        {
+                            tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_GROUP;
+                        }
+                        else if (currentParcelBlock.LandData.SalePrice > 0 &&
+                                 (currentParcelBlock.LandData.AuthBuyerID == UUID.Zero ||
+                                  currentParcelBlock.LandData.AuthBuyerID == remote_client.AgentId))
+                        {
+                            //Sale type
+                            tempByte |= (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
+                        }
+                        else if(currentParcelBlock.LandData.OwnerID == UUID.Zero)
+                        {
+                            //Public type 
+                            tempByte |= (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
+                        }
+// LAND_TYPE_IS_BEING_AUCTIONED still unsuported
                         else
                         {
                             //Other Flag
                             tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_OTHER;
                         }
 
-                        if (currentParcelBlock.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelBlock.LandData.GroupID))
-                        {
-                            tempByte |= (byte)LandChannel.LAND_TYPE_OWNED_BY_GROUP;
-                        }
-
-                        if (currentParcelBlock.LandData.SalePrice > 0 &&
-                                 (currentParcelBlock.LandData.AuthBuyerID == UUID.Zero ||
-                                  currentParcelBlock.LandData.AuthBuyerID == remote_client.AgentId))
-                        {
-                            //Sale Flag
-                            tempByte |= (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
-                        }
-
-                        // LAND_TYPE_IS_BEING_AUCTIONED not suported?
-
-                        //Now for border control
+                        // now flags
+                        // border control
 
                         ILandObject westParcel = null;
                         ILandObject southParcel = null;
@@ -1086,27 +1085,29 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         if (x == 0)
                         {
-                            tempByte |= (byte)LandChannel.LAND_TYPE_PROPERTY_BORDER_WEST;
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
                         }
                         else if (westParcel != null && westParcel != currentParcelBlock)
                         {
-                            tempByte |= (byte)LandChannel.LAND_TYPE_PROPERTY_BORDER_WEST;
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
                         }
 
                         if (y == 0)
                         {
-                            tempByte |= (byte)LandChannel.LAND_TYPE_PROPERTY_BORDER_SOUTH;
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
                         }
                         else if (southParcel != null && southParcel != currentParcelBlock)
                         {
-                            tempByte |= (byte)LandChannel.LAND_TYPE_PROPERTY_BORDER_SOUTH;
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
                         }
 
+                        // local sound
                         if ((currentParcelBlock.LandData.Flags & (uint)ParcelFlags.SoundLocal) != 0)
-                            tempByte |= (byte)LandChannel.LAND_TYPE_LOCALSOUND;
+                            tempByte |= (byte)LandChannel.LAND_FLAG_LOCALSOUND;
 
+                        // hide avatars
 //                        if ((currentParcelBlock.LandData.Flags & (uint)ParcelFlags.???hideavatar) != 0)
-//                            tempByte |= (byte)LandChannel.LAND_TYPE_HIDEAVATARS;
+//                            tempByte |= (byte)LandChannel.LAND_FLAG_HIDEAVATARS;
 
 
                         byteArray[byteArrayCount] = tempByte;
