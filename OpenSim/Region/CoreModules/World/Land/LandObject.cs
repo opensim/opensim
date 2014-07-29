@@ -292,6 +292,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.AllowAPrimitiveEntry |
                         ParcelFlags.AllowGroupObjectEntry |
                         ParcelFlags.AllowFly);
+                newData.SeeAVs = args.SeeAVs;
+                newData.AnyAVSounds = args.AnyAVSounds;
+                newData.GroupAVSounds = args.GroupAVSounds;
             }
 
             if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandSetSale, true))

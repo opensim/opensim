@@ -56,5 +56,8 @@ namespace OpenSim.Framework
         public bool MediaLoop;
         public bool ObscureMusic;
         public bool ObscureMedia;
+        public bool SeeAVs;
+        public bool AnyAVSounds;
+        public bool GroupAVSounds;
     }
 }
