@@ -730,8 +730,6 @@ namespace OpenSim
             clientServer = clientNetworkServers;
             scene.LoadWorldMap();
 
-            Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
-            scene.PhysicsScene = GetPhysicsScene(scene.RegionInfo.RegionName, regionExtent);
             scene.PhysicsScene.RequestAssetMethod = scene.PhysicsRequestAsset;
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
             scene.PhysicsScene.SetWaterLevel((float) regionInfo.RegionSettings.WaterHeight);
@@ -747,10 +745,13 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService,
             IEstateDataService estateDataService, AgentCircuitManager circuitManager)
         {
+            Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
+            PhysicsScene physicsScene = GetPhysicsScene(regionInfo.RegionName, regionExtent);
+
             SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return new Scene(
-                regionInfo, circuitManager, sceneGridService,
+                regionInfo, circuitManager, physicsScene, sceneGridService,
                 simDataService, estateDataService,
                 Config, m_version);
         }

@@ -103,7 +103,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// If false then physical objects are disabled, though collisions will continue as normal.
         /// </summary>
-        public bool PhysicsEnabled { get; set; }
+        public bool PhysicsEnabled 
+        { 
+            get 
+            {
+                return m_physicsEnabled;
+            }
+
+            set
+            {
+                m_physicsEnabled = value;
+
+                if (PhysicsScene != null)
+                {
+                    IPhysicsParameters physScene = PhysicsScene as IPhysicsParameters;
+
+                    if (physScene != null)
+                        physScene.SetPhysicsParameter(
+                            "Active", m_physicsEnabled.ToString(), PhysParameterEntry.APPLY_TO_NONE);
+                }
+            }
+        }
+
+        private bool m_physicsEnabled;
 
         /// <summary>
         /// If false then scripts are not enabled on the smiulator
@@ -712,11 +734,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructors
 
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen,
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
                      SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      IConfigSource config, string simulatorVersion)
-            : this(regInfo)
+            : this(regInfo, physicsScene)
         {
             m_config = config;
             MinFrameTime = 0.089f;
@@ -788,21 +810,6 @@ namespace OpenSim.Region.Framework.Scenes
                 new EventManager.LandObjectAdded(simDataService.StoreLandObject);
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
-
-            m_sceneGraph = new SceneGraph(this);
-
-            // If the scene graph has an Unrecoverable error, restart this sim.
-            // Currently the only thing that causes it to happen is two kinds of specific
-            // Physics based crashes.
-            //
-            // Out of memory
-            // Operating system has killed the plugin
-            m_sceneGraph.UnRecoverableError 
-                += () => 
-                    { 
-                        m_log.ErrorFormat("[SCENE]: Restarting region {0} due to unrecoverable physics crash", Name); 
-                        RestartNow(); 
-                    };
 
             RegisterDefaultSceneEvents();
 
@@ -1014,8 +1021,24 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
         }
 
-        public Scene(RegionInfo regInfo) : base(regInfo)
-        {
+        public Scene(RegionInfo regInfo, PhysicsScene physicsScene) : base(regInfo)
+        {            
+            m_sceneGraph = new SceneGraph(this);
+            m_sceneGraph.PhysicsScene = physicsScene;
+
+            // If the scene graph has an Unrecoverable error, restart this sim.
+            // Currently the only thing that causes it to happen is two kinds of specific
+            // Physics based crashes.
+            //
+            // Out of memory
+            // Operating system has killed the plugin
+            m_sceneGraph.UnRecoverableError 
+                += () => 
+            { 
+                m_log.ErrorFormat("[SCENE]: Restarting region {0} due to unrecoverable physics crash", Name); 
+                RestartNow(); 
+            };
+
             PhysicalPrims = true;
             CollidablePrims = true;
             PhysicsEnabled = true;

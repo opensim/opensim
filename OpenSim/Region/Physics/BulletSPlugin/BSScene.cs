@@ -821,7 +821,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         while (m_initialized)
         {
             int beginSimulationRealtimeMS = Util.EnvironmentTickCount();
-            DoPhysicsStep(BSParam.PhysicsTimeStep);
+
+            if (BSParam.Active)
+                DoPhysicsStep(BSParam.PhysicsTimeStep);
+
             int simulationRealtimeMS = Util.EnvironmentTickCountSubtract(beginSimulationRealtimeMS);
             int simulationTimeVsRealtimeDifferenceMS = ((int)(BSParam.PhysicsTimeStep*1000f)) - simulationRealtimeMS;
 

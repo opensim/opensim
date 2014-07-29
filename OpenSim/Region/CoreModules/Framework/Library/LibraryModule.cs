@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             }
 
             RegionInfo regInfo = new RegionInfo();
-            Scene m_MockScene = new Scene(regInfo);
+            Scene m_MockScene = new Scene(regInfo, null);
             LocalInventoryService invService = new LocalInventoryService(lib);
             m_MockScene.RegisterModuleInterface<IInventoryService>(invService);
             m_MockScene.RegisterModuleInterface<IAssetService>(m_Scene.AssetService);

@@ -54,6 +54,14 @@ public static class BSParam
     // ===================
     // From:
 
+    /// <summary>
+    /// Set whether physics is active or not.
+    /// </summary>
+    /// <remarks>
+    /// Can be enabled and disabled to start and stop physics.
+    /// </remarks>
+    public static bool Active { get; private set; }
+
     public static bool UseSeparatePhysicsThread { get; private set; }
     public static float PhysicsTimeStep { get; private set; }
 
@@ -373,6 +381,8 @@ public static class BSParam
     //    v = value (appropriate type)
     private static ParameterDefnBase[] ParameterDefinitions =
     {
+        new ParameterDefn<bool>("Active", "If 'true', false then physics is not active",
+            false ),
         new ParameterDefn<bool>("UseSeparatePhysicsThread", "If 'true', the physics engine runs independent from the simulator heartbeat",
             false ),
         new ParameterDefn<float>("PhysicsTimeStep", "If separate thread, seconds to simulate each interval",
