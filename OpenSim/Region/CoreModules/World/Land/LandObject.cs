@@ -267,10 +267,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                     GetSimulatorMaxPrimCount(), regionFlags);
         }
 
-        public void UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client)
+        public bool UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client, out bool snap_selection, out bool needOverlay)
         {
             //Needs later group support
-            bool snap_selection = false;
+            snap_selection = false;
+            needOverlay = false;
             LandData newData = LandData.Copy();
 
             uint allowedDelta = 0;
@@ -390,9 +391,16 @@ namespace OpenSim.Region.CoreModules.World.Land
                 uint preserve = LandData.Flags & ~allowedDelta;
                 newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
 
+                uint curdelta = LandData.Flags ^ newData.Flags;
+                curdelta &= (uint)(ParcelFlags.SoundLocal);
+
+                if(curdelta != 0 || newData.SeeAVs != LandData.SeeAVs)
+                    needOverlay = true;
+
                 m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-                SendLandUpdateToAvatarsOverMe(snap_selection);
+                return true; 
             }
+            return false;
         }
 
         public void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
@@ -408,7 +416,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.AuthBuyerID = UUID.Zero;
             newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-            m_scene.EventManager.TriggerParcelPrimCountUpdate();
+//            m_scene.EventManager.TriggerParcelPrimCountUpdate();
             SendLandUpdateToAvatarsOverMe(true);
         }
 
@@ -579,6 +587,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdateToAvatarsOverMe(bool snap_selection)
         {
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
             m_scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
             {
                 ILandObject over = null;
@@ -733,10 +742,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>
         private void UpdateAABBAndAreaValues()
         {
-            int min_x = 64;
-            int min_y = 64;
-            int max_x = 0;
-            int max_y = 0;
+            int min_x = Int32.MaxValue;
+            int min_y = Int32.MaxValue;
+            int max_x = Int32.MinValue;
+            int max_y = Int32.MinValue;
             int tempArea = 0;
             int x, y;
             for (x = 0; x < 64; x++)
@@ -745,35 +754,56 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (LandBitmap[x, y] == true)
                     {
-                        if (min_x > x) min_x = x;
-                        if (min_y > y) min_y = y;
-                        if (max_x < x) max_x = x;
-                        if (max_y < y) max_y = y;
+                        if (min_x > x)
+                            min_x = x;
+                        if (min_y > y)
+                            min_y = y;
+                        if (max_x < x)
+                            max_x = x;
+                        if (max_y < y)
+                            max_y = y;
                         tempArea += 16; //16sqm peice of land
                     }
                 }
             }
+
             int tx = min_x * 4;
-            if (tx > ((int)Constants.RegionSize - 1))
-                tx = ((int)Constants.RegionSize - 1);
+            int htx;
+            if (tx == ((int)Constants.RegionSize))
+                htx = tx - 1;
+            else
+                htx = tx;
+            
             int ty = min_y * 4;
-            if (ty > ((int)Constants.RegionSize - 1))
-                ty = ((int)Constants.RegionSize - 1);
+            int hty;
+
+            if (ty == ((int)Constants.RegionSize))
+                hty = ty - 1;
+            else
+                hty = ty;
 
             LandData.AABBMin =
                 new Vector3(
-                    (float)(min_x * 4), (float)(min_y * 4), m_scene != null ? (float)m_scene.Heightmap[tx, ty] : 0);
+                    (float)(tx), (float)(ty), m_scene != null ? (float)m_scene.Heightmap[htx, hty] : 0);
 
+            max_x++;
             tx = max_x * 4;
-            if (tx > ((int)Constants.RegionSize - 1))
-                tx = ((int)Constants.RegionSize - 1);
+            if (tx == ((int)Constants.RegionSize))
+                htx = tx - 1;
+            else
+                htx = tx;
+
+            max_y++;
             ty = max_y * 4;
-            if (ty > ((int)Constants.RegionSize - 1))
-                ty = ((int)Constants.RegionSize - 1);
+           
+            if (ty == ((int)Constants.RegionSize))
+                hty = ty - 1;
+            else
+                hty = ty;
 
             LandData.AABBMax 
                 = new Vector3(
-                    (float)(max_x * 4), (float)(max_y * 4), m_scene != null ? (float)m_scene.Heightmap[tx, ty] : 0);
+                    (float)(tx), (float)(ty), m_scene != null ? (float)m_scene.Heightmap[htx, hty] : 0);
 
             LandData.Area = tempArea;
         }
