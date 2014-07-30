@@ -482,6 +482,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool ParcelAllowSounds
+        {
+            get
+            {
+                ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+                if (land == null)
+                    return true;
+
+                if (land.LandData.AnyAVSounds)
+                    return true;
+                if (!land.LandData.GroupAVSounds)
+                    return false;
+                return land.LandData.GroupID == ControllingClient.ActiveGroupId;
+            }
+        }
+
         public byte State { get; set; }
 
         private AgentManager.ControlFlags m_AgentControlFlags;
@@ -5048,6 +5064,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 else
                 {
+                    bool candoparcelSound = ParcelAllowSounds;
+
                     foreach (uint id in coldata.Keys)
                     {
                         thisHitColliders.Add(id);
@@ -5055,7 +5073,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             startedColliders.Add(id);
                             curcontact = coldata[id];
-                            if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                            if (candoparcelSound && Math.Abs(curcontact.RelativeSpeed) > 0.2)
                             {
                                 soundinfo = new CollisionForSoundInfo();
                                 soundinfo.colliderID = id;
