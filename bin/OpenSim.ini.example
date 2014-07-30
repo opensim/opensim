@@ -538,6 +538,11 @@
 
 
 [SimulatorFeatures]
+    ;# {ExtraFeaturesServiceURI} {} {URL to the grid ExtraFeatures Service} {}
+    ;; The grid can supply global values for extra simulator features to be
+    ;; passed to supporting viewers. The grid may choose to disallow local
+    ;; settings.
+    ; ExtraFeaturesServiceURI = "http://127.0.0.1:9000/" 
     ;# {MapImageServerURI} {} {URL for the map server} {}
     ; Experimental new information sent in SimulatorFeatures cap for Kokua
     ; viewers 

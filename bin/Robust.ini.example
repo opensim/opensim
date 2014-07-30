@@ -36,6 +36,7 @@ InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
 ;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
+GridExtraFeaturesServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridExtraFeaturesServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
 OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
 AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
@@ -455,6 +456,29 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
+
+
+[GridExtraFeatures]
+    ; These are propagated out to the regions as default settings for the
+    ; SimulatorFeatures to be sent to user's viewer when they teleport via
+    ; Hypergrid into this grid.
+    ;
+
+    ; Allow regions to override our defaults.
+    ;AllowRegionOverride = true
+
+    ; Search Server URI
+    ;SearchServerURI = "http://example.com:8200/"
+
+    ; Map Server URI
+    ;MapImageServerURI = "http://example.com:8200/"
+
+    ; Grid Destination Guide URI
+    ;DestinationGuideURI = "http://example.com:8200/"
+
+    ; Grid Allow Export
+    ;ExportSupported = true
+
 
 [UserProfilesService]
     LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"

@@ -56,12 +56,14 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimulatorFeaturesModule")]
     public class SimulatorFeaturesModule : ISharedRegionModule, ISimulatorFeaturesModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
 
         private Scene m_scene;
+
+        bool m_AllowOverride = true;
 
         /// <summary>
         /// Simulator features
@@ -75,8 +77,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Initialise(IConfigSource source)
         {
-            IConfig config = source.Configs["SimulatorFeatures"];
-            if (config != null)
+            IConfig config = source.Configs ["SimulatorFeatures"];
+            string featuresURI = config.GetString ("ExtraFeaturesServiceURI", string.Empty);
+            if (string.IsNullOrEmpty (featuresURI)) {
+                m_log.Info ("ExtraFeaturesServiceURI is undefined. The grid's ExtraFeatures will not be available to regions in this instnace.");
+            } else {
+                GetGridExtraFeatures(featuresURI);
+            }
+
+            if (config != null && m_AllowOverride == true)
             {    
                 m_SearchURL = config.GetString("SearchServerURI", string.Empty);
 
@@ -126,6 +135,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </remarks>
         private void AddDefaultFeatures()
         {
+
             lock (m_features)
             {
                 m_features["MeshRezEnabled"] = true;
@@ -141,15 +151,21 @@ namespace OpenSim.Region.ClientStack.Linden
     
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url
-                OSDMap extrasMap = new OSDMap();
-                if (m_SearchURL != string.Empty)
+                OSDMap extrasMap;
+                if(m_features.ContainsKey("OpenSimExtras"))
+                {
+                    extrasMap = (OSDMap)m_features["OpenSimExtras"];
+                }
+                else
+                    extrasMap = new OSDMap();
+
+                if (m_SearchURL != string.Empty && m_AllowOverride == true)
                     extrasMap["search-server-url"] = m_SearchURL;
-                if (m_ExportSupported)
+                if (m_ExportSupported && m_AllowOverride == true)
                     extrasMap["ExportSupported"] = true;
 
                 if (extrasMap.Count > 0)
                     m_features["OpenSimExtras"] = extrasMap;
-
             }
         }
 
@@ -204,7 +220,10 @@ namespace OpenSim.Region.ClientStack.Linden
             OSDMap copy = DeepCopy();
 
             SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
-            if (handlerOnSimulatorFeaturesRequest != null)
+
+            // We will not trigger the event if m_AllowOverride == False
+            // See Robust.ini/Robust.HG.ini [GridExtraFeatures] - AllowRegionOverride
+            if (handlerOnSimulatorFeaturesRequest != null && m_AllowOverride == true)
                 handlerOnSimulatorFeaturesRequest(agentID, ref copy);
 
             //Send back data
@@ -216,6 +235,43 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(copy);
 
             return responsedata;
+        }
+
+        /// <summary>
+        /// Gets the grid extra features.
+        /// </summary>
+        /// <param name='featuresURI'>
+        /// The URI Robust uses to handle the get_extra_features request
+        /// </param>
+        private void GetGridExtraFeatures(string featuresURI)
+        {
+            JsonRpcRequestManager rpc = new JsonRpcRequestManager ();
+            
+            OSDMap parameters = new OSDMap ();
+            OSD Params = (OSD)parameters;
+            if (!rpc.JsonRpcRequest (ref Params, "get_extra_features", featuresURI, UUID.Random ().ToString ())) 
+            {
+                m_log.Error("[SIMFEATURES]: Could not retrieve extra features from grid. Please check configuration.");
+                return;
+            }
+            parameters = (OSDMap)Params;
+            OSDMap features = (OSDMap)parameters ["result"];
+            
+            if(features.ContainsKey("region_override"))
+                m_AllowOverride = features ["region_override"].AsBoolean () ;
+            else
+                m_AllowOverride = true;
+            
+            OSDMap test = (OSDMap)features ["extra_features"];
+            lock (m_features)
+            {
+                OSDMap extrasMap = new OSDMap();
+                foreach (string key in test.Keys)
+                {
+                    extrasMap[key] = test[key];
+                }
+                m_features["OpenSimExtras"] = extrasMap;
+            }
         }
     }
 }
