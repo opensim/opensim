@@ -482,7 +482,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool ParcelAllowSounds
+        public bool ParcelAllowThisAvatarSounds
         {
             get
             {
@@ -5064,7 +5064,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 else
                 {
-                    bool candoparcelSound = ParcelAllowSounds;
+                    bool candoparcelSound = ParcelAllowThisAvatarSounds;
 
                     foreach (uint id in coldata.Keys)
                     {

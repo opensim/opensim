@@ -139,14 +139,25 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (part.SoundQueueing)
                 flags |= (byte)SoundFlags.QUEUE;
 
+            if (grp.IsAttachment)
+            {
+                ScenePresence ssp = null;
+                if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
+                    return;
+
+                if (!ssp.ParcelAllowThisAvatarSounds)
+                    return;
+
+                if (grp.HasPrivateAttachmentPoint)
+                {
+                    ssp.ControllingClient.SendPlayAttachedSound(soundID, objectID,
+                        ownerID, (float)gain, flags);
+                    return;
+                }
+            }
+
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (grp.IsAttachment)
-                {
-                    if (grp.HasPrivateAttachmentPoint && sp.ControllingClient.AgentId != grp.OwnerID)
-                        return;
-                }
-// no radius ?
                 sp.ControllingClient.SendPlayAttachedSound(soundID, objectID,
                         ownerID, (float)gain, flags);
             });
@@ -156,20 +167,33 @@ namespace OpenSim.Region.CoreModules.World.Sound
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius)
         {
             SceneObjectPart part;
+            ScenePresence ssp = null;
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
             {
-                ScenePresence sp;
-                if (!m_scene.TryGetScenePresence(ownerID, out sp))
+                if (!m_scene.TryGetScenePresence(ownerID, out ssp))
+                    return;
+                if (!ssp.ParcelAllowThisAvatarSounds)
                     return;
             }
             else
             {
                 SceneObjectGroup grp = part.ParentGroup;
 
-                if (grp.IsAttachment && grp.HasPrivateAttachmentPoint)
+                if (grp.IsAttachment)
                 {
-//                    objectID = ownerID;
-                    parentID = ownerID;
+                    if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
+                        return;
+
+                    if (!ssp.ParcelAllowThisAvatarSounds)
+                        return;
+
+                    if (grp.HasPrivateAttachmentPoint)
+                    {
+                        ssp.ControllingClient.SendTriggeredSound(soundId, ownerID,
+                                objectID, parentID, handle, position,
+                                (float)gain);
+                        return;
+                    }
                 }
             }
 
@@ -241,13 +265,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
             SceneObjectPart m_host;
             if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
                 return;
-
-//            if (isMaster)
-//                m_host.ParentGroup.LoopSoundMasterPrim = m_host;
-
-            // sl does not stop previus sound, volume changes don't work (wiki)
-//            if (m_host.Sound != UUID.Zero)
-//                StopSound(m_host);
 
             byte iflags = 1; // looping
             if (isMaster)
