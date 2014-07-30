@@ -504,6 +504,15 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; Grid Destination Guide URI
     ;DestinationGuideURI = "http://example.com:8200/"
 
+    ; Chat Whisper Distance
+    ;WhisperDistance = 10
+
+    ; Chat Say Distance
+    ;SayDistance = 20
+
+    ; Chat Shout Distance
+    ;ShoutDistance = 100
+
     ; Grid Allow Export
     ;ExportSupported = true
 

@@ -82,6 +82,15 @@ namespace OpenSim.Server.Handlers.Grid
                             case "ExportSupported":
                                 m_ExtraFeatures["ExportSupported"] = value;          
                                 break;
+                            case "WhisperDistance":
+                                m_ExtraFeatures["whisper-range"] = value;
+                                break;
+                            case "SayDistance":
+                                m_ExtraFeatures["say-range"] = value;
+                                break;
+                            case "ShoutDistance":
+                                m_ExtraFeatures["shout-range"] = value;
+                                break;
                             default:
                                 m_Log.InfoFormat("{0} not yet supported.");
                                 break;
