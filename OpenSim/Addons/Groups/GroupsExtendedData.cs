@@ -174,7 +174,7 @@ namespace OpenSim.Groups
             if (dict.ContainsKey("ServiceLocation") && dict["ServiceLocation"] != null)
                 grec.ServiceLocation = dict["ServiceLocation"].ToString();
             else
-                grec.GroupName = string.Empty;
+                grec.ServiceLocation = string.Empty;
 
             if (dict.ContainsKey("ShownInList") && dict["ShownInList"] != null)
                 grec.ShowInList = bool.Parse(dict["ShownInList"].ToString());
