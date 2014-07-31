@@ -286,10 +286,11 @@ namespace OpenSim.Groups
                 string requestingAgentID = request["RequestingAgentID"].ToString();
 
                 m_GroupsService.RemoveAgentFromGroup(requestingAgentID, agentID, groupID);
+
+                result["RESULT"] = "true";
             }
 
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            result["RESULT"] = "true";
             return Util.UTF8NoBomEncoding.GetBytes(ServerUtils.BuildXmlResponse(result));
         }
 
