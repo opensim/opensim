@@ -471,7 +471,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // We must generate a collision for avatars whether they collide or not.
         // This is required by OpenSim to update avatar animations, etc.
         lock (m_avatars)
-            m_avatars.Add(actor);
+        {
+            // The funky copy is because this list has few and infrequent changes but is
+            //    read zillions of times. This allows the reader/iterator to use the
+            //    list and this creates a new list with any updates.
+            HashSet<BSPhysObject> avatarTemp = new HashSet<BSPhysObject>(m_avatars);
+            avatarTemp.Add(actor);
+            m_avatars = avatarTemp;
+        }
 
         return actor;
     }
@@ -491,7 +498,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     PhysObjects.Remove(bsactor.LocalID);
                 // Remove kludge someday
                 lock (m_avatars)
-                    m_avatars.Remove(bsactor);
+                {
+                    HashSet<BSPhysObject> avatarTemp = new HashSet<BSPhysObject>(m_avatars);
+                    avatarTemp.Remove(bsactor);
+                    m_avatars = avatarTemp;
+                }
             }
             catch (Exception e)
             {
@@ -736,9 +747,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             // The simulator expects collisions for avatars even if there are have been no collisions.
             //    The event updates avatar animations and stuff.
             // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-            foreach (BSPhysObject bsp in m_avatars)
+            // Note that we copy the root of the list to search. Any updates will create a new list
+            //    thus freeing this code from having to do an extra lock for every collision.
+            HashSet<BSPhysObject> avatarTemp = m_avatars;
+            foreach (BSPhysObject bsp in avatarTemp)
                 if (!ObjectsWithCollisions.Contains(bsp))   // don't call avatars twice
                     bsp.SendCollisions();
+            avatarTemp = null;
 
             // Objects that are done colliding are removed from the ObjectsWithCollisions list.
             // Not done above because it is inside an iteration of ObjectWithCollisions.
