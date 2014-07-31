@@ -552,6 +552,8 @@
     ;MapImageServerURI = "http://127.0.0.1:9000/"
     ;# {SearchServerURI} {} {URL of the search server} {}
     ;SearchServerURI = "http://127.0.0.1:9000/"
+    ;# {DestinationGuideURI} {} {URL of the destination guide} {}
+    ;DestinationGuideURI = "http://127.0.0.1:9000/"
 
 
 [Chat]

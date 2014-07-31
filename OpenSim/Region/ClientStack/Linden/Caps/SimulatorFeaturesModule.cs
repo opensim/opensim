@@ -71,6 +71,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private OSDMap m_features = new OSDMap();
 
         private string m_SearchURL = string.Empty;
+        private string m_DestinationGuideURL = string.Empty;
         private bool m_ExportSupported = false;
 
         #region ISharedRegionModule Members
@@ -88,6 +89,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (config != null && m_AllowOverride == true)
             {    
                 m_SearchURL = config.GetString("SearchServerURI", string.Empty);
+                m_DestinationGuideURL = config.GetString ("DestinationGuideURI", string.Empty);
 
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
             }
@@ -161,6 +163,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (m_SearchURL != string.Empty && m_AllowOverride == true)
                     extrasMap["search-server-url"] = m_SearchURL;
+                if (!string.IsNullOrEmpty(m_DestinationGuideURL) && m_AllowOverride == true)
+                    extrasMap["destination-guide-url"] = m_DestinationGuideURL;
                 if (m_ExportSupported && m_AllowOverride == true)
                     extrasMap["ExportSupported"] = true;
 
