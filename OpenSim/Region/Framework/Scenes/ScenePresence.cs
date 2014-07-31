@@ -140,7 +140,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public static readonly float SIGNIFICANT_MOVEMENT = 2.0f;
 
-         private UUID m_currentParcelUUID = UUID.Zero;
+        private UUID m_previusParcelUUID = UUID.Zero;
+        private UUID m_currentParcelUUID = UUID.Zero;
+        private bool m_previusParcelHide = false;
+        private bool m_currentParcelHide = false;
         private object parcelLock = new Object();
 
         public UUID currentParcelUUID
@@ -150,7 +153,15 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (parcelLock)
                 {
+                    m_previusParcelHide = m_currentParcelHide;
+                    m_previusParcelUUID = m_currentParcelUUID;
                     m_currentParcelUUID = value;
+                    m_currentParcelHide = false;
+                    ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+                    if (land != null && !land.LandData.SeeAVs)
+                        m_currentParcelHide = true;
+                    if (m_previusParcelUUID != UUID.Zero)
+                        ParcelCrossCheck();
                 }
             }
         }
@@ -188,10 +199,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     lock (parcelLock)
                     {
-                        ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
-                        if (land == null || !land.LandData.SeeAVs)
-                            return false;
-                        return true;
+                        return m_currentParcelHide;
                     }
                 }
                 catch
@@ -540,7 +548,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
 
 
         public byte State { get; set; }
@@ -1071,6 +1078,7 @@ namespace OpenSim.Region.Framework.Scenes
         
 
         // only in use as part of completemovement
+        // other uses need fix
         private bool MakeRootAgent(Vector3 pos, bool isFlying)
         {
             lock (m_completeMovementLock)
@@ -1097,16 +1105,12 @@ namespace OpenSim.Region.Framework.Scenes
                         part.ParentGroup.AddAvatar(UUID);
                         if (part.SitTargetPosition != Vector3.Zero)
                             part.SitTargetAvatar = UUID;
-    //                    ParentPosition = part.GetWorldPosition();
                         ParentID = part.LocalId;
                         ParentPart = part;
                         m_pos = PrevSitOffset;
-    //                    pos = ParentPosition;
                         pos = part.GetWorldPosition();
                     }
                     ParentUUID = UUID.Zero;
-
-    //                Animator.TrySetMovementAnimation("SIT");
                 }
                 else
                 {
@@ -1161,7 +1165,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Moved this from SendInitialData to ensure that Appearance is initialized
                 // before the inventory is processed in MakeRootAgent. This fixes a race condition
                 // related to the handling of attachments
-                //m_scene.GetAvatarAppearance(ControllingClient, out Appearance);
+
                 if (m_scene.TestBorderCross(pos, Cardinals.E))
                 {
                     Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
@@ -1496,7 +1500,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 CollisionPlane = new Vector4(0, 0, 0, pos.Z - (1.56f / 6f));
 
-            ControllingClient.SendAgentTerseUpdate(this);
+            SendAgentTerseUpdate(this);
         }
 
         /// <summary>
@@ -1797,6 +1801,9 @@ namespace OpenSim.Region.Framework.Scenes
                 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
                 //            }
 
+                m_currentParcelHide = false;
+                m_currentParcelUUID = UUID.Zero;
+
                 // send initial land overlay and parcel 
                 if (!IsChildAgent)
                 {
@@ -1806,6 +1813,9 @@ namespace OpenSim.Region.Framework.Scenes
                         landch.sendClientInitialLandInfo(client);
                     }
                 }
+
+                m_previusParcelHide = m_currentParcelHide;
+                m_previusParcelUUID = m_currentParcelUUID;
 
                 // send agentData to all clients including us (?)
                 // get appearance
@@ -1819,11 +1829,6 @@ namespace OpenSim.Region.Framework.Scenes
                     IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     if (m_agentTransfer != null)
                         m_agentTransfer.EnableChildAgents(this);
-/* moved down
-                    IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-                    if (friendsModule != null)
-                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
-*/
                 }
 
                 // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
@@ -1845,13 +1850,15 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsChildAgent)
                 {
-// moved from makeroot missing in sendInitialDataToMe ?
+// moved from makeroot missing in sendInitialDataToMe 
+// its already there
+/*
                     m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
                     {
                         if (presence != this)
                             presence.Animator.SendAnimPackToClient(ControllingClient);
                     });
-
+*/
                     if (openChildAgents)
                     {
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
@@ -2064,7 +2071,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We need to send this back to the client in order to stop the edit beams
             if ((oldState & (uint)AgentState.Editing) != 0 && State == (uint)AgentState.None)
-                ControllingClient.SendAgentTerseUpdate(this);
+                SendAgentTerseUpdate(this);
 
             PhysicsActor actor = PhysicsActor;
 
@@ -2303,7 +2310,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We need to send this back to the client in order to see the edit beams
             if ((State & (uint)AgentState.Editing) != 0)
-                ControllingClient.SendAgentTerseUpdate(this);
+                SendAgentTerseUpdate(this);
 
             m_scene.EventManager.TriggerOnClientMovement(this);
         }
@@ -3230,6 +3237,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (IsChildAgent == false)
             {
+                if (IsInTransit)
+                    return;
+
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
@@ -3258,9 +3268,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Update Client(s)
 
+        // this is diferente from SendTerseUpdateToClient
+        // this sends bypassing ententies updates 
+        public void SendAgentTerseUpdate(ISceneEntity p)
+        {
+            ControllingClient.SendAgentTerseUpdate(p);
+        }
 
         /// <summary>
         /// Sends a location update to the client connected to this scenePresence
+        /// via entity updates
         /// </summary>
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
@@ -3270,7 +3287,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (remoteClient.IsActive)
             {
                 //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
-
                 remoteClient.SendEntityUpdate(
                     this,
                     PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
@@ -3280,6 +3296,34 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void SendTerseUpdateToAgentClient(ScenePresence p)
+        {
+            // messy checks because a client doesn't know what presence it belongs too
+            if (p.IsChildAgent)
+                return;
+
+            if (p.IsInTransit)
+                return;
+
+            IClientAPI remoteClient = p.ControllingClient;
+            if (remoteClient == null)
+                return;
+
+            if (!remoteClient.IsActive)
+                return;
+
+            if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID)
+                return;
+
+
+            //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
+            remoteClient.SendEntityUpdate(
+                this,
+                PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+
+            m_scene.StatsReporter.AddAgentUpdates(1);
+        }
 
         // vars to support reduced update frequency when velocity is unchanged
         private Vector3 lastVelocitySentToAllClients = Vector3.Zero;
@@ -3321,7 +3365,8 @@ namespace OpenSim.Region.Framework.Scenes
                 lastPositionSentToAllClients = OffsetPosition;
 
 //                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
-                m_scene.ForEachClient(SendTerseUpdateToClient);
+//                m_scene.ForEachClient(SendTerseUpdateToClient);
+                m_scene.ForEachScenePresence(SendTerseUpdateToAgentClient);
             }
             TriggerScenePresenceUpdated();
         }
@@ -3389,6 +3434,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (!cachedappearance)
             {
                 Appearance.ResetAppearance();
+// save what ????
+// maybe needed so the tryretry repair works?
                 if (m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(UUID);
             }
@@ -3400,10 +3447,13 @@ namespace OpenSim.Region.Framework.Scenes
             SendAvatarDataToAllAgents();
 
             // This invocation always shows up in the viewer logs as an error.  Is it needed?
-            // try to send what we have even if not in cache
+            // send all information we have
+            // possible not needed since viewer should ask about it
+            // least it all ask for baked
             SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
+            // send even grays
             if (cachedappearance)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Baked textures are in the cache for {0} in {1}", Name, m_scene.Name);
@@ -3432,17 +3482,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_lastSize = Appearance.AvatarSize;
-
             int count = 0;
+
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
-                                         {
-                                             SendAvatarDataToAgent(scenePresence);
-                                             count++;
-                                         });
+            {
+               SendAvatarDataToAgent(scenePresence);
+               count++;
+            });
 
             m_scene.StatsReporter.AddAgentUpdates(count);
         }
-
+        
         /// <summary>
         /// Send avatar data for all other root agents to this agent, this agent
         /// can be either a child or root
@@ -3450,12 +3500,13 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendOtherAgentsAvatarDataToMe()
         {
             int count = 0;
+
             m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
                         {
                             // only send information about other root agents
                             if (scenePresence.UUID == UUID)
                                 return;
-                                             
+
                             scenePresence.SendAvatarDataToAgent(this);
                             count++;
                         });
@@ -3470,7 +3521,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAvatarDataToAgent(ScenePresence avatar)
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
-
+            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID)
+                return;
             avatar.ControllingClient.SendAvatarDataImmediate(this);
             Animator.SendAnimPackToClient(avatar.ControllingClient);
         }
@@ -3481,7 +3533,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-//            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
+            //            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
 
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
@@ -3492,7 +3544,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 return;
             }
-            
+
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                         {
@@ -3503,7 +3555,6 @@ namespace OpenSim.Region.Framework.Scenes
                             SendAppearanceToAgent(scenePresence);
                             count++;
                         });
-
             m_scene.StatsReporter.AddAgentUpdates(count);
         }
 
@@ -3537,11 +3588,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
-
+            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID)
+                return;
             avatar.ControllingClient.SendAppearance(
-                UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
-
-            
+                UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());           
         }
 
         #endregion
@@ -4077,6 +4127,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void UpdateMovement()
         {
+            if (IsInTransit)
+                return;
             if (m_forceToApply.HasValue)
             {
                 Vector3 force = m_forceToApply.Value;
@@ -4155,7 +4207,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (IsChildAgent || Animator == null)
                 return;
-            
+
+            if(IsInTransit)
+                return;
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
@@ -4501,6 +4555,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return validated;
+        }
+
+
+        public void SendAttachmentsToClient(IClientAPI client)
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    gobj.SendFullUpdateToClient(client);
+                }
+            }
         }
 
         /// <summary>
@@ -5244,6 +5310,138 @@ namespace OpenSim.Region.Framework.Scenes
     
             m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
     
+        }
+
+        private void ParcelCrossCheck()
+        {
+            List<ScenePresence> killsToSendto = new List<ScenePresence>();
+            List<ScenePresence> killsToSendme = new List<ScenePresence>();
+            List<ScenePresence> viewsToSendto = new List<ScenePresence>();
+            List<ScenePresence> viewsToSendme = new List<ScenePresence>();
+            List<ScenePresence> allpresences = null;
+
+            if (m_currentParcelHide)
+            {
+                // now on a private parcel
+                allpresences = m_scene.GetScenePresences();
+
+                if (m_previusParcelHide && m_previusParcelUUID != UUID.Zero)
+                {                 
+                    foreach (ScenePresence p in allpresences)
+                    {
+                        if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            continue;
+
+                        // only those on previus parcel need receive kills
+                        if (m_previusParcelUUID == p.currentParcelUUID)
+                        {
+                            killsToSendto.Add(p); // they dont see me
+                            killsToSendme.Add(p);  // i dont see them
+                        }
+                        // only those on new parcel need see
+                        if (m_currentParcelUUID == p.currentParcelUUID)
+                        {
+                            viewsToSendto.Add(p); // they see me
+                            viewsToSendme.Add(p); // i see them
+                        }
+                    }
+                }
+                else
+                {
+                    //was on a public area
+                    allpresences = m_scene.GetScenePresences();
+
+                    foreach (ScenePresence p in allpresences)
+                    {
+                        if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            continue;
+
+                        // those not on new parcel dont see me
+                        if (m_currentParcelUUID != p.currentParcelUUID)
+                        {
+                            killsToSendto.Add(p); // they dont see me
+                        }
+                        else
+                        {
+                            viewsToSendme.Add(p); // i see those on it
+                        }
+                    }
+                }
+                allpresences.Clear();
+            } // now on a private parcel end 
+
+            else
+            { 
+                // now on public parcel
+                if (m_previusParcelHide && m_previusParcelUUID != UUID.Zero)
+                {
+                      // was on private area
+                    allpresences = m_scene.GetScenePresences();
+
+                    foreach (ScenePresence p in allpresences)
+                    {
+                        if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            continue;
+                        // only those old parcel need receive kills
+                        if (m_previusParcelUUID == p.currentParcelUUID)
+                        {
+                            killsToSendme.Add(p);  // i dont see them
+                        }
+                        else
+                        {
+                            viewsToSendto.Add(p); // they see me
+                        }
+                    }
+                }
+                else
+                    return; // was on a public area also
+            } // now on public parcel end
+
+            // send the things
+            // kill main avatar object
+            if (killsToSendto.Count > 0)
+            {
+                foreach (ScenePresence p in killsToSendto)
+                {
+                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
+                    catch (NullReferenceException) { }
+                }
+            }
+
+            if (killsToSendme.Count > 0)
+            {
+                foreach (ScenePresence p in killsToSendme)
+                {
+                    try {ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
+                    catch (NullReferenceException) { }                    
+                }
+            }
+
+            if (viewsToSendto.Count > 0)
+            {
+                foreach (ScenePresence p in viewsToSendto)
+                {
+                    p.ControllingClient.SendAvatarDataImmediate(this);
+                    SendAppearanceToAgent(p);
+                    SendAttachmentsToClient(p.ControllingClient);
+                    if (Animator != null)
+                        Animator.SendAnimPackToClient(p.ControllingClient);
+                }
+            }
+
+            if (viewsToSendme.Count > 0)
+            {
+                foreach (ScenePresence p in viewsToSendme)
+                {
+                    ControllingClient.SendAvatarDataImmediate(p);
+                    p.SendAppearanceToAgent(this);
+                    p.SendAttachmentsToClient(ControllingClient);
+                    if (p.Animator != null)
+                        p.Animator.SendAnimPackToClient(ControllingClient);
+                }
+            }
+
+
         }
     }
 }
