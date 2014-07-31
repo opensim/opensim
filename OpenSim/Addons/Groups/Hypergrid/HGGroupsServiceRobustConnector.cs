@@ -210,10 +210,11 @@ namespace OpenSim.Groups
                 string token = request["AccessToken"].ToString();
 
                 m_GroupsService.RemoveAgentFromGroup(agentID, agentID, groupID, token);
+
+                result["RESULT"] = "true";
             }
 
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
-            result["RESULT"] = "true";
             return Util.UTF8NoBomEncoding.GetBytes(ServerUtils.BuildXmlResponse(result));
         }
 
