@@ -213,7 +213,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landManagementModule.setParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
             }
         }
-
+        public void sendClientInitialLandInfo(IClientAPI remoteClient)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.sendClientInitialLandInfo(remoteClient);
+            }
+        }
         #endregion
     }
 }

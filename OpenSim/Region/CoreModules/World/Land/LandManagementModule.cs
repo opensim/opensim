@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
             m_scene.EventManager.OnSetAllowForcefulBan += EventManagerOnSetAllowedForcefulBan;            
             m_scene.EventManager.OnRegisterCaps += EventManagerOnRegisterCaps;
-
+           
             lock (m_scene)
             {
                 m_scene.LandChannel = (ILandChannel)landChannel;
@@ -194,13 +194,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
-
+/*  avatar is still a child here position is unknow
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
             {
                 SendParcelOverlay(client);
                 SendLandUpdate((ScenePresence)presenceEntity, true);
             }
+*/
         }
 
         public void EventMakeChildAgent(ScenePresence avatar)
@@ -385,12 +386,29 @@ namespace OpenSim.Region.CoreModules.World.Land
             return;
         }
 
+        public void sendClientInitialLandInfo(IClientAPI remoteClient)
+        {
+            SendParcelOverlay(remoteClient);
+            ScenePresence avatar;
+            if (!m_scene.TryGetScenePresence(remoteClient.AgentId, out avatar))
+                return;
+            if (avatar.IsChildAgent)
+                return;
+
+            ILandObject over = GetLandObject(avatar.AbsolutePosition.X,avatar.AbsolutePosition.Y);
+            if (over == null)
+                return;
+
+            avatar.currentParcelUUID = over.LandData.GlobalID;
+            over.SendLandUpdateToClient(avatar.ControllingClient);
+        }
+
         public void SendLandUpdate(ScenePresence avatar, bool force)
         {
             if (avatar.IsChildAgent)
                 return;
-           
-            ILandObject over = GetLandObjectClipedXY(avatar.AbsolutePosition.X,avatar.AbsolutePosition.Y);
+
+            ILandObject over = GetLandObjectClipedXY(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
 
             if (over != null)
             {

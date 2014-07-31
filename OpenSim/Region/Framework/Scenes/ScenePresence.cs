@@ -140,8 +140,67 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public static readonly float SIGNIFICANT_MOVEMENT = 2.0f;
 
-        public UUID currentParcelUUID = UUID.Zero;
+         private UUID m_currentParcelUUID = UUID.Zero;
+        private object parcelLock = new Object();
 
+        public UUID currentParcelUUID
+        {
+            get { return m_currentParcelUUID; }
+            set
+            {
+                lock (parcelLock)
+                {
+                    m_currentParcelUUID = value;
+                }
+            }
+        }
+
+        public bool ParcelAllowThisAvatarSounds
+        {
+            get
+            {
+                try
+                {
+                    lock (parcelLock)
+                    {
+                        ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+                        if (land == null)
+                            return true;
+                        if (land.LandData.AnyAVSounds)
+                            return true;
+                        if (!land.LandData.GroupAVSounds)
+                            return false;
+                        return land.LandData.GroupID == ControllingClient.ActiveGroupId;
+                    }
+                }
+                catch
+                {
+                    return true;
+                }
+            }
+        }
+
+        public bool ParcelHideThisAvatar
+        {
+            get
+            {
+                try
+                {
+                    lock (parcelLock)
+                    {
+                        ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+                        if (land == null || !land.LandData.SeeAVs)
+                            return false;
+                        return true;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+        
         /// <value>
         /// The animator for this avatar
         /// </value>
@@ -482,21 +541,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool ParcelAllowThisAvatarSounds
-        {
-            get
-            {
-                ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
-                if (land == null)
-                    return true;
 
-                if (land.LandData.AnyAVSounds)
-                    return true;
-                if (!land.LandData.GroupAVSounds)
-                    return false;
-                return land.LandData.GroupID == ControllingClient.ActiveGroupId;
-            }
-        }
 
         public byte State { get; set; }
 
@@ -1023,6 +1068,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// This method is on the critical path for transferring an avatar from one region to another.  Delay here
         /// delays that crossing.
         /// </remarks>
+        
+
+        // only in use as part of completemovement
         private bool MakeRootAgent(Vector3 pos, bool isFlying)
         {
             lock (m_completeMovementLock)
@@ -1229,6 +1277,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
                 // be locked, allowing race conditions if other code changes the attachments list.
+
                 List<SceneObjectGroup> attachments = GetAttachments();
 
                 if (attachments.Count > 0)
@@ -1236,16 +1285,19 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat(
                         "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
 
-                    // Resume scripts
+                    // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
                     foreach (SceneObjectGroup sog in attachments)
                     {
-                        sog.ScheduleGroupForFullUpdate();
+// sending attachments before the avatar ?
+// moved to completemovement where it already was
+//                        sog.ScheduleGroupForFullUpdate();
                         sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                         sog.ResumeScripts();
                     }
                 }
             }
 
+/* 
             SendAvatarDataToAllAgents();
 
             // send the animations of the other presences to me
@@ -1254,6 +1306,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (presence != this)
                     presence.Animator.SendAnimPackToClient(ControllingClient);
             });
+*/
 
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
@@ -1421,6 +1474,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopFlying()
         {
+            if (IsInTransit)
+                return;
+
             Vector3 pos = AbsolutePosition; 
             if (Appearance.AvatarHeight != 127.0f)
                 pos += new Vector3(0f, 0f, (Appearance.AvatarHeight / 6f));
@@ -1661,9 +1717,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.InfoFormat(
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
                 client.Name, Scene.Name, AbsolutePosition);
-
-            
-
+          
             m_inTransit = true;
             try
             {
@@ -1709,8 +1763,9 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
 
                 // Remember in HandleUseCircuitCode, we delayed this to here
-                if (m_teleportFlags > 0)
-                    SendInitialDataToMe();
+// this prims etc, moved down
+//                if (m_teleportFlags > 0)
+//                    SendInitialDataToMe();
 
                 //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
@@ -1742,6 +1797,20 @@ namespace OpenSim.Region.Framework.Scenes
                 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
                 //            }
 
+                // send initial land overlay and parcel 
+                if (!IsChildAgent)
+                {
+                    ILandChannel landch = m_scene.LandChannel;
+                    if (landch != null)
+                    {
+                        landch.sendClientInitialLandInfo(client);
+                    }
+                }
+
+                // send agentData to all clients including us (?)
+                // get appearance
+                // if in cache sent it to all clients
+                // send what we have to us, even if not in cache ( bad? )
                 ValidateAndSendAppearanceAndAgentData();
 
                 // Create child agents in neighbouring regions
@@ -1750,11 +1819,11 @@ namespace OpenSim.Region.Framework.Scenes
                     IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     if (m_agentTransfer != null)
                         m_agentTransfer.EnableChildAgents(this);
-
+/* moved down
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                     if (friendsModule != null)
                         friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
-
+*/
                 }
 
                 // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
@@ -1769,6 +1838,27 @@ namespace OpenSim.Region.Framework.Scenes
                 //            m_log.DebugFormat(
                 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
                 //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
+
+                // send the rest of the world
+                if (m_teleportFlags > 0)
+                    SendInitialDataToMe();
+
+                if (!IsChildAgent)
+                {
+// moved from makeroot missing in sendInitialDataToMe ?
+                    m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
+                    {
+                        if (presence != this)
+                            presence.Animator.SendAnimPackToClient(ControllingClient);
+                    });
+
+                    if (openChildAgents)
+                    {
+                    IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                    if (friendsModule != null)
+                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+                    }
+                }
             }
             finally
             {
@@ -1863,6 +1953,9 @@ namespace OpenSim.Region.Framework.Scenes
             //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
                 return;
             }
+
+            if (IsInTransit)
+                return;
 
             #region Sanity Checking
 
@@ -3307,13 +3400,13 @@ namespace OpenSim.Region.Framework.Scenes
             SendAvatarDataToAllAgents();
 
             // This invocation always shows up in the viewer logs as an error.  Is it needed?
+            // try to send what we have even if not in cache
             SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Baked textures are in the cache for {0} in {1}", Name, m_scene.Name);
-
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
                 // the avatar finishes updating its appearance
