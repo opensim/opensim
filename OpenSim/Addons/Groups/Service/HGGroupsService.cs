@@ -131,19 +131,27 @@ namespace OpenSim.Groups
             return true;
         }
 
-        public void RemoveAgentFromGroup(string RequestingAgentID, string AgentID, UUID GroupID, string token)
+        public bool RemoveAgentFromGroup(string RequestingAgentID, string AgentID, UUID GroupID, string token)
         {
             // check the token
             MembershipData membership = m_Database.RetrieveMember(GroupID, AgentID);
             if (membership != null)
             {
                 if (token != string.Empty && token.Equals(membership.Data["AccessToken"]))
-                    RemoveAgentFromGroup(RequestingAgentID, AgentID, GroupID);
+                {
+                    return RemoveAgentFromGroup(RequestingAgentID, AgentID, GroupID);
+                }
                 else
+                {
                     m_log.DebugFormat("[Groups.HGGroupsService]: access token {0} did not match stored one {1}", token, membership.Data["AccessToken"]);
+                    return false;
+                }
             }
             else
+            {
                 m_log.DebugFormat("[Groups.HGGroupsService]: membership not found for {0}", AgentID);
+                return false;
+            }
         }
 
         public ExtendedGroupRecord GetGroupRecord(string RequestingAgentID, UUID GroupID, string groupName, string token)
