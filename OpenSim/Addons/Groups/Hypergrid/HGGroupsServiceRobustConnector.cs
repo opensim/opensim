@@ -209,9 +209,10 @@ namespace OpenSim.Groups
                 string agentID = request["AgentID"].ToString();
                 string token = request["AccessToken"].ToString();
 
-                m_GroupsService.RemoveAgentFromGroup(agentID, agentID, groupID, token);
-
-                result["RESULT"] = "true";
+                if (!m_GroupsService.RemoveAgentFromGroup(agentID, agentID, groupID, token))
+                    NullResult(result, "Internal error");
+                else
+                    result["RESULT"] = "true";
             }
 
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);

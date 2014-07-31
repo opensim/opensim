@@ -393,13 +393,15 @@ namespace OpenSim.Groups
             return true;
         }
 
-        public void RemoveAgentFromGroup(string RequestingAgentID, string AgentID, UUID GroupID)
+        public bool RemoveAgentFromGroup(string RequestingAgentID, string AgentID, UUID GroupID)
         {
             // check perms
             if (RequestingAgentID != AgentID && !HasPower(RequestingAgentID, GroupID, GroupPowers.Eject))
-                    return;
+                return false;
 
             _RemoveAgentFromGroup(RequestingAgentID, AgentID, GroupID);
+
+            return true;
         }
 
         public bool AddAgentToGroupInvite(string RequestingAgentID, UUID inviteID, UUID groupID, UUID roleID, string agentID)
