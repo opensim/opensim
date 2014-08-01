@@ -78,20 +78,28 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Initialise(IConfigSource source)
         {
-            IConfig config = source.Configs ["SimulatorFeatures"];
-            string featuresURI = config.GetString ("ExtraFeaturesServiceURI", string.Empty);
-            if (string.IsNullOrEmpty (featuresURI)) {
-                m_log.Info ("ExtraFeaturesServiceURI is undefined. The grid's ExtraFeatures will not be available to regions in this instnace.");
-            } else {
-                GetGridExtraFeatures(featuresURI);
-            }
+            IConfig config = source.Configs["SimulatorFeatures"];
 
-            if (config != null && m_AllowOverride == true)
-            {    
-                m_SearchURL = config.GetString("SearchServerURI", string.Empty);
-                m_DestinationGuideURL = config.GetString ("DestinationGuideURI", string.Empty);
+            if (config != null)
+            {
+                string featuresURI = config.GetString("ExtraFeaturesServiceURI", string.Empty);
 
-                m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
+                if (string.IsNullOrEmpty(featuresURI)) 
+                {
+                    m_log.Info("ExtraFeaturesServiceURI is undefined. The grid's ExtraFeatures will not be available to regions in this instnace.");
+                } 
+                else 
+                {
+                    GetGridExtraFeatures(featuresURI);
+                }
+
+                if (m_AllowOverride)
+                {    
+                    m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
+                    m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
+
+                    m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
+                }
             }
 
             AddDefaultFeatures();
