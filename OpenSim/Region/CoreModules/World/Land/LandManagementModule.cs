@@ -194,7 +194,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
-/*  avatar is still a child here position is unknow
+
+/*  avatar is still a child here position is unknown
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
             {
@@ -334,12 +335,13 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!position.HasValue)
                 return;
 
-            bool isFlying = avatar.PhysicsActor.Flying;
-            avatar.RemoveFromPhysicalScene();
+// land should have no word on avatar physics
+//            bool isFlying = avatar.PhysicsActor.Flying;
+//            avatar.RemoveFromPhysicalScene();
 
             avatar.AbsolutePosition = (Vector3)position;
 
-            avatar.AddToPhysicalScene(isFlying);
+//            avatar.AddToPhysicalScene(isFlying);
         }
 
         public void SendYouAreRestrictedNotice(ScenePresence avatar)
@@ -388,12 +390,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void sendClientInitialLandInfo(IClientAPI remoteClient)
         {
-            SendParcelOverlay(remoteClient);
             ScenePresence avatar;
+
             if (!m_scene.TryGetScenePresence(remoteClient.AgentId, out avatar))
                 return;
             if (avatar.IsChildAgent)
                 return;
+
+            SendParcelOverlay(remoteClient);
 
             ILandObject over = GetLandObject(avatar.AbsolutePosition.X,avatar.AbsolutePosition.Y);
             if (over == null)
@@ -416,8 +420,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (force || NotsameID)
                 {
                     over.SendLandUpdateToClient(avatar.ControllingClient);
-                    if (NotsameID)
-                        avatar.currentParcelUUID = over.LandData.GlobalID;
+                    SendParcelOverlay(avatar.ControllingClient);
+                    avatar.currentParcelUUID = over.LandData.GlobalID;
                     m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
                                                                         m_scene.RegionInfo.RegionID);
                 }
@@ -1190,15 +1194,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             bool needOverlay = false;
             if (land.UpdateLandProperties(args, remote_client, out snap_selection, out needOverlay))
             {
-                //parcel
+                //the proprieties to who changed it
 
-                land.SendLandProperties(-10000, true, LandChannel.LAND_RESULT_SINGLE, remote_client);
+                land.SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, remote_client);
 
                 if (needOverlay)
                 {
+                    UUID parcelID = land.LandData.GlobalID;
                     m_scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
                      {
-                         if (avatar.IsChildAgent)
+                         if (avatar.IsDeleted || avatar.IsChildAgent)
                              return;
 
                          IClientAPI client = avatar.ControllingClient;
@@ -1209,6 +1214,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                              if (client != remote_client || land != aland)
                                  aland.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, client);
                          }
+                         if (avatar.currentParcelUUID == parcelID)
+                             avatar.currentParcelUUID = parcelID; // force parcel flags review
                      });
                 }
             }

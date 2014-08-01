@@ -153,15 +153,21 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (parcelLock)
                 {
-                    m_previusParcelHide = m_currentParcelHide;
-                    m_previusParcelUUID = m_currentParcelUUID;
+                    bool oldhide = m_currentParcelHide;
+                    bool check = true;
+                    if (value != m_currentParcelUUID)
+                    {
+                        m_previusParcelHide = m_currentParcelHide;
+                        m_previusParcelUUID = m_currentParcelUUID;
+                        check = false;
+                    }
                     m_currentParcelUUID = value;
                     m_currentParcelHide = false;
                     ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
                     if (land != null && !land.LandData.SeeAVs)
                         m_currentParcelHide = true;
                     if (m_previusParcelUUID != UUID.Zero)
-                        ParcelCrossCheck();
+                        ParcelCrossCheck(m_currentParcelUUID,m_previusParcelUUID,m_currentParcelHide, m_previusParcelHide, oldhide,check);
                 }
             }
         }
@@ -195,17 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                try
-                {
-                    lock (parcelLock)
-                    {
-                        return m_currentParcelHide;
-                    }
-                }
-                catch
-                {
-                    return false;
-                }
+                return m_currentParcelHide;
             }
         }
         
@@ -5312,7 +5308,8 @@ namespace OpenSim.Region.Framework.Scenes
     
         }
 
-        private void ParcelCrossCheck()
+        private void ParcelCrossCheck(UUID currentParcelUUID,UUID previusParcelUUID,
+                            bool currentParcelHide, bool previusParcelHide, bool oldhide,bool check)
         {
             List<ScenePresence> killsToSendto = new List<ScenePresence>();
             List<ScenePresence> killsToSendme = new List<ScenePresence>();
@@ -5320,82 +5317,125 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> viewsToSendme = new List<ScenePresence>();
             List<ScenePresence> allpresences = null;
 
-            if (m_currentParcelHide)
+            if (check)
             {
-                // now on a private parcel
+                if (currentParcelUUID == null || oldhide == currentParcelHide)
+                    return;
+
                 allpresences = m_scene.GetScenePresences();
 
-                if (m_previusParcelHide && m_previusParcelUUID != UUID.Zero)
-                {                 
+                if (oldhide)
+                { // where private
                     foreach (ScenePresence p in allpresences)
                     {
                         if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                             continue;
 
-                        // only those on previus parcel need receive kills
-                        if (m_previusParcelUUID == p.currentParcelUUID)
-                        {
-                            killsToSendto.Add(p); // they dont see me
-                            killsToSendme.Add(p);  // i dont see them
-                        }
-                        // only those on new parcel need see
-                        if (m_currentParcelUUID == p.currentParcelUUID)
+                        // those on not on parcel see me
+                        if (currentParcelUUID != p.currentParcelUUID)
                         {
                             viewsToSendto.Add(p); // they see me
-                            viewsToSendme.Add(p); // i see them
                         }
                     }
-                }
-                else
-                {
-                    //was on a public area
-                    allpresences = m_scene.GetScenePresences();
+                } // where private end
 
+                else
+                { // where public
                     foreach (ScenePresence p in allpresences)
                     {
                         if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                             continue;
 
-                        // those not on new parcel dont see me
-                        if (m_currentParcelUUID != p.currentParcelUUID)
+                        // those not on parcel dont see me
+                        if (currentParcelUUID != p.currentParcelUUID)
                         {
                             killsToSendto.Add(p); // they dont see me
                         }
-                        else
-                        {
-                            viewsToSendme.Add(p); // i see those on it
-                        }
                     }
-                }
+                } // where public end
+
+
                 allpresences.Clear();
-            } // now on a private parcel end 
-
+            }
             else
-            { 
-                // now on public parcel
-                if (m_previusParcelHide && m_previusParcelUUID != UUID.Zero)
+            {
+                if (currentParcelHide)
                 {
-                      // was on private area
+                    // now on a private parcel
                     allpresences = m_scene.GetScenePresences();
 
-                    foreach (ScenePresence p in allpresences)
+                    if (previusParcelHide && previusParcelUUID != UUID.Zero)
                     {
-                        if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                            continue;
-                        // only those old parcel need receive kills
-                        if (m_previusParcelUUID == p.currentParcelUUID)
+                        foreach (ScenePresence p in allpresences)
                         {
-                            killsToSendme.Add(p);  // i dont see them
-                        }
-                        else
-                        {
-                            viewsToSendto.Add(p); // they see me
+                            if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                                continue;
+
+                            // only those on previus parcel need receive kills
+                            if (previusParcelUUID == p.currentParcelUUID)
+                            {
+                                killsToSendto.Add(p); // they dont see me
+                                killsToSendme.Add(p);  // i dont see them
+                            }
+                            // only those on new parcel need see
+                            if (currentParcelUUID == p.currentParcelUUID)
+                            {
+                                viewsToSendto.Add(p); // they see me
+                                viewsToSendme.Add(p); // i see them
+                            }
                         }
                     }
-                }
+                    else
+                    {
+                        //was on a public area
+                        allpresences = m_scene.GetScenePresences();
+
+                        foreach (ScenePresence p in allpresences)
+                        {
+                            if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                                continue;
+
+                            // those not on new parcel dont see me
+                            if (currentParcelUUID != p.currentParcelUUID)
+                            {
+                                killsToSendto.Add(p); // they dont see me
+                            }
+                            else
+                            {
+                                viewsToSendme.Add(p); // i see those on it
+                            }
+                        }
+                    }
+                    allpresences.Clear();
+                } // now on a private parcel end 
+
                 else
-                    return; // was on a public area also
-            } // now on public parcel end
+                {
+                    // now on public parcel
+                    if (previusParcelHide && previusParcelUUID != UUID.Zero)
+                    {
+                        // was on private area
+                        allpresences = m_scene.GetScenePresences();
+
+                        foreach (ScenePresence p in allpresences)
+                        {
+                            if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                                continue;
+                            // only those old parcel need receive kills
+                            if (previusParcelUUID == p.currentParcelUUID)
+                            {
+                                killsToSendme.Add(p);  // i dont see them
+                            }
+                            else
+                            {
+                                viewsToSendto.Add(p); // they see me
+                            }
+                        }
+                    }
+                    else
+                        return; // was on a public area also
+                } // now on public parcel end
+            }
 
             // send the things
             // kill main avatar object
