@@ -1181,7 +1181,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 temp[i].SendLandProperties(sequence_id, snap_selection, requestResult, remote_client);
             }
 
-            SendParcelOverlay(remote_client);
+//            SendParcelOverlay(remote_client);
         }
 
         public void UpdateLandProperties(ILandObject land, LandUpdateArgs args, IClientAPI remote_client)
