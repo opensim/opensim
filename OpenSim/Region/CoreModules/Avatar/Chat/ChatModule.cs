@@ -216,6 +216,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                             scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
+            bool checkParcelHide = false;
+            UUID sourceParcelID = UUID.Zero;
+            Vector3 hidePos = fromPos;
+
             if (c.Channel == DEBUG_CHANNEL) c.Type = ChatTypeEnum.DebugChannel;
 
             switch (sourceType) 
@@ -237,15 +241,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 }
                 destination = UUID.Zero; // Avatars cant "SayTo"
                 ownerID = c.Sender.AgentId;
-
+                checkParcelHide = true;
+                hidePos = fromPos;
                 break;
 
             case ChatSourceType.Object:
                 fromID = c.SenderUUID;
 
                 if (c.SenderObject != null && c.SenderObject is SceneObjectPart)
+                {
                     ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
-
+                    if (((SceneObjectPart)c.SenderObject).ParentGroup.IsAttachment)
+                    {
+                        checkParcelHide = true;
+                        hidePos = ((SceneObjectPart)c.SenderObject).ParentGroup.AbsolutePosition;
+                    }
+                }
                 break;
             }
 
@@ -258,13 +269,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 //                fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType);
 
             HashSet<UUID> receiverIDs = new HashSet<UUID>();
-            
+
+            if (checkParcelHide)
+            {
+                checkParcelHide = false;
+                if (c.Type < ChatTypeEnum.DebugChannel && destination == UUID.Zero)
+                {
+                    ILandObject srcland = (scene as Scene).LandChannel.GetLandObject(hidePos.X, hidePos.Y);
+                    if (srcland != null && !srcland.LandData.SeeAVs)
+                    {
+                        sourceParcelID = srcland.LandData.GlobalID;
+                        checkParcelHide = true;
+                    }
+                }
+            }
+
             foreach (Scene s in m_scenes)
             {
                 // This should use ForEachClient, but clients don't have a position.
                 // If camera is moved into client, then camera position can be used
                 // MT: No, it can't, as chat is heard from the avatar position, not
                 // the camera position.
+
                 s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
@@ -277,6 +303,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             // perfect, but it will do. For now. Better
                             // than the prior behavior of muting all
                             // objects on a parcel with access restrictions
+                            if (checkParcelHide)
+                            {
+                                if (sourceParcelID != Presencecheck.LandData.GlobalID)
+                                    return;
+                            }
                             if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
                             {
                                 if (destination != UUID.Zero)
