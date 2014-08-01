@@ -163,6 +163,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     m_currentParcelUUID = value;
                     m_currentParcelHide = false;
+
                     ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
                     if (land != null && !land.LandData.SeeAVs)
                         m_currentParcelHide = true;
@@ -171,6 +172,23 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
+        public void sitSOGmoved()
+        {
+            if (IsDeleted || !IsSatOnObject)
+                //what me?  nahh
+                return;
+            if (IsInTransit)
+                return;
+
+            ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+            if (land == null)
+                return; //??
+            UUID parcelID = land.LandData.GlobalID;
+            if (m_currentParcelUUID != parcelID)
+                currentParcelUUID = parcelID;
+        }
+
 
         public bool ParcelAllowThisAvatarSounds
         {
@@ -2707,7 +2725,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (satOnObject)
             {
-                SendAvatarDataToAllAgents();
+//                SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
                 part.RemoveSittingAvatar(UUID);
@@ -2719,6 +2737,22 @@ namespace OpenSim.Region.Framework.Scenes
                 AddToPhysicalScene(false);
 
             Animator.TrySetMovementAnimation("STAND");
+
+            if (satOnObject)
+            {
+                ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X,AbsolutePosition.Y);
+                if (land != null)
+                {
+                    UUID parcelID = land.LandData.GlobalID;
+                    if (m_currentParcelUUID != parcelID)
+                        currentParcelUUID = parcelID;
+                    else
+                        SendAvatarDataToAllAgents();
+                }
+                else
+                    SendAvatarDataToAllAgents();
+            }
+
             TriggerScenePresenceUpdated();
         }
 

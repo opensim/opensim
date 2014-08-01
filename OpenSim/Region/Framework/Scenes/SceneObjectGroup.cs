@@ -701,6 +701,11 @@ namespace OpenSim.Region.Framework.Scenes
                         part.GroupPosition = val;
                 }
 
+                foreach (ScenePresence av in m_linkedAvatars)
+                {
+                    av.sitSOGmoved();
+                }
+
                 // now that position is changed tell it to scripts
                 if (triggerScriptEvent)
                 {
