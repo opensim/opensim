@@ -1149,10 +1149,14 @@ namespace OpenSim.Region.Framework.Scenes
             // Should not be needed if we are not trying to tell this region to close
 //            DoNotCloseAfterTeleport = false;
 
-            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
-            if (gm != null)
-                Grouptitle = gm.GetGroupTitle(m_uuid);
+            IGroupsModule gm = null;
+            if (!isNPC) //  disable groups ofr NPCs  BUG HUNT
+            {
 
+                gm = m_scene.RequestModuleInterface<IGroupsModule>();
+                if (gm != null)
+                    Grouptitle = gm.GetGroupTitle(m_uuid);
+            }
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
@@ -1165,6 +1169,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
             try
             {
+                
                 if (gm != null)
                 {
                     groupUUID = ControllingClient.ActiveGroupId;
