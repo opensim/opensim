@@ -5362,7 +5362,7 @@ namespace OpenSim.Region.Framework.Scenes
                 { // where private
                     foreach (ScenePresence p in allpresences)
                     {
-                        if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                        if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                             continue;
 
                         // those on not on parcel see me
@@ -5377,7 +5377,7 @@ namespace OpenSim.Region.Framework.Scenes
                 { // where public
                     foreach (ScenePresence p in allpresences)
                     {
-                        if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                        if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                             continue;
 
                         // those not on parcel dont see me
@@ -5402,7 +5402,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         foreach (ScenePresence p in allpresences)
                         {
-                            if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
 
                             // only those on previus parcel need receive kills
@@ -5426,7 +5426,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         foreach (ScenePresence p in allpresences)
                         {
-                            if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
 
                             // those not on new parcel dont see me
@@ -5453,7 +5453,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         foreach (ScenePresence p in allpresences)
                         {
-                            if (p.IsChildAgent || p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
                             // only those old parcel need receive kills
                             if (previusParcelUUID == p.currentParcelUUID)
