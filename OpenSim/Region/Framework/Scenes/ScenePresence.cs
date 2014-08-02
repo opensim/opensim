@@ -984,7 +984,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
-                Grouptitle = gm.GetGroupTitle(m_uuid);
+               Grouptitle = gm.GetGroupTitle(m_uuid);
 
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
             
@@ -1149,14 +1149,10 @@ namespace OpenSim.Region.Framework.Scenes
             // Should not be needed if we are not trying to tell this region to close
 //            DoNotCloseAfterTeleport = false;
 
-            IGroupsModule gm = null;
-            if (!isNPC) //  disable groups ofr NPCs  BUG HUNT
-            {
-
-                gm = m_scene.RequestModuleInterface<IGroupsModule>();
-                if (gm != null)
-                    Grouptitle = gm.GetGroupTitle(m_uuid);
-            }
+            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+            if (gm != null)
+                Grouptitle = gm.GetGroupTitle(m_uuid);
+            
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
@@ -1858,7 +1854,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ValidateAndSendAppearanceAndAgentData();
 
                 // Create child agents in neighbouring regions
-                if (openChildAgents && !IsChildAgent && !isNPC)
+                if (openChildAgents && !IsChildAgent)
                 {
                     IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     if (m_agentTransfer != null)
