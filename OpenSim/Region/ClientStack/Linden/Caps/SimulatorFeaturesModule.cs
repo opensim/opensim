@@ -86,7 +86,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (string.IsNullOrEmpty(featuresURI)) 
                 {
-                    m_log.Info("ExtraFeaturesServiceURI is undefined. The grid's ExtraFeatures will not be available to regions in this instnace.");
+                    m_log.Info("ExtraFeaturesServiceURI is undefined. The grid's ExtraFeatures will not be available to regions in this instance.");
                 } 
                 else 
                 {
