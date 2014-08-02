@@ -1815,6 +1815,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
                 //            }
 
+                m_previusParcelHide = false;
+                m_previusParcelUUID = UUID.Zero;
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
 
@@ -1828,8 +1830,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_previusParcelHide = m_currentParcelHide;
-                m_previusParcelUUID = m_currentParcelUUID;
 
                 // send agentData to all clients including us (?)
                 // get appearance
