@@ -3972,7 +3972,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(oldgodlevel != GodLevel) // force a visibility check
                     ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
-                                m_currentParcelHide , m_previusParcelHide, false, true);
+                                !m_currentParcelHide, m_previusParcelHide, m_currentParcelHide, true);
         }
 
         #region Child Agent Updates
@@ -5402,7 +5402,21 @@ namespace OpenSim.Region.Framework.Scenes
 
                 allpresences = m_scene.GetScenePresences();
 
-                if (oldhide)
+                if (GodLevel >= 200)
+                {
+                    foreach (ScenePresence p in allpresences)
+                    {
+                        if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                            continue;
+                       
+                        if (p.ParcelHideThisAvatar)
+                        {
+                            viewsToSendto.Add(p); // they see me
+                        }
+                    }
+                }
+
+                else if (oldhide)
                 { // where private
                     foreach (ScenePresence p in allpresences)
                     {
