@@ -3377,7 +3377,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!remoteClient.IsActive)
                 return;
 
-            if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID)
+            if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID && p.GodLevel < 200)
                 return;
 
 
@@ -3586,7 +3586,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAvatarDataToAgent(ScenePresence avatar)
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
-            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID)
+            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && avatar.GodLevel < 200)
                 return;
             avatar.ControllingClient.SendAvatarDataImmediate(this);
             Animator.SendAnimPackToClient(avatar.ControllingClient);
@@ -3653,7 +3653,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
-            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID)
+            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && avatar.GodLevel < 200)
                 return;
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());           
@@ -3947,6 +3947,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void GrantGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godStatus)
         {
+            int oldgodlevel = GodLevel;
+
             if (godStatus)
             {
                 // For now, assign god level 200 to anyone
@@ -3967,6 +3969,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ControllingClient.SendAdminResponse(token, (uint)GodLevel);
+
+            if(oldgodlevel != GodLevel) // force a visibility check
+                    ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
+                                true, m_previusParcelHide, false, true);
         }
 
         #region Child Agent Updates
@@ -5404,7 +5410,7 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         // those on not on parcel see me
-                        if (currentParcelUUID != p.currentParcelUUID)
+                        if (currentParcelUUID != p.currentParcelUUID || p.GodLevel >= 200)
                         {
                             viewsToSendto.Add(p); // they see me
                         }
@@ -5419,7 +5425,7 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         // those not on parcel dont see me
-                        if (currentParcelUUID != p.currentParcelUUID)
+                        if (currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                         {
                             killsToSendto.Add(p); // they dont see me
                         }
@@ -5444,13 +5450,13 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // only those on previus parcel need receive kills
-                            if (previusParcelUUID == p.currentParcelUUID)
+                            if (previusParcelUUID == p.currentParcelUUID && p.GodLevel < 200)
                             {
                                 killsToSendto.Add(p); // they dont see me
                                 killsToSendme.Add(p);  // i dont see them
                             }
                             // only those on new parcel need see
-                            if (currentParcelUUID == p.currentParcelUUID)
+                            if (currentParcelUUID == p.currentParcelUUID || p.GodLevel >= 200)
                             {
                                 viewsToSendto.Add(p); // they see me
                                 viewsToSendme.Add(p); // i see them
@@ -5468,7 +5474,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // those not on new parcel dont see me
-                            if (currentParcelUUID != p.currentParcelUUID)
+                            if (currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                             {
                                 killsToSendto.Add(p); // they dont see me
                             }
@@ -5494,7 +5500,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
                             // only those old parcel need receive kills
-                            if (previusParcelUUID == p.currentParcelUUID)
+                            if (previusParcelUUID == p.currentParcelUUID && p.GodLevel < 200)
                             {
                                 killsToSendme.Add(p);  // i dont see them
                             }
