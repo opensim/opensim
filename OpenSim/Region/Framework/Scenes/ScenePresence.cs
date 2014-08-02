@@ -3972,7 +3972,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(oldgodlevel != GodLevel) // force a visibility check
                     ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
-                                true, m_previusParcelHide, false, true);
+                                m_currentParcelHide , m_previusParcelHide, false, true);
         }
 
         #region Child Agent Updates

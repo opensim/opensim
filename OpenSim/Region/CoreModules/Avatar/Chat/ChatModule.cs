@@ -238,10 +238,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 if (avatar.GodLevel >= 200)
                 {
                     fromNamePrefix = m_adminPrefix;
+                    checkParcelHide = false;
+                }
+                else
+                {
+                    checkParcelHide = true;
                 }
                 destination = UUID.Zero; // Avatars cant "SayTo"
                 ownerID = c.Sender.AgentId;
-                checkParcelHide = true;
+                
                 hidePos = fromPos;
                 break;
 
