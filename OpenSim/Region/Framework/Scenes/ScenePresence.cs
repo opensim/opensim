@@ -164,12 +164,12 @@ namespace OpenSim.Region.Framework.Scenes
                 lock (parcelLock)
                 {
                     bool oldhide = m_currentParcelHide;
-                    bool check = true;
+                    bool checksame = true;
                     if (value != m_currentParcelUUID)
                     {
                         m_previusParcelHide = m_currentParcelHide;
                         m_previusParcelUUID = m_currentParcelUUID;
-                        check = false;
+                        checksame = false;
                     }
                     m_currentParcelUUID = value;
                     m_currentParcelHide = false;
@@ -177,8 +177,9 @@ namespace OpenSim.Region.Framework.Scenes
                     ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
                     if (land != null && !land.LandData.SeeAVs)
                         m_currentParcelHide = true;
+
                     if (m_previusParcelUUID != UUID.Zero)
-                        ParcelCrossCheck(m_currentParcelUUID,m_previusParcelUUID,m_currentParcelHide, m_previusParcelHide, oldhide,check);
+                        ParcelCrossCheck(m_currentParcelUUID,m_previusParcelUUID,m_currentParcelHide, m_previusParcelHide, oldhide,checksame);
                 }
             }
         }
@@ -1923,8 +1924,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             // if hide force a check
             if (!IsChildAgent && newhide)
+            {
                 ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
                             true, m_previusParcelHide, false, true);
+                m_currentParcelHide = newhide;
+            }
         }
 
         /// <summary>
@@ -5511,13 +5515,15 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // only those on previus parcel need receive kills
-                            if (previusParcelUUID == p.currentParcelUUID && p.GodLevel < 200)
+                            if (previusParcelUUID == p.currentParcelUUID)
                             {
-                                killsToSendto.Add(p); // they dont see me
-                                killsToSendme.Add(p);  // i dont see them
+                                if(p.GodLevel < 200)
+                                    killsToSendto.Add(p); // they dont see me
+                                if(GodLevel < 200)
+                                    killsToSendme.Add(p);  // i dont see them
                             }
                             // only those on new parcel need see
-                            if (currentParcelUUID == p.currentParcelUUID || p.GodLevel >= 200)
+                            if (currentParcelUUID == p.currentParcelUUID)
                             {
                                 viewsToSendto.Add(p); // they see me
                                 viewsToSendme.Add(p); // i see them
@@ -5561,7 +5567,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
                             // only those old parcel need receive kills
-                            if (previusParcelUUID == p.currentParcelUUID && p.GodLevel < 200)
+                            if (previusParcelUUID == p.currentParcelUUID && GodLevel < 200)
                             {
                                 killsToSendme.Add(p);  // i dont see them
                             }
