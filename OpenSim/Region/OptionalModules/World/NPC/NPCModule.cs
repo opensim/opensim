@@ -170,9 +170,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
             */
 
-            ManualResetEvent ev = new ManualResetEvent(false);
+//            ManualResetEvent ev = new ManualResetEvent(false);
 
-            Util.FireAndForget(delegate(object x) {
+//            Util.FireAndForget(delegate(object x) {
                 lock (m_avatars)
                 {
                     scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
@@ -181,15 +181,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
                     {
+                        
                         sp.CompleteMovement(npcAvatar, false);
                         m_avatars.Add(npcAvatar.AgentId, npcAvatar);
 //                        m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
                     }
                 }
-                ev.Set();
-            });
+//                ev.Set();
+//            });
 
-            ev.WaitOne();
+//            ev.WaitOne();
 
 //            m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
 
