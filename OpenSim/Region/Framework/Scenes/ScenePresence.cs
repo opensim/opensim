@@ -3329,12 +3329,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendTerseUpdateToAgentClient(ScenePresence p)
         {
             // messy checks because a client doesn't know what presence it belongs too
-            if (p.IsChildAgent)
-                return;
-
-            if (p.IsInTransit)
-                return;
-
+ 
             IClientAPI remoteClient = p.ControllingClient;
             if (remoteClient == null)
                 return;
