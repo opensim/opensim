@@ -1885,6 +1885,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_inTransit = false;
             }
+            // if hide force a check
+            if (!IsChildAgent && m_currentParcelHide)
+                ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
+                            true, m_previusParcelHide, false, true);
         }
 
         /// <summary>
@@ -5345,6 +5349,9 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> viewsToSendto = new List<ScenePresence>();
             List<ScenePresence> viewsToSendme = new List<ScenePresence>();
             List<ScenePresence> allpresences = null;
+
+            if (IsInTransit)
+                return;
 
             if (check)
             {
