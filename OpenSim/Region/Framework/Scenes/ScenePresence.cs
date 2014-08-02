@@ -1737,6 +1737,7 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.Name, AbsolutePosition);
           
             m_inTransit = true;
+            bool newhide = false;
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
@@ -1819,6 +1820,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_previusParcelUUID = UUID.Zero;
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
+                
 
                 // send initial land overlay and parcel 
                 if (!IsChildAgent)
@@ -1827,6 +1829,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (landch != null)
                     {
                         landch.sendClientInitialLandInfo(client);
+                        newhide = m_currentParcelHide;
+                        m_currentParcelHide = false;
                     }
                 }
 
@@ -1886,7 +1890,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inTransit = false;
             }
             // if hide force a check
-            if (!IsChildAgent && m_currentParcelHide)
+            if (!IsChildAgent && newhide)
                 ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
                             true, m_previusParcelHide, false, true);
         }
