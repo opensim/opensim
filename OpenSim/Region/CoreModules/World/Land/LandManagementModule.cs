@@ -1047,6 +1047,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="remote_client">The object representing the client</param>
         public void SendParcelOverlay(IClientAPI remote_client)
         {
+
+            if (remote_client.SceneAgent.PresenceType == PresenceType.Npc)
+                return;
+
             const int LAND_BLOCKS_PER_PACKET = 1024;
 
             byte[] byteArray = new byte[LAND_BLOCKS_PER_PACKET];

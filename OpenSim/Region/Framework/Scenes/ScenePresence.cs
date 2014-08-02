@@ -88,7 +88,17 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.EventManager.TriggerScenePresenceUpdated(this);
         }
 
-        public PresenceType PresenceType { get; private set; }
+        public bool isNPC { get; private set; }
+
+        private PresenceType m_presenceType;
+        public PresenceType PresenceType {
+            get {return m_presenceType;}
+            private set
+            {
+                m_presenceType = value;
+                isNPC = (m_presenceType == PresenceType.Npc);
+            }
+        }
 
         private ScenePresenceStateMachine m_stateMachine;
 
@@ -1258,6 +1268,7 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
+/* moved down
             if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
             {
                 // Viewers which have a current outfit folder will actually rez their own attachments.  However,
@@ -1273,6 +1284,7 @@ namespace OpenSim.Region.Framework.Scenes
                         });
             }
             else
+
             {
                 // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
                 // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
@@ -1314,7 +1326,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-
+*/
 /* 
             SendAvatarDataToAllAgents();
 
@@ -1741,7 +1753,7 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
-                if (PresenceType != PresenceType.Npc && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+                if (!isNPC && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
                 {
                     // Let's wait until UpdateAgent (called by departing region) is done
                     if (!WaitForUpdateAgent(client))
@@ -1820,7 +1832,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_previusParcelUUID = UUID.Zero;
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
-                
 
                 // send initial land overlay and parcel 
                 if (!IsChildAgent)
@@ -1842,28 +1853,48 @@ namespace OpenSim.Region.Framework.Scenes
                 ValidateAndSendAppearanceAndAgentData();
 
                 // Create child agents in neighbouring regions
-                if (openChildAgents && !IsChildAgent)
+                if (openChildAgents && !IsChildAgent && !isNPC)
                 {
                     IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     if (m_agentTransfer != null)
                         m_agentTransfer.EnableChildAgents(this);
                 }
 
-                // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
-                // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
-                // This may be due to viewer code or it may be something we're not doing properly simulator side.
-                lock (m_attachments)
-                {
-                    foreach (SceneObjectGroup sog in m_attachments)
-                        sog.ScheduleGroupForFullUpdate();
-                }
 
+                // attachments
+                if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
+                {
+                    if (Scene.AttachmentsModule != null)
+                        Util.FireAndForget(
+                            o =>
+                            {
+                                Scene.AttachmentsModule.RezAttachments(this);
+                            });
+                }
+                else
+                {
+                    List<SceneObjectGroup> attachments = GetAttachments();
+
+                    if (attachments.Count > 0)
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                        // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
+                        foreach (SceneObjectGroup sog in attachments)
+                        {
+                            sog.ScheduleGroupForFullUpdate();
+                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                            sog.ResumeScripts();
+                        }
+                    }
+                }
                 //            m_log.DebugFormat(
                 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
                 //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
 
                 // send the rest of the world
-                if (m_teleportFlags > 0)
+                if (m_teleportFlags > 0 && !isNPC)
                     SendInitialDataToMe();
 
                 if (!IsChildAgent)
@@ -5488,7 +5519,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (killsToSendme.Count > 0)
+            if (killsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
             {
                 foreach (ScenePresence p in killsToSendme)
                 {
@@ -5509,7 +5540,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (viewsToSendme.Count > 0)
+            if (viewsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
             {
                 foreach (ScenePresence p in viewsToSendme)
                 {
@@ -5520,8 +5551,6 @@ namespace OpenSim.Region.Framework.Scenes
                         p.Animator.SendAnimPackToClient(ControllingClient);
                 }
             }
-
-
         }
     }
 }
