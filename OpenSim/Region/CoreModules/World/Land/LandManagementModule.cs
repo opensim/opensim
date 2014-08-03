@@ -368,7 +368,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SendOutNearestBanLine(IClientAPI client)
         {
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
-            if (sp == null || sp.IsChildAgent)
+            if (sp == null)
                 return;
 
             List<ILandObject> checkLandParcels = ParcelsNearPoint(sp.AbsolutePosition);
@@ -394,10 +394,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (!m_scene.TryGetScenePresence(remoteClient.AgentId, out avatar))
                 return;
-            if (avatar.IsChildAgent)
-                return;
 
             SendParcelOverlay(remoteClient);
+
+            if (avatar.IsChildAgent)
+                return;
 
             ILandObject over = GetLandObject(avatar.AbsolutePosition.X,avatar.AbsolutePosition.Y);
             if (over == null)
@@ -958,7 +959,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
             m_scene.ForEachClient(SendParcelOverlay);
             result.SendLandUpdateToAvatarsOverMe();
-            
+            startLandObject.SendLandUpdateToAvatarsOverMe();          
         }
 
         /// <summary>
@@ -1047,7 +1048,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="remote_client">The object representing the client</param>
         public void SendParcelOverlay(IClientAPI remote_client)
         {
-
             if (remote_client.SceneAgent.PresenceType == PresenceType.Npc)
                 return;
 
@@ -1198,20 +1198,24 @@ namespace OpenSim.Region.CoreModules.World.Land
             bool needOverlay = false;
             if (land.UpdateLandProperties(args, remote_client, out snap_selection, out needOverlay))
             {
-                //the proprieties to who changed it
+                //the proprieties to who changed them
 
                 land.SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, remote_client);
 
                 if (needOverlay)
                 {
                     UUID parcelID = land.LandData.GlobalID;
-                    m_scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
+                    m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
                      {
-                         if (avatar.IsDeleted || avatar.IsChildAgent)
+                         if (avatar.IsDeleted || avatar.isNPC)
                              return;
 
                          IClientAPI client = avatar.ControllingClient;
                          SendParcelOverlay(client);
+
+                         if (avatar.IsChildAgent)
+                             return;
+                         
                          ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
                          if (aland != null)
                          {
