@@ -5459,12 +5459,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                     continue;
-
-                // those not on parcel dont see me
+               
                 if (currentParcelUUID != p.currentParcelUUID)
                 {
                     if (p.GodLevel < 200)
-                        killsToSendto.Add(p); // they dont see me
+                        killsToSendto.Add(p);
+                    if (GodLevel < 200 && p.ParcelHideThisAvatar)
+                        killsToSendme.Add(p);
                 }
                 else
                 {
