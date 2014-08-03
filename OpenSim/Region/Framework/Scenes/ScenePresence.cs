@@ -1836,12 +1836,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_currentParcelUUID = UUID.Zero;
 
                 // send initial land overlay and parcel 
-                if (!IsChildAgent)
+                ILandChannel landch = m_scene.LandChannel;
+                if (landch != null)
                 {
-                    ILandChannel landch = m_scene.LandChannel;
-                    if (landch != null)
+                    landch.sendClientInitialLandInfo(client);
+                    if (!IsChildAgent)
                     {
-                        landch.sendClientInitialLandInfo(client);
                         newhide = m_currentParcelHide;
                         m_currentParcelHide = false;
                     }
@@ -5416,15 +5416,14 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (ScenePresence p in viewsToSendme)
                     {
+                        if (p.IsChildAgent)
+                            continue;
                         m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
-                        if (!p.IsChildAgent)
-                        {
-                            ControllingClient.SendAvatarDataImmediate(p);
-                            p.SendAppearanceToAgent(this);
-                            p.SendAttachmentsToClient(ControllingClient);
-                            if (p.Animator != null)
-                                p.Animator.SendAnimPackToClient(ControllingClient);
-                        }
+                        ControllingClient.SendAvatarDataImmediate(p);
+                        p.SendAppearanceToAgent(this);
+                        p.SendAttachmentsToClient(ControllingClient);
+                        if (p.Animator != null)
+                            p.Animator.SendAnimPackToClient(ControllingClient);
                     }
                 }
             }
@@ -5526,14 +5525,13 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ScenePresence p in viewsToSendme)
                 {
                     m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
-                    if (!p.IsChildAgent)
-                    {
-                        ControllingClient.SendAvatarDataImmediate(p);
-                        p.SendAppearanceToAgent(this);
-                        p.SendAttachmentsToClient(ControllingClient);
-                        if (p.Animator != null)
-                            p.Animator.SendAnimPackToClient(ControllingClient);
-                    }
+                    if (p.IsChildAgent)
+                        continue;
+                    ControllingClient.SendAvatarDataImmediate(p);
+                    p.SendAppearanceToAgent(this);
+                    p.SendAttachmentsToClient(ControllingClient);
+                    if (p.Animator != null)
+                        p.Animator.SendAnimPackToClient(ControllingClient);
                 }
             }
         }
@@ -5548,7 +5546,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (abort)
             {
-
                 List<ScenePresence> viewsToSendme = new List<ScenePresence>();
 
                 foreach (ScenePresence p in allpresences)
@@ -5566,15 +5563,14 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (ScenePresence p in viewsToSendme)
                     {
-                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
-                        if (!p.IsChildAgent)
-                        {
-                            ControllingClient.SendAvatarDataImmediate(p);
-                            p.SendAppearanceToAgent(this);
-                            p.SendAttachmentsToClient(ControllingClient);
-                            if (p.Animator != null)
-                                p.Animator.SendAnimPackToClient(ControllingClient);
-                        }
+                        if (p.IsChildAgent)
+                            continue;
+//                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
+                        ControllingClient.SendAvatarDataImmediate(p);
+                        p.SendAppearanceToAgent(this);
+                        p.SendAttachmentsToClient(ControllingClient);
+                        if (p.Animator != null)
+                            p.Animator.SendAnimPackToClient(ControllingClient);
                     }
                 }
             }
@@ -5768,8 +5764,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
-                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     p.ControllingClient.SendAvatarDataImmediate(this);
+//                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     SendAppearanceToAgent(p);
                     SendAttachmentsToClient(p.ControllingClient);
                     if (Animator != null)
@@ -5781,15 +5777,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in viewsToSendme)
                 {
-                    m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
-                    if (!p.IsChildAgent)
-                    {
-                        ControllingClient.SendAvatarDataImmediate(p);
-                        p.SendAppearanceToAgent(this);
-                        p.SendAttachmentsToClient(ControllingClient);
-                        if (p.Animator != null)
-                            p.Animator.SendAnimPackToClient(ControllingClient);
-                    }
+                    if (p.IsChildAgent)
+                        continue;
+//                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
+                    ControllingClient.SendAvatarDataImmediate(p);
+                    p.SendAppearanceToAgent(this);
+                    p.SendAttachmentsToClient(ControllingClient);
+                    if (p.Animator != null)
+                        p.Animator.SendAnimPackToClient(ControllingClient);
                 }
             }
         }
