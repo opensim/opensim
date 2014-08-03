@@ -617,6 +617,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             avatar.Invulnerable = true;
 
                         SendLandUpdateToClient(snap_selection, avatar.ControllingClient);
+                        avatar.currentParcelUUID = LandData.GlobalID;
                     }
                 }
             });
