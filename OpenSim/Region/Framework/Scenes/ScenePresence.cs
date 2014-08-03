@@ -3868,14 +3868,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected bool CrossToNewRegion()
         {
+            bool result = false;
+            parcelRegionCross(false);
             try
             {
-                return m_scene.CrossAgentToNewRegion(this, Flying);
+                result = m_scene.CrossAgentToNewRegion(this, Flying);
             }
             catch
             {
-                return m_scene.CrossAgentToNewRegion(this, false);
+                result = m_scene.CrossAgentToNewRegion(this, false);
             }
+            if(!result)
+                parcelRegionCross(true);
+
+            return result;
+
         }
 
         public void Reset()
@@ -5384,7 +5391,7 @@ namespace OpenSim.Region.Framework.Scenes
     
         }
 
-        private void parcelGodCheck(UUID currentParcelUUID, bool isGod)
+        private void parcelGodCheck(UUID currentParcelID, bool isGod)
         {
             List<ScenePresence> allpresences = null;
 
@@ -5400,7 +5407,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                         continue;
 
-                    if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID)
+                    if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelID)
                     {
                         viewsToSendme.Add(p); // i see them
                     }
@@ -5410,6 +5417,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (ScenePresence p in viewsToSendme)
                     {
+                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
                         ControllingClient.SendAvatarDataImmediate(p);
                         p.SendAppearanceToAgent(this);
                         p.SendAttachmentsToClient(ControllingClient);
@@ -5427,16 +5435,17 @@ namespace OpenSim.Region.Framework.Scenes
                     if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                         continue;
 
-                    if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID)
+                    if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelID)
                     {
                         killsToSendme.Add(p);
                     }
                 }
 
-                if (killsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+                if (killsToSendme.Count > 0)
                 {
                     foreach (ScenePresence p in killsToSendme)
                     {
+                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                         try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                         catch (NullReferenceException) { }
                     }
@@ -5445,7 +5454,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        private void ParcelLoginCheck(UUID currentParcelUUID)
+        private void ParcelLoginCheck(UUID currentParcelID)
         {
             List<ScenePresence> killsToSendto = new List<ScenePresence>();
             List<ScenePresence> killsToSendme = new List<ScenePresence>();
@@ -5460,7 +5469,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                     continue;
                
-                if (currentParcelUUID != p.currentParcelUUID)
+                if (currentParcelID != p.currentParcelUUID)
                 {
                     if (p.GodLevel < 200)
                         killsToSendto.Add(p);
@@ -5477,28 +5486,31 @@ namespace OpenSim.Region.Framework.Scenes
 
             // send the things
             // kill main avatar object
-            if (killsToSendto.Count > 0)
+            if (killsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
             {
                 foreach (ScenePresence p in killsToSendto)
                 {
+                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
                     try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
                     catch (NullReferenceException) { }
                 }
             }
 
-            if (killsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+            if (killsToSendme.Count > 0)
             {
                 foreach (ScenePresence p in killsToSendme)
                 {
+                    m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                     try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                     catch (NullReferenceException) { }
                 }
             }
 
-            if (viewsToSendto.Count > 0)
+            if (viewsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
+                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     p.ControllingClient.SendAvatarDataImmediate(this);
                     SendAppearanceToAgent(p);
                     SendAttachmentsToClient(p.ControllingClient);
@@ -5507,10 +5519,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (viewsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+            if (viewsToSendme.Count > 0)
             {
                 foreach (ScenePresence p in viewsToSendme)
                 {
+                    m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
                     ControllingClient.SendAvatarDataImmediate(p);
                     p.SendAppearanceToAgent(this);
                     p.SendAttachmentsToClient(ControllingClient);
@@ -5520,7 +5533,74 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void ParcelCrossCheck(UUID currentParcelUUID,UUID previusParcelUUID,
+        private void parcelRegionCross(bool abort)
+        {
+            if (!ParcelHideThisAvatar)
+                return;
+
+            List<ScenePresence> allpresences = null;
+            allpresences = m_scene.GetScenePresences();
+
+            if (abort)
+            {
+
+                List<ScenePresence> viewsToSendme = new List<ScenePresence>();
+
+                foreach (ScenePresence p in allpresences)
+                {
+                    if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                        continue;
+
+                    if (p.currentParcelUUID == m_currentParcelUUID)
+                    {
+                        viewsToSendme.Add(p);
+                    }
+                }
+
+                if (viewsToSendme.Count > 0)
+                {
+                    foreach (ScenePresence p in viewsToSendme)
+                    {
+                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
+                        ControllingClient.SendAvatarDataImmediate(p);
+                        p.SendAppearanceToAgent(this);
+                        p.SendAttachmentsToClient(ControllingClient);
+                        if (p.Animator != null)
+                            p.Animator.SendAnimPackToClient(ControllingClient);
+                    }
+                }
+            }
+            else
+            {
+                if (GodLevel >= 200)
+                    return;
+
+                List<ScenePresence> killsToSendme = new List<ScenePresence>();
+                foreach (ScenePresence p in allpresences)
+                {
+                    if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                        continue;
+
+                    if (p.currentParcelUUID == m_currentParcelUUID)
+                    {
+                        killsToSendme.Add(p);
+                    }
+                }
+
+                if (killsToSendme.Count > 0)
+                {
+                    foreach (ScenePresence p in killsToSendme)
+                    {
+                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
+                        try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
+                        catch (NullReferenceException) { }
+                    }
+                }
+            }
+        }
+ 
+
+        private void ParcelCrossCheck(UUID currentParcelID,UUID previusParcelID,
                             bool currentParcelHide, bool previusParcelHide, bool oldhide,bool check)
         {
             List<ScenePresence> killsToSendto = new List<ScenePresence>();
@@ -5548,8 +5628,9 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         // those on not on parcel see me
-                        if (currentParcelUUID != p.currentParcelUUID)
+                        if (currentParcelID != p.currentParcelUUID)
                         {
+                            m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                             viewsToSendto.Add(p); // they see me
                         }
                     }
@@ -5563,7 +5644,7 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         // those not on parcel dont see me
-                        if (currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                        if (currentParcelID != p.currentParcelUUID && p.GodLevel < 200)
                         {
                             killsToSendto.Add(p); // they dont see me
                         }
@@ -5579,7 +5660,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // now on a private parcel
                     allpresences = m_scene.GetScenePresences();
 
-                    if (previusParcelHide && previusParcelUUID != UUID.Zero)
+                    if (previusParcelHide && previusParcelID != UUID.Zero)
                     {
                         foreach (ScenePresence p in allpresences)
                         {
@@ -5587,7 +5668,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // only those on previus parcel need receive kills
-                            if (previusParcelUUID == p.currentParcelUUID)
+                            if (previusParcelID == p.currentParcelUUID)
                             {
                                 if(p.GodLevel < 200)
                                     killsToSendto.Add(p); // they dont see me
@@ -5595,7 +5676,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     killsToSendme.Add(p);  // i dont see them
                             }
                             // only those on new parcel need see
-                            if (currentParcelUUID == p.currentParcelUUID)
+                            if (currentParcelID == p.currentParcelUUID)
                             {
                                 viewsToSendto.Add(p); // they see me
                                 viewsToSendme.Add(p); // i see them
@@ -5613,7 +5694,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // those not on new parcel dont see me
-                            if (currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                            if (currentParcelID != p.currentParcelUUID && p.GodLevel < 200)
                             {
                                 killsToSendto.Add(p); // they dont see me
                             }
@@ -5629,7 +5710,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     // now on public parcel
-                    if (previusParcelHide && previusParcelUUID != UUID.Zero)
+                    if (previusParcelHide && previusParcelID != UUID.Zero)
                     {
                         // was on private area
                         allpresences = m_scene.GetScenePresences();
@@ -5639,7 +5720,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
                             // only those old parcel need receive kills
-                            if (previusParcelUUID == p.currentParcelUUID && GodLevel < 200)
+                            if (previusParcelID == p.currentParcelUUID && GodLevel < 200)
                             {
                                 killsToSendme.Add(p);  // i dont see them
                             }
@@ -5656,28 +5737,31 @@ namespace OpenSim.Region.Framework.Scenes
 
             // send the things
             // kill main avatar object
-            if (killsToSendto.Count > 0)
+            if (killsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
             {
                 foreach (ScenePresence p in killsToSendto)
                 {
+                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
                     try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
                     catch (NullReferenceException) { }
                 }
             }
 
-            if (killsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+            if (killsToSendme.Count > 0 )
             {
                 foreach (ScenePresence p in killsToSendme)
                 {
+                    m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                     try {ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                     catch (NullReferenceException) { }                    
                 }
             }
 
-            if (viewsToSendto.Count > 0)
+            if (viewsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
+                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     p.ControllingClient.SendAvatarDataImmediate(this);
                     SendAppearanceToAgent(p);
                     SendAttachmentsToClient(p.ControllingClient);
@@ -5686,10 +5770,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (viewsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+            if (viewsToSendme.Count > 0 )
             {
                 foreach (ScenePresence p in viewsToSendme)
                 {
+                    m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
                     ControllingClient.SendAvatarDataImmediate(p);
                     p.SendAppearanceToAgent(this);
                     p.SendAttachmentsToClient(ControllingClient);
