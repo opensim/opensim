@@ -1924,8 +1924,7 @@ namespace OpenSim.Region.Framework.Scenes
             // if hide force a check
             if (!IsChildAgent && newhide)
             {
-                ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID,
-                            true, m_previusParcelHide, false, true);
+                ParcelLoginCheck(m_currentParcelUUID);
                 m_currentParcelHide = newhide;
             }
         }
@@ -5446,6 +5445,79 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        private void ParcelLoginCheck(UUID currentParcelUUID)
+        {
+            List<ScenePresence> killsToSendto = new List<ScenePresence>();
+            List<ScenePresence> killsToSendme = new List<ScenePresence>();
+            List<ScenePresence> viewsToSendto = new List<ScenePresence>();
+            List<ScenePresence> viewsToSendme = new List<ScenePresence>();
+            List<ScenePresence> allpresences = null;
+
+            allpresences = m_scene.GetScenePresences();
+
+            foreach (ScenePresence p in allpresences)
+            {
+                if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                    continue;
+
+                // those not on parcel dont see me
+                if (currentParcelUUID != p.currentParcelUUID)
+                {
+                    if (p.GodLevel < 200)
+                        killsToSendto.Add(p); // they dont see me
+                }
+                else
+                {
+                    viewsToSendto.Add(p);
+                    viewsToSendme.Add(p);
+                }
+            }
+            allpresences.Clear();
+
+            // send the things
+            // kill main avatar object
+            if (killsToSendto.Count > 0)
+            {
+                foreach (ScenePresence p in killsToSendto)
+                {
+                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
+                    catch (NullReferenceException) { }
+                }
+            }
+
+            if (killsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+            {
+                foreach (ScenePresence p in killsToSendme)
+                {
+                    try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
+                    catch (NullReferenceException) { }
+                }
+            }
+
+            if (viewsToSendto.Count > 0)
+            {
+                foreach (ScenePresence p in viewsToSendto)
+                {
+                    p.ControllingClient.SendAvatarDataImmediate(this);
+                    SendAppearanceToAgent(p);
+                    SendAttachmentsToClient(p.ControllingClient);
+                    if (Animator != null)
+                        Animator.SendAnimPackToClient(p.ControllingClient);
+                }
+            }
+
+            if (viewsToSendme.Count > 0 && PresenceType != PresenceType.Npc)
+            {
+                foreach (ScenePresence p in viewsToSendme)
+                {
+                    ControllingClient.SendAvatarDataImmediate(p);
+                    p.SendAppearanceToAgent(this);
+                    p.SendAttachmentsToClient(ControllingClient);
+                    if (p.Animator != null)
+                        p.Animator.SendAnimPackToClient(ControllingClient);
+                }
+            }
+        }
 
         private void ParcelCrossCheck(UUID currentParcelUUID,UUID previusParcelUUID,
                             bool currentParcelHide, bool previusParcelHide, bool oldhide,bool check)
