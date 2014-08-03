@@ -390,7 +390,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (sp.PresenceType != PresenceType.Npc)
             {
-                m_log.DebugFormat("[ATTACHMENTS MODULE]: enter PrepareScriptInstanceForSave loop");
                 foreach (SceneObjectGroup so in attachments)
                 {
                     // Scripts MUST be snapshotted before the object is
@@ -400,18 +399,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
                     scriptStates[so] = PrepareScriptInstanceForSave(so, false);
                 }
-            }
 
-            m_log.DebugFormat("[ATTACHMENTS MODULE]: enter UpdateDetachedObject loop");
-            lock (sp.AttachmentsSyncLock)
+                lock (sp.AttachmentsSyncLock)
+                {
+                    foreach (SceneObjectGroup so in attachments)
+                        UpdateDetachedObject(sp, so, scriptStates[so]);
+                    sp.ClearAttachments();
+                }
+            }
+            else
             {
-                foreach (SceneObjectGroup so in attachments)
-                    UpdateDetachedObject(sp, so, scriptStates[so]);
-                m_log.DebugFormat("[ATTACHMENTS MODULE]: enter ClearAttachments");
-                sp.ClearAttachments();
-            }
-            m_log.DebugFormat("[ATTACHMENTS MODULE]: derez done");
-
+                lock (sp.AttachmentsSyncLock)
+                {
+                    foreach (SceneObjectGroup so in attachments)
+                        UpdateDetachedObject(sp, so, String.Empty);
+                    sp.ClearAttachments();
+                }
+            }           
         }
 
         public void DeleteAttachmentsFromScene(IScenePresence sp, bool silent)
