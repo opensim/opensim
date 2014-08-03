@@ -3465,6 +3465,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // we created a new ScenePresence (a new child agent) in a fresh region.
                 // Request info about all the (root) agents in this region
                 // Note: This won't send data *to* other clients in that region (children don't send)
+                if (m_teleportFlags <= 0)
+                {
+                    ILandChannel landch = m_scene.LandChannel;
+                    if (landch != null)
+                    {
+                        landch.sendClientInitialLandInfo(ControllingClient);
+                    }
+                }
                 SendOtherAgentsAvatarDataToMe();
                 SendOtherAgentsAppearanceToMe();
 
