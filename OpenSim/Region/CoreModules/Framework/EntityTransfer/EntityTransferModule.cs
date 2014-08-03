@@ -2271,19 +2271,23 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (scene == null)
                 return;
 
-            if (grp.RootPart.DIE_AT_EDGE)
-            {
-                // We remove the object here
-                try
-                {
-                    scene.DeleteSceneObject(grp, false);
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
-                }
-                return;
-            }
+// http://wiki.secondlife.com/wiki/STATUS_DIE_AT_EDGE
+// DieAtEdge does NOT mean that objects can't cross regions.
+// It just means they die when they go off world, unless
+// RETURN_AT_EDGE is set.
+//            if (grp.RootPart.DIE_AT_EDGE)
+//            {
+//                // We remove the object here
+//                try
+//                {
+//                    scene.DeleteSceneObject(grp, false);
+//                }
+//                catch (Exception)
+//                {
+//                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+//                }
+//                return;
+//            }
 
             int thisx = (int)scene.RegionInfo.RegionLocX;
             int thisy = (int)scene.RegionInfo.RegionLocY;
