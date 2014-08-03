@@ -1025,9 +1025,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // Remove the object from the scene so no more updates
             // are sent. Doing this before the below changes will ensure
             // updates can't cause "HUD artefacts"
-
-            m_log.WarnFormat("[ATTACHMENTS MODULE]: DeleteSceneObject");
-            
+           
             m_scene.DeleteSceneObject(so, false, false);
 
             // Prepare sog for storage
@@ -1037,8 +1035,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (saveChanged)
             {
-                m_log.WarnFormat("[ATTACHMENTS MODULE]: saveChanged true");
-
                 // We cannot use AbsolutePosition here because that would
                 // attempt to cross the prim as it is detached
                 so.ForEachPart(x => { x.GroupPosition = so.RootPart.AttachedPos; });
@@ -1047,9 +1043,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             // Now, remove the scripts
-            m_log.WarnFormat("[ATTACHMENTS MODULE]: remove scripts");
             so.RemoveScriptInstances(true);
-            m_log.WarnFormat("[ATTACHMENTS MODULE]: UpdateDetachedObject done");
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
