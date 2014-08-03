@@ -388,15 +388,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             Dictionary<SceneObjectGroup, string> scriptStates = new Dictionary<SceneObjectGroup, string>();
 
-            m_log.DebugFormat("[ATTACHMENTS MODULE]: enter PrepareScriptInstanceForSave loop");
-            foreach (SceneObjectGroup so in attachments)
+            if (sp.PresenceType != PresenceType.Npc)
             {
-                // Scripts MUST be snapshotted before the object is
-                // removed from the scene because doing otherwise will
-                // clobber the run flag
-                // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
-                // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
-                scriptStates[so] = PrepareScriptInstanceForSave(so, false);
+                m_log.DebugFormat("[ATTACHMENTS MODULE]: enter PrepareScriptInstanceForSave loop");
+                foreach (SceneObjectGroup so in attachments)
+                {
+                    // Scripts MUST be snapshotted before the object is
+                    // removed from the scene because doing otherwise will
+                    // clobber the run flag
+                    // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
+                    // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
+                    scriptStates[so] = PrepareScriptInstanceForSave(so, false);
+                }
             }
 
             m_log.DebugFormat("[ATTACHMENTS MODULE]: enter UpdateDetachedObject loop");
