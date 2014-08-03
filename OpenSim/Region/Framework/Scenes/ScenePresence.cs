@@ -1854,24 +1854,15 @@ namespace OpenSim.Region.Framework.Scenes
                 // send what we have to us, even if not in cache ( bad? )
                 ValidateAndSendAppearanceAndAgentData();
 
-                // Create child agents in neighbouring regions
-                if (openChildAgents && !IsChildAgent)
-                {
-                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                    if (m_agentTransfer != null)
-                        m_agentTransfer.EnableChildAgents(this);
-                }
-
-
                 // attachments
                 if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
                 {
-                    if (Scene.AttachmentsModule != null)
-                        Util.FireAndForget(
-                            o =>
-                            {
+//                    if (Scene.AttachmentsModule != null)
+//                        Util.FireAndForget(
+//                            o =>
+//                            {
                                 Scene.AttachmentsModule.RezAttachments(this);
-                            });
+//                            });
                 }
                 else
                 {
@@ -1894,6 +1885,14 @@ namespace OpenSim.Region.Framework.Scenes
                 //            m_log.DebugFormat(
                 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
                 //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
+
+                // Create child agents in neighbouring regions
+                if (openChildAgents && !IsChildAgent)
+                {
+                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                    if (m_agentTransfer != null)
+                        m_agentTransfer.EnableChildAgents(this);
+                }
 
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !isNPC)
