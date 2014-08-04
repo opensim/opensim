@@ -446,7 +446,7 @@ namespace OpenSim.Region.Framework.Scenes
         public T RequestModuleInterface<T>()
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)) &&
-                    (ModuleInterfaces[typeof(T)].Count > 0))
+                      (ModuleInterfaces[typeof(T)].Count > 0))
                 return (T)ModuleInterfaces[typeof(T)][0];
             else
                 return default(T);

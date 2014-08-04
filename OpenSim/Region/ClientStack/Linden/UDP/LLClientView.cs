@@ -577,7 +577,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Fire the callback for this connection closing
             if (OnConnectionClosed != null)
+            {
                 OnConnectionClosed(this);
+            }
+
 
             // Flush all of the packets out of the UDP server for this client
             if (m_udpServer != null)
@@ -5518,8 +5521,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.DeRezObject, HandlerDeRezObject);
             AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand);
 
-//            AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply, false);
-            AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply, true);
+            AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply, false);
 
             AddLocalPacketHandler(PacketType.AgentWearablesRequest, HandlerAgentWearablesRequest);
             AddLocalPacketHandler(PacketType.AgentSetAppearance, HandlerAgentSetAppearance);
@@ -5732,10 +5734,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Scene/Avatar
 
         // Threshold for body rotation to be a significant agent update
-        private const float QDELTA = 0.000001f;
+        //        private const float QDELTA = 0.000001f;
+        // QDELTA is now relative to abs of cos of angle between orientations
+
+        private const float QDELTABODY = 1 - 0.0001f;
+        private const float QDELTAHEAD = 1 - 0.0001f;
+
         // Threshold for camera rotation to be a significant agent update
         private const float VDELTA = 0.01f;
-
+      
         /// <summary>
         /// This checks the update significance against the last update made.
         /// </summary>
@@ -5755,13 +5762,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
+            //            float qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
             //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
+            // now using abs of cos
+            float qdelta1 = (float)Math.Abs(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation));
+            float qdelta2 = (float)Math.Abs(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation));
 
             bool movementSignificant =
-                (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
-                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
+//                (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
+                (qdelta1 < QDELTABODY)                                          // higher angle lower cos              
+// Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
                 // || (qdelta2 > QDELTA * 10)                               // significant if head rotation above threshold
+                || (qdelta2 < QDELTAHEAD)                                    // using cos above
                 || (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
                 || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
                 || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
@@ -6476,7 +6488,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Action<IClientAPI> handlerRegionHandShakeReply = OnRegionHandShakeReply;
             if (handlerRegionHandShakeReply != null)
             {
-                Thread.Sleep(500);
+//                Thread.Sleep(500);
                 handlerRegionHandShakeReply(this);
             }
 

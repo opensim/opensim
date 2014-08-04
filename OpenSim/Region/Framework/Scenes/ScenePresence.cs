@@ -3473,6 +3473,7 @@ namespace OpenSim.Region.Framework.Scenes
                         landch.sendClientInitialLandInfo(ControllingClient);
                     }
                 }
+                m_scene.SendLayerData(ControllingClient);
                 SendOtherAgentsAvatarDataToMe();
                 SendOtherAgentsAppearanceToMe();
 
@@ -5426,7 +5427,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (p.IsChildAgent)
                             continue;
-                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
+//                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
                         ControllingClient.SendAvatarDataImmediate(p);
                         p.SendAppearanceToAgent(this);
                         p.SendAttachmentsToClient(ControllingClient);
@@ -5454,7 +5455,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (ScenePresence p in killsToSendme)
                     {
-                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
+//                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                         try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                         catch (NullReferenceException) { }
                     }
@@ -5499,7 +5500,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in killsToSendto)
                 {
-                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
+//                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
                     try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
                     catch (NullReferenceException) { }
                 }
@@ -5509,7 +5510,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in killsToSendme)
                 {
-                    m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
+//                    m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                     try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                     catch (NullReferenceException) { }
                 }
@@ -5519,7 +5520,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
-                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
+//                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     p.ControllingClient.SendAvatarDataImmediate(this);
                     SendAppearanceToAgent(p);
                     SendAttachmentsToClient(p.ControllingClient);
@@ -5532,9 +5533,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in viewsToSendme)
                 {
-                    m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
                     if (p.IsChildAgent)
                         continue;
+//                    m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
                     ControllingClient.SendAvatarDataImmediate(p);
                     p.SendAppearanceToAgent(this);
                     p.SendAttachmentsToClient(ControllingClient);
@@ -5603,7 +5604,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (ScenePresence p in killsToSendme)
                     {
-                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
+//                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                         try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                         catch (NullReferenceException) { }
                     }
@@ -5752,7 +5753,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in killsToSendto)
                 {
-                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
+//                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
                     try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
                     catch (NullReferenceException) { }
                 }
@@ -5762,7 +5763,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in killsToSendme)
                 {
-                    m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
+//                    m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
                     try {ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
                     catch (NullReferenceException) { }                    
                 }

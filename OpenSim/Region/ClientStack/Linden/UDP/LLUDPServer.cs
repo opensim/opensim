@@ -1750,25 +1750,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             endPoint,
                             sessionInfo);
             
-                    // Send ack straight away to let the viewer know that the connection is active.
-                    // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
-                    // circuit code to the existing child agent.  This is not particularly obvious.
-                    SendAckImmediate(endPoint, uccp.Header.Sequence);
-            
-                    // We only want to send initial data to new clients, not ones which are being converted from child to root.
-                    if (client != null)
-                    {
-                        AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
-                        bool tp = (aCircuit.teleportFlags > 0);
-                        // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
-                        if (!tp)
-                            client.SceneAgent.SendInitialDataToMe();
-                    }
-
                     // Now we know we can handle more data
-                    Thread.Sleep(200);
+//                    Thread.Sleep(200);
 
-                    // Obtain the queue and remove it from the cache
+                    // Obtain the pending queue and remove it from the cache
                     Queue<UDPPacketBuffer> queue = null;
 
                     lock (m_pendingCache)
@@ -1790,6 +1775,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         PacketReceived(buf);
                     }
                     queue = null;
+
+                    // Send ack straight away to let the viewer know that the connection is active.
+                    // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
+                    // circuit code to the existing child agent.  This is not particularly obvious.
+                    SendAckImmediate(endPoint, uccp.Header.Sequence);
+
+                    // We only want to send initial data to new clients, not ones which are being converted from child to root.
+                    if (client != null)
+                    {
+                        AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
+                        bool tp = (aCircuit.teleportFlags > 0);
+                        // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
+                        if (!tp)
+                            client.SceneAgent.SendInitialDataToMe();
+                    }
                 }
                 else
                 {
