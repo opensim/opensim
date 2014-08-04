@@ -3369,18 +3369,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendTerseUpdateToAgentClient(ScenePresence p)
         {
-            // messy checks because a client doesn't know what presence it belongs too
- 
             IClientAPI remoteClient = p.ControllingClient;
-            if (remoteClient == null)
-                return;
-
-            if (!remoteClient.IsActive)
-                return;
-
+ 
             if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID && p.GodLevel < 200)
                 return;
-
 
             //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
             remoteClient.SendEntityUpdate(
