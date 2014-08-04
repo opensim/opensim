@@ -388,23 +388,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             Dictionary<SceneObjectGroup, string> scriptStates = new Dictionary<SceneObjectGroup, string>();
 
-            foreach (SceneObjectGroup so in attachments)
-            {
-                // Scripts MUST be snapshotted before the object is
-                // removed from the scene because doing otherwise will
-                // clobber the run flag
-                // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
-                // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
-                scriptStates[so] = PrepareScriptInstanceForSave(so, false);
-            }
-
-            lock (sp.AttachmentsSyncLock)
+            if (sp.PresenceType != PresenceType.Npc)
             {
                 foreach (SceneObjectGroup so in attachments)
-                    UpdateDetachedObject(sp, so, scriptStates[so]);
-    
-                sp.ClearAttachments();
+                {
+                    // Scripts MUST be snapshotted before the object is
+                    // removed from the scene because doing otherwise will
+                    // clobber the run flag
+                    // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
+                    // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
+                    scriptStates[so] = PrepareScriptInstanceForSave(so, false);
+                }
+
+                lock (sp.AttachmentsSyncLock)
+                {
+                    foreach (SceneObjectGroup so in attachments)
+                        UpdateDetachedObject(sp, so, scriptStates[so]);
+                    sp.ClearAttachments();
+                }
             }
+            else
+            {
+                lock (sp.AttachmentsSyncLock)
+                {
+                    foreach (SceneObjectGroup so in attachments)
+                        UpdateDetachedObject(sp, so, String.Empty);
+                    sp.ClearAttachments();
+                }
+            }           
         }
 
         public void DeleteAttachmentsFromScene(IScenePresence sp, bool silent)
@@ -1014,6 +1025,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // Remove the object from the scene so no more updates
             // are sent. Doing this before the below changes will ensure
             // updates can't cause "HUD artefacts"
+           
             m_scene.DeleteSceneObject(so, false, false);
 
             // Prepare sog for storage

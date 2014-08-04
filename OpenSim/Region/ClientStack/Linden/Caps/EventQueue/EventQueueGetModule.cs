@@ -358,7 +358,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return queue.Count > 0;
                 }
 
-            m_log.WarnFormat("POLLED FOR EVENTS BY {0} unknown agent", agentID);
+            //m_log.WarnFormat("POLLED FOR EVENTS BY {0} unknown agent", agentID);
             return true;
         }
 

@@ -1366,7 +1366,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
+//                        m_log.ErrorFormat("[EVENT MANAGER]: OnRemovePresenceDelegate: {0}",d.Target.ToString());
                         d(agentId);
+//                        m_log.ErrorFormat("[EVENT MANAGER]: OnRemovePresenceDelegate done ");
                     }
                     catch (Exception e)
                     {
@@ -2037,7 +2039,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
+//                        m_log.ErrorFormat("[EVENT MANAGER]: TriggerClientClosed: {0}", d.Target.ToString());
                         d(ClientID, scene);
+//                        m_log.ErrorFormat("[EVENT MANAGER]: TriggerClientClosed done ");
+                        
                     }
                     catch (Exception e)
                     {

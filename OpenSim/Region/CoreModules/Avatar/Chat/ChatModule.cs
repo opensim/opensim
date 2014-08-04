@@ -236,12 +236,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromName = avatar.Name;
                 fromID = c.Sender.AgentId;
                 if (avatar.GodLevel >= 200)
-                {
+                { // let gods speak to outside or things may get confusing
                     fromNamePrefix = m_adminPrefix;
+                    checkParcelHide = false;
+                }
+                else
+                {
+                    checkParcelHide = true;
                 }
                 destination = UUID.Zero; // Avatars cant "SayTo"
                 ownerID = c.Sender.AgentId;
-                checkParcelHide = true;
+                
                 hidePos = fromPos;
                 break;
 
@@ -305,7 +310,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             // objects on a parcel with access restrictions
                             if (checkParcelHide)
                             {
-                                if (sourceParcelID != Presencecheck.LandData.GlobalID)
+                                if (sourceParcelID != Presencecheck.LandData.GlobalID && presence.GodLevel < 200)
                                     return;
                             }
                             if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)

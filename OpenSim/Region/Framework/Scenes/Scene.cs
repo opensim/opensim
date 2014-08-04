@@ -3640,13 +3640,17 @@ namespace OpenSim.Region.Framework.Scenes
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
+//                    m_log.Debug("[Scene]TriggerClientClosed done");
                     m_eventManager.TriggerOnRemovePresence(agentID);
+//                    m_log.Debug("[Scene]TriggerOnRemovePresence done");
     
                     if (!isChildAgent)
                     {
                         if (AttachmentsModule != null)
                         {
+//                            m_log.Debug("[Scene]DeRezAttachments");
                             AttachmentsModule.DeRezAttachments(avatar);
+//                            m_log.Debug("[Scene]DeRezAttachments done");
                         }
 
                         ForEachClient(
@@ -3660,7 +3664,10 @@ namespace OpenSim.Region.Framework.Scenes
     
                     // It's possible for child agents to have transactions if changes are being made cross-border.
                     if (AgentTransactionsModule != null)
+                    {
+//                        m_log.Debug("[Scene]RemoveAgentAssetTransactions");
                         AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
+                    }
                     m_log.Debug("[Scene] The avatar has left the building");
                 }
                 catch (Exception e)
