@@ -3370,7 +3370,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendTerseUpdateToAgentClient(ScenePresence p)
         {
             IClientAPI remoteClient = p.ControllingClient;
- 
+
+            if (!remoteClient.IsActive)
+                return;
+
             if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID && p.GodLevel < 200)
                 return;
 
