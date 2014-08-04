@@ -719,6 +719,45 @@ namespace OpenSim.Services.Connectors
             return flags;
         }
 
+        public Dictionary<string, object> GetExtraFeatures()
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            Dictionary<string, object> extraFeatures = new Dictionary<string, object>();
+
+            sendData["METHOD"] = "get_grid_extra_features";
+
+            string reply = string.Empty;
+            string uri = m_ServerURI + "/grid";
+
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                                                                  uri,
+                                                                  ServerUtils.BuildQueryString(sendData), m_Auth);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID CONNECTOR]: GetExtraFeatures - Exception when contacting grid server at {0}: {1}", uri, e.Message);
+                return extraFeatures;
+            }
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+                
+                if ((replyData != null) && replyData.Count > 0)
+                {
+                    foreach (string key in replyData.Keys)
+                    {
+                        extraFeatures[key] = replyData[key].ToString();
+                    }
+                }
+            }
+            else
+                m_log.DebugFormat("[GRID CONNECTOR]: GetExtraServiceURLs received null reply");
+
+            return extraFeatures;
+        }
         #endregion
 
     }

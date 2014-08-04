@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -119,6 +120,8 @@ namespace OpenSim.Services.Interfaces
         /// <param name='scopeID'></param>
         /// <param name='regionID'></param>
         int GetRegionFlags(UUID scopeID, UUID regionID);
+
+        Dictionary<string,object> GetExtraFeatures();
     }
 
     public class GridRegion

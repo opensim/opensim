@@ -28,6 +28,7 @@
 using log4net;
 using Mono.Addins;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
@@ -348,6 +349,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 flags = m_RemoteGridService.GetRegionFlags(scopeID, regionID);
 
             return flags;
+        }
+
+        public Dictionary<string, object> GetExtraFeatures()
+        {
+            Dictionary<string, object> extraFeatures;
+            extraFeatures = m_LocalGridService.GetExtraFeatures();
+
+            if (extraFeatures.Count == 0)
+                extraFeatures = m_RemoteGridService.GetExtraFeatures();
+
+            return extraFeatures;
         }
         #endregion
     }

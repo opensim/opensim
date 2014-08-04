@@ -45,7 +45,6 @@ InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
 ;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
-GridExtraFeaturesServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridExtraFeaturesServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
 OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
 AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
@@ -217,6 +216,10 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Allow Hyperlinks to be created at the console
     HypergridLinker = true
 
+    ;; Allow supporting viewers to export content
+    ;; Set to false to prevent export
+    ExportSupported = true
+
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "http://127.0.0.1:8002"
 
@@ -366,6 +369,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; For V2 map
     MapTileURL = "http://127.0.0.1:8002";
 
+    ; Url to search service
+    ; SearchURL = "http://127.0.0.1:8002";
+
     ; For V2/3 Web Profiles
     ; Work in progress: The ProfileServerURL/OpenIDServerURL are
     ; being used in a development viewer as support for webprofiles
@@ -484,38 +490,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HG user domain, if you have one
     ; this is the entry point for all user-related HG services
     ; uas = http://127.0.0.1:8002/
-
-
-[GridExtraFeatures]
-    ; These are propagated out to the regions as default settings for the
-    ; SimulatorFeatures to be sent to user's viewer when they teleport via
-    ; Hypergrid into this grid.
-    ;
-
-    ; Allow regions to override our defaults.
-    ;AllowRegionOverride = true
-
-    ; Search Server URI
-    ;SearchServerURI = "http://example.com:8200/"
-
-    ; Map Server URI
-    ;MapImageServerURI = "http://example.com:8200/"
-
-    ; Grid Destination Guide URI
-    ;DestinationGuideURI = "http://example.com:8200/"
-
-    ; Chat Whisper Distance
-    ;WhisperDistance = 10
-
-    ; Chat Say Distance
-    ;SayDistance = 20
-
-    ; Chat Shout Distance
-    ;ShoutDistance = 100
-
-    ; Grid Allow Export
-    ;ExportSupported = true
-
 
 [GatekeeperService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"

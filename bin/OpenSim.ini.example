@@ -538,21 +538,18 @@
 
 
 [SimulatorFeatures]
-    ;# {ExtraFeaturesServiceURI} {} {URL to the grid ExtraFeatures Service} {}
-    ;; The grid can supply global values for extra simulator features to be
-    ;; passed to supporting viewers. The grid may choose to disallow local
-    ;; settings.
-    ; ExtraFeaturesServiceURI = "http://127.0.0.1:9000/" 
-    ;# {MapImageServerURI} {} {URL for the map server} {}
-    ; Experimental new information sent in SimulatorFeatures cap for Kokua
-    ; viewers 
-    ; meant to override the MapImage and search server url given at login, and varying 
-    ; on a sim-basis.
-    ; Viewers that don't understand it, will ignore it
-    ;MapImageServerURI = "http://127.0.0.1:9000/"
+
     ;# {SearchServerURI} {} {URL of the search server} {}
+    ;; This is identical to the Robust LoginService SearchURL setting
+    ;; and will override that value if set here. The Robust setting
+    ;; provides a working default for the grid and setting here is 
+    ;; optional.
     ;SearchServerURI = "http://127.0.0.1:9000/"
     ;# {DestinationGuideURI} {} {URL of the destination guide} {}
+    ;;
+    ;; This serves the same purpose as the DestinationGuideURI in the
+    ;; LoginService setting in the Robust server. This will override 
+    ;; the Robust setting if desired as an option.
     ;DestinationGuideURI = "http://127.0.0.1:9000/"
 
 

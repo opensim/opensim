@@ -402,6 +402,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return -1;
             }
         }
+        
+        public Dictionary<string, object> GetExtraFeatures()
+        {
+            /// See SimulatorFeaturesModule - Need to get map, search and destination guide
+            Dictionary<string, object> extraFeatures = new Dictionary<string, object>();
+            return extraFeatures;
+        }
 
         #endregion IGridService
 

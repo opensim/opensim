@@ -59,6 +59,8 @@ namespace OpenSim.Services.GridService
 
         protected bool m_SuppressVarregionOverlapCheckOnRegistration = false;
 
+        private static Dictionary<string,object> m_ExtraFeatures = new Dictionary<string, object>();
+
         public GridService(IConfigSource config)
             : base(config)
         {
@@ -139,8 +141,36 @@ namespace OpenSim.Services.GridService
                              HandleSetFlags);
                 }
 
+                if (!suppressConsoleCommands)
+                    SetExtraServiceURLs(config);
+
                 m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
+        }
+
+        private void SetExtraServiceURLs(IConfigSource config)
+        {
+            IConfig loginConfig = config.Configs["LoginService"];
+            IConfig gridConfig = config.Configs["GridService"];
+
+            if (loginConfig == null || gridConfig == null)
+                return;
+            
+            string configVal;
+            
+            configVal = loginConfig.GetString("SearchURL", string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["search-server-url"] = configVal;
+
+            configVal = loginConfig.GetString("MapTileURL", string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["map-server-url"] = configVal;
+            
+            configVal = loginConfig.GetString("DestinationGuide", string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["destination-guide-url"] = configVal;
+
+            m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
         }
 
         #region IGridService
@@ -927,6 +957,19 @@ namespace OpenSim.Services.GridService
                 MainConsole.Instance.Output(String.Format("Set region {0} to {1}", r.RegionName, f));
                 m_Database.Store(r);
             }
+        }
+
+        /// <summary>
+        /// Gets the grid extra service URls we wish for the region to send in OpenSimExtras to dynamically refresh 
+        /// parameters in the viewer used to access services like map, search and destination guides.
+        /// <para>see "SimulatorFeaturesModule" </para>
+        /// </summary>
+        /// <returns>
+        /// The grid extra service URls.
+        /// </returns>
+        public Dictionary<string,object> GetExtraFeatures()
+        {
+            return m_ExtraFeatures;
         }
     }
 }

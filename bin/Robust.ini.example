@@ -36,7 +36,6 @@ InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
 ;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
-GridExtraFeaturesServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridExtraFeaturesServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
 OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
 AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
@@ -177,6 +176,10 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     ;; Example specification:
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
+
+    ;; Allow supporting viewers to export content
+    ;; Set to false to prevent export
+    ExportSupported = true
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
@@ -325,6 +328,9 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     ; For V2 map
     MapTileURL = "http://127.0.0.1:8002";
 
+    ; Url to search service
+    ; SearchURL = "http://127.0.0.1:8002";
+
     ; For V2/3 Web Profiles
     ; Work in progress: The ProfileServerURL/OpenIDServerURL are
     ; being used in a development viewer as support for webprofiles
@@ -456,38 +462,6 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
-
-
-[GridExtraFeatures]
-    ; These are propagated out to the regions as default settings for the
-    ; SimulatorFeatures to be sent to user's viewer when they teleport via
-    ; Hypergrid into this grid.
-    ;
-
-    ; Allow regions to override our defaults.
-    ;AllowRegionOverride = true
-
-    ; Search Server URI
-    ;SearchServerURI = "http://example.com:8200/"
-
-    ; Map Server URI
-    ;MapImageServerURI = "http://example.com:8200/"
-
-    ; Grid Destination Guide URI
-    ;DestinationGuideURI = "http://example.com:8200/"
-
-    ; Chat Whisper Distance
-    ;WhisperDistance = 10
-
-    ; Chat Say Distance
-    ;SayDistance = 20
-
-    ; Chat Shout Distance
-    ;ShoutDistance = 100
-
-    ; Grid Allow Export
-    ;ExportSupported = true
-
 
 [UserProfilesService]
     LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"

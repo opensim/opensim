@@ -27,17 +27,18 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using OpenSim.Framework;
+//using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
+// using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
@@ -63,8 +64,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_scene;
 
-        bool m_AllowOverride = true;
-
         /// <summary>
         /// Simulator features
         /// </summary>
@@ -81,25 +80,11 @@ namespace OpenSim.Region.ClientStack.Linden
             IConfig config = source.Configs["SimulatorFeatures"];
 
             if (config != null)
-            {
-                string featuresURI = config.GetString("ExtraFeaturesServiceURI", string.Empty);
-
-                if (string.IsNullOrEmpty(featuresURI)) 
-                {
-                    m_log.Info("ExtraFeaturesServiceURI is undefined. The grid's ExtraFeatures will not be available to regions in this instance.");
-                } 
-                else 
-                {
-                    GetGridExtraFeatures(featuresURI);
-                }
-
-                if (m_AllowOverride)
-                {    
-                    m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
-                    m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
-
-                    m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
-                }
+            {  
+                // These are normaly set in their respective modules
+                m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
+                m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
+                m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
             }
 
             AddDefaultFeatures();
@@ -120,6 +105,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegionLoaded(Scene s)
         {
+            GetGridExtraFeatures(s);
         }
 
         public void PostInitialise()
@@ -169,11 +155,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 else
                     extrasMap = new OSDMap();
 
-                if (m_SearchURL != string.Empty && m_AllowOverride == true)
+                if (m_SearchURL != string.Empty)
                     extrasMap["search-server-url"] = m_SearchURL;
-                if (!string.IsNullOrEmpty(m_DestinationGuideURL) && m_AllowOverride == true)
+                if (!string.IsNullOrEmpty(m_DestinationGuideURL))
                     extrasMap["destination-guide-url"] = m_DestinationGuideURL;
-                if (m_ExportSupported && m_AllowOverride == true)
+                if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
 
                 if (extrasMap.Count > 0)
@@ -233,9 +219,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
 
-            // We will not trigger the event if m_AllowOverride == False
-            // See Robust.ini/Robust.HG.ini [GridExtraFeatures] - AllowRegionOverride
-            if (handlerOnSimulatorFeaturesRequest != null && m_AllowOverride == true)
+            if (handlerOnSimulatorFeaturesRequest != null)
                 handlerOnSimulatorFeaturesRequest(agentID, ref copy);
 
             //Send back data
@@ -255,32 +239,22 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name='featuresURI'>
         /// The URI Robust uses to handle the get_extra_features request
         /// </param>
-        private void GetGridExtraFeatures(string featuresURI)
+        private void GetGridExtraFeatures(Scene scene)
         {
-            JsonRpcRequestManager rpc = new JsonRpcRequestManager ();
-            
-            OSDMap parameters = new OSDMap ();
-            OSD Params = (OSD)parameters;
-            if (!rpc.JsonRpcRequest (ref Params, "get_extra_features", featuresURI, UUID.Random ().ToString ())) 
-            {
-                m_log.Error("[SIMFEATURES]: Could not retrieve extra features from grid. Please check configuration.");
-                return;
-            }
-            parameters = (OSDMap)Params;
-            OSDMap features = (OSDMap)parameters ["result"];
-            
-            if(features.ContainsKey("region_override"))
-                m_AllowOverride = features ["region_override"].AsBoolean () ;
-            else
-                m_AllowOverride = true;
-            
-            OSDMap test = (OSDMap)features ["extra_features"];
+            Dictionary<string, object> extraFeatures = scene.GridService.GetExtraFeatures();
+
             lock (m_features)
             {
                 OSDMap extrasMap = new OSDMap();
-                foreach (string key in test.Keys)
+
+                foreach(string key in extraFeatures.Keys)
                 {
-                    extrasMap[key] = test[key];
+                    extrasMap[key] = (string)extraFeatures[key];
+
+                    if (key == "ExportSupported")
+                    {
+                        bool.TryParse(extraFeatures[key].ToString(), out m_ExportSupported);
+                    }
                 }
                 m_features["OpenSimExtras"] = extrasMap;
             }

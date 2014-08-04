@@ -105,6 +105,10 @@
     ;; For example:
     Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
+    ;; Allow supporting viewers to export content
+    ;; Set to false to prevent export
+    ExportSupported = true
+
     ; === HG ONLY ===
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI="http://127.0.0.1:9000"
@@ -127,6 +131,9 @@
 
     ;; For Viewer 2
     MapTileURL = "http://127.0.0.1:9000/"
+
+    ; Url to search service
+    ; SearchURL = "http://127.0.0.1:8002";
 
     ; The minimum user level required for a user to be able to login.  0 by default
     ; If you disable a particular user's account then you can set their login level below this number.

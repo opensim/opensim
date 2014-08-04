@@ -278,6 +278,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridService.GetRegionFlags(scopeID, regionID);
         }
 
+        public Dictionary<string, object> GetExtraFeatures()
+        {
+            return m_GridService.GetExtraFeatures();
+        }
+
         #endregion
 
         public void HandleShowNeighboursCommand(string module, string[] cmdparams)

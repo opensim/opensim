@@ -122,6 +122,9 @@ namespace OpenSim.Server.Handlers.Grid
 
                     case "get_region_flags":
                         return GetRegionFlags(request);
+
+                    case "get_grid_extra_features":
+                        return GetGridExtraFeatures(request);
                 }
                 
                 m_log.DebugFormat("[GRID HANDLER]: unknown method request {0}", method);
@@ -576,6 +579,22 @@ namespace OpenSim.Server.Handlers.Grid
             string xmlString = ServerUtils.BuildXmlResponse(result);
             
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+        
+        byte[] GetGridExtraFeatures(Dictionary<string, object> request)
+        {
+
+            Dictionary<string, object> result = new Dictionary<string, object> ();
+            Dictionary<string, object> extraFeatures = m_GridService.GetExtraFeatures ();
+
+            foreach (string key in extraFeatures.Keys) 
+            {
+                result [key] = extraFeatures [key];
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
