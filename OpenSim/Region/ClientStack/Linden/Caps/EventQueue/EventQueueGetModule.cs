@@ -101,7 +101,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 "debug eq [0|1|2]",
                 "Turn on event queue debugging\n"
                     + "  <= 0 - turns off all event queue logging\n"
-                    + "  >= 1 - turns on outgoing event logging\n"
+                    + "  >= 1 - turns on event queue setup and outgoing event logging\n"
                     + "  >= 2 - turns on poll notification",
                 HandleDebugEq);
 
@@ -188,9 +188,11 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (!queues.ContainsKey(agentId))
                 {
-                    m_log.DebugFormat(
-                        "[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", 
-                        agentId, m_scene.RegionInfo.RegionName);
+                    if (DebugLevel > 0)
+                        m_log.DebugFormat(
+                            "[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", 
+                            agentId, m_scene.RegionInfo.RegionName);
+
                     queues[agentId] = new Queue<OSD>();
                 }
 
@@ -302,9 +304,10 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             // Register an event queue for the client
 
-            m_log.DebugFormat(
-                "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
-                agentID, caps, m_scene.RegionInfo.RegionName);
+            if (DebugLevel > 0)
+                m_log.DebugFormat(
+                    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
+                    agentID, caps, m_scene.RegionInfo.RegionName);
 
             // Let's instantiate a Queue for this agent right now
             TryGetQueue(agentID);
@@ -720,8 +723,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
-            m_log.DebugFormat("{0} EnableSimulator. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, handle, avatarID, regionSizeX, regionSizeY);
+            if (DebugLevel > 0)
+                m_log.DebugFormat("{0} EnableSimulator. handle={1}, endPoint={2}, avatarID={3}",
+                    LogHeader, handle, endPoint, avatarID, regionSizeX, regionSizeY);
 
             OSD item = EventQueueHelper.EnableSimulator(handle, endPoint, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
@@ -730,8 +734,10 @@ namespace OpenSim.Region.ClientStack.Linden
         public virtual void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath,
                                 ulong regionHandle, int regionSizeX, int regionSizeY) 
         {
-            m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, regionHandle, avatarID, regionSizeX, regionSizeY);
+            if (DebugLevel > 0)
+                m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, endPoint={2}, avatarID={3}",
+                    LogHeader, regionHandle, endPoint, avatarID, regionSizeX, regionSizeY);
+
             OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath, regionHandle, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
@@ -741,8 +747,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                         uint locationID, uint flags, string capsURL, 
                                         UUID avatarID, int regionSizeX, int regionSizeY)
         {
-            m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, avatarID={2}, regionSize=<{3},{4}>",
-                LogHeader, regionHandle, avatarID, regionSizeX, regionSizeY);
+            if (DebugLevel > 0)
+                m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, endPoint={2}, avatarID={3}",
+                    LogHeader, regionHandle, regionExternalEndPoint, avatarID, regionSizeX, regionSizeY);
 
             OSD item = EventQueueHelper.TeleportFinishEvent(regionHandle, simAccess, regionExternalEndPoint,
                                                             locationID, flags, capsURL, avatarID, regionSizeX, regionSizeY);
@@ -753,8 +760,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                 IPEndPoint newRegionExternalEndPoint,
                                 string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
-            m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, handle, avatarID, regionSizeX, regionSizeY);
+            if (DebugLevel > 0)
+                m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
+                    LogHeader, handle, avatarID, regionSizeX, regionSizeY);
 
             OSD item = EventQueueHelper.CrossRegion(handle, pos, lookAt, newRegionExternalEndPoint,
                                                     capsURL, avatarID, sessionID, regionSizeX, regionSizeY);
