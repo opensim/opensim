@@ -233,19 +233,19 @@ namespace OpenSim.Region.Framework.Scenes
         public bool SendPeriodicAppearanceUpdates { get; set; }               
                 
         /// <summary>
-        /// How much a client has to change position before updates are sent to viewers.
+        /// How much a root agent has to change position before updates are sent to viewers.
         /// </summary>
-        public float ClientPositionUpdateTolerance { get; set; }
+        public float RootPositionUpdateTolerance { get; set; }
 
         /// <summary>
-        /// How much a client has to rotate before updates are sent to viewers.
+        /// How much a root agent has to rotate before updates are sent to viewers.
         /// </summary>
-        public float ClientRotationUpdateTolerance { get; set; }
+        public float RootRotationUpdateTolerance { get; set; }
 
         /// <summary>
-        /// How much a client has to change velocity before updates are sent to viewers.
+        /// How much a root agent has to change velocity before updates are sent to viewers.
         /// </summary>
-        public float ClientVelocityUpdateTolerance { get; set; }
+        public float RootVelocityUpdateTolerance { get; set; }
 
         /// <summary>
         /// If greater than 1, we only send terse updates to other root agents on every n updates.
@@ -1071,9 +1071,9 @@ namespace OpenSim.Region.Framework.Scenes
             PeriodicBackup = true;
             UseBackup = true;
 
-            ClientRotationUpdateTolerance = 0.01f;
-            ClientVelocityUpdateTolerance = 0.001f;
-            ClientPositionUpdateTolerance = 0.05f;
+            RootRotationUpdateTolerance = 0.01f;
+            RootVelocityUpdateTolerance = 0.001f;
+            RootPositionUpdateTolerance = 0.05f;
             ChildReprioritizationDistance = 20.0;
 
             m_eventManager = new EventManager();

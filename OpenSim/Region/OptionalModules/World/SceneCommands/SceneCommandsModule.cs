@@ -154,9 +154,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             cdl.AddRow("animations", m_scene.DebugAnimations);
             cdl.AddRow("appear-refresh", m_scene.SendPeriodicAppearanceUpdates);
             cdl.AddRow("child-repri", m_scene.ChildReprioritizationDistance);
-            cdl.AddRow("client-pos-upd", m_scene.ClientPositionUpdateTolerance);
-            cdl.AddRow("client-rot-upd", m_scene.ClientRotationUpdateTolerance);
-            cdl.AddRow("client-vel-upd", m_scene.ClientVelocityUpdateTolerance);
+            cdl.AddRow("client-pos-upd", m_scene.RootPositionUpdateTolerance);
+            cdl.AddRow("client-rot-upd", m_scene.RootRotationUpdateTolerance);
+            cdl.AddRow("client-vel-upd", m_scene.RootVelocityUpdateTolerance);
             cdl.AddRow("root-upd-per", m_scene.RootTerseUpdatePeriod);
             cdl.AddRow("child-upd-per", m_scene.ChildTerseUpdatePeriod);
             cdl.AddRow("pbackup", m_scene.PeriodicBackup);
@@ -230,7 +230,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleFloat(MainConsole.Instance, options["client-pos-upd"], out newValue))
-                    m_scene.ClientPositionUpdateTolerance = newValue;    
+                    m_scene.RootPositionUpdateTolerance = newValue;    
             }
 
             if (options.ContainsKey("client-rot-upd"))
@@ -239,7 +239,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleFloat(MainConsole.Instance, options["client-rot-upd"], out newValue))
-                    m_scene.ClientRotationUpdateTolerance = newValue;    
+                    m_scene.RootRotationUpdateTolerance = newValue;    
             }
 
             if (options.ContainsKey("client-vel-upd"))
@@ -248,7 +248,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleFloat(MainConsole.Instance, options["client-vel-upd"], out newValue))
-                    m_scene.ClientVelocityUpdateTolerance = newValue;    
+                    m_scene.RootVelocityUpdateTolerance = newValue;    
             }
 
             if (options.ContainsKey("root-upd-per"))

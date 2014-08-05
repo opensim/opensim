@@ -3200,12 +3200,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // checks on all updates but the ramifications of this would need careful consideration.
                 bool updateClients 
                     = IsSatOnObject && (Rotation != m_lastRotation || Velocity != m_lastVelocity || m_pos != m_lastPosition);
-
+                                 
                 if (!updateClients)
                     updateClients 
-                        = !Rotation.ApproxEquals(m_lastRotation, Scene.ClientRotationUpdateTolerance) 
-                            || !Velocity.ApproxEquals(m_lastVelocity, Scene.ClientVelocityUpdateTolerance)
-                            || !m_pos.ApproxEquals(m_lastPosition, Scene.ClientPositionUpdateTolerance);
+                        = !Rotation.ApproxEquals(m_lastRotation, Scene.RootRotationUpdateTolerance) 
+                            || !Velocity.ApproxEquals(m_lastVelocity, Scene.RootVelocityUpdateTolerance)
+                            || !m_pos.ApproxEquals(m_lastPosition, Scene.RootPositionUpdateTolerance);
 
                 if (updateClients)
                 {
