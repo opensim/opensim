@@ -922,7 +922,7 @@ namespace OpenSim.Region.Framework.Scenes
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
                 }
-
+/* reverted to old code till part.ApplyPermissionsOnRez is better reviewed/fixed
                 group.SetGroup(m_part.GroupID, null);
 
                 foreach (SceneObjectPart part in group.Parts)
@@ -938,7 +938,49 @@ namespace OpenSim.Region.Framework.Scenes
 
                     part.ApplyPermissionsOnRez(dest, false, m_part.ParentGroup.Scene);
                 }
+*/
+// old code start
+                SceneObjectPart[] partList = group.Parts;
 
+                group.SetGroup(m_part.GroupID, null);
+
+                // TODO: Remove magic number badness
+                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                {
+                    if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
+                    {
+                        foreach (SceneObjectPart part in partList)
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                part.EveryoneMask = item.EveryonePermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                part.NextOwnerMask = item.NextPermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                part.GroupMask = item.GroupPermissions;
+                        }
+
+                        group.ApplyNextOwnerPermissions();
+                    }
+                }
+
+                foreach (SceneObjectPart part in partList)
+                {
+                    // TODO: Remove magic number badness
+                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                    {
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = item.OwnerID;
+                        part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                    }
+
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                        part.EveryoneMask = item.EveryonePermissions;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                        part.NextOwnerMask = item.NextPermissions;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                        part.GroupMask = item.GroupPermissions;
+                }
+// old code end
                 rootPart.TrimPermissions();
             }
 
