@@ -919,7 +919,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only do these for the first object if we are rezzing a coalescence.
                 // nahh dont mess with coalescence objects,
                 // the name in inventory can be change for inventory purpuses only
-                if (i == 0 && objlist.Count == 1)
+                if (objlist.Count == 1)
                 {
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
