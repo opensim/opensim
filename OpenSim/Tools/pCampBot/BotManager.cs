@@ -349,7 +349,7 @@ namespace pCampBot
 
             foreach (Bot bot in botsToConnect)
             {
-                if (DisconnectingBots)
+                if (!ConnectingBots)
                 {
                     MainConsole.Instance.Output(
                         "[BOT MANAGER]: Aborting bot connection due to user-initiated disconnection");
@@ -629,6 +629,8 @@ namespace pCampBot
                 botsToDisconnectCount = Math.Min(botsToDisconnectCount, connectedBots.Count);
             }
 
+            DisconnectingBots = true;
+
             Thread disconnectBotThread = new Thread(o => DisconnectBotsInternal(connectedBots, botsToDisconnectCount));
 
             disconnectBotThread.Name = "Bots disconnection thread";
@@ -637,7 +639,7 @@ namespace pCampBot
 
         private void DisconnectBotsInternal(List<Bot> connectedBots, int disconnectCount)
         {             
-            DisconnectingBots = true;
+            ConnectingBots = false;
 
             MainConsole.Instance.OutputFormat("Disconnecting {0} bots", disconnectCount);
 
@@ -652,7 +654,7 @@ namespace pCampBot
 
                 if (thisBot.ConnectionState == ConnectionState.Connected)
                 {
-                    thisBot.Disconnect();
+                    ThreadPool.QueueUserWorkItem(o => thisBot.Disconnect());
                     disconnectedBots++;
                 }
             }
