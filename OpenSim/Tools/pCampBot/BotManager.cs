@@ -611,45 +611,53 @@ namespace pCampBot
 
         private void HandleDisconnect(string module, string[] cmd)
         {
+            List<Bot> connectedBots;
+            int botsToDisconnectCount;
+
             lock (m_bots)
+                connectedBots = m_bots.FindAll(b => b.ConnectionState == ConnectionState.Connected);
+
+            if (cmd.Length == 1)
             {
-                int botsToDisconnect;
-                int connectedBots = m_bots.Count(b => b.ConnectionState == ConnectionState.Connected);
-
-                if (cmd.Length == 1)
-                {
-                    botsToDisconnect = connectedBots;
-                }
-                else
-                {
-                    if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[1], out botsToDisconnect))
-                        return;
-
-                    botsToDisconnect = Math.Min(botsToDisconnect, connectedBots);
-                }
-
-                DisconnectingBots = true;
-
-                MainConsole.Instance.OutputFormat("Disconnecting {0} bots", botsToDisconnect);
-
-                int disconnectedBots = 0;
-
-                for (int i = m_bots.Count - 1; i >= 0; i--)
-                {
-                    if (disconnectedBots >= botsToDisconnect)
-                        break;
-
-                    Bot thisBot = m_bots[i];
-
-                    if (thisBot.ConnectionState == ConnectionState.Connected)
-                    {
-                        Util.FireAndForget(o => thisBot.Disconnect());
-                        disconnectedBots++;
-                    }
-                }
-
-                DisconnectingBots = false;
+                botsToDisconnectCount = connectedBots.Count;
             }
+            else
+            {
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, cmd[1], out botsToDisconnectCount))
+                    return;
+
+                botsToDisconnectCount = Math.Min(botsToDisconnectCount, connectedBots.Count);
+            }
+
+            Thread disconnectBotThread = new Thread(o => DisconnectBotsInternal(connectedBots, botsToDisconnectCount));
+
+            disconnectBotThread.Name = "Bots disconnection thread";
+            disconnectBotThread.Start();
+        }
+
+        private void DisconnectBotsInternal(List<Bot> connectedBots, int disconnectCount)
+        {             
+            DisconnectingBots = true;
+
+            MainConsole.Instance.OutputFormat("Disconnecting {0} bots", disconnectCount);
+
+            int disconnectedBots = 0;
+
+            for (int i = connectedBots.Count - 1; i >= 0; i--)
+            {
+                if (disconnectedBots >= disconnectCount)
+                    break;
+
+                Bot thisBot = connectedBots[i];
+
+                if (thisBot.ConnectionState == ConnectionState.Connected)
+                {
+                    thisBot.Disconnect();
+                    disconnectedBots++;
+                }
+            }
+
+            DisconnectingBots = false;
         }
 
         private void HandleSit(string module, string[] cmd)
