@@ -392,22 +392,22 @@ namespace OpenSim.Region.DataSnapshot
                     {
                         m_log.Warn("[DATASNAPSHOT]: Ignoring unknown exception " + e.ToString());
                     }
-                }
 
-                byte[] response = new byte[1024];
-                // int n = 0;
-                try
-                {
-                    // n = reply.Read(response, 0, 1024);
-                    reply.Read(response, 0, 1024);
+                    byte[] response = new byte[1024];
+                    // int n = 0;
+                    try
+                    {
+                        // n = reply.Read(response, 0, 1024);
+                        reply.Read(response, 0, 1024);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.WarnFormat("[DATASNAPSHOT]: Unable to decode reply from data service. Ignoring. {0}", e.StackTrace);
+                    }
+                    // This is not quite working, so...
+                    // string responseStr = Util.UTF8.GetString(response);
+                    m_log.Info("[DATASNAPSHOT]: data service " + url + " notified. Secret: " + m_Secret);
                 }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat("[DATASNAPSHOT]: Unable to decode reply from data service. Ignoring. {0}", e.StackTrace);
-                }
-                // This is not quite working, so...
-                // string responseStr = Util.UTF8.GetString(response);
-                m_log.Info("[DATASNAPSHOT]: data service " + url + " notified. Secret: " + m_Secret);
             }
 
         }
