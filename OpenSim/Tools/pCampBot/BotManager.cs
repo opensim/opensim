@@ -333,31 +333,33 @@ namespace pCampBot
             m_log.DebugFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
             m_log.DebugFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
 
-            int connectedBots = 0;
+            List<Bot> botsToConnect = new List<Bot>();
 
-            for (int i = 0; i < m_bots.Count; i++)
+            lock (m_bots)
             {
-                lock (m_bots)
+                foreach (Bot bot in m_bots)
                 {
-                    if (DisconnectingBots)
-                    {
-                        MainConsole.Instance.Output(
-                            "[BOT MANAGER]: Aborting bot connection due to user-initiated disconnection");
+                    if (bot.ConnectionState == ConnectionState.Disconnected)
+                        botsToConnect.Add(bot);
+
+                    if (botsToConnect.Count >= botCount)
                         break;
-                    }
-
-                    if (m_bots[i].ConnectionState == ConnectionState.Disconnected)
-                    {
-                        m_bots[i].Connect();
-                        connectedBots++;
-
-                        if (connectedBots >= botCount)
-                            break;
-
-                        // Stagger logins
-                        Thread.Sleep(LoginDelay);
-                    }
                 }
+            }
+
+            foreach (Bot bot in botsToConnect)
+            {
+                if (DisconnectingBots)
+                {
+                    MainConsole.Instance.Output(
+                        "[BOT MANAGER]: Aborting bot connection due to user-initiated disconnection");
+                    break;
+                }
+
+                bot.Connect();
+
+                // Stagger logins
+                Thread.Sleep(LoginDelay);
             }
 
             ConnectingBots = false;
