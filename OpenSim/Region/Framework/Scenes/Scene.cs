@@ -1035,6 +1035,13 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
                 ChildReprioritizationDistance 
                     = interestConfig.GetDouble("ChildReprioritizationDistance", ChildReprioritizationDistance);
+
+                RootPositionUpdateTolerance 
+                    = interestConfig.GetFloat("RootPositionUpdateTolerance", RootPositionUpdateTolerance);
+                RootRotationUpdateTolerance
+                    = interestConfig.GetFloat("RootRotationUpdateTolerance", RootRotationUpdateTolerance);
+                RootVelocityUpdateTolerance
+                    = interestConfig.GetFloat("RootVelocityUpdateTolerance", RootVelocityUpdateTolerance);
             }
 
             m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
