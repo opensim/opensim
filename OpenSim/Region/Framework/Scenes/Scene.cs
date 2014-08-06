@@ -3525,7 +3525,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (string viewer in m_AllowedViewers)
                 {
-                    if (viewer == curViewer.Substring(0, viewer.Length).Trim().ToLower())
+                    if (viewer == curViewer.Substring(0, Math.Min(viewer.Length, curViewer.Length)).Trim().ToLower())
                     {
                         ViewerDenied = false;
                         break;
@@ -3542,7 +3542,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (string viewer in m_BannedViewers)
                 {
-                    if (viewer == curViewer.Substring(0, viewer.Length).Trim().ToLower())
+                    if (viewer == curViewer.Substring(0, Math.Min(viewer.Length, curViewer.Length)).Trim().ToLower())
                     {
                         ViewerDenied = true;
                         break;
