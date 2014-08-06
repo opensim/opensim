@@ -12041,6 +12041,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         if (bakedTextureModule != null)
                         {
+                            m_log.Debug("[ HandleAgentTextureCached] bakedTextureModule");
                             try
                             {
                                 if (p.Appearance.WearableCacheItemsDirty)
@@ -12072,7 +12073,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                         }
                     }
-                    else if (p.Appearance.WearableCacheItems != null)
+
+                    if (p.Appearance.WearableCacheItems != null)
                     {
                         cacheItems = p.Appearance.WearableCacheItems;
                     }

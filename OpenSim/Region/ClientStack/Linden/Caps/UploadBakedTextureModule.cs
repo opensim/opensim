@@ -268,6 +268,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
             }
+
+            for (int iter = 0; iter < maxCacheitemsLoop; iter++)
+            {
+                m_log.Debug("[CacheitemsLeaving] {" + iter + "/" + cacheItems[iter].TextureIndex + "}: c-" + cacheItems[iter].CacheId + ", t-" +
+                                  cacheItems[iter].TextureID);
+            }
         }
 
         public void PostInitialise()
