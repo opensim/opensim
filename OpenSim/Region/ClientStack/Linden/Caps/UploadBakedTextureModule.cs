@@ -254,18 +254,16 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
-
-
                     p.Appearance.WearableCacheItems = cacheItems;
-                    
-                   
-
+                  
                     if (m_BakedTextureModule != null)
                     {
                         m_BakedTextureModule.Store(remoteClient.AgentId, cacheItems);
                         p.Appearance.WearableCacheItemsDirty = true;
                         
                     }
+                    else
+                        p.Appearance.WearableCacheItemsDirty = false;
                 }
             }
 

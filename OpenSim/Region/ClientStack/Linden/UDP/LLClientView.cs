@@ -12037,19 +12037,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ScenePresence p = m_scene.GetScenePresence(AgentId);
                 if (p.Appearance != null)
                 {
-                    if (p.Appearance.WearableCacheItems == null)
+                    if (p.Appearance.WearableCacheItems == null || p.Appearance.WearableCacheItemsDirty)
                     {
                         if (bakedTextureModule != null)
                         {
                             m_log.Debug("[ HandleAgentTextureCached] bakedTextureModule");
                             try
                             {
-                                if (p.Appearance.WearableCacheItemsDirty)
-                                {
-                                    cacheItems = bakedTextureModule.Get(AgentId);
-                                    p.Appearance.WearableCacheItems = cacheItems;
-                                    p.Appearance.WearableCacheItemsDirty = false;
-                                }
+                                cacheItems = bakedTextureModule.Get(AgentId);
+                                p.Appearance.WearableCacheItems = cacheItems;
+                                p.Appearance.WearableCacheItemsDirty = false;
                             }
 
                             /*
@@ -12074,7 +12071,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
 
-                    if (p.Appearance.WearableCacheItems != null)
+                    else if (p.Appearance.WearableCacheItems != null)
                     {
                         cacheItems = p.Appearance.WearableCacheItems;
                     }
