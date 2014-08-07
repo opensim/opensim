@@ -3369,18 +3369,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendTerseUpdateToAgentClient(ScenePresence p)
         {
-            // messy checks because a client doesn't know what presence it belongs too
- 
             IClientAPI remoteClient = p.ControllingClient;
-            if (remoteClient == null)
-                return;
 
             if (!remoteClient.IsActive)
                 return;
 
             if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID && p.GodLevel < 200)
                 return;
-
 
             //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
             remoteClient.SendEntityUpdate(
@@ -3507,7 +3502,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we aren't using a cached appearance, then clear out the baked textures
             if (!cachedappearance)
             {
-                Appearance.ResetAppearance();
+//                Appearance.ResetAppearance();
 // save what ????
 // maybe needed so the tryretry repair works?
                 if (m_scene.AvatarFactory != null)
@@ -3530,7 +3525,7 @@ namespace OpenSim.Region.Framework.Scenes
             // send even grays
             if (cachedappearance)
             {
-                m_log.DebugFormat("[SCENE PRESENCE]: Baked textures are in the cache for {0} in {1}", Name, m_scene.Name);
+//                m_log.DebugFormat("[SCENE PRESENCE]: Baked textures are in the cache for {0} in {1}", Name, m_scene.Name);
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
                 // the avatar finishes updating its appearance

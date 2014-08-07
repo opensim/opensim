@@ -1032,15 +1032,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // object itself before we rez.
                 //
                 // Only do these for the first object if we are rezzing a coalescence.
-                if (i == 0)
+                // nahh dont mess with coalescence objects,
+                // the name in inventory can be change for inventory purpuses only
+                if (objlist.Count == 1)
                 {
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
-                    if ((item.Flags & (uint)InventoryItemFlags.ObjectSlamSale) != 0)
-                    {
-                        rootPart.ObjectSaleType = item.SaleType;
-                        rootPart.SalePrice = item.SalePrice;
-                    }
+                }
+
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectSlamSale) != 0)
+                {
+                    rootPart.ObjectSaleType = item.SaleType;
+                    rootPart.SalePrice = item.SalePrice;
                 }
 
                 so.FromFolderID = item.Folder;

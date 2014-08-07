@@ -917,12 +917,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // in the serialization, transfer the correct name from the inventory to the
                 // object itself before we rez.
                 // Only do these for the first object if we are rezzing a coalescence.
-                if (i == 0)
+                // nahh dont mess with coalescence objects,
+                // the name in inventory can be change for inventory purpuses only
+                if (objlist.Count == 1)
                 {
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
                 }
-
+/* reverted to old code till part.ApplyPermissionsOnRez is better reviewed/fixed
                 group.SetGroup(m_part.GroupID, null);
 
                 foreach (SceneObjectPart part in group.Parts)
@@ -938,7 +940,49 @@ namespace OpenSim.Region.Framework.Scenes
 
                     part.ApplyPermissionsOnRez(dest, false, m_part.ParentGroup.Scene);
                 }
+*/
+// old code start
+                SceneObjectPart[] partList = group.Parts;
 
+                group.SetGroup(m_part.GroupID, null);
+
+                // TODO: Remove magic number badness
+                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                {
+                    if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
+                    {
+                        foreach (SceneObjectPart part in partList)
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                part.EveryoneMask = item.EveryonePermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                part.NextOwnerMask = item.NextPermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                part.GroupMask = item.GroupPermissions;
+                        }
+
+                        group.ApplyNextOwnerPermissions();
+                    }
+                }
+
+                foreach (SceneObjectPart part in partList)
+                {
+                    // TODO: Remove magic number badness
+                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                    {
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = item.OwnerID;
+                        part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                    }
+
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                        part.EveryoneMask = item.EveryonePermissions;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                        part.NextOwnerMask = item.NextPermissions;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                        part.GroupMask = item.GroupPermissions;
+                }
+// old code end
                 rootPart.TrimPermissions();
             }
 

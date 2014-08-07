@@ -2942,7 +2942,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// </summary>
         private void ApplyNextOwnerPermissions(InventoryItemBase item)
         {
-            if (item.InvType == (int)InventoryType.Object)
+            if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
             {
                 uint perms = item.CurrentPermissions;
                 PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref perms);
