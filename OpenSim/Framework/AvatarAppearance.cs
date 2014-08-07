@@ -53,7 +53,11 @@ namespace OpenSim.Framework
         // should be only used as initial default value ( V1 viewers )
         public readonly static int VISUALPARAM_COUNT = 218;
 
-        public readonly static int TEXTURE_COUNT = 21;
+//        public readonly static int TEXTURE_COUNT = 21 
+        // 21 bad, make it be updated as libovm gets update
+        // also keeping in sync with it
+        public readonly static int TEXTURE_COUNT = Primitive.TextureEntry.MAX_FACES;
+
         public readonly static byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
 
         protected int m_serial = 0;
