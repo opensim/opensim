@@ -417,9 +417,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         {
                             wearableCache[idx].CacheId = cacheItems[i].CacheId;
                             validDirtyBakes++;
-                            hits++;
+                           
                             //assuming this can only happen if asset is in cache
                         }
+                        hits++;
                         continue;
                     }
                    
@@ -448,7 +449,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // if we got a full set of baked textures save all in BakedTextureModule
 
-            if (validDirtyBakes == cacheItems.Length)
+            if (validDirtyBakes > 0 && hits == cacheItems.Length)
             {
                 IBakedTextureModule m_BakedTextureModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
                 if (m_BakedTextureModule != null)
