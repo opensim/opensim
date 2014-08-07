@@ -494,7 +494,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             wearableCache = WearableCacheItem.GetDefaultCacheItem();
 
-             int hits = 0;
+            int hits = 0;
+            bool gotbacked = false;
+
             // Cache wearable data for teleport.
             // Only makes sense if there's a bake module and a cache module
             if (bakedModule != null && cache != null)
@@ -525,8 +527,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             bakedModuleCache[i].TextureAsset.Temporary = true;
                             bakedModuleCache[i].TextureAsset.Local = true;
                             cache.Store(bakedModuleCache[i].TextureAsset);
+
                         }
                     }
+                    gotbacked = true;
                 }
             }
 
@@ -536,52 +540,73 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 int idx = AvatarAppearance.BAKE_INDICES[i];
                 Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
 
-                // No face, so lets check our cache
-                if (face == null || face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                // on tp viewer assumes servers did the cache work
+                // and tp propagation of baked textures is broken somewhere
+                // so make grid cache be mandatory
+                if (gotbacked)
                 {
-                    sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
-                    if (wearableCache[idx].TextureID != UUID.Zero)
+                    m_log.Debug("[ValidateBakedCache] bakedModule cache override");
+
+                    sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
+                    face = sp.Appearance.Texture.FaceTextures[idx];
+
+                    // this should be removed
+                    if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                     {
-                        sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
-                        face = sp.Appearance.Texture.FaceTextures[idx];
-                        // let run to end of loop to check cache
+                        defonly = false; // found a non-default texture reference
                     }
-                    else
+
+                    continue;
+                }
+                else
+                {
+                    // No face, so lets check our cache
+                    if (face == null || face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                     {
-                        sp.Appearance.Texture.FaceTextures[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
-                        face = sp.Appearance.Texture.FaceTextures[idx];
-// lets try not invalidating the cache entry 
-//                        wearableCache[idx].CacheId = UUID.Zero;
-//                        wearableCache[idx].TextureAsset = null;
+                        sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
+                        if (wearableCache[idx].TextureID != UUID.Zero)
+                        {
+                            sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
+                            face = sp.Appearance.Texture.FaceTextures[idx];
+                            // let run to end of loop to check cache
+                        }
+                        else
+                        {
+                            sp.Appearance.Texture.FaceTextures[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
+                            face = sp.Appearance.Texture.FaceTextures[idx];
+                            // lets try not invalidating the cache entry 
+                            //                        wearableCache[idx].CacheId = UUID.Zero;
+                            //                        wearableCache[idx].TextureAsset = null;
+                            continue;
+                        }
+                    }
+
+                    if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                    {
+                        defonly = false; // found a non-default texture reference
                         continue;
                     }
-                }
 
-                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                {
-                    defonly = false; // found a non-default texture reference
-                    continue;
-                }
-
-                if(wearableCache[idx].TextureID != face.TextureID)
-                {
-                    wearableCache[idx].CacheId = UUID.Zero;
-                    wearableCache[idx].TextureID = UUID.Zero;
-                    wearableCache[idx].TextureAsset = null;
-                    continue;
-                }
-
-                wearableCache[idx].TextureAsset = null;
-                if (cache != null)
-                {
-                    wearableCache[idx].TextureAsset = m_scene.AssetService.Get(face.TextureID.ToString());
-                    if (wearableCache[idx].TextureAsset == null)
+                    if (wearableCache[idx].TextureID != face.TextureID)
                     {
                         wearableCache[idx].CacheId = UUID.Zero;
                         wearableCache[idx].TextureID = UUID.Zero;
+                        wearableCache[idx].TextureAsset = null;
+                        continue;
                     }
-                    else
-                        hits++;
+
+                    wearableCache[idx].TextureAsset = null;
+                    if (cache != null)
+                    {
+                        wearableCache[idx].TextureAsset = m_scene.AssetService.Get(face.TextureID.ToString());
+                        if (wearableCache[idx].TextureAsset == null)
+                        {
+                            wearableCache[idx].CacheId = UUID.Zero;
+                            wearableCache[idx].TextureID = UUID.Zero;
+                        }
+                        else
+                            hits++;
+                    }
                 }
             }
 
