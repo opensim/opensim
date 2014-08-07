@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             m_console.Commands.AddCommand(
                 "Regions", false, "show region",
-                "show scene",
+                "show region",
                 "Show control information for the currently selected region (host name, max physical prim size, etc).", 
                 HandleShowRegion);
         }
