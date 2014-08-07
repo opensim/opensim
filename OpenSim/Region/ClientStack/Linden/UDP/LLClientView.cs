@@ -12016,8 +12016,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
             cachedresp.AgentData.SessionID = m_sessionId;
-            cachedresp.AgentData.SerialNum = m_cachedTextureSerial;
-            m_cachedTextureSerial++;
+//            cachedresp.AgentData.SerialNum = m_cachedTextureSerial;
+//            m_cachedTextureSerial++;
+            cachedresp.AgentData.SerialNum = cachedtex.AgentData.SerialNum;
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
@@ -12094,7 +12095,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                         cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
                         cachedresp.WearableData[i].HostName = new byte[0];
-                        if (cachedtex.WearableData[i].ID == cacheItems[idx].CacheId)
+                        if (cachedtex.WearableData[i].ID == cacheItems[idx].CacheId)                         
                         {
                             cachedresp.WearableData[i].TextureID = cacheItems[idx].TextureID;
                             cacheHits++;
