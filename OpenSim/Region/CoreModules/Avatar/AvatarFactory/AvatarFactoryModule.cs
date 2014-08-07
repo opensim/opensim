@@ -422,7 +422,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         }
                         continue;
                     }
-
                    
                     wearableCache[idx].TextureAsset = null;
                     if (cache != null)
@@ -456,7 +455,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.Debug("[UpdateBakedCache] uploading to bakedModule cache");
 
-                    m_BakedTextureModule.Store(sp.UUID, wearableCache);
+                    WearableCacheItem[] toBakedModule = new WearableCacheItem[AvatarAppearance.BAKE_INDICES.Length];
+
+                    for (int i = 0; i < cacheItems.Length; i++)
+                    {
+                        int idx = (int)cacheItems[i].TextureIndex;
+                        cacheItems[i].CacheId = wearableCache[idx].CacheId;
+                        cacheItems[i].TextureID = wearableCache[idx].TextureID;
+                        cacheItems[i].TextureAsset = wearableCache[idx].TextureAsset;
+                    }
+                    m_BakedTextureModule.Store(sp.UUID, cacheItems);
                 }
             }
 
@@ -513,22 +521,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (bakedModuleCache != null)
                 {
-                    m_log.Debug("[ValidateBakedCache] got bakedModule cache " + wearableCache.Length);
-
-                    // old store have diferent sizes and index starts at 1
-                    int offset = 0;
-                    if (bakedModuleCache[0].TextureIndex == 1)
-                        offset = -1;
-                    int j;
+                    m_log.Debug("[ValidateBakedCache] got bakedModule cache " + bakedModuleCache.Length);
 
                     for (int i = 0; i < bakedModuleCache.Length; i++)
                     {
-                        j = (int)bakedModuleCache[i].TextureIndex + offset;
+                        int j = (int)bakedModuleCache[i].TextureIndex;
 
                         if (bakedModuleCache[i].TextureAsset != null)
                         {
                             wearableCache[j].TextureID = bakedModuleCache[i].TextureID;
                             wearableCache[j].CacheId = bakedModuleCache[i].TextureID;
+                            wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
                             bakedModuleCache[i].TextureAsset.Temporary = true;
                             bakedModuleCache[i].TextureAsset.Local = true;
                             cache.Store(bakedModuleCache[i].TextureAsset);
