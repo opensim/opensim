@@ -46,7 +46,7 @@ namespace OpenSim.Framework
             int itemmax = 21;
             WearableCacheItem[] retitems = new WearableCacheItem[itemmax];
             for (uint i=0;i<itemmax;i++)
-                retitems[i] = new WearableCacheItem() {CacheId = UUID.Zero, TextureID = UUID.Zero, TextureIndex = i + 1};
+                retitems[i] = new WearableCacheItem() {CacheId = UUID.Zero, TextureID = UUID.Zero, TextureIndex = i};
             return retitems;
         }
         public static WearableCacheItem[] FromOSD(OSD pInput, IImprovedAssetCache dataCache)

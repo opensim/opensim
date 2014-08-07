@@ -3502,7 +3502,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we aren't using a cached appearance, then clear out the baked textures
             if (!cachedappearance)
             {
-                Appearance.ResetAppearance();
+//                Appearance.ResetAppearance();
 // save what ????
 // maybe needed so the tryretry repair works?
                 if (m_scene.AvatarFactory != null)
