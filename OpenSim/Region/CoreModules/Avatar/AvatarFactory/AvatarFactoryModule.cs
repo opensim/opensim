@@ -546,7 +546,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (gotbacked)
                 {
 //                    m_log.Debug("[ValidateBakedCache] bakedModule cache override");
-
+                    if(sp.Appearance.Texture.FaceTextures[idx] == null)
+                        sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
                     sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
                     face = sp.Appearance.Texture.FaceTextures[idx];
 
