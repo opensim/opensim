@@ -493,18 +493,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             wearableCache = WearableCacheItem.GetDefaultCacheItem();
 
-            // debug
-            for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
-            {
-                int j = AvatarAppearance.BAKE_INDICES[iter];
-                Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[iter];
-                if(face != null)
-                    m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - " + face.TextureID);
-                else
-                    m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - No texture"); 
-            }
-
-            int hits = 0;
+             int hits = 0;
             // Cache wearable data for teleport.
             // Only makes sense if there's a bake module and a cache module
             if (bakedModule != null && cache != null)
@@ -546,7 +535,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 int idx = AvatarAppearance.BAKE_INDICES[i];
                 Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
 
-                // No face, so lets check our baked service cache, teleport or login.
+                // No face, so lets check our cache
                 if (face == null || face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                 {
                     sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
@@ -560,8 +549,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     {
                         sp.Appearance.Texture.FaceTextures[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
                         face = sp.Appearance.Texture.FaceTextures[idx];
-                        wearableCache[idx].CacheId = UUID.Zero;
-                        wearableCache[idx].TextureAsset = null;
+// lets try not invalidating the cache entry 
+//                        wearableCache[idx].CacheId = UUID.Zero;
+//                        wearableCache[idx].TextureAsset = null;
                         continue;
                     }
                 }
@@ -624,14 +614,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (face == null)
                     continue;
 
-//                m_log.DebugFormat(
-//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
-//                    face.TextureID, idx, client.Name, client.AgentId);
-
-                // if the texture is one of the "defaults" then skip it
-                // this should probably be more intelligent (skirt texture doesnt matter
-                // if the avatar isnt wearing a skirt) but if any of the main baked
-                // textures is default then the rest should be as well
                 if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                     continue;
 
