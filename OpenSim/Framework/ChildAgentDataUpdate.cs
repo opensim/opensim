@@ -665,7 +665,12 @@ namespace OpenSim.Framework
             if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
             {
                 OSDArray wears = (OSDArray)(args["wearables"]);
-                for (int i = 0; i < wears.Count / 2; i++) 
+
+                int count = wears.Count;
+                if (count > AvatarWearable.MAX_WEARABLES)
+                    count = AvatarWearable.MAX_WEARABLES;
+
+                for (int i = 0; i < count / 2; i++) 
                 {
                     AvatarWearable awear = new AvatarWearable((OSDArray)wears[i]);
                     Appearance.SetWearable(i,awear);
