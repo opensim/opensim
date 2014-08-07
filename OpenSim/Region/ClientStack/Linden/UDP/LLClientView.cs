@@ -6481,7 +6481,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Action<IClientAPI> handlerRegionHandShakeReply = OnRegionHandShakeReply;
             if (handlerRegionHandShakeReply != null)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(100);
                 handlerRegionHandShakeReply(this);
             }
 
