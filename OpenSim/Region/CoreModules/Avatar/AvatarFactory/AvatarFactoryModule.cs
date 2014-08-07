@@ -545,7 +545,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // so make grid cache be mandatory
                 if (gotbacked)
                 {
-                    m_log.Debug("[ValidateBakedCache] bakedModule cache override");
+//                    m_log.Debug("[ValidateBakedCache] bakedModule cache override");
 
                     sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
                     face = sp.Appearance.Texture.FaceTextures[idx];
