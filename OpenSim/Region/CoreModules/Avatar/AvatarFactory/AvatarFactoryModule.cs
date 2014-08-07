@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         if (bakedModuleCache[i].TextureAsset != null)
                         {
                             wearableCache[j].TextureID = bakedModuleCache[i].TextureID;
-                            wearableCache[j].CacheId = bakedModuleCache[i].TextureID;
+                            wearableCache[j].CacheId = bakedModuleCache[i].CacheId;
                             wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
                             bakedModuleCache[i].TextureAsset.Temporary = true;
                             bakedModuleCache[i].TextureAsset.Local = true;
