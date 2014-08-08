@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.Framework.Scenes
             PeriodicBackup = true;
             UseBackup = true;
 
-            RootRotationUpdateTolerance = 0.01f;
+            RootRotationUpdateTolerance = 0.1f;
             RootVelocityUpdateTolerance = 0.001f;
             RootPositionUpdateTolerance = 0.05f;
             ChildReprioritizationDistance = 20.0;
