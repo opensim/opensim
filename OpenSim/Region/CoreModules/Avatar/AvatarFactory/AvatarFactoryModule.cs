@@ -487,6 +487,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public bool ValidateBakedTextureCache(IScenePresence sp)
         {
             bool defonly = true; // are we only using default textures
+            int hits = 0;
 
             lock (m_setAppearanceLock)
             {
@@ -497,7 +498,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 wearableCache = WearableCacheItem.GetDefaultCacheItem();
 
-                int hits = 0;
+                
                 bool gotbacked = false;
 
                 // Cache wearable data for teleport.
