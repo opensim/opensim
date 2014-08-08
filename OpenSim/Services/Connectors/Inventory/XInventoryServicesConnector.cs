@@ -62,8 +62,6 @@ namespace OpenSim.Services.Connectors
         /// </remarks>
         private int m_requestTimeoutSecs = -1;
 
-        private object m_Lock = new object();
-
         public XInventoryServicesConnector()
         {
         }
@@ -533,11 +531,10 @@ namespace OpenSim.Services.Connectors
 
             RequestsMade++;
 
-            string reply = string.Empty;
-            lock (m_Lock)
-                reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                         m_ServerURI + "/xinventory",
-                         ServerUtils.BuildQueryString(sendData), m_requestTimeoutSecs, m_Auth);
+            string reply 
+                = SynchronousRestFormsRequester.MakeRequest(
+                    "POST", m_ServerURI + "/xinventory",
+                     ServerUtils.BuildQueryString(sendData), m_requestTimeoutSecs, m_Auth);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);
