@@ -115,7 +115,7 @@ namespace OpenSim
                     Util.FireAndForgetMethod = asyncCallMethod;
 
                 stpMinThreads = startupConfig.GetInt("MinPoolThreads", 15);
-                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
+                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 300);
                 m_consolePrompt = startupConfig.GetString("ConsolePrompt", @"Region (\R) ");
             }
 
