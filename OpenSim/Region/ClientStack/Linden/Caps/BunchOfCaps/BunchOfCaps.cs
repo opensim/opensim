@@ -1384,6 +1384,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         resp[uuid.ToString()] = object_data;
                     }
+                    else
+                    {
+                        OSDMap object_data = new OSDMap();
+                        object_data["linked_set_resource_cost"] = 0;
+                        object_data["resource_cost"] = 0;
+                        object_data["physics_cost"] = 0;
+                        object_data["linked_set_physics_cost"] = 0;
+
+                        resp[uuid.ToString()] = object_data;
+                    }
+
                 }
             }
 
