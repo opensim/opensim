@@ -1448,7 +1448,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
-            if (simul != 0)
+ //           if (simul != 0)
             {
                 OSDMap object_data = new OSDMap();
 
