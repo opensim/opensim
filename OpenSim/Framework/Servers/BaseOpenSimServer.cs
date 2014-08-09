@@ -59,7 +59,7 @@ namespace OpenSim.Framework.Servers
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
-        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
+//        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
         
         /// <summary>
         /// Random uuid for private data 
@@ -77,8 +77,8 @@ namespace OpenSim.Framework.Servers
             // Random uuid for private data
             m_osSecret = UUID.Random().ToString();
 
-            m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
-            m_periodicDiagnosticsTimer.Enabled = true;
+//            m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
+//            m_periodicDiagnosticsTimer.Enabled = true;
         }
         
         /// <summary>
@@ -145,9 +145,9 @@ namespace OpenSim.Framework.Servers
             
             TimeSpan timeTaken = DateTime.Now - m_startuptime;
             
-            MainConsole.Instance.OutputFormat(
-                "PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.  Non-script portion of startup took {0}m {1}s.",
-                timeTaken.Minutes, timeTaken.Seconds);
+//            MainConsole.Instance.OutputFormat(
+//                "PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.  Non-script portion of startup took {0}m {1}s.",
+//                timeTaken.Minutes, timeTaken.Seconds);
         }
 
         public string osSecret 
