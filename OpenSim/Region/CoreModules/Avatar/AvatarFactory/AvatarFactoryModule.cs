@@ -556,11 +556,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         face = sp.Appearance.Texture.FaceTextures[idx];
 
                         // this should be removed
-                        if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                        {
+                        if (face.TextureID != UUID.Zero && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                             defonly = false; // found a non-default texture reference
-                        }
-
+                        else
+                            hits++;
                         continue;
                     }
                     else
