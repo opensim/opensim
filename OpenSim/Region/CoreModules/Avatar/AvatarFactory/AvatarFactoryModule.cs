@@ -587,10 +587,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         }
 
                         if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                        {
-                            defonly = false; // found a non-default texture reference
                             continue;
-                        }
 
                         if (wearableCache[idx].TextureID != face.TextureID)
                         {
@@ -603,7 +600,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         wearableCache[idx].TextureAsset = null;
                         if (cache != null)
                         {
-                            wearableCache[idx].TextureAsset = m_scene.AssetService.Get(face.TextureID.ToString());
+                            wearableCache[idx].TextureAsset = m_scene.AssetService.GetCached(face.TextureID.ToString());
                             if (wearableCache[idx].TextureAsset == null)
                             {
                                 wearableCache[idx].CacheId = UUID.Zero;
@@ -611,6 +608,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             }
                             else
                                 hits++;
+                            defonly = false; // found a non-default texture reference
                         }
                     }
                 }
@@ -630,7 +628,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // If we only found default textures, then the appearance is not cached
-            return (defonly ? false : true);
+            //            return (defonly ? false : true);
+            return (hits >= AvatarAppearance.BAKE_INDICES.Length - 1); // skirt is optional
         }
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
