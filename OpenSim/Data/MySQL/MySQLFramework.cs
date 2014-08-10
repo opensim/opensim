@@ -73,6 +73,7 @@ namespace OpenSim.Data.MySQL
                     catch (Exception e)
                     {
                         m_log.Error(e.Message, e);
+                        m_log.Error(Environment.StackTrace.ToString());
                         return 0;
                     }
                 }
