@@ -3863,7 +3863,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected bool CrossToNewRegion()
         {
             bool result = false;
-            parcelRegionCross(false);
+//            parcelRegionCross(false);
             try
             {
                 result = m_scene.CrossAgentToNewRegion(this, Flying);
@@ -3872,8 +3872,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 result = m_scene.CrossAgentToNewRegion(this, false);
             }
-            if(!result)
-                parcelRegionCross(true);
+ //           if(!result)
+ //               parcelRegionCross(true);
 
             return result;
 
@@ -5531,7 +5531,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void parcelRegionCross(bool abort)
+        public void parcelRegionCross(bool abort)
         {
             if (!ParcelHideThisAvatar)
                 return;

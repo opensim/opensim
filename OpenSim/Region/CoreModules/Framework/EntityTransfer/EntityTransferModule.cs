@@ -1529,7 +1529,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out x, out y, out version, out newpos);
             if (neighbourRegion == null)
             {
-                agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
+                agent.ControllingClient.SendAlertMessage("Cannot region cross into void");
                 return false;
             }
 
@@ -1680,7 +1680,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         neighbourRegion.RegionName, agent.Name);
 
                     ReInstantiateScripts(agent);
-                    agent.AddToPhysicalScene(isFlying);
+                    if(agent.ParentID == 0 && agent.ParentUUID == UUID.Zero)
+                        agent.AddToPhysicalScene(isFlying);
 
                     return false;
                 }
@@ -1749,8 +1750,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
 
             // now we have a child agent in this region. Request all interesting data about other (root) agents
-            agent.SendOtherAgentsAvatarDataToMe();
-            agent.SendOtherAgentsAppearanceToMe();
+
+            // why do that? we either where a root having all that or we are leaving the area
+
+//            agent.SendOtherAgentsAvatarDataToMe();
+//            agent.SendOtherAgentsAppearanceToMe();
+
+            agent.parcelRegionCross(false);
 
             // Backwards compatibility. Best effort
             if (version == "Unknown" || version == string.Empty)
