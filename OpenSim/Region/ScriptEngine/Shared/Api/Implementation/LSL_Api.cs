@@ -6001,17 +6001,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 for (int i = 0; i < length; i++)
                 {
+                    int needle = llGetListEntryType(test, 0).value;
+                    int haystack = llGetListEntryType(src, i).value;
+
                     // Why this piece of insanity?  This is because most script constants are C# value types (e.g. int)
                     // rather than wrapped LSL types.  Such a script constant does not have int.Equal(LSL_Integer) code
                     // and so the comparison fails even if the LSL_Integer conceptually has the same value.
                     // Therefore, here we test Equals on both the source and destination objects.
                     // However, a future better approach may be use LSL struct script constants (e.g. LSL_Integer(1)).
-                    if (src.Data[i].Equals(test.Data[0]) || test.Data[0].Equals(src.Data[i]))
+                    if ((needle == haystack) && (src.Data[i].Equals(test.Data[0]) || test.Data[0].Equals(src.Data[i])))
                     {
                         int j;
                         for (j = 1; j < test.Length; j++)
-                            if (!(src.Data[i+j].Equals(test.Data[j]) || test.Data[j].Equals(src.Data[i+j])))
+                        {
+                            needle = llGetListEntryType(test, j).value;
+                            haystack = llGetListEntryType(src, i+j).value;
+
+                            if ((needle != haystack) || (!(src.Data[i+j].Equals(test.Data[j]) || test.Data[j].Equals(src.Data[i+j]))))
                                 break;
+                        }
 
                         if (j == test.Length)
                         {
