@@ -1418,6 +1418,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue.Enqueue(buffer);
                     return;
                 }
+
                 else if (packet.Type == PacketType.CompleteAgentMovement)
                 {
                     // Send ack straight away to let the viewer know that we got it.
@@ -2150,13 +2151,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
-                    //if (!m_packetSent)
-                    //    Thread.Sleep((int)TickCountResolution);
+
+                    if (!m_packetSent)
+//                        Thread.Sleep((int)TickCountResolution);
+                        Thread.Sleep(20); // be independent of TickCountResolution
                     //
                     // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
                     // modern mono it reduces CPU base load since there is no more continuous polling.
-                    if (!m_packetSent)
-                        m_dataPresentEvent.WaitOne(100);
+                    // this misses heavy load cases
+//                    if (!m_packetSent)
+//                        m_dataPresentEvent.WaitOne(100);
 
                     Watchdog.UpdateThread();
                 }
