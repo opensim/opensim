@@ -1878,7 +1878,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
         {
-            if (((int)pTexAnim.Flags & 1) == 0) // ANIM_ON
+            if (((int)pTexAnim.Flags & 1) != 0) // ANIM_ON
             {
                 byte[] data = new byte[16];
                 int pos = 0;
