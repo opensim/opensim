@@ -5158,8 +5158,8 @@ namespace OpenSim.Region.Framework.Scenes
                         pos = land.LandData.UserLocation;
                     }
                 }
-                
-                land.SendLandUpdateToClient(ControllingClient);
+// this is now done in completeMovement for all cases and not just this               
+//                land.SendLandUpdateToClient(ControllingClient);
             }
         }
 
