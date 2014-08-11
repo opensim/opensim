@@ -5611,6 +5611,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsInTransit)
                 return;
 
+            if (IsChildAgent)
+                return;
+
             if (check)
             {
                 // check is relative to current parcel only
