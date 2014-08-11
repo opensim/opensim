@@ -248,7 +248,19 @@ namespace OpenSim.Region.ClientStack.Linden
                 //m_capsHandlers["MapLayer"] =
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
-                //                                                                GetMapLayer);
+                //                                                               GetMapLayer);
+
+                IRequestHandler getObjectPhysicsDataHandler
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData, "GetObjectPhysicsData", null);
+                m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
+
+                IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
+                m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
+                IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
+                m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);
+   
+
                 IRequestHandler req
                     = new RestStreamHandler(
                         "POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory, "UpdateScript", null);
@@ -283,14 +295,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
 
-                IRequestHandler getObjectPhysicsDataHandler 
-                    = new RestStreamHandler(
-                        "POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData, "GetObjectPhysicsData", null);
-                m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
-                IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
-                m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
-                IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
-                m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);       
+    
 
                 IRequestHandler UpdateAgentInformationHandler
                     = new RestStreamHandler(
@@ -1379,6 +1384,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         resp[uuid.ToString()] = object_data;
                     }
+                    else
+                    {
+                        OSDMap object_data = new OSDMap();
+                        object_data["linked_set_resource_cost"] = 0;
+                        object_data["resource_cost"] = 0;
+                        object_data["physics_cost"] = 0;
+                        object_data["linked_set_physics_cost"] = 0;
+
+                        resp[uuid.ToString()] = object_data;
+                    }
+
                 }
             }
 
@@ -1443,7 +1459,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
-            if (simul != 0)
+ //           if (simul != 0)
             {
                 OSDMap object_data = new OSDMap();
 

@@ -301,8 +301,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <remarks>
         /// This allows the outbound loop to only operate when there is data to send rather than continuously polling.
         /// Some data is sent immediately and not queued.  That data would not trigger this event.
+        /// WRONG use. May be usefull in future revision
         /// </remarks>
-        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
+//        private AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
 
         private Pool<IncomingPacket> m_incomingPacketPool;
 
@@ -990,8 +991,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             PacketPool.Instance.ReturnPacket(packet);
 
-            if (packetQueued)
-                m_dataPresentEvent.Set();
+            /// WRONG use. May be usefull in future revision
+//            if (packetQueued)
+//                m_dataPresentEvent.Set();
         }
 
         /// <summary>
@@ -1418,6 +1420,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue.Enqueue(buffer);
                     return;
                 }
+
                 else if (packet.Type == PacketType.CompleteAgentMovement)
                 {
                     // Send ack straight away to let the viewer know that we got it.
@@ -2150,13 +2153,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
-                    //if (!m_packetSent)
-                    //    Thread.Sleep((int)TickCountResolution);
-                    //
-                    // Instead, now wait for data present to be explicitly signalled.  Evidence so far is that with
-                    // modern mono it reduces CPU base load since there is no more continuous polling.
+
                     if (!m_packetSent)
-                        m_dataPresentEvent.WaitOne(100);
+                        Thread.Sleep((int)TickCountResolution);
+
+                    // .... wrong core code removed
+ 
 
                     Watchdog.UpdateThread();
                 }

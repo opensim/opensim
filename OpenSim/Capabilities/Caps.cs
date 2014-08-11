@@ -139,6 +139,7 @@ namespace OpenSim.Framework.Capabilities
             m_agentID = agent;
             m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, (httpServer == null) ? false : httpServer.UseSSL);
             m_regionName = regionName;
+            m_capsActive.Reset();
         }
 
         /// <summary>
@@ -263,7 +264,7 @@ namespace OpenSim.Framework.Capabilities
         public bool WaitForActivation()
         {
             // Wait for 30s. If that elapses, return false and run without caps
-            return m_capsActive.WaitOne(30000);
+            return m_capsActive.WaitOne(120000);
         }
     }
 }

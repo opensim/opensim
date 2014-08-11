@@ -366,8 +366,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         // called on textures update
         public bool UpdateBakedTextureCache(IScenePresence sp, WearableCacheItem[] cacheItems)
         {
-            bool defonly = true; // are we only using default textures
-
             // uploaded baked textures will be in assets local cache
             IAssetService cache = m_scene.AssetService;
 
@@ -408,8 +406,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         wearableCache[idx].TextureAsset = null;
                         continue;
                     }
-
-                    defonly = false; // found a non-default texture reference
 
                     if(sp.Appearance.Texture.FaceTextures[idx].TextureID == wearableCache[idx].TextureID)
                     {
@@ -479,14 +475,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     sp.Appearance.WearableCacheItems[j].TextureID);
             }
 
-            // If we only found default textures, then the appearance is not cached
-            return (defonly ? false : true);
+            return (hits == cacheItems.Length);
         }
 
         // called when we get a new root avatar
         public bool ValidateBakedTextureCache(IScenePresence sp)
         {
-            bool defonly = true; // are we only using default textures
             int hits = 0;
 
             lock (m_setAppearanceLock)
@@ -556,10 +550,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         face = sp.Appearance.Texture.FaceTextures[idx];
 
                         // this should be removed
-                        if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                        {
-                            defonly = false; // found a non-default texture reference
-                        }
+                        if (face.TextureID != UUID.Zero && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                            hits++;
 
                         continue;
                     }
@@ -587,10 +579,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         }
 
                         if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                        {
-                            defonly = false; // found a non-default texture reference
                             continue;
-                        }
 
                         if (wearableCache[idx].TextureID != face.TextureID)
                         {
@@ -603,7 +592,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         wearableCache[idx].TextureAsset = null;
                         if (cache != null)
                         {
-                            wearableCache[idx].TextureAsset = m_scene.AssetService.Get(face.TextureID.ToString());
+                            wearableCache[idx].TextureAsset = m_scene.AssetService.GetCached(face.TextureID.ToString());
                             if (wearableCache[idx].TextureAsset == null)
                             {
                                 wearableCache[idx].CacheId = UUID.Zero;
@@ -618,7 +607,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 sp.Appearance.WearableCacheItems = wearableCache;
             }
 
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1} {2} {3}", sp.Name, sp.UUID, hits, defonly.ToString());
+            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1} {2}", sp.Name, sp.UUID, hits);
             // debug
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
@@ -629,9 +618,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     sp.Appearance.WearableCacheItems[j].TextureID);
             }
 
-            // If we only found default textures, then the appearance is not cached
-            return (defonly ? false : true);
+            return (hits >= AvatarAppearance.BAKE_INDICES.Length - 1); // skirt is optional
         }
+
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
             int texturesRebaked = 0;

@@ -1823,12 +1823,12 @@ namespace OpenSim.Region.Framework.Scenes
                     Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
                     m_callbackURI = null;
                 }
-                //            else
-                //            {
-                //                m_log.DebugFormat(
-                //                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
-                //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
-                //            }
+//            else
+//            {
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
+//                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
+//            }
 
                 m_previusParcelHide = false;
                 m_previusParcelUUID = UUID.Zero;
@@ -1838,59 +1838,51 @@ namespace OpenSim.Region.Framework.Scenes
                 // send initial land overlay and parcel 
                 ILandChannel landch = m_scene.LandChannel;
                 if (landch != null)
-                {
                     landch.sendClientInitialLandInfo(client);
-                    if (!IsChildAgent)
-                    {
-                        newhide = m_currentParcelHide;
-                        m_currentParcelHide = false;
-                    }
-                }
 
-                // send agentData to all clients including us (?)
-                // get appearance
-                // if in cache sent it to all clients
-                // send what we have to us, even if not in cache ( bad? )
-                ValidateAndSendAppearanceAndAgentData();
-
-                // attachments
-                if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
+                if (!IsChildAgent)
                 {
-                    if (Scene.AttachmentsModule != null)
+                    newhide = m_currentParcelHide;
+                    m_currentParcelHide = false;
+
+                    ValidateAndSendAppearanceAndAgentData();
+
+                    // attachments
+                    if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
+                    {
+                        if (Scene.AttachmentsModule != null)
 //                        Util.FireAndForget(
 //                            o =>
 //                            {
-                                Scene.AttachmentsModule.RezAttachments(this);
-//                            });
-                }
-                else
-                {
-                    List<SceneObjectGroup> attachments = GetAttachments();
-
-                    if (attachments.Count > 0)
+                            Scene.AttachmentsModule.RezAttachments(this);
+                        //                            });
+                    }
+                    else
                     {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+                        List<SceneObjectGroup> attachments = GetAttachments();
 
-                        // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
-                        foreach (SceneObjectGroup sog in attachments)
+                        if (attachments.Count > 0)
                         {
-                            sog.ScheduleGroupForFullUpdate();
-                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                            sog.ResumeScripts();
+                            m_log.DebugFormat(
+                                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                            // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
+                            foreach (SceneObjectGroup sog in attachments)
+                            {
+                                sog.ScheduleGroupForFullUpdate();
+                                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                                sog.ResumeScripts();
+                            }
                         }
                     }
-                }
-                //            m_log.DebugFormat(
-                //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
-                //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
 
-                // Create child agents in neighbouring regions
-                if (openChildAgents && !IsChildAgent)
-                {
-                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                    if (m_agentTransfer != null)
-                        m_agentTransfer.EnableChildAgents(this);
+                    // Create child agents in neighbouring regions
+                    if (openChildAgents)
+                    {
+                        IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                        if (m_agentTransfer != null)
+                            m_agentTransfer.EnableChildAgents(this);
+                    }
                 }
 
                 // send the rest of the world
@@ -3871,7 +3863,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected bool CrossToNewRegion()
         {
             bool result = false;
-            parcelRegionCross(false);
+//            parcelRegionCross(false);
             try
             {
                 result = m_scene.CrossAgentToNewRegion(this, Flying);
@@ -3880,8 +3872,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 result = m_scene.CrossAgentToNewRegion(this, false);
             }
-            if(!result)
-                parcelRegionCross(true);
+ //           if(!result)
+ //               parcelRegionCross(true);
 
             return result;
 
@@ -5166,8 +5158,8 @@ namespace OpenSim.Region.Framework.Scenes
                         pos = land.LandData.UserLocation;
                     }
                 }
-                
-                land.SendLandUpdateToClient(ControllingClient);
+// this is now done in completeMovement for all cases and not just this               
+//                land.SendLandUpdateToClient(ControllingClient);
             }
         }
 
@@ -5539,7 +5531,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void parcelRegionCross(bool abort)
+        public void parcelRegionCross(bool abort)
         {
             if (!ParcelHideThisAvatar)
                 return;
@@ -5617,6 +5609,9 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> allpresences = null;
 
             if (IsInTransit)
+                return;
+
+            if (IsChildAgent)
                 return;
 
             if (check)
