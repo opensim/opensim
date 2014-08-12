@@ -530,11 +530,8 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 Vector3 a = new Vector3(CameraAtAxis.X, CameraAtAxis.Y, 0);
-
-                if (a == Vector3.Zero)
-                    return a;
-
-                return Util.GetNormalizedVector(a);
+                a.Normalize();
+                return a;
             }
         }
         #endregion        
@@ -1113,9 +1110,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
-    //            m_log.InfoFormat(
-    //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
-    //                Name, m_scene.RegionInfo.RegionName);
+                //            m_log.InfoFormat(
+                //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
+                //                Name, m_scene.RegionInfo.RegionName);
 
                 if (ParentUUID != UUID.Zero)
                 {
@@ -1148,44 +1145,49 @@ namespace OpenSim.Region.Framework.Scenes
             // Must reset this here so that a teleport to a region next to an existing region does not keep the flag
             // set and prevent the close of the connection on a subsequent re-teleport.
             // Should not be needed if we are not trying to tell this region to close
-//            DoNotCloseAfterTeleport = false;
+            //            DoNotCloseAfterTeleport = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 Grouptitle = gm.GetGroupTitle(m_uuid);
-            
+
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
 
+/*   this should  be done by groups module on TriggerOnMakeRootAgent(this)  below
+    at least XmlIRpcGroups
             UUID groupUUID = UUID.Zero;
             string GroupName = string.Empty;
             ulong groupPowers = 0;
 
-            // ----------------------------------
-            // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
-            try
-            {
-                
-                if (gm != null)
-                {
-                    groupUUID = ControllingClient.ActiveGroupId;
-                    GroupRecord record = gm.GetGroupRecord(groupUUID);
-                    if (record != null)
-                        GroupName = record.GroupName;
-                    GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
-                    if (groupMembershipData != null)
-                        groupPowers = groupMembershipData.GroupPowers;
-                }
-                ControllingClient.SendAgentDataUpdate(m_uuid, groupUUID, Firstname, Lastname, groupPowers, GroupName,
-                                                      Grouptitle);
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[AGENTUPDATE]: " + e.ToString());
-            }
-            // ------------------------------------
 
+
+
+                        // ----------------------------------
+                        // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
+                        try
+                        {
+                
+                            if (gm != null)
+                            {
+                                groupUUID = ControllingClient.ActiveGroupId;
+                                GroupRecord record = gm.GetGroupRecord(groupUUID);
+                                if (record != null)
+                                    GroupName = record.GroupName;
+                                GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
+                                if (groupMembershipData != null)
+                                    groupPowers = groupMembershipData.GroupPowers;
+                            }
+                            ControllingClient.SendAgentDataUpdate(m_uuid, groupUUID, Firstname, Lastname, groupPowers, GroupName,
+                                                                    Grouptitle);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Debug("[AGENTUPDATE]: " + e.ToString());
+                        }
+                        // ------------------------------------
+*/
             if (ParentID == 0)
             {
                 // Moved this from SendInitialData to ensure that Appearance is initialized
@@ -1225,7 +1227,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (pos.X < Constants.RegionSize && pos.Y < Constants.RegionSize)
                     posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
-                
+
                 float newPosZ = posZLimit + localAVHeight / 2;
                 if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
                 {
@@ -1763,17 +1765,11 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
 
-                Vector3 look = Velocity;
-
-                //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
-                if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
-                {
-                    look = new Vector3(0.99f, 0.042f, 0);
-                }
-
                 // Prevent teleporting to an underground location
                 // (may crash client otherwise)
                 //
+
+/* this is done in MakeRootAgent 
                 Vector3 pos = AbsolutePosition;
                 float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
                 if (pos.Z < ground + 1.5f)
@@ -1781,7 +1777,7 @@ namespace OpenSim.Region.Framework.Scenes
                     pos.Z = ground + 1.5f;
                     AbsolutePosition = pos;
                 }
-
+*/
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
                 if (!MakeRootAgent(AbsolutePosition, flying))
                 {
@@ -1790,6 +1786,16 @@ namespace OpenSim.Region.Framework.Scenes
                         Name, Scene.Name);
 
                     return;
+                }
+
+                Vector3 look = Lookat;
+                if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01))
+                {
+                    look = Velocity;
+                    look.Z = 0;
+                    look.Normalize();
+                    if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01) )
+                        look = new Vector3(0.99f, 0.042f, 0);
                 }
 
                 // Tell the client that we're totally ready

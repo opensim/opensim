@@ -195,6 +195,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnMakeRootAgent += OnMakeRoot;
+            scene.EventManager.OnMakeChildAgent += OnMakeChild;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             // The InstantMessageModule itself doesn't do this, 
             // so lets see if things explode if we don't do it
@@ -245,19 +247,34 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         #endregion
 
         #region EventHandlers
+
+        private void OnMakeRoot(ScenePresence sp)
+        {
+            if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            sp.ControllingClient.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
+            // Used for Notices and Group Invites/Accept/Reject
+            sp.ControllingClient.OnInstantMessage += OnInstantMessage;
+            // Send client their groups information.
+//            SendAgentGroupDataUpdate(sp.ControllingClient, sp.UUID);
+            // only send data viwer will ask rest later
+            OnAgentDataUpdateRequest(sp.ControllingClient, sp.UUID, sp.UUID);
+        }
+
+        private void OnMakeChild(ScenePresence sp)
+        {
+            if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            sp.ControllingClient.OnUUIDGroupNameRequest -= HandleUUIDGroupNameRequest;
+            sp.ControllingClient.OnInstantMessage -= OnInstantMessage;
+        }
+ 
         private void OnNewClient(IClientAPI client)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
             client.OnRequestAvatarProperties += OnRequestAvatarProperties;
-
-            // Used for Notices and Group Invites/Accept/Reject
-            client.OnInstantMessage += OnInstantMessage;
-
-            // Send client their groups information.
-            SendAgentGroupDataUpdate(client, client.AgentId);
         }
 
         private void OnRequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
