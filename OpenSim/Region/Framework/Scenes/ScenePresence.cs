@@ -530,11 +530,8 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 Vector3 a = new Vector3(CameraAtAxis.X, CameraAtAxis.Y, 0);
-
-                if (a == Vector3.Zero)
-                    return a;
-
-                return Util.GetNormalizedVector(a);
+                a.Normalize();
+                return a;
             }
         }
         #endregion        
@@ -1796,7 +1793,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     look = Velocity;
                     look.Z = 0;
-                    look = Util.GetNormalizedVector(look);
+                    look.Normalize();
                     if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01) )
                         look = new Vector3(0.99f, 0.042f, 0);
                 }
