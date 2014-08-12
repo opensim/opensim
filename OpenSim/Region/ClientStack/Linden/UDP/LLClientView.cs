@@ -5764,14 +5764,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
 
             bool movementSignificant =
-                (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
-                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
-                // || (qdelta2 > QDELTA * 10)                               // significant if head rotation above threshold
-                || (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
+                (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
                 || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
-                || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
+                || (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
+                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
+                // || (qdelta2 > QDELTA * 10)                               // significant if head rotation above threshold
+                || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
             ;
             //if (movementSignificant)
             //{
@@ -6751,6 +6751,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
         {
+
+            m_thisAgentUpdateArgs.CameraAtAxis.X = float.MinValue;
+            m_thisAgentUpdateArgs.ControlFlags = uint.MaxValue;
+
             Action<IClientAPI, bool> handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
             if (handlerCompleteMovementToRegion != null)
             {
