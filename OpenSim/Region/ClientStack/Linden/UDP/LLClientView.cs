@@ -5819,55 +5819,63 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return cameraSignificant;
         }
 
-        private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
-        {            
+        private bool HandleAgentUpdate(IClientAPI sender, Packet packet)
+        {
             // We got here, which means that something in agent update was significant
 
             AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
             AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
 
             if (x.AgentID != AgentId || x.SessionID != SessionId)
+            {
+                PacketPool.Instance.ReturnPacket(packet);
                 return false;
+            }
 
-            // Before we update the current m_thisAgentUpdateArgs, let's check this again
-            // to see what exactly changed
+            TotalAgentUpdates++;
+
             bool movement = CheckAgentMovementUpdateSignificance(x);
             bool camera = CheckAgentCameraUpdateSignificance(x);
-
-            m_thisAgentUpdateArgs.AgentID = x.AgentID;
-            m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;
-            m_thisAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
-            m_thisAgentUpdateArgs.CameraCenter = x.CameraCenter;
-            m_thisAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
-            m_thisAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
-            m_thisAgentUpdateArgs.ControlFlags = x.ControlFlags;
-            m_thisAgentUpdateArgs.Far = x.Far;
-            m_thisAgentUpdateArgs.Flags = x.Flags;
-            m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
-            m_thisAgentUpdateArgs.SessionID = x.SessionID;
-            m_thisAgentUpdateArgs.State = x.State;
-
-            UpdateAgent handlerAgentUpdate = OnAgentUpdate;
-            UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
-            UpdateAgent handlerAgentCameraUpdate = OnAgentCameraUpdate;
 
             // Was there a significant movement/state change?
             if (movement)
             {
+                m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;
+                m_thisAgentUpdateArgs.ControlFlags = x.ControlFlags;
+                m_thisAgentUpdateArgs.Far = x.Far;
+                m_thisAgentUpdateArgs.Flags = x.Flags;
+                m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
+                m_thisAgentUpdateArgs.SessionID = x.SessionID;
+                m_thisAgentUpdateArgs.State = x.State;
+
+                UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+                UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
+
                 if (handlerPreAgentUpdate != null)
                     OnPreAgentUpdate(this, m_thisAgentUpdateArgs);
 
                 if (handlerAgentUpdate != null)
                     OnAgentUpdate(this, m_thisAgentUpdateArgs);
+
+                handlerAgentUpdate = null;
+                handlerPreAgentUpdate = null;
             }
+
             // Was there a significant camera(s) change?
             if (camera)
+            {
+                m_thisAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
+                m_thisAgentUpdateArgs.CameraCenter = x.CameraCenter;
+                m_thisAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
+                m_thisAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
+
+                UpdateAgent handlerAgentCameraUpdate = OnAgentCameraUpdate;
+
                 if (handlerAgentCameraUpdate != null)
                     handlerAgentCameraUpdate(this, m_thisAgentUpdateArgs);
 
-            handlerAgentUpdate = null;
-            handlerPreAgentUpdate = null;
-            handlerAgentCameraUpdate = null;
+                handlerAgentCameraUpdate = null;
+            }
 
             PacketPool.Instance.ReturnPacket(packet);
 

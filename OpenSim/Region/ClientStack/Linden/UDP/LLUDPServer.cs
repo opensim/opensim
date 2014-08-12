@@ -731,7 +731,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp status",
                 "Return status of LLUDP packet processing.",
                 HandleStatusCommand);
-
+/*  disabled
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
@@ -739,6 +739,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
                 HandleAgentUpdateCommand);
+ */
         }
 
         private void HandlePacketCommand(string module, string[] args)
@@ -1553,24 +1554,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
 
-            if (packet.Type == PacketType.AgentUpdate)
-            {
-                if (m_discardAgentUpdates)
-                    return;
-
-                ((LLClientView)client).TotalAgentUpdates++;
-
-                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
-
-                LLClientView llClient = client as LLClientView;
-                if (agentUpdate.AgentData.SessionID != client.SessionId 
-                    || agentUpdate.AgentData.AgentID != client.AgentId
-                    || !(llClient == null || llClient.CheckAgentUpdateSignificance(agentUpdate.AgentData)) )
-                {
-                    PacketPool.Instance.ReturnPacket(packet);
-                    return;
-                }
-            }
+// AgentUpdate mess removed from here
 
             #region Ping Check Handling
 
