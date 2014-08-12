@@ -1768,17 +1768,11 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
 
-                Vector3 look = Velocity;
-
-                //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
-                if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
-                {
-                    look = new Vector3(0.99f, 0.042f, 0);
-                }
-
                 // Prevent teleporting to an underground location
                 // (may crash client otherwise)
                 //
+
+/* this is done in MakeRootAgent 
                 Vector3 pos = AbsolutePosition;
                 float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
                 if (pos.Z < ground + 1.5f)
@@ -1786,7 +1780,7 @@ namespace OpenSim.Region.Framework.Scenes
                     pos.Z = ground + 1.5f;
                     AbsolutePosition = pos;
                 }
-
+*/
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
                 if (!MakeRootAgent(AbsolutePosition, flying))
                 {
@@ -1795,6 +1789,16 @@ namespace OpenSim.Region.Framework.Scenes
                         Name, Scene.Name);
 
                     return;
+                }
+
+                Vector3 look = Lookat;
+                if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01))
+                {
+                    look = Velocity;
+                    look.Z = 0;
+                    look = Util.GetNormalizedVector(look);
+                    if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01) )
+                        look = new Vector3(0.99f, 0.042f, 0);
                 }
 
                 // Tell the client that we're totally ready
