@@ -5737,7 +5737,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Scene/Avatar
 
         // Threshold for body rotation to be a significant agent update
-        private const float QDELTA = 0.000001f;
+        // use the abs of cos
+        private const float QDELTABody = 1.0f - 0.0001f;
+        private const float QDELTAHead = 1.0f - 0.0001f;
         // Threshold for camera rotation to be a significant agent update
         private const float VDELTA = 0.01f;
 
@@ -5760,17 +5762,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float qdelta1 = 1 - (float)Math.Pow(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation), 2);
-            //qdelta2 = 1 - (float)Math.Pow(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation), 2);
+            float qdelta1 = Math.Abs(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation));
+            //qdelta2 = Math.Abs(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation));
 
             bool movementSignificant =
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
                 || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
-                || (qdelta1 > QDELTA)                                          // significant if body rotation above threshold
+                || (qdelta1 < QDELTABody)                                   // significant if body rotation above(below cos) threshold
                 // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
-                // || (qdelta2 > QDELTA * 10)                               // significant if head rotation above threshold
+                // || (qdelta2 < QDELTAHead)                               // significant if head rotation above(below cos) threshold
                 || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
             ;
             //if (movementSignificant)
