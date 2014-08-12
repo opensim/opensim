@@ -147,6 +147,10 @@ namespace pCampBot
         /// </summary>
         public BotManager()
         {
+            // We set this to avoid issues with bots running out of HTTP connections if many are run from a single machine
+            // to multiple regions.
+            Settings.MAX_HTTP_CONNECTIONS = int.MaxValue;
+
             InitBotSendAgentUpdates = true;
             InitBotRequestObjectTextures = true;
 
