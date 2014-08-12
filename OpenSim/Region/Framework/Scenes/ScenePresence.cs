@@ -1113,9 +1113,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
-    //            m_log.InfoFormat(
-    //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
-    //                Name, m_scene.RegionInfo.RegionName);
+                //            m_log.InfoFormat(
+                //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
+                //                Name, m_scene.RegionInfo.RegionName);
 
                 if (ParentUUID != UUID.Zero)
                 {
@@ -1148,17 +1148,17 @@ namespace OpenSim.Region.Framework.Scenes
             // Must reset this here so that a teleport to a region next to an existing region does not keep the flag
             // set and prevent the close of the connection on a subsequent re-teleport.
             // Should not be needed if we are not trying to tell this region to close
-//            DoNotCloseAfterTeleport = false;
+            //            DoNotCloseAfterTeleport = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 Grouptitle = gm.GetGroupTitle(m_uuid);
-            
+
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
 
-/*   this is now done by groups module on TriggerOnMakeRootAgent(this)  below
+/*   this should  be done by groups module on TriggerOnMakeRootAgent(this)  below
     at least XmlIRpcGroups
             UUID groupUUID = UUID.Zero;
             string GroupName = string.Empty;
@@ -1191,149 +1191,149 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         // ------------------------------------
 */
-                        if (ParentID == 0)
-                        {
-                            // Moved this from SendInitialData to ensure that Appearance is initialized
-                            // before the inventory is processed in MakeRootAgent. This fixes a race condition
-                            // related to the handling of attachments
+            if (ParentID == 0)
+            {
+                // Moved this from SendInitialData to ensure that Appearance is initialized
+                // before the inventory is processed in MakeRootAgent. This fixes a race condition
+                // related to the handling of attachments
 
-                            if (m_scene.TestBorderCross(pos, Cardinals.E))
-                            {
-                                Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
-                                pos.X = crossedBorder.BorderLine.Z - 1;
-                            }
+                if (m_scene.TestBorderCross(pos, Cardinals.E))
+                {
+                    Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
+                    pos.X = crossedBorder.BorderLine.Z - 1;
+                }
 
-                            if (m_scene.TestBorderCross(pos, Cardinals.N))
-                            {
-                                Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
-                                pos.Y = crossedBorder.BorderLine.Z - 1;
-                            }
+                if (m_scene.TestBorderCross(pos, Cardinals.N))
+                {
+                    Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
+                    pos.Y = crossedBorder.BorderLine.Z - 1;
+                }
 
-                            CheckAndAdjustLandingPoint(ref pos);
+                CheckAndAdjustLandingPoint(ref pos);
 
-                            if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
-                            {
-                                m_log.WarnFormat(
-                                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}. Clamping",
-                                    pos, Name, UUID);
+                if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
+                {
+                    m_log.WarnFormat(
+                        "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}. Clamping",
+                        pos, Name, UUID);
 
-                                if (pos.X < 0f) pos.X = 0f;
-                                if (pos.Y < 0f) pos.Y = 0f;
-                                if (pos.Z < 0f) pos.Z = 0f;
-                            }
+                    if (pos.X < 0f) pos.X = 0f;
+                    if (pos.Y < 0f) pos.Y = 0f;
+                    if (pos.Z < 0f) pos.Z = 0f;
+                }
 
-                            float localAVHeight = 1.56f;
-                            if (Appearance.AvatarHeight > 0)
-                                localAVHeight = Appearance.AvatarHeight;
+                float localAVHeight = 1.56f;
+                if (Appearance.AvatarHeight > 0)
+                    localAVHeight = Appearance.AvatarHeight;
 
-                            float posZLimit = 0;
+                float posZLimit = 0;
 
-                            if (pos.X < Constants.RegionSize && pos.Y < Constants.RegionSize)
-                                posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
-                
-                            float newPosZ = posZLimit + localAVHeight / 2;
-                            if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
-                            {
-                                pos.Z = newPosZ;
-                            }
-                            AbsolutePosition = pos;
+                if (pos.X < Constants.RegionSize && pos.Y < Constants.RegionSize)
+                    posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
 
-                            if (m_teleportFlags == TeleportFlags.Default)
-                            {
-                                Vector3 vel = Velocity;
-                                AddToPhysicalScene(isFlying);
-                                if (PhysicsActor != null)
-                                    PhysicsActor.SetMomentum(vel);
-                            }
-                            else
-                                AddToPhysicalScene(isFlying);
+                float newPosZ = posZLimit + localAVHeight / 2;
+                if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
+                {
+                    pos.Z = newPosZ;
+                }
+                AbsolutePosition = pos;
 
-                            // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
-                            // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
-                            // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
-                            // the value to a negative position which does not trigger the border cross.
-                            // This may not be the best location for this.
-                            CheckForBorderCrossing();
+                if (m_teleportFlags == TeleportFlags.Default)
+                {
+                    Vector3 vel = Velocity;
+                    AddToPhysicalScene(isFlying);
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum(vel);
+                }
+                else
+                    AddToPhysicalScene(isFlying);
 
-                            if (ForceFly)
-                            {
-                                Flying = true;
-                            }
-                            else if (FlyDisabled)
-                            {
-                                Flying = false;
-                            }
-                        }
-                        // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
-                        // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
-                        // elsewhere anyway
-                        // Animator.SendAnimPack();
+                // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
+                // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
+                // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
+                // the value to a negative position which does not trigger the border cross.
+                // This may not be the best location for this.
+                CheckForBorderCrossing();
 
-                        m_scene.SwapRootAgentCount(false);
+                if (ForceFly)
+                {
+                    Flying = true;
+                }
+                else if (FlyDisabled)
+                {
+                    Flying = false;
+                }
+            }
+            // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
+            // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
+            // elsewhere anyway
+            // Animator.SendAnimPack();
 
-                        // The initial login scene presence is already root when it gets here
-                        // and it has already rezzed the attachments and started their scripts.
-                        // We do the following only for non-login agents, because their scripts
-                        // haven't started yet.
-            /* moved down
-                        if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
-                        {
-                            // Viewers which have a current outfit folder will actually rez their own attachments.  However,
-                            // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
-                            if (Scene.AttachmentsModule != null)
-                                Util.FireAndForget(
-                                    o => 
-                                    { 
-            //                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
-            //                                System.Threading.Thread.Sleep(7000); 
+            m_scene.SwapRootAgentCount(false);
 
-                                        Scene.AttachmentsModule.RezAttachments(this); 
-                                    });
-                        }
-                        else
+            // The initial login scene presence is already root when it gets here
+            // and it has already rezzed the attachments and started their scripts.
+            // We do the following only for non-login agents, because their scripts
+            // haven't started yet.
+/* moved down
+            if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
+            {
+                // Viewers which have a current outfit folder will actually rez their own attachments.  However,
+                // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
+                if (Scene.AttachmentsModule != null)
+                    Util.FireAndForget(
+                        o => 
+                        { 
+//                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
+//                                System.Threading.Thread.Sleep(7000); 
 
-                        {
-                            // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                            // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                            // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                            // not transporting the required data.
-                            //
-                            // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                            // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                            // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                            // not transporting the required data.
-                            //
-                            // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
-                            // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
-                            // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
-                            //
-                            // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
-                            // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
-                            // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
-                            // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
-                            //
-                            // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
-                            // be locked, allowing race conditions if other code changes the attachments list.
+                            Scene.AttachmentsModule.RezAttachments(this); 
+                        });
+            }
+            else
 
-                            List<SceneObjectGroup> attachments = GetAttachments();
+            {
+                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+                // not transporting the required data.
+                //
+                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+                // not transporting the required data.
+                //
+                // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
+                // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
+                // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
+                //
+                // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
+                // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
+                // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
+                // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
+                //
+                // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
+                // be locked, allowing race conditions if other code changes the attachments list.
 
-                            if (attachments.Count > 0)
-                            {
-                                m_log.DebugFormat(
-                                    "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+                List<SceneObjectGroup> attachments = GetAttachments();
 
-                                // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
-                                foreach (SceneObjectGroup sog in attachments)
-                                {
-            // sending attachments before the avatar ?
-            // moved to completemovement where it already was
-            //                        sog.ScheduleGroupForFullUpdate();
-                                    sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                                    sog.ResumeScripts();
-                                }
-                            }
-                        }
-            */
+                if (attachments.Count > 0)
+                {
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                    // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
+                    foreach (SceneObjectGroup sog in attachments)
+                    {
+// sending attachments before the avatar ?
+// moved to completemovement where it already was
+//                        sog.ScheduleGroupForFullUpdate();
+                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                        sog.ResumeScripts();
+                    }
+                }
+            }
+*/
 /* 
             SendAvatarDataToAllAgents();
 
