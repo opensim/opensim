@@ -1595,11 +1595,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 incomingPacket = new IncomingPacket((LLClientView)client, packet);
             }
 
-            if (incomingPacket.Packet.Type == PacketType.AgentUpdate ||
-                incomingPacket.Packet.Type == PacketType.ChatFromViewer)
+//            if (incomingPacket.Packet.Type == PacketType.AgentUpdate ||
+//                incomingPacket.Packet.Type == PacketType.ChatFromViewer)
+            if (incomingPacket.Packet.Type == PacketType.ChatFromViewer)
                 packetInbox.EnqueueHigh(incomingPacket);
             else
                 packetInbox.EnqueueLow(incomingPacket);
+
         }
 
         #region BinaryStats
