@@ -58,6 +58,15 @@ namespace OpenSim.Framework
     public enum PermissionMask : uint
     { 
         None = 0,
+
+        // folded perms
+        foldedTransfer = 1,
+        foldedModify = 1 << 1,
+        foldedCopy = 1 << 2,
+
+        foldedMask = 0x07,
+
+        //
         Transfer = 1 << 13,
         Modify = 1 << 14,
         Copy = 1 << 15,
@@ -243,14 +252,12 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="a">A 3d vector</param>
         /// <returns>A new vector which is normalized form of the vector</returns>
-        /// <remarks>The vector paramater cannot be <0,0,0></remarks>
+        
         public static Vector3 GetNormalizedVector(Vector3 a)
         {
-            if (IsZeroVector(a))
-                throw new ArgumentException("Vector paramater cannot be a zero vector.");
-
-            float Mag = (float) GetMagnitude(a);
-            return new Vector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
+            Vector3 v = new Vector3(a.X, a.Y, a.Z);
+            v.Normalize();
+            return v;
         }
 
         /// <summary>
