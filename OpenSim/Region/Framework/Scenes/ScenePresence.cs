@@ -1764,12 +1764,7 @@ namespace OpenSim.Region.Framework.Scenes
                         "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
                         client.Name, client.AgentId, m_callbackURI);
 
-                    UUID originID;
-
-                    lock (m_originRegionIDAccessLock)
-                        originID = m_originRegionID;
-
-                    Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
+                    Scene.SimulationService.ReleaseAgent(m_originRegionID, UUID, m_callbackURI);
                     m_callbackURI = null;
                 }
     //            else
