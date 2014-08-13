@@ -38,6 +38,7 @@ using log4net.Repository;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using pCampBot.Interfaces;
 
 namespace pCampBot
@@ -143,6 +144,11 @@ namespace pCampBot
         private HashSet<string> m_defaultBehaviourSwitches = new HashSet<string>();
 
         /// <summary>
+        /// Collects general information on this server (which reveals this to be a misnamed class).
+        /// </summary>
+        private ServerStatsCollector m_serverStatsCollector;
+
+        /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
         public BotManager()
@@ -150,6 +156,12 @@ namespace pCampBot
             // We set this to avoid issues with bots running out of HTTP connections if many are run from a single machine
             // to multiple regions.
             Settings.MAX_HTTP_CONNECTIONS = int.MaxValue;
+
+//            System.Threading.ThreadPool.SetMaxThreads(600, 240);
+//
+//            int workerThreads, iocpThreads;
+//            System.Threading.ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+//            Console.WriteLine("ThreadPool.GetMaxThreads {0} {1}", workerThreads, iocpThreads);
 
             InitBotSendAgentUpdates = true;
             InitBotRequestObjectTextures = true;
@@ -234,6 +246,14 @@ namespace pCampBot
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_bots = new List<Bot>();
+
+            Watchdog.Enabled = true;
+            StatsManager.RegisterConsoleCommands(m_console);
+
+            m_serverStatsCollector = new ServerStatsCollector();
+            m_serverStatsCollector.Initialise(null);
+            m_serverStatsCollector.Enabled = true;
+            m_serverStatsCollector.Start();
         }
 
         /// <summary>
@@ -696,6 +716,8 @@ namespace pCampBot
             }
 
             MainConsole.Instance.Output("Shutting down");
+
+            m_serverStatsCollector.Close();
 
             Environment.Exit(0);
         }

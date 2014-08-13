@@ -82,6 +82,9 @@ namespace OpenSim.Framework.Monitoring
         // IRegionModuleBase.Initialize
         public void Initialise(IConfigSource source)
         {
+            if (source == null)
+                return;
+
             IConfig cfg = source.Configs["Monitoring"];
 
             if (cfg != null)
