@@ -1650,6 +1650,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void DropThisRootRegionFromNeighbours()
+        {
+            ulong handle = m_scene.RegionInfo.RegionHandle;
+            RemoveNeighbourRegion(handle);
+            Scene.CapsModule.DropChildSeed(UUID, handle);
+        }
+
+
         public Dictionary<ulong, string> KnownRegions
         {
             get
@@ -1850,6 +1858,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     newhide = m_currentParcelHide;
                     m_currentParcelHide = false;
+
+                    // take this region out of children Neighbours list
+                    // possible should be done elsewhere
+                    DropThisRootRegionFromNeighbours();
 
                     ValidateAndSendAppearanceAndAgentData();
 
