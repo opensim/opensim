@@ -1077,8 +1077,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Queue or Send
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
+
             // If we were not provided a method for handling unacked, use the UDPServer default method
-            outgoingPacket.UnackedMethod = ((method == null) ? delegate(OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
+            if ((outgoingPacket.Buffer.Data[0] & Helpers.MSG_RELIABLE) != 0)
+                outgoingPacket.UnackedMethod = ((method == null) ? delegate(OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
 
             // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will 
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
