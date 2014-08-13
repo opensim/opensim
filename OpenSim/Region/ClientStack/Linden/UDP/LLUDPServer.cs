@@ -731,7 +731,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp status",
                 "Return status of LLUDP packet processing.",
                 HandleStatusCommand);
-
+/*  disabled
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
@@ -739,6 +739,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
                 HandleAgentUpdateCommand);
+ */
         }
 
         private void HandlePacketCommand(string module, string[] args)
@@ -1421,6 +1422,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
                 }
 
+/*
                 else if (packet.Type == PacketType.CompleteAgentMovement)
                 {
                     // Send ack straight away to let the viewer know that we got it.
@@ -1434,6 +1436,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     return;
                 }
+ */
             }
 
             // Determine which agent this packet came from
@@ -1553,24 +1556,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
 
-            if (packet.Type == PacketType.AgentUpdate)
-            {
-                if (m_discardAgentUpdates)
-                    return;
-
-                ((LLClientView)client).TotalAgentUpdates++;
-
-                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
-
-                LLClientView llClient = client as LLClientView;
-                if (agentUpdate.AgentData.SessionID != client.SessionId 
-                    || agentUpdate.AgentData.AgentID != client.AgentId
-                    || !(llClient == null || llClient.CheckAgentUpdateSignificance(agentUpdate.AgentData)) )
-                {
-                    PacketPool.Instance.ReturnPacket(packet);
-                    return;
-                }
-            }
+// AgentUpdate mess removed from here
 
             #region Ping Check Handling
 
@@ -1611,11 +1597,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 incomingPacket = new IncomingPacket((LLClientView)client, packet);
             }
 
-            if (incomingPacket.Packet.Type == PacketType.AgentUpdate ||
-                incomingPacket.Packet.Type == PacketType.ChatFromViewer)
+//            if (incomingPacket.Packet.Type == PacketType.AgentUpdate ||
+//                incomingPacket.Packet.Type == PacketType.ChatFromViewer)
+            if (incomingPacket.Packet.Type == PacketType.ChatFromViewer)
                 packetInbox.EnqueueHigh(incomingPacket);
             else
                 packetInbox.EnqueueLow(incomingPacket);
+
         }
 
         #region BinaryStats
@@ -1732,7 +1720,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-    //            DateTime startTime = DateTime.Now;
+//              DateTime startTime = DateTime.Now;
                 object[] array = (object[])o;
                 endPoint = (IPEndPoint)array[0];
                 UseCircuitCodePacket uccp = (UseCircuitCodePacket)array[1];
@@ -1752,9 +1740,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             uccp.CircuitCode.SessionID,
                             endPoint,
                             sessionInfo);
-            
+
                     // Now we know we can handle more data
-//                    Thread.Sleep(200);
+                    Thread.Sleep(200);
 
                     // Obtain the pending queue and remove it from the cache
                     Queue<UDPPacketBuffer> queue = null;
@@ -1765,6 +1753,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             m_log.DebugFormat("[LLUDPSERVER]: Client created but no pending queue present");
                             return;
+
                         }
                         m_pendingCache.Remove(endPoint);
                     }
@@ -1772,11 +1761,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.DebugFormat("[LLUDPSERVER]: Client created, processing pending queue, {0} entries", queue.Count);
 
                     // Reinject queued packets
-                    while(queue.Count > 0)
+                    while (queue.Count > 0)
                     {
                         UDPPacketBuffer buf = queue.Dequeue();
                         PacketReceived(buf);
                     }
+
                     queue = null;
 
                     // Send ack straight away to let the viewer know that the connection is active.
@@ -1802,8 +1792,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         uccp.CircuitCode.ID, m_scene.RegionInfo.RegionName, uccp.CircuitCode.Code, endPoint);
                     lock (m_pendingCache)
                         m_pendingCache.Remove(endPoint);
-                }
-    
+                }    
                 //            m_log.DebugFormat(
     //                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
     //                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
@@ -1820,8 +1809,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     e.StackTrace);
             }
         }
-
-        private void HandleCompleteMovementIntoRegion(object o)
+/*
+         private void HandleCompleteMovementIntoRegion(object o)
         {
             IPEndPoint endPoint = null;
             IClientAPI client = null;
@@ -1930,6 +1919,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     e.StackTrace);
             }
         }
+*/
 
         /// <summary>
         /// Send an ack immediately to the given endpoint.
@@ -2067,7 +2057,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_incomingPacketPool.ReturnObject(incomingPacket);
                     }
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
                     m_log.Error("[LLUDPSERVER]: Error in the incoming packet handler loop: " + ex.Message, ex);
                 }
