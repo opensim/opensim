@@ -43,5 +43,15 @@ namespace pCampBot
             AbbreviatedName = "n";
             Name = "None"; 
         }
+
+        public override void Action()
+        {
+            m_interruptEvent.WaitOne();
+        }
+
+        public override void Interrupt() 
+        {
+            m_interruptEvent.Set();
+        }
     }
 }

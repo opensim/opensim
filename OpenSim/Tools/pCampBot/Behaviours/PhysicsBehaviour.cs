@@ -82,6 +82,8 @@ namespace pCampBot
         {
             if (Bot.ConnectionState == ConnectionState.Connected)
                 Bot.Client.Self.Jump(false);
+
+            base.Close();
         }
 
         private string[] readexcuses()

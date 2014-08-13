@@ -29,11 +29,12 @@ using OpenMetaverse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using pCampBot.Interfaces;
 
 namespace pCampBot
 {
-    public class AbstractBehaviour : IBehaviour
+    public abstract class AbstractBehaviour : IBehaviour
     {
         /// <summary>
         /// Abbreviated name of this behaviour. 
@@ -44,13 +45,20 @@ namespace pCampBot
 
         public Bot Bot { get; protected set; }
 
-        public virtual void Action() {}
+        public abstract void Action();
+
+        public virtual void Interrupt() {}
+
+        protected AutoResetEvent m_interruptEvent = new AutoResetEvent(false);
 
         public virtual void Initialize(Bot bot)
         {
             Bot = bot;
         }
 
-        public virtual void Close() {}
+        public virtual void Close() 
+        {
+            Interrupt();
+        }
     }
 }

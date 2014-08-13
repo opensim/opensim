@@ -192,15 +192,15 @@ namespace pCampBot
 
         public bool AddBehaviour(IBehaviour behaviour)
         {
-            lock (Behaviours)
-            {
-                if (!Behaviours.ContainsKey(behaviour.AbbreviatedName))
-                {                    
-                    behaviour.Initialize(this);
-                    Behaviours.Add(behaviour.AbbreviatedName, behaviour);
+            Dictionary<string, IBehaviour> updatedBehaviours = new Dictionary<string, IBehaviour>(Behaviours);
 
-                    return true;
-                }
+            if (!updatedBehaviours.ContainsKey(behaviour.AbbreviatedName))
+            {                    
+                behaviour.Initialize(this);
+                updatedBehaviours.Add(behaviour.AbbreviatedName, behaviour);
+                Behaviours = updatedBehaviours;
+
+                return true;
             }
 
             return false;
@@ -208,18 +208,17 @@ namespace pCampBot
 
         public bool RemoveBehaviour(string abbreviatedName)
         {
-            lock (Behaviours)
-            {
-                IBehaviour behaviour;
+            Dictionary<string, IBehaviour> updatedBehaviours = new Dictionary<string, IBehaviour>(Behaviours);
+            IBehaviour behaviour;
 
-                if (!Behaviours.TryGetValue(abbreviatedName, out behaviour))
-                    return false;
+            if (!updatedBehaviours.TryGetValue(abbreviatedName, out behaviour))
+                return false;
 
-                behaviour.Close();
-                Behaviours.Remove(abbreviatedName);
+            behaviour.Close();
+            updatedBehaviours.Remove(abbreviatedName);
+            Behaviours = updatedBehaviours;
 
-                return true;
-            }
+            return true;
         }
 
         private void CreateLibOmvClient()
@@ -279,24 +278,17 @@ namespace pCampBot
         {
             while (ConnectionState == ConnectionState.Connected)
             {
-                lock (Behaviours)
+                foreach (IBehaviour behaviour in Behaviours.Values)
                 {
-                    foreach (IBehaviour behaviour in Behaviours.Values)
-                    {
 //                        Thread.Sleep(Random.Next(3000, 10000));
-                    
-                        // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
-                        behaviour.Action();
-                    }
+                
+                    // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
+                    behaviour.Action();
                 }
-
-                // XXX: This is a really shitty way of yielding so that behaviours can be added/removed
-                Thread.Sleep(100);
             }
 
-            lock (Behaviours)
-                foreach (IBehaviour b in Behaviours.Values)
-                    b.Close();
+            foreach (IBehaviour b in Behaviours.Values)
+                b.Close();
         }
 
         /// <summary>
@@ -305,9 +297,9 @@ namespace pCampBot
         public void Disconnect()
         {
             ConnectionState = ConnectionState.Disconnecting;
-
-//            if (m_actionThread != null)
-//                m_actionThread.Abort();
+              
+            foreach (IBehaviour behaviour in Behaviours.Values)
+                behaviour.Interrupt();
 
             Client.Network.Logout();
         }

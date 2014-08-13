@@ -51,6 +51,14 @@ namespace pCampBot.Interfaces
         void Initialize(Bot bot);
 
         /// <summary>
+        /// Interrupt the behaviour.
+        /// </summary>
+        /// <remarks>
+        /// This should cause the current Action call() to terminate if this is active.
+        /// </remarks>
+        void Interrupt();
+
+        /// <summary>
         /// Close down this behaviour.
         /// </summary>
         /// <remarks>
