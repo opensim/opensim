@@ -492,6 +492,18 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 wearableCache = WearableCacheItem.GetDefaultCacheItem();
 
+
+                m_log.DebugFormat("[AVFACTORY]: ValidateBakedTextureCache start for {0} {1}", sp.Name, sp.UUID);
+                // debug
+                for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
+                {
+                    int j = AvatarAppearance.BAKE_INDICES[iter];
+                    Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[iter];
+                    if (face != null)
+                        m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - " + face.TextureID);
+                    else
+                        m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - No texture");
+                }
                 
                 bool gotbacked = false;
 
