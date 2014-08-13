@@ -5845,7 +5845,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_thisAgentUpdateArgs.Far = x.Far;
                 m_thisAgentUpdateArgs.Flags = x.Flags;
                 m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
-                m_thisAgentUpdateArgs.SessionID = x.SessionID;
+//                m_thisAgentUpdateArgs.SessionID = x.SessionID;
                 m_thisAgentUpdateArgs.State = x.State;
 
                 UpdateAgent handlerAgentUpdate = OnAgentUpdate;
@@ -6762,8 +6762,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        private bool HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
+      private bool HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
         {
+            m_log.DebugFormat("[LLClientView] HandleCompleteAgentMovement");
+
             Action<IClientAPI, bool> handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
             if (handlerCompleteMovementToRegion != null)
             {
