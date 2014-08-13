@@ -323,22 +323,25 @@ namespace OpenSim.Region.Framework.Scenes
             m_group = grp;
             m_scene = grp.Scene;
 
-            Vector3 grppos = grp.AbsolutePosition;
-            Vector3 offset = grppos - m_serializedPosition;
-            // avoid doing it more than once
-            // current this will happen draging a prim to other region
-            m_serializedPosition = grppos;
-
-            m_basePosition += offset;
-            m_currentFrame.Position += offset;
-
-            m_nextPosition += offset;
-
-            for (int i = 0; i < m_frames.Count; i++)
+            lock (m_frames)
             {
-                Keyframe k = m_frames[i];
-                k.Position += offset;
-                m_frames[i]=k;
+                Vector3 grppos = grp.AbsolutePosition;
+                Vector3 offset = grppos - m_serializedPosition;
+                // avoid doing it more than once
+                // current this will happen draging a prim to other region
+                m_serializedPosition = grppos;
+
+                m_basePosition += offset;
+                m_currentFrame.Position += offset;
+
+                m_nextPosition += offset;
+
+                for (int i = 0; i < m_frames.Count; i++)
+                {
+                    Keyframe k = m_frames[i];
+                    k.Position += offset;
+                    m_frames[i] = k;
+                }
             }
 
             if (m_running)
@@ -383,25 +386,28 @@ namespace OpenSim.Region.Framework.Scenes
                 m_keyframes.CopyTo(newmotion.m_keyframes, 0);
             }
 
-            newmotion.m_frames = new List<Keyframe>(m_frames);
-
-            newmotion.m_basePosition = m_basePosition;
-            newmotion.m_baseRotation = m_baseRotation;
-
-            if (m_selected)
-                newmotion.m_serializedPosition = m_serializedPosition;
-            else
+            lock (m_frames)
             {
-                if (m_group != null)
-                    newmotion.m_serializedPosition = m_group.AbsolutePosition;
-                else
+                newmotion.m_frames = new List<Keyframe>(m_frames);
+
+                newmotion.m_basePosition = m_basePosition;
+                newmotion.m_baseRotation = m_baseRotation;
+
+                if (m_selected)
                     newmotion.m_serializedPosition = m_serializedPosition;
+                else
+                {
+                    if (m_group != null)
+                        newmotion.m_serializedPosition = m_group.AbsolutePosition;
+                    else
+                        newmotion.m_serializedPosition = m_serializedPosition;
+                }
+
+                newmotion.m_currentFrame = m_currentFrame;
+
+                newmotion.m_iterations = m_iterations;
+                newmotion.m_running = m_running;
             }
-
-            newmotion.m_currentFrame = m_currentFrame;
-
-            newmotion.m_iterations = m_iterations;
-            newmotion.m_running = m_running;
 
             if (m_running && !m_waitingCrossing)
                 StartTimer();
@@ -520,7 +526,6 @@ namespace OpenSim.Region.Framework.Scenes
                         k.Position = pos;
 //                        k.Velocity = Vector3.Zero;
                     }
-                    k.AngularVelocity = (Vector3)k.Position;
 
                     k.StartRotation = rot;
                     if (k.Rotation.HasValue)
@@ -654,27 +659,29 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_frames.Count == 0)
             {
-                GetNextList();
-
-                if (m_frames.Count == 0)
+                lock (m_frames)
                 {
-                    Done();
-                    Scene scene = m_group.Scene;
+                    GetNextList();
 
-                    IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
-                    foreach (IScriptModule m in scriptModules)
+                    if (m_frames.Count == 0)
                     {
-                        if (m == null)
-                            continue;
-                        m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
+                        Done();
+                        Scene scene = m_group.Scene;
+
+                        IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
+                        foreach (IScriptModule m in scriptModules)
+                        {
+                            if (m == null)
+                                continue;
+                            m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
+                        }
+
+                        return;
                     }
 
-                    return;
+                    m_currentFrame = m_frames[0];
+                    m_currentFrame.TimeMS += (int)tickDuration;
                 }
-
-                m_currentFrame = m_frames[0];
-                m_currentFrame.TimeMS += (int)tickDuration;
-
                 //force a update on a keyframe transition
                 update = true;
             }
@@ -683,22 +690,26 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Do the frame processing
             double steps = (double)m_currentFrame.TimeMS / tickDuration;
-            
+
             if (steps <= 0.0)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_group.RootPart.AngularVelocity = Vector3.Zero;
 
-                m_nextPosition = NormalizeVector(m_currentFrame.AngularVelocity);
+                m_nextPosition = (Vector3)m_currentFrame.Position;
                 m_group.AbsolutePosition = m_nextPosition;
 
                 // we are sending imediate updates, no doing force a extra terseUpdate
                 // m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
 
                 m_group.RootPart.RotationOffset = (Quaternion)m_currentFrame.Rotation;
-                m_frames.RemoveAt(0);
-                if (m_frames.Count > 0)
-                    m_currentFrame = m_frames[0];
+
+                lock (m_frames)
+                {
+                    m_frames.RemoveAt(0);
+                    if (m_frames.Count > 0)
+                        m_currentFrame = m_frames[0];
+                }
 
                 update = true;
             }
@@ -714,7 +725,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // m_group.AbsolutePosition += motionThisFrame;
                     m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
-                    m_group.AbsolutePosition = m_nextPosition;
 
                     //m_group.RootPart.Velocity = v;
                     update = true;
@@ -726,43 +736,43 @@ namespace OpenSim.Region.Framework.Scenes
 
                     Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, complete);
                     step.Normalize();
-/* use simpler change detection
-* float angle = 0;
+                    /* use simpler change detection
+                    * float angle = 0;
 
-                    float aa = current.X * current.X + current.Y * current.Y + current.Z * current.Z + current.W * current.W;
-                    float bb = step.X * step.X + step.Y * step.Y + step.Z * step.Z + step.W * step.W;
-                    float aa_bb = aa * bb;
+                                        float aa = current.X * current.X + current.Y * current.Y + current.Z * current.Z + current.W * current.W;
+                                        float bb = step.X * step.X + step.Y * step.Y + step.Z * step.Z + step.W * step.W;
+                                        float aa_bb = aa * bb;
 
-                    if (aa_bb == 0)
-                    {
-                        angle = 0;
-                    }
-                    else
-                    {
-                        float ab = current.X * step.X +
-                                   current.Y * step.Y +
-                                   current.Z * step.Z +
-                                   current.W * step.W;
-                        float q = (ab * ab) / aa_bb;
+                                        if (aa_bb == 0)
+                                        {
+                                            angle = 0;
+                                        }
+                                        else
+                                        {
+                                            float ab = current.X * step.X +
+                                                       current.Y * step.Y +
+                                                       current.Z * step.Z +
+                                                       current.W * step.W;
+                                            float q = (ab * ab) / aa_bb;
 
-                        if (q > 1.0f)
-                        {
-                            angle = 0;
-                        }
-                        else
-                        {
-                            angle = (float)Math.Acos(2 * q - 1);
-                        }
-                    }
+                                            if (q > 1.0f)
+                                            {
+                                                angle = 0;
+                                            }
+                                            else
+                                            {
+                                                angle = (float)Math.Acos(2 * q - 1);
+                                            }
+                                        }
 
-                    if (angle > 0.01f)
-*/
+                                        if (angle > 0.01f)
+                    */
                     if (Math.Abs(step.X - current.X) > 0.001f
                         || Math.Abs(step.Y - current.Y) > 0.001f
                         || Math.Abs(step.Z - current.Z) > 0.001f)
                     // assuming w is a dependente var
                     {
-//                                m_group.UpdateGroupRotationR(step);
+                        //                                m_group.UpdateGroupRotationR(step);
                         m_group.RootPart.RotationOffset = step;
 
                         //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
@@ -773,29 +783,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (update)
             {
+                m_group.AbsolutePosition = m_nextPosition;
                 m_group.SendGroupRootTerseUpdate();
             }
         }
-        private Vector3 NormalizeVector(Vector3? pPosition)
-        {
-            if (pPosition == null)
-                return Vector3.Zero;
 
-            Vector3 tmp = (Vector3) pPosition;
-
-            while (tmp.X > Constants.RegionSize)
-                tmp.X -= Constants.RegionSize;
-            while (tmp.X < 0)
-                tmp.X += Constants.RegionSize;
-            while (tmp.Y > Constants.RegionSize)
-                tmp.Y -= Constants.RegionSize;
-            while (tmp.Y < 0)
-                tmp.Y += Constants.RegionSize;
-
-            return tmp;
-
-            
-        }
         public Byte[] Serialize()
         {
             StopTimer();
