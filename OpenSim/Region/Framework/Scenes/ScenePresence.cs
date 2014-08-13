@@ -344,6 +344,12 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_originRegionIDAccessLock = new object();
 
         /// <summary>
+        /// Triggered on entity transfer after to allow CompleteMovement() to proceed after we have received an
+        /// UpdateAgent from the originating region.ddkjjkj
+        /// </summary>
+        private AutoResetEvent m_updateAgentReceivedAfterTransferEvent = new AutoResetEvent(false);
+
+        /// <summary>
         /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
         /// teleport is reusing the connection.
         /// </summary>
@@ -1648,8 +1654,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // For the moment, just set the size as passed.
                 PhysicsActor.Size = size;
                 //  PhysicsActor.setAvatarSize(size, feetoffset);
-            }
-            
+            }            
         }
 
         private bool WaitForUpdateAgent(IClientAPI client)
@@ -1658,20 +1663,12 @@ namespace OpenSim.Region.Framework.Scenes
             // (which triggers Scene.IncomingUpdateChildAgent(AgentData cAgentData) here in the destination, 
             // m_originRegionID is UUID.Zero; after, it's non-Zero.  The CompleteMovement sequence initiated from the
             // viewer (in turn triggered by the source region sending it a TeleportFinish event) waits until it's non-zero
-            int count = 50;
-            UUID originID;
+            m_updateAgentReceivedAfterTransferEvent.WaitOne(10000);
+
+            UUID originID = UUID.Zero;           
 
             lock (m_originRegionIDAccessLock)
-                originID = m_originRegionID;
-
-            while (originID.Equals(UUID.Zero) && count-- > 0)
-            {
-                lock (m_originRegionIDAccessLock)
-                    originID = m_originRegionID;
-
-                m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.Name);
-                Thread.Sleep(200);
-            }
+                originID = m_originRegionID;           
 
             if (originID.Equals(UUID.Zero))
             {
@@ -3820,6 +3817,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             CopyFrom(cAgentData);
+
+            m_updateAgentReceivedAfterTransferEvent.Set();
         }
 
         private static Vector3 marker = new Vector3(-1f, -1f, -1f);
