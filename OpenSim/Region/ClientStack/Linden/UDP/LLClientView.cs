@@ -419,6 +419,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
+        public int PingTimeMS
+        {
+            get
+            {
+                if (UDPClient != null)
+                    return UDPClient.PingTimeMS;
+                return 0;
+            }
+        }
+
         /// <summary>
         /// Entity update queues
         /// </summary>
@@ -460,6 +470,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_disableFacelights; }
             set { m_disableFacelights = value; }
         }
+
 
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
        
@@ -1638,6 +1649,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pc.PingID.OldestUnacked = 0;
 
             OutPacket(pc, ThrottleOutPacketType.Unknown);
+            UDPClient.m_lastStartpingTimeMS = Util.EnvironmentTickCount();
         }
 
         public void SendKillObject(List<uint> localIDs)

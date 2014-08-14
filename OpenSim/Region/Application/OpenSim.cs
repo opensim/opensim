@@ -978,6 +978,7 @@ namespace OpenSim
             cdt.AddColumn("Circuit code", 12);
             cdt.AddColumn("Endpoint", 23);
             cdt.AddColumn("Active?", 7);
+            cdt.AddColumn("ping(ms)", 8);
 
             SceneManager.ForEachScene(
                 s => s.ForEachClient(
@@ -986,7 +987,8 @@ namespace OpenSim
                         c.Name,
                         c.CircuitCode.ToString(),
                         c.RemoteEndPoint.ToString(),                
-                        c.IsActive.ToString())));
+                        c.IsActive.ToString(),
+                        c.PingTimeMS)));
 
             MainConsole.Instance.Output(cdt.ToString());
         }

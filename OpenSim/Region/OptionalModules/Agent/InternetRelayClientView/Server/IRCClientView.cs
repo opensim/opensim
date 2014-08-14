@@ -58,6 +58,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public ISceneAgent SceneAgent { get; set; }
 
+        public int PingTimeMS { get { return 0; } }
+
         private string m_username;
         private string m_nick;
 

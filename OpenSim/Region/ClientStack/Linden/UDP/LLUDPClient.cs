@@ -163,6 +163,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_maxRTO = 60000;
         public bool m_deliverPackets = true;
 
+        public int m_lastStartpingTimeMS;
+        public int m_pingMS;
+
+        public int PingTimeMS
+        {
+            get
+            {
+                if (m_pingMS < 20)
+                    return 20;
+                if(m_pingMS > 2000)
+                    return 2000;
+                return m_pingMS;
+            }
+        }
+
         /// <summary>
         /// This is the percentage of the udp texture queue to add to the task queue since
         /// textures are now generally handled through http.
@@ -225,6 +240,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Initialize this to a sane value to prevent early disconnects
             TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
+            m_pingMS = (int)(3.0 * server.TickCountResolution); // so filter doesnt start at 0; 
         }
 
         /// <summary>

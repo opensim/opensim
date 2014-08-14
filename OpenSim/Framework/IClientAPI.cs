@@ -755,6 +755,8 @@ namespace OpenSim.Framework
         /// </summary>
         bool IsActive { get; set; }
 
+        int PingTimeMS { get; }
+
         /// <summary>
         /// Set if the client is closing due to a logout request
         /// </summary>
