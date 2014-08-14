@@ -147,7 +147,7 @@ namespace OpenSim.Server.Handlers.Authentication
         #endregion
     }
 
-    public class OpenIdStreamHandler : BaseOutputStreamHandler
+    public class OpenIdStreamHandler : BaseOutputStreamHandler, IStreamHandler
     {
         #region HTML
 
