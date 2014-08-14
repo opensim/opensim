@@ -1870,7 +1870,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (external != null)
             {
                 InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-                d.BeginInvoke(sp, agent, region, external, true,
+                d.BeginInvoke(sp, agent, region, external, true,true,
                           InformClientOfNeighbourCompleted,
                           d);
             }
@@ -1880,7 +1880,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #region Enable Child Agents
 
         private delegate void InformClientOfNeighbourDelegate(
-            ScenePresence avatar, AgentCircuitData a, GridRegion reg, IPEndPoint endPoint, bool newAgent);
+            ScenePresence avatar, AgentCircuitData a, GridRegion reg, IPEndPoint endPoint, bool newAgent, bool doInitialDelay);
 
         /// <summary>
         /// This informs all neighbouring regions about agent "avatar".
@@ -1993,6 +1993,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             bool newAgent = false;
             int count = 0;
+            bool delay = true;
             foreach (GridRegion neighbour in neighbours)
             {
                 //m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
@@ -2010,7 +2011,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         // Let's put this back at sync, so that it doesn't clog 
                         // the network, especially for regions in the same physical server.
                         // We're really not in a hurry here.
-                        InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent);
+                        InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent, delay);
+                        delay = false; // ugly i know.. but there aren't that many neighbours
+
                         //InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
                         //d.BeginInvoke(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
                         //              InformClientOfNeighbourCompleted,
@@ -2077,11 +2080,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="regionHandle"></param>
         /// <param name="endPoint"></param>
         private void InformClientOfNeighbourAsync(ScenePresence sp, AgentCircuitData a, GridRegion reg,
-                                                  IPEndPoint endPoint, bool newAgent)
+                                                  IPEndPoint endPoint, bool newAgent,bool doinitialdelay)
         {
             // Let's wait just a little to give time to originating regions to catch up with closing child agents
             // after a cross here
-            Thread.Sleep(500);
+            if(doinitialdelay)
+                Thread.Sleep(500);
 
             Scene scene = sp.Scene;
 
@@ -2097,6 +2101,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (regionAccepted && newAgent)
             {
+                // give some time for createAgent finish possible async tasks
+                int dly = 100 - sp.ControllingClient.PingTimeMS;
+                if (dly > 20)
+                    Thread.Sleep(dly);
+
                 if (m_eqModule != null)
                 {
                     #region IP Translation for NAT
