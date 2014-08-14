@@ -183,7 +183,7 @@ namespace OpenSim.Framework
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
-        public AvatarAppearance(AvatarAppearance appearance) : this(appearance, true)
+        public AvatarAppearance(AvatarAppearance appearance): this(appearance, true)
         {
         }
 
@@ -221,6 +221,8 @@ namespace OpenSim.Framework
             {
                 byte[] tbytes = appearance.Texture.GetBytes();
                 m_texture = new Primitive.TextureEntry(tbytes,0,tbytes.Length);
+                if (appearance.m_cacheitems != null)
+                    m_cacheitems = (WearableCacheItem[]) appearance.m_cacheitems.Clone(); 
             }
 
             m_visualparams = null;
@@ -723,6 +725,13 @@ namespace OpenSim.Framework
             }
             data["textures"] = textures;
 
+            if (m_cacheitems != null)
+            {
+                OSDArray baked = WearableCacheItem.BakedToOSD(m_cacheitems);
+                if (baked != null)
+                    data["bakedcache"] = baked;
+            }
+
             // Visual Parameters
             OSDBinary visualparams = new OSDBinary(m_visualparams);
             data["visualparams"] = visualparams;
@@ -787,6 +796,12 @@ namespace OpenSim.Framework
                 else
                 {
                     m_log.Warn("[AVATAR APPEARANCE]: failed to unpack textures");
+                }
+
+                if ((data != null) && (data["bakedcache"] != null) && (data["bakedcache"]).Type == OSDType.Array)
+                {
+                    OSDArray bakedOSDArray = (OSDArray)(data["bakedcache"]);
+                    m_cacheitems = WearableCacheItem.BakedFromOSD(bakedOSDArray);
                 }
 
                 // Visual Parameters

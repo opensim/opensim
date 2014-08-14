@@ -487,140 +487,137 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 IAssetService cache = m_scene.AssetService;
                 IBakedTextureModule bakedModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
-                WearableCacheItem[] wearableCache = null;
                 WearableCacheItem[] bakedModuleCache = null;
 
-                wearableCache = WearableCacheItem.GetDefaultCacheItem();
+                if (cache == null)
+                    return false;
 
+                WearableCacheItem[] wearableCache = sp.Appearance.WearableCacheItems;
 
+                // big debug
                 m_log.DebugFormat("[AVFACTORY]: ValidateBakedTextureCache start for {0} {1}", sp.Name, sp.UUID);
-                // debug
                 for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
                 {
                     int j = AvatarAppearance.BAKE_INDICES[iter];
-                    Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[iter];
-                    if (face != null)
-                        m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - " + face.TextureID);
+                    Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[j];
+                    if (wearableCache == null)
+                    {
+                        if (face != null)
+                            m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t- " + face.TextureID);
+                        else
+                            m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t- No texture");
+                    }
                     else
-                        m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - No texture");
+                    {
+                        if (face != null)
+                            m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " ft- " + face.TextureID +
+                                   "}: cc-" +
+                                    wearableCache[j].CacheId + ", ct-" +
+                                    wearableCache[j].TextureID
+                                );
+                        else
+                            m_log.Debug("[ValidateBakedCache] {" + iter + "/" + j + " t - No texture" +
+                                    "}: cc-" +
+                                    wearableCache[j].CacheId + ", ct-" +
+                                    wearableCache[j].TextureID
+                                );
+                    }
                 }
-                
-                bool gotbacked = false;
 
-                // Cache wearable data for teleport.
-                // Only makes sense if there's a bake module and a cache module
-                if (bakedModule != null && cache != null)
+                bool wearableCacheValid = false;
+                if (wearableCache == null)
                 {
-                    m_log.Debug("[ValidateBakedCache] calling bakedModule");
-                    try
+                    wearableCache = WearableCacheItem.GetDefaultCacheItem();
+                }
+                else
+                {
+                    // we may have received a full cache
+                    // check same coerence and store
+                    for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
                     {
-                        bakedModuleCache = bakedModule.Get(sp.UUID);
-                    }
-                    catch (Exception)
-                    {
-                        bakedModuleCache = null;
-                    }
-
-                    if (bakedModuleCache != null)
-                    {
-                        m_log.Debug("[ValidateBakedCache] got bakedModule cache " + bakedModuleCache.Length);
-
-                        for (int i = 0; i < bakedModuleCache.Length; i++)
+                        int idx = AvatarAppearance.BAKE_INDICES[i];
+                        Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
+                        if (face != null && face.TextureID == wearableCache[idx].TextureID && wearableCache[idx].TextureAsset != null)
                         {
-                            int j = (int)bakedModuleCache[i].TextureIndex;
-
-                            if (bakedModuleCache[i].TextureAsset != null)
-                            {
-                                wearableCache[j].TextureID = bakedModuleCache[i].TextureID;
-                                wearableCache[j].CacheId = bakedModuleCache[i].CacheId;
-                                wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
-                                bakedModuleCache[i].TextureAsset.Temporary = true;
-                                bakedModuleCache[i].TextureAsset.Local = true;
-                                cache.Store(bakedModuleCache[i].TextureAsset);
-
-                            }
+                            hits++;
+                            wearableCache[idx].TextureAsset.Temporary = true;
+                            wearableCache[idx].TextureAsset.Local = true;
+                            cache.Store(wearableCache[idx].TextureAsset);
                         }
-                        gotbacked = true;
                     }
+
+                    wearableCacheValid = (hits >= AvatarAppearance.BAKE_INDICES.Length - 1); // skirt is optional
+                    if (wearableCacheValid)
+                        m_log.Debug("[ValidateBakedCache] have valid local cache");
                 }
 
-                // Process the baked textures
-                for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
+                if (!wearableCacheValid)
                 {
-                    int idx = AvatarAppearance.BAKE_INDICES[i];
-                    Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
+                    hits = 0;
+                    bool gotbacked = false;
 
-                    // on tp viewer assumes servers did the cache work
-                    // and tp propagation of baked textures is broken somewhere
-                    // so make grid cache be mandatory
+                    if (bakedModule != null)
+                    {
+                        m_log.Debug("[ValidateBakedCache] local cache invalid, calling bakedModule");
+                        try
+                        {
+                            bakedModuleCache = bakedModule.Get(sp.UUID);
+                        }
+                        catch (Exception)
+                        {
+                            bakedModuleCache = null;
+                        }
+
+                        if (bakedModuleCache != null)
+                        {
+                            m_log.Debug("[ValidateBakedCache] got bakedModule cache " + bakedModuleCache.Length);
+
+                            for (int i = 0; i < bakedModuleCache.Length; i++)
+                            {
+                                int j = (int)bakedModuleCache[i].TextureIndex;
+
+                                if (bakedModuleCache[i].TextureAsset != null)
+                                {
+                                    wearableCache[j].TextureID = bakedModuleCache[i].TextureID;
+                                    wearableCache[j].CacheId = bakedModuleCache[i].CacheId;
+                                    wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
+                                    bakedModuleCache[i].TextureAsset.Temporary = true;
+                                    bakedModuleCache[i].TextureAsset.Local = true;
+                                    cache.Store(bakedModuleCache[i].TextureAsset);
+
+                                }
+                            }
+                            gotbacked = true;
+                        }
+                    }
+
                     if (gotbacked)
                     {
-                        //                    m_log.Debug("[ValidateBakedCache] bakedModule cache override");
-                        if (sp.Appearance.Texture.FaceTextures[idx] == null)
-                            sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
-                        sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
-                        face = sp.Appearance.Texture.FaceTextures[idx];
-
-                        // this should be removed
-                        if (face.TextureID != UUID.Zero && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                            hits++;
-
-                        continue;
-                    }
-                    else
-                    {
-                        // No face, so lets check our cache
-                        if (face == null || face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                        // force the ones we got
+                        for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
                         {
-                            sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
-                            if (wearableCache[idx].TextureID != UUID.Zero)
-                            {
-                                sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
-                                face = sp.Appearance.Texture.FaceTextures[idx];
-                                // let run to end of loop to check cache
-                            }
-                            else
-                            {
-                                sp.Appearance.Texture.FaceTextures[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
-                                face = sp.Appearance.Texture.FaceTextures[idx];
-                                // lets try not invalidating the cache entry 
-                                //                        wearableCache[idx].CacheId = UUID.Zero;
-                                //                        wearableCache[idx].TextureAsset = null;
-                                continue;
-                            }
-                        }
+                            int idx = AvatarAppearance.BAKE_INDICES[i];
+                            Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
 
-                        if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                            continue;
+                            if (sp.Appearance.Texture.FaceTextures[idx] == null)
+                                sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
+                            sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
+                            face = sp.Appearance.Texture.FaceTextures[idx];
 
-                        if (wearableCache[idx].TextureID != face.TextureID)
-                        {
-                            wearableCache[idx].CacheId = UUID.Zero;
-                            wearableCache[idx].TextureID = UUID.Zero;
-                            wearableCache[idx].TextureAsset = null;
-                            continue;
-                        }
-
-                        wearableCache[idx].TextureAsset = null;
-                        if (cache != null)
-                        {
-                            wearableCache[idx].TextureAsset = m_scene.AssetService.GetCached(face.TextureID.ToString());
-                            if (wearableCache[idx].TextureAsset == null)
-                            {
-                                wearableCache[idx].CacheId = UUID.Zero;
-                                wearableCache[idx].TextureID = UUID.Zero;
-                            }
-                            else
+                            // this should be removed
+                            if (face.TextureID != UUID.Zero && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                                 hits++;
+                            continue;
                         }
                     }
                 }
 
                 sp.Appearance.WearableCacheItems = wearableCache;
+
             }
 
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1} {2}", sp.Name, sp.UUID, hits);
             // debug
+            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1} {2}", sp.Name, sp.UUID, hits);
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
                 int j = AvatarAppearance.BAKE_INDICES[iter];
