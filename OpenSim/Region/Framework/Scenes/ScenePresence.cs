@@ -4073,6 +4073,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Throttles 
             float multiplier = 1;
+
+/* this is also used to send to new main regions not children
+ 
             int childRegions = KnownRegionCount;
             if (childRegions != 0)
                 multiplier = 1f / childRegions;
@@ -4080,7 +4083,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Minimum throttle for a child region is 1/4 of the root region throttle
             if (multiplier <= 0.25f)
                 multiplier = 0.25f;
-
+*/
             cAgent.Throttles = ControllingClient.GetThrottlesPacked(multiplier);
 
             cAgent.HeadRotation = m_headrotation;
@@ -4094,7 +4097,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.AlwaysRun = SetAlwaysRun;
 
-            cAgent.Appearance = new AvatarAppearance(Appearance);
+            // make clear we want the all thing
+            cAgent.Appearance = new AvatarAppearance(Appearance,true,true);
 
             cAgent.ParentPart = ParentUUID;
             cAgent.SitOffset = PrevSitOffset;
