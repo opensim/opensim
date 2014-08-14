@@ -1583,7 +1583,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 int t = Util.EnvironmentTickCountSubtract(udpClient.m_lastStartpingTimeMS);
                 int c = udpClient.m_pingMS;
-                c = 900 * c + 100 * t;
+                c = 800 * c + 200 * t;
                 c /= 1000;
                 udpClient.m_pingMS = c;
                 return;
