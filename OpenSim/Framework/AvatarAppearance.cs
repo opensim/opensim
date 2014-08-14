@@ -183,11 +183,16 @@ namespace OpenSim.Framework
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
-        public AvatarAppearance(AvatarAppearance appearance): this(appearance, true)
+        public AvatarAppearance(AvatarAppearance appearance): this(appearance, true,true)
         {
         }
 
         public AvatarAppearance(AvatarAppearance appearance, bool copyWearables)
+            : this(appearance, copyWearables, true)
+        {
+        }
+
+        public AvatarAppearance(AvatarAppearance appearance, bool copyWearables, bool copyBaked)
         {
 //            m_log.WarnFormat("[AVATAR APPEARANCE] create from an existing appearance");
 
@@ -221,8 +226,10 @@ namespace OpenSim.Framework
             {
                 byte[] tbytes = appearance.Texture.GetBytes();
                 m_texture = new Primitive.TextureEntry(tbytes,0,tbytes.Length);
-                if (appearance.m_cacheitems != null)
-                    m_cacheitems = (WearableCacheItem[]) appearance.m_cacheitems.Clone(); 
+                if (copyBaked && appearance.m_cacheitems != null)
+                    m_cacheitems = (WearableCacheItem[])appearance.m_cacheitems.Clone();
+                else
+                    m_cacheitems = null;
             }
 
             m_visualparams = null;

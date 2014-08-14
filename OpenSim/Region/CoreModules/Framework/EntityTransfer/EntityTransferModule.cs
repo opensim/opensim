@@ -1832,7 +1832,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = new Vector3(128, 128, 70);
             agent.child = true;
-            agent.Appearance = sp.Appearance;
+
+            //agent.Appearance = sp.Appearance;      
+            agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);  // guess this should be a lot less      
+
             agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
 
             agent.ChildrenCapSeeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
@@ -1947,7 +1950,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     agent.InventoryFolder = UUID.Zero;
                     agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, neighbour);
                     agent.child = true;
-                    agent.Appearance = sp.Appearance;
+                    // agent.Appearance = sp.Appearance;
+                    agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);  // guess this should be a lot less
                     if (currentAgentCircuit != null)
                     {
                         agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
