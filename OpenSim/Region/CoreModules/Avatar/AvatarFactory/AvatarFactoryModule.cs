@@ -466,6 +466,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // debug
+            m_log.Debug("[UpdateBCache] hits: " +hits.ToString());
+/*
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
                 int j = AvatarAppearance.BAKE_INDICES[iter];
@@ -474,7 +476,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     sp.Appearance.WearableCacheItems[j].CacheId + ", t-" +
                                     sp.Appearance.WearableCacheItems[j].TextureID);
             }
-
+*/
             return (hits == cacheItems.Length);
         }
 
@@ -496,6 +498,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 // big debug
                 m_log.DebugFormat("[AVFACTORY]: ValidateBakedTextureCache start for {0} {1}", sp.Name, sp.UUID);
+/*
                 for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
                 {
                     int j = AvatarAppearance.BAKE_INDICES[iter];
@@ -523,7 +526,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 );
                     }
                 }
-
+*/
                 bool wearableCacheValid = false;
                 if (wearableCache == null)
                 {
@@ -628,6 +631,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // debug
             m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1} {2}", sp.Name, sp.UUID, hits);
+/*
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
                 int j = AvatarAppearance.BAKE_INDICES[iter];
@@ -636,7 +640,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     sp.Appearance.WearableCacheItems[j].CacheId + ", t-" +
                                     sp.Appearance.WearableCacheItems[j].TextureID);
             }
-
+*/
             return (hits >= AvatarAppearance.BAKE_INDICES.Length - 1); // skirt is optional
         }
 
