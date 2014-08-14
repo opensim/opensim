@@ -551,44 +551,54 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_log.Debug("[ValidateBakedCache] have valid local cache");
                 }
 
+                bool checkExternal = false;
+
                 if (!wearableCacheValid)
+                {
+                    ScenePresence ssp = null;
+                    if (sp is ScenePresence)
+                    {
+                        ssp = (ScenePresence)sp;
+                        checkExternal = (((uint)ssp.TeleportFlags & (uint)TeleportFlags.ViaLogin) != 0) &&
+                            bakedModule != null;
+                    }
+                }
+
+                if (checkExternal)
                 {
                     hits = 0;
                     bool gotbacked = false;
 
-                    if (bakedModule != null)
+                    m_log.Debug("[ValidateBakedCache] local cache invalid, calling bakedModule");
+                    try
                     {
-                        m_log.Debug("[ValidateBakedCache] local cache invalid, calling bakedModule");
-                        try
-                        {
-                            bakedModuleCache = bakedModule.Get(sp.UUID);
-                        }
-                        catch (Exception)
-                        {
-                            bakedModuleCache = null;
-                        }
+                        bakedModuleCache = bakedModule.Get(sp.UUID);
+                    }
+                    catch (Exception)
+                    {
+                        bakedModuleCache = null;
+                    }
 
-                        if (bakedModuleCache != null)
-                        {
-                            m_log.Debug("[ValidateBakedCache] got bakedModule cache " + bakedModuleCache.Length);
+                    if (bakedModuleCache != null)
+                    {
+                        m_log.Debug("[ValidateBakedCache] got bakedModule cache " + bakedModuleCache.Length);
 
-                            for (int i = 0; i < bakedModuleCache.Length; i++)
+                        for (int i = 0; i < bakedModuleCache.Length; i++)
+                        {
+                            int j = (int)bakedModuleCache[i].TextureIndex;
+
+                            if (bakedModuleCache[i].TextureAsset != null)
                             {
-                                int j = (int)bakedModuleCache[i].TextureIndex;
+                                wearableCache[j].TextureID = bakedModuleCache[i].TextureID;
+                                wearableCache[j].CacheId = bakedModuleCache[i].CacheId;
+                                wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
+                                bakedModuleCache[i].TextureAsset.Temporary = true;
+                                bakedModuleCache[i].TextureAsset.Local = true;
+                                cache.Store(bakedModuleCache[i].TextureAsset);
 
-                                if (bakedModuleCache[i].TextureAsset != null)
-                                {
-                                    wearableCache[j].TextureID = bakedModuleCache[i].TextureID;
-                                    wearableCache[j].CacheId = bakedModuleCache[i].CacheId;
-                                    wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
-                                    bakedModuleCache[i].TextureAsset.Temporary = true;
-                                    bakedModuleCache[i].TextureAsset.Local = true;
-                                    cache.Store(bakedModuleCache[i].TextureAsset);
-
-                                }
                             }
-                            gotbacked = true;
                         }
+                        gotbacked = true;
                     }
 
                     if (gotbacked)
