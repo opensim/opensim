@@ -170,8 +170,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get
             {
-                if (m_pingMS < 20)
-                    return 20;
+                if (m_pingMS < 10)
+                    return 10;
                 if(m_pingMS > 2000)
                     return 2000;
                 return m_pingMS;
