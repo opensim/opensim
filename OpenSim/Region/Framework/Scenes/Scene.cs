@@ -1034,6 +1034,9 @@ namespace OpenSim.Region.Framework.Scenes
                 ChildReprioritizationDistance 
                     = interestConfig.GetDouble("ChildReprioritizationDistance", ChildReprioritizationDistance);
 
+                RootTerseUpdatePeriod = interestConfig.GetInt("RootTerseUpdatePeriod", RootTerseUpdatePeriod);
+                ChildTerseUpdatePeriod = interestConfig.GetInt("ChildTerseUpdatePeriod", ChildTerseUpdatePeriod);
+
                 RootPositionUpdateTolerance 
                     = interestConfig.GetFloat("RootPositionUpdateTolerance", RootPositionUpdateTolerance);
                 RootRotationUpdateTolerance
