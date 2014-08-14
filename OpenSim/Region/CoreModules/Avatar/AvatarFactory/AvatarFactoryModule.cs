@@ -466,7 +466,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // debug
-            m_log.Debug("[UpdateBCache] hits: " +hits.ToString());
+            m_log.Debug("[UpdateBakedCache] cache hits: " + hits.ToString() + " changed entries: " + validDirtyBakes.ToString());
 /*
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
@@ -558,12 +558,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (!wearableCacheValid)
                 {
-                    ScenePresence ssp = null;
-                    if (sp is ScenePresence)
+                    // only use external bake module on login condition check                  
+//                    ScenePresence ssp = null;
+//                    if (sp is ScenePresence)
                     {
-                        ssp = (ScenePresence)sp;
-                        checkExternal = (((uint)ssp.TeleportFlags & (uint)TeleportFlags.ViaLogin) != 0) &&
-                            bakedModule != null;
+//                        ssp = (ScenePresence)sp;
+//                        checkExternal = (((uint)ssp.TeleportFlags & (uint)TeleportFlags.ViaLogin) != 0) &&
+//                            bakedModule != null;
+
+                        // or do it anytime we dont have the cache
+                        checkExternal = bakedModule != null;
                     }
                 }
 
@@ -572,7 +576,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     hits = 0;
                     bool gotbacked = false;
 
-                    m_log.Debug("[ValidateBakedCache] local cache invalid, calling bakedModule");
+                    m_log.Debug("[ValidateBakedCache] local cache invalid, checking bakedModule");
                     try
                     {
                         bakedModuleCache = bakedModule.Get(sp.UUID);
@@ -584,7 +588,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     if (bakedModuleCache != null)
                     {
-                        m_log.Debug("[ValidateBakedCache] got bakedModule cache " + bakedModuleCache.Length);
+                        m_log.Debug("[ValidateBakedCache] got bakedModule " + bakedModuleCache.Length + " cached textures");
 
                         for (int i = 0; i < bakedModuleCache.Length; i++)
                         {
@@ -630,7 +634,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // debug
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1} {2}", sp.Name, sp.UUID, hits);
+            m_log.DebugFormat("[ValidateBakedCache]: Completed texture check for {0} {1} with {2} hits", sp.Name, sp.UUID, hits);
 /*
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
