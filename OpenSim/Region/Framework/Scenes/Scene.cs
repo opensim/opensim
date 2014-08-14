@@ -455,11 +455,6 @@ namespace OpenSim.Region.Framework.Scenes
 
 //        private int m_lastUpdate;
 //        private bool m_firstHeartbeat = true;
-        
-        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
-        private bool m_reprioritizationEnabled = true;
-        private double m_reprioritizationInterval = 5000.0;
-        private double m_rootReprioritizationDistance = 10.0;
 
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
@@ -692,10 +687,10 @@ namespace OpenSim.Region.Framework.Scenes
         public int MonitorLandTime { get { return landMS; } }
         public int MonitorLastFrameTick { get { return m_lastFrameTick; } }
 
-        public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return m_priorityScheme; } }
-        public bool IsReprioritizationEnabled { get { return m_reprioritizationEnabled; } }
-        public double ReprioritizationInterval { get { return m_reprioritizationInterval; } }
-        public double RootReprioritizationDistance { get { return m_rootReprioritizationDistance; } }
+        public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get; set; }
+        public bool IsReprioritizationEnabled { get; set; }
+        public double ReprioritizationInterval { get; set; }
+        public double RootReprioritizationDistance { get; set; }
         public double ChildReprioritizationDistance { get; set; }
 
         public AgentCircuitManager AuthenticateHandler
@@ -1022,17 +1017,20 @@ namespace OpenSim.Region.Framework.Scenes
 
                 try
                 {
-                    m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
+                    UpdatePrioritizationScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
                 }
                 catch (Exception)
                 {
                     m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
-                    m_priorityScheme = UpdatePrioritizationSchemes.Time;
+                    UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
                 }
 
-                m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
-                m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
-                m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
+                IsReprioritizationEnabled 
+                    = interestConfig.GetBoolean("ReprioritizationEnabled", IsReprioritizationEnabled);
+                ReprioritizationInterval 
+                    = interestConfig.GetDouble("ReprioritizationInterval", ReprioritizationInterval);
+                RootReprioritizationDistance 
+                    = interestConfig.GetDouble("RootReprioritizationDistance", RootReprioritizationDistance);
                 ChildReprioritizationDistance 
                     = interestConfig.GetDouble("ChildReprioritizationDistance", ChildReprioritizationDistance);
 
@@ -1044,7 +1042,7 @@ namespace OpenSim.Region.Framework.Scenes
                     = interestConfig.GetFloat("RootVelocityUpdateTolerance", RootVelocityUpdateTolerance);
             }
 
-            m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
+            m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", UpdatePrioritizationScheme);
 
             #endregion Interest Management
 
@@ -1078,9 +1076,14 @@ namespace OpenSim.Region.Framework.Scenes
             PeriodicBackup = true;
             UseBackup = true;
 
+            IsReprioritizationEnabled = true;
+            UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
+            ReprioritizationInterval = 5000;
+
             RootRotationUpdateTolerance = 0.1f;
             RootVelocityUpdateTolerance = 0.001f;
             RootPositionUpdateTolerance = 0.05f;
+            RootReprioritizationDistance = 10.0;
             ChildReprioritizationDistance = 20.0;
 
             m_eventManager = new EventManager();
