@@ -1381,10 +1381,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 
         #region Agent Crossings
-
         public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out uint xDest, out uint yDest, out string version, out Vector3 newpos)
         {
+            string r = String.Empty;
+            return GetDestination(scene, agentID, pos, out xDest, out yDest, out version, out newpos, out r);
+        }
+
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out uint xDest, out uint yDest, out string version, out Vector3 newpos, out string reason)
+        {
             version = String.Empty;
+            reason = String.Empty;
             newpos = pos;
 
 //            m_log.DebugFormat(
@@ -1498,8 +1504,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
-
-            string reason;
+           
             if (!scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out reason))
             {
                 if (r == null)
@@ -1525,11 +1530,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             uint y;
             Vector3 newpos;
             string version;
+            string reason;
 
-            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out x, out y, out version, out newpos);
+            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out x, out y, out version, out newpos, out reason);
             if (neighbourRegion == null)
             {
-                agent.ControllingClient.SendAlertMessage("Cannot region cross into void");
+                if (reason == String.Empty)
+                    agent.ControllingClient.SendAlertMessage("Cannot cross to region");
+                else
+                    agent.ControllingClient.SendAlertMessage("Cannot cross to region: " + reason); 
                 return false;
             }
 
