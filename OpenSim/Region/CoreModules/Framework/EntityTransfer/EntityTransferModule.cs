@@ -1752,6 +1752,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Unlike a teleport, here we do not wait for the destination region to confirm the receipt.
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
+            agent.parcelRegionCross(false);
+
             agent.MakeChildAgent();
 
             // FIXME: Possibly this should occur lower down after other commands to close other agents,
@@ -1765,7 +1767,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            agent.SendOtherAgentsAvatarDataToMe();
 //            agent.SendOtherAgentsAppearanceToMe();
 
-            agent.parcelRegionCross(false);
 
             // Backwards compatibility. Best effort
             if (version == "Unknown" || version == string.Empty)
