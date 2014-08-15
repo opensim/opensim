@@ -208,6 +208,9 @@ namespace pCampBot
 
         public bool RemoveBehaviour(string abbreviatedName)
         {
+            if (Behaviours.Count <= 0)
+                return false;
+
             Dictionary<string, IBehaviour> updatedBehaviours = new Dictionary<string, IBehaviour>(Behaviours);
             IBehaviour behaviour;
 

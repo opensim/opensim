@@ -628,7 +628,7 @@ namespace pCampBot
                 }
 
                 MainConsole.Instance.OutputFormat(
-                    "Removed behaviours {0} to bot {1}", 
+                    "Removed behaviours {0} from bot {1}", 
                     string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
             }
         }
