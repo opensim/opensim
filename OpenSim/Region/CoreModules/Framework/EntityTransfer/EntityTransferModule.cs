@@ -2102,9 +2102,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (regionAccepted && newAgent)
             {
                 // give some time for createAgent finish possible async tasks
-                int dly = 100 - sp.ControllingClient.PingTimeMS;
-                if (dly > 20)
-                    Thread.Sleep(dly);
+                // does nothing usefull...  out
+//                int dly = 100 - sp.ControllingClient.PingTimeMS;
+//                if (dly > 20)
+//                    Thread.Sleep(dly);
 
                 if (m_eqModule != null)
                 {
