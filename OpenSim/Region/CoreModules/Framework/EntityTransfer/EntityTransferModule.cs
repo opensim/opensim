@@ -722,7 +722,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agentCircuit.child = true;
             
 //            agentCircuit.Appearance = sp.Appearance;
-            agentCircuit.Appearance = new AvatarAppearance(sp.Appearance, true, false);
+//            agentCircuit.Appearance = new AvatarAppearance(sp.Appearance, true, false);
+            agentCircuit.Appearance = new AvatarAppearance();
 
             if (currentAgentCircuit != null)
             {
@@ -1848,7 +1849,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.child = true;
 
             //agent.Appearance = sp.Appearance;      
-            agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);  // guess this should be a lot less      
+            //agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);
+            agent.Appearance = new AvatarAppearance();
 
             agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
 
@@ -1965,7 +1967,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, neighbour);
                     agent.child = true;
                     // agent.Appearance = sp.Appearance;
-                    agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);  // guess this should be a lot less
+                    // agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);
+                    agent.Appearance = new AvatarAppearance();
                     if (currentAgentCircuit != null)
                     {
                         agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
