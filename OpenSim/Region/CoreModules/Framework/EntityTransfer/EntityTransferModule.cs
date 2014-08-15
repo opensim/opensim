@@ -720,7 +720,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
             agentCircuit.startpos = position;
             agentCircuit.child = true;
-            agentCircuit.Appearance = sp.Appearance;
+            
+//            agentCircuit.Appearance = sp.Appearance;
+            agentCircuit.Appearance = new AvatarAppearance(sp.Appearance, true, false);
+
             if (currentAgentCircuit != null)
             {
                 agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
