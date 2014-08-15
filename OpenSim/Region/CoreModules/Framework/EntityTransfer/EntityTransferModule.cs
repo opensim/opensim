@@ -2108,20 +2108,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string reason = String.Empty;
 
-            int ts = Util.EnvironmentTickCount();
             bool regionAccepted = scene.SimulationService.CreateAgent(reg, a, (uint)TeleportFlags.Default, out reason);
-
-//            m_log.DebugFormat("[ENTITY TRANSFER MODULE] SimulationService.CreateAgent took {0}ms",Util.EnvironmentTickCountSubtract(ts));
 
             if (regionAccepted && newAgent)
             {
-                // give  time for createAgent to finish, since it is async and does grid services access
-
-//                int dly = 500 - sp.ControllingClient.PingTimeMS;
-//                if (dly > 20)
-//                    Thread.Sleep(dly);
-                // ping is unrealiable after a login :(, just delay a fair amount
-                
+                // give  time for createAgent to finish, since it is async and does grid services access              
                 Thread.Sleep(500);
 
                 if (m_eqModule != null)
