@@ -287,6 +287,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Set if initial data about the scene (avatars, objects) has been sent to the ControllingClient.
+        /// </summary>
+        public bool SentInitialDataToClient { get; private set; }
+
+        /// <summary>
         /// Copy of the script states while the agent is in transit. This state may
         /// need to be placed back in case of transfer fail.
         /// </summary>
@@ -1256,7 +1261,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            SendAvatarDataToAllAgents();
+            SendAvatarDataToAllClients();
 
             // send the animations of the other presences to me
             m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
@@ -1296,7 +1301,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat("[SCENE PRESENCE]: Forcing viewers to update the avatar name for " + Name);
 
             UseFakeGroupTitle = true;
-            SendAvatarDataToAllAgents(false);
+            SendAvatarDataToAllClients(false);
 
             Util.FireAndForget(o =>
             {
@@ -1307,7 +1312,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Thread.Sleep(5000);
 
                 UseFakeGroupTitle = false;
-                SendAvatarDataToAllAgents(false);
+                SendAvatarDataToAllClients(false);
             });
         }
 
@@ -1742,9 +1747,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
 
-                // Remember in HandleUseCircuitCode, we delayed this to here
-                if (m_teleportFlags > 0)
-                    SendInitialDataToMe();
+                // Child agents send initial data up in LLUDPServer.HandleUseCircuitCode()
+                if (!SentInitialDataToClient)
+                    SendInitialDataToClient();
 
     //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
@@ -2652,7 +2657,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (satOnObject)
             {
-                SendAvatarDataToAllAgents();
+                SendAvatarDataToAllClients();
                 m_requestedSitTargetID = 0;
 
                 part.RemoveSittingAvatar(this);
@@ -2947,7 +2952,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.TrySetMovementAnimation("SIT_GROUND");
             else
                 Animator.TrySetMovementAnimation("SIT");
-            SendAvatarDataToAllAgents();
+            SendAvatarDataToAllClients();
 
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
@@ -3062,7 +3067,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sitAnimation = part.SitAnimation;
                 }
                 Animator.TrySetMovementAnimation(sitAnimation);
-                SendAvatarDataToAllAgents();
+                SendAvatarDataToAllClients();
                 TriggerScenePresenceUpdated();
             }
         }
@@ -3185,7 +3190,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
                 if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
-                    SendAvatarDataToAllAgents();
+                    SendAvatarDataToAllClients();
 
                 // Allow any updates for sitting avatars to that llSetPrimitiveLinkParams() can work for very
                 // small increments (e.g. sit position adjusters).  An alternative may be to eliminate the tolerance
@@ -3339,16 +3344,22 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
-        public void SendInitialDataToMe()
+        public void SendInitialDataToClient()
         {
+            SentInitialDataToClient = true;
+
             // Send all scene object to the new client
             Util.RunThreadNoTimeout(delegate
             {
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
+                    IsChildAgent ? "child" : "root", Name, Scene.Name, m_teleportFlags);
+
                 // we created a new ScenePresence (a new child agent) in a fresh region.
                 // Request info about all the (root) agents in this region
                 // Note: This won't send data *to* other clients in that region (children don't send)
-                SendOtherAgentsAvatarDataToMe();
-                SendOtherAgentsAppearanceToMe();
+                SendOtherAgentsAvatarDataToClient();
+                SendOtherAgentsAppearanceToClient();
 
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 foreach (EntityBase e in entities)
@@ -3357,7 +3368,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
 
-            }, "SendInitialDataToMe", null);
+            }, "SendInitialDataToClient", null);
         }
 
         /// <summary>
@@ -3390,10 +3401,10 @@ namespace OpenSim.Region.Framework.Scenes
             // getting other avatars information was initiated elsewhere immediately after the child circuit connected... don't do it
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
-            SendAvatarDataToAllAgents();
+            SendAvatarDataToAllClients();
 
             // This invocation always shows up in the viewer logs as an error.  Is it needed?
-            SendAppearanceToAgent(this);
+            SendAppearanceToClient(this);
 
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
@@ -3403,20 +3414,20 @@ namespace OpenSim.Region.Framework.Scenes
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
                 // the avatar finishes updating its appearance
-                SendAppearanceToAllOtherAgents();
+                SendAppearanceToAllOtherClients();
             }
         }
 
-        public void SendAvatarDataToAllAgents()
+        public void SendAvatarDataToAllClients()
         {
-            SendAvatarDataToAllAgents(true);
+            SendAvatarDataToAllClients(true);
         }
 
         /// <summary>
         /// Send this agent's avatar data to all other root and child agents in the scene
         /// This agent must be root. This avatar will receive its own update. 
         /// </summary>
-        public void SendAvatarDataToAllAgents(bool full)
+        public void SendAvatarDataToAllClients(bool full)
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAllAgents: {0} ({1})", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
@@ -3435,7 +3446,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
             {
                 if (full)
-                    SendAvatarDataToAgent(scenePresence);
+                    SendAvatarDataToClient(scenePresence);
                 else
                     scenePresence.ControllingClient.SendAvatarDataImmediate(this);
                 count++;
@@ -3448,7 +3459,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send avatar data for all other root agents to this agent, this agent
         /// can be either a child or root
         /// </summary>
-        public void SendOtherAgentsAvatarDataToMe()
+        public void SendOtherAgentsAvatarDataToClient()
         {
             int count = 0;
             m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
@@ -3457,7 +3468,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (scenePresence.UUID == UUID)
                                 return;
                                              
-                            scenePresence.SendAvatarDataToAgent(this);
+                            scenePresence.SendAvatarDataToClient(this);
                             count++;
                         });
 
@@ -3468,9 +3479,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send avatar data to an agent.
         /// </summary>
         /// <param name="avatar"></param>
-        public void SendAvatarDataToAgent(ScenePresence avatar)
+        public void SendAvatarDataToClient(ScenePresence avatar)
         {
-            //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
+            //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToClient from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAvatarDataImmediate(this);
             Animator.SendAnimPackToClient(avatar.ControllingClient);
@@ -3480,9 +3491,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send this agent's appearance to all other root and child agents in the scene
         /// This agent must be root.
         /// </summary>
-        public void SendAppearanceToAllOtherAgents()
+        public void SendAppearanceToAllOtherClients()
         {
-//            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
+//            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherClients: {0} {1}", Name, UUID);
 
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
@@ -3501,7 +3512,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (scenePresence.UUID == UUID)
                                 return;
 
-                            SendAppearanceToAgent(scenePresence);
+                            SendAppearanceToClient(scenePresence);
                             count++;
                         });
 
@@ -3512,9 +3523,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send appearance from all other root agents to this agent. this agent
         /// can be either root or child
         /// </summary>
-        public void SendOtherAgentsAppearanceToMe()
+        public void SendOtherAgentsAppearanceToClient()
         {
-//            m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToMe: {0} {1}", Name, UUID);
+//            m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToClient {0} {1}", Name, UUID);
 
             int count = 0;
             m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
@@ -3523,7 +3534,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (scenePresence.UUID == UUID)
                                 return;
                                              
-                            scenePresence.SendAppearanceToAgent(this);
+                            scenePresence.SendAppearanceToClient(this);
                             count++;
                         });
 
@@ -3534,7 +3545,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send appearance data to an agent.
         /// </summary>
         /// <param name="avatar"></param>
-        public void SendAppearanceToAgent(ScenePresence avatar)
+        public void SendAppearanceToClient(ScenePresence avatar)
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);

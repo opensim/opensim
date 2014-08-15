@@ -251,7 +251,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private void SendAppearance(ScenePresence sp)
         {
             // Send the appearance to everyone in the scene
-            sp.SendAppearanceToAllOtherAgents();
+            sp.SendAppearanceToAllOtherClients();
 
             // Send animations back to the avatar as well
             sp.Animator.SendAnimPack();

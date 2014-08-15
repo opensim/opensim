@@ -71,7 +71,7 @@ namespace OpenSim.Framework
         /// <remarks>
         /// This includes scene object data and the appearance data of other avatars.
         /// </remarks>
-        void SendInitialDataToMe();
+        void SendInitialDataToClient();
 
         /// <summary>
         /// Direction in which the scene presence is looking.

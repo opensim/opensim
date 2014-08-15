@@ -1741,7 +1741,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         bool tp = (aCircuit.teleportFlags > 0);
                         // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
                         if (!tp)
-                            client.SceneAgent.SendInitialDataToMe();
+                            client.SceneAgent.SendInitialDataToClient();
                     }
                 }
                 else

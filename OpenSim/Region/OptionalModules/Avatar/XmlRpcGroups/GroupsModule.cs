@@ -1381,7 +1381,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         presence.Grouptitle = Title;
 
                         if (! presence.IsChildAgent)
-                            presence.SendAvatarDataToAllAgents();
+                            presence.SendAvatarDataToAllClients();
                     }
                 }
             }

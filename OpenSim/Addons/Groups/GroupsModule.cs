@@ -1296,7 +1296,7 @@ namespace OpenSim.Groups
                         presence.Grouptitle = Title;
 
                         if (! presence.IsChildAgent)
-                            presence.SendAvatarDataToAllAgents();
+                            presence.SendAvatarDataToAllClients();
                     }
                 }
             }
