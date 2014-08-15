@@ -66,6 +66,11 @@ namespace OpenSim.Framework
         AvatarAppearance Appearance { get; set; }
 
         /// <summary>
+        /// Set if initial data about the scene (avatars, objects) has been sent to the client.
+        /// </summary>
+        bool SentInitialDataToClient { get; }
+
+        /// <summary>
         /// Send initial scene data to the client controlling this agent
         /// </summary>
         /// <remarks>

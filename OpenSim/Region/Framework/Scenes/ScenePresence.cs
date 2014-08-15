@@ -286,9 +286,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// Set if initial data about the scene (avatars, objects) has been sent to the ControllingClient.
-        /// </summary>
         public bool SentInitialDataToClient { get; private set; }
 
         /// <summary>
@@ -3351,9 +3348,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Send all scene object to the new client
             Util.RunThreadNoTimeout(delegate
             {
-                m_log.DebugFormat(
-                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
-                    IsChildAgent ? "child" : "root", Name, Scene.Name, m_teleportFlags);
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
+//                    IsChildAgent ? "child" : "root", Name, Scene.Name, m_teleportFlags);
 
                 // we created a new ScenePresence (a new child agent) in a fresh region.
                 // Request info about all the (root) agents in this region
