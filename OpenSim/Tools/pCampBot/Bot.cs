@@ -214,9 +214,10 @@ namespace pCampBot
             if (!updatedBehaviours.TryGetValue(abbreviatedName, out behaviour))
                 return false;
 
-            behaviour.Close();
             updatedBehaviours.Remove(abbreviatedName);
             Behaviours = updatedBehaviours;
+
+            behaviour.Close();
 
             return true;
         }
@@ -299,7 +300,7 @@ namespace pCampBot
             ConnectionState = ConnectionState.Disconnecting;
               
             foreach (IBehaviour behaviour in Behaviours.Values)
-                behaviour.Interrupt();
+                behaviour.Close();
 
             Client.Network.Logout();
         }
