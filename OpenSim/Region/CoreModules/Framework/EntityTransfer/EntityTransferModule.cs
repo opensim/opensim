@@ -1746,6 +1746,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                             capsPath);
             }
 
+            // Backwards compatibility. Best effort
+            if (version == "Unknown" || version == string.Empty)
+            {
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
+                Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
+                CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
+            }
+
             // SUCCESS!
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.ReceivedAtDestination);
 
@@ -1768,13 +1776,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            agent.SendOtherAgentsAppearanceToMe();
 
 
-            // Backwards compatibility. Best effort
-            if (version == "Unknown" || version == string.Empty)
-            {
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
-                Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
-                CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
-            }
 
             // Next, let's close the child agent connections that are too far away.
             uint neighbourx;
