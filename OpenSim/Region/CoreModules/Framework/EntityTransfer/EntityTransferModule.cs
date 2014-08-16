@@ -1680,6 +1680,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 AgentData cAgent = new AgentData(); 
                 agent.CopyTo(cAgent);
+// DEBUG badd !!!
+                cAgent.Appearance.WearableCacheItems = null;
+
                 cAgent.Position = pos + agent.Velocity;
                 if (isFlying)
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
