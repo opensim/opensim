@@ -358,7 +358,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //        protected HashSet<uint> m_attachmentsSent;
 
         private bool m_deliverPackets = true;
-        private int m_animationSequenceNumber = 1;
+
         private bool m_SendLogoutPacketWhenClosing = true;
 
         /// <summary>
@@ -450,7 +450,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string Name { get { return FirstName + " " + LastName; } }
 
         public uint CircuitCode { get { return m_circuitCode; } }
-        public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
+        public int NextAnimationSequenceNumber
+        {
+            get { return m_udpServer.NextAnimationSequenceNumber; }
+        }
 
         /// <summary>
         /// As well as it's function in IClientAPI, in LLClientView we are locking on this property in order to
