@@ -1674,8 +1674,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public bool CrossAgentIntoNewRegionMain(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying)
         {
+            int ts = Util.EnvironmentTickCount();
             try
             {
+
                 AgentData cAgent = new AgentData(); 
                 agent.CopyTo(cAgent);
                 cAgent.Position = pos + agent.Velocity;
@@ -1704,6 +1706,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return false;
                 }
 
+            m_log.DebugFormat("[CrossAgentIntoNewRegionMain] ok, time {0}ms",Util.EnvironmentTickCountSubtract(ts));
+
             }
             catch (Exception e)
             {
@@ -1721,6 +1725,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public void CrossAgentToNewRegionPost(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
             bool isFlying, string version)
         {
+
             agent.ControllingClient.RequestClientInfo();
 
             string agentcaps;
@@ -1783,8 +1788,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 //            agent.SendOtherAgentsAvatarDataToMe();
 //            agent.SendOtherAgentsAppearanceToMe();
-
-
 
             // Next, let's close the child agent connections that are too far away.
             uint neighbourx;

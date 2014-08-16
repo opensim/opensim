@@ -1754,7 +1754,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void CompleteMovement(IClientAPI client, bool openChildAgents)
         {
-//            DateTime startTime = DateTime.Now;
+            int ts = Util.EnvironmentTickCount();
 
             m_log.InfoFormat(
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
@@ -1947,6 +1947,8 @@ namespace OpenSim.Region.Framework.Scenes
                 ParcelLoginCheck(m_currentParcelUUID);
                 m_currentParcelHide = newhide;
             }
+
+            m_log.DebugFormat("[CompleteMovement] end: {0}ms", Util.EnvironmentTickCountSubtract(ts));
         }
 
         /// <summary>
