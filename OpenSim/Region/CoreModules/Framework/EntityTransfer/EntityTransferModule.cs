@@ -430,7 +430,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // TODO: Get proper AVG Height
-            float localAVHeight = 1.56f;
+            float localHalfAVHeight = 0.8f;
+            if (sp.Appearance != null)
+                localHalfAVHeight = sp.Appearance.AvatarHeight / 2;
+
             float posZLimit = 22;
 
             // TODO: Check other Scene HeightField
@@ -439,10 +442,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 posZLimit = (float)sp.Scene.Heightmap[(int)position.X, (int)position.Y];
             }
 
-            float newPosZ = posZLimit + localAVHeight;
-            if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
+            posZLimit += localHalfAVHeight + 0.1f;
+
+            if ((position.Z < posZLimit) && !(Single.IsInfinity(posZLimit) || Single.IsNaN(posZLimit)))
             {
-                position.Z = newPosZ;
+                position.Z = posZLimit;
             }
 
             if (sp.Flying)
@@ -724,6 +728,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            agentCircuit.Appearance = sp.Appearance;
 //            agentCircuit.Appearance = new AvatarAppearance(sp.Appearance, true, false);
             agentCircuit.Appearance = new AvatarAppearance();
+            agentCircuit.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
 
             if (currentAgentCircuit != null)
             {
@@ -1851,6 +1856,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //agent.Appearance = sp.Appearance;      
             //agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);
             agent.Appearance = new AvatarAppearance();
+            agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
 
             agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
 
@@ -1969,6 +1975,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // agent.Appearance = sp.Appearance;
                     // agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);
                     agent.Appearance = new AvatarAppearance();
+                    agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
+
                     if (currentAgentCircuit != null)
                     {
                         agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
