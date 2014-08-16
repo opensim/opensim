@@ -1786,6 +1786,9 @@ namespace OpenSim.Region.Framework.Scenes
                     AbsolutePosition = pos;
                 }
 */
+
+                m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
                 if (!MakeRootAgent(AbsolutePosition, flying))
                 {
@@ -1795,6 +1798,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                     return;
                 }
+
+                m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 Vector3 look = Lookat;
                 if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01))
@@ -1827,6 +1832,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
+                m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                 if (!string.IsNullOrEmpty(m_callbackURI))
                 {
                     // We cannot sleep here since this would hold up the inbound packet processing thread, as
@@ -1855,6 +1862,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
 //            }
 
+                m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                 m_previusParcelHide = false;
                 m_previusParcelUUID = UUID.Zero;
                 m_currentParcelHide = false;
@@ -1875,6 +1884,8 @@ namespace OpenSim.Region.Framework.Scenes
                     DropThisRootRegionFromNeighbours();
 
                     ValidateAndSendAppearanceAndAgentData();
+
+                    m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                     // attachments
                     if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
@@ -1905,6 +1916,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
+                    m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                     // Create child agents in neighbouring regions
                     if (openChildAgents)
                     {
@@ -1914,9 +1927,13 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !isNPC)
                     SendInitialDataToMe();
+
+                m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if (!IsChildAgent)
                 {
@@ -1934,6 +1951,8 @@ namespace OpenSim.Region.Framework.Scenes
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                     if (friendsModule != null)
                         friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+
+                    m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                     }
                 }
             }
