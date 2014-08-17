@@ -2024,7 +2024,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             Util.FireAndForget(delegate
             {
-                Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
+                /// 5000 is BAD test
+                Thread.Sleep(5000);  // the original delay that was at InformClientOfNeighbourAsync start
                 int count = 0;
                 bool newAgent = false;
 
