@@ -1892,11 +1892,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.Id0 = currentAgentCircuit.Id0;
             }
 
+            Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
+
             IPEndPoint external = region.ExternalEndPoint;
             if (external != null)
             {
                 InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-                d.BeginInvoke(sp, agent, region, external, true,true,
+                d.BeginInvoke(sp, agent, region, external, true,
                           InformClientOfNeighbourCompleted,
                           d);
             }
@@ -1906,7 +1908,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #region Enable Child Agents
 
         private delegate void InformClientOfNeighbourDelegate(
-            ScenePresence avatar, AgentCircuitData a, GridRegion reg, IPEndPoint endPoint, bool newAgent, bool doInitialDelay);
+            ScenePresence avatar, AgentCircuitData a, GridRegion reg, IPEndPoint endPoint, bool newAgent);
 
         /// <summary>
         /// This informs all neighbouring regions about agent "avatar".
@@ -1945,10 +1947,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
             List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
 
-//            Dump("Current Neighbors", neighbourHandles);
-//            Dump("Previous Neighbours", previousRegionNeighbourHandles);
-//            Dump("New Neighbours", newRegions);
-//            Dump("Old Neighbours", oldRegions);
+            //            Dump("Current Neighbors", neighbourHandles);
+            //            Dump("Previous Neighbours", previousRegionNeighbourHandles);
+            //            Dump("New Neighbours", newRegions);
+            //            Dump("Old Neighbours", oldRegions);
 
             /// Update the scene presence's known regions here on this region
             sp.DropOldNeighbours(oldRegions);
@@ -2020,64 +2022,58 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
             //avatar.DumpKnownRegions();
 
-            bool newAgent = false;
-            int count = 0;
-            bool delay = true;
-            foreach (GridRegion neighbour in neighbours)
+            Util.FireAndForget(delegate
             {
-                //m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
-                // Don't do it if there's already an agent in that region
-                if (newRegions.Contains(neighbour.RegionHandle))
-                    newAgent = true;
-                else
-                    newAgent = false;
-//                    continue;
+                Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
+                int count = 0;
+                bool newAgent = false;
 
-                if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
+                foreach (GridRegion neighbour in neighbours)
                 {
-                    try
-                    {
-                        // Let's put this back at sync, so that it doesn't clog 
-                        // the network, especially for regions in the same physical server.
-                        // We're really not in a hurry here.
-                        InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent, delay);
-                        delay = false; // ugly i know.. but there aren't that many neighbours
+                    //m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
+                    // Don't do it if there's already an agent in that region
+                    if (newRegions.Contains(neighbour.RegionHandle))
+                        newAgent = true;
+                    else
+                        newAgent = false;
+                    //                    continue;
 
-                        //InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-                        //d.BeginInvoke(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
-                        //              InformClientOfNeighbourCompleted,
-                        //              d);
-                    }
+                    if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
+                    {
+                        try
+                        {
+                            InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent);
+                        }
 
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        m_log.ErrorFormat(
-                           "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
-                           neighbour.ExternalHostName,
-                           neighbour.RegionHandle,
-                           neighbour.RegionLocX,
-                           neighbour.RegionLocY);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
-                            neighbour.ExternalHostName,
-                            neighbour.RegionHandle,
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            m_log.ErrorFormat(
+                               "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                               neighbour.ExternalHostName,
+                                neighbour.RegionHandle,
                             neighbour.RegionLocX,
-                            neighbour.RegionLocY,
-                            e);
+                           neighbour.RegionLocY);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                                neighbour.ExternalHostName,
+                                neighbour.RegionHandle,
+                                neighbour.RegionLocX,
+                                neighbour.RegionLocY,
+                                e);
 
-                        // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
-                        // since I don't know what will happen if we just let the client continue
+                            // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
+                            // since I don't know what will happen if we just let the client continue
 
-                        // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
-                        // throw e;
-
+                            // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
+                            // throw e;
+                        }
                     }
+                    count++;
                 }
-                count++;
-            }
+            });
         }
 
         Vector3 CalculateOffset(ScenePresence sp, GridRegion neighbour)
@@ -2109,14 +2105,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="regionHandle"></param>
         /// <param name="endPoint"></param>
         private void InformClientOfNeighbourAsync(ScenePresence sp, AgentCircuitData a, GridRegion reg,
-                                                  IPEndPoint endPoint, bool newAgent,bool doinitialdelay)
+                                                  IPEndPoint endPoint, bool newAgent)
         {
-            // Let's wait just a little to give time to originating regions to catch up with closing child agents
-            // after a cross here
-            if(doinitialdelay)
-                Thread.Sleep(500);
-
-            Scene scene = sp.Scene;
+             Scene scene = sp.Scene;
 
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Informing {0} {1} about neighbour {2} {3} at ({4},{5})",
