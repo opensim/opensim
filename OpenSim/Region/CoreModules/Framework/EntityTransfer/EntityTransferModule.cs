@@ -2091,6 +2091,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                                   IPEndPoint endPoint, bool newAgent)
         {
              Scene scene = sp.Scene;
+             if (!newAgent)
+                 return;
 
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Informing {0} {1} about neighbour {2} {3} at ({4},{5})",
