@@ -1841,7 +1841,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #region Enable Child Agent
 
         /// <summary>
-        /// This informs a single neighbouring region about agent "avatar".
+        /// This informs a single neighbouring region about agent "avatar", and avatar about it
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
         /// <param name="sp"></param>
@@ -1857,8 +1857,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.startpos = new Vector3(128, 128, 70);
             agent.child = true;
 
-            //agent.Appearance = sp.Appearance;      
-            //agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);
             agent.Appearance = new AvatarAppearance();
             agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
 
@@ -1912,6 +1910,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         /// <summary>
         /// This informs all neighbouring regions about agent "avatar".
+        /// and as important informs the avatar about then
         /// </summary>
         /// <param name="sp"></param>
         public void EnableChildAgents(ScenePresence sp)
@@ -1928,84 +1927,77 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.Debug("[ENTITY TRANSFER MODULE]: m_regionInfo was null in EnableChildAgents, is this a NPC?");
             }
 
-            /// We need to find the difference between the new regions where there are no child agents
-            /// and the regions where there are already child agents. We only send notification to the former.
-            List<ulong> neighbourHandles = NeighbourHandles(neighbours); // on this region
-            neighbourHandles.Add(sp.Scene.RegionInfo.RegionHandle);  // add this region too
-            List<ulong> previousRegionNeighbourHandles;
+            LinkedList<ulong> previousRegionNeighbourHandles;
 
-            if (sp.Scene.CapsModule != null)
-            {
-                previousRegionNeighbourHandles =
-                    new List<ulong>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID).Keys);
-            }
-            else
-            {
-                previousRegionNeighbourHandles = new List<ulong>();
-            }
-
-            List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
-            List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
-
-            //            Dump("Current Neighbors", neighbourHandles);
-            //            Dump("Previous Neighbours", previousRegionNeighbourHandles);
-            //            Dump("New Neighbours", newRegions);
-            //            Dump("Old Neighbours", oldRegions);
-
-            /// Update the scene presence's known regions here on this region
-            sp.DropOldNeighbours(oldRegions);
-
-            /// Collect as many seeds as possible
             Dictionary<ulong, string> seeds;
-            if (sp.Scene.CapsModule != null)
-                seeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
-            else
-                seeds = new Dictionary<ulong, string>();
 
-            //m_log.Debug(" !!! No. of seeds: " + seeds.Count);
+            if (sp.Scene.CapsModule != null)
+            {
+                seeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
+                previousRegionNeighbourHandles = new LinkedList<ulong>(seeds.Keys);
+            }
+            else
+            {
+                seeds = new Dictionary<ulong, string>();
+                previousRegionNeighbourHandles = new LinkedList<ulong>();
+            }
+
             if (!seeds.ContainsKey(sp.Scene.RegionInfo.RegionHandle))
                 seeds.Add(sp.Scene.RegionInfo.RegionHandle, sp.ControllingClient.RequestClientInfo().CapsPath);
 
-            /// Create the necessary child agents
+            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+
+            List<ulong> newneighbours = new List<ulong>();
             List<AgentCircuitData> cagents = new List<AgentCircuitData>();
+
+            ulong currentRegionHandler = sp.Scene.RegionInfo.RegionHandle;
+
             foreach (GridRegion neighbour in neighbours)
             {
-                if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
+                ulong handler = neighbour.RegionHandle;
+
+                if (handler == currentRegionHandler)
+                    continue;
+
+                AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
+                agent.BaseFolder = UUID.Zero;
+                agent.InventoryFolder = UUID.Zero;
+                agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, neighbour);
+                agent.child = true;
+                agent.Appearance = new AvatarAppearance();
+                agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
+
+                if (currentAgentCircuit != null)
                 {
-                    AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                    AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
-                    agent.BaseFolder = UUID.Zero;
-                    agent.InventoryFolder = UUID.Zero;
-                    agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, neighbour);
-                    agent.child = true;
-                    // agent.Appearance = sp.Appearance;
-                    // agent.Appearance = new AvatarAppearance(sp.Appearance, true, false);
-                    agent.Appearance = new AvatarAppearance();
-                    agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
-
-                    if (currentAgentCircuit != null)
-                    {
-                        agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
-                        agent.IPAddress = currentAgentCircuit.IPAddress;
-                        agent.Viewer = currentAgentCircuit.Viewer;
-                        agent.Channel = currentAgentCircuit.Channel;
-                        agent.Mac = currentAgentCircuit.Mac;
-                        agent.Id0 = currentAgentCircuit.Id0;
-                    }
-
-                    if (newRegions.Contains(neighbour.RegionHandle))
-                    {
-                        agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
-                        sp.AddNeighbourRegion(neighbour.RegionHandle, agent.CapsPath);
-                        seeds.Add(neighbour.RegionHandle, agent.CapsPath);
-                    }
-                    else
-                    {
-                        agent.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, neighbour.RegionHandle);
-                    }
-
-                    cagents.Add(agent);
+                    agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                    agent.IPAddress = currentAgentCircuit.IPAddress;
+                    agent.Viewer = currentAgentCircuit.Viewer;
+                    agent.Channel = currentAgentCircuit.Channel;
+                    agent.Mac = currentAgentCircuit.Mac;
+                    agent.Id0 = currentAgentCircuit.Id0;
                 }
+
+                if (previousRegionNeighbourHandles.Contains(handler))
+                {
+                    previousRegionNeighbourHandles.Remove(handler);
+                    agent.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, handler);
+                }
+                else
+                {
+                    newneighbours.Add(handler);
+                    agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+                    sp.AddNeighbourRegion(handler, agent.CapsPath);
+                    seeds.Add(handler, agent.CapsPath);
+                }
+
+                cagents.Add(agent);
+            }
+
+            //sp.DropOldNeighbours(previousRegionNeighbourHandles);
+            foreach (ulong handle in previousRegionNeighbourHandles)
+            {
+                sp.RemoveNeighbourRegion(handle);
+                Scene.CapsModule.DropChildSeed(sp.UUID, handle);
             }
 
             /// Update all child agent with everyone's seeds
@@ -2018,59 +2010,49 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, seeds);
             }
+
             sp.KnownRegions = seeds;
             //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
             //avatar.DumpKnownRegions();
 
             Util.FireAndForget(delegate
             {
-                /// 5000 is BAD test
-                Thread.Sleep(5000);  // the original delay that was at InformClientOfNeighbourAsync start
+                Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
                 int count = 0;
-                bool newAgent = false;
+                bool newagent;
 
                 foreach (GridRegion neighbour in neighbours)
                 {
-                    //m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
-                    // Don't do it if there's already an agent in that region
-                    if (newRegions.Contains(neighbour.RegionHandle))
-                        newAgent = true;
-                    else
-                        newAgent = false;
-                    //                    continue;
-
-                    if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
+                    try
                     {
-                        try
-                        {
-                            InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent);
-                        }
+                        newagent = newneighbours.Contains(neighbour.RegionHandle);
+                        InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newagent);
+                    }
 
-                        catch (ArgumentOutOfRangeException)
-                        {
-                            m_log.ErrorFormat(
-                               "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
-                               neighbour.ExternalHostName,
-                                neighbour.RegionHandle,
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        m_log.ErrorFormat(
+                           "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                           neighbour.ExternalHostName,
+                            neighbour.RegionHandle,
+                        neighbour.RegionLocX,
+                       neighbour.RegionLocY);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                            neighbour.ExternalHostName,
+                            neighbour.RegionHandle,
                             neighbour.RegionLocX,
-                           neighbour.RegionLocY);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat(
-                                "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
-                                neighbour.ExternalHostName,
-                                neighbour.RegionHandle,
-                                neighbour.RegionLocX,
-                                neighbour.RegionLocY,
-                                e);
+                            neighbour.RegionLocY,
+                            e);
 
-                            // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
-                            // since I don't know what will happen if we just let the client continue
+                        // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
+                        // since I don't know what will happen if we just let the client continue
 
-                            // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
-                            // throw e;
-                        }
+                        // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
+                        // throw e;
                     }
                     count++;
                 }
