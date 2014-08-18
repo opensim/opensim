@@ -4201,6 +4201,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sent {0} updates in ProcessEntityUpdates() for {1} {2} in {3}", 
+//                updatesThisCall, Name, SceneAgent.IsChildAgent ? "child" : "root", Scene.Name);
+//
             #endregion Packet Sending
         }
 

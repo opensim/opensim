@@ -672,6 +672,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// signature</param>
         private void FireQueueEmpty(object o)
         {
+//            m_log.DebugFormat("[LLUDPCLIENT]: FireQueueEmpty for {0} in {1}", AgentID, m_udpServer.Scene.Name);
+
 //            int start = Environment.TickCount & Int32.MaxValue;
 //            const int MIN_CALLBACK_MS = 30;
 
