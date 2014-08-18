@@ -650,8 +650,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (HasUpdates(m_categories))
                 {
-                    // Asynchronously run the callback
-                    Util.FireAndForget(FireQueueEmpty, categories);
+                    if (!m_udpServer.OqrEngine.IsRunning)
+                    {
+                        // Asynchronously run the callback
+                        Util.FireAndForget(FireQueueEmpty, categories);
+                    }
+                    else
+                    {
+                        m_udpServer.OqrEngine.QueueRequest(this, categories);
+                    }
                 }
                 else
                 {
@@ -670,7 +677,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="o">Throttle categories to fire the callback for,
         /// stored as an object to match the WaitCallback delegate
         /// signature</param>
-        private void FireQueueEmpty(object o)
+        public void FireQueueEmpty(object o)
         {
 //            m_log.DebugFormat("[LLUDPCLIENT]: FireQueueEmpty for {0} in {1}", AgentID, m_udpServer.Scene.Name);
 

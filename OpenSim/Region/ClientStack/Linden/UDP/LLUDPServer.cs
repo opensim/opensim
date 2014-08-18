@@ -355,6 +355,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private IClientAPI m_currentIncomingClient;
 
+        /// <summary>
+        /// Experimental facility to run queue empty processing within a controlled number of threads rather than
+        /// requiring massive numbers of short-lived threads from the threadpool when there are a high number of 
+        /// connections.
+        /// </summary>
+        public OutgoingQueueRefillEngine OqrEngine { get; private set; }
+
         public LLUDPServer(
             IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port,
             IConfigSource configSource, AgentCircuitManager circuitManager)
@@ -432,6 +439,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (usePools)
                 EnablePools();
+
+            OqrEngine = new OutgoingQueueRefillEngine(this);
         }
 
         public void Start()
@@ -469,7 +478,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Watchdog.StartThread(
                 OutgoingPacketHandler,
-                string.Format("Outgoing Packets ({0})", Scene.RegionInfo.RegionName),
+                string.Format("Outgoing Packets ({0})", Scene.Name),
                 ThreadPriority.Normal,
                 false,
                 true,
@@ -479,7 +488,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Stop()
         {
-            m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + Scene.RegionInfo.RegionName);
+            m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + Scene.Name);
             base.StopOutbound();
             base.StopInbound();
         }
