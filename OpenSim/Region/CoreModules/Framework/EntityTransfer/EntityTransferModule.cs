@@ -1782,10 +1782,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Unlike a teleport, here we do not wait for the destination region to confirm the receipt.
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
-            AgentHasMovedAway(agent, false);
+            AgentHasMovedAway(agent, true);
 
-            KillEntity(agent.Scene, agent.LocalId);
-//            agent.parcelRegionCross(false);
+            agent.parcelRegionCross();
 
             agent.MakeChildAgent();
 

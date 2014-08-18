@@ -5503,8 +5503,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (p.GodLevel < 200)
                         killsToSendto.Add(p);
-                    if (GodLevel < 200 && p.ParcelHideThisAvatar)
-                        killsToSendme.Add(p.LocalId);
+//                    if (GodLevel < 200 && p.ParcelHideThisAvatar)
+//                        killsToSendme.Add(p.LocalId);
                 }
                 else
                 {
@@ -5567,89 +5567,34 @@ namespace OpenSim.Region.Framework.Scenes
 */
         }
 
-        public void parcelRegionCross(bool abort)
+        public void parcelRegionCross()
         {
-//            if (!ParcelHideThisAvatar)
-//                return;
+            if (!ParcelHideThisAvatar || GodLevel >= 200)
+                return;
 
             List<ScenePresence> allpresences = null;
             allpresences = m_scene.GetScenePresences();
 
-// abort no longer complet
-            if (abort)
+            List<uint> killsToSendme = new List<uint>();
+
+            foreach (ScenePresence p in allpresences)
             {
-                List<ScenePresence> viewsToSendme = new List<ScenePresence>();
+                if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                    continue;
 
-                foreach (ScenePresence p in allpresences)
+                if (p.currentParcelUUID == m_currentParcelUUID)
                 {
-                    if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                        continue;
-
-                    if (p.currentParcelUUID == m_currentParcelUUID)
-                    {
-                        viewsToSendme.Add(p);
-                    }
-                }
-
-                if (viewsToSendme.Count > 0)
-                {
-                    foreach (ScenePresence p in viewsToSendme)
-                    {
-                        if (p.IsChildAgent)
-                            continue;
-                        //                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
-                        ControllingClient.SendAvatarDataImmediate(p);
-                        p.SendAppearanceToAgent(this);
-                        p.SendAttachmentsToClient(ControllingClient);
-                        if (p.Animator != null)
-                            p.Animator.SendAnimPackToClient(ControllingClient);
-                    }
+                    killsToSendme.Add(p.LocalId);
                 }
             }
-            else
+
+            if (killsToSendme.Count > 0)
             {
-
-                bool inprivate = ParcelHideThisAvatar && GodLevel < 200;
-                List<uint> killsToSendme = new List<uint>();
-
-                if (inprivate)
+                try
                 {
-                    foreach (ScenePresence p in allpresences)
-                    {
-                        if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                            continue;
-
-                        if (p.currentParcelUUID == m_currentParcelUUID)
-                        {
-                            m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
-                            killsToSendme.Add(p.LocalId);
-                        }
-                    }
+                    ControllingClient.SendKillObject(killsToSendme);
                 }
-/*
-                else
-                {
-                    foreach (ScenePresence p in allpresences)
-                    {
-                        if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                            continue;
-
-                        killsToSendme.Add(p.LocalId);
-                    }
-                }
-*/
-                if (killsToSendme.Count > 0)
-                {
-                    try
-                    {
-                        ControllingClient.SendKillObject(killsToSendme);
-                    }
-                    catch (NullReferenceException) { }
-                }
-               
-                if (Scene.AttachmentsModule != null)
-                    Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
-
+                catch (NullReferenceException) { }
             }
         }
 
