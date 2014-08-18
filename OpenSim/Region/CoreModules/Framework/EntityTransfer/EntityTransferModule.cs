@@ -980,7 +980,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // May need to logout or other cleanup
-            AgentHasMovedAway(sp, logout);
+//            AgentHasMovedAway(sp, logout);
+            AgentHasMovedAway(sp, true); // until logout use is checked
 
             // Well, this is it. The agent is over there.
             KillEntity(sp.Scene, sp.LocalId);
@@ -1147,7 +1148,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             sp.CloseChildAgents(newRegionX, newRegionY);
 
             // May need to logout or other cleanup
-            AgentHasMovedAway(sp, logout);
+//            AgentHasMovedAway(sp, logout);
+            AgentHasMovedAway(sp, true);
 
             // Well, this is it. The agent is over there.
             KillEntity(sp.Scene, sp.LocalId);
@@ -1262,7 +1264,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
             if (sp.Scene.AttachmentsModule != null)
-                sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, true);
+                sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, logout);
         }
 
         protected void KillEntity(Scene scene, uint localID)
@@ -1740,6 +1742,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // No turning back
+
+
+
             agent.IsChildAgent = true;
 
             string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
@@ -1777,7 +1782,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Unlike a teleport, here we do not wait for the destination region to confirm the receipt.
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
-            agent.parcelRegionCross(false);
+            AgentHasMovedAway(agent, false);
+
+            KillEntity(agent.Scene, agent.LocalId);
+//            agent.parcelRegionCross(false);
 
             agent.MakeChildAgent();
 
@@ -1803,7 +1811,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             agent.CloseChildAgents(neighbourx, neighboury);
 
-            AgentHasMovedAway(agent, false);
+ 
 
             // the user may change their profile information in other region,
             // so the userinfo in UserProfileCache is not reliable any more, delete it
