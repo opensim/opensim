@@ -5567,6 +5567,7 @@ namespace OpenSim.Region.Framework.Scenes
 */
         }
 
+ 
         public void parcelRegionCross()
         {
             if (!ParcelHideThisAvatar || GodLevel >= 200)
