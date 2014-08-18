@@ -74,6 +74,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private LLUDPServer m_udpServer;
 
+        private Stat m_oqreRequestsWaitingStat;
+
         /// <summary>
         /// Used to signal that we are ready to complete stop.
         /// </summary>
@@ -106,6 +108,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_finishedProcessingAfterStop.Reset();
 
                 m_requestQueue = new BlockingCollection<RefillRequest>(new ConcurrentQueue<RefillRequest>(), 5000);
+
+                m_oqreRequestsWaitingStat = 
+                    new Stat(
+                        "OQRERequestsWaiting",
+                        "Number of outgong queue refill requests waiting for processing.",
+                        "",
+                        "",
+                        "clientstack",
+                        m_udpServer.Scene.Name,
+                        StatType.Pull,
+                        MeasuresOfInterest.None,
+                        stat => stat.Value = m_requestQueue.Count,
+                        StatVerbosity.Debug);
+
+                StatsManager.RegisterStat(m_oqreRequestsWaitingStat);
 
                 Watchdog.StartThread(
                     ProcessRequests,
@@ -161,6 +178,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 finally
                 {
                     m_cancelSource.Dispose();
+                    StatsManager.DeregisterStat(m_oqreRequestsWaitingStat);
+                    m_oqreRequestsWaitingStat = null;
                     m_requestQueue = null;
                 }
             }
