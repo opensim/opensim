@@ -1767,10 +1767,20 @@ namespace OpenSim.Region.Framework.Scenes
                 // Make sure it's not a login agent. We don't want to wait for updates during login
                 if (!isNPC && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
                 {
+
                     // Let's wait until UpdateAgent (called by departing region) is done
                     if (!WaitForUpdateAgent(client))
                         // The sending region never sent the UpdateAgent data, we have to refuse
                         return;
+
+                    //HACK part A
+                    // kill in viewers sp.localID that they may still know about
+                    m_log.DebugFormat("[CompleteMovement] send old child kills");
+                    m_scene.SendKillObject(new List<uint> { LocalId });
+
+                    //HACK part B
+                    // keep using same localID
+
                 }
 
                 // Prevent teleporting to an underground location

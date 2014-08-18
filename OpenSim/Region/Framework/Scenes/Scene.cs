@@ -3903,16 +3903,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     sp.LifecycleState = ScenePresenceState.Running;
 
-
-                    //HACK part A
-                    // kill in viewers sp.localID that they may still know about
-                    
-                    SendKillObject(new List<uint> { sp.LocalId });
-
-                    //HACK part B
-                    // keep using same localID
-
-
                     if (EntityTransferModule.IsInTransit(sp.UUID))
                     {
                         sp.DoNotCloseAfterTeleport = true;
