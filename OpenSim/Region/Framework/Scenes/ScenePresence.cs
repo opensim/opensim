@@ -1772,15 +1772,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!WaitForUpdateAgent(client))
                         // The sending region never sent the UpdateAgent data, we have to refuse
                         return;
-
-                    //HACK part A
-                    // kill in viewers sp.localID that they may still know about
-                    m_log.DebugFormat("[CompleteMovement] send old child kills");
-                    m_scene.SendKillObject(new List<uint> { LocalId });
-
-                    //HACK part B
-                    // keep using same localID
-
                 }
 
                 // Prevent teleporting to an underground location
