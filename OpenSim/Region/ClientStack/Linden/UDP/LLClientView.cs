@@ -5291,7 +5291,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             byte[] objectData = new byte[76];
 
-            Vector3 velocity = data.Velocity;
+            Vector3 velocity = new Vector3(0, 0, 0);
             Vector3 acceleration = new Vector3(0, 0, 0);
             rotation.Normalize();
             Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
