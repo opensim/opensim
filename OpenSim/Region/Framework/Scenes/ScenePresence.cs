@@ -1912,7 +1912,6 @@ namespace OpenSim.Region.Framework.Scenes
                                         return;
                                     sog.SendFullUpdateToClient(p.ControllingClient);
                                     SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
-                                    SendTerseUpdateToAgent(p);
                                 });
                                 
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
@@ -3654,6 +3653,11 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
             if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && avatar.GodLevel < 200)
                 return;
+            avatar.ControllingClient.SendAvatarDataImmediate(this);
+        }
+
+        public void SendAvatarDataToAgentNF(ScenePresence avatar)
+        {
             avatar.ControllingClient.SendAvatarDataImmediate(this);
         }
 
@@ -5513,7 +5517,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (p.IsChildAgent)
                             continue;
 
-                        p.SendUpdateToAgent(this);
+                        p.SendAvatarDataToAgentNF(this);
                         p.SendAppearanceToAgent(this);
                         if (p.Animator != null)
                             p.Animator.SendAnimPackToClient(ControllingClient);
@@ -5828,7 +5832,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
-                    SendUpdateToAgent(p);
+                    SendAvatarDataToAgentNF(p);
                     SendAppearanceToAgent(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
@@ -5844,7 +5848,7 @@ namespace OpenSim.Region.Framework.Scenes
                         continue;
 //                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
 
-                    p.SendUpdateToAgent(this);
+                    p.SendAvatarDataToAgentNF(this);
                     p.SendAppearanceToAgent(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
