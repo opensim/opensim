@@ -12341,6 +12341,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// provide your own method.</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting, UnackedPacketMethod method)
         {
+            if (m_outPacketsToDrop != null)
+                if (m_outPacketsToDrop.Contains(packet.Type.ToString()))
+                    return;
+
             if (DebugPacketLevel > 0)
             {
                 bool logPacket = true;
@@ -13122,6 +13126,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             eq.Enqueue(BuildEvent("BulkUpdateInventory",
                     llsd), AgentId);
+        }
+
+        private HashSet<string> m_outPacketsToDrop;
+
+        public bool AddOutPacketToDropSet(string packetName)
+        {
+            if (m_outPacketsToDrop == null)
+                m_outPacketsToDrop = new HashSet<string>();
+
+            return m_outPacketsToDrop.Add(packetName);
+        }
+
+        public bool RemoveOutPacketFromDropSet(string packetName)
+        {
+            if (m_outPacketsToDrop == null)
+                return false;
+
+            return m_outPacketsToDrop.Remove(packetName);
+        }
+
+        public HashSet<string> GetOutPacketDropSet()
+        {
+            return new HashSet<string>(m_outPacketsToDrop);
         }
     }
 }

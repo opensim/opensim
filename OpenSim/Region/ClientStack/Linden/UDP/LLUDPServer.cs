@@ -698,6 +698,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  HandlePacketCommand);
 
             MainConsole.Instance.Commands.AddCommand(
+                "Debug", false, "debug lludp drop out",
+                "debug lludp drop out <add|remove> <packet-name>",
+                "Drop all outbound packets that match the given name",
+                "For test purposes.",
+                HandleDropCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
                 "debug lludp start",
@@ -817,6 +824,48 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     MainConsole.Instance.Output("Usage: debug lludp packet [--default | --all] 0..255 [<first-name> <last-name>]");
                 }
+            }
+        }
+
+        private void HandleDropCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
+                return;
+
+            if (args.Length != 6)
+            {
+                MainConsole.Instance.Output("Usage: debug lludp drop out <add|remove> <packet-name>");
+                return;
+            }
+
+            string subCommand = args[4];
+            string packetName = args[5];           
+
+            if (subCommand == "add")
+            {
+                MainConsole.Instance.OutputFormat(
+                    "Adding packet {0} to out drop list for all connections in {1}", packetName, Scene.Name);
+
+                Scene.ForEachScenePresence(
+                    sp =>
+                    {
+                        LLClientView llcv = (LLClientView)sp.ControllingClient;
+                        llcv.AddOutPacketToDropSet(packetName);
+                    }
+                );
+            }
+            else if (subCommand == "remove")
+            {
+                MainConsole.Instance.OutputFormat(
+                    "Removing packet {0} from out drop list for all connections in {1}", packetName, Scene.Name);
+
+                Scene.ForEachScenePresence(
+                    sp =>
+                    {
+                        LLClientView llcv = (LLClientView)sp.ControllingClient;
+                        llcv.RemoveOutPacketFromDropSet(packetName);
+                    }
+                );
             }
         }
 
