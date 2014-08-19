@@ -1882,9 +1882,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ValidateAndSendAppearanceAndAgentData();
 
                     m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
-                    List<SceneObjectGroup> attachments = GetAttachments();
-
+                 
                     // attachments
                     if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
                     {
@@ -1897,13 +1895,13 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        if (attachments.Count > 0)
+                        if (m_attachments.Count > 0)
                         {
                             m_log.DebugFormat(
                                 "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
 
                             // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
-                            foreach (SceneObjectGroup sog in attachments)
+                            foreach (SceneObjectGroup sog in m_attachments)
                             {
                                 // sog.ScheduleGroupForFullUpdate();
                                 m_scene.ForEachScenePresence(delegate(ScenePresence p)
@@ -5809,9 +5807,9 @@ namespace OpenSim.Region.Framework.Scenes
                     p.ControllingClient.SendAvatarDataImmediate(this);
 //                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     SendAppearanceToAgent(p);
-                    SendAttachmentsToAgentNF(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
+                    SendAttachmentsToAgentNF(p);
                 }
             }
 
@@ -5824,9 +5822,9 @@ namespace OpenSim.Region.Framework.Scenes
 //                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
                     ControllingClient.SendAvatarDataImmediate(p);
                     p.SendAppearanceToAgent(this);
-                    p.SendAttachmentsToAgentNF(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
+                    p.SendAttachmentsToAgentNF(this);
                 }
             }
         }
