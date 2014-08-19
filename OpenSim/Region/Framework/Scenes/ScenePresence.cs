@@ -1908,10 +1908,12 @@ namespace OpenSim.Region.Framework.Scenes
                                 // sog.ScheduleGroupForFullUpdate();
                                 m_scene.ForEachScenePresence(delegate(ScenePresence p)
                                 {
+                                    if (p != this && sog.HasPrivateAttachmentPoint)
+                                        return;
                                     if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                                         return;
                                     sog.SendFullUpdateToClient(p.ControllingClient);
-                                    p.ControllingClient.SendAvatarDataImmediate(this); // resend our data -> test
+                                    SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
                                 });
                                 
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
@@ -3377,6 +3379,16 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendAgentTerseUpdate(p);
         }
 
+        public void SendFullUpdateToClient(IClientAPI remoteClient)
+        {
+            if (remoteClient.IsActive)
+            {
+                //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
+                remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
+                m_scene.StatsReporter.AddAgentUpdates(1);
+            }
+        }
+
         /// <summary>
         /// Sends a location update to the client connected to this scenePresence
         /// via entity updates
@@ -4672,15 +4684,37 @@ namespace OpenSim.Region.Framework.Scenes
             return validated;
         }
 
-
-        public void SendAttachmentsToClient(IClientAPI client)
+        public void SendAttachmentsToAllAgents()
         {
             lock (m_attachments)
             {
-                foreach (SceneObjectGroup gobj in m_attachments)
+                foreach (SceneObjectGroup sog in m_attachments)
                 {
-                    gobj.SendFullUpdateToClient(client);
+                    m_scene.ForEachScenePresence(delegate(ScenePresence p)
+                    {
+                        if (p != this && sog.HasPrivateAttachmentPoint)
+                            return;
+                        if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                            return;
+                        sog.SendFullUpdateToClient(p.ControllingClient);
+                        SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
+                    });
                 }
+            }
+        }
+
+        // send attachments to a client without filters except for huds
+        // for now they are checked in several places down the line...
+        public void SendAttachmentsToAgentNF(ScenePresence p)
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup sog in m_attachments)
+                {
+                    if (p == this || !sog.HasPrivateAttachmentPoint)
+                        sog.SendFullUpdateToClient(p.ControllingClient);
+                }
+                SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
             }
         }
 
@@ -5458,7 +5492,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
                         ControllingClient.SendAvatarDataImmediate(p);
                         p.SendAppearanceToAgent(this);
-                        p.SendAttachmentsToClient(ControllingClient);
+                        p.SendAttachmentsToAgentNF(this);
                         if (p.Animator != null)
                             p.Animator.SendAnimPackToClient(ControllingClient);
 
@@ -5775,7 +5809,7 @@ namespace OpenSim.Region.Framework.Scenes
                     p.ControllingClient.SendAvatarDataImmediate(this);
 //                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
                     SendAppearanceToAgent(p);
-                    SendAttachmentsToClient(p.ControllingClient);
+                    SendAttachmentsToAgentNF(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
                 }
@@ -5790,7 +5824,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
                     ControllingClient.SendAvatarDataImmediate(p);
                     p.SendAppearanceToAgent(this);
-                    p.SendAttachmentsToClient(ControllingClient);
+                    p.SendAttachmentsToAgentNF(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
                 }
