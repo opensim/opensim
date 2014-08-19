@@ -3828,8 +3828,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 SceneObjectPart e = (SceneObjectPart)entity;
                 SceneObjectGroup g = e.ParentGroup;
-                if (g.RootPart.Shape.State > 30 && g.RootPart.Shape.State < 39) // HUD
-                    if (g.OwnerID != AgentId)
+                if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
                         return; // Don't send updates for other people's HUDs
             }
 
