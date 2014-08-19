@@ -5291,16 +5291,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             byte[] objectData = new byte[76];
 
+            Vector3 velocity = data.Velocity;
+            Vector3 acceleration = new Vector3(0, 0, 0);
+            rotation.Normalize();
+            Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
+
             data.CollisionPlane.ToBytes(objectData, 0);
             offsetPosition.ToBytes(objectData, 16);
-            Vector3 velocity = new Vector3(0, 0, 0);
-            Vector3 acceleration = new Vector3(0, 0, 0);
             velocity.ToBytes(objectData, 28);
             acceleration.ToBytes(objectData, 40);
-//            data.Velocity.ToBytes(objectData, 28);
-//            data.Acceleration.ToBytes(objectData, 40);
-            rotation.ToBytes(objectData, 52);
-            //data.AngularVelocity.ToBytes(objectData, 64);
+            vrot.ToBytes(objectData, 52);
+            data.AngularVelocity.ToBytes(objectData, 64);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
 
@@ -5356,15 +5357,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data.RelativePosition.ToBytes(objectData, 0);
             data.Velocity.ToBytes(objectData, 12);
             data.Acceleration.ToBytes(objectData, 24);
-            try
-            {
-                data.RotationOffset.ToBytes(objectData, 36);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[LLClientView]: exception converting quaternion to bytes, using Quaternion.Identity. Exception: " + e.ToString());
-                OpenMetaverse.Quaternion.Identity.ToBytes(objectData, 36);
-            }
+
+            Quaternion rotation = data.RotationOffset;
+            rotation.Normalize();
+            Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
+            vrot.ToBytes(objectData, 36);
             data.AngularVelocity.ToBytes(objectData, 48);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
