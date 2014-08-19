@@ -157,30 +157,31 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
         {
-            uint pqueue = ComputeDistancePriority(client,entity,false);
+            uint pqueue = 2; // keep compiler happy
 
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence != null)
             {
-                if (!presence.IsChildAgent)
-                {
-                    // All avatars other than our own go into pqueue 1
-                    if (entity is ScenePresence)
-                        return 1;
-                    
-                    if (entity is SceneObjectPart)
-                    {
-                        // Attachments are high priority, 
-                        if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
-                            return 1;
+                // All avatars other than our own go into pqueue 1
+                if (entity is ScenePresence)
+                    return 1;
 
-                        // Non physical prims are lower priority than physical prims
-                        PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
-                        if (physActor == null || !physActor.IsPhysical)
-                            pqueue++;
-                    }
+                if (entity is SceneObjectPart)
+                {
+                    // Attachments are high priority, 
+                    if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
+                        return 1;
+
+                    pqueue = ComputeDistancePriority(client, entity, false);
+
+                    // Non physical prims are lower priority than physical prims
+                    PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
+                    if (physActor == null || !physActor.IsPhysical)
+                        pqueue++;
                 }
             }
+            else
+                pqueue = ComputeDistancePriority(client, entity, false);
 
             return pqueue;
         }
