@@ -4745,6 +4745,152 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void SendAttachmentsToAgentNFPK(ScenePresence p)
+        {
+            lock (m_attachments)
+            {
+                List<uint> pk = new List<uint>();
+                foreach (SceneObjectGroup sog in m_attachments)
+                {
+                    foreach (SceneObjectPart part in sog.Parts)
+                        pk.Add(part.LocalId);
+                }
+
+                p.ControllingClient.SendKillObject(pk);
+
+                foreach (SceneObjectGroup sog in m_attachments)
+                {
+                    if (p == this || !sog.HasPrivateAttachmentPoint)
+                        sog.SendFullUpdateToClient(p.ControllingClient);
+                }
+                SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
+            }
+        }
+
+
+        public void SendAttachmentScheduleUpdate(SceneObjectGroup sog)
+        {
+            if (IsChildAgent)
+                return;
+
+            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            {
+                if (p != this && sog.HasPrivateAttachmentPoint)
+                    return;
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    return;
+
+                SceneObjectPart[] parts = sog.Parts;
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    if (part.UpdateFlag == UpdateRequired.TERSE)
+                    {
+                        p.ControllingClient.SendEntityUpdate(part,
+                            PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                            | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+                        part.UpdateFlag = 0;
+                    }
+                    else if (part.UpdateFlag == UpdateRequired.FULL)
+                    {
+                        p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
+                        part.UpdateFlag = 0;
+                    }
+                }
+            });          
+        }
+
+        public void SendAttachmentScheduleUpdate(SceneObjectPart part)
+        {
+            if (IsChildAgent)
+                return;
+
+            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            {
+                if (p != this && part.ParentGroup.HasPrivateAttachmentPoint)
+                    return;
+
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    return;
+
+                if (part.UpdateFlag == UpdateRequired.TERSE)
+                {
+                    p.ControllingClient.SendEntityUpdate(part,
+                        PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+                    part.UpdateFlag = 0;
+                }
+                else if (part.UpdateFlag == UpdateRequired.FULL)
+                {
+                    p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
+                    part.UpdateFlag = 0;
+                }
+            });
+        }
+
+        public void SendAttachmentUpdate(SceneObjectGroup sog, UpdateRequired UpdateFlag)
+        {
+            if (IsChildAgent)
+                return;
+
+            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            {
+                if (p != this && sog.HasPrivateAttachmentPoint)
+                    return;
+
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    return;
+
+                SceneObjectPart[] parts = sog.Parts;
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    if (UpdateFlag == UpdateRequired.TERSE)
+                    {
+                        p.ControllingClient.SendEntityUpdate(part,
+                            PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                            | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+                        part.UpdateFlag = 0;
+                    }
+                    else if (UpdateFlag == UpdateRequired.FULL)
+                    {
+                        p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
+                        part.UpdateFlag = 0;
+                    }
+                }
+            });
+        }
+
+        public void SendAttachmentUpdate(SceneObjectPart part, UpdateRequired UpdateFlag)
+        {
+            if (IsChildAgent)
+                return;
+
+            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            {
+                if (p != this && part.ParentGroup.HasPrivateAttachmentPoint)
+                    return;
+
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    return;
+
+                if (UpdateFlag == UpdateRequired.TERSE)
+                {
+                    p.ControllingClient.SendEntityUpdate(part,
+                        PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+                    part.UpdateFlag = 0;
+                }
+                else if (UpdateFlag == UpdateRequired.FULL)
+                {
+                    p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
+                    part.UpdateFlag = 0;
+                }
+            });
+        }
+
         /// <summary>
         /// Send a script event to this scene presence's attachments
         /// </summary>
@@ -5521,7 +5667,7 @@ namespace OpenSim.Region.Framework.Scenes
                         p.SendAppearanceToAgent(this);
                         if (p.Animator != null)
                             p.Animator.SendAnimPackToClient(ControllingClient);
-                        p.SendAttachmentsToAgentNF(this);
+                        p.SendAttachmentsToAgentNFPK(this);
                     }
                 }
             }
@@ -5852,7 +5998,7 @@ namespace OpenSim.Region.Framework.Scenes
                     p.SendAppearanceToAgent(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
-                    p.SendAttachmentsToAgentNF(this);
+                    p.SendAttachmentsToAgentNFPK(this);
                 }
             }
         }
