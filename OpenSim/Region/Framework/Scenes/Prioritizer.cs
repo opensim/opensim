@@ -91,6 +91,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return 0;
 
             uint priority;
+
+
+            // HACK 
+            return GetPriorityByBestAvatarResponsiveness(client, entity);
+
             
             switch (m_scene.UpdatePrioritizationScheme)
             {
