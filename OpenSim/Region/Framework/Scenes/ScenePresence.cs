@@ -5514,7 +5514,6 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         p.SendUpdateToAgent(this);
-                        p.SendAgentTerseUpdate(this);
                         p.SendAppearanceToAgent(this);
                         if (p.Animator != null)
                             p.Animator.SendAnimPackToClient(ControllingClient);
@@ -5830,7 +5829,6 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ScenePresence p in viewsToSendto)
                 {
                     SendUpdateToAgent(p);
-                    SendAgentTerseUpdate(p);
                     SendAppearanceToAgent(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
@@ -5847,7 +5845,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
 
                     p.SendUpdateToAgent(this);
-                    p.SendAgentTerseUpdate(this);
                     p.SendAppearanceToAgent(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
