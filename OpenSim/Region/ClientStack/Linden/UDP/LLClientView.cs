@@ -12403,6 +12403,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet packet)
         {
+            if (m_inPacketsToDrop != null)
+                if (m_inPacketsToDrop.Contains(packet.Type.ToString()))
+                    return;
+
             if (DebugPacketLevel > 0)
             {
                 bool logPacket = true;
@@ -13149,6 +13153,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public HashSet<string> GetOutPacketDropSet()
         {
             return new HashSet<string>(m_outPacketsToDrop);
+        }
+
+        private HashSet<string> m_inPacketsToDrop;
+
+        public bool AddInPacketToDropSet(string packetName)
+        {
+            if (m_inPacketsToDrop == null)
+                m_inPacketsToDrop = new HashSet<string>();
+
+            return m_inPacketsToDrop.Add(packetName);
+        }
+
+        public bool RemoveInPacketFromDropSet(string packetName)
+        {
+            if (m_inPacketsToDrop == null)
+                return false;
+
+            return m_inPacketsToDrop.Remove(packetName);
+        }
+
+        public HashSet<string> GetInPacketDropSet()
+        {
+            return new HashSet<string>(m_inPacketsToDrop);
         }
     }
 }
