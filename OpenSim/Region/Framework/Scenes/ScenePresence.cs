@@ -5982,7 +5982,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SendAppearanceToAgent(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
-                    SendAttachmentsToAgentNF(p);
+                    SendAttachmentsToAgentNFPK(p);
                 }
             }
 
