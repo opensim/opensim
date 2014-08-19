@@ -1912,6 +1912,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         return;
                                     sog.SendFullUpdateToClient(p.ControllingClient);
                                     SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
+                                    SendTerseUpdateToAgent(p);
                                 });
                                 
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
@@ -3370,11 +3371,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Update Client(s)
 
-        // this is diferente from SendTerseUpdateToClient
-        // this sends bypassing ententies updates 
-        public void SendAgentTerseUpdate(ISceneEntity p)
+        public void SendUpdateToAgent(ScenePresence p)
         {
-            ControllingClient.SendAgentTerseUpdate(p);
+            IClientAPI remoteClient = p.ControllingClient;
+
+            if (remoteClient.IsActive)
+            {
+                //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
+                remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
+                m_scene.StatsReporter.AddAgentUpdates(1);
+            }
         }
 
         public void SendFullUpdateToClient(IClientAPI remoteClient)
@@ -3385,6 +3391,13 @@ namespace OpenSim.Region.Framework.Scenes
                 remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
                 m_scene.StatsReporter.AddAgentUpdates(1);
             }
+        }
+
+        // this is diferente from SendTerseUpdateToClient
+        // this sends bypassing entities updates 
+        public void SendAgentTerseUpdate(ISceneEntity p)
+        {
+            ControllingClient.SendAgentTerseUpdate(p);
         }
 
         /// <summary>
@@ -3408,7 +3421,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SendTerseUpdateToAgentClient(ScenePresence p)
+        public void SendTerseUpdateToAgent(ScenePresence p)
         {
             IClientAPI remoteClient = p.ControllingClient;
 
@@ -3426,6 +3439,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.StatsReporter.AddAgentUpdates(1);
         }
+
+        public void SendTerseUpdateToAgentNF(ScenePresence p)
+        {
+            IClientAPI remoteClient = p.ControllingClient;
+            if (remoteClient.IsActive)
+            {
+                //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
+                remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
+                m_scene.StatsReporter.AddAgentUpdates(1);
+            }
+        }
+
 
         // vars to support reduced update frequency when velocity is unchanged
         private Vector3 lastVelocitySentToAllClients = Vector3.Zero;
@@ -3468,7 +3493,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
 //                m_scene.ForEachClient(SendTerseUpdateToClient);
-                m_scene.ForEachScenePresence(SendTerseUpdateToAgentClient);
+                m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
             }
             TriggerScenePresenceUpdated();
         }
@@ -5487,13 +5512,13 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (p.IsChildAgent)
                             continue;
-                        m_log.Debug("[AVATAR]: viewMe: " + Lastname + " " + p.Lastname);
-                        ControllingClient.SendAvatarDataImmediate(p);
+
+                        p.SendUpdateToAgent(this);
+                        p.SendAgentTerseUpdate(this);
                         p.SendAppearanceToAgent(this);
-                        p.SendAttachmentsToAgentNF(this);
                         if (p.Animator != null)
                             p.Animator.SendAnimPackToClient(ControllingClient);
-
+                        p.SendAttachmentsToAgentNF(this);
                     }
                 }
             }
@@ -5804,8 +5829,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
-                    p.ControllingClient.SendAvatarDataImmediate(this);
-//                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
+                    SendUpdateToAgent(p);
+                    SendAgentTerseUpdate(p);
                     SendAppearanceToAgent(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
@@ -5820,7 +5845,9 @@ namespace OpenSim.Region.Framework.Scenes
                     if (p.IsChildAgent)
                         continue;
 //                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
-                    ControllingClient.SendAvatarDataImmediate(p);
+
+                    p.SendUpdateToAgent(this);
+                    p.SendAgentTerseUpdate(this);
                     p.SendAppearanceToAgent(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
