@@ -1905,7 +1905,15 @@ namespace OpenSim.Region.Framework.Scenes
                             // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
                             foreach (SceneObjectGroup sog in attachments)
                             {
-                                sog.ScheduleGroupForFullUpdate();
+                                // sog.ScheduleGroupForFullUpdate();
+                                m_scene.ForEachScenePresence(delegate(ScenePresence p)
+                                {
+                                    if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                                        return;
+                                    sog.SendFullUpdateToClient(p.ControllingClient);
+                                    p.ControllingClient.SendAvatarDataImmediate(this); // resend our data -> test
+                                });
+                                
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                                 sog.ResumeScripts();
                             }
