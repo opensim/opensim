@@ -1878,7 +1878,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!IsChildAgent)
                 {
 
-
                     ValidateAndSendAppearanceAndAgentData();
 
                     m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -1900,35 +1899,30 @@ namespace OpenSim.Region.Framework.Scenes
                             m_log.DebugFormat(
                                 "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
 
-                            List<uint> kk = new List<uint>();
-
                             // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
                             foreach (SceneObjectGroup sog in m_attachments)
                             {
-                                foreach (SceneObjectPart part in sog.Parts)
-                                    kk.Add(part.LocalId);
-
                                 sog.SendFullUpdateToClient(ControllingClient);
                                 SendFullUpdateToClient(ControllingClient);
 
-                                // sog.ScheduleGroupForFullUpdate();
-                                m_scene.ForEachScenePresence(delegate(ScenePresence p)
+                                if (!sog.HasPrivateAttachmentPoint)
                                 {
-                                    if (p == this)
-                                        return;
-                                    if (sog.HasPrivateAttachmentPoint)
-                                        return;
-                                    if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                                        return;
-                                    
-                                    p.ControllingClient.SendKillObject(kk);
-                                    sog.SendFullUpdateToClient(p.ControllingClient);
-                                    SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
-                                });
-                                
+                                    // sog.ScheduleGroupForFullUpdate();
+                                    m_scene.ForEachScenePresence(delegate(ScenePresence p)
+                                    {
+                                        if (p == this)
+                                            return;
+
+                                        if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                                            return;
+
+                                        sog.SendFullUpdateToClient(p.ControllingClient);
+                                        SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
+                                    });
+                                }
+
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                                 sog.ResumeScripts();
-                                kk.Clear();
                             }
                         }
                     }
@@ -4758,6 +4752,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        // send attachments to a client without filters except for huds
+        // for now they are checked in several places down the line...
+        // kills all parts before sending
         public void SendAttachmentsToAgentNFPK(ScenePresence p)
         {
             lock (m_attachments)
@@ -5680,7 +5677,7 @@ namespace OpenSim.Region.Framework.Scenes
                         p.SendAppearanceToAgent(this);
                         if (p.Animator != null)
                             p.Animator.SendAnimPackToClient(ControllingClient);
-                        p.SendAttachmentsToAgentNFPK(this);
+                        p.SendAttachmentsToAgentNF(this);
                     }
                 }
             }
@@ -5995,7 +5992,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SendAppearanceToAgent(p);
                     if (Animator != null)
                         Animator.SendAnimPackToClient(p.ControllingClient);
-                    SendAttachmentsToAgentNFPK(p);
+                    SendAttachmentsToAgentNF(p);
                 }
             }
 
@@ -6011,7 +6008,7 @@ namespace OpenSim.Region.Framework.Scenes
                     p.SendAppearanceToAgent(this);
                     if (p.Animator != null)
                         p.Animator.SendAnimPackToClient(ControllingClient);
-                    p.SendAttachmentsToAgentNFPK(this);
+                    p.SendAttachmentsToAgentNF(this);
                 }
             }
         }
