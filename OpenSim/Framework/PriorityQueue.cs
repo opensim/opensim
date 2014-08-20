@@ -62,7 +62,9 @@ namespace OpenSim.Framework
         private uint m_nextQueue = 0;
         private uint m_countFromQueue = 0;
         // first queues are imediate, so no counts 
-        private uint[] m_queueCounts = {0, 0, 8, 4, 4, 2, 2, 2, 2, 1, 1, 1};
+//        private uint[] m_queueCounts = { 0, 0,          8,  4,  4, 2,  2,   2,  2,  1,  1, 1 };
+        private uint[] m_queueCounts = {0,   0,   8,      8,  5,  4, 3,  2,   1,  1,  1,  1};
+        // this is                     ava, ava, attach, <10m, 20,40,80,160m,320,640,1280, +
 
         // next request is a counter of the number of updates queued, it provides
         // a total ordering on the updates coming through the queue and is more
