@@ -431,6 +431,8 @@ namespace OpenSim.Framework
             // The code to pack textures, visuals, wearables and attachments
             // should be removed; packed appearance contains the full appearance
             // This is retained for backward compatibility only
+
+/*  then lets remove
             if (Appearance.Texture != null)
             {
                 byte[] rawtextures = Appearance.Texture.GetBytes();
@@ -459,7 +461,7 @@ namespace OpenSim.Framework
                 args["attachments"] = attachs;
             }
             // End of code to remove
-
+*/
             if ((Controllers != null) && (Controllers.Length > 0))
             {
                 OSDArray controls = new OSDArray(Controllers.Length);
@@ -647,58 +649,71 @@ namespace OpenSim.Framework
             //        AgentTextures[i++] = o.AsUUID();
             //}
 
-            Appearance = new AvatarAppearance();
 
-            // The code to unpack textures, visuals, wearables and attachments
-            // should be removed; packed appearance contains the full appearance
-            // This is retained for backward compatibility only
-            if (args["texture_entry"] != null)
+            // packed_appearence should contain all appearance information
+            if (args.ContainsKey("packed_appearance") && (args["packed_appearance"]).Type == OSDType.Map)
             {
-                byte[] rawtextures = args["texture_entry"].AsBinary();
-                Primitive.TextureEntry textures = new Primitive.TextureEntry(rawtextures,0,rawtextures.Length);
-                Appearance.SetTextureEntries(textures);
+                m_log.WarnFormat("[CHILDAGENTDATAUPDATE] got packed appearance");
+                Appearance = new AvatarAppearance((OSDMap)args["packed_appearance"]);
             }
-
-            if (args["visual_params"] != null)
-                Appearance.SetVisualParams(args["visual_params"].AsBinary());
-
-            if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
+            else
             {
-                OSDArray wears = (OSDArray)(args["wearables"]);
+                // if missing try the old pack method
+                m_log.WarnFormat("[CHILDAGENTDATAUPDATE] No packed appearance, checking old method");
 
-                int count = wears.Count;
-                if (count > AvatarWearable.MAX_WEARABLES)
-                    count = AvatarWearable.MAX_WEARABLES;
+                Appearance = new AvatarAppearance();
 
-                for (int i = 0; i < count / 2; i++) 
+                // The code to unpack textures, visuals, wearables and attachments
+                // should be removed; packed appearance contains the full appearance
+                // This is retained for backward compatibility only
+                if (args["texture_entry"] != null)
                 {
-                    AvatarWearable awear = new AvatarWearable((OSDArray)wears[i]);
-                    Appearance.SetWearable(i,awear);
+                    byte[] rawtextures = args["texture_entry"].AsBinary();
+                    Primitive.TextureEntry textures = new Primitive.TextureEntry(rawtextures, 0, rawtextures.Length);
+                    Appearance.SetTextureEntries(textures);
                 }
-            }
 
-            if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
-            {
-                OSDArray attachs = (OSDArray)(args["attachments"]);
-                foreach (OSD o in attachs)
+                if (args["visual_params"] != null)
+                    Appearance.SetVisualParams(args["visual_params"].AsBinary());
+
+                if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
                 {
-                    if (o.Type == OSDType.Map)
+                    OSDArray wears = (OSDArray)(args["wearables"]);
+
+                    int count = wears.Count;
+                    if (count > AvatarWearable.MAX_WEARABLES)
+                        count = AvatarWearable.MAX_WEARABLES;
+
+                    for (int i = 0; i < count / 2; i++)
                     {
-                        // We know all of these must end up as attachments so we
-                        // append rather than replace to ensure multiple attachments
-                        // per point continues to work
-//                        m_log.DebugFormat("[CHILDAGENTDATAUPDATE]: Appending attachments for {0}", AgentID);
-                        Appearance.AppendAttachment(new AvatarAttachment((OSDMap)o));
+                        AvatarWearable awear = new AvatarWearable((OSDArray)wears[i]);
+                        Appearance.SetWearable(i, awear);
                     }
                 }
-            }
-            // end of code to remove
 
+                if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
+                {
+                    OSDArray attachs = (OSDArray)(args["attachments"]);
+                    foreach (OSD o in attachs)
+                    {
+                        if (o.Type == OSDType.Map)
+                        {
+                            // We know all of these must end up as attachments so we
+                            // append rather than replace to ensure multiple attachments
+                            // per point continues to work
+                            //                        m_log.DebugFormat("[CHILDAGENTDATAUPDATE]: Appending attachments for {0}", AgentID);
+                            Appearance.AppendAttachment(new AvatarAttachment((OSDMap)o));
+                        }
+                    }
+                }
+                // end of code to remove
+            }
+/* moved above
             if (args.ContainsKey("packed_appearance") && (args["packed_appearance"]).Type == OSDType.Map)
                 Appearance = new AvatarAppearance((OSDMap)args["packed_appearance"]);
             else
                 m_log.WarnFormat("[CHILDAGENTDATAUPDATE] No packed appearance");
-
+*/
             if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
             {
                 OSDArray controls = (OSDArray)(args["controllers"]);

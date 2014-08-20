@@ -293,6 +293,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         protected bool m_sendPing;
 
+        private int m_animationSequenceNumber;
+
+        public int NextAnimationSequenceNumber
+        {
+            get
+            {
+                m_animationSequenceNumber++;
+                if (m_animationSequenceNumber > 2147482624)
+                    m_animationSequenceNumber = 1;
+                return m_animationSequenceNumber;
+            }
+        }
+
+
+
         private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
 
         /// <summary>
@@ -369,22 +384,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Measure the resolution of Environment.TickCount
             TickCountResolution = 0f;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
                 int start = Environment.TickCount;
                 int now = start;
                 while (now == start)
                     now = Environment.TickCount;
-                TickCountResolution += (float)(now - start) * 0.2f;
+                TickCountResolution += (float)(now - start) * 0.1f;
             }
-            m_log.Info("[LLUDPSERVER]: Average Environment.TickCount resolution: " + TickCountResolution + "ms");
             TickCountResolution = (float)Math.Ceiling(TickCountResolution);
+            m_log.Info("[LLUDPSERVER]: Average Environment.TickCount resolution: " + TickCountResolution + "ms");
 
             #endregion Environment.TickCount Measurement
 
             m_circuitManager = circuitManager;
             int sceneThrottleBps = 0;
             bool usePools = false;
+
+           
 
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
@@ -434,6 +451,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
+
+            Random rnd = new Random(Util.EnvironmentTickCount());
+            m_animationSequenceNumber = rnd.Next(11474826);
 
             if (usePools)
                 EnablePools();
@@ -1128,6 +1148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pc.PingID.OldestUnacked = 0;
 
             SendPacket(udpClient, pc, ThrottleOutPacketType.Unknown, false, null);
+            udpClient.m_lastStartpingTimeMS = Util.EnvironmentTickCount();
         }
 
         public void CompletePing(LLUDPClient udpClient, byte pingID)
@@ -1567,7 +1588,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We don't need to do anything else with ping checks
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
                 CompletePing(udpClient, startPing.PingID.PingID);
-
+                
                 if ((Environment.TickCount - m_elapsedMSSinceLastStatReport) >= 3000)
                 {
                     udpClient.SendPacketStats();
@@ -1577,7 +1598,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else if (packet.Type == PacketType.CompletePingCheck)
             {
-                // We don't currently track client ping times
+                int t = Util.EnvironmentTickCountSubtract(udpClient.m_lastStartpingTimeMS);
+                int c = udpClient.m_pingMS;
+                c = 800 * c + 200 * t;
+                c /= 1000;
+                udpClient.m_pingMS = c;
                 return;
             }
 

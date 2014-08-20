@@ -81,6 +81,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             get { return m_scene; }
         }
 
+        public int PingTimeMS { get { return 0; } }
+
         public UUID OwnerID
         {
             get { return m_ownerID; }

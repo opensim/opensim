@@ -557,6 +557,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <param name="objectIDs"></param>
         public void SendAnimPack(UUID[] animations, int[] seqs, UUID[] objectIDs)
         {
+/*
             if (m_scenePresence.IsChildAgent)
                 return;
 
@@ -571,6 +572,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 { 
                     client.SendAnimations(animations, seqs, m_scenePresence.ControllingClient.AgentId, objectIDs); 
                 });
+ */
+            m_scenePresence.SendAnimPack(animations, seqs, objectIDs);
         }
 
         public void SendAnimPackToClient(IClientAPI client)
@@ -602,7 +605,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
-            SendAnimPack(animIDs, sequenceNums, objectIDs);
+//            SendAnimPack(animIDs, sequenceNums, objectIDs);
+            m_scenePresence.SendAnimPack(animIDs, sequenceNums, objectIDs);
         }
 
         public string GetAnimName(UUID animId)

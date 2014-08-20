@@ -358,7 +358,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //        protected HashSet<uint> m_attachmentsSent;
 
         private bool m_deliverPackets = true;
-        private int m_animationSequenceNumber = 1;
+
         private bool m_SendLogoutPacketWhenClosing = true;
 
         /// <summary>
@@ -419,6 +419,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
+        public int PingTimeMS
+        {
+            get
+            {
+                if (UDPClient != null)
+                    return UDPClient.PingTimeMS;
+                return 0;
+            }
+        }
+
         /// <summary>
         /// Entity update queues
         /// </summary>
@@ -440,7 +450,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string Name { get { return FirstName + " " + LastName; } }
 
         public uint CircuitCode { get { return m_circuitCode; } }
-        public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
+        public int NextAnimationSequenceNumber
+        {
+            get { return m_udpServer.NextAnimationSequenceNumber; }
+        }
 
         /// <summary>
         /// As well as it's function in IClientAPI, in LLClientView we are locking on this property in order to
@@ -460,6 +473,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_disableFacelights; }
             set { m_disableFacelights = value; }
         }
+
 
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
        
@@ -1638,6 +1652,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pc.PingID.OldestUnacked = 0;
 
             OutPacket(pc, ThrottleOutPacketType.Unknown);
+            UDPClient.m_lastStartpingTimeMS = Util.EnvironmentTickCount();
         }
 
         public void SendKillObject(List<uint> localIDs)
@@ -3813,8 +3828,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 SceneObjectPart e = (SceneObjectPart)entity;
                 SceneObjectGroup g = e.ParentGroup;
-                if (g.RootPart.Shape.State > 30 && g.RootPart.Shape.State < 39) // HUD
-                    if (g.OwnerID != AgentId)
+                if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
                         return; // Don't send updates for other people's HUDs
             }
 
@@ -3932,8 +3946,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (part.ParentGroup.IsAttachment)
                     {   // Someone else's HUD, why are we getting these?
-                        if (part.ParentGroup.OwnerID != AgentId &&
-                            part.ParentGroup.RootPart.Shape.State > 30 && part.ParentGroup.RootPart.Shape.State < 39)
+                        if (part.ParentGroup.OwnerID != AgentId && part.ParentGroup.HasPrivateAttachmentPoint)
                             continue;
                         ScenePresence sp;
                         // Owner is not in the sim, don't update it to
@@ -5278,16 +5291,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             byte[] objectData = new byte[76];
 
-            data.CollisionPlane.ToBytes(objectData, 0);
-            offsetPosition.ToBytes(objectData, 16);
             Vector3 velocity = new Vector3(0, 0, 0);
             Vector3 acceleration = new Vector3(0, 0, 0);
+            rotation.Normalize();
+            Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
+
+            data.CollisionPlane.ToBytes(objectData, 0);
+            offsetPosition.ToBytes(objectData, 16);
             velocity.ToBytes(objectData, 28);
             acceleration.ToBytes(objectData, 40);
-//            data.Velocity.ToBytes(objectData, 28);
-//            data.Acceleration.ToBytes(objectData, 40);
-            rotation.ToBytes(objectData, 52);
-            //data.AngularVelocity.ToBytes(objectData, 64);
+            vrot.ToBytes(objectData, 52);
+            data.AngularVelocity.ToBytes(objectData, 64);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
 
@@ -5343,15 +5357,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data.RelativePosition.ToBytes(objectData, 0);
             data.Velocity.ToBytes(objectData, 12);
             data.Acceleration.ToBytes(objectData, 24);
-            try
-            {
-                data.RotationOffset.ToBytes(objectData, 36);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[LLClientView]: exception converting quaternion to bytes, using Quaternion.Identity. Exception: " + e.ToString());
-                OpenMetaverse.Quaternion.Identity.ToBytes(objectData, 36);
-            }
+
+            Quaternion rotation = data.RotationOffset;
+            rotation.Normalize();
+            Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
+            vrot.ToBytes(objectData, 36);
             data.AngularVelocity.ToBytes(objectData, 48);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();

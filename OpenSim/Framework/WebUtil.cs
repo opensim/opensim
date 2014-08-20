@@ -81,7 +81,7 @@ namespace OpenSim.Framework
         /// Number of milliseconds a call can take before it is considered
         /// a "long" call for warning & debugging purposes
         /// </summary>
-        public const int LongCallTime = 3000;
+        public const int LongCallTime = 500;
 
         /// <summary>
         /// The maximum length of any data logged because of a long request time.
@@ -208,6 +208,9 @@ namespace OpenSim.Framework
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
             int tickdata = 0;
+            int tickcompressdata = 0;
+            int tickJsondata = 0;
+            int compsize = 0;
             string strBuffer = null;
 
             try
@@ -224,6 +227,8 @@ namespace OpenSim.Framework
                 if (data != null)
                 {
                     strBuffer = OSDParser.SerializeJsonString(data);
+
+                    tickJsondata = Util.EnvironmentTickCountSubtract(tickstart);
 
                     if (DebugLevel >= 5)
                         LogOutgoingDetail(strBuffer);
@@ -243,13 +248,19 @@ namespace OpenSim.Framework
                                 // gets written on the strteam upon Dispose()
                             }
                             byte[] buf = ms.ToArray();
+
+                            tickcompressdata = Util.EnvironmentTickCountSubtract(tickstart);
+
                             request.ContentLength = buf.Length;   //Count bytes to send
+                            compsize = buf.Length;
                             using (Stream requestStream = request.GetRequestStream())
                                 requestStream.Write(buf, 0, (int)buf.Length);
                         }
                     }
                     else
                     {
+                        tickcompressdata = tickJsondata;
+                        compsize = buffer.Length;
                         request.ContentType = "application/json";
                         request.ContentLength = buffer.Length;   //Count bytes to send
                         using (Stream requestStream = request.GetRequestStream())
@@ -291,12 +302,16 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing({5} at Json; {6} at comp), {7} bytes ({8} uncomp): {9}",
                         reqnum,
                         method,
                         url,
                         tickdiff,
                         tickdata,
+                        tickJsondata,
+                        tickcompressdata,
+                        compsize,
+                        strBuffer != null ? strBuffer.Length : 0,
                         strBuffer != null
                             ? (strBuffer.Length > MaxRequestDiagLength ? strBuffer.Remove(MaxRequestDiagLength) : strBuffer)
                             : "");

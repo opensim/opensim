@@ -120,10 +120,16 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public void CreateCaps(UUID agentId, uint circuitCode)
         {
+//            int ts = Util.EnvironmentTickCount();
+/*  this as no business here...
+ * must be done elsewhere ( and is )
             int flags = m_scene.GetUserFlags(agentId);
+
+            m_log.ErrorFormat("[CreateCaps]: banCheck {0} ", Util.EnvironmentTickCountSubtract(ts));
+
             if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId, flags))
                 return;
-
+*/
             Caps caps;
             String capsObjectPath = GetCapsPath(agentId);
 
@@ -132,19 +138,27 @@ namespace OpenSim.Region.CoreModules.Framework
                 if (m_capsObjects.ContainsKey(circuitCode))
                 {
                     Caps oldCaps = m_capsObjects[circuitCode];
-                    
-                    //m_log.WarnFormat(
-                    //    "[CAPS]: Recreating caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ", 
-                    //    agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
+
+//                    if (capsObjectPath == oldCaps.CapsObjectPath)
+//                    {
+//                        m_log.WarnFormat(
+//                           "[CAPS]: Reusing caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ",
+//                            agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
+//                        return;
+//                    }
                 }
 
                 caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
                         (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
                         capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
 
+//                m_log.ErrorFormat("[CreateCaps]: new caps {0} ", Util.EnvironmentTickCountSubtract(ts));
+
                 m_capsObjects[circuitCode] = caps;
             }
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
+//            m_log.ErrorFormat("[CreateCaps]: end {0} ", Util.EnvironmentTickCountSubtract(ts));
+
         }
 
         public void RemoveCaps(UUID agentId, uint circuitCode)

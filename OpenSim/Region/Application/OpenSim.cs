@@ -978,15 +978,25 @@ namespace OpenSim
             cdt.AddColumn("Circuit code", 12);
             cdt.AddColumn("Endpoint", 23);
             cdt.AddColumn("Active?", 7);
+            cdt.AddColumn("ChildAgent?", 7);
+            cdt.AddColumn("ping(ms)", 8);
 
             SceneManager.ForEachScene(
                 s => s.ForEachClient(
-                    c => cdt.AddRow(
-                        s.Name,
-                        c.Name,
-                        c.CircuitCode.ToString(),
-                        c.RemoteEndPoint.ToString(),                
-                        c.IsActive.ToString())));
+                    c =>
+                        {
+                            bool child = false;
+                            if(c.SceneAgent != null && c.SceneAgent.IsChildAgent)
+                                child = true;
+                            cdt.AddRow(
+                            s.Name,
+                            c.Name,
+                            c.CircuitCode.ToString(),
+                            c.RemoteEndPoint.ToString(),
+                            c.IsActive.ToString(),
+                            child.ToString(),
+                            c.PingTimeMS);
+                        }));
 
             MainConsole.Instance.Output(cdt.ToString());
         }

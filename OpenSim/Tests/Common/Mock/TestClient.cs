@@ -379,6 +379,8 @@ namespace OpenSim.Tests.Common.Mock
             get { return FirstName + " " + LastName; }
         }
 
+        public int PingTimeMS { get { return 0; } }
+
         public bool IsActive
         {
             get { return true; }
