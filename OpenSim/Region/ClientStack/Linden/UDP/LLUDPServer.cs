@@ -1207,6 +1207,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //m_log.DebugFormat("[LLUDPSERVER]: Resending packet #{0} (attempt {1}), {2}ms have passed",
             //    outgoingPacket.SequenceNumber, outgoingPacket.ResendCount, Environment.TickCount - outgoingPacket.TickCount);
 
+            // Bump up the resend count on this packet
+            Interlocked.Increment(ref outgoingPacket.ResendCount);
+
+            // loose packets we retried more than 6 times
+            // sl says 3 so lets be more tolerant
+            // we can't not keep hammering with packets a viewer may just beeing ignoring
+
+            if (outgoingPacket.ResendCount > 6)
+                return;
+
             // Set the resent flag
             outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
             outgoingPacket.Category = ThrottleOutPacketType.Resend;
