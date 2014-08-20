@@ -1272,5 +1272,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+        }
+
     }
 }

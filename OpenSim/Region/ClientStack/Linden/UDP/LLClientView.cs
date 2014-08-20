@@ -4208,9 +4208,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
             }
 
+
+
             #endregion Packet Sending
+
         }
 
+        // hack.. dont use
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+            if (ent is SceneObjectPart)
+            {
+                SceneObjectPart part = (SceneObjectPart)ent;
+                ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
+                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                packet.RegionData.TimeDilation = 1;
+                packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+
+                ObjectUpdatePacket.ObjectDataBlock blk = CreatePrimUpdateBlock(part, this.m_agentId);
+                if (parentID.HasValue)
+                {
+                    blk.ParentID = parentID.Value;
+                }
+
+                packet.ObjectData[0] = blk;
+
+                OutPacket(packet, ThrottleOutPacketType.Task, true);
+            }
+        }
+        
         public void ReprioritizeUpdates()
         {
             lock (m_entityUpdates.SyncRoot)

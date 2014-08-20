@@ -536,6 +536,10 @@ namespace OpenSim.Tests.Common.Mock
             ReceivedKills.AddRange(localID);
         }
 
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+        }
+
         public virtual void SetChildAgentThrottle(byte[] throttle)
         {
         }
