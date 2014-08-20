@@ -295,6 +295,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             return myID;
         }
+
+        public uint AllocatePresenceLocalId()
+        {
+            uint myID;
+
+            _primAllocateMutex.WaitOne();
+            myID = ++m_lastAllocatedLocalId;
+            ++m_lastAllocatedLocalId;
+            _primAllocateMutex.ReleaseMutex();
+
+            return myID;
+        }
         
         #region Module Methods
 

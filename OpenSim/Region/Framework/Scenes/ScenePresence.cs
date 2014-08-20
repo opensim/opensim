@@ -969,7 +969,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_name = String.Format("{0} {1}", Firstname, Lastname);
             m_scene = world;
             m_uuid = client.AgentId;
-            LocalId = m_scene.AllocateLocalId();
+            LocalId = m_scene.AllocatePresenceLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
             if (account != null)
