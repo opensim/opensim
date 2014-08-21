@@ -5716,7 +5716,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void ParcelLoginCheck(UUID currentParcelID)
         {
             List<ScenePresence> killsToSendto = new List<ScenePresence>();
-            List<uint> killsToSendme = new List<uint>();
+            List<ScenePresence> killsToSendme = new List<ScenePresence>();
             List<ScenePresence> viewsToSendto = new List<ScenePresence>();
             List<ScenePresence> viewsToSendme = new List<ScenePresence>();
             List<ScenePresence> allpresences = null;
@@ -5750,19 +5750,19 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ScenePresence p in killsToSendto)
                 {
                     m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
-                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
-                    catch (NullReferenceException) { }
+                    SendKillTo(p);
+//                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
+//                    catch (NullReferenceException) { }
                 }
             }
 
             if (killsToSendme.Count > 0)
             {
                 m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + killsToSendme.Count.ToString());
-                try
+                foreach (ScenePresence p in killsToSendme)
                 {
-                    ControllingClient.SendKillObject(killsToSendme);
+                    SendKillTo(this);
                 }
-                catch (NullReferenceException) { }
 
             }
 /*
