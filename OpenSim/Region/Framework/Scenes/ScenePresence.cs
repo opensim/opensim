@@ -1916,7 +1916,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                                             return;
 
-                                        p.ControllingClient.SendPartFullUpdate(sog.RootPart,0);
+                                        p.ControllingClient.SendPartFullUpdate(sog.RootPart,LocalId + 1);
                                         sog.SendFullUpdateToClient(p.ControllingClient);
                                         SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
                                     });
@@ -4748,7 +4748,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (p == this || !sog.HasPrivateAttachmentPoint)
                     {
-                        p.ControllingClient.SendPartFullUpdate(sog.RootPart, 0);
+                        p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId +1 );
                         sog.SendFullUpdateToClient(p.ControllingClient);
                     }
                 }
@@ -5805,7 +5805,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> allpresences = null;
             allpresences = m_scene.GetScenePresences();
 
-            List<uint> killsToSendme = new List<uint>();
+            List<ScenePresence> killsToSendme = new List<ScenePresence>();
 
             foreach (ScenePresence p in allpresences)
             {
@@ -5814,17 +5814,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (p.currentParcelUUID == m_currentParcelUUID)
                 {
-                    killsToSendme.Add(p.LocalId);
+                    killsToSendme.Add(p);
                 }
             }
 
             if (killsToSendme.Count > 0)
             {
-                try
-                {
-                    ControllingClient.SendKillObject(killsToSendme);
-                }
-                catch (NullReferenceException) { }
+                foreach (ScenePresence p in killsToSendme)
+                    p.SendKillTo(this);
+//                try
+//                {
+//                    ControllingClient.SendKillObject(killsToSendme);
+//                }
+//                catch (NullReferenceException) { }
             }
         }
 
@@ -5832,7 +5834,7 @@ namespace OpenSim.Region.Framework.Scenes
                             bool currentParcelHide, bool previusParcelHide, bool oldhide,bool check)
         {
             List<ScenePresence> killsToSendto = new List<ScenePresence>();
-            List<uint> killsToSendme = new List<uint>();
+            List<ScenePresence> killsToSendme = new List<ScenePresence>();
             List<ScenePresence> viewsToSendto = new List<ScenePresence>();
             List<ScenePresence> viewsToSendme = new List<ScenePresence>();
             List<ScenePresence> allpresences = null;
@@ -5903,7 +5905,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 if(p.GodLevel < 200)
                                     killsToSendto.Add(p); // they dont see me
                                 if(GodLevel < 200)
-                                    killsToSendme.Add(p.LocalId);  // i dont see them
+                                    killsToSendme.Add(p);  // i dont see them
                             }
                             // only those on new parcel need see
                             if (currentParcelID == p.currentParcelUUID)
@@ -5952,7 +5954,7 @@ namespace OpenSim.Region.Framework.Scenes
                             // only those old parcel need receive kills
                             if (previusParcelID == p.currentParcelUUID && GodLevel < 200)
                             {
-                                killsToSendme.Add(p.LocalId);  // i dont see them
+                                killsToSendme.Add(p);  // i dont see them
                             }
                             else
                             {
@@ -5971,18 +5973,23 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (ScenePresence p in killsToSendto)
                 {
+
                     m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
-                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
-                    catch (NullReferenceException) { }
+
+                    SendKillTo(p);
+//                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
+//                    catch (NullReferenceException) { }
                 }
             }
 
             if (killsToSendme.Count > 0)
             {
                 m_log.Debug("[AVATAR]: killtoMe: " + Lastname + " " + killsToSendme.Count.ToString());
+
+                foreach (ScenePresence p in killsToSendto)
                 try
                 {
-                    ControllingClient.SendKillObject(killsToSendme);
+                    p.SendKillTo(this);
                 }
                 catch (NullReferenceException) { }
 
@@ -6015,6 +6022,13 @@ namespace OpenSim.Region.Framework.Scenes
                     p.SendAttachmentsToAgentNF(this);
                 }
             }
+        }
+
+        public void SendKillTo(ScenePresence p)
+        {
+            foreach (SceneObjectGroup sog in m_attachments)
+                p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
+            p.ControllingClient.SendKillObject(new List<uint> { LocalId });
         }
     }
 }
