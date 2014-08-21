@@ -1116,6 +1116,8 @@ namespace OpenSim.Framework
         /// <param name="localID"></param>
         void SendKillObject(List<uint> localID);
 
+        void SendPartFullUpdate(ISceneEntity ent, uint? parentID);
+
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
 

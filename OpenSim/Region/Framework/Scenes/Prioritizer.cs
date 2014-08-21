@@ -175,7 +175,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Attachments are high priority, 
                     if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
-                        return 1;
+                        return 2;
 
                     pqueue = ComputeDistancePriority(client, entity, false);
 
@@ -233,16 +233,28 @@ namespace OpenSim.Region.Framework.Scenes
 
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-            uint pqueue = PriorityQueue.NumberOfImmediateQueues;
+            uint pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
             uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
-            
+/*            
             for (int i = 0; i < queues - 1; i++)
             {
                 if (distance < 30 * Math.Pow(2.0,i))
                     break;
                 pqueue++;
             }
-            
+*/
+            if (distance > 10f)
+            {
+                float tmp = (float)Math.Log((double)distance) * 1.4426950408889634073599246810019f - 3.3219280948873623478703194294894f;
+                // for a map identical to original:
+                // now 
+                // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
+                // 2st constant makes it be log2(distance/10)
+                pqueue += (uint)tmp;
+                if (pqueue > queues - 1)
+                    pqueue = queues - 1;
+            }
+
             // If this is a root agent, then determine front & back
             // Bump up the priority queue (drop the priority) for any objects behind the avatar
             if (useFrontBack && ! presence.IsChildAgent)

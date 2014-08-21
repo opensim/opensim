@@ -1702,5 +1702,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+        }
     }
 }
