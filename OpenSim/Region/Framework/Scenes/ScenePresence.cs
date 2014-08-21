@@ -4787,10 +4787,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.ForEachScenePresence(delegate(ScenePresence p)
             {
-                if (p != this && sog.HasPrivateAttachmentPoint)
+                if (p != this)
+                {
+                    if (sog.HasPrivateAttachmentPoint ||
+                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
                     return;
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                    return;
+                }
 
                 SceneObjectPart[] parts = sog.Parts;
 
@@ -4820,11 +4822,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.ForEachScenePresence(delegate(ScenePresence p)
             {
-                if (p != this && part.ParentGroup.HasPrivateAttachmentPoint)
-                    return;
+                if (p != this)
+                {
 
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                    return;
+                    if (part.ParentGroup.HasPrivateAttachmentPoint ||
+                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
+                        return;
+                }
 
                 if (part.UpdateFlag == UpdateRequired.TERSE)
                 {
@@ -4848,11 +4852,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.ForEachScenePresence(delegate(ScenePresence p)
             {
-                if (p != this && sog.HasPrivateAttachmentPoint)
+                if (p != this)
+                {
+                if (sog.HasPrivateAttachmentPoint ||
+                    (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
                     return;
-
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                    return;
+                }
 
                 SceneObjectPart[] parts = sog.Parts;
 
@@ -4882,11 +4887,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.ForEachScenePresence(delegate(ScenePresence p)
             {
-                if (p != this && part.ParentGroup.HasPrivateAttachmentPoint)
-                    return;
+                if (p != this)
+                {
 
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                    return;
+                    if (part.ParentGroup.HasPrivateAttachmentPoint ||
+                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
+                        return;
+                }
 
                 if (UpdateFlag == UpdateRequired.TERSE)
                 {
