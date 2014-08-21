@@ -1916,7 +1916,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                                             return;
 
-                                        p.ControllingClient.SendPartFullUpdate(sog.RootPart,LocalId + 1);
+                                        p.ControllingClient.SendPartFullUpdate(sog.RootPart,0);
                                         sog.SendFullUpdateToClient(p.ControllingClient);
                                         SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
                                     });
@@ -4748,7 +4748,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (p == this || !sog.HasPrivateAttachmentPoint)
                     {
-                        p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
+                        p.ControllingClient.SendPartFullUpdate(sog.RootPart, 0);
                         sog.SendFullUpdateToClient(p.ControllingClient);
                     }
                 }
