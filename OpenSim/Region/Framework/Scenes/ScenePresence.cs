@@ -5848,16 +5848,30 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HasMovedAway()
         {
+            List<uint> myids = new List<uint>();
+            foreach (SceneObjectGroup sog in m_attachments)
+                myids.Add(sog.RootPart.LocalId);
+            myids.Add(LocalId);
+
             List<ScenePresence> allpresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allpresences)
             {
                 if (p == this)
                     continue;
-                SendKillTo(p);              
+                p.ControllingClient.SendKillObject(myids);              
                 p.SendKillTo(this);
             }
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
+        }
+
+        public void SendFullKillsTo(ScenePresence p)
+        {
+            List<uint> ids = new List<uint>();
+            foreach (SceneObjectGroup sog in m_attachments)
+                ids.Add(sog.RootPart.LocalId);
+            ids.Add(LocalId);
+            p.ControllingClient.SendKillObject(ids);
         }
 
         public void SendKillTo(ScenePresence p)
