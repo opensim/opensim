@@ -5858,8 +5858,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (p == this)
                     continue;
-                p.ControllingClient.SendKillObject(myids);              
-                p.SendKillTo(this);
+                p.ControllingClient.SendKillObject(myids);
+                p.SendFullKillsTo(this);
             }
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
