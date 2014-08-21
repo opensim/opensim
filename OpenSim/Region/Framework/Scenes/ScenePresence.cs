@@ -4756,7 +4756,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            List<ScenePresence> allPresences = m_scene.GetScenePresences();
+            foreach(ScenePresence p in allPresences)
             {
                 if (p != this)
                 {
@@ -4801,7 +4802,7 @@ namespace OpenSim.Region.Framework.Scenes
                         part.UpdateFlag = 0;
                     }
                 }
-            });          
+            }          
         }
 
         public void SendAttachmentScheduleUpdate(SceneObjectPart part)
