@@ -5652,7 +5652,7 @@ namespace OpenSim.Region.Framework.Scenes
  
         public void parcelRegionCross()
         {
-            if (!ParcelHideThisAvatar || IsChildAgent || GodLevel >= 200)
+            if (!ParcelHideThisAvatar || GodLevel >= 200)
                 return;
 
             List<ScenePresence> allpresences = null;
@@ -5844,6 +5844,15 @@ namespace OpenSim.Region.Framework.Scenes
                     p.SendViewTo(this);
                 }
             }
+        }
+
+        public void HasMovedAway()
+        {
+            List<ScenePresence> allpresences = m_scene.GetScenePresences();
+            foreach (ScenePresence p in allpresences)
+                SendKillTo(p);
+            if (Scene.AttachmentsModule != null)
+                Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
 
         public void SendKillTo(ScenePresence p)

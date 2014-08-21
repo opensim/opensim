@@ -981,10 +981,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // May need to logout or other cleanup
 //            AgentHasMovedAway(sp, logout);
-            AgentHasMovedAway(sp, true); // until logout use is checked
+//            AgentHasMovedAway(sp, true); // until logout use is checked
 
             // Well, this is it. The agent is over there.
-            KillEntity(sp.Scene, sp.LocalId);
+//            KillEntity(sp.Scene, sp.LocalId);
+
+            sp.HasMovedAway();
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
@@ -1147,12 +1149,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // abandoned without proper close by viewer but then re-used by an incoming connection.
             sp.CloseChildAgents(newRegionX, newRegionY);
 
+            sp.HasMovedAway();
             // May need to logout or other cleanup
 //            AgentHasMovedAway(sp, logout);
-            AgentHasMovedAway(sp, true);
+//            AgentHasMovedAway(sp, true);
 
             // Well, this is it. The agent is over there.
-            KillEntity(sp.Scene, sp.LocalId);
+//            KillEntity(sp.Scene, sp.LocalId);
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
