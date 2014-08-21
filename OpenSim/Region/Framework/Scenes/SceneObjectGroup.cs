@@ -2636,6 +2636,16 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.UpdateFlag = UpdateRequired.TERSE;
             }
 
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentScheduleUpdate(this);
+                    return;
+                }
+            }
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
@@ -2697,6 +2707,16 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
 //            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);            
+
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this,UpdateRequired.FULL);
+                    return;
+                }
+            }
             
             RootPart.SendFullUpdateToAllClients();
 
@@ -2720,6 +2740,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsDeleted)
                 return;
 
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(RootPart, UpdateRequired.TERSE);
+                    return;
+                }
+            }
+
             RootPart.SendTerseUpdateToAllClients();
         }
 
@@ -2738,6 +2768,16 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (IsDeleted)
                 return;
+
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this, UpdateRequired.TERSE);
+                    return;
+                }
+            }
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
