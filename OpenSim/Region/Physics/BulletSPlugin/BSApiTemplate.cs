@@ -43,9 +43,11 @@ public enum ConstraintType : int
 	SLIDER_CONSTRAINT_TYPE,
 	CONTACT_CONSTRAINT_TYPE,
 	D6_SPRING_CONSTRAINT_TYPE,
+	GEAR_CONSTRAINT_TYPE,           // added in Bullet 2.82
+	FIXED_CONSTRAINT_TYPE,          // added in Bullet 2.82
 	MAX_CONSTRAINT_TYPE,            // last type defined by Bullet
     //
-    FIXED_CONSTRAINT_TYPE = 1234    // BulletSim constraint that is fixed and unmoving
+    BS_FIXED_CONSTRAINT_TYPE = 1234    // BulletSim constraint that is fixed and unmoving
 }
 
 // ===============================================================================

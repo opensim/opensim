@@ -78,7 +78,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         public override void ResetLink()
         {
             // constraintType = ConstraintType.D6_CONSTRAINT_TYPE;
-            constraintType = ConstraintType.FIXED_CONSTRAINT_TYPE;
+            constraintType = ConstraintType.BS_FIXED_CONSTRAINT_TYPE;
             linearLimitLow = OMV.Vector3.Zero;
             linearLimitHigh = OMV.Vector3.Zero;
             angularLimitLow = OMV.Vector3.Zero;
@@ -115,7 +115,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             member.PhysScene.DetailLog("{0},BSLinkInfoConstraint.SetLinkParameters,type={1}", member.LocalID, constraintType);
             switch (constraintType)
             {
-                case ConstraintType.FIXED_CONSTRAINT_TYPE:
+                case ConstraintType.BS_FIXED_CONSTRAINT_TYPE:
                 case ConstraintType.D6_CONSTRAINT_TYPE:
                     BSConstraint6Dof constrain6dof = constrain as BSConstraint6Dof;
                     if (constrain6dof != null)
@@ -179,7 +179,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         public override bool ShouldUpdateChildProperties()
         {
             bool ret = true;
-            if (constraintType == ConstraintType.FIXED_CONSTRAINT_TYPE)
+            if (constraintType == ConstraintType.BS_FIXED_CONSTRAINT_TYPE)
                 ret = false;
 
             return ret;
@@ -363,7 +363,7 @@ public sealed class BSLinksetConstraints : BSLinkset
 
         switch (linkInfo.constraintType)
         {
-            case ConstraintType.FIXED_CONSTRAINT_TYPE:
+            case ConstraintType.BS_FIXED_CONSTRAINT_TYPE:
             case ConstraintType.D6_CONSTRAINT_TYPE:
                 // Relative position normalized to the root prim
                 // Essentually a vector pointing from center of rootPrim to center of li.member
@@ -536,7 +536,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                 {
                     int requestedType = (int)pParams[2];
                     DetailLog("{0},BSLinksetConstraint.ChangeLinkType,requestedType={1}", LinksetRoot.LocalID, requestedType);
-                    if (requestedType == (int)ConstraintType.FIXED_CONSTRAINT_TYPE
+                    if (requestedType == (int)ConstraintType.BS_FIXED_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.D6_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.D6_SPRING_CONSTRAINT_TYPE
                         || requestedType == (int)ConstraintType.HINGE_CONSTRAINT_TYPE
@@ -646,7 +646,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                                         case ExtendedPhysics.PHYS_PARAM_LINK_TYPE:
                                             valueInt = (int)pParams[opIndex + 1];
                                             ConstraintType valueType = (ConstraintType)valueInt;
-                                            if (valueType == ConstraintType.FIXED_CONSTRAINT_TYPE
+                                            if (valueType == ConstraintType.BS_FIXED_CONSTRAINT_TYPE
                                                 || valueType == ConstraintType.D6_CONSTRAINT_TYPE
                                                 || valueType == ConstraintType.D6_SPRING_CONSTRAINT_TYPE
                                                 || valueType == ConstraintType.HINGE_CONSTRAINT_TYPE
