@@ -3515,10 +3515,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendAppearanceToAgent(this);
 
-//            if (cachedappearance)
-//            {
+            m_inTransit = false;
+
             SendAppearanceToAllOtherAgents();
-//            }
+
             if(Animator!= null)
                 Animator.SendAnimPack();
         }
@@ -4668,7 +4668,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAttachmentScheduleUpdate(SceneObjectGroup sog)
         {
-            if (IsChildAgent)
+            if (IsChildAgent || IsInTransit)
                 return;
 
             SceneObjectPart[] origparts = sog.Parts;
@@ -4746,7 +4746,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAttachmentUpdate(SceneObjectGroup sog, UpdateRequired UpdateFlag)
         {
-            if (IsChildAgent)
+            if (IsChildAgent || IsInTransit)
                 return;
 
             PrimUpdateFlags flag;
@@ -4796,7 +4796,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAttachmentScheduleUpdate(SceneObjectPart part)
         {
-            if (IsChildAgent)
+            if (IsChildAgent || IsInTransit)
                 return;
 
 
@@ -4836,7 +4836,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAttachmentUpdate(SceneObjectPart part, UpdateRequired UpdateFlag)
         {
-            if (IsChildAgent)
+            if (IsChildAgent || IsInTransit)
                 return;
 
             PrimUpdateFlags flag;
@@ -5850,7 +5850,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             List<ScenePresence> allpresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allpresences)
-                SendKillTo(p);
+            {
+                if (p == this)
+                    continue;
+                SendKillTo(p);              
+                p.SendKillTo(this);
+            }
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
