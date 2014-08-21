@@ -4201,6 +4201,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sent {0} updates in ProcessEntityUpdates() for {1} {2} in {3}", 
+//                updatesThisCall, Name, SceneAgent.IsChildAgent ? "child" : "root", Scene.Name);
+//
             #endregion Packet Sending
         }
 
@@ -12337,6 +12341,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// provide your own method.</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting, UnackedPacketMethod method)
         {
+            if (m_outPacketsToDrop != null)
+                if (m_outPacketsToDrop.Contains(packet.Type.ToString()))
+                    return;
+
             if (DebugPacketLevel > 0)
             {
                 bool logPacket = true;
@@ -12395,6 +12403,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet packet)
         {
+            if (m_inPacketsToDrop != null)
+                if (m_inPacketsToDrop.Contains(packet.Type.ToString()))
+                    return;
+
             if (DebugPacketLevel > 0)
             {
                 bool logPacket = true;
@@ -13118,6 +13130,52 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             eq.Enqueue(BuildEvent("BulkUpdateInventory",
                     llsd), AgentId);
+        }
+
+        private HashSet<string> m_outPacketsToDrop;
+
+        public bool AddOutPacketToDropSet(string packetName)
+        {
+            if (m_outPacketsToDrop == null)
+                m_outPacketsToDrop = new HashSet<string>();
+
+            return m_outPacketsToDrop.Add(packetName);
+        }
+
+        public bool RemoveOutPacketFromDropSet(string packetName)
+        {
+            if (m_outPacketsToDrop == null)
+                return false;
+
+            return m_outPacketsToDrop.Remove(packetName);
+        }
+
+        public HashSet<string> GetOutPacketDropSet()
+        {
+            return new HashSet<string>(m_outPacketsToDrop);
+        }
+
+        private HashSet<string> m_inPacketsToDrop;
+
+        public bool AddInPacketToDropSet(string packetName)
+        {
+            if (m_inPacketsToDrop == null)
+                m_inPacketsToDrop = new HashSet<string>();
+
+            return m_inPacketsToDrop.Add(packetName);
+        }
+
+        public bool RemoveInPacketFromDropSet(string packetName)
+        {
+            if (m_inPacketsToDrop == null)
+                return false;
+
+            return m_inPacketsToDrop.Remove(packetName);
+        }
+
+        public HashSet<string> GetInPacketDropSet()
+        {
+            return new HashSet<string>(m_inPacketsToDrop);
         }
     }
 }
