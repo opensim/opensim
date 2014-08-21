@@ -1920,7 +1920,6 @@ namespace OpenSim.Region.Framework.Scenes
                                         SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
                                     });
                                 }
-
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                                 sog.ResumeScripts();
                             }
@@ -3542,14 +3541,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 SendOtherAgentsAvatarFullToMe();
-
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 foreach (EntityBase e in entities)
                 {
                     if (e != null && e is SceneObjectGroup)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
-
             });
         }
 
@@ -4754,32 +4751,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // send attachments to a client without filters except for huds
-        // for now they are checked in several places down the line...
-        // kills all parts before sending
-        public void SendAttachmentsToAgentNFPK(ScenePresence p)
-        {
-            lock (m_attachments)
-            {
-                List<uint> pk = new List<uint>();
-                foreach (SceneObjectGroup sog in m_attachments)
-                {
-                    foreach (SceneObjectPart part in sog.Parts)
-                        pk.Add(part.LocalId);
-                }
-
-                p.ControllingClient.SendKillObject(pk);
-
-                foreach (SceneObjectGroup sog in m_attachments)
-                {
-                    if (p == this || !sog.HasPrivateAttachmentPoint)
-                        sog.SendFullUpdateToClient(p.ControllingClient);
-                }
-                SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
-            }
-        }
-
-
         public void SendAttachmentScheduleUpdate(SceneObjectGroup sog)
         {
             if (IsChildAgent)
@@ -4796,9 +4767,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SceneObjectPart[] parts = sog.Parts;
 
+                SendFullUpdateToClient(p.ControllingClient);
+
+                SceneObjectPart rootpart = sog.RootPart;
+                if (rootpart.UpdateFlag == UpdateRequired.TERSE)
+                {
+                    p.ControllingClient.SendEntityUpdate(rootpart,
+                        PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+                    rootpart.UpdateFlag = 0;
+                }
+                else if (rootpart.UpdateFlag == UpdateRequired.FULL)
+                {
+                    p.ControllingClient.SendEntityUpdate(rootpart, PrimUpdateFlags.FullUpdate);
+                    rootpart.UpdateFlag = 0;
+                }
+
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
+                    if (part == rootpart)
+                        continue;
                     if (part.UpdateFlag == UpdateRequired.TERSE)
                     {
                         p.ControllingClient.SendEntityUpdate(part,
@@ -5655,183 +5644,56 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void parcelGodCheck(UUID currentParcelID, bool isGod)
         {
-            List<ScenePresence> allpresences = null;
+            List<ScenePresence> allpresences = m_scene.GetScenePresences();
 
-
-            allpresences = m_scene.GetScenePresences();
-
-            if (isGod)
+            foreach (ScenePresence p in allpresences)
             {
-                List<ScenePresence> viewsToSendme = new List<ScenePresence>();
+                if (p.IsDeleted || p.IsChildAgent || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                    continue;
 
-                foreach (ScenePresence p in allpresences)
+                if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelID)
                 {
-                    if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                        continue;
-
-                    if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelID)
-                    {
-                        viewsToSendme.Add(p); // i see them
-                    }
-                }
-
-                if (viewsToSendme.Count > 0)
-                {
-                    foreach (ScenePresence p in viewsToSendme)
-                    {
-                        if (p.IsChildAgent)
-                            continue;
-
-                        p.SendAvatarDataToAgentNF(this);
-                        p.SendAppearanceToAgent(this);
-                        if (p.Animator != null)
-                            p.Animator.SendAnimPackToClient(ControllingClient);
-                        p.SendAttachmentsToAgentNF(this);
-                    }
+                    if (isGod)
+                        p.SendViewTo(this);
+                    else
+                        p.SendKillTo(this);
                 }
             }
-            else
-            {
-                List<ScenePresence> killsToSendme = new List<ScenePresence>();
-
-                foreach (ScenePresence p in allpresences)
-                {
-                    if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                        continue;
-
-                    if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelID)
-                    {
-                        killsToSendme.Add(p);
-                    }
-                }
-
-                if (killsToSendme.Count > 0)
-                {
-                    foreach (ScenePresence p in killsToSendme)
-                    {
-                        m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + p.Lastname);
-                        try { ControllingClient.SendKillObject(new List<uint> { p.LocalId }); }
-                        catch (NullReferenceException) { }
-                    }
-                }
-            }
-
         }
 
         private void ParcelLoginCheck(UUID currentParcelID)
         {
-            List<ScenePresence> killsToSendto = new List<ScenePresence>();
-            List<ScenePresence> killsToSendme = new List<ScenePresence>();
-            List<ScenePresence> viewsToSendto = new List<ScenePresence>();
-            List<ScenePresence> viewsToSendme = new List<ScenePresence>();
-            List<ScenePresence> allpresences = null;
-
-            allpresences = m_scene.GetScenePresences();
+            List<ScenePresence> allpresences = m_scene.GetScenePresences();
 
             foreach (ScenePresence p in allpresences)
             {
                 if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                     continue;
                
-                if (currentParcelID != p.currentParcelUUID)
+                if (currentParcelID != p.currentParcelUUID && p.GodLevel < 200)
                 {
-                    if (p.GodLevel < 200)
-                        killsToSendto.Add(p);
-//                    if (GodLevel < 200 && p.ParcelHideThisAvatar)
-//                        killsToSendme.Add(p.LocalId);
-                }
-                else
-                {
-                    viewsToSendto.Add(p);
-                    viewsToSendme.Add(p);
-                }
-            }
-            allpresences.Clear();
-
-            // send the things
-            // kill main avatar object
-            if (killsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
-            {
-                foreach (ScenePresence p in killsToSendto)
-                {
-                    m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
                     SendKillTo(p);
-//                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
-//                    catch (NullReferenceException) { }
                 }
             }
-
-            if (killsToSendme.Count > 0)
-            {
-                m_log.Debug("[AVATAR]: killMe: " + Lastname + " " + killsToSendme.Count.ToString());
-                foreach (ScenePresence p in killsToSendme)
-                {
-                    SendKillTo(this);
-                }
-
-            }
-/*
-            if (viewsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
-            {
-                foreach (ScenePresence p in viewsToSendto)
-                {
-                    m_log.Debug("[AVATAR]: viewTo: " + Lastname + " " + p.Lastname);
-                    p.ControllingClient.SendAvatarDataImmediate(this);
-                    SendAppearanceToAgent(p);
-                    SendAttachmentsToClient(p.ControllingClient);
-                    if (Animator != null)
-                        Animator.SendAnimPackToClient(p.ControllingClient);
-                }
-            }
-
-            if (viewsToSendme.Count > 0)
-            {
-                foreach (ScenePresence p in viewsToSendme)
-                {
-                    m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
-                    if (p.IsChildAgent)
-                        continue;
-                    ControllingClient.SendAvatarDataImmediate(p);
-                    p.SendAppearanceToAgent(this);
-                    p.SendAttachmentsToClient(ControllingClient);
-                    if (p.Animator != null)
-                        p.Animator.SendAnimPackToClient(ControllingClient);
-                }
-            }
-*/
         }
-
  
         public void parcelRegionCross()
         {
-            if (!ParcelHideThisAvatar || GodLevel >= 200)
+            if (!ParcelHideThisAvatar || IsChildAgent || GodLevel >= 200)
                 return;
 
             List<ScenePresence> allpresences = null;
             allpresences = m_scene.GetScenePresences();
 
-            List<ScenePresence> killsToSendme = new List<ScenePresence>();
-
             foreach (ScenePresence p in allpresences)
             {
-                if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                if (p.IsDeleted || p == this || p.IsChildAgent || p.ControllingClient == null || !p.ControllingClient.IsActive)
                     continue;
 
                 if (p.currentParcelUUID == m_currentParcelUUID)
                 {
-                    killsToSendme.Add(p);
-                }
-            }
-
-            if (killsToSendme.Count > 0)
-            {
-                foreach (ScenePresence p in killsToSendme)
                     p.SendKillTo(this);
-//                try
-//                {
-//                    ControllingClient.SendKillObject(killsToSendme);
-//                }
-//                catch (NullReferenceException) { }
+                }
             }
         }
 
@@ -5844,10 +5706,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> viewsToSendme = new List<ScenePresence>();
             List<ScenePresence> allpresences = null;
 
-            if (IsInTransit)
-                return;
-
-            if (IsChildAgent)
+            if (IsInTransit || IsChildAgent)
                 return;
 
             if (check)
@@ -5973,17 +5832,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // send the things
-            // kill main avatar object
-            if (killsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
+
+            if (killsToSendto.Count > 0)
             {
                 foreach (ScenePresence p in killsToSendto)
                 {
-
                     m_log.Debug("[AVATAR]: killTo: " + Lastname + " " + p.Lastname);
-
                     SendKillTo(p);
-//                    try { p.ControllingClient.SendKillObject(new List<uint> { LocalId }); }
-//                    catch (NullReferenceException) { }
                 }
             }
 
@@ -5992,23 +5847,17 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Debug("[AVATAR]: killtoMe: " + Lastname + " " + killsToSendme.Count.ToString());
 
                 foreach (ScenePresence p in killsToSendme)
-                try
                 {
+                    m_log.Debug("[AVATAR]: killToMe: " + Lastname + " " + p.Lastname);
                     p.SendKillTo(this);
                 }
-                catch (NullReferenceException) { }
-
             }
 
-            if (viewsToSendto.Count > 0 && PresenceType != PresenceType.Npc)
+            if (viewsToSendto.Count > 0)
             {
                 foreach (ScenePresence p in viewsToSendto)
                 {
-                    SendAvatarDataToAgentNF(p);
-                    SendAppearanceToAgent(p);
-                    if (Animator != null)
-                        Animator.SendAnimPackToClient(p.ControllingClient);
-                    SendAttachmentsToAgentNF(p);
+                    SendViewTo(p);
                 }
             }
 
@@ -6019,12 +5868,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (p.IsChildAgent)
                         continue;
 //                   m_log.Debug("[AVATAR]: viewMe: " + Lastname + "<-" + p.Lastname);
-
-                    p.SendAvatarDataToAgentNF(this);
-                    p.SendAppearanceToAgent(this);
-                    if (p.Animator != null)
-                        p.Animator.SendAnimPackToClient(ControllingClient);
-                    p.SendAttachmentsToAgentNF(this);
+                    p.SendViewTo(this);
                 }
             }
         }
@@ -6034,6 +5878,15 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup sog in m_attachments)
                 p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
             p.ControllingClient.SendKillObject(new List<uint> { LocalId });
+        }
+
+        public void SendViewTo(ScenePresence p)
+        {
+            SendAvatarDataToAgentNF(p);
+            SendAppearanceToAgent(p);
+            if (Animator != null)
+                Animator.SendAnimPackToClient(p.ControllingClient);
+            SendAttachmentsToAgentNF(p);
         }
     }
 }
