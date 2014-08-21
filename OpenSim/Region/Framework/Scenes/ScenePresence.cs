@@ -1268,79 +1268,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.SwapRootAgentCount(false);
 
-            // The initial login scene presence is already root when it gets here
-            // and it has already rezzed the attachments and started their scripts.
-            // We do the following only for non-login agents, because their scripts
-            // haven't started yet.
-/* moved down
-            if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
-            {
-                // Viewers which have a current outfit folder will actually rez their own attachments.  However,
-                // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
-                if (Scene.AttachmentsModule != null)
-                    Util.FireAndForget(
-                        o => 
-                        { 
-//                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
-//                                System.Threading.Thread.Sleep(7000); 
-
-                            Scene.AttachmentsModule.RezAttachments(this); 
-                        });
-            }
-            else
-
-            {
-                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                // not transporting the required data.
-                //
-                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                // not transporting the required data.
-                //
-                // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
-                // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
-                // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
-                //
-                // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
-                // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
-                // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
-                // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
-                //
-                // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
-                // be locked, allowing race conditions if other code changes the attachments list.
-
-                List<SceneObjectGroup> attachments = GetAttachments();
-
-                if (attachments.Count > 0)
-                {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-
-                    // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
-                    foreach (SceneObjectGroup sog in attachments)
-                    {
-// sending attachments before the avatar ?
-// moved to completemovement where it already was
-//                        sog.ScheduleGroupForFullUpdate();
-                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                        sog.ResumeScripts();
-                    }
-                }
-            }
-*/
-/* 
-            SendAvatarDataToAllAgents();
-
-            // send the animations of the other presences to me
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
-            {
-                if (presence != this)
-                    presence.Animator.SendAnimPackToClient(ControllingClient);
-            });
-*/
 
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
@@ -4132,19 +4059,7 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.Far = DrawDistance;
 
             // Throttles 
-            float multiplier = 1;
-
-/* this is also used to send to new main regions not children
- 
-            int childRegions = KnownRegionCount;
-            if (childRegions != 0)
-                multiplier = 1f / childRegions;
-
-            // Minimum throttle for a child region is 1/4 of the root region throttle
-            if (multiplier <= 0.25f)
-                multiplier = 0.25f;
-*/
-            cAgent.Throttles = ControllingClient.GetThrottlesPacked(multiplier);
+            cAgent.Throttles = ControllingClient.GetThrottlesPacked(1);
 
             cAgent.HeadRotation = m_headrotation;
             cAgent.BodyRotation = Rotation;
@@ -4756,83 +4671,77 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
+            SceneObjectPart[] origparts = sog.Parts;
+            SceneObjectPart[] parts = new SceneObjectPart[origparts.Length];
+            PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
+
+            SceneObjectPart rootpart = sog.RootPart;
+            UpdateRequired rootreq = sog.RootPart.UpdateFlag;
+
+            int j = 0;
+            bool allterse = true;
+
+            for (int i = 0; i < origparts.Length; i++)
+            {
+                switch (origparts[i].UpdateFlag)
+                {
+                    case UpdateRequired.TERSE:
+                        flags[j] = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+                        parts[j] = origparts[i];
+                        j++;
+                        break;
+
+                    case UpdateRequired.FULL:
+                        flags[j] = PrimUpdateFlags.FullUpdate;
+                        parts[j] = origparts[i];
+                        j++;
+                        allterse = false;
+                        break;
+                }
+                origparts[i].UpdateFlag = 0;
+            }
+
+            if (j == 0)
+                return;
+
+            if (rootreq == UpdateRequired.NONE)
+            {
+                if (allterse)
+                    rootreq = UpdateRequired.TERSE;
+                else
+                    rootreq = UpdateRequired.FULL;
+            }
+
+            PrimUpdateFlags rootflag = PrimUpdateFlags.FullUpdate;
+            if (rootreq == UpdateRequired.TERSE)
+                rootflag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+
+            int nparts = j;
+
+            bool priv = sog.HasPrivateAttachmentPoint;
+
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
-            foreach(ScenePresence p in allPresences)
+            foreach (ScenePresence p in allPresences)
             {
                 if (p != this)
                 {
-                    if (sog.HasPrivateAttachmentPoint ||
+                    if (priv ||
                         (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                    return;
+                        continue;
                 }
 
-                SceneObjectPart[] parts = sog.Parts;
+                p.ControllingClient.SendEntityUpdate(rootpart, rootflag);
 
-                SendFullUpdateToClient(p.ControllingClient);
-
-                SceneObjectPart rootpart = sog.RootPart;
-                if (rootpart.UpdateFlag == UpdateRequired.TERSE)
-                {
-                    p.ControllingClient.SendEntityUpdate(rootpart,
-                        PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
-                    rootpart.UpdateFlag = 0;
-                }
-                else if (rootpart.UpdateFlag == UpdateRequired.FULL)
-                {
-                    p.ControllingClient.SendEntityUpdate(rootpart, PrimUpdateFlags.FullUpdate);
-                    rootpart.UpdateFlag = 0;
-                }
-
-                for (int i = 0; i < parts.Length; i++)
+                for (int i = 0; i < nparts; i++)
                 {
                     SceneObjectPart part = parts[i];
                     if (part == rootpart)
                         continue;
-                    if (part.UpdateFlag == UpdateRequired.TERSE)
-                    {
-                        p.ControllingClient.SendEntityUpdate(part,
-                            PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                            | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
-                        part.UpdateFlag = 0;
-                    }
-                    else if (part.UpdateFlag == UpdateRequired.FULL)
-                    {
-                        p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
-                        part.UpdateFlag = 0;
-                    }
+                    p.ControllingClient.SendEntityUpdate(part, flags[i]);
                 }
-            }          
-        }
-
-        public void SendAttachmentScheduleUpdate(SceneObjectPart part)
-        {
-            if (IsChildAgent)
-                return;
-
-            m_scene.ForEachScenePresence(delegate(ScenePresence p)
-            {
-                if (p != this)
-                {
-
-                    if (part.ParentGroup.HasPrivateAttachmentPoint ||
-                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                        return;
-                }
-
-                if (part.UpdateFlag == UpdateRequired.TERSE)
-                {
-                    p.ControllingClient.SendEntityUpdate(part,
-                        PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
-                    part.UpdateFlag = 0;
-                }
-                else if (part.UpdateFlag == UpdateRequired.FULL)
-                {
-                    p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
-                    part.UpdateFlag = 0;
-                }
-            });
+            }
         }
 
         public void SendAttachmentUpdate(SceneObjectGroup sog, UpdateRequired UpdateFlag)
@@ -4840,34 +4749,89 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            PrimUpdateFlags flag;
+            switch (UpdateFlag)
+            {
+                case UpdateRequired.TERSE:
+                    flag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+                    break;
+
+                case UpdateRequired.FULL:
+                    flag = PrimUpdateFlags.FullUpdate;
+                    break;
+
+                default:
+                    return;
+            }
+
+            SceneObjectPart[] parts = sog.Parts;
+            SceneObjectPart rootpart = sog.RootPart;
+
+            bool priv = sog.HasPrivateAttachmentPoint;
+
+            List<ScenePresence> allPresences = m_scene.GetScenePresences();
+            foreach (ScenePresence p in allPresences)
             {
                 if (p != this)
                 {
-                if (sog.HasPrivateAttachmentPoint ||
-                    (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                    return;
+                    if (priv ||
+                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
+                        continue;
                 }
 
-                SceneObjectPart[] parts = sog.Parts;
+                p.ControllingClient.SendEntityUpdate(rootpart, flag);
+                rootpart.UpdateFlag = 0;
 
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
-                    if (UpdateFlag == UpdateRequired.TERSE)
-                    {
-                        p.ControllingClient.SendEntityUpdate(part,
-                            PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                            | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
-                        part.UpdateFlag = 0;
-                    }
-                    else if (UpdateFlag == UpdateRequired.FULL)
-                    {
-                        p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
-                        part.UpdateFlag = 0;
-                    }
+                    if (part == rootpart)
+                        continue;
+                    p.ControllingClient.SendEntityUpdate(part, flag);
+                    part.UpdateFlag = 0;
                 }
-            });
+            }
+        }
+
+        public void SendAttachmentScheduleUpdate(SceneObjectPart part)
+        {
+            if (IsChildAgent)
+                return;
+
+
+            PrimUpdateFlags flag;
+            switch (part.UpdateFlag)
+            {
+                case UpdateRequired.TERSE:
+                    flag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+                    break;
+
+                case UpdateRequired.FULL:
+                    flag = PrimUpdateFlags.FullUpdate;
+                    break;
+
+                default:
+                    return;
+            }
+
+            bool priv = part.ParentGroup.HasPrivateAttachmentPoint;
+
+            List<ScenePresence> allPresences = m_scene.GetScenePresences();
+            foreach (ScenePresence p in allPresences)
+            {
+                if (p != this)
+                {
+
+                    if (priv ||
+                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
+                        continue;
+                }
+
+                p.ControllingClient.SendEntityUpdate(part, flag);
+                part.UpdateFlag = 0;
+            }
         }
 
         public void SendAttachmentUpdate(SceneObjectPart part, UpdateRequired UpdateFlag)
@@ -4875,29 +4839,37 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            PrimUpdateFlags flag;
+            switch (UpdateFlag)
+            {
+                case UpdateRequired.TERSE:
+                    flag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+                    break;
+
+                case UpdateRequired.FULL:
+                    flag = PrimUpdateFlags.FullUpdate;
+                    break;
+
+                default:
+                    return;
+            }
+
+            bool priv = part.ParentGroup.HasPrivateAttachmentPoint;
+
+            List<ScenePresence> allPresences = m_scene.GetScenePresences();
+            foreach (ScenePresence p in allPresences)
             {
                 if (p != this)
                 {
-
-                    if (part.ParentGroup.HasPrivateAttachmentPoint ||
+                    if ( priv ||
                         (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                        return;
+                        continue;
                 }
 
-                if (UpdateFlag == UpdateRequired.TERSE)
-                {
-                    p.ControllingClient.SendEntityUpdate(part,
-                        PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
-                    part.UpdateFlag = 0;
-                }
-                else if (UpdateFlag == UpdateRequired.FULL)
-                {
-                    p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
-                    part.UpdateFlag = 0;
-                }
-            });
+                p.ControllingClient.SendEntityUpdate(part, flag);
+                part.UpdateFlag = 0;
+            }
         }
 
         /// <summary>
