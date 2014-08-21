@@ -5951,7 +5951,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
-                            // only those old parcel need receive kills
+                            // only those old parcel need kills
                             if (previusParcelID == p.currentParcelUUID && GodLevel < 200)
                             {
                                 killsToSendme.Add(p);  // i dont see them
@@ -5986,7 +5986,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Debug("[AVATAR]: killtoMe: " + Lastname + " " + killsToSendme.Count.ToString());
 
-                foreach (ScenePresence p in killsToSendto)
+                foreach (ScenePresence p in killsToSendme)
                 try
                 {
                     p.SendKillTo(this);
