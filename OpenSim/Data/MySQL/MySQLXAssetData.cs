@@ -57,7 +57,6 @@ namespace OpenSim.Data.MySQL
 
         private bool m_enableCompression = false;
         private string m_connectionString;
-        private object m_dbLock = new object();
 
         /// <summary>
         /// We can reuse this for all hashing since all methods are single-threaded through m_dbBLock
@@ -131,60 +130,58 @@ namespace OpenSim.Data.MySQL
 //            m_log.DebugFormat("[MYSQL XASSET DATA]: Looking for asset {0}", assetID);
 
             AssetBase asset = null;
-            lock (m_dbLock)
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                dbcon.Open();
+
+                using (MySqlCommand cmd = new MySqlCommand(
+                    "SELECT Name, Description, AccessTime, AssetType, Local, Temporary, AssetFlags, CreatorID, Data FROM XAssetsMeta JOIN XAssetsData ON XAssetsMeta.Hash = XAssetsData.Hash WHERE ID=?ID",
+                    dbcon))
                 {
-                    dbcon.Open();
+                    cmd.Parameters.AddWithValue("?ID", assetID.ToString());
 
-                    using (MySqlCommand cmd = new MySqlCommand(
-                        "SELECT Name, Description, AccessTime, AssetType, Local, Temporary, AssetFlags, CreatorID, Data FROM XAssetsMeta JOIN XAssetsData ON XAssetsMeta.Hash = XAssetsData.Hash WHERE ID=?ID",
-                        dbcon))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("?ID", assetID.ToString());
-
-                        try
+                        using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                         {
-                            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                            if (dbReader.Read())
                             {
-                                if (dbReader.Read())
+                                asset = new AssetBase(assetID, (string)dbReader["Name"], (sbyte)dbReader["AssetType"], dbReader["CreatorID"].ToString());
+                                asset.Data = (byte[])dbReader["Data"];
+                                asset.Description = (string)dbReader["Description"];
+
+                                string local = dbReader["Local"].ToString();
+                                if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+                                    asset.Local = true;
+                                else
+                                    asset.Local = false;
+
+                                asset.Temporary = Convert.ToBoolean(dbReader["Temporary"]);
+                                asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
+
+                                if (m_enableCompression)
                                 {
-                                    asset = new AssetBase(assetID, (string)dbReader["Name"], (sbyte)dbReader["AssetType"], dbReader["CreatorID"].ToString());
-                                    asset.Data = (byte[])dbReader["Data"];
-                                    asset.Description = (string)dbReader["Description"];
-
-                                    string local = dbReader["Local"].ToString();
-                                    if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
-                                        asset.Local = true;
-                                    else
-                                        asset.Local = false;
-
-                                    asset.Temporary = Convert.ToBoolean(dbReader["Temporary"]);
-                                    asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
-
-                                    if (m_enableCompression)
+                                    using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
                                     {
-                                        using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
-                                        {
-                                            MemoryStream outputStream = new MemoryStream();
-                                            WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
-    //                                        int compressedLength = asset.Data.Length;
-                                            asset.Data = outputStream.ToArray();
-    
-    //                                        m_log.DebugFormat(
-    //                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
-    //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
-                                        }
-                                    }
+                                        MemoryStream outputStream = new MemoryStream();
+                                        WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
+//                                        int compressedLength = asset.Data.Length;
+                                        asset.Data = outputStream.ToArray();
 
-                                    UpdateAccessTime(asset.Metadata, (int)dbReader["AccessTime"]);
+//                                        m_log.DebugFormat(
+//                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
+//                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
+                                    }
                                 }
+
+                                UpdateAccessTime(asset.Metadata, (int)dbReader["AccessTime"]);
                             }
                         }
-                        catch (Exception e)
-                        {
-                            m_log.Error(string.Format("[MYSQL XASSET DATA]: Failure fetching asset {0}", assetID), e);
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error(string.Format("[MYSQL XASSET DATA]: Failure fetching asset {0}", assetID), e);
                     }
                 }
             }
@@ -201,113 +198,110 @@ namespace OpenSim.Data.MySQL
         {
 //            m_log.DebugFormat("[XASSETS DB]: Storing asset {0} {1}", asset.Name, asset.ID);
 
-            lock (m_dbLock)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                dbcon.Open();
+
+                using (MySqlTransaction transaction = dbcon.BeginTransaction())
                 {
-                    dbcon.Open();
-
-                    using (MySqlTransaction transaction = dbcon.BeginTransaction())
+                    string assetName = asset.Name;
+                    if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
                     {
-                        string assetName = asset.Name;
-                        if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
-                        {
-                            assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
-                            m_log.WarnFormat(
-                                "[XASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add", 
-                                asset.Name, asset.ID, asset.Name.Length, assetName.Length);
-                        }
-    
-                        string assetDescription = asset.Description;
-                        if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
-                        {
-                            assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
-                            m_log.WarnFormat(
-                                "[XASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
-                                asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
-                        }
+                        assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
+                        m_log.WarnFormat(
+                            "[XASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                            asset.Name, asset.ID, asset.Name.Length, assetName.Length);
+                    }
 
-                        if (m_enableCompression)
+                    string assetDescription = asset.Description;
+                    if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
+                    {
+                        assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
+                        m_log.WarnFormat(
+                            "[XASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                            asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
+                    }
+
+                    if (m_enableCompression)
+                    {
+                        MemoryStream outputStream = new MemoryStream();
+
+                        using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
                         {
-                            MemoryStream outputStream = new MemoryStream();
-
-                            using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
-                            {
-    //                            Console.WriteLine(WebUtil.CopyTo(new MemoryStream(asset.Data), compressionStream, int.MaxValue));
-                                // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
-                                compressionStream.Close();
-                                byte[] compressedData = outputStream.ToArray();
-                                asset.Data = compressedData;
-                            }
+//                            Console.WriteLine(WebUtil.CopyTo(new MemoryStream(asset.Data), compressionStream, int.MaxValue));
+                            // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
+                            compressionStream.Close();
+                            byte[] compressedData = outputStream.ToArray();
+                            asset.Data = compressedData;
                         }
+                    }
 
-                        byte[] hash = hasher.ComputeHash(asset.Data);
+                    byte[] hash = hasher.ComputeHash(asset.Data);
 
 //                        m_log.DebugFormat(
 //                            "[XASSET DB]: Compressed data size for {0} {1}, hash {2} is {3}",
 //                            asset.ID, asset.Name, hash, compressedData.Length);
 
+                    try
+                    {
+                        using (MySqlCommand cmd =
+                            new MySqlCommand(
+                                "replace INTO XAssetsMeta(ID, Hash, Name, Description, AssetType, Local, Temporary, CreateTime, AccessTime, AssetFlags, CreatorID)" +
+                                "VALUES(?ID, ?Hash, ?Name, ?Description, ?AssetType, ?Local, ?Temporary, ?CreateTime, ?AccessTime, ?AssetFlags, ?CreatorID)",
+                                dbcon))
+                        {
+                            // create unix epoch time
+                            int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
+                            cmd.Parameters.AddWithValue("?ID", asset.ID);
+                            cmd.Parameters.AddWithValue("?Hash", hash);
+                            cmd.Parameters.AddWithValue("?Name", assetName);
+                            cmd.Parameters.AddWithValue("?Description", assetDescription);
+                            cmd.Parameters.AddWithValue("?AssetType", asset.Type);
+                            cmd.Parameters.AddWithValue("?Local", asset.Local);
+                            cmd.Parameters.AddWithValue("?Temporary", asset.Temporary);
+                            cmd.Parameters.AddWithValue("?CreateTime", now);
+                            cmd.Parameters.AddWithValue("?AccessTime", now);
+                            cmd.Parameters.AddWithValue("?CreatorID", asset.Metadata.CreatorID);
+                            cmd.Parameters.AddWithValue("?AssetFlags", (int)asset.Flags);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset metadata {0} with name \"{1}\". Error: {2}",
+                            asset.FullID, asset.Name, e.Message);
+
+                        transaction.Rollback();
+
+                        return;
+                    }
+
+                    if (!ExistsData(dbcon, transaction, hash))
+                    {
                         try
                         {
                             using (MySqlCommand cmd =
                                 new MySqlCommand(
-                                    "replace INTO XAssetsMeta(ID, Hash, Name, Description, AssetType, Local, Temporary, CreateTime, AccessTime, AssetFlags, CreatorID)" +
-                                    "VALUES(?ID, ?Hash, ?Name, ?Description, ?AssetType, ?Local, ?Temporary, ?CreateTime, ?AccessTime, ?AssetFlags, ?CreatorID)",
+                                    "INSERT INTO XAssetsData(Hash, Data) VALUES(?Hash, ?Data)",
                                     dbcon))
                             {
-                                // create unix epoch time
-                                int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                                cmd.Parameters.AddWithValue("?ID", asset.ID);
                                 cmd.Parameters.AddWithValue("?Hash", hash);
-                                cmd.Parameters.AddWithValue("?Name", assetName);
-                                cmd.Parameters.AddWithValue("?Description", assetDescription);
-                                cmd.Parameters.AddWithValue("?AssetType", asset.Type);
-                                cmd.Parameters.AddWithValue("?Local", asset.Local);
-                                cmd.Parameters.AddWithValue("?Temporary", asset.Temporary);
-                                cmd.Parameters.AddWithValue("?CreateTime", now);
-                                cmd.Parameters.AddWithValue("?AccessTime", now);
-                                cmd.Parameters.AddWithValue("?CreatorID", asset.Metadata.CreatorID);
-                                cmd.Parameters.AddWithValue("?AssetFlags", (int)asset.Flags);
+                                cmd.Parameters.AddWithValue("?Data", asset.Data);
                                 cmd.ExecuteNonQuery();
                             }
                         }
                         catch (Exception e)
                         {
-                            m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset metadata {0} with name \"{1}\". Error: {2}",
+                            m_log.ErrorFormat("[XASSET DB]: MySQL failure creating asset data {0} with name \"{1}\". Error: {2}",
                                 asset.FullID, asset.Name, e.Message);
 
                             transaction.Rollback();
 
                             return;
                         }
-
-                        if (!ExistsData(dbcon, transaction, hash))
-                        {
-                            try
-                            {
-                                using (MySqlCommand cmd =
-                                    new MySqlCommand(
-                                        "INSERT INTO XAssetsData(Hash, Data) VALUES(?Hash, ?Data)",
-                                        dbcon))
-                                {
-                                    cmd.Parameters.AddWithValue("?Hash", hash);
-                                    cmd.Parameters.AddWithValue("?Data", asset.Data);
-                                    cmd.ExecuteNonQuery();
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                m_log.ErrorFormat("[XASSET DB]: MySQL failure creating asset data {0} with name \"{1}\". Error: {2}",
-                                    asset.FullID, asset.Name, e.Message);
-    
-                                transaction.Rollback();
-    
-                                return;
-                            }
-                        }
-    
-                        transaction.Commit();
                     }
+
+                    transaction.Commit();
                 }
             }
         }
@@ -328,30 +322,27 @@ namespace OpenSim.Data.MySQL
             if ((now - Utils.UnixTimeToDateTime(accessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
                 return;
 
-            lock (m_dbLock)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-                    MySqlCommand cmd =
-                        new MySqlCommand("update XAssetsMeta set AccessTime=?AccessTime where ID=?ID", dbcon);
+                dbcon.Open();
+                MySqlCommand cmd =
+                    new MySqlCommand("update XAssetsMeta set AccessTime=?AccessTime where ID=?ID", dbcon);
 
-                    try
+                try
+                {
+                    using (cmd)
                     {
-                        using (cmd)
-                        {
-                            // create unix epoch time
-                            cmd.Parameters.AddWithValue("?ID", assetMetadata.ID);
-                            cmd.Parameters.AddWithValue("?AccessTime", (int)Utils.DateTimeToUnixTime(now));
-                            cmd.ExecuteNonQuery();
-                        }
+                        // create unix epoch time
+                        cmd.Parameters.AddWithValue("?ID", assetMetadata.ID);
+                        cmd.Parameters.AddWithValue("?AccessTime", (int)Utils.DateTimeToUnixTime(now));
+                        cmd.ExecuteNonQuery();
                     }
-                    catch (Exception)
-                    {
-                        m_log.ErrorFormat(
-                            "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}", 
-                            assetMetadata.ID, assetMetadata.Name);
-                    }
+                }
+                catch (Exception)
+                {
+                    m_log.ErrorFormat(
+                        "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}", 
+                        assetMetadata.ID, assetMetadata.Name);
                 }
             }
         }
@@ -411,20 +402,17 @@ namespace OpenSim.Data.MySQL
             string ids = "'" + string.Join("','", uuids) + "'";
             string sql = string.Format("SELECT ID FROM assets WHERE ID IN ({0})", ids);
 
-            lock (m_dbLock)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                dbcon.Open();
+                using (MySqlCommand cmd = new MySqlCommand(sql, dbcon))
                 {
-                    dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(sql, dbcon))
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader())
                     {
-                        using (MySqlDataReader dbReader = cmd.ExecuteReader())
+                        while (dbReader.Read())
                         {
-                            while (dbReader.Read())
-                            {
-                                UUID id = DBGuid.FromDB(dbReader["ID"]);
-                                exists.Add(id);
-                            }
+                            UUID id = DBGuid.FromDB(dbReader["ID"]);
+                            exists.Add(id);
                         }
                     }
                 }
@@ -449,43 +437,40 @@ namespace OpenSim.Data.MySQL
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
 
-            lock (m_dbLock)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                dbcon.Open();
+                MySqlCommand cmd = new MySqlCommand("SELECT Name, Description, AccessTime, AssetType, Temporary, ID, AssetFlags, CreatorID FROM XAssetsMeta LIMIT ?start, ?count", dbcon);
+                cmd.Parameters.AddWithValue("?start", start);
+                cmd.Parameters.AddWithValue("?count", count);
+
+                try
                 {
-                    dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("SELECT Name, Description, AccessTime, AssetType, Temporary, ID, AssetFlags, CreatorID FROM XAssetsMeta LIMIT ?start, ?count", dbcon);
-                    cmd.Parameters.AddWithValue("?start", start);
-                    cmd.Parameters.AddWithValue("?count", count);
-
-                    try
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader())
                     {
-                        using (MySqlDataReader dbReader = cmd.ExecuteReader())
+                        while (dbReader.Read())
                         {
-                            while (dbReader.Read())
-                            {
-                                AssetMetadata metadata = new AssetMetadata();
-                                metadata.Name = (string)dbReader["Name"];
-                                metadata.Description = (string)dbReader["Description"];
-                                metadata.Type = (sbyte)dbReader["AssetType"];
-                                metadata.Temporary = Convert.ToBoolean(dbReader["Temporary"]); // Not sure if this is correct.
-                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
-                                metadata.FullID = DBGuid.FromDB(dbReader["ID"]);
-                                metadata.CreatorID = dbReader["CreatorID"].ToString();
+                            AssetMetadata metadata = new AssetMetadata();
+                            metadata.Name = (string)dbReader["Name"];
+                            metadata.Description = (string)dbReader["Description"];
+                            metadata.Type = (sbyte)dbReader["AssetType"];
+                            metadata.Temporary = Convert.ToBoolean(dbReader["Temporary"]); // Not sure if this is correct.
+                            metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
+                            metadata.FullID = DBGuid.FromDB(dbReader["ID"]);
+                            metadata.CreatorID = dbReader["CreatorID"].ToString();
 
-                                // We'll ignore this for now - it appears unused!
+                            // We'll ignore this for now - it appears unused!
 //                                metadata.SHA1 = dbReader["hash"]);
 
-                                UpdateAccessTime(metadata, (int)dbReader["AccessTime"]);
+                            UpdateAccessTime(metadata, (int)dbReader["AccessTime"]);
 
-                                retList.Add(metadata);
-                            }
+                            retList.Add(metadata);
                         }
                     }
-                    catch (Exception e)
-                    {
-                        m_log.Error("[XASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString());
-                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[XASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString());
                 }
             }
 
@@ -496,21 +481,18 @@ namespace OpenSim.Data.MySQL
         {
 //            m_log.DebugFormat("[XASSETS DB]: Deleting asset {0}", id);
 
-            lock (m_dbLock)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                dbcon.Open();
+
+                using (MySqlCommand cmd = new MySqlCommand("delete from XAssetsMeta where ID=?ID", dbcon))
                 {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = new MySqlCommand("delete from XAssetsMeta where ID=?ID", dbcon))
-                    {
-                        cmd.Parameters.AddWithValue("?ID", id);
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    // TODO: How do we deal with data from deleted assets?  Probably not easily reapable unless we
-                    // keep a reference count (?)
+                    cmd.Parameters.AddWithValue("?ID", id);
+                    cmd.ExecuteNonQuery();
                 }
+
+                // TODO: How do we deal with data from deleted assets?  Probably not easily reapable unless we
+                // keep a reference count (?)
             }
 
             return true;
