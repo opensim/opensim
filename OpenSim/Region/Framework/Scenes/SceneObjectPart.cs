@@ -862,7 +862,8 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 Vector3 offset = (m_offsetPosition - oldpos);
                                 av.AbsolutePosition += offset;
-                                av.SendAvatarDataToAllAgents();
+//                                av.SendAvatarDataToAllAgents();
+                                av.SendTerseUpdateToAllClients();
                             }
                         }
                     }
@@ -3257,7 +3258,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Send a full update for this part to all clients.
         /// </summary>
-        public void SendFullUpdateToAllClients()
+        public void SendFullUpdateToAllClientsInternal()
         {
             if (ParentGroup == null)
                 return;
@@ -3274,6 +3275,36 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SendFullUpdate(avatar.ControllingClient);
             });
+        }
+
+        public void SendFullUpdateToAllClients()
+        {
+            if (ParentGroup == null)
+                return;
+
+            // Update the "last" values
+            m_lastPosition = OffsetPosition;
+            m_lastRotation = RotationOffset;
+            m_lastVelocity = Velocity;
+            m_lastAcceleration = Acceleration;
+            m_lastAngularVelocity = AngularVelocity;
+            m_lastUpdateSentTime = Environment.TickCount;
+
+            if (ParentGroup.IsAttachment)
+            {
+                ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this, UpdateRequired.FULL);
+                }
+            }
+            else
+            {
+                ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                {
+                    SendFullUpdate(avatar.ControllingClient);
+                });
+            }
         }
 
         /// <summary>
@@ -3345,24 +3376,24 @@ namespace OpenSim.Region.Framework.Scenes
                         !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                         Environment.TickCount - m_lastUpdateSentTime > TIME_MS_TOLERANCE)
                     {
-                        SendTerseUpdateToAllClients();
-
+                        SendTerseUpdateToAllClientsInternal();
                     }
                     break;
                 }
                 case UpdateRequired.FULL:
                 {
                     ClearUpdateSchedule();
-                    SendFullUpdateToAllClients();
+                    SendFullUpdateToAllClientsInternal();
                     break;
                 }
             }
         }
 
+
         /// <summary>
         /// Send a terse update to all clients
         /// </summary>
-        public void SendTerseUpdateToAllClients()
+        public void SendTerseUpdateToAllClientsInternal()
         {
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
@@ -3379,6 +3410,36 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SendTerseUpdateToClient(client);
             });
+        }
+
+        public void SendTerseUpdateToAllClients()
+        {
+            if (ParentGroup == null || ParentGroup.Scene == null)
+                return;
+
+            // Update the "last" values
+            m_lastPosition = OffsetPosition;
+            m_lastRotation = RotationOffset;
+            m_lastVelocity = Velocity;
+            m_lastAcceleration = Acceleration;
+            m_lastAngularVelocity = AngularVelocity;
+            m_lastUpdateSentTime = Environment.TickCount;
+
+            if (ParentGroup.IsAttachment)
+            {
+                ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this, UpdateRequired.TERSE);
+                }
+            }
+            else
+            {
+                ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
+                {
+                    SendTerseUpdateToClient(client);
+                });
+            }
         }
 
         public void SetAxisRotation(int axis, int rotate)

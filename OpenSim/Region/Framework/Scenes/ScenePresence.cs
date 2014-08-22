@@ -1341,6 +1341,11 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
             ParentID = 0; // Child agents can't be sitting
 
+// we dont have land information for child
+            m_previusParcelHide = false;
+            m_previusParcelUUID = UUID.Zero;
+            m_currentParcelHide = false;
+            m_currentParcelUUID = UUID.Zero;
             // FIXME: Set RegionHandle to the region handle of the scene this agent is moving into
             
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
@@ -1753,13 +1758,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
 
-                // Remember in HandleUseCircuitCode, we delayed this to here
-// this prims etc, moved down
-//                if (m_teleportFlags > 0)
-//                    SendInitialDataToMe();
-
-                //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
-
                 m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if (!string.IsNullOrEmpty(m_callbackURI))
@@ -1805,19 +1803,82 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!IsChildAgent)
                 {
 
-                    ValidateAndSendAppearanceAndAgentData();
+                    // ValidateAndSendAppearanceAndAgentData();
+
+                    // do it here in line 
+                    // so sequence is clear
+
+                    // verify baked textures and cache
+
+                    bool cachedbaked = false;
+
+                    if (m_scene.AvatarFactory != null)
+                        cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
+                   
+                    // not sure we need this
+                    if (!cachedbaked)
+                    {
+                        if (m_scene.AvatarFactory != null)
+                            m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+                    }
+
+                    List<ScenePresence> allpresences = m_scene.GetScenePresences();
+
+                    // send avatar object to all presences including us, so they cross it into region
+                    // then hide if necessary
+                    SendInitialAvatarDataToAllAgents(allpresences);
+
+                    // send this look
+                    SendAppearanceToAgent(this);
+
+                    // send this animations
+                    UUID[] animIDs = null;
+                    int[] animseqs = null;
+                    UUID[] animsobjs = null;
+
+                    if (Animator != null)
+                        Animator.GetArrays(out animIDs, out animseqs, out animsobjs);
+
+                    bool haveAnims = (animIDs != null && animseqs != null && animsobjs != null);
+
+                    if(haveAnims)
+                        SendAnimPackToAgent(this, animIDs, animseqs, animsobjs);
+
+                    // we should be able to receive updates, etc
+                    // so release them
+                    m_inTransit = false;
+
+                    // send look and animations to others
+                    // if not cached we send greys
+                    // uncomented if will wait till avatar does baking 
+                    //if (cachedbaked)
+                    {
+                        foreach (ScenePresence p in allpresences)
+                        {
+                            if (p == this)
+                                continue;
+
+                            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                                continue;
+
+                            SendAppearanceToAgentNF(p);
+                            if (haveAnims)
+                                SendAnimPackToAgentNF(p, animIDs, animseqs, animsobjs);
+                        }
+                    } // greys if
 
                     m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                  
                     // attachments
+
                     if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
                     {
                         if (Scene.AttachmentsModule != null)
-//                        Util.FireAndForget(
-//                            o =>
-//                            {
+                        // Util.FireAndForget(
+                        //      o =>
+                        //      {
                             Scene.AttachmentsModule.RezAttachments(this);
-                        //                            });
+                        // });
                     }
                     else
                     {
@@ -1829,23 +1890,23 @@ namespace OpenSim.Region.Framework.Scenes
                             // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
                             foreach (SceneObjectGroup sog in m_attachments)
                             {
-                                sog.SendFullUpdateToClient(ControllingClient);
                                 SendFullUpdateToClient(ControllingClient);
+                                sog.SendFullUpdateToClient(ControllingClient);                               
 
                                 if (!sog.HasPrivateAttachmentPoint)
                                 {
                                     // sog.ScheduleGroupForFullUpdate();
-                                    m_scene.ForEachScenePresence(delegate(ScenePresence p)
+                                    foreach(ScenePresence p in allpresences)
                                     {
                                         if (p == this)
-                                            return;
+                                            continue;
 
                                         if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                                            return;
+                                            continue;
 
-                                        sog.SendFullUpdateToClient(p.ControllingClient);
                                         SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
-                                    });
+                                        sog.SendFullUpdateToClient(p.ControllingClient);
+                                    };
                                 }
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                                 sog.ResumeScripts();
@@ -1872,25 +1933,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if (!IsChildAgent)
+                if (!IsChildAgent && openChildAgents)
                 {
-// moved from makeroot missing in sendInitialDataToMe 
-// its already there
-/*
-                    m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
-                    {
-                        if (presence != this)
-                            presence.Animator.SendAnimPackToClient(ControllingClient);
-                    });
-*/
-                    if (openChildAgents)
-                    {
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                     if (friendsModule != null)
                         friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
 
                     m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                    }
+
                 }
             }
             finally
@@ -3481,6 +3531,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Do everything required once a client completes its movement into a region and becomes
         /// a root agent.
         /// </summary>
+        /// 
+/* only called from on place, do done inline there      
         private void ValidateAndSendAppearanceAndAgentData()
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendInitialData: {0} ({1})", Name, UUID);
@@ -3502,11 +3554,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scene.AvatarFactory.QueueAppearanceSave(UUID);
             }
 
+            // send avatar object to all viewers so they cross it into region
             bool newhide = m_currentParcelHide;
             m_currentParcelHide = false;
 
             SendAvatarDataToAllAgents();
 
+            // now hide 
             if (newhide)
             {
                 ParcelLoginCheck(m_currentParcelUUID);
@@ -3522,7 +3576,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(Animator!= null)
                 Animator.SendAnimPack();
         }
-        
+*/        
         /// <summary>
         /// Send avatar full data appearance and animations for all other root agents to this agent, this agent
         /// can be either a child or root
@@ -3530,15 +3584,18 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendOtherAgentsAvatarFullToMe()
         {
             int count = 0;
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence p)
             {
                 // only send information about other root agents
-                if (scenePresence.UUID == UUID)
+                if (p.UUID == UUID)
                     return;
 
-                scenePresence.SendAvatarDataToAgent(this);
-                scenePresence.SendAppearanceToAgent(this);
-                scenePresence.SendAnimPackToAgent(this);
+                if (p.ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && GodLevel < 200)
+                    return;
+
+                p.SendAvatarDataToAgentNF(this);
+                p.SendAppearanceToAgentNF(this);
+                p.SendAnimPackToAgentNF(this);
                 // for now attachments are sent with all SOG
                 count++;
             });
@@ -3559,7 +3616,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
                     Name, Scene.RegionInfo.RegionName);
-
                 return;
             }
 
@@ -3572,6 +3628,26 @@ namespace OpenSim.Region.Framework.Scenes
                 count++;
             });
 
+            m_scene.StatsReporter.AddAgentUpdates(count);
+        }
+
+        // sends avatar object to all clients so they cross it into region
+        // then sends kills to hide
+        public void SendInitialAvatarDataToAllAgents(List<ScenePresence> presences)
+        {
+            m_lastSize = Appearance.AvatarSize;
+            int count = 0;
+
+            foreach (ScenePresence p in presences)
+            {
+                p.ControllingClient.SendAvatarDataImmediate(this);
+                if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    // either just kill the object
+                    // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
+                    // or also attachments viewer may still know about
+                    SendKillTo(p);
+                count++;
+            }
             m_scene.StatsReporter.AddAgentUpdates(count);
         }
 
@@ -3589,9 +3665,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAvatarDataToAgentNF(ScenePresence avatar)
         {
-            avatar.ControllingClient.SendAvatarDataImmediate(this);
+             avatar.ControllingClient.SendAvatarDataImmediate(this);
         }
-
+ 
         /// <summary>
         /// Send this agent's appearance to all other root and child agents in the scene
         /// This agent must be root.
@@ -3637,6 +3713,12 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());           
         }
 
+        public void SendAppearanceToAgentNF(ScenePresence avatar)
+        {
+            avatar.ControllingClient.SendAppearance(
+                UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+        }
+
         public void SendAnimPackToAgent(ScenePresence p)
         {
             if (IsChildAgent || Animator == null)
@@ -3646,6 +3728,29 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             Animator.SendAnimPackToClient(p.ControllingClient);
+        }
+
+        public void SendAnimPackToAgent(ScenePresence p, UUID[] animations, int[] seqs, UUID[] objectIDs)
+        {
+            if (IsChildAgent)
+                return;
+
+            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                return;
+
+            p.ControllingClient.SendAnimations(animations, seqs, ControllingClient.AgentId, objectIDs);
+        }
+
+        public void SendAnimPackToAgentNF(ScenePresence p)
+        {
+            if (IsChildAgent || Animator == null)
+                return;
+            Animator.SendAnimPackToClient(p.ControllingClient);
+        }
+
+        public void SendAnimPackToAgentNF(ScenePresence p, UUID[] animations, int[] seqs, UUID[] objectIDs)
+        {
+            p.ControllingClient.SendAnimations(animations, seqs, ControllingClient.AgentId, objectIDs);
         }
 
         public void SendAnimPack(UUID[] animations, int[] seqs, UUID[] objectIDs)
@@ -5634,22 +5739,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void ParcelLoginCheck(UUID currentParcelID)
-        {
-            List<ScenePresence> allpresences = m_scene.GetScenePresences();
-
-            foreach (ScenePresence p in allpresences)
-            {
-                if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                    continue;
-               
-                if (currentParcelID != p.currentParcelUUID && p.GodLevel < 200)
-                {
-                    SendKillTo(p);
-                }
-            }
-        }
- 
         public void parcelRegionCross()
         {
             if (!ParcelHideThisAvatar || GodLevel >= 200)
@@ -5817,8 +5906,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (killsToSendme.Count > 0)
             {
-                m_log.Debug("[AVATAR]: killtoMe: " + Lastname + " " + killsToSendme.Count.ToString());
-
                 foreach (ScenePresence p in killsToSendme)
                 {
                     m_log.Debug("[AVATAR]: killToMe: " + Lastname + " " + p.Lastname);

@@ -2717,15 +2717,15 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
             }
-            
-            RootPart.SendFullUpdateToAllClients();
+
+            RootPart.SendFullUpdateToAllClientsInternal();
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdateToAllClients();
+                    part.SendFullUpdateToAllClientsInternal();
             }
         }
 
@@ -2739,16 +2739,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (IsDeleted)
                 return;
-
-            if (IsAttachment)
-            {
-                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
-                if (sp != null)
-                {
-                    sp.SendAttachmentUpdate(RootPart, UpdateRequired.TERSE);
-                    return;
-                }
-            }
 
             RootPart.SendTerseUpdateToAllClients();
         }
@@ -2781,7 +2771,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].SendTerseUpdateToAllClients();
+                parts[i].SendTerseUpdateToAllClientsInternal();
         }
 
         /// <summary>
