@@ -1891,7 +1891,7 @@ namespace OpenSim.Region.Framework.Scenes
                             foreach (SceneObjectGroup sog in m_attachments)
                             {
                                 SendFullUpdateToClient(ControllingClient);
-                                sog.SendFullUpdateToClient(ControllingClient);                               
+                                SendAttachmentFullUpdateToAgentNF(sog, this);
 
                                 if (!sog.HasPrivateAttachmentPoint)
                                 {
@@ -1905,7 +1905,7 @@ namespace OpenSim.Region.Framework.Scenes
                                             continue;
 
                                         SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
-                                        sog.SendFullUpdateToClient(p.ControllingClient);
+                                        SendAttachmentFullUpdateToAgentNF(sog, p);
                                     };
                                 }
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
@@ -4745,9 +4745,11 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (p != this && sog.HasPrivateAttachmentPoint)
                             return;
+
                         if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                             return;
-                        sog.SendFullUpdateToClient(p.ControllingClient);
+
+                        SendAttachmentFullUpdateToAgentNF(sog, p);
                         SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
                     });
                 }
@@ -4762,12 +4764,28 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectGroup sog in m_attachments)
                 {
-                    if (p == this || !sog.HasPrivateAttachmentPoint)
-                    {
-                        sog.SendFullUpdateToClient(p.ControllingClient);
-                    }
+                    SendAttachmentFullUpdateToAgentNF(sog, p);
                 }
                 SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
+            }
+        }
+
+        public void SendAttachmentFullUpdateToAgentNF(SceneObjectGroup sog, ScenePresence p)
+        {
+            if (p != this && sog.HasPrivateAttachmentPoint)
+                return;
+
+            SceneObjectPart[] parts = sog.Parts;
+            SceneObjectPart rootpart = sog.RootPart;
+
+            p.ControllingClient.SendEntityUpdate(rootpart, PrimUpdateFlags.FullUpdate);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+                if (part == rootpart)
+                    continue;
+                p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
             }
         }
 

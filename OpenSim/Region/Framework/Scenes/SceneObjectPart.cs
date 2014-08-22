@@ -3237,7 +3237,19 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            m_log.DebugFormat(
 //                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
-            
+
+
+            if (ParentGroup.IsAttachment)
+            {
+                ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this, UpdateRequired.FULL);
+                }
+            }
+
+/* this does nothing
+SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             if (IsRoot)
             {
                 if (ParentGroup.IsAttachment)
@@ -3249,6 +3261,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SendFullUpdateToClient(remoteClient, AbsolutePosition);
                 }
             }
+*/
             else
             {
                 SendFullUpdateToClient(remoteClient);
