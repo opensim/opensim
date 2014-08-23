@@ -5334,13 +5334,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Vector3 velocity = new Vector3(0, 0, 0);
             Vector3 acceleration = new Vector3(0, 0, 0);
             rotation.Normalize();
-            Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
 
             data.CollisionPlane.ToBytes(objectData, 0);
             offsetPosition.ToBytes(objectData, 16);
             velocity.ToBytes(objectData, 28);
             acceleration.ToBytes(objectData, 40);
-            vrot.ToBytes(objectData, 52);
+            rotation.ToBytes(objectData, 52);
             data.AngularVelocity.ToBytes(objectData, 64);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
@@ -5400,8 +5399,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Quaternion rotation = data.RotationOffset;
             rotation.Normalize();
-            Vector3 vrot = new Vector3(rotation.X, rotation.Y, rotation.Z);
-            vrot.ToBytes(objectData, 36);
+            rotation.ToBytes(objectData, 36);
             data.AngularVelocity.ToBytes(objectData, 48);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
