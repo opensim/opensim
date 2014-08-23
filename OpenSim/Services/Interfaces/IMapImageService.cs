@@ -34,8 +34,8 @@ namespace OpenSim.Services.Interfaces
     public interface IMapImageService
     {
         //List<MapBlockData> GetMapBlocks(UUID scopeID, int minX, int minY, int maxX, int maxY);
-        bool AddMapTile(int x, int y, byte[] imageData, out string reason);
-        bool RemoveMapTile(int x, int y, out string reason);
-        byte[] GetMapTile(string fileName, out string format);
+        bool AddMapTile(int x, int y, byte[] imageData, UUID scopeID, out string reason);
+        bool RemoveMapTile(int x, int y, UUID scopeID, out string reason);
+        byte[] GetMapTile(string fileName, UUID scopeID, out string format);
     }
 }

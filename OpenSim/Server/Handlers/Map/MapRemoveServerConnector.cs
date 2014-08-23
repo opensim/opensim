@@ -45,7 +45,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Server.Handlers.MapImage
 {
-    public class MapAddServiceConnector : ServiceConnector
+    public class MapRemoveServiceConnector : ServiceConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -53,7 +53,7 @@ namespace OpenSim.Server.Handlers.MapImage
         private IGridService m_GridService;
         private string m_ConfigName = "MapImageService";
 
-        public MapAddServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+        public MapRemoveServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
             IConfig serverConfig = config.Configs[m_ConfigName];
@@ -79,20 +79,20 @@ namespace OpenSim.Server.Handlers.MapImage
                 m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is OFF");
 
             bool proxy = serverConfig.GetBoolean("HasProxy", false);
-            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy));
+            server.AddStreamHandler(new MapServerRemoveHandler(m_MapService, m_GridService, proxy));
 
         }
     }
 
-    class MapServerPostHandler : BaseStreamHandler
+    class MapServerRemoveHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
         private IGridService m_GridService;
         bool m_Proxy;
 
-        public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy) :
-            base("POST", "/map")
+        public MapServerRemoveHandler(IMapImageService service, IGridService grid, bool proxy) :
+            base("POST", "/removemap")
         {
             m_MapService = service;
             m_GridService = grid;
@@ -111,24 +111,19 @@ namespace OpenSim.Server.Handlers.MapImage
             {
                 Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
 
-                if (!request.ContainsKey("X") || !request.ContainsKey("Y") || !request.ContainsKey("DATA"))
+                if (!request.ContainsKey("X") || !request.ContainsKey("Y"))
                 {
                     httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
                     return FailureResult("Bad request.");
                 }
                 int x = 0, y = 0;
-                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
                 Int32.TryParse(request["X"].ToString(), out x);
                 Int32.TryParse(request["Y"].ToString(), out y);
+                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
                 if (request.ContainsKey("SCOPE"))
                     UUID.TryParse(request["SCOPE"].ToString(), out scopeID);
 
-                m_log.DebugFormat("[MAP ADD SERVER CONNECTOR]: Received map data for region at {0}-{1}", x, y);
-
-//                string type = "image/jpeg";
-//
-//                if (request.ContainsKey("TYPE"))
-//                    type = request["TYPE"].ToString();
+                m_log.DebugFormat("[MAP REMOVE SERVER CONNECTOR]: Received position data for region at {0}-{1}", x, y);
 
                 if (m_GridService != null)
                 {
@@ -151,10 +146,8 @@ namespace OpenSim.Server.Handlers.MapImage
                     }
                 }
 
-                byte[] data = Convert.FromBase64String(request["DATA"].ToString());
-
                 string reason = string.Empty;
-                bool result = m_MapService.AddMapTile(x, y, data, scopeID, out reason);
+                bool result = m_MapService.RemoveMapTile(x, y, scopeID, out reason);
 
                 if (result)
                     return SuccessResult();
