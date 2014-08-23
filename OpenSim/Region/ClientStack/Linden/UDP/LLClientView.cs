@@ -1660,6 +1660,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            foreach (uint id in localIDs)
 //                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
+            // remove pending entities
+            lock (m_entityProps.SyncRoot)
+                m_entityProps.Remove(localIDs);
+            lock (m_entityUpdates.SyncRoot)
+                m_entityUpdates.Remove(localIDs);
+
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[localIDs.Count];
