@@ -5965,22 +5965,25 @@ namespace OpenSim.Region.Framework.Scenes
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
 
-        public void SendFullKillsTo(ScenePresence p)
+//  kill with attachs root kills
+        public void SendKillTo(ScenePresence p)
         {
-            List<uint> ids = new List<uint>();
-            foreach (SceneObjectGroup sog in m_attachments)
-                p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
+            List<uint> ids = new List<uint>(m_attachments.Count + 1);
             ids.Add(LocalId);
+            foreach (SceneObjectGroup sog in m_attachments)
+                ids.Add(sog.RootPart.LocalId);
             p.ControllingClient.SendKillObject(ids);
         }
 
+/*
+// kill with hack
         public void SendKillTo(ScenePresence p)
         {
             foreach (SceneObjectGroup sog in m_attachments)
                 p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
             p.ControllingClient.SendKillObject(new List<uint> { LocalId });
         }
-
+*/
         public void SendViewTo(ScenePresence p)
         {
             SendAvatarDataToAgentNF(p);
