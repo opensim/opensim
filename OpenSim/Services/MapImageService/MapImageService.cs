@@ -94,10 +94,10 @@ namespace OpenSim.Services.MapImageService
 
         #region IMapImageService
 
-        public bool AddMapTile(int x, int y, byte[] imageData, out string reason)
+        public bool AddMapTile(int x, int y, byte[] imageData, UUID scopeID, out string reason)
         {
             reason = string.Empty;
-            string fileName = GetFileName(1, x, y);
+            string fileName = GetFileName(1, x, y, scopeID);
 
             lock (m_Sync)
             {
@@ -114,13 +114,13 @@ namespace OpenSim.Services.MapImageService
                 }
             }
 
-            return UpdateMultiResolutionFiles(x, y, out reason);
+            return UpdateMultiResolutionFiles(x, y, scopeID, out reason);
         }
 
-        public bool RemoveMapTile(int x, int y, out string reason)
+        public bool RemoveMapTile(int x, int y, UUID scopeID, out string reason)
         {
             reason = String.Empty;
-            string fileName = GetFileName(1, x, y);
+            string fileName = GetFileName(1, x, y, scopeID);
 
             lock (m_Sync)
             {
@@ -136,10 +136,10 @@ namespace OpenSim.Services.MapImageService
                 }
             }
 
-            return UpdateMultiResolutionFiles(x, y, out reason);
+            return UpdateMultiResolutionFiles(x, y, scopeID, out reason);
         }
 
-        private bool UpdateMultiResolutionFiles(int x, int y, out string reason)
+        private bool UpdateMultiResolutionFiles(int x, int y, UUID scopeID, out string reason)
         {
             reason = String.Empty;
             lock (m_Sync)
@@ -153,7 +153,7 @@ namespace OpenSim.Services.MapImageService
                     int x1 = x - (x % width);
                     int y1 = y - (y % width);
 
-                    if (!CreateTile(zoomLevel, x1, y1))
+                    if (!CreateTile(zoomLevel, x1, y1, scopeID))
                     {
                         m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
                         reason = string.Format("Map tile at zoom level {0} failed", zoomLevel);
@@ -165,12 +165,13 @@ namespace OpenSim.Services.MapImageService
             return true;
         }
 
-        public byte[] GetMapTile(string fileName, out string format)
+        public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
         {
 //            m_log.DebugFormat("[MAP IMAGE SERVICE]: Getting map tile {0}", fileName);
 
             format = ".jpg";
-            string fullName = Path.Combine(m_TilesStoragePath, fileName);
+            string fullName = Path.Combine(m_TilesStoragePath, scopeID.ToString());
+            fullName = Path.Combine(fullName, fileName);
             if (File.Exists(fullName))
             {
                 format = Path.GetExtension(fileName).ToLower();
@@ -191,10 +192,12 @@ namespace OpenSim.Services.MapImageService
         #endregion
 
 
-        private string GetFileName(uint zoomLevel, int x, int y)
+        private string GetFileName(uint zoomLevel, int x, int y, UUID scopeID)
         {
             string extension = "jpg";
-            return Path.Combine(m_TilesStoragePath, string.Format("map-{0}-{1}-{2}-objects.{3}", zoomLevel, x, y, extension));
+            string path = Path.Combine(m_TilesStoragePath, scopeID.ToString());
+            Directory.CreateDirectory(path);
+            return Path.Combine(path, string.Format("map-{0}-{1}-{2}-objects.{3}", zoomLevel, x, y, extension));
         }
 
         private Bitmap GetInputTileImage(string fileName)
@@ -235,7 +238,7 @@ namespace OpenSim.Services.MapImageService
             return null;
         }
 
-        private bool CreateTile(uint zoomLevel, int x, int y)
+        private bool CreateTile(uint zoomLevel, int x, int y, UUID scopeID)
         {
 //            m_log.DebugFormat("[MAP IMAGE SERVICE]: Create tile for {0} {1}, zoom {2}", x, y, zoomLevel);
             int prevWidth = (int)Math.Pow(2, (double)zoomLevel - 2);
@@ -250,13 +253,13 @@ namespace OpenSim.Services.MapImageService
             int yOut = y - (y % thisWidth);
 
             // Try to open the four input tiles from the previous zoom level
-            Bitmap inputBL = GetInputTileImage(GetFileName(zoomLevel - 1, xIn, yIn));
-            Bitmap inputBR = GetInputTileImage(GetFileName(zoomLevel - 1, xIn + prevWidth, yIn));
-            Bitmap inputTL = GetInputTileImage(GetFileName(zoomLevel - 1, xIn, yIn + prevWidth));
-            Bitmap inputTR = GetInputTileImage(GetFileName(zoomLevel - 1, xIn + prevWidth, yIn + prevWidth));
+            Bitmap inputBL = GetInputTileImage(GetFileName(zoomLevel - 1, xIn, yIn, scopeID));
+            Bitmap inputBR = GetInputTileImage(GetFileName(zoomLevel - 1, xIn + prevWidth, yIn, scopeID));
+            Bitmap inputTL = GetInputTileImage(GetFileName(zoomLevel - 1, xIn, yIn + prevWidth, scopeID));
+            Bitmap inputTR = GetInputTileImage(GetFileName(zoomLevel - 1, xIn + prevWidth, yIn + prevWidth, scopeID));
 
             // Open the output tile (current zoom level)
-            string outputFile = GetFileName(zoomLevel, xOut, yOut);
+            string outputFile = GetFileName(zoomLevel, xOut, yOut, scopeID);
             Bitmap output = GetOutputTileImage(outputFile);
             if (output == null)
                 return false;

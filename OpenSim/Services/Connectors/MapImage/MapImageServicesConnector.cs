@@ -86,13 +86,14 @@ namespace OpenSim.Services.Connectors
             m_ServerURI = serviceURI.TrimEnd('/');
         }
 
-        public bool RemoveMapTile(int x, int y, out string reason)
+        public bool RemoveMapTile(int x, int y, UUID scopeID, out string reason)
         {
             reason = string.Empty;
             int tickstart = Util.EnvironmentTickCount();
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["X"] = x.ToString();
             sendData["Y"] = y.ToString();
+            sendData["SCOPE"] = scopeID.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/removemap";
@@ -146,13 +147,14 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool AddMapTile(int x, int y, byte[] jpgData, out string reason)
+        public bool AddMapTile(int x, int y, byte[] jpgData, UUID scopeID, out string reason)
         {
             reason = string.Empty;
             int tickstart = Util.EnvironmentTickCount();
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["X"] = x.ToString();
             sendData["Y"] = y.ToString();
+            sendData["SCOPE"] = scopeID.ToString();
             sendData["TYPE"] = "image/jpeg";
             sendData["DATA"] = Convert.ToBase64String(jpgData);
 
@@ -212,7 +214,7 @@ namespace OpenSim.Services.Connectors
 
         }
 
-        public byte[] GetMapTile(string fileName, out string format)
+        public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
         {
             format = string.Empty;
             new Exception("GetMapTile method not Implemented");

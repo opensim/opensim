@@ -119,6 +119,9 @@ namespace OpenSim.Server.Handlers.MapImage
                 int x = 0, y = 0;
                 Int32.TryParse(request["X"].ToString(), out x);
                 Int32.TryParse(request["Y"].ToString(), out y);
+                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+                if (request.ContainsKey("SCOPE"))
+                    UUID.TryParse(request["SCOPE"].ToString(), out scopeID);
 
                 m_log.DebugFormat("[MAP REMOVE SERVER CONNECTOR]: Received position data for region at {0}-{1}", x, y);
 
@@ -144,7 +147,7 @@ namespace OpenSim.Server.Handlers.MapImage
                 }
 
                 string reason = string.Empty;
-                bool result = m_MapService.RemoveMapTile(x, y, out reason);
+                bool result = m_MapService.RemoveMapTile(x, y, scopeID, out reason);
 
                 if (result)
                     return SuccessResult();
