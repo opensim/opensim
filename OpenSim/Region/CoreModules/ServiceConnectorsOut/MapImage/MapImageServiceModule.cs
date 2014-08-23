@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
     /// </remarks>
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageServiceModule")]
-    public class MapImageServiceModule : ISharedRegionModule
+    public class MapImageServiceModule : ISharedRegionModule, IMapTileModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -143,6 +143,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
+            scene.RegisterModuleInterface<IMapTileModule>(this);
+
             scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) UploadMapTile(s); };
         }
 
@@ -193,7 +195,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         ///<summary>
         ///
         ///</summary>
-        private void UploadMapTile(IScene scene)
+        public void UploadMapTile(IScene scene)
         {
             m_log.DebugFormat("[MAP IMAGE SERVICE MODULE]: upload maptile for {0}", scene.RegionInfo.RegionName);
 
