@@ -3521,7 +3521,7 @@ namespace OpenSim.Region.Framework.Scenes
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 foreach (EntityBase e in entities)
                 {
-                    if (e != null && e is SceneObjectGroup)
+                    if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
             });
@@ -3596,7 +3596,7 @@ namespace OpenSim.Region.Framework.Scenes
                 p.SendAvatarDataToAgentNF(this);
                 p.SendAppearanceToAgentNF(this);
                 p.SendAnimPackToAgentNF(this);
-                // for now attachments are sent with all SOG
+                p.SendAttachmentsToAgentNF(this);               
                 count++;
             });
 
@@ -5969,9 +5969,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendKillTo(ScenePresence p)
         {
             List<uint> ids = new List<uint>(m_attachments.Count + 1);
-            ids.Add(LocalId);
             foreach (SceneObjectGroup sog in m_attachments)
                 ids.Add(sog.RootPart.LocalId);
+
+            ids.Add(LocalId);
             p.ControllingClient.SendKillObject(ids);
         }
 
