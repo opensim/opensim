@@ -141,6 +141,12 @@ namespace OpenSim.Services.Interfaces
                 }
             }
             set { 
+                if ( value == null)
+                {
+                    m_serverURI = String.Empty;
+                    return;
+                }
+
                 if ( value.EndsWith("/") ) {
                     m_serverURI = value;
                 } else {
