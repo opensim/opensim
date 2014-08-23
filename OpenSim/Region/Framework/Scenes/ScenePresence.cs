@@ -3590,10 +3590,12 @@ namespace OpenSim.Region.Framework.Scenes
                 if (p.UUID == UUID)
                     return;
 
+                // get the avatar, then a kill if can't see it
+                p.SendInitialAvatarDataToAgent(this);
+
                 if (p.ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && GodLevel < 200)
                     return;
 
-                p.SendAvatarDataToAgentNF(this);
                 p.SendAppearanceToAgentNF(this);
                 p.SendAnimPackToAgentNF(this);
                 p.SendAttachmentsToAgentNF(this);               
@@ -3649,6 +3651,16 @@ namespace OpenSim.Region.Framework.Scenes
                 count++;
             }
             m_scene.StatsReporter.AddAgentUpdates(count);
+        }
+
+        public void SendInitialAvatarDataToAgent(ScenePresence p)
+        {
+            p.ControllingClient.SendAvatarDataImmediate(this);
+            if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    // either just kill the object
+                    // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
+                    // or also attachments viewer may still know about
+                SendKillTo(p);
         }
 
         /// <summary>
@@ -5959,7 +5971,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (p == this)
                     continue;
                 SendKillTo(p);
-                p.SendKillTo(this);
+                if (!p.IsChildAgent)
+                    p.SendKillTo(this);
             }
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
