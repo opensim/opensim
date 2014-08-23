@@ -164,6 +164,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Misc
                     availableMethods["admin_refresh_search"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshSearch);
+                    availableMethods["admin_refresh_map"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshMap);
                     availableMethods["admin_get_opensim_version"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcGetOpenSimVersion);
 
                     // Either enable full remote functionality or just selected features
@@ -2046,6 +2047,32 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             m_log.Info("[RADMIN]: Refresh Search Request complete");
+        }
+
+        private void XmlRpcRefreshMap(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            m_log.Info("[RADMIN]: Received Refresh Map Request");
+
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            CheckRegionParams(requestData, responseData);
+
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
+
+            IMapTileModule mapTileModule = scene.RequestModuleInterface<IMapTileModule>();
+            if (mapTileModule != null)
+            {
+                mapTileModule.UploadMapTile(scene);
+                responseData["success"] = true;
+            }
+            else
+            {
+                responseData["success"] = false;
+            }
+
+            m_log.Info("[RADMIN]: Refresh Map Request complete");
         }
 
         private void XmlRpcGetOpenSimVersion(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
