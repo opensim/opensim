@@ -1115,8 +1115,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // in no close.
             sp.DoNotCloseAfterTeleport = false;
 
-            sp.HasMovedAway();
-
             // Send the Update. If this returns true, we know the client has contacted the destination
             // via CompleteMovementIntoRegion, so we can let go.
             // If it returns false, something went wrong, and we need to abort.
@@ -1143,7 +1141,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-//            sp.HasMovedAway();
+            sp.HasMovedAway();
 
             // Need to signal neighbours whether child agents may need closing irrespective of whether this
             // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
@@ -1153,10 +1151,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // abandoned without proper close by viewer but then re-used by an incoming connection.
             sp.CloseChildAgents(newRegionX, newRegionY);
 
-            // May need to logout or other cleanup
-//            AgentHasMovedAway(sp, logout);
 //            AgentHasMovedAway(sp, true);
-
             // Well, this is it. The agent is over there.
 //            KillEntity(sp.Scene, sp.LocalId);
 
