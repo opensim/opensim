@@ -5984,7 +5984,6 @@ namespace OpenSim.Region.Framework.Scenes
             List<uint> ids = new List<uint>(m_attachments.Count + 1);
             foreach (SceneObjectGroup sog in m_attachments)
             {
-                p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
                 ids.Add(sog.RootPart.LocalId);
             }
 
