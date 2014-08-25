@@ -5982,10 +5982,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendKillTo(ScenePresence p)
         {
             List<uint> ids = new List<uint>(m_attachments.Count + 1);
-            foreach (SceneObjectGroup sog in m_attachments)
-            {
-                ids.Add(sog.RootPart.LocalId);
-            }
+//            foreach (SceneObjectGroup sog in m_attachments)
+//            {
+//                ids.Add(sog.RootPart.LocalId);
+//            }
 
             ids.Add(LocalId);
             p.ControllingClient.SendKillObject(ids);

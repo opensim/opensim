@@ -5411,7 +5411,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (data.ParentGroup.IsAttachment)
             {
-                if (data.UUID == data.ParentGroup.RootPart.UUID)
+                if (data.IsRoot)
                 {
                     update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.ParentGroup.FromItemID);
                 }
