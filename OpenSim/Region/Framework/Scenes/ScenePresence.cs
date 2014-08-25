@@ -5966,7 +5966,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void HasMovedAway()
         {
             List<ScenePresence> allpresences = m_scene.GetScenePresences();
-            foreach (ScenePresence p in allpresences)
+ /*           foreach (ScenePresence p in allpresences)
             {
                 if (p == this)
                     continue;
@@ -5974,6 +5974,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!p.IsChildAgent)
                     p.SendKillTo(this);
             }
+  */
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
