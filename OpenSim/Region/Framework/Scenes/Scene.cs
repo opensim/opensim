@@ -3000,13 +3000,18 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp == null)
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}",
-                        client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos);
+                        "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}, tpflags: {4}",
+                        client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos,
+                        ((TPFlags)aCircuit.teleportFlags).ToString());
     
                     m_clientManager.Add(client);
                     SubscribeToClientEvents(client);
     
                     sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
+
+                    sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
+
+/* done in completMovement
                     InventoryFolderBase cof = InventoryService.GetFolderForType(client.AgentId, (AssetType)46);
                     if (cof == null)
                         sp.COF = UUID.Zero;
@@ -3014,9 +3019,9 @@ namespace OpenSim.Region.Framework.Scenes
                         sp.COF = cof.ID;
 
                     m_log.DebugFormat("[SCENE]: COF for {0} is {1}", client.AgentId, sp.COF);
+ */
                     m_eventManager.TriggerOnNewPresence(sp);
     
-                    sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
                 }
                 else
                 {

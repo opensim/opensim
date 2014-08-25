@@ -981,10 +981,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // May need to logout or other cleanup
 //            AgentHasMovedAway(sp, logout);
-            AgentHasMovedAway(sp, true); // until logout use is checked
+//            AgentHasMovedAway(sp, true); // until logout use is checked
 
             // Well, this is it. The agent is over there.
-            KillEntity(sp.Scene, sp.LocalId);
+//            KillEntity(sp.Scene, sp.LocalId);
+
+            sp.HasMovedAway();
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
@@ -1139,6 +1141,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
+            sp.HasMovedAway();
+
             // Need to signal neighbours whether child agents may need closing irrespective of whether this
             // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
             // race conditions with rapid agent releporting (e.g. from A1 to a non-neighbour B, back
@@ -1147,12 +1151,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // abandoned without proper close by viewer but then re-used by an incoming connection.
             sp.CloseChildAgents(newRegionX, newRegionY);
 
-            // May need to logout or other cleanup
-//            AgentHasMovedAway(sp, logout);
-            AgentHasMovedAway(sp, true);
-
+//            AgentHasMovedAway(sp, true);
             // Well, this is it. The agent is over there.
-            KillEntity(sp.Scene, sp.LocalId);
+//            KillEntity(sp.Scene, sp.LocalId);
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();

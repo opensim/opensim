@@ -2636,6 +2636,16 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.UpdateFlag = UpdateRequired.TERSE;
             }
 
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentScheduleUpdate(this);
+                    return;
+                }
+            }
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
@@ -2697,15 +2707,25 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
 //            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);            
-            
-            RootPart.SendFullUpdateToAllClients();
+
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this,UpdateRequired.FULL);
+                    return;
+                }
+            }
+
+            RootPart.SendFullUpdateToAllClientsInternal();
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdateToAllClients();
+                    part.SendFullUpdateToAllClientsInternal();
             }
         }
 
@@ -2739,9 +2759,19 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsDeleted)
                 return;
 
+            if (IsAttachment)
+            {
+                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
+                if (sp != null)
+                {
+                    sp.SendAttachmentUpdate(this, UpdateRequired.TERSE);
+                    return;
+                }
+            }
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].SendTerseUpdateToAllClients();
+                parts[i].SendTerseUpdateToAllClientsInternal();
         }
 
         /// <summary>

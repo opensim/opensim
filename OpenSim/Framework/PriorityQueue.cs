@@ -134,6 +134,21 @@ namespace OpenSim.Framework
             return true;
         }
 
+
+        public void Remove(List<uint> ids)
+        {
+            LookupItem lookup;
+
+            foreach (uint localid in ids)
+            {
+                if (m_lookupTable.TryGetValue(localid, out lookup))
+                {
+                    lookup.Heap.Remove(lookup.Handle);
+                    m_lookupTable.Remove(localid);
+                }
+            }
+        }
+
         /// <summary>
         /// Remove an item from one of the queues. Specifically, it removes the
         /// oldest item from the next queue in order to provide fair access to
