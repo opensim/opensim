@@ -5411,19 +5411,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (data.ParentGroup.IsAttachment)
             {
-                if (data.UUID != data.ParentGroup.RootPart.UUID)
+                if (data.UUID == data.ParentGroup.RootPart.UUID)
                 {
                     update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.ParentGroup.FromItemID);
                 }
                 else
                     update.NameValue = Utils.EmptyBytes;
 
-                int st = (int)data.ParentGroup.RootPart.Shape.State;
-                st = (st & 0xf0) >> 4 + (st & 0x0f) << 4;
-                update.State = (byte)st;
+                int st = (int)data.ParentGroup.AttachmentPoint;
+                update.State = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
             }
-//            else
-//                update.State = data.Shape.State; // not sure about this
+            else
+            {
+                update.NameValue = Utils.EmptyBytes;
+                update.State = data.Shape.State; // not sure about this
+            }
 
 
 //                m_log.DebugFormat(
