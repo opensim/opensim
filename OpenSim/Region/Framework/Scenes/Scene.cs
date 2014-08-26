@@ -1443,8 +1443,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private volatile bool m_isTimerUpdateRunning;
+
         private void Update(object sender, ElapsedEventArgs e)
-        {           
+        {          
+            if (m_isTimerUpdateRunning)
+                return;
+
+            m_isTimerUpdateRunning = true;
+
             // If the last frame did not complete on time, then immediately start the next update on the same thread
             // and ignore further timed updates until we have a frame that had spare time.
             while (!Update(1) && Active) {}
@@ -1455,6 +1462,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sceneUpdateTimer = null;
                 m_isRunning = false;
             }
+
+            m_isTimerUpdateRunning = false;
         }
 
         private void Maintenance()
