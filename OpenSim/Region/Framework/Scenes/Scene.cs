@@ -1426,6 +1426,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
 
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+            m_lastFrameTick = Util.EnvironmentTickCount();
 
             if (UpdateOnTimer)
             {
@@ -1532,7 +1533,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             float physicsFPS = 0f;
             int previousFrameTick, tmpMS;
-            int maintc = Util.EnvironmentTickCount();
 
             while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
             {
@@ -1672,27 +1672,29 @@ namespace OpenSim.Region.Framework.Scenes
                 }
     
                 EventManager.TriggerRegionHeartbeatEnd(this);
+                otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
 
                 if (!UpdateOnTimer)
+                {
                     Watchdog.UpdateThread();
 
-                previousFrameTick = m_lastFrameTick;
-                m_lastFrameTick = Util.EnvironmentTickCount();
-                tmpMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
-                tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
+                    tmpMS = Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), m_lastFrameTick);
+                    tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
 
-                if (tmpMS > 0)
-                {
-                    spareMS = tmpMS;
-
-                    if (!UpdateOnTimer)
+                    if (tmpMS > 0)
+                    {
+                        spareMS = tmpMS;
                         Thread.Sleep(tmpMS);
-                }                               
+                    }           
+                }
+                else
+                {
+                    spareMS = Math.Max(0, (int)(MinFrameTime * 1000) - physicsMS2 - agentMS - physicsMS -otherMS);
+                }
 
-                frameMS = Util.EnvironmentTickCountSubtract(maintc);
-                maintc = Util.EnvironmentTickCount();
-
-                otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
+                previousFrameTick = m_lastFrameTick;
+                frameMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick);
+                m_lastFrameTick = Util.EnvironmentTickCount();                                                      
 
                 // if (Frame%m_update_avatars == 0)
                 //   UpdateInWorldTime();
