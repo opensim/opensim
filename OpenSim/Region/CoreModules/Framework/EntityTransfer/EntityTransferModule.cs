@@ -986,7 +986,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Well, this is it. The agent is over there.
 //            KillEntity(sp.Scene, sp.LocalId);
 
-            sp.HasMovedAway();
+            bool nearRegion = sp.KnownRegions.ContainsKey(destinationHandle);
+            sp.HasMovedAway(nearRegion);
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
@@ -1141,7 +1142,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-            sp.HasMovedAway();
+            bool nearRegion = sp.KnownRegions.ContainsKey(destinationHandle);
+            sp.HasMovedAway(nearRegion);
 
             // Need to signal neighbours whether child agents may need closing irrespective of whether this
             // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
@@ -1784,9 +1786,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
             // this may need the attachments
-            agent.parcelRegionCross();
 
-            AgentHasMovedAway(agent, true);
+            agent.HasMovedAway(true);
+//            agent.parcelRegionCross();
+
+//            AgentHasMovedAway(agent, true);
 
             agent.MakeChildAgent();
 

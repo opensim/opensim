@@ -5962,18 +5962,38 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void HasMovedAway()
+        public void HasMovedAway(bool nearRegion)
         {
-            List<ScenePresence> allpresences = m_scene.GetScenePresences();
-           foreach (ScenePresence p in allpresences)
-            {
-                if (p == this)
-                    continue;
-                SendKillTo(p);
-                if (!p.IsChildAgent)
-                    p.SendKillTo(this);
-            }
 
+            if (nearRegion)
+            {
+                if (!ParcelHideThisAvatar || GodLevel >= 200)
+                    return;
+
+                List<ScenePresence> allpresences = m_scene.GetScenePresences();
+                foreach (ScenePresence p in allpresences)
+                {
+                    if (p.IsDeleted || p == this || p.IsChildAgent || p.ControllingClient == null || !p.ControllingClient.IsActive)
+                        continue;
+
+                    if (p.currentParcelUUID == m_currentParcelUUID)
+                    {
+                        p.SendKillTo(this);
+                    }
+                }
+            }
+            else
+            {
+                List<ScenePresence> allpresences = m_scene.GetScenePresences();
+                foreach (ScenePresence p in allpresences)
+                {
+                    if (p == this)
+                        continue;
+                    SendKillTo(p);
+                    if (!p.IsChildAgent)
+                        p.SendKillTo(this);
+                }
+            }
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
