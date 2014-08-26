@@ -46,11 +46,6 @@ namespace OpenSim.Data.MySQL
         {
             get; set;
         }
-
-        protected object Lock
-        {
-            get; set;
-        }
         
         protected virtual Assembly Assembly
         {
@@ -1025,11 +1020,8 @@ namespace OpenSim.Data.MySQL
                                     put.Parameters.AddWithValue("?TagId", props.TagId.ToString());
                                     put.Parameters.AddWithValue("?DataKey", props.DataKey.ToString());
                                     put.Parameters.AddWithValue("?DataVal", props.DataVal.ToString());
-                                    
-                                    lock(Lock)
-                                    {
-                                        put.ExecuteNonQuery();
-                                    }
+
+                                    put.ExecuteNonQuery();
                                 }
                             }
                         }
@@ -1065,14 +1057,11 @@ namespace OpenSim.Data.MySQL
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?UserId", props.UserId.ToString());
-                        cmd.Parameters.AddWithValue("?TagId", props.TagId.ToString ());
-                        cmd.Parameters.AddWithValue("?DataKey", props.DataKey.ToString ());
-                        cmd.Parameters.AddWithValue("?DataVal", props.DataKey.ToString ());
-                        
-                        lock(Lock)
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
+                        cmd.Parameters.AddWithValue("?TagId", props.TagId.ToString());
+                        cmd.Parameters.AddWithValue("?DataKey", props.DataKey.ToString());
+                        cmd.Parameters.AddWithValue("?DataVal", props.DataKey.ToString());
+
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
@@ -1087,4 +1076,3 @@ namespace OpenSim.Data.MySQL
         #endregion Integration
     }
 }
-

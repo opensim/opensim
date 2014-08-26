@@ -326,10 +326,10 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     AllowRemoteSetLoginLevel = "false"
 
     ; For V2 map
-    MapTileURL = "http://127.0.0.1:8002";
+    MapTileURL = "http://127.0.0.1:8002/";
 
     ; Url to search service
-    ; SearchURL = "http://127.0.0.1:8002";
+    ; SearchURL = "http://127.0.0.1:8002/";
 
     ; For V2/3 Web Profiles
     ; Work in progress: The ProfileServerURL/OpenIDServerURL are
