@@ -1887,29 +1887,26 @@ namespace OpenSim.Region.Framework.Scenes
                             m_log.DebugFormat(
                                 "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
 
-                            // Resume scripts  this possible should also be moved down after sending the avatar to viewer ?
-                            foreach (SceneObjectGroup sog in m_attachments)
+                            foreach(SceneObjectGroup sog in m_attachments)
                             {
-                                SendFullUpdateToClient(ControllingClient);
-                                SendAttachmentFullUpdateToAgentNF(sog, this);
-
-                                if (!sog.HasPrivateAttachmentPoint)
-                                {
-                                    // sog.ScheduleGroupForFullUpdate();
-                                    foreach(ScenePresence p in allpresences)
-                                    {
-                                        if (p == this)
-                                            continue;
-
-                                        if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
-                                            continue;
-
-                                        SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
-                                        SendAttachmentFullUpdateToAgentNF(sog, p);
-                                    };
-                                }
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                                 sog.ResumeScripts();
+                            }
+
+                            foreach (ScenePresence p in allpresences)
+                            {
+                                if (p == this)
+                                {
+                                    SendTerseUpdateToAgentNF(this);
+                                    SendAttachmentsToAgentNF(this);
+                                    continue;
+                                }
+
+                                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                                    continue;
+
+                                SendTerseUpdateToAgentNF(p);
+                                SendAttachmentsToAgentNF(p);
                             }
                         }
                     }
@@ -3428,7 +3425,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (remoteClient.IsActive)
             {
                 //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
-                remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
+                remoteClient.SendEntityUpdate(this,
+                    PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
                 m_scene.StatsReporter.AddAgentUpdates(1);
             }
         }
@@ -4761,8 +4760,8 @@ namespace OpenSim.Region.Framework.Scenes
                         if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
                             return;
 
+                        SendTerseUpdateToAgentNF(p);
                         SendAttachmentFullUpdateToAgentNF(sog, p);
-                        SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
                     });
                 }
             }
@@ -4772,13 +4771,13 @@ namespace OpenSim.Region.Framework.Scenes
         // for now they are checked in several places down the line...
         public void SendAttachmentsToAgentNF(ScenePresence p)
         {
+            SendTerseUpdateToAgentNF(p);
             lock (m_attachments)
             {
                 foreach (SceneObjectGroup sog in m_attachments)
                 {
                     SendAttachmentFullUpdateToAgentNF(sog, p);
-                }
-                SendFullUpdateToClient(p.ControllingClient); // resend our data by updates path
+                }               
             }
         }
 
@@ -5966,7 +5965,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void HasMovedAway()
         {
             List<ScenePresence> allpresences = m_scene.GetScenePresences();
- /*           foreach (ScenePresence p in allpresences)
+           foreach (ScenePresence p in allpresences)
             {
                 if (p == this)
                     continue;
@@ -5974,19 +5973,20 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!p.IsChildAgent)
                     p.SendKillTo(this);
             }
-  */
+
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
+
 
 //  kill with attachs root kills
         public void SendKillTo(ScenePresence p)
         {
             List<uint> ids = new List<uint>(m_attachments.Count + 1);
-//            foreach (SceneObjectGroup sog in m_attachments)
-//            {
-//                ids.Add(sog.RootPart.LocalId);
-//            }
+            foreach (SceneObjectGroup sog in m_attachments)
+            {
+                ids.Add(sog.RootPart.LocalId);
+            }
 
             ids.Add(LocalId);
             p.ControllingClient.SendKillObject(ids);
