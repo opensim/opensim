@@ -329,6 +329,17 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<string, string> m_extraSettings;
 
         /// <summary>
+        /// If true then the next time the scene loop is activated, updates will be performed by firing of a timer
+        /// rather than on a single thread that sleeps.
+        /// </summary>
+        public bool UpdateOnTimer { get; set; }
+
+        /// <summary>
+        /// Only used if we are updating scene on a timer rather than sleeping a thread.
+        /// </summary>
+        private Timer m_sceneUpdateTimer;
+
+        /// <summary>
         /// Current scene frame number
         /// </summary>
         public uint Frame
@@ -430,7 +441,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is the scene active?
         /// </summary>
         /// <remarks>
-        /// If false, maintenance and update loops are not being run.  Updates can still be triggered manually if
+        /// If false, maintenance and update loops are not being run, though after setting to false update may still
+        /// be active for a period (and IsRunning will still be true).  Updates can still be triggered manually if
         /// the scene is not active.
         /// </remarks>
         public bool Active
@@ -453,8 +465,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private volatile bool m_active;
 
-//        private int m_lastUpdate;
-//        private bool m_firstHeartbeat = true;
+        /// <summary>
+        /// If true then updates are running.  This may be true for a short period after a scene is de-activated.
+        /// </summary>
+        public bool IsRunning { get { return m_isRunning; } }
+        private volatile bool m_isRunning;
 
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
@@ -1352,19 +1367,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param> 
         public void Start(bool startScripts)
         {
+            if (IsRunning)
+                return;
+
+            m_isRunning = true;
             m_active = true;
 
 //            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
-
-            //m_heartbeatTimer.Enabled = true;
-            //m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
-            //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
             if (m_heartbeatThread != null)
             {
                 m_heartbeatThread.Abort();
                 m_heartbeatThread = null;
             }
-//            m_lastUpdate = Util.EnvironmentTickCount();
 
             m_heartbeatThread
                 = Watchdog.StartThread(
@@ -1401,15 +1415,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void Heartbeat()
         {
-//            if (!Monitor.TryEnter(m_heartbeatLock))
-//            {
-//                Watchdog.RemoveThread();
-//                return;
-//            }
-
-//            try
-//            {
-
             m_eventManager.TriggerOnRegionStarted(this);
 
             // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
@@ -1418,21 +1423,37 @@ namespace OpenSim.Region.Framework.Scenes
             Update(1);
 
             Watchdog.StartThread(
-                    Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
+                Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
 
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
-            Update(-1);
 
-//                m_lastUpdate = Util.EnvironmentTickCount();
-//                m_firstHeartbeat = false;
-//            }
-//            finally
-//            {
-//                Monitor.Pulse(m_heartbeatLock);
-//                Monitor.Exit(m_heartbeatLock);
-//            }
+            if (UpdateOnTimer)
+            {
+                m_sceneUpdateTimer = new Timer(MinFrameTime * 1000);
+                m_sceneUpdateTimer.AutoReset = true;
+                m_sceneUpdateTimer.Elapsed += Update;
+                m_sceneUpdateTimer.Start();
+            }
+            else
+            {
+                Update(-1);
+                Watchdog.RemoveThread();
+                m_isRunning = false;
+            }
+        }
 
-            Watchdog.RemoveThread();
+        private void Update(object sender, ElapsedEventArgs e)
+        {           
+            // If the last frame did not complete on time, then immediately start the next update on the same thread
+            // and ignore further timed updates until we have a frame that had spare time.
+            while (!Update(1) && Active) {}
+
+            if (!Active || m_shuttingDown)
+            {
+                m_sceneUpdateTimer.Stop();
+                m_sceneUpdateTimer = null;
+                m_isRunning = false;
+            }
         }
 
         private void Maintenance()
@@ -1502,7 +1523,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public override void Update(int frames)
+        public override bool Update(int frames)
         {
             long? endFrame = null;
 
@@ -1652,7 +1673,8 @@ namespace OpenSim.Region.Framework.Scenes
     
                 EventManager.TriggerRegionHeartbeatEnd(this);
 
-                Watchdog.UpdateThread();
+                if (!UpdateOnTimer)
+                    Watchdog.UpdateThread();
 
                 previousFrameTick = m_lastFrameTick;
                 m_lastFrameTick = Util.EnvironmentTickCount();
@@ -1661,9 +1683,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (tmpMS > 0)
                 {
-                    Thread.Sleep(tmpMS);
-                    spareMS += tmpMS;
-                }
+                    spareMS = tmpMS;
+
+                    if (!UpdateOnTimer)
+                        Thread.Sleep(tmpMS);
+                }                               
 
                 frameMS = Util.EnvironmentTickCountSubtract(maintc);
                 maintc = Util.EnvironmentTickCount();
@@ -1683,7 +1707,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.AddSpareMS(spareMS);
                 StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
 
-               // Optionally warn if a frame takes double the amount of time that it should.
+                // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
                         m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
@@ -1693,6 +1717,8 @@ namespace OpenSim.Region.Framework.Scenes
                         MinFrameTime * 1000,
                         RegionInfo.RegionName);
             }
+
+            return spareMS >= 0;
         }        
 
         public void AddGroupTarget(SceneObjectGroup grp)

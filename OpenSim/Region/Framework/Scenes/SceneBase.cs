@@ -196,7 +196,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Number of frames to update.  Exits on shutdown even if there are frames remaining.
         /// If -1 then updates until shutdown.
         /// </param>
-        public abstract void Update(int frames);
+        /// <returns>true if update completed within minimum frame time, false otherwise.</returns>
+        public abstract bool Update(int frames);
 
         #endregion
 
