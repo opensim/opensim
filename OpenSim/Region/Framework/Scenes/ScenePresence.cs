@@ -494,11 +494,18 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private ulong m_rootRegionHandle;
+        private Vector3 m_rootRegionPosition = new Vector3();
 
         public ulong RegionHandle
         {
             get { return m_rootRegionHandle; }
-            private set { m_rootRegionHandle = value; }
+            private set
+            {
+                m_rootRegionHandle = value;
+                // position rounded to lower multiple of 256m
+                m_rootRegionPosition.X = (float)((m_rootRegionHandle >> 32) & 0xffffff00);
+                m_rootRegionPosition.Y = (float)(m_rootRegionHandle & 0xffffff00); 
+            }
         }
 
         #region Client Camera
@@ -3798,6 +3805,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_lastChildAgentUpdatePosition = AbsolutePosition;
 //                m_lastChildAgentUpdateCamPosition = CameraPosition;
 
+/*  cadu is not used
                 ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
                 cadu.ActiveGroupID = UUID.Zero.Guid;
                 cadu.AgentID = UUID.Guid;
@@ -3812,10 +3820,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // Throttles 
                 float multiplier = 1;
 
-/* dont messup throttles
- * child agent is a full presence that can be just a few meters away across border
- * sending this is possible wrong since viewers may send own needs to each region
- * 
                 int childRegions = KnownRegionCount;
                 if (childRegions != 0)
                     multiplier = 1f / childRegions;
@@ -3823,12 +3827,25 @@ namespace OpenSim.Region.Framework.Scenes
                 // Minimum throttle for a child region is 1/4 of the root region throttle
                 if (multiplier <= 0.25f)
                     multiplier = 0.25f;
-*/
+
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
                 cadu.Velocity = Velocity;
-
+*/
                 AgentPosition agentpos = new AgentPosition();
-                agentpos.CopyFrom(cadu, ControllingClient.SessionId);
+//                agentpos.CopyFrom(cadu, ControllingClient.SessionId);
+
+                agentpos.AgentID = new UUID(UUID.Guid);
+                agentpos.SessionID = ControllingClient.SessionId;
+
+                agentpos.Size = Appearance.AvatarSize;
+
+                agentpos.Center = CameraPosition;
+                agentpos.Far = DrawDistance;
+                agentpos.Position = AbsolutePosition;
+                agentpos.Velocity = Velocity;
+                agentpos.RegionHandle = RegionHandle;
+                agentpos.Throttles = ControllingClient.GetThrottlesPacked(1);
+
 
                 // Let's get this out of the update loop
                 Util.FireAndForget(delegate { m_scene.SendOutChildAgentUpdates(agentpos, this); });
@@ -4131,6 +4148,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsChildAgent)
                 return;
 
+            RegionHandle = cAgentData.RegionHandle;
+
             //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
@@ -4158,7 +4177,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
 
             //cAgentData.AVHeight;
-            RegionHandle = cAgentData.RegionHandle;
             //m_velocity = cAgentData.Velocity;
         }
 
