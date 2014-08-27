@@ -1162,45 +1162,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
 
-/*   this should  be done by groups module on TriggerOnMakeRootAgent(this)  below
-    at least XmlIRpcGroups
-            UUID groupUUID = UUID.Zero;
-            string GroupName = string.Empty;
-            ulong groupPowers = 0;
 
-
-
-
-                        // ----------------------------------
-                        // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
-                        try
-                        {
-                
-                            if (gm != null)
-                            {
-                                groupUUID = ControllingClient.ActiveGroupId;
-                                GroupRecord record = gm.GetGroupRecord(groupUUID);
-                                if (record != null)
-                                    GroupName = record.GroupName;
-                                GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
-                                if (groupMembershipData != null)
-                                    groupPowers = groupMembershipData.GroupPowers;
-                            }
-                            ControllingClient.SendAgentDataUpdate(m_uuid, groupUUID, Firstname, Lastname, groupPowers, GroupName,
-                                                                    Grouptitle);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Debug("[AGENTUPDATE]: " + e.ToString());
-                        }
-                        // ------------------------------------
-*/
             if (ParentID == 0)
             {
-                // Moved this from SendInitialData to ensure that Appearance is initialized
-                // before the inventory is processed in MakeRootAgent. This fixes a race condition
-                // related to the handling of attachments
-
                 if (m_scene.TestBorderCross(pos, Cardinals.E))
                 {
                     Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
@@ -1310,11 +1274,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// It doesn't get called for a teleport.  Reason being, an agent that
         /// teleports out may not end up anywhere near this region
         /// </remarks>
-        public void MakeChildAgent()
+        public void MakeChildAgent(ulong newRegionHandle)
         {
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
 
-            m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1}", Name, Scene.RegionInfo.RegionName);
+            RegionHandle = newRegionHandle;
+
+            m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1} from root region {2}",
+                Name, Scene.RegionInfo.RegionName, newRegionHandle);
 
             // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
             // from the source simulator has completed on a V2 teleport.
@@ -4023,6 +3990,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+/* useless. Either use MakeChild or delete the presence
         public void Reset()
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
@@ -4033,7 +4001,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.ResetAnimations();
         }
-
+*/
         /// <summary>
         /// Computes which child agents to close when the scene presence moves to another region.
         /// Removes those regions from m_knownRegions.

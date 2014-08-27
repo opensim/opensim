@@ -990,7 +990,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             sp.HasMovedAway(nearRegion);
 
             // Now let's make it officially a child agent
-            sp.MakeChildAgent();
+            sp.MakeChildAgent(destinationHandle);
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
@@ -1009,11 +1009,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 sp.Scene.CloseAgent(sp.UUID, false);
             }
+/*
             else
             {
                 // now we have a child agent in this region. 
                 sp.Reset();
             }
+ */
         }
 
         private void TransferAgent_V2(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
@@ -1158,7 +1160,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            KillEntity(sp.Scene, sp.LocalId);
 
             // Now let's make it officially a child agent
-            sp.MakeChildAgent();
+            sp.MakeChildAgent(destinationHandle);
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
@@ -1182,11 +1184,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 sp.Scene.CloseAgent(sp.UUID, false);
             }
+/*
             else
             {
                 // now we have a child agent in this region. 
                 sp.Reset();
             }
+ */
         }
 
         /// <summary>
@@ -1792,7 +1796,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 //            AgentHasMovedAway(agent, true);
 
-            agent.MakeChildAgent();
+            agent.MakeChildAgent(neighbourRegion.RegionHandle);
 
             // FIXME: Possibly this should occur lower down after other commands to close other agents,
             // but not sure yet what the side effects would be.
@@ -1869,7 +1873,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
-            agent.startpos = new Vector3(128, 128, 70);
+            agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, region);
             agent.child = true;
 
             agent.Appearance = new AvatarAppearance();
