@@ -3811,6 +3811,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Throttles 
                 float multiplier = 1;
+
+/* dont messup throttles
+ * child agent is a full presence that can be just a few meters away across border
+ * sending this is possible wrong since viewers may send own needs to each region
+ * 
                 int childRegions = KnownRegionCount;
                 if (childRegions != 0)
                     multiplier = 1f / childRegions;
@@ -3818,7 +3823,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Minimum throttle for a child region is 1/4 of the root region throttle
                 if (multiplier <= 0.25f)
                     multiplier = 0.25f;
-
+*/
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
                 cadu.Velocity = Velocity;
 
@@ -4814,43 +4819,43 @@ namespace OpenSim.Region.Framework.Scenes
 
             int j = 0;
             bool allterse = true;
-
             for (int i = 0; i < origparts.Length; i++)
             {
-                switch (origparts[i].UpdateFlag)
+                if (origparts[i] != rootpart)
                 {
-                    case UpdateRequired.TERSE:
-                        flags[j] = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
-                        parts[j] = origparts[i];
-                        j++;
-                        break;
+                    switch (origparts[i].UpdateFlag)
+                    {
+                        case UpdateRequired.NONE:
+                            break;
 
-                    case UpdateRequired.FULL:
-                        flags[j] = PrimUpdateFlags.FullUpdate;
-                        parts[j] = origparts[i];
-                        j++;
-                        allterse = false;
-                        break;
+                        case UpdateRequired.TERSE:
+                            flags[j] = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
+                            | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+                            parts[j] = origparts[i];
+                            j++;
+                            break;
+
+                        case UpdateRequired.FULL:
+                            flags[j] = PrimUpdateFlags.FullUpdate;
+                            allterse = false;
+                            parts[j] = origparts[i];
+                            j++;
+                            break;
+                    }
                 }
                 origparts[i].UpdateFlag = 0;
             }
 
-            if (j == 0)
+            if (j == 0 && rootreq == UpdateRequired.NONE)
                 return;
 
-            if (rootreq == UpdateRequired.NONE)
-            {
-                if (allterse)
-                    rootreq = UpdateRequired.TERSE;
-                else
-                    rootreq = UpdateRequired.FULL;
-            }
-
             PrimUpdateFlags rootflag = PrimUpdateFlags.FullUpdate;
-            if (rootreq == UpdateRequired.TERSE)
+
+            if (rootreq != UpdateRequired.FULL && allterse)
+            {
                 rootflag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
                         | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
+            }
 
             int nparts = j;
 
@@ -4870,10 +4875,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 for (int i = 0; i < nparts; i++)
                 {
-                    SceneObjectPart part = parts[i];
-                    if (part == rootpart)
-                        continue;
-                    p.ControllingClient.SendEntityUpdate(part, flags[i]);
+                    p.ControllingClient.SendEntityUpdate(parts[i], flags[i]);
                 }
             }
         }
@@ -4902,6 +4904,8 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = sog.Parts;
             SceneObjectPart rootpart = sog.RootPart;
 
+            rootpart.UpdateFlag = 0;
+
             bool priv = sog.HasPrivateAttachmentPoint;
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
@@ -4915,7 +4919,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 p.ControllingClient.SendEntityUpdate(rootpart, flag);
-                rootpart.UpdateFlag = 0;
 
                 for (int i = 0; i < parts.Length; i++)
                 {
@@ -4950,6 +4953,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
+            part.UpdateFlag = 0;
+
             bool priv = part.ParentGroup.HasPrivateAttachmentPoint;
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
@@ -4964,7 +4969,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 p.ControllingClient.SendEntityUpdate(part, flag);
-                part.UpdateFlag = 0;
             }
         }
 
@@ -4989,6 +4993,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
+            part.UpdateFlag = 0;
+
             bool priv = part.ParentGroup.HasPrivateAttachmentPoint;
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
@@ -5002,7 +5008,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 p.ControllingClient.SendEntityUpdate(part, flag);
-                part.UpdateFlag = 0;
             }
         }
 
@@ -5764,26 +5769,6 @@ namespace OpenSim.Region.Framework.Scenes
                         p.SendViewTo(this);
                     else
                         p.SendKillTo(this);
-                }
-            }
-        }
-
-        public void parcelRegionCross()
-        {
-            if (!ParcelHideThisAvatar || GodLevel >= 200)
-                return;
-
-            List<ScenePresence> allpresences = null;
-            allpresences = m_scene.GetScenePresences();
-
-            foreach (ScenePresence p in allpresences)
-            {
-                if (p.IsDeleted || p == this || p.IsChildAgent || p.ControllingClient == null || !p.ControllingClient.IsActive)
-                    continue;
-
-                if (p.currentParcelUUID == m_currentParcelUUID)
-                {
-                    p.SendKillTo(this);
                 }
             }
         }
