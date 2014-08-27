@@ -5967,6 +5967,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (nearRegion)
             {
+                if (Scene.AttachmentsModule != null)
+                    Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
+
                 if (!ParcelHideThisAvatar || GodLevel >= 200)
                     return;
 
@@ -5993,9 +5996,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!p.IsChildAgent)
                         p.SendKillTo(this);
                 }
+
+                if (Scene.AttachmentsModule != null)
+                    Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
             }
-            if (Scene.AttachmentsModule != null)
-                Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
         }
 
 
