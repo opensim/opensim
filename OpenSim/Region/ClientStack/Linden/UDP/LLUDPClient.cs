@@ -364,6 +364,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
 
+            int total = resend + land + wind + cloud + task + texture + asset;
+            total /= 128;
+
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
             resend = Math.Max(resend, LLUDPServer.MTU);
@@ -379,8 +382,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // the task queue (e.g. object updates)
             task = task + (int)(m_cannibalrate * texture);
             texture = (int)((1 - m_cannibalrate) * texture);
-            
-            //int total = resend + land + wind + cloud + task + texture + asset;
+
+             total = resend + land + wind + cloud + task + texture + asset;
+            total /= 128;
             //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
             //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);
 
@@ -484,7 +488,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Don't send this packet if there is already a packet waiting in the queue
                 // even if we have the tokens to send it, tokens should go to the already
                 // queued packets
-                if (queue.Count > 0)
+                if (queue.Count > 0 || m_nextPackets[category] != null)
                 {
                     queue.Enqueue(packet, highPriority);
                     return true;
@@ -528,7 +532,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>True if any packets were sent, otherwise false</returns>
         public bool DequeueOutgoing()
         {
-            if (m_deliverPackets == false) return false;
+//            if (m_deliverPackets == false) return false;
 
             OutgoingPacket packet = null;
             DoubleLocklessQueue<OutgoingPacket> queue;
