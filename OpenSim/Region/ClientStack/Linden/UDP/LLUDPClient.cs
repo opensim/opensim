@@ -217,6 +217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_maxRTO = maxRTO;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
+            // 2500000 bits/s max
             m_throttleClient = new AdaptiveTokenBucket(parentThrottle, rates.Total, rates.AdaptiveThrottlesEnabled);
             // Create a token bucket throttle for the total categary with the client bucket as a throttle
             m_throttleCategory = new TokenBucket(m_throttleClient, 0);
@@ -224,7 +225,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
             m_cannibalrate = rates.CannibalizeTextureRate;
-            
+
+            long totalrate = 0;
+            long catrate = 0;
+
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 ThrottleOutPacketType type = (ThrottleOutPacketType)i;
@@ -232,8 +236,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Initialize the packet outboxes, where packets sit while they are waiting for tokens
                 m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
                 // Initialize the token buckets that control the throttling for each category
-                m_throttleCategories[i] = new TokenBucket(m_throttleCategory, rates.GetRate(type));
+                catrate = rates.GetRate(type);
+                totalrate += catrate;
+                m_throttleCategories[i] = new TokenBucket(m_throttleCategory, catrate);
             }
+
+            m_throttleCategory.RequestedDripRate = totalrate;
 
             // Default the retransmission timeout to one second
             RTO = m_defaultRTO;
@@ -380,7 +388,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             task = task + (int)(m_cannibalrate * texture);
             texture = (int)((1 - m_cannibalrate) * texture);
 
- //           int total = resend + land + wind + cloud + task + texture + asset;
+            int total = resend + land + wind + cloud + task + texture + asset;
  
             //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
             //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);
@@ -408,6 +416,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
             bucket.RequestedDripRate = texture;
+
+            m_throttleCategory.RequestedDripRate = total;
 
             // Reset the packed throttles cached data
             m_packedThrottles = null;

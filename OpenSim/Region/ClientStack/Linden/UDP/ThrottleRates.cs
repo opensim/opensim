@@ -80,7 +80,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Texture = throttleConfig.GetInt("texture_default", 18500);
                 Asset = throttleConfig.GetInt("asset_default", 10500);
 
-                Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
+                // 2500000 bps max
+                Total = throttleConfig.GetInt("client_throttle_max_bps",312500);
 
                 AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
                 
