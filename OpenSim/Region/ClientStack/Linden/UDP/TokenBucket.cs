@@ -312,6 +312,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             // Determine the interval over which we are adding tokens, never add
             // more than a single quantum of tokens
+
+            // No... add no more than the estimated time between checks
+
             Int32 deltaMS = Math.Min(Util.EnvironmentTickCountSubtract(m_lastDrip), m_ticksPerQuantum);
             m_lastDrip = Util.EnvironmentTickCount();
 
@@ -321,6 +324,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             Deposit(deltaMS * DripRate / m_ticksPerQuantum);
+        }
+
+        public void Tick()
+        {
+            m_lastDrip = Util.EnvironmentTickCount();
         }
     }
 
@@ -333,7 +341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// packet per second. Open the throttle to 15 packets per second
         /// or about 160kbps.
         /// </summary>
-        protected const Int64 m_minimumFlow = m_minimumDripRate * 15;
+        protected const Int64 m_minimumFlow = m_minimumDripRate;
 
         // <summary>
         // The maximum rate for flow control. Drip rate can never be

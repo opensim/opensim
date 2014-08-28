@@ -616,6 +616,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             // No packets in this queue. Fire the queue empty callback
                             // if it has not been called recently
+
+                            bucket.Tick(); // tick the bucket
                             emptyCategories |= CategoryToFlag(i);
                         }
                     }
