@@ -59,57 +59,58 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns>The scene object deserialized.  Null on failure.</returns>
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
+            using (XmlTextReader reader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
+                return FromOriginalXmlFormat(reader);
+        }
+
+        /// <summary>
+        /// Deserialize a scene object from the original xml format
+        /// </summary>
+        /// <param name="xmlData"></param>
+        /// <returns>The scene object deserialized.  Null on failure.</returns>
+        public static SceneObjectGroup FromOriginalXmlFormat(XmlTextReader reader)
+        {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
 
+            SceneObjectGroup sceneObject = null;
+
             try
             {
-                StringReader  sr;
-                XmlTextReader reader;
-                XmlNodeList   parts;
-                XmlDocument   doc;
                 int           linkNum;
 
-                doc = new XmlDocument();
-                doc.LoadXml(xmlData);
-                parts = doc.GetElementsByTagName("RootPart");
+                reader.ReadToFollowing("RootPart");
+                reader.ReadToFollowing("SceneObjectPart");
+                sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+                reader.ReadToFollowing("OtherParts");
 
-                if (parts.Count == 0)
-                    throw new Exception("Invalid Xml format - no root part");
-
-                sr = new StringReader(parts[0].InnerXml);
-                reader = new XmlTextReader(sr);
-                SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
-                reader.Close();
-                sr.Close();
-
-                parts = doc.GetElementsByTagName("Part");
-
-                for (int i = 0; i < parts.Count; i++)
+                if (reader.ReadToDescendant("Part"))
                 {
-                    sr = new StringReader(parts[i].InnerXml);
-                    reader = new XmlTextReader(sr);
-                    SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                    linkNum = part.LinkNum;
-                    sceneObject.AddPart(part);
-                    part.LinkNum = linkNum;
-                    part.TrimPermissions();
-                    reader.Close();
-                    sr.Close();
+                    do
+                    {
+                        if (reader.ReadToDescendant("SceneObjectPart"))
+                        {
+                            SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                            linkNum = part.LinkNum;
+                            sceneObject.AddPart(part);
+                            part.LinkNum = linkNum;
+                            part.TrimPermissions();
+                        }
+                    }                    
+                    while (reader.ReadToNextSibling("Part"));
                 }
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
-                sceneObject.LoadScriptState(doc);
-
-                return sceneObject;
+                sceneObject.LoadScriptState(reader);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat(
-                    "[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
+                m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed.  Exception {0}", e);
                 return null;
             }
+
+            return sceneObject;
         }
 
         /// <summary>

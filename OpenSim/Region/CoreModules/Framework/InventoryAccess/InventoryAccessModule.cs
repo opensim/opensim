@@ -798,7 +798,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());
+            AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());           
 
             if (rezAsset == null)
             {
@@ -829,7 +829,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 pos;
 
-            bool single = m_Scene.GetObjectsToRez(rezAsset.Data, attachment, out objlist, out veclist, out bbox, out offsetHeight);
+            bool single 
+                = m_Scene.GetObjectsToRez(
+                    rezAsset.Data, attachment, out objlist, out veclist, out bbox, out offsetHeight);
 
             if (single)
             {
