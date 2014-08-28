@@ -180,7 +180,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RequestedDripRate = dripRate;
             // TotalDripRequest = dripRate; // this will be overwritten when a child node registers
             // MaxBurst = (Int64)((double)dripRate * m_quantumsPerBurst);
-            m_lastDrip = Util.EnvironmentTickCount();
+            m_lastDrip = Util.EnvironmentTickCount() + 100000;
         }
 
 #endregion Constructor
