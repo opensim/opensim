@@ -3694,7 +3694,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
  //           avp.AppearanceData[0].CofVersion = 0;
 
             //m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
-            OutPacket(avp, ThrottleOutPacketType.Task);
+            OutPacket(avp, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
@@ -3722,7 +3722,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ani.AnimationSourceList[i].ObjectID = objectIDs[i];
             }
             ani.Header.Reliable = false;
-            OutPacket(ani, ThrottleOutPacketType.Task);
+            OutPacket(ani, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
         #endregion
@@ -3751,7 +3751,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
 
-            OutPacket(objupdate, ThrottleOutPacketType.Task);
+            OutPacket(objupdate, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
 
             // We need to record the avatar local id since the root prim of an attachment points to this.
 //            m_attachmentsSent.Add(avatar.LocalId);
@@ -3824,65 +3824,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
         }
 
-        /*  dont use this
-            udp packet resent must be done at udp level only
-            re map from a packet to original updates just doesnt work                           
-
-                /// <summary>
-                /// Requeue an EntityUpdate when it was not acknowledged by the client. 
-                /// We will update the priority and put it in the correct queue, merging update flags 
-                /// with any other updates that may be queued for the same entity. 
-                /// The original update time is used for the merged update.
-                /// </summary>
-                private void ResendPrimUpdate(EntityUpdate update)
-                {
-                    // If the update exists in priority queue, it will be updated.
-                    // If it does not exist then it will be added with the current (rather than its original) priority
-                    uint priority = m_prioritizer.GetUpdatePriority(this, update.Entity);
-
-                    lock (m_entityUpdates.SyncRoot)
-                        m_entityUpdates.Enqueue(priority, update);
-                }
-
-
-                /// <summary>
-                /// Requeue a list of EntityUpdates when they were not acknowledged by the client. 
-                /// We will update the priority and put it in the correct queue, merging update flags 
-                /// with any other updates that may be queued for the same entity. 
-                /// The original update time is used for the merged update.
-                /// </summary>
-                private void ResendPrimUpdates(List<EntityUpdate> updates, OutgoingPacket oPacket)
-                {
-                    // m_log.WarnFormat("[CLIENT] resending prim updates {0}, packet sequence number {1}", updates[0].UpdateTime, oPacket.SequenceNumber);
-
-                    // Remove the update packet from the list of packets waiting for acknowledgement
-                    // because we are requeuing the list of updates. They will be resent in new packets
-                    // with the most recent state and priority.
-                    m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber);
-
-                    // Count this as a resent packet since we are going to requeue all of the updates contained in it
-                    Interlocked.Increment(ref m_udpClient.PacketsResent);           
-
-                    // We're not going to worry about interlock yet since its not currently critical that this total count
-                    // is 100% correct
-                    m_udpServer.PacketsResentCount++;
-
-                    foreach (EntityUpdate update in updates)
-                        ResendPrimUpdate(update);
-                }
-        */
-
-//        OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
-//        OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
-//        OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
-//        OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseAgentUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
-//
-//        OpenSim.Framework.Lazy<List<EntityUpdate>> objectUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-//        OpenSim.Framework.Lazy<List<EntityUpdate>> compressedUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-//        OpenSim.Framework.Lazy<List<EntityUpdate>> terseUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-//        OpenSim.Framework.Lazy<List<EntityUpdate>> terseAgentUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-
-
         private void ProcessEntityUpdates(int maxUpdates)
         {
             OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
@@ -3894,15 +3835,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<EntityUpdate>> compressedUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseAgentUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-
-//            objectUpdateBlocks.Value.Clear();
-//            compressedUpdateBlocks.Value.Clear();
-//            terseUpdateBlocks.Value.Clear();
-//            terseAgentUpdateBlocks.Value.Clear();
-//            objectUpdates.Value.Clear();
-//            compressedUpdates.Value.Clear();
-//            terseUpdates.Value.Clear();
-//            terseAgentUpdates.Value.Clear();
 
             // Check to see if this is a flush
             if (maxUpdates <= 0)
@@ -3970,36 +3902,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (sp.IsChildAgent)
                             continue;
 
-                        // If the object is an attachment we don't want it to be in the kill
-                        // record. Else attaching from inworld and subsequently dropping
-                        // it will no longer work.
-//                        lock (m_killRecord)
-//                        {
-//                            m_killRecord.Remove(part.LocalId);
-//                            m_killRecord.Remove(part.ParentGroup.RootPart.LocalId);
-//                        }
-                    }
-                    else
-                    {
-                        // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
-                        // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
-                        // safety measure.
-                        //
-                        // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
-                        // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
-                        // updates and kills on different threads with different scheduling strategies, hence this protection.
-                        // 
-                        // This doesn't appear to apply to child prims - a client will happily ignore these updates
-                        // after the root prim has been deleted.
-                        //
-                        // We ignore this for attachments because attaching something from inworld breaks unless we do.
-//                        lock (m_killRecord)
-//                        {
-//                            if (m_killRecord.Contains(part.LocalId))
-//                                continue;
-//                            if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
-//                                continue;
-//                        }
                     }
 
                     if (part.ParentGroup.IsAttachment && m_disableFacelights)
@@ -4188,16 +4090,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
-    
-//                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
-                // use default udp retry 
+   
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
             }
 
-
-
             #endregion Packet Sending
-
         }
 
         // hack.. dont use

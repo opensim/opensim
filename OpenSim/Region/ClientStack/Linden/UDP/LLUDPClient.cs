@@ -364,9 +364,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
 
-            int total = resend + land + wind + cloud + task + texture + asset;
-            total /= 128;
-
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
             resend = Math.Max(resend, LLUDPServer.MTU);
@@ -383,8 +380,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             task = task + (int)(m_cannibalrate * texture);
             texture = (int)((1 - m_cannibalrate) * texture);
 
-             total = resend + land + wind + cloud + task + texture + asset;
-            total /= 128;
+ //           int total = resend + land + wind + cloud + task + texture + asset;
+ 
             //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
             //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);
 
@@ -428,25 +425,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int i = 0;
 
                 // multiply by 8 to convert bytes back to bits
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Resend].RequestedDripRate * 8 * multiplier;
+                multiplier *= 8;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Resend].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Land].RequestedDripRate * 8 * multiplier;
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Land].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Wind].RequestedDripRate * 8 * multiplier;
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Wind].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].RequestedDripRate * 8 * multiplier;
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Task].RequestedDripRate * 8 * multiplier;
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Task].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Texture].RequestedDripRate * 8 * multiplier;
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Texture].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate * 8 * multiplier;
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate * multiplier;
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
                 m_packedThrottles = data;
@@ -485,19 +484,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 TokenBucket bucket = m_throttleCategories[category];
 
-                // Don't send this packet if there is already a packet waiting in the queue
-                // even if we have the tokens to send it, tokens should go to the already
-                // queued packets
+                // Don't send this packet if queue is not empty
                 if (queue.Count > 0 || m_nextPackets[category] != null)
                 {
                     queue.Enqueue(packet, highPriority);
                     return true;
                 }
-                
-                    
+                                  
                 if (!forceQueue && bucket.RemoveTokens(packet.Buffer.DataLength))
                 {
-                    // Enough tokens were removed from the bucket, the packet will not be queued
+                    // enough tokens so it can be sent imediatly by caller
                     return false;
                 }
                 else
