@@ -4015,8 +4015,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    if (update.Entity is ScenePresence && ((ScenePresence)update.Entity).UUID == AgentId)
-                        // Self updates go into a special list
+                    if (update.Entity is ScenePresence)
+                        // ALL presence updates go into a special list
                         terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
                     else
                         // Everything else goes here
@@ -4028,7 +4028,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Packet Sending
     
-            const float TIME_DILATION = 1.0f;
+//            const float TIME_DILATION = 1.0f;
             ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
     
             if (terseAgentUpdateBlocks.IsValueCreated)
