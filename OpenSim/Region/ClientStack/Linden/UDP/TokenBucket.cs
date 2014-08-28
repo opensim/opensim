@@ -274,6 +274,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
+        public long CurrentTokenCount()
+        {
+            return m_tokenCount;
+        }
+
         /// <summary>
         /// Deposit tokens into the bucket from a child bucket that did
         /// not use all of its available tokens

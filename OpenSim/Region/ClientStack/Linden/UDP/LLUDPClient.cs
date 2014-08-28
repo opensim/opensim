@@ -453,6 +453,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return data;
         }
+        
+        public int GetCatBytesCanSend(ThrottleOutPacketType cat, int timeMS)
+        {
+            TokenBucket bucket = m_throttleCategories[(int)cat];
+            int bytes = timeMS * (int)(bucket.RequestedDripRate / 1000);
+            bytes += (int)bucket.CurrentTokenCount();
+            return bytes;
+        }
 
         /// <summary>
         /// Queue an outgoing packet if appropriate.
