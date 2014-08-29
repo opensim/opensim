@@ -635,7 +635,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             {
                 using (XmlTextWriter xtw = new XmlTextWriter(sw))
                 {
-                    xtw.Formatting = Formatting.Indented;
+//                    xtw.Formatting = Formatting.Indented;
                     xdoc.WriteTo(xtw);
                 }
             }
