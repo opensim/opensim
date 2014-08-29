@@ -2214,49 +2214,52 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                using (XmlTextReader reader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
+                using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
                 {
-                    reader.Read();
-                    bool isSingleObject = reader.Name != "CoalescedObject";
-
-                    if (isSingleObject || isAttachment)
+                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
                     {
-                        SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
-                        objlist.Add(g);
-                        veclist.Add(Vector3.Zero);
-                        bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
-                        return true;
-                    }
-                    else
-                    {                
-                        XmlDocument doc = new XmlDocument();
-                        doc.LoadXml(xmlData);
-                        XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
-                        XmlElement coll = (XmlElement)e;
-                        float bx = Convert.ToSingle(coll.GetAttribute("x"));
-                        float by = Convert.ToSingle(coll.GetAttribute("y"));
-                        float bz = Convert.ToSingle(coll.GetAttribute("z"));
-                        bbox = new Vector3(bx, by, bz);
-                        offsetHeight = 0;
+                        reader.Read();
+                        bool isSingleObject = reader.Name != "CoalescedObject";
 
-                        XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
-                        foreach (XmlNode n in groups)
+                        if (isSingleObject || isAttachment)
                         {
-                            SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                            SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
                             objlist.Add(g);
-
-                            XmlElement el = (XmlElement)n;
-                            string rawX = el.GetAttribute("offsetx");
-                            string rawY = el.GetAttribute("offsety");
-                            string rawZ = el.GetAttribute("offsetz");
-
-                            float x = Convert.ToSingle(rawX);
-                            float y = Convert.ToSingle(rawY);
-                            float z = Convert.ToSingle(rawZ);
-                            veclist.Add(new Vector3(x, y, z));
+                            veclist.Add(Vector3.Zero);
+                            bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
+                            return true;
                         }
+                        else
+                        {                
+                            XmlDocument doc = new XmlDocument();
+                            doc.LoadXml(xmlData);
+                            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+                            XmlElement coll = (XmlElement)e;
+                            float bx = Convert.ToSingle(coll.GetAttribute("x"));
+                            float by = Convert.ToSingle(coll.GetAttribute("y"));
+                            float bz = Convert.ToSingle(coll.GetAttribute("z"));
+                            bbox = new Vector3(bx, by, bz);
+                            offsetHeight = 0;
 
-                        return false;
+                            XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                            foreach (XmlNode n in groups)
+                            {
+                                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                                objlist.Add(g);
+
+                                XmlElement el = (XmlElement)n;
+                                string rawX = el.GetAttribute("offsetx");
+                                string rawY = el.GetAttribute("offsety");
+                                string rawZ = el.GetAttribute("offsetz");
+
+                                float x = Convert.ToSingle(rawX);
+                                float y = Convert.ToSingle(rawY);
+                                float z = Convert.ToSingle(rawZ);
+                                veclist.Add(new Vector3(x, y, z));
+                            }
+
+                            return false;
+                        }
                     }
                 }
             }

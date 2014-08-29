@@ -2044,7 +2044,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="xmlReader"></param>
         /// <returns></returns>
-        public static SceneObjectPart FromXml(XmlTextReader xmlReader)
+        public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
             SceneObjectPart part = SceneObjectSerializer.Xml2ToSOP(xmlReader);
 

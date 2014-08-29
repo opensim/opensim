@@ -624,23 +624,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             TestHelpers.InMethod();
             TestHelpers.EnableLogging();
 
-            // We need to do this to get rid of whitespace between elements.
-            // TODO: Ultimately OpenSimulator xml parser should be set to ignore this but this means a bit of 
-            // rejigging to replace old new XmlTextReader() with the post .NET 2.0 XmlReader.Create() calls
-            XmlDocument xdoc = new XmlDocument();
-            xdoc.LoadXml(ObjectWithOtherPartsXml);
-
-            StringBuilder sb = new StringBuilder();
-            using (StringWriter sw = new StringWriter(sb))
-            {
-                using (XmlTextWriter xtw = new XmlTextWriter(sw))
-                {
-//                    xtw.Formatting = Formatting.Indented;
-                    xdoc.WriteTo(xtw);
-                }
-            }
-
-            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(sb.ToString());
+            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(ObjectWithOtherPartsXml);
             SceneObjectPart[] parts = so.Parts;
             Assert.AreEqual(3, so.Parts.Length);
 

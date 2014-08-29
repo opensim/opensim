@@ -46,8 +46,8 @@ namespace OpenSim.Framework.Serialization.External
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Dictionary<string, Action<InventoryItemBase, XmlTextReader>> m_InventoryItemXmlProcessors
-            = new Dictionary<string, Action<InventoryItemBase, XmlTextReader>>();
+        private static Dictionary<string, Action<InventoryItemBase, XmlReader>> m_InventoryItemXmlProcessors
+            = new Dictionary<string, Action<InventoryItemBase, XmlReader>>();
 
         #region InventoryItemBase Processor initialization 
         static UserInventoryItemSerializer()
@@ -76,103 +76,103 @@ namespace OpenSim.Framework.Serialization.External
         #endregion 
 
         #region InventoryItemBase Processors
-        private static void ProcessName(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessName(InventoryItemBase item, XmlReader reader)
         {
             item.Name = reader.ReadElementContentAsString("Name", String.Empty);
         }
 
-        private static void ProcessID(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessID(InventoryItemBase item, XmlReader reader)
         {
             item.ID = Util.ReadUUID(reader, "ID");
         }
 
-        private static void ProcessInvType(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessInvType(InventoryItemBase item, XmlReader reader)
         {
             item.InvType = reader.ReadElementContentAsInt("InvType", String.Empty);
         }
 
-        private static void ProcessCreatorUUID(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessCreatorUUID(InventoryItemBase item, XmlReader reader)
         {
             item.CreatorId = reader.ReadElementContentAsString("CreatorUUID", String.Empty);
         }
 
-        private static void ProcessCreatorID(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessCreatorID(InventoryItemBase item, XmlReader reader)
         {
             // when it exists, this overrides the previous
             item.CreatorId = reader.ReadElementContentAsString("CreatorID", String.Empty);
         }
 
-        private static void ProcessCreationDate(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessCreationDate(InventoryItemBase item, XmlReader reader)
         {
             item.CreationDate = reader.ReadElementContentAsInt("CreationDate", String.Empty);
         }
 
-        private static void ProcessOwner(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessOwner(InventoryItemBase item, XmlReader reader)
         {
             item.Owner = Util.ReadUUID(reader, "Owner");
         }
 
-        private static void ProcessDescription(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessDescription(InventoryItemBase item, XmlReader reader)
         {
             item.Description = reader.ReadElementContentAsString("Description", String.Empty);
         }
 
-        private static void ProcessAssetType(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessAssetType(InventoryItemBase item, XmlReader reader)
         {
             item.AssetType = reader.ReadElementContentAsInt("AssetType", String.Empty);
         }
 
-        private static void ProcessAssetID(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessAssetID(InventoryItemBase item, XmlReader reader)
         {
             item.AssetID = Util.ReadUUID(reader, "AssetID");
         }
 
-        private static void ProcessSaleType(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessSaleType(InventoryItemBase item, XmlReader reader)
         {
             item.SaleType = (byte)reader.ReadElementContentAsInt("SaleType", String.Empty);
         }
 
-        private static void ProcessSalePrice(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessSalePrice(InventoryItemBase item, XmlReader reader)
         {
             item.SalePrice = reader.ReadElementContentAsInt("SalePrice", String.Empty);
         }
 
-        private static void ProcessBasePermissions(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessBasePermissions(InventoryItemBase item, XmlReader reader)
         {
             item.BasePermissions = (uint)reader.ReadElementContentAsInt("BasePermissions", String.Empty);
         }
 
-        private static void ProcessCurrentPermissions(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessCurrentPermissions(InventoryItemBase item, XmlReader reader)
         {
             item.CurrentPermissions = (uint)reader.ReadElementContentAsInt("CurrentPermissions", String.Empty);
         }
 
-        private static void ProcessEveryOnePermissions(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessEveryOnePermissions(InventoryItemBase item, XmlReader reader)
         {
             item.EveryOnePermissions = (uint)reader.ReadElementContentAsInt("EveryOnePermissions", String.Empty);
         }
 
-        private static void ProcessNextPermissions(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessNextPermissions(InventoryItemBase item, XmlReader reader)
         {
             item.NextPermissions = (uint)reader.ReadElementContentAsInt("NextPermissions", String.Empty);
         }
 
-        private static void ProcessFlags(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessFlags(InventoryItemBase item, XmlReader reader)
         {
             item.Flags = (uint)reader.ReadElementContentAsInt("Flags", String.Empty);
         }
 
-        private static void ProcessGroupID(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessGroupID(InventoryItemBase item, XmlReader reader)
         {
             item.GroupID = Util.ReadUUID(reader, "GroupID");
         }
 
-        private static void ProcessGroupOwned(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessGroupOwned(InventoryItemBase item, XmlReader reader)
         {
             item.GroupOwned = Util.ReadBoolean(reader);
         }
 
-        private static void ProcessCreatorData(InventoryItemBase item, XmlTextReader reader)
+        private static void ProcessCreatorData(InventoryItemBase item, XmlReader reader)
         {
             item.CreatorData = reader.ReadElementContentAsString("CreatorData", String.Empty);
         }

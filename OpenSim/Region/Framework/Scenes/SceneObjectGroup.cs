@@ -902,7 +902,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void LoadScriptState(XmlTextReader reader)
+        public void LoadScriptState(XmlReader reader)
         {
 //            m_log.DebugFormat("[SCENE OBJECT GROUP]: Looking for script state for {0} in {1}", Name);
 
