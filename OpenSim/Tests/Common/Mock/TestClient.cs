@@ -548,6 +548,11 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public int GetAgentThrottleSilent(int throttle)
+        {
+            return 0;
+        }
+
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return new byte[0];

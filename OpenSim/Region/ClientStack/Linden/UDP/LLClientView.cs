@@ -12306,16 +12306,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Sets the throttles from values supplied by the client
+        /// Sets the throttles from values supplied caller
         /// </summary>
         /// <param name="throttles"></param>
         public void SetAgentThrottleSilent(int throttle, int setting)
         {
             m_udpClient.ForceThrottleSetting(throttle,setting);
-            //m_udpClient.SetThrottles(throttles);
-            
         }
 
+        public int GetAgentThrottleSilent(int throttle)
+        {
+            return m_udpClient.GetThrottleSetting(throttle);
+        }
 
         /// <summary>
         /// Get the current throttles for this client as a packed byte array

@@ -1276,5 +1276,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public int GetAgentThrottleSilent(int throttle)
+        {
+            return 0;
+        }
+
     }
 }

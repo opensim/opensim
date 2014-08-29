@@ -688,6 +688,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RTO = Math.Min(RTO * 2, m_maxRTO);
         }
 
+
+        const int MIN_CALLBACK_MS = 30;              
+
         /// <summary>
         /// Does an early check to see if this queue empty callback is already
         /// running, then asynchronously firing the event
@@ -695,24 +698,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="categories">Throttle categories to fire the callback for</param>
         private void BeginFireQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
-//            if (m_nextOnQueueEmpty != 0 && (Environment.TickCount & Int32.MaxValue) >= m_nextOnQueueEmpty)
-            if (!m_isQueueEmptyRunning && (Environment.TickCount & Int32.MaxValue) >= m_nextOnQueueEmpty)
+            if (!m_isQueueEmptyRunning)
             {
-                m_isQueueEmptyRunning = true;
-
                 int start = Environment.TickCount & Int32.MaxValue;
-                const int MIN_CALLBACK_MS = 30;
+
+                if (start < m_nextOnQueueEmpty)
+                    return;
+            
+                m_isQueueEmptyRunning = true;
 
                 m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
                 if (m_nextOnQueueEmpty == 0)
                     m_nextOnQueueEmpty = 1;
 
-                // Use a value of 0 to signal that FireQueueEmpty is running
-//                m_nextOnQueueEmpty = 0;
-
-                m_categories = categories;
-
-                if (HasUpdates(m_categories))
+                if (HasUpdates(categories))
                 {
                     // Asynchronously run the callback
                     Util.FireAndForget(FireQueueEmpty, categories);
@@ -725,7 +724,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         private bool m_isQueueEmptyRunning;
-        private ThrottleOutPacketTypeFlags m_categories = 0;
+       
 
         /// <summary>
         /// Fires the OnQueueEmpty callback and sets the minimum time that it
@@ -736,35 +735,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// signature</param>
         private void FireQueueEmpty(object o)
         {
-//            int start = Environment.TickCount & Int32.MaxValue;
-//            const int MIN_CALLBACK_MS = 30;
+            ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
+            QueueEmpty callback = OnQueueEmpty;
 
-//            if (m_udpServer.IsRunningOutbound)
-//            {        
-                ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
-                QueueEmpty callback = OnQueueEmpty;                      
-
-                if (callback != null)
-                {
-//                    if (m_udpServer.IsRunningOutbound)
-//                    {                
-                        try { callback(categories); }
-                        catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + categories + ") threw an exception: " + e.Message, e); }
-//                    }
-                }
-//            }
-
-//            m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
-//            if (m_nextOnQueueEmpty == 0)
-//                m_nextOnQueueEmpty = 1;
-
-//            }
+            if (callback != null)
+            {
+                // if (m_udpServer.IsRunningOutbound)
+                // {                
+                try { callback(categories); }
+                catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + categories + ") threw an exception: " + e.Message, e); }
+                // }
+            }
 
             m_isQueueEmptyRunning = false;
         }
+
         internal void ForceThrottleSetting(int throttle, int setting)
         {
-            m_throttleCategories[throttle].RequestedDripRate = Math.Max(setting, LLUDPServer.MTU); ;
+            if (throttle > 0 && throttle < THROTTLE_CATEGORY_COUNT)
+                m_throttleCategories[throttle].RequestedDripRate = Math.Max(setting, LLUDPServer.MTU);
+        }
+
+        internal int GetThrottleSetting(int throttle)
+        {
+            if (throttle > 0 && throttle < THROTTLE_CATEGORY_COUNT)
+                return (int)m_throttleCategories[throttle].RequestedDripRate;
+            else
+                return 0;
         }
 
         /// <summary>
