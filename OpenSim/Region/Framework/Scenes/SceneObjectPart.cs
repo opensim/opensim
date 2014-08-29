@@ -186,7 +186,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public bool RETURN_AT_EDGE;
         
-        public bool BlockGrab;
+        public bool BlockGrab { get; set; }
 
         public bool StatusSandbox;
 
@@ -2077,22 +2077,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             ParentGroup.RootPart.RETURN_AT_EDGE = p;
-        }
-
-        public bool GetBlockGrab()
-        {
-            if (ParentGroup.IsDeleted)
-                return false;
-
-            return ParentGroup.RootPart.BlockGrab;
-        }
-
-        public void SetBlockGrab(bool p)
-        {
-            if (ParentGroup.IsDeleted)
-                return;
-
-            ParentGroup.RootPart.BlockGrab = p;
         }
 
         public void SetStatusSandbox(bool p)
