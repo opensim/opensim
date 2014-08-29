@@ -189,52 +189,13 @@ namespace OpenSim.Region.ClientStack.Linden
         // Now we know when the throttle is changed by the client in the case of a root agent or by a neighbor region in the case of a child agent.
         public void ThrottleUpdate(ScenePresence p)
         {
-            byte[] throttles = p.ControllingClient.GetThrottlesPacked(1);
             UUID user = p.UUID;
-            int imagethrottle = ExtractTaskThrottle(throttles);
+            int imagethrottle = p.ControllingClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Asset);
             PollServiceMeshEventArgs args;
             if (m_pollservices.TryGetValue(user, out args))
             {
                 args.UpdateThrottle(imagethrottle, p);
             }
-        }
-
-        private int ExtractTaskThrottle(byte[] pthrottles)
-        {
-
-            byte[] adjData;
-            int pos = 0;
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                byte[] newData = new byte[7 * 4];
-                Buffer.BlockCopy(pthrottles, 0, newData, 0, 7 * 4);
-
-                for (int i = 0; i < 7; i++)
-                    Array.Reverse(newData, i * 4, 4);
-
-                adjData = newData;
-            }
-            else
-            {
-                adjData = pthrottles;
-            }
-
-            // 0.125f converts from bits to bytes
-            //int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            //pos += 4;
-            // int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            //pos += 4;
-            // int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            // pos += 4;
-            // int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            // pos += 4;
-            pos += 16;
-             int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            // pos += 4;
-            //int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); //pos += 4;
-            //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
-            return task;
         }
 
         private class PollServiceMeshEventArgs : PollServiceEventArgs
@@ -425,7 +386,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 ThrottleBytes = pBytes;
                 lastTimeElapsed = Util.EnvironmentTickCount();
-                Throttle = ThrottleOutPacketType.Task;
+                Throttle = ThrottleOutPacketType.Asset;
                 m_scene = pScene;
                 User = puser;
             }
@@ -550,8 +511,8 @@ namespace OpenSim.Region.ClientStack.Linden
 //                UDPSetThrottle = (int) (pimagethrottle*(100 - CapThrottleDistributon));
 
                 float udp = 1.0f - CapThrottleDistributon;
-                if(udp < 0.5f)
-                    udp = 0.5f;
+                if(udp < 0.7f)
+                    udp = 0.7f;
                 UDPSetThrottle = (int) ((float)pimagethrottle * udp);
                 if (CapSetThrottle < 4068)
                     CapSetThrottle = 4068;  // at least two discovery mesh
