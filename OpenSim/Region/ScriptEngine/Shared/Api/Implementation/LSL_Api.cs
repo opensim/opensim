@@ -11313,17 +11313,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(obj.AbsolutePosition.X, obj.AbsolutePosition.Y, obj.AbsolutePosition.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                {
-                                    Quaternion rot = Quaternion.Identity;
+                                Quaternion rot = Quaternion.Identity;
 
+                                if (obj.ParentGroup.IsAttachment)
+                                {
+                                        ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
+
+                                    if (sp != null)
+                                        rot = sp.GetWorldRotation();
+                                }
+                                else
+                                {
                                     if (obj.ParentGroup.RootPart == obj)
                                         rot = obj.ParentGroup.GroupRotation;
                                     else
                                         rot = obj.GetWorldRotation();
-
-                                    LSL_Rotation objrot = new LSL_Rotation(rot);
-                                    ret.Add(objrot);
                                 }
+
+                                LSL_Rotation objrot = new LSL_Rotation(rot);
+                                ret.Add(objrot);
+
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
                                 ret.Add(new LSL_Vector(obj.Velocity));
