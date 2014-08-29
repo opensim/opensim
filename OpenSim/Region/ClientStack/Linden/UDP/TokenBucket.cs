@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// to recheck a bucket in ms
         /// 
         /// </summary>
-        protected const Double m_quantumsPerBurst = 15;
+        protected const Double m_quantumsPerBurst = 5;
                 
         /// <summary>
         /// </summary>
