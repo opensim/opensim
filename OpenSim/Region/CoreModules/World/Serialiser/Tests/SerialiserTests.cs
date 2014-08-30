@@ -27,6 +27,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Xml;
 using log4net.Config;
 using NUnit.Framework;
@@ -42,128 +43,351 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
     [TestFixture]
     public class SerialiserTests : OpenSimTestCase
     {
-        private string xml = @"
-        <SceneObjectGroup>
-            <RootPart>
-                <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-                    <AllowedDrop>false</AllowedDrop>
-                    <CreatorID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></CreatorID>
-                    <FolderID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></FolderID>
-                    <InventorySerial>1</InventorySerial>
-                    <TaskInventory />
-                    <ObjectFlags>0</ObjectFlags>
-                    <UUID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></UUID>
-                    <LocalId>2698615125</LocalId>
-                    <Name>PrimMyRide</Name>
-                    <Material>0</Material>
-                    <PassTouches>false</PassTouches>
-                    <RegionHandle>1099511628032000</RegionHandle>
-                    <ScriptAccessPin>0</ScriptAccessPin>
-                    <GroupPosition><X>147.23</X><Y>92.698</Y><Z>22.78084</Z></GroupPosition>
-                    <OffsetPosition><X>0</X><Y>0</Y><Z>0</Z></OffsetPosition>
-                    <RotationOffset><X>-4.371139E-08</X><Y>-1</Y><Z>-4.371139E-08</Z><W>0</W></RotationOffset>
-                    <Velocity><X>0</X><Y>0</Y><Z>0</Z></Velocity>
-                    <RotationalVelocity><X>0</X><Y>0</Y><Z>0</Z></RotationalVelocity>
-                    <AngularVelocity><X>0</X><Y>0</Y><Z>0</Z></AngularVelocity>
-                    <Acceleration><X>0</X><Y>0</Y><Z>0</Z></Acceleration>
-                    <Description />
-                    <Color />
-                    <Text />
-                    <SitName />
-                    <TouchName />
-                    <LinkNum>0</LinkNum>
-                    <ClickAction>0</ClickAction>
-                    <Shape>
-                        <ProfileCurve>1</ProfileCurve>
-                        <TextureEntry>AAAAAAAAERGZmQAAAAAABQCVlZUAAAAAQEAAAABAQAAAAAAAAAAAAAAAAAAAAA==</TextureEntry>
-                        <ExtraParams>AA==</ExtraParams>
-                        <PathBegin>0</PathBegin>
-                        <PathCurve>16</PathCurve>
-                        <PathEnd>0</PathEnd>
-                        <PathRadiusOffset>0</PathRadiusOffset>
-                        <PathRevolutions>0</PathRevolutions>
-                        <PathScaleX>100</PathScaleX>
-                        <PathScaleY>100</PathScaleY>
-                        <PathShearX>0</PathShearX>
-                        <PathShearY>0</PathShearY>
-                        <PathSkew>0</PathSkew>
-                        <PathTaperX>0</PathTaperX>
-                        <PathTaperY>0</PathTaperY>
-                        <PathTwist>0</PathTwist>
-                        <PathTwistBegin>0</PathTwistBegin>
-                        <PCode>9</PCode>
-                        <ProfileBegin>0</ProfileBegin>
-                        <ProfileEnd>0</ProfileEnd>
-                        <ProfileHollow>0</ProfileHollow>
-                        <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
-                        <State>0</State>
-                        <ProfileShape>Square</ProfileShape>
-                        <HollowShape>Same</HollowShape>
-                        <SculptTexture><Guid>00000000-0000-0000-0000-000000000000</Guid></SculptTexture>
-                        <SculptType>0</SculptType><SculptData />
-                        <FlexiSoftness>0</FlexiSoftness>
-                        <FlexiTension>0</FlexiTension>
-                        <FlexiDrag>0</FlexiDrag>
-                        <FlexiGravity>0</FlexiGravity>
-                        <FlexiWind>0</FlexiWind>
-                        <FlexiForceX>0</FlexiForceX>
-                        <FlexiForceY>0</FlexiForceY>
-                        <FlexiForceZ>0</FlexiForceZ>
-                        <LightColorR>0</LightColorR>
-                        <LightColorG>0</LightColorG>
-                        <LightColorB>0</LightColorB>
-                        <LightColorA>1</LightColorA>
-                        <LightRadius>0</LightRadius>
-                        <LightCutoff>0</LightCutoff>
-                        <LightFalloff>0</LightFalloff>
-                        <LightIntensity>1</LightIntensity>
-                        <FlexiEntry>false</FlexiEntry>
-                        <LightEntry>false</LightEntry>
-                        <SculptEntry>false</SculptEntry>
-                    </Shape>
-                    <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
-                    <UpdateFlag>0</UpdateFlag>
-                    <SitTargetOrientation><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientation>
-                    <SitTargetPosition><X>0</X><Y>0</Y><Z>0</Z></SitTargetPosition>
-                    <SitTargetPositionLL><X>0</X><Y>0</Y><Z>0</Z></SitTargetPositionLL>
-                    <SitTargetOrientationLL><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientationLL>
-                    <ParentID>0</ParentID>
-                    <CreationDate>1211330445</CreationDate>
-                    <Category>0</Category>
-                    <SalePrice>0</SalePrice>
-                    <ObjectSaleType>0</ObjectSaleType>
-                    <OwnershipCost>0</OwnershipCost>
-                    <GroupID><Guid>00000000-0000-0000-0000-000000000000</Guid></GroupID>
-                    <OwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></OwnerID>
-                    <LastOwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></LastOwnerID>
-                    <BaseMask>2147483647</BaseMask>
-                    <OwnerMask>2147483647</OwnerMask>
-                    <GroupMask>0</GroupMask>
-                    <EveryoneMask>0</EveryoneMask>
-                    <NextOwnerMask>2147483647</NextOwnerMask>
-                    <Flags>None</Flags>
-                    <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
-                    <CollisionSoundVolume>0</CollisionSoundVolume>
-                    <DynAttrs>
-                        <llsd>
-                            <map>
-                                <key>MyNamespace</key>
-                                <map>                                
-                                    <key>MyStore</key>
-                                    <map>   
-                                        <key>the answer</key>
-                                        <integer>42</integer>
-                                    </map>
-                                </map>
+        private const string ObjectRootPartStubXml = 
+@"<SceneObjectGroup>
+    <RootPart>
+        <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+            <AllowedDrop>false</AllowedDrop>
+            <CreatorID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></CreatorID>
+            <FolderID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></FolderID>
+            <InventorySerial>1</InventorySerial>
+            <TaskInventory />
+            <ObjectFlags>0</ObjectFlags>
+            <UUID><Guid>e6a5a05e-e8cc-4816-8701-04165e335790</Guid></UUID>
+            <LocalId>2698615125</LocalId>
+            <Name>PrimMyRide</Name>
+            <Material>0</Material>
+            <PassTouches>false</PassTouches>
+            <RegionHandle>1099511628032000</RegionHandle>
+            <ScriptAccessPin>0</ScriptAccessPin>
+            <GroupPosition><X>147.23</X><Y>92.698</Y><Z>22.78084</Z></GroupPosition>
+            <OffsetPosition><X>0</X><Y>0</Y><Z>0</Z></OffsetPosition>
+            <RotationOffset><X>-4.371139E-08</X><Y>-1</Y><Z>-4.371139E-08</Z><W>0</W></RotationOffset>
+            <Velocity><X>0</X><Y>0</Y><Z>0</Z></Velocity>
+            <RotationalVelocity><X>0</X><Y>0</Y><Z>0</Z></RotationalVelocity>
+            <AngularVelocity><X>0</X><Y>0</Y><Z>0</Z></AngularVelocity>
+            <Acceleration><X>0</X><Y>0</Y><Z>0</Z></Acceleration>
+            <Description />
+            <Color />
+            <Text />
+            <SitName />
+            <TouchName />
+            <LinkNum>0</LinkNum>
+            <ClickAction>0</ClickAction>
+            <Shape>
+                <ProfileCurve>1</ProfileCurve>
+                <TextureEntry>AAAAAAAAERGZmQAAAAAABQCVlZUAAAAAQEAAAABAQAAAAAAAAAAAAAAAAAAAAA==</TextureEntry>
+                <ExtraParams>AA==</ExtraParams>
+                <PathBegin>0</PathBegin>
+                <PathCurve>16</PathCurve>
+                <PathEnd>0</PathEnd>
+                <PathRadiusOffset>0</PathRadiusOffset>
+                <PathRevolutions>0</PathRevolutions>
+                <PathScaleX>100</PathScaleX>
+                <PathScaleY>100</PathScaleY>
+                <PathShearX>0</PathShearX>
+                <PathShearY>0</PathShearY>
+                <PathSkew>0</PathSkew>
+                <PathTaperX>0</PathTaperX>
+                <PathTaperY>0</PathTaperY>
+                <PathTwist>0</PathTwist>
+                <PathTwistBegin>0</PathTwistBegin>
+                <PCode>9</PCode>
+                <ProfileBegin>0</ProfileBegin>
+                <ProfileEnd>0</ProfileEnd>
+                <ProfileHollow>0</ProfileHollow>
+                <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
+                <State>0</State>
+                <ProfileShape>Square</ProfileShape>
+                <HollowShape>Same</HollowShape>
+                <SculptTexture><Guid>00000000-0000-0000-0000-000000000000</Guid></SculptTexture>
+                <SculptType>0</SculptType><SculptData />
+                <FlexiSoftness>0</FlexiSoftness>
+                <FlexiTension>0</FlexiTension>
+                <FlexiDrag>0</FlexiDrag>
+                <FlexiGravity>0</FlexiGravity>
+                <FlexiWind>0</FlexiWind>
+                <FlexiForceX>0</FlexiForceX>
+                <FlexiForceY>0</FlexiForceY>
+                <FlexiForceZ>0</FlexiForceZ>
+                <LightColorR>0</LightColorR>
+                <LightColorG>0</LightColorG>
+                <LightColorB>0</LightColorB>
+                <LightColorA>1</LightColorA>
+                <LightRadius>0</LightRadius>
+                <LightCutoff>0</LightCutoff>
+                <LightFalloff>0</LightFalloff>
+                <LightIntensity>1</LightIntensity>
+                <FlexiEntry>false</FlexiEntry>
+                <LightEntry>false</LightEntry>
+                <SculptEntry>false</SculptEntry>
+            </Shape>
+            <Scale><X>10</X><Y>10</Y><Z>0.5</Z></Scale>
+            <UpdateFlag>0</UpdateFlag>
+            <SitTargetOrientation><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientation>
+            <SitTargetPosition><X>0</X><Y>0</Y><Z>0</Z></SitTargetPosition>
+            <SitTargetPositionLL><X>0</X><Y>0</Y><Z>0</Z></SitTargetPositionLL>
+            <SitTargetOrientationLL><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientationLL>
+            <ParentID>0</ParentID>
+            <CreationDate>1211330445</CreationDate>
+            <Category>0</Category>
+            <SalePrice>0</SalePrice>
+            <ObjectSaleType>0</ObjectSaleType>
+            <OwnershipCost>0</OwnershipCost>
+            <GroupID><Guid>00000000-0000-0000-0000-000000000000</Guid></GroupID>
+            <OwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></OwnerID>
+            <LastOwnerID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></LastOwnerID>
+            <BaseMask>2147483647</BaseMask>
+            <OwnerMask>2147483647</OwnerMask>
+            <GroupMask>0</GroupMask>
+            <EveryoneMask>0</EveryoneMask>
+            <NextOwnerMask>2147483647</NextOwnerMask>
+            <Flags>None</Flags>
+            <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
+            <CollisionSoundVolume>0</CollisionSoundVolume>
+            <DynAttrs>
+                <llsd>
+                    <map>
+                        <key>MyNamespace</key>
+                        <map>                                
+                            <key>MyStore</key>
+                            <map>   
+                                <key>the answer</key>
+                                <integer>42</integer>
                             </map>
-                        </llsd>
-                    </DynAttrs>
-                </SceneObjectPart>
-            </RootPart>
-            <OtherParts />
-        </SceneObjectGroup>";
+                        </map>
+                    </map>
+                </llsd>
+            </DynAttrs>
+        </SceneObjectPart>
+    </RootPart>";
 
-        private string badFloatsXml = @"
+        private const string ObjectWithNoOtherPartsXml = ObjectRootPartStubXml + 
+@"
+    <OtherParts />
+</SceneObjectGroup>";
+
+        private const string ObjectWithOtherPartsXml = ObjectRootPartStubXml + 
+@"
+  <OtherParts>
+    <Part>
+      <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+        <AllowedDrop>false</AllowedDrop>
+        <CreatorID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></CreatorID>
+        <FolderID><Guid>9958feb1-02a6-49e4-a4ce-eba6f578ee13</Guid></FolderID>
+        <InventorySerial>3</InventorySerial>
+        <UUID><Guid>9958feb1-02a6-49e4-a4ce-eba6f578ee13</Guid></UUID>
+        <LocalId>1154704500</LocalId>
+        <Name>Alien Head 1</Name>
+        <Material>3</Material>
+        <PassTouches>false</PassTouches>
+        <PassCollisions>false</PassCollisions>
+        <RegionHandle>21990232560640000</RegionHandle>
+        <ScriptAccessPin>0</ScriptAccessPin>
+        <GroupPosition><X>125.5655</X><Y>127.346</Y><Z>22.48036</Z></GroupPosition>
+        <OffsetPosition><X>-0.2171936</X><Y>0.1083984</Y><Z>0.0009994507</Z></OffsetPosition>
+        <RotationOffset><X>-0.5122106</X><Y>0.4851225</Y><Z>-0.4957454</Z><W>0.5064908</W></RotationOffset>
+        <Velocity><X>0</X><Y>0</Y><Z>0</Z></Velocity>
+        <AngularVelocity><X>0</X><Y>0</Y><Z>0</Z></AngularVelocity>
+        <Acceleration><X>0</X><Y>0</Y><Z>0</Z></Acceleration>
+        <Description>(No Description)</Description>
+        <Color><R>0</R><G>0</G><B>0</B><A>255</A></Color>
+        <Text/>
+        <SitName/>
+        <TouchName/>
+        <LinkNum>253</LinkNum>
+        <ClickAction>0</ClickAction>
+        <Shape>
+          <ProfileCurve>5</ProfileCurve>
+          <TextureEntry>Vw3dpvgTRUOiIUOGsnpWlAB/f38AAAAAgL8AAACAPwAAAAAAAAAF4ABAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</TextureEntry>
+          <ExtraParams>AA==</ExtraParams>
+          <PathBegin>0</PathBegin>
+          <PathCurve>32</PathCurve>
+          <PathEnd>0</PathEnd>
+          <PathRadiusOffset>0</PathRadiusOffset>
+          <PathRevolutions>0</PathRevolutions>
+          <PathScaleX>100</PathScaleX>
+          <PathScaleY>100</PathScaleY>
+          <PathShearX>0</PathShearX>
+          <PathShearY>0</PathShearY>
+          <PathSkew>0</PathSkew>
+          <PathTaperX>0</PathTaperX>
+          <PathTaperY>0</PathTaperY>
+          <PathTwist>0</PathTwist>
+          <PathTwistBegin>0</PathTwistBegin>
+          <PCode>9</PCode>
+          <ProfileBegin>0</ProfileBegin>
+          <ProfileEnd>0</ProfileEnd>
+          <ProfileHollow>0</ProfileHollow>
+          <State>9</State>
+          <LastAttachPoint>0</LastAttachPoint>
+          <ProfileShape>HalfCircle</ProfileShape>
+          <HollowShape>Same</HollowShape>
+          <SculptTexture><Guid>00000000-0000-0000-0000-000000000000</Guid></SculptTexture>
+          <SculptType>0</SculptType>
+          <FlexiSoftness>0</FlexiSoftness>
+          <FlexiTension>0</FlexiTension>
+          <FlexiDrag>0</FlexiDrag>
+          <FlexiGravity>0</FlexiGravity>
+          <FlexiWind>0</FlexiWind>
+          <FlexiForceX>0</FlexiForceX>
+          <FlexiForceY>0</FlexiForceY>
+          <FlexiForceZ>0</FlexiForceZ>
+          <LightColorR>0</LightColorR>
+          <LightColorG>0</LightColorG>
+          <LightColorB>0</LightColorB>
+          <LightColorA>1</LightColorA>
+          <LightRadius>0</LightRadius>
+          <LightCutoff>0</LightCutoff>
+          <LightFalloff>0</LightFalloff>
+          <LightIntensity>1</LightIntensity>
+          <FlexiEntry>false</FlexiEntry>
+          <LightEntry>false</LightEntry>
+          <SculptEntry>false</SculptEntry>
+        </Shape>
+        <Scale><X>0.1148195</X><Y>0.0143891</Y><Z>0.02768878</Z></Scale>
+        <SitTargetOrientation><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientation>
+        <SitTargetPosition><X>0</X><Y>0</Y><Z>0</Z></SitTargetPosition>
+        <SitTargetPositionLL><X>0</X><Y>0</Y><Z>0</Z></SitTargetPositionLL>
+        <SitTargetOrientationLL><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientationLL>
+        <ParentID>1154704499</ParentID>
+        <CreationDate>1256611042</CreationDate>
+        <Category>0</Category>
+        <SalePrice>10</SalePrice>
+        <ObjectSaleType>0</ObjectSaleType>
+        <OwnershipCost>0</OwnershipCost>
+        <GroupID><Guid>00000000-0000-0000-0000-000000000000</Guid></GroupID>
+        <OwnerID><Guid>7b2022f0-5f19-488c-b7e5-829d8f96b448</Guid></OwnerID>
+        <LastOwnerID><Guid>7b2022f0-5f19-488c-b7e5-829d8f96b448</Guid></LastOwnerID>
+        <BaseMask>647168</BaseMask>
+        <OwnerMask>647168</OwnerMask>
+        <GroupMask>0</GroupMask>
+        <EveryoneMask>0</EveryoneMask>
+        <NextOwnerMask>581632</NextOwnerMask>
+        <Flags>None</Flags>
+        <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
+        <CollisionSoundVolume>0</CollisionSoundVolume>
+        <AttachedPos><X>0</X><Y>0</Y><Z>0</Z></AttachedPos>
+        <TextureAnimation/>
+        <ParticleSystem/>
+        <PayPrice0>-2</PayPrice0>
+        <PayPrice1>-2</PayPrice1>
+        <PayPrice2>-2</PayPrice2>
+        <PayPrice3>-2</PayPrice3>
+        <PayPrice4>-2</PayPrice4>
+      </SceneObjectPart>
+    </Part>
+    <Part>
+      <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+        <AllowedDrop>false</AllowedDrop>
+        <CreatorID><Guid>a6dacf01-4636-4bb9-8a97-30609438af9d</Guid></CreatorID>
+        <FolderID><Guid>674b6b86-f5aa-439a-8e00-0d75bc08c80a</Guid></FolderID>
+        <InventorySerial>3</InventorySerial>
+        <UUID><Guid>674b6b86-f5aa-439a-8e00-0d75bc08c80a</Guid></UUID>
+        <LocalId>1154704501</LocalId>
+        <Name>Alien Head 2</Name>
+        <Material>3</Material>
+        <PassTouches>false</PassTouches>
+        <PassCollisions>false</PassCollisions>
+        <RegionHandle>21990232560640000</RegionHandle>
+        <ScriptAccessPin>0</ScriptAccessPin>
+        <GroupPosition><X>125.5655</X><Y>127.346</Y><Z>22.48036</Z></GroupPosition>
+        <OffsetPosition><X>-0.2490997</X><Y>0.08520126</Y><Z>0.0009002686</Z></OffsetPosition>
+        <RotationOffset><X>-0.4765368</X><Y>0.5194498</Y><Z>-0.5301372</Z><W>0.4712104</W></RotationOffset>
+        <Velocity><X>0</X><Y>0</Y><Z>0</Z></Velocity>
+        <AngularVelocity><X>0</X><Y>0</Y><Z>0</Z></AngularVelocity>
+        <Acceleration><X>0</X><Y>0</Y><Z>0</Z></Acceleration>
+        <Description>(No Description)</Description>
+        <Color><R>0</R><G>0</G><B>0</B><A>255</A></Color>
+        <Text/>
+        <SitName/>
+        <TouchName/>
+        <LinkNum>252</LinkNum>
+        <ClickAction>0</ClickAction>
+        <Shape>
+          <ProfileCurve>0</ProfileCurve>
+          <TextureEntry>Vw3dpvgTRUOiIUOGsnpWlAB/f38AAAAAgL8AAACAPwAAAAAAAAAF4ABAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</TextureEntry>
+          <ExtraParams>AA==</ExtraParams>
+          <PathBegin>0</PathBegin>
+          <PathCurve>32</PathCurve>
+          <PathEnd>0</PathEnd>
+          <PathRadiusOffset>0</PathRadiusOffset>
+          <PathRevolutions>0</PathRevolutions>
+          <PathScaleX>100</PathScaleX>
+          <PathScaleY>150</PathScaleY>
+          <PathShearX>0</PathShearX>
+          <PathShearY>0</PathShearY>
+          <PathSkew>0</PathSkew>
+          <PathTaperX>0</PathTaperX>
+          <PathTaperY>0</PathTaperY>
+          <PathTwist>0</PathTwist>
+          <PathTwistBegin>0</PathTwistBegin>
+          <PCode>9</PCode>
+          <ProfileBegin>0</ProfileBegin>
+          <ProfileEnd>0</ProfileEnd>
+          <ProfileHollow>0</ProfileHollow>
+          <State>9</State>
+          <LastAttachPoint>0</LastAttachPoint>
+          <ProfileShape>Circle</ProfileShape>
+          <HollowShape>Same</HollowShape>
+          <SculptTexture><Guid>00000000-0000-0000-0000-000000000000</Guid></SculptTexture>
+          <SculptType>0</SculptType>
+          <FlexiSoftness>0</FlexiSoftness>
+          <FlexiTension>0</FlexiTension>
+          <FlexiDrag>0</FlexiDrag>
+          <FlexiGravity>0</FlexiGravity>
+          <FlexiWind>0</FlexiWind>
+          <FlexiForceX>0</FlexiForceX>
+          <FlexiForceY>0</FlexiForceY>
+          <FlexiForceZ>0</FlexiForceZ>
+          <LightColorR>0</LightColorR>
+          <LightColorG>0</LightColorG>
+          <LightColorB>0</LightColorB>
+          <LightColorA>1</LightColorA>
+          <LightRadius>0</LightRadius>
+          <LightCutoff>0</LightCutoff>
+          <LightFalloff>0</LightFalloff>
+          <LightIntensity>1</LightIntensity>
+          <FlexiEntry>false</FlexiEntry>
+          <LightEntry>false</LightEntry>
+          <SculptEntry>false</SculptEntry>
+        </Shape>
+        <Scale><X>0.03574385</X><Y>0.05958032</Y><Z>0.04764182</Z></Scale>
+        <SitTargetOrientation><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientation>
+        <SitTargetPosition><X>0</X><Y>0</Y><Z>0</Z></SitTargetPosition>
+        <SitTargetPositionLL><X>0</X><Y>0</Y><Z>0</Z></SitTargetPositionLL>
+        <SitTargetOrientationLL><X>0</X><Y>0</Y><Z>0</Z><W>1</W></SitTargetOrientationLL>
+        <ParentID>1154704499</ParentID>
+        <CreationDate>1256611042</CreationDate>
+        <Category>0</Category>
+        <SalePrice>10</SalePrice>
+        <ObjectSaleType>0</ObjectSaleType>
+        <OwnershipCost>0</OwnershipCost>
+        <GroupID><Guid>00000000-0000-0000-0000-000000000000</Guid></GroupID>
+        <OwnerID><Guid>7b2022f0-5f19-488c-b7e5-829d8f96b448</Guid></OwnerID>
+        <LastOwnerID><Guid>7b2022f0-5f19-488c-b7e5-829d8f96b448</Guid></LastOwnerID>
+        <BaseMask>647168</BaseMask>
+        <OwnerMask>647168</OwnerMask>
+        <GroupMask>0</GroupMask>
+        <EveryoneMask>0</EveryoneMask>
+        <NextOwnerMask>581632</NextOwnerMask>
+        <Flags>None</Flags>
+        <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
+        <CollisionSoundVolume>0</CollisionSoundVolume>
+        <AttachedPos><X>0</X><Y>0</Y><Z>0</Z></AttachedPos>
+        <TextureAnimation/>
+        <ParticleSystem/>
+        <PayPrice0>-2</PayPrice0>
+        <PayPrice1>-2</PayPrice1>
+        <PayPrice2>-2</PayPrice2>
+        <PayPrice3>-2</PayPrice3>
+        <PayPrice4>-2</PayPrice4>
+      </SceneObjectPart>
+    </Part>
+  </OtherParts>
+</SceneObjectGroup>";
+
+        private const string ObjectWithBadFloatsXml = @"
         <SceneObjectGroup>
             <RootPart>
                 <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
@@ -270,7 +494,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             <OtherParts />
         </SceneObjectGroup>";
 
-        private string xml2 = @"
+        private const string ObjectWithNoPartsXml2 = @"
         <SceneObjectGroup>
             <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
                 <CreatorID><UUID>b46ef588-411e-4a8b-a284-d7dcfe8e74ef</UUID></CreatorID>
@@ -377,12 +601,12 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         }
 
         [Test]
-        public void TestDeserializeXml()
+        public void TestDeserializeXmlObjectWithNoOtherParts()
         {
             TestHelpers.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+            TestHelpers.EnableLogging();
 
-            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(xml);
+            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(ObjectWithNoOtherPartsXml);
             SceneObjectPart rootPart = so.RootPart;
 
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
@@ -395,12 +619,51 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         }
 
         [Test]
+        public void TestDeserializeXmlObjectWithOtherParts()
+        {
+            TestHelpers.InMethod();
+            TestHelpers.EnableLogging();
+
+            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(ObjectWithOtherPartsXml);
+            SceneObjectPart[] parts = so.Parts;
+            Assert.AreEqual(3, so.Parts.Length);
+
+            {
+                SceneObjectPart part = parts[0];
+
+                Assert.That(part.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
+                Assert.That(part.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
+                Assert.That(part.Name, Is.EqualTo("PrimMyRide"));
+                OSDMap store = part.DynAttrs.GetStore("MyNamespace", "MyStore");
+                Assert.AreEqual(42, store["the answer"].AsInteger());
+            }                                    
+
+            {
+                SceneObjectPart part = parts[1];
+
+                Assert.That(part.UUID, Is.EqualTo(new UUID("9958feb1-02a6-49e4-a4ce-eba6f578ee13")));
+                Assert.That(part.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
+                Assert.That(part.Name, Is.EqualTo("Alien Head 1"));
+            }
+
+            {
+                SceneObjectPart part = parts[2];
+
+                Assert.That(part.UUID, Is.EqualTo(new UUID("674b6b86-f5aa-439a-8e00-0d75bc08c80a")));
+                Assert.That(part.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
+                Assert.That(part.Name, Is.EqualTo("Alien Head 2"));
+            }
+
+            // TODO: Check other properties
+        }
+
+        [Test]
         public void TestDeserializeBadFloatsXml()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(badFloatsXml);
+            SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(ObjectWithBadFloatsXml);
             SceneObjectPart rootPart = so.RootPart;
 
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
@@ -517,7 +780,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            SceneObjectGroup so = m_serialiserModule.DeserializeGroupFromXml2(xml2);
+            SceneObjectGroup so = m_serialiserModule.DeserializeGroupFromXml2(ObjectWithNoPartsXml2);
             SceneObjectPart rootPart = so.RootPart;
 
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));

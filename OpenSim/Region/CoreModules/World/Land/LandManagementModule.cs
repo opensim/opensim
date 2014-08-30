@@ -525,16 +525,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>
         /// <param name="avatar"></param>
         public void EventManagerOnClientMovement(ScenePresence avatar)
-        //
         {
-            ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+            Vector3 pos = avatar.AbsolutePosition;
+            ILandObject over = GetLandObject(pos.X, pos.Y);
             if (over != null)
             {
-                if (!over.IsRestrictedFromLand(avatar.UUID) && (!over.IsBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= LandChannel.BAN_LINE_SAFETY_HIEGHT))
-                {
-                    avatar.lastKnownAllowedPosition =
-                        new Vector3(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
-                }
+                if (!over.IsRestrictedFromLand(avatar.UUID) && (!over.IsBannedFromLand(avatar.UUID) || pos.Z >= LandChannel.BAN_LINE_SAFETY_HIEGHT))
+                    avatar.lastKnownAllowedPosition = pos;
             }
         }
 

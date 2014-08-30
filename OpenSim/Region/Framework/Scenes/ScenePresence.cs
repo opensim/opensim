@@ -622,9 +622,14 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
 //                        m_velocity, Name, Scene.RegionInfo.RegionName);
                 }
+                else if (ParentPart != null)
+                {
+                    return ParentPart.ParentGroup.Velocity;
+                }
 
                 return m_velocity;
             }
+
             set
             {
                 if (PhysicsActor != null)
@@ -2631,7 +2636,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                Vector3 standPositionAdjustment 
 //                    = part.SitTargetPosition + new Vector3(0.5f, 0f, m_sitAvatarHeight / 2f);
-                Vector3 adjustmentForSitPosition = part.SitTargetPosition * part.GetWorldRotation();
+                Vector3 adjustmentForSitPosition = (part.SitTargetPosition + OffsetPosition) * part.GetWorldRotation();
 
                 // XXX: This is based on the physics capsule sizes.  Need to find a better way to read this rather than
                 // hardcoding here.

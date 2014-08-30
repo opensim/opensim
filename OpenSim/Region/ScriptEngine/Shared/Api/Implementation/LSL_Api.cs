@@ -1377,12 +1377,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) == ScriptBaseClass.STATUS_BLOCK_GRAB)
-            {
-                if (value != 0)
-                    m_host.SetBlockGrab(true);
-                else
-                    m_host.SetBlockGrab(false);
-            }
+                m_host.BlockGrab = value != 0;
+
+            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT) == ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT)
+                m_host.ParentGroup.BlockGrabOverride = value != 0;
 
             if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) == ScriptBaseClass.STATUS_DIE_AT_EDGE)
             {
@@ -1443,10 +1441,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return 0;
 
                 case ScriptBaseClass.STATUS_BLOCK_GRAB:
-                    if (m_host.GetBlockGrab())
-                        return 1;
-                    else
-                        return 0;
+                    return m_host.BlockGrab ? 1 : 0;
+
+                case ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT:
+                    return m_host.ParentGroup.BlockGrabOverride ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_DIE_AT_EDGE:
                     if (m_host.GetDieAtEdge())
@@ -11315,20 +11313,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(obj.AbsolutePosition.X, obj.AbsolutePosition.Y, obj.AbsolutePosition.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                {
-                                    Quaternion rot = Quaternion.Identity;
+                                Quaternion rot = Quaternion.Identity;
 
+                                if (obj.ParentGroup.IsAttachment)
+                                {
+                                    ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
+
+                                    if (sp != null)
+                                        rot = sp.GetWorldRotation();
+                                }
+                                else
+                                {
                                     if (obj.ParentGroup.RootPart == obj)
                                         rot = obj.ParentGroup.GroupRotation;
                                     else
                                         rot = obj.GetWorldRotation();
-
-                                    LSL_Rotation objrot = new LSL_Rotation(rot);
-                                    ret.Add(objrot);
                                 }
+
+                                LSL_Rotation objrot = new LSL_Rotation(rot);
+                                ret.Add(objrot);
+
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(obj.Velocity));
+                                Vector3 vel = Vector3.Zero;
+
+                                if (obj.ParentGroup.IsAttachment)
+                                {
+                                    ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
+
+                                    if (sp != null)
+                                        vel = sp.Velocity;
+                                }
+                                else
+                                {
+                                    vel = obj.Velocity; 
+                                }
+
+                                ret.Add(vel);
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(obj.OwnerID.ToString()));

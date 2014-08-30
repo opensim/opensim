@@ -828,6 +828,12 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID FromFolderID { get; set; }
 
         /// <summary>
+        /// If true then grabs are blocked no matter what the individual part BlockGrab setting.
+        /// </summary>
+        /// <value><c>true</c> if block grab override; otherwise, <c>false</c>.</value>
+        public bool BlockGrabOverride { get; set; }
+
+        /// <summary>
         /// IDs of all avatars sat on this scene object.
         /// </summary>
         /// <remarks>
@@ -899,6 +905,34 @@ namespace OpenSim.Region.Framework.Scenes
                             m_savedScriptState[itemid] = node.InnerXml;
                     }
                 } 
+            }
+        }
+
+        public void LoadScriptState(XmlReader reader)
+        {
+//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Looking for script state for {0} in {1}", Name);
+
+            while (reader.ReadToFollowing("SavedScriptState"))
+            {
+//                m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
+
+                if (m_savedScriptState == null)
+                    m_savedScriptState = new Dictionary<UUID, string>();
+
+                string uuid = reader.GetAttribute("UUID");
+
+                if (uuid != null)
+                {
+//                    m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
+
+                    UUID itemid = new UUID(uuid);
+                    if (itemid != UUID.Zero)
+                        m_savedScriptState[itemid] = reader.ReadInnerXml();
+                }
+                else
+                {
+                    m_log.WarnFormat("[SCENE OBJECT GROUP]: SavedScriptState element had no UUID in object {0}", Name);
+                }
             }
         }
 
@@ -2582,20 +2616,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// If object is physical, apply force to move it around
         /// If object is not physical, just put it at the resulting location
         /// </summary>
+        /// <param name="partID">Part ID to check for grab</param>
         /// <param name="offset">Always seems to be 0,0,0, so ignoring</param>
         /// <param name="pos">New position.  We do the math here to turn it into a force</param>
         /// <param name="remoteClient"></param>
-        public void GrabMovement(Vector3 offset, Vector3 pos, IClientAPI remoteClient)
+        public void GrabMovement(UUID partID, Vector3 offset, Vector3 pos, IClientAPI remoteClient)
         {
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
+                SceneObjectPart part = GetPart(partID);
+
+                if (part == null)
+                    return;
+
                 PhysicsActor pa = m_rootPart.PhysActor;
 
                 if (pa != null)
                 {
                     if (pa.IsPhysical)
                     {
-                        if (!m_rootPart.BlockGrab)
+                        if (!BlockGrabOverride && !part.BlockGrab)
                         {
                             Vector3 llmoveforce = pos - AbsolutePosition;
                             Vector3 grabforce = llmoveforce;

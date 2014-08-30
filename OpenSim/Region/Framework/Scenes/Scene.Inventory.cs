@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Timers;
 using System.Xml;
 using OpenMetaverse;
@@ -2192,60 +2193,87 @@ namespace OpenSim.Region.Framework.Scenes
         /// Returns one object if the asset is a regular object, and multiple objects for a coalesced object.
         /// </remarks>
         /// <param name="assetData">Asset data</param>
-        /// <param name="attachment">Whether the item is an attachment</param>
+        /// <param name="isAttachment">True if the object is an attachment.</param>
         /// <param name="objlist">The objects included in the asset</param>
         /// <param name="veclist">Relative positions of the objects</param>
         /// <param name="bbox">Bounding box of all the objects</param>
         /// <param name="offsetHeight">Offset in the Z axis from the centre of the bounding box
         /// to the centre of the root prim (relevant only when returning a single object)</param>
-        /// <returns>true = returning a single object; false = multiple objects</returns>
-        public bool GetObjectsToRez(byte[] assetData, bool attachment, out List<SceneObjectGroup> objlist, out List<Vector3> veclist,
+        /// <returns>
+        /// true if returning a single object or deserialization fails, false if returning the coalesced
+        /// list of objects
+        /// </returns>
+        public bool GetObjectsToRez(
+            byte[] assetData, bool isAttachment, out List<SceneObjectGroup> objlist, out List<Vector3> veclist,
             out Vector3 bbox, out float offsetHeight)
         {
             objlist = new List<SceneObjectGroup>();
             veclist = new List<Vector3>();
 
-            XmlDocument doc = new XmlDocument();
             string xmlData = Utils.BytesToString(assetData);
-            doc.LoadXml(xmlData);
-            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
 
-            if (e == null || attachment) // Single
+            try
             {
-                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-                objlist.Add(g);
-                veclist.Add(new Vector3(0, 0, 0));
-                bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
-                return true;
-            }
-            else
-            {
-                XmlElement coll = (XmlElement)e;
-                float bx = Convert.ToSingle(coll.GetAttribute("x"));
-                float by = Convert.ToSingle(coll.GetAttribute("y"));
-                float bz = Convert.ToSingle(coll.GetAttribute("z"));
-                bbox = new Vector3(bx, by, bz);
-                offsetHeight = 0;
-
-                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
-                foreach (XmlNode n in groups)
+                using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
                 {
-                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-                    objlist.Add(g);
+                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                    {
+                        reader.Read();
+                        bool isSingleObject = reader.Name != "CoalescedObject";
 
-                    XmlElement el = (XmlElement)n;
-                    string rawX = el.GetAttribute("offsetx");
-                    string rawY = el.GetAttribute("offsety");
-                    string rawZ = el.GetAttribute("offsetz");
+                        if (isSingleObject || isAttachment)
+                        {
+                            SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
+                            objlist.Add(g);
+                            veclist.Add(Vector3.Zero);
+                            bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
+                            return true;
+                        }
+                        else
+                        {                
+                            XmlDocument doc = new XmlDocument();
+                            doc.LoadXml(xmlData);
+                            XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+                            XmlElement coll = (XmlElement)e;
+                            float bx = Convert.ToSingle(coll.GetAttribute("x"));
+                            float by = Convert.ToSingle(coll.GetAttribute("y"));
+                            float bz = Convert.ToSingle(coll.GetAttribute("z"));
+                            bbox = new Vector3(bx, by, bz);
+                            offsetHeight = 0;
 
-                    float x = Convert.ToSingle(rawX);
-                    float y = Convert.ToSingle(rawY);
-                    float z = Convert.ToSingle(rawZ);
-                    veclist.Add(new Vector3(x, y, z));
+                            XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                            foreach (XmlNode n in groups)
+                            {
+                                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                                objlist.Add(g);
+
+                                XmlElement el = (XmlElement)n;
+                                string rawX = el.GetAttribute("offsetx");
+                                string rawY = el.GetAttribute("offsety");
+                                string rawZ = el.GetAttribute("offsetz");
+
+                                float x = Convert.ToSingle(rawX);
+                                float y = Convert.ToSingle(rawY);
+                                float z = Convert.ToSingle(rawZ);
+                                veclist.Add(new Vector3(x, y, z));
+                            }
+
+                            return false;
+                        }
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                m_log.Error(
+                    "[AGENT INVENTORY]: Deserialization of xml failed when looking for CoalescedObject tag.  Exception ", 
+                    e);
 
-            return false;
+                bbox = Vector3.Zero;
+                offsetHeight = 0;
+            }
+
+            return true;
         }
 
         /// <summary>
