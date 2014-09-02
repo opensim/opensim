@@ -3226,7 +3226,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastVelocity = Velocity;
                 }
 
-                CheckForBorderCrossing();
+                if (Scene.AllowAvatarCrossing)
+                    CheckForBorderCrossing();
 
                 CheckForSignificantMovement(); // sends update to the modules.
             }

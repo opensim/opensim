@@ -224,6 +224,12 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_clampPrimSize;
         public bool m_trustBinaries;
         public bool m_allowScriptCrossings = true;
+
+        /// <summary>
+        /// Can avatars cross from and to this region?
+        /// </summary>
+        public bool AllowAvatarCrossing { get; set; }
+
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
@@ -1023,6 +1029,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Region Config
 
+            IConfig entityTransferConfig = m_config.Configs["EntityTransfer"];
+            if (entityTransferConfig != null)
+            {
+                AllowAvatarCrossing = entityTransferConfig.GetBoolean("AllowAvatarCrossing", AllowAvatarCrossing);
+            }
+
             #region Interest Management
 
             IConfig interestConfig = m_config.Configs["InterestManagement"];
@@ -1090,6 +1102,8 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicalPrims = true;
             CollidablePrims = true;
             PhysicsEnabled = true;
+
+            AllowAvatarCrossing = true;
 
             PeriodicBackup = true;
             UseBackup = true;
@@ -5612,6 +5626,9 @@ namespace OpenSim.Region.Framework.Scenes
                 reason = String.Empty;
                 return true;
             }
+
+            if (!AllowAvatarCrossing && !viaTeleport)
+                return false;
 
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
             // However, the long term fix is to make sure root agent count is always accurate.
