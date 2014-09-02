@@ -608,8 +608,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Current velocity of the avatar.
+        /// Velocity of the avatar with respect to its local reference frame.
         /// </summary>
+        /// <remarks>
+        /// So when sat on a vehicle this will be 0.  To get velocity with respect to the world use GetWorldVelocity()
+        /// </remarks>
         public override Vector3 Velocity
         {
             get
@@ -622,10 +625,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
 //                        m_velocity, Name, Scene.RegionInfo.RegionName);
                 }
-                else if (ParentPart != null)
-                {
-                    return ParentPart.ParentGroup.Velocity;
-                }
+//                else if (ParentPart != null)
+//                {
+//                    return ParentPart.ParentGroup.Velocity;
+//                }
 
                 return m_velocity;
             }
@@ -749,23 +752,30 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Gets the world rotation of this presence.
+        /// Get rotation relative to the world.
         /// </summary>
-        /// <remarks>
-        /// Unlike Rotation, this returns the world rotation no matter whether the avatar is sitting on a prim or not.
-        /// </remarks>
         /// <returns></returns>
         public Quaternion GetWorldRotation()
         {
-            if (IsSatOnObject)
-            {
-                SceneObjectPart sitPart = ParentPart;
+            SceneObjectPart sitPart = ParentPart;
 
-                if (sitPart != null)
-                    return sitPart.GetWorldRotation() * Rotation;
-            }
+            if (sitPart != null)
+                return sitPart.GetWorldRotation() * Rotation;
 
             return Rotation;
+        }
+
+        /// <summary>
+        /// Get velocity relative to the world.
+        /// </summary>
+        public Vector3 GetWorldVelocity()
+        {
+            SceneObjectPart sitPart = ParentPart;
+
+            if (sitPart != null)
+                return sitPart.ParentGroup.Velocity;
+
+            return Velocity;
         }
 
         public void AdjustKnownSeeds()

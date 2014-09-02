@@ -2560,7 +2560,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
-                vel = avatar.Velocity;
+                vel = avatar.GetWorldVelocity();
             }
             else
             {
@@ -11221,7 +11221,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Rotation(av.GetWorldRotation()));
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(av.Velocity.X, av.Velocity.Y, av.Velocity.Z));
+                                ret.Add(new LSL_Vector(av.GetWorldVelocity()));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(id));
@@ -11342,7 +11342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
 
                                     if (sp != null)
-                                        vel = sp.Velocity;
+                                        vel = sp.GetWorldVelocity();
                                 }
                                 else
                                 {
