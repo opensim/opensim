@@ -304,11 +304,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
             
-            Int32 deltaMS = Util.EnvironmentTickCountSubtract(m_lastDrip);
-            m_lastDrip = Util.EnvironmentTickCount();
+            Int32 now = Util.EnvironmentTickCount();
+            Int32 deltaMS = now - m_lastDrip;
+            m_lastDrip = now;
 
-            // This can be 0 in the very unusual case that the timer wrapped
-            // It can be 0 if we try add tokens at a sub-tick rate
             if (deltaMS <= 0)
                 return;
 
