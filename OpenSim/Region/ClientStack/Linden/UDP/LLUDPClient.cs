@@ -700,7 +700,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
 
-        const int MIN_CALLBACK_MS = 30;              
+        const int MIN_CALLBACK_MS = 10;              
 
         /// <summary>
         /// Does an early check to see if this queue empty callback is already
