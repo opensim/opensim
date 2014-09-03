@@ -862,9 +862,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 DetailLog("{0},BulletSPluginPhysicsThread,longerThanRealtime={1}", BSScene.DetailLogZero, simulationTimeVsRealtimeDifferenceMS);
             }
 
-            if (BSParam.UseSeparatePhysicsThread)
-                Watchdog.UpdateThread();
+            Watchdog.UpdateThread();
         }
+
+        Watchdog.RemoveThread();
     }
 
     #endregion // Simulation
