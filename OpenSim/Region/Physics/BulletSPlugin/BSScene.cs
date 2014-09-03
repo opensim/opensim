@@ -293,7 +293,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     string.Format("{0} ({1})", BulletEngineName, RegionName), 
                     ThreadPriority.Normal, 
                     true, 
-                    false);
+                    true);
         }
     }
 
@@ -861,6 +861,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 // TODO.
                 DetailLog("{0},BulletSPluginPhysicsThread,longerThanRealtime={1}", BSScene.DetailLogZero, simulationTimeVsRealtimeDifferenceMS);
             }
+
+            if (BSParam.UseSeparatePhysicsThread)
+                Watchdog.UpdateThread();
         }
     }
 
