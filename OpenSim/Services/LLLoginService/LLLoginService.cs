@@ -77,8 +77,6 @@ namespace OpenSim.Services.LLLoginService
         protected string m_GatekeeperURL;
         protected bool m_AllowRemoteSetLoginLevel;
         protected string m_MapTileURL;
-        protected string m_ProfileURL;
-        protected string m_OpenIDURL;
         protected string m_SearchURL;
         protected string m_Currency;
         protected string m_ClassifiedFee;
@@ -119,8 +117,6 @@ namespace OpenSim.Services.LLLoginService
             m_GatekeeperURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
                 new string[] { "Startup", "Hypergrid", "LoginService" }, String.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
-            m_ProfileURL = m_LoginServerConfig.GetString("ProfileServerURL", string.Empty);
-            m_OpenIDURL = m_LoginServerConfig.GetString("OpenIDServerURL", String.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
             m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
             m_ClassifiedFee = m_LoginServerConfig.GetString("ClassifiedFee", string.Empty);
@@ -498,7 +494,7 @@ namespace OpenSim.Services.LLLoginService
                     = new LLLoginResponse(
                         account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
                         where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
-                        m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone,
+                        m_MapTileURL, m_SearchURL, m_Currency, m_DSTZone,
                         m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
