@@ -162,9 +162,6 @@ namespace OpenSim.Region.UserStatistics
                 output.Append("OthrMS");
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TD_O(ref output, TDHeaderClass);
-                output.Append("ScrLPS");
-                HTMLUtil.TD_C(ref output);
-                HTMLUtil.TD_O(ref output, TDHeaderClass);
                 output.Append("OutPPS");
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TD_O(ref output, TDHeaderClass);
@@ -192,9 +189,6 @@ namespace OpenSim.Region.UserStatistics
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TD_O(ref output, TDDataClassCenter);
                 output.Append(sdata.OtherFrameTime);
-                HTMLUtil.TD_C(ref output);
-                HTMLUtil.TD_O(ref output, TDDataClassCenter);
-                output.Append(sdata.ScriptLinesPerSecond);
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TD_O(ref output, TDDataClassCenter);
                 output.Append(sdata.OutPacketsPerSecond);

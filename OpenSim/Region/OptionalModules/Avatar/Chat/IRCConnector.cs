@@ -109,10 +109,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         internal int m_resetk = 0;
 
-        // Working threads
-
-        private Thread m_listener = null;
-
         private Object msyncConnect = new Object();
 
         internal bool m_randomizeNick = true; // add random suffix
@@ -363,10 +359,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
                     m_log.InfoFormat("[IRC-Connector-{0}]: Connected to {1}:{2}", idn, m_server, m_port);
 
-                    m_listener = new Thread(new ThreadStart(ListenerRun));
-                    m_listener.Name = "IRCConnectorListenerThread";
-                    m_listener.IsBackground = true;
-                    m_listener.Start();
+                    Watchdog.StartThread(ListenerRun, "IRCConnectionListenerThread", ThreadPriority.Normal, true, false);
 
                     // This is the message order recommended by RFC 2812
                     if (m_password != null)
@@ -510,21 +503,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
                 while (m_enabled && m_connected)
                 {
-
                     if ((inputLine = m_reader.ReadLine()) == null)
                         throw new Exception("Listener input socket closed");
+
+                    Watchdog.UpdateThread();
 
                     // m_log.Info("[IRCConnector]: " + inputLine);
 
                     if (inputLine.Contains("PRIVMSG"))
                     {
-
                         Dictionary<string, string> data = ExtractMsg(inputLine);
 
                         // Any chat ???
                         if (data != null)
                         {
-
                             OSChatMessage c = new OSChatMessage();
                             c.Message = data["msg"];
                             c.Type = ChatTypeEnum.Region;
@@ -540,9 +532,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                                 c.Message = String.Format("/me {0}", c.Message.Substring(8, c.Message.Length - 9));
 
                             ChannelState.OSChat(this, c, false);
-
                         }
-
                     }
                     else
                     {
@@ -562,6 +552,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             if (m_enabled && (m_resetk == resetk))
                 Reconnect();
+
+            Watchdog.RemoveThread();
         }
 
         private Regex RE = new Regex(@":(?<nick>[\w-]*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)",

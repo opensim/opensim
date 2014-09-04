@@ -372,16 +372,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; Url to search service
     ; SearchURL = "http://127.0.0.1:8002/";
 
-    ; For V2/3 Web Profiles
-    ; Work in progress: The ProfileServerURL/OpenIDServerURL are
-    ; being used in a development viewer as support for webprofiles
-    ; is being developed across the componets
-    ;
-    ; ProfileServerURL = "http://127.0.0.1/profiles/[AGENT_NAME]"
-    ;
-    ; For V2/V3 webapp authentication SSO
-    ; OpenIDServerURL = "http://127.0.0.1/openid/openidserver/"
-
     ; For V3 destination guide
     ; DestinationGuide = "http://127.0.0.1/guide"
 

@@ -32,6 +32,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework;
 using OpenSim.Region.CoreModules;
 using Logging = OpenSim.Region.CoreModules.Framework.Statistics.Logging;
@@ -286,9 +287,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         if (BSParam.UseSeparatePhysicsThread)
         {
             // The physics simulation should happen independently of the heartbeat loop
-            m_physicsThread = new Thread(BulletSPluginPhysicsThread);
-            m_physicsThread.Name = BulletEngineName;
-            m_physicsThread.Start();
+            m_physicsThread 
+                = Watchdog.StartThread(
+                    BulletSPluginPhysicsThread, 
+                    string.Format("{0} ({1})", BulletEngineName, RegionName), 
+                    ThreadPriority.Normal, 
+                    true, 
+                    true);
         }
     }
 
@@ -856,7 +861,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 // TODO.
                 DetailLog("{0},BulletSPluginPhysicsThread,longerThanRealtime={1}", BSScene.DetailLogZero, simulationTimeVsRealtimeDifferenceMS);
             }
+
+            Watchdog.UpdateThread();
         }
+
+        Watchdog.RemoveThread();
     }
 
     #endregion // Simulation
