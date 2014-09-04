@@ -92,7 +92,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp oqre",
                 "debug lludp oqre <start|stop|status>",
                 "Start, stop or get status of OutgoingQueueRefillEngine.",
-                "Experimental.",
+                "If stopped then refill requests are processed directly via the threadpool.",
                 HandleOqreCommand);
         }
 

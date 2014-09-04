@@ -447,6 +447,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             StartInbound();
             StartOutbound();
+            OqrEngine.Start();
 
             m_elapsedMSSinceLastStatReport = Environment.TickCount;
         }
@@ -491,6 +492,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + Scene.Name);
             base.StopOutbound();
             base.StopInbound();
+            OqrEngine.Stop();
         }
 
         protected override bool EnablePools()
