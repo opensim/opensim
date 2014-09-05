@@ -1623,7 +1623,12 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         tmpMS = Util.EnvironmentTickCount();
                         m_cleaningTemps = true;
-                        Util.RunThreadNoTimeout(delegate { CleanTempObjects(); m_cleaningTemps = false;  }, "CleanTempObjects", null);
+
+                        Watchdog.RunInThread(
+                            delegate { CleanTempObjects(); m_cleaningTemps = false;  }, 
+                            string.Format("CleanTempObjects ({0})", Name), 
+                            null);
+
                         tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
@@ -1803,7 +1808,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                Util.RunThreadNoTimeout(BackupWaitCallback, "BackupWaitCallback", null);
+                Watchdog.RunInThread(o => Backup(false), string.Format("BackupWaitCallback ({0})", Name), null);
             }
         }
 
@@ -1813,14 +1818,6 @@ namespace OpenSim.Region.Framework.Scenes
         private void UpdateEvents()
         {
             m_eventManager.TriggerOnFrame();
-        }
-
-        /// <summary>
-        /// Wrapper for Backup() that can be called with Util.RunThreadNoTimeout()
-        /// </summary>
-        private void BackupWaitCallback(object o)
-        {
-            Backup(false);
         }
         
         /// <summary>

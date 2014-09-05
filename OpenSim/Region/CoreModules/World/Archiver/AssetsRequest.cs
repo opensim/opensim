@@ -33,6 +33,7 @@ using System.Timers;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Services.Interfaces;
@@ -226,7 +227,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             finally
             {
                 if (timedOut)
-                    Util.RunThreadNoTimeout(PerformAssetsRequestCallback, "AssetsRequestCallback", true);
+                    Watchdog.RunInThread(PerformAssetsRequestCallback, "Archive Assets Request Callback", true);
             }
         }
 
@@ -295,7 +296,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
-                        Util.RunThreadNoTimeout(PerformAssetsRequestCallback, "AssetsRequestCallback", false);
+                        Watchdog.RunInThread(PerformAssetsRequestCallback, "Archive Assets Request Callback", false);
                     }
                     else
                     {

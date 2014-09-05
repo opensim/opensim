@@ -36,6 +36,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
@@ -199,7 +200,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
                             m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
 
-                    Util.RunThreadNoTimeout(o => ar.Execute(), "AssetsRequest", null);
+                    Watchdog.RunInThread(o => ar.Execute(), "Archive Assets Request", null);
 
                     // CloseArchive() will be called from ReceivedAllAssets()
                 }

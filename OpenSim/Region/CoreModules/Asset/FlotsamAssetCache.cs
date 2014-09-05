@@ -43,6 +43,7 @@ using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -963,7 +964,8 @@ namespace OpenSim.Region.CoreModules.Asset
                     case "assets":
                         con.Output("Ensuring assets are cached for all scenes.");
 
-                        Util.RunThreadNoTimeout(delegate {
+                        Watchdog.RunInThread(delegate 
+                        {
                             int assetReferenceTotal = TouchAllSceneAssets(true);
                             con.OutputFormat("Completed check with {0} assets.", assetReferenceTotal);
                         }, "TouchAllSceneAssets", null);

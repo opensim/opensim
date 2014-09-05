@@ -37,6 +37,7 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Framework.Scenes.Types;
@@ -3362,7 +3363,7 @@ namespace OpenSim.Region.Framework.Scenes
             SentInitialDataToClient = true;
 
             // Send all scene object to the new client
-            Util.RunThreadNoTimeout(delegate
+            Watchdog.RunInThread(delegate
             {
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
@@ -3380,8 +3381,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (e != null && e is SceneObjectGroup)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
-
-            }, "SendInitialDataToClient", null);
+            }, string.Format("SendInitialDataToClient ({0} in {1})", Name, Scene.Name), null);
         }
 
         /// <summary>

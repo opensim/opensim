@@ -2400,36 +2400,6 @@ namespace OpenSim.Framework
         #endregion FireAndForget Threading Pattern
 
         /// <summary>
-        /// Run the callback on a different thread, outside the thread pool. This is used for tasks
-        /// that may take a long time.
-        /// </summary>
-        public static void RunThreadNoTimeout(WaitCallback callback, string name, object obj)
-        {
-            if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
-            {
-                Culture.SetCurrentCulture();
-                callback(obj);
-                return;
-            }
-
-            Thread t = new Thread(delegate()
-            {
-                try
-                {
-                    Culture.SetCurrentCulture();
-                    callback(obj);
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("Exception in thread " + name, e);
-                }
-            });
-            
-            t.Name = name;
-            t.Start();
-        }
-
-        /// <summary>
         /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
         /// and negative every 24.9 days. This trims down TickCount so it doesn't wrap
         /// for the callers. 
