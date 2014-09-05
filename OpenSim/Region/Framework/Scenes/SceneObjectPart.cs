@@ -3807,8 +3807,8 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 //                Name, groupID, OwnerID);
 
             GroupID = groupID;
-            if (client != null)
-                SendPropertiesToClient(client);
+//            if (client != null)
+//                SendPropertiesToClient(client);
             UpdateFlag = UpdateRequired.FULL;
         }
 
