@@ -34,6 +34,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Archiver;
@@ -356,7 +357,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
                             options, ReceivedAllAssets);
 
-                    Util.RunThreadNoTimeout(o => ar.Execute(), "AssetsRequest", null);
+                    Watchdog.RunInThread(o => ar.Execute(), string.Format("AssetsRequest ({0})", m_scene.Name), null);
                 }
                 else
                 {

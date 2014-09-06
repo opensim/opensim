@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Text;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
@@ -560,7 +561,7 @@ namespace OpenSim.Groups
 
                     // so we have the list of urls to send the notice to
                     // this may take a long time...
-                    Util.RunThreadNoTimeout(delegate
+                    Watchdog.RunInThread(delegate
                     {
                         foreach (string u in urls)
                         {
@@ -571,7 +572,7 @@ namespace OpenSim.Groups
                                     hasAttachment, attType, attName, attItemID, AgentUUIForOutside(attOwnerID));
                             }
                         }
-                    }, "AddGroupNotice", null);
+                    }, string.Format("AddGroupNotice (agent {0}, group {1})", RequestingAgentID, groupID) , null);
 
                     return true;
                 }

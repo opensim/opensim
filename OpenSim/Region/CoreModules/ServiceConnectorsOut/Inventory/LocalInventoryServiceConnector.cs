@@ -33,6 +33,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Data;
 using OpenSim.Server.Base;
 using OpenSim.Region.Framework.Interfaces;
@@ -183,12 +184,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 // Protect ourselves against the caller subsequently modifying the items list
                 List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
 
-                Util.RunThreadNoTimeout(delegate
+                Watchdog.RunInThread(delegate
                 {
                     foreach (InventoryItemBase item in items)
                         if (!string.IsNullOrEmpty(item.CreatorData))
                             UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
-                }, "GetFolderContent", null);
+                }, string.Format("GetFolderContent (user {0}, folder {1})", userID, folderID), null);
             }
 
             return invCol;
