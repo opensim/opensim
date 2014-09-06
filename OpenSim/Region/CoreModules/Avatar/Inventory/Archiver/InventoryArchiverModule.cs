@@ -57,6 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //        public bool DisablePresenceChecks { get; set; }
 
         public event InventoryArchiveSaved OnInventoryArchiveSaved;
+        public event InventoryArchiveLoaded OnInventoryArchiveLoaded;
 
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
@@ -64,9 +65,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory.iar";
 
         /// <value>
-        /// Pending save completions initiated from the console
+        /// Pending save and load completions initiated from the console
         /// </value>
-        protected List<UUID> m_pendingConsoleSaves = new List<UUID>();
+        protected List<UUID> m_pendingConsoleTasks = new List<UUID>();
 
         /// <value>
         /// All scenes that this module knows about
@@ -111,6 +112,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
                 OnInventoryArchiveSaved += SaveInvConsoleCommandCompleted;
+                OnInventoryArchiveLoaded += LoadInvConsoleCommandCompleted;
 
                 scene.AddCommand(
                     "Archiving", this, "load iar",
@@ -176,11 +178,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         protected internal void TriggerInventoryArchiveSaved(
             UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
-            Exception reportedException)
+            Exception reportedException, int SaveCount, int FilterCount)
         {
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
             if (handlerInventoryArchiveSaved != null)
-                handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException);
+                handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException, SaveCount , FilterCount);
+        }
+
+        /// <summary>
+        /// Trigger the inventory archive loaded event.
+        /// </summary>
+        protected internal void TriggerInventoryArchiveLoaded(
+            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream loadStream,
+            Exception reportedException, int LoadCount)
+        {
+            InventoryArchiveLoaded handlerInventoryArchiveLoaded = OnInventoryArchiveLoaded;
+            if (handlerInventoryArchiveLoaded != null)
+                handlerInventoryArchiveLoaded(id, succeeded, userInfo, invPath, loadStream, reportedException, LoadCount);
         }
 
         public bool ArchiveInventory(
@@ -272,13 +286,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             return false;
         }
 
-        public bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, Stream loadStream)
+        public bool DearchiveInventory(UUID id, string firstName, string lastName, string invPath, string pass, Stream loadStream)
         {
-            return DearchiveInventory(firstName, lastName, invPath, pass, loadStream, new Dictionary<string, object>());
+            return DearchiveInventory(id, firstName, lastName, invPath, pass, loadStream, new Dictionary<string, object>());
         }
 
         public bool DearchiveInventory(
-            string firstName, string lastName, string invPath, string pass, Stream loadStream,
+            UUID id, string firstName, string lastName, string invPath, string pass, Stream loadStream,
             Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
@@ -294,7 +308,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                         try
                         {
-                            request = new InventoryArchiveReadRequest(m_aScene.InventoryService, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadStream, merge);
+                            request = new InventoryArchiveReadRequest(id, m_aScene.InventoryService, this, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadStream, merge);
                         }
                         catch (EntryPointNotFoundException e)
                         {
@@ -326,7 +340,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public bool DearchiveInventory(
-             string firstName, string lastName, string invPath, string pass, string loadPath,
+             UUID id, string firstName, string lastName, string invPath, string pass, string loadPath,
              Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
@@ -342,7 +356,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                         try
                         {
-                            request = new InventoryArchiveReadRequest(m_aScene.InventoryService, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadPath, merge);
+                            request = new InventoryArchiveReadRequest(id, m_aScene.InventoryService, this, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadPath, merge);
                         }
                         catch (EntryPointNotFoundException e)
                         {
@@ -378,6 +392,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             try
             {
+                UUID id = UUID.Random();
+
                 Dictionary<string, object> options = new Dictionary<string, object>();
                 OptionSet optionSet = new OptionSet().Add("m|merge", delegate (string v) { options["merge"] = v != null; });
 
@@ -400,10 +416,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
                     loadPath, invPath, firstName, lastName);
 
-                if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath, options))
-                    m_log.InfoFormat(
-                        "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
-                        loadPath, firstName, lastName);
+                lock (m_pendingConsoleTasks)
+                    m_pendingConsoleTasks.Add(id);
+
+                DearchiveInventory(id, firstName, lastName, invPath, pass, loadPath, options);
             }
             catch (InventoryArchiverException e)
             {
@@ -465,8 +481,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     "[INVENTORY ARCHIVER]: Saving archive {0} using inventory path {1} for {2} {3}",
                     savePath, invPath, firstName, lastName);
 
-                lock (m_pendingConsoleSaves)
-                    m_pendingConsoleSaves.Add(id);
+                lock (m_pendingConsoleTasks)
+                    m_pendingConsoleTasks.Add(id);
 
                 ArchiveInventory(id, firstName, lastName, invPath, pass, savePath, options);
             }
@@ -478,24 +494,52 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         private void SaveInvConsoleCommandCompleted(
             UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
-            Exception reportedException)
+            Exception reportedException, int SaveCount, int FilterCount)
         {
-            lock (m_pendingConsoleSaves)
+            lock (m_pendingConsoleTasks)
             {
-                if (m_pendingConsoleSaves.Contains(id))
-                    m_pendingConsoleSaves.Remove(id);
+                if (m_pendingConsoleTasks.Contains(id))
+                    m_pendingConsoleTasks.Remove(id);
                 else
                     return;
             }
 
             if (succeeded)
             {
-                m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive for {0} {1}", userInfo.FirstName, userInfo.LastName);
+                // Report success and include item count and filter count (Skipped items due to --perm or --exclude switches)
+                if(FilterCount == 0)
+                    m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive with {0} items for {1} {2}", SaveCount, userInfo.FirstName, userInfo.LastName);
+                else
+                    m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive with {0} items for {1} {2}. Skipped {3} items due to exclude and/or perm switches", SaveCount, userInfo.FirstName, userInfo.LastName, FilterCount);
             }
             else
             {
                 m_log.ErrorFormat(
                     "[INVENTORY ARCHIVER]: Archive save for {0} {1} failed - {2}",
+                    userInfo.FirstName, userInfo.LastName, reportedException.Message);
+            }
+        }
+
+        private void LoadInvConsoleCommandCompleted(
+            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream loadStream,
+            Exception reportedException, int LoadCount)
+        {
+            lock (m_pendingConsoleTasks)
+            {
+                if (m_pendingConsoleTasks.Contains(id))
+                    m_pendingConsoleTasks.Remove(id);
+                else
+                    return;
+            }
+
+            if (succeeded)
+            {
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Loaded {0} items from archive {1} for {2} {3}", LoadCount, invPath, userInfo.FirstName, userInfo.LastName);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Archive load for {0} {1} failed - {2}",
                     userInfo.FirstName, userInfo.LastName, reportedException.Message);
             }
         }

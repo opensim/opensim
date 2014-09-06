@@ -85,8 +85,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
             
-            InventoryArchiveReadRequest iarr 
-                = new InventoryArchiveReadRequest(null, null, null, null, null, (Stream)null, false);
+            InventoryArchiveReadRequest iarr
+                = new InventoryArchiveReadRequest(UUID.Random(), null, null, null, null, null, null, (Stream)null, false);
             iarr.LoadControlFile(filePath, data);
             
             Assert.That(iarr.ControlFileLoaded, Is.True);

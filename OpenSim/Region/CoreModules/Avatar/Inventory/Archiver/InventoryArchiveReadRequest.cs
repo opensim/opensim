@@ -61,6 +61,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         private UserAccount m_userInfo;
         private string m_invPath;
+
+        /// <value>
+        /// ID of this request
+        /// </value>
+        protected UUID m_id;
         
         /// <summary>
         /// Do we want to merge this load with existing inventory?
@@ -70,6 +75,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected IInventoryService m_InventoryService;
         protected IAssetService m_AssetService;
         protected IUserAccountService m_UserAccountService;
+
+        private InventoryArchiverModule m_module;
 
         /// <value>
         /// The stream from which the inventory archive will be loaded.
@@ -117,9 +124,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();        
 
         public InventoryArchiveReadRequest(
-            IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
+            UUID id, IInventoryService inv, InventoryArchiverModule module, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
             : this(
+                id,
                 inv,
+                module,
                 assets,
                 uacc,
                 userInfo,
@@ -130,8 +139,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public InventoryArchiveReadRequest(
-            IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, Stream loadStream, bool merge)
+            UUID id, IInventoryService inv, InventoryArchiverModule module, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, Stream loadStream, bool merge)
         {
+            m_id = id;
             m_InventoryService = inv;
             m_AssetService = assets;
             m_UserAccountService = uacc;
@@ -139,6 +149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;
+            m_module = module;
             
             // FIXME: Do not perform this check since older versions of OpenSim do save the control file after other things
             // (I thought they weren't).  We will need to bump the version number and perform this check on all 
@@ -161,6 +172,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             try
             {
+                Exception reportedException = null;
+
                 string filePath = "ERROR";
                
                 List<InventoryFolderBase> folderCandidates
@@ -197,12 +210,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
                 
                 archive.Close();
-                
+
                 m_log.DebugFormat(
                     "[INVENTORY ARCHIVER]: Successfully loaded {0} assets with {1} failures", 
                     m_successfulAssetRestores, m_failedAssetRestores);
-                m_log.InfoFormat("[INVENTORY ARCHIVER]: Successfully loaded {0} items", m_successfulItemRestores);
+
+                //Alicia: When this is called by LibraryModule or Tests, m_module will be null as event is not required
+                if(m_module != null)
+                    m_module.TriggerInventoryArchiveLoaded(m_id, true, m_userInfo, m_invPath, m_loadStream, reportedException, m_successfulItemRestores);
                 
+                return m_loadedNodes;
+            }
+            catch(Exception Ex)
+            {
+                // Trigger saved event with failed result and exception data
+                if (m_module != null)
+                    m_module.TriggerInventoryArchiveLoaded(m_id, false, m_userInfo, m_invPath, m_loadStream, Ex, 0);
+
                 return m_loadedNodes;
             }
             finally

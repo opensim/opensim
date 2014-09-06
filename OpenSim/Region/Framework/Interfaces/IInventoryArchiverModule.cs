@@ -42,8 +42,24 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <param name="invPath">The inventory path saved</param>
     /// <param name="savePath">The stream to which the archive was saved</param>
     /// <param name="reportedException">Contains the exception generated if the save did not succeed</param>
+    /// <param name="SaveCount">Number of inventory items saved to archive</param>
+    /// <param name="FilterCount">Number of inventory items skipped due to perm filter option</param>
     public delegate void InventoryArchiveSaved(
-        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, Exception reportedException);
+        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, Exception reportedException, int SaveCount, int FilterCount);
+
+    /// <summary>
+    /// Used for the OnInventoryArchiveLoaded event.
+    /// </summary>
+    /// <param name="id">Request id</param>
+    /// <param name="succeeded">true if the load succeeded, false otherwise</param>
+    /// <param name="userInfo">The user for whom the load was conducted</param>
+    /// <param name="invPath">The inventory path loaded</param>
+    /// <param name="savePath">The stream from which the archive was loaded</param>
+    /// <param name="reportedException">Contains the exception generated if the load did not succeed</param>
+    /// <param name="LoadCount">Number of inventory items loaded from archive</param>
+    public delegate void InventoryArchiveLoaded(
+        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream loadStream, Exception reportedException, int LoadCount);
+
 
     public interface IInventoryArchiverModule
     {
@@ -53,6 +69,11 @@ namespace OpenSim.Region.Framework.Interfaces
         event InventoryArchiveSaved OnInventoryArchiveSaved;
 
         /// <summary>
+        /// Fired when an archive inventory load has been completed.
+        /// </summary>
+        event InventoryArchiveLoaded OnInventoryArchiveLoaded;
+
+        /// <summary>
         /// Dearchive a user's inventory folder from the given stream
         /// </summary>
         /// <param name="firstName"></param>
@@ -60,7 +81,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="invPath">The inventory path in which to place the loaded folders and items</param>
         /// <param name="loadStream">The stream from which the inventory archive will be loaded</param>
         /// <returns>true if the first stage of the operation succeeded, false otherwise</returns>
-        bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, Stream loadStream);
+        bool DearchiveInventory(UUID id, string firstName, string lastName, string invPath, string pass, Stream loadStream);
 
         /// <summary>
         /// Dearchive a user's inventory folder from the given stream
@@ -73,7 +94,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// the loaded IAR with existing folders where possible.</param>
         /// <returns>true if the first stage of the operation succeeded, false otherwise</returns>
         bool DearchiveInventory(
-            string firstName, string lastName, string invPath, string pass, Stream loadStream,
+            UUID id, string firstName, string lastName, string invPath, string pass, Stream loadStream,
             Dictionary<string, object> options);
 
         /// <summary>

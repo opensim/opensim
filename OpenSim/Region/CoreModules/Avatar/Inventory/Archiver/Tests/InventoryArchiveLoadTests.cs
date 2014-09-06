@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            TestHelpers.EnableLogging();
             
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "password");
-            m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
+            m_archiverModule.DearchiveInventory(UUID.Random(), m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
             
             InventoryItemBase coaItem
                 = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaLL1.PrincipalID, m_coaItemName);
@@ -106,8 +106,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "meowfood");
-            
-            m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "meowfood", m_iarStream);            
+
+            m_archiverModule.DearchiveInventory(UUID.Random(), m_uaLL1.FirstName, m_uaLL1.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaLL1.PrincipalID, m_item1Name);
 
@@ -171,7 +171,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "password");
-            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "password", m_iarStream);
+            m_archiverModule.DearchiveInventory(UUID.Random(), m_uaMT.FirstName, m_uaMT.LastName, "/", "password", m_iarStream);
 
             InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);

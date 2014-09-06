@@ -170,7 +170,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         
         protected void SaveCompleted(
             UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
-            Exception reportedException)
+            Exception reportedException, int SaveCount, int FilterCount)
         {
             mre.Set();
         }        

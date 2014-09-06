@@ -61,6 +61,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         public string FilterContent { get; set; }
 
+        /// <summary>
+        /// Counter for inventory items saved to archive for passing to compltion event
+        /// </summary>
+        public int CountItems { get; set; }
+
+        /// <summary>
+        /// Counter for inventory items skipped due to permission filter option for passing to compltion event
+        /// </summary>
+        public int CountFiltered { get; set; }
+
         /// <value>
         /// Used to select all inventory nodes in a folder but not the folder itself
         /// </value>
@@ -158,7 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             m_module.TriggerInventoryArchiveSaved(
-                m_id, succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);
+                m_id, succeeded, m_userInfo, m_invPath, m_saveStream, reportedException, CountItems, CountFiltered);
         }
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path, Dictionary<string, object> options, IUserAccountService userAccountService)
@@ -174,6 +184,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             "[INVENTORY ARCHIVER]: Skipping inventory item {0} {1} at {2}",
                             inventoryItem.Name, inventoryItem.ID, path);
                     }
+
+                    CountFiltered++;
+
                     return;
                 }
             }
@@ -184,6 +197,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.InfoFormat(
                             "[INVENTORY ARCHIVER]: Insufficient permissions, skipping inventory item {0} {1} at {2}",
                             inventoryItem.Name, inventoryItem.ID, path);
+
+                // Count Items Excluded
+                CountFiltered++;
+
                 return;
             }
 
@@ -201,6 +218,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_archiveWriter.WriteFile(filename, serialization);
 
             AssetType itemAssetType = (AssetType)inventoryItem.AssetType;
+
+            // Count inventory items (different to asset count)
+            CountItems++;
 
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
@@ -363,7 +383,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     // We couldn't find the path indicated
                     string errorMessage = string.Format("Aborted save.  Could not find inventory path {0}", m_invPath);
                     Exception e = new InventoryArchiverException(errorMessage);
-                    m_module.TriggerInventoryArchiveSaved(m_id, false, m_userInfo, m_invPath, m_saveStream, e);
+                    m_module.TriggerInventoryArchiveSaved(m_id, false, m_userInfo, m_invPath, m_saveStream, e, 0, 0);
                     throw e;
                 }
 
