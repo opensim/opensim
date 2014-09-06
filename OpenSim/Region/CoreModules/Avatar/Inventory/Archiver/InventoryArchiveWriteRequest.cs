@@ -43,6 +43,7 @@ using OpenSim.Services.Interfaces;
 using Ionic.Zlib;
 using GZipStream = Ionic.Zlib.GZipStream;
 using CompressionMode = Ionic.Zlib.CompressionMode;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {
@@ -54,6 +55,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Determine whether this archive will save assets.  Default is true.
         /// </summary>
         public bool SaveAssets { get; set; }
+
+        /// <summary>
+        /// Determine whether this archive will filter content based on inventory permissions.  Default is false
+        /// </summary>
+        public string FilterContent { get; set; }
 
         /// <value>
         /// Used to select all inventory nodes in a folder but not the folder itself
@@ -123,6 +129,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer = new UuidGatherer(m_scene.AssetService);
 
             SaveAssets = true;
+            FilterContent = string.Empty;
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut)
@@ -169,6 +176,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     }
                     return;
                 }
+            }
+
+            // Check For Permissions Filter Flags
+            if (!CanUserArchiveObject(m_userInfo.PrincipalID, inventoryItem))
+            {
+                m_log.InfoFormat(
+                            "[INVENTORY ARCHIVER]: Insufficient permissions, skipping inventory item {0} {1} at {2}",
+                            inventoryItem.Name, inventoryItem.ID, path);
+                return;
             }
 
             if (options.ContainsKey("verbose"))
@@ -244,12 +260,49 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         /// <summary>
+        /// Checks whether the user has permission to export an inventory item to an IAR.
+        /// </summary>
+        /// <param name="UserID">The user</param>
+        /// <param name="InvItem">The inventory item</param>
+        /// <returns>Whether the user is allowed to export the object to an IAR</returns>
+        private bool CanUserArchiveObject(UUID UserID, InventoryItemBase InvItem)
+        {
+            if (FilterContent == string.Empty)
+                return true;// Default To Allow Export
+
+            bool permitted = true;
+
+            bool canCopy = (InvItem.CurrentPermissions & (uint)PermissionMask.Copy) != 0;
+            bool canTransfer = (InvItem.CurrentPermissions & (uint)PermissionMask.Transfer) != 0;
+            bool canMod = (InvItem.CurrentPermissions & (uint)PermissionMask.Modify) != 0;
+
+            if (FilterContent.Contains("C") && !canCopy)
+                permitted = false;
+
+            if (FilterContent.Contains("T") && !canTransfer)
+                permitted = false;
+
+            if (FilterContent.Contains("M") && !canMod)
+                permitted = false;
+
+            return permitted;
+        }
+
+        /// <summary>
         /// Execute the inventory write request
         /// </summary>
         public void Execute(Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             if (options.ContainsKey("noassets") && (bool)options["noassets"])
                 SaveAssets = false;
+
+            // Set Permission filter if flag is set
+            if (options.ContainsKey("perm"))
+            {
+                Object temp;
+                if (options.TryGetValue("perm", out temp))
+                    FilterContent = temp.ToString().ToUpper();
+            }
 
             try
             {

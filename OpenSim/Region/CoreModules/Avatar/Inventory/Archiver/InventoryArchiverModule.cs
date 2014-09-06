@@ -439,6 +439,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         options["excludefolders"] = new List<String>();
                     ((List<String>)options["excludefolders"]).Add(v);
                 });
+            ops.Add("perm=", delegate(string v) { options["perm"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
