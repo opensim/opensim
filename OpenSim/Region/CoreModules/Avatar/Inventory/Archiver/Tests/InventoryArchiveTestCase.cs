@@ -163,13 +163,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             scene.AddInventoryItem(coaItem);            
             
             archiverModule.ArchiveInventory(
-                Guid.NewGuid(), m_uaLL1.FirstName, m_uaLL1.LastName, "/*", "hampshire", archiveWriteStream);            
+                UUID.Random(), m_uaLL1.FirstName, m_uaLL1.LastName, "/*", "hampshire", archiveWriteStream);            
             
             m_iarStreamBytes = archiveWriteStream.ToArray();
         }
         
         protected void SaveCompleted(
-            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
+            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
             Exception reportedException)
         {
             mre.Set();

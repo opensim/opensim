@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <value>
         /// Pending save completions initiated from the console
         /// </value>
-        protected List<Guid> m_pendingConsoleSaves = new List<Guid>();
+        protected List<UUID> m_pendingConsoleSaves = new List<UUID>();
 
         /// <value>
         /// All scenes that this module knows about
@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Trigger the inventory archive saved event.
         /// </summary>
         protected internal void TriggerInventoryArchiveSaved(
-            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
+            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
             Exception reportedException)
         {
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
@@ -184,13 +184,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public bool ArchiveInventory(
-             Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
+             UUID id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
         {
             return ArchiveInventory(id, firstName, lastName, invPath, pass, saveStream, new Dictionary<string, object>());
         }
 
         public bool ArchiveInventory(
-            Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream,
+            UUID id, string firstName, string lastName, string invPath, string pass, Stream saveStream,
             Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public bool ArchiveInventory(
-            Guid id, string firstName, string lastName, string invPath, string pass, string savePath,
+            UUID id, string firstName, string lastName, string invPath, string pass, string savePath,
             Dictionary<string, object> options)
         {
 //            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, savePath))
@@ -417,7 +417,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleSaveInvConsoleCommand(string module, string[] cmdparams)
         {
-            Guid id = Guid.NewGuid();
+            UUID id = UUID.Random();
 
             Dictionary<string, object> options = new Dictionary<string, object>();
 
@@ -477,7 +477,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         private void SaveInvConsoleCommandCompleted(
-            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
+            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
             Exception reportedException)
         {
             lock (m_pendingConsoleSaves)

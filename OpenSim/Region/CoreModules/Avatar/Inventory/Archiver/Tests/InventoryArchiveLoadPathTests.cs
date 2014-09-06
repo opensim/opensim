@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             mre.Reset();
             archiverModule.ArchiveInventory(
-                Guid.NewGuid(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
+                UUID.Random(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
             mre.WaitOne(60000, false);
 
             // LOAD ITEM

@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <value>
         /// ID of this request
         /// </value>
-        protected Guid m_id;
+        protected UUID m_id;
 
         /// <value>
         /// Used to collect the uuids of the assets that we need to save into the archive
@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            Guid id, InventoryArchiverModule module, Scene scene,
+            UUID id, InventoryArchiverModule module, Scene scene,
             UserAccount userInfo, string invPath, string savePath)
             : this(
                 id,
@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            Guid id, InventoryArchiverModule module, Scene scene,
+            UUID id, InventoryArchiverModule module, Scene scene,
             UserAccount userInfo, string invPath, Stream saveStream)
         {
             m_id = id;
