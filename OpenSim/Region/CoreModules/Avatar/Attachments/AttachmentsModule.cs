@@ -719,7 +719,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive,false);
                 
                 // not physical, not temporary, phaton, not volume detector
-                so.UpdatePrimFlags(rootPart.LocalId,false,false,true,false);
+                so.UpdatePrimFlags(rootPart.LocalId,false,false,true,rootPart.VolumeDetectActive);
 
                 so.HasGroupChanged = true;
                 rootPart.Rezzed = DateTime.Now;
@@ -738,7 +738,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Attach (NULL) stops scripts. We don't want that. Resume them.
             so.ResumeScripts();
-            so.ScheduleGroupForFullUpdate();
+            so.ScheduleGroupForTerseUpdate();
+            so.RootPart.ScheduleFullUpdate();
         }
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
@@ -935,6 +936,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                else
                 if (part.PhysActor != null)
                 {
+                    if(part.PhysActor.IsPhysical)
+                        so.Scene.RemovePhysicalPrim(1);
                     part.RemoveFromPhysics();
                 }
             }
