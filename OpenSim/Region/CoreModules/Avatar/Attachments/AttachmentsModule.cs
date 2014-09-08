@@ -701,27 +701,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 sp.RemoveAttachment(so);
                 so.FromItemID = UUID.Zero;
 
+                so.AttachedAvatar = UUID.Zero;
+                so.ClearPartAttachmentData();
+
                 SceneObjectPart rootPart = so.RootPart;
+
+                rootPart.SetParentLocalId(0);
                 so.AbsolutePosition = absolutePos;
                 if (absoluteRot != Quaternion.Identity)
                 {
                     so.UpdateGroupRotationR(absoluteRot);
                 }
-                so.AttachedAvatar = UUID.Zero;
-                rootPart.SetParentLocalId(0);
-                so.ClearPartAttachmentData();
 
-                rootPart.Flags &= ~PrimFlags.Phantom;
+//                rootPart.RemFlag(PrimFlags.TemporaryOnRez);
+//                rootPart.AddFlag(PrimFlags.Phantom);
+
 //                rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive,false);
-                so.ApplyPhysics();
+                
+                // not physical, not temporary, phaton, not volume detector
+                so.UpdatePrimFlags(rootPart.LocalId,false,false,true,false);
 
                 so.HasGroupChanged = true;
                 rootPart.Rezzed = DateTime.Now;
-                rootPart.RemFlag(PrimFlags.TemporaryOnRez);
                 so.AttachToBackup();
                 m_scene.EventManager.TriggerParcelPrimCountTainted();
-
-                so.ScheduleGroupForFullUpdate();
 
                 rootPart.ClearUndoState();
 
@@ -735,6 +738,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Attach (NULL) stops scripts. We don't want that. Resume them.
             so.ResumeScripts();
+            so.ScheduleGroupForFullUpdate();
         }
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
