@@ -907,10 +907,10 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
                 IsSelected = partSelect;
-                if (!IsAttachment)
-                {
-                    ScheduleGroupForFullUpdate();
-                }
+//                if (!IsAttachment)
+//                {
+//                    ScheduleGroupForFullUpdate();
+//                }
             }
         }
         // PlaySoundMasterPrim no longer in use  to remove
