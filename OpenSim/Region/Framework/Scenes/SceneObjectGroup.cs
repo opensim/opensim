@@ -1712,7 +1712,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_rootPart.SetParentLocalId(0);
             AttachmentPoint = (byte)0;
             // must check if buildind should be true or false here
-            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive,false);
+//            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive,false);
+            ApplyPhysics();
+
             HasGroupChanged = true;
             RootPart.Rezzed = DateTime.Now;
             RootPart.RemFlag(PrimFlags.TemporaryOnRez);
@@ -2879,6 +2881,33 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            // physical prims count limit
+            // not very eficient :(
+
+            if (UsesPhysics && m_scene.m_linksetPhysCapacity > 0 && (PrimCount + objectGroup.PrimCount) >
+                    m_scene.m_linksetPhysCapacity)
+            {
+                int cntr = 0;
+                foreach (SceneObjectPart part in Parts)
+                {
+                    if (part.PhysicsShapeType != (byte)PhysicsShapeType.None)
+                        cntr++;
+                }
+                foreach (SceneObjectPart part in objectGroup.Parts)
+                {
+                    if (part.PhysicsShapeType != (byte)PhysicsShapeType.None)
+                        cntr++;
+                }
+
+                if (cntr > m_scene.m_linksetPhysCapacity)
+                {
+                    // cancel physics
+                    RootPart.Flags &= ~PrimFlags.Physics;
+                    ApplyPhysics();
+                }
+            }
+
+
             // 'linkPart' == the root of the group being linked into this group
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 
@@ -3477,8 +3506,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart[] parts = m_parts.GetArray();
                 
-                if (Scene != null)
+                if (Scene != null && UsePhysics)               
                 {
+                    int maxprims = m_scene.m_linksetPhysCapacity;
+                    bool checkShape = (maxprims > 0 &&
+                             parts.Length > maxprims);
+
                     for (int i = 0; i < parts.Length; i++)
                     {
                         SceneObjectPart part = parts[i];
@@ -3488,6 +3521,15 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             UsePhysics = false; // Reset physics
                             break;
+                        }
+
+                        if (checkShape && part.PhysicsShapeType != (byte)PhysicsShapeType.None)
+                        {
+                            if (--maxprims < 0)
+                            {
+                                UsePhysics = false;
+                                break;
+                            }
                         }
                     }
                 }

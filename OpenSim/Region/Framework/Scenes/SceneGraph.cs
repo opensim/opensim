@@ -1547,6 +1547,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // VolumeDetect can't be set via UI and will always be off when a change is made there
                     // now only change volume dtc if phantom off
 
+                    bool wantedPhys = UsePhysics;
                     if (PhysData.PhysShapeType == PhysShapeType.invalid) // check for extraPhysics data
                     {
                         bool vdtc;
@@ -1563,9 +1564,16 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part != null)
                         {
                             part.UpdateExtraPhysics(PhysData);
-                            if (part.UpdatePhysRequired)
+                            if (part.UpdatePhysRequired && remoteClient != null)
                                 remoteClient.SendPartPhysicsProprieties(part);
                         }
+                    }
+
+                    if (wantedPhys != group.UsesPhysics && remoteClient != null)
+                    {
+                        remoteClient.SendAlertMessage("Object physics canceled because exceeds the limit of " +
+                            m_parentScene.m_linksetPhysCapacity + " physical prims with shape type not set to None");
+                        group.RootPart.ScheduleFullUpdate();
                     }
                 }
             }

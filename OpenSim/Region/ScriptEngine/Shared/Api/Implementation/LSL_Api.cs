@@ -1400,12 +1400,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     SceneObjectGroup group = m_host.ParentGroup;
                     bool allow = true;
 
+                    int maxprims = World.m_linksetPhysCapacity;
+                    bool checkShape = (maxprims > 0 && group.PrimCount > maxprims);
+
                     foreach (SceneObjectPart part in group.Parts)
                     {
                         if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                         {
                             allow = false;
                             break;
+                        }
+                        if (checkShape && part.PhysicsShapeType != (byte)PhysicsShapeType.None)
+                        {
+                            if (--maxprims < 0)
+                            {
+                                allow = false;
+                                break;
+                            }
                         }
                     }
 

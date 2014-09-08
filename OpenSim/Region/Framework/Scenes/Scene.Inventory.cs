@@ -2705,12 +2705,17 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            bool oldUsePhysics = (root.Flags & PrimFlags.Physics) != 0;
             m_sceneGraph.LinkObjects(root, children);
 
             ScenePresence sp;
             if (TryGetScenePresence(agentId, out sp))
             {
                 root.SendPropertiesToClient(sp.ControllingClient);
+                if (oldUsePhysics && (root.Flags & PrimFlags.Physics) == 0)
+                {
+                    sp.ControllingClient.SendAlertMessage("Object physics canceled");
+                }
             }
         }
 

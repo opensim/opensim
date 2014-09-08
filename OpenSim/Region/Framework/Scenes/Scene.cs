@@ -204,6 +204,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public int m_linksetCapacity = 0;
 
+        /// <summary>
+        /// Max prims an Physical object will hold
+        /// </summary>
+        /// 
+        public int m_linksetPhysCapacity = 5;
+
         public bool m_clampPrimSize;
         public bool m_trustBinaries;
         public bool m_allowScriptCrossings;
@@ -900,6 +906,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_linksetCapacity = RegionInfo.LinksetCapacity;
                 }
+
+                m_linksetPhysCapacity = startupConfig.GetInt("LinksetPhysPrims", m_linksetPhysCapacity);
+
 
                 SpawnPointRouting = startupConfig.GetString("SpawnPointRouting", "closest");
                 TelehubAllowLandmarks = startupConfig.GetBoolean("TelehubAllowLandmark", false);
