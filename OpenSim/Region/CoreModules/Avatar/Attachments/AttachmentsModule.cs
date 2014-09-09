@@ -920,8 +920,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             foreach (SceneObjectPart part in so.Parts)
             {
-                if (part.KeyframeMotion != null)
-                    part.KeyframeMotion.Suspend();
+//                if (part.KeyframeMotion != null)
+//                    part.KeyframeMotion.Suspend();
 
                 if (part.PhysActor != null)
                 {
