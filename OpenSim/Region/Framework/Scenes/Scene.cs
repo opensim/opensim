@@ -208,7 +208,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Max prims an Physical object will hold
         /// </summary>
         /// 
-        public int m_linksetPhysCapacity = 5;
+        public int m_linksetPhysCapacity = 0;
 
         public bool m_clampPrimSize;
         public bool m_trustBinaries;
