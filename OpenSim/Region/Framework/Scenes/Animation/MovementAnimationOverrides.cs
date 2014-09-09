@@ -80,5 +80,22 @@ namespace OpenSim.Region.Framework.Scenes
 
             return UUID.Zero;
         }
+
+        public Dictionary<string, UUID> CloneAOPairs()
+        {
+            lock (m_overrides)
+            {
+                return new Dictionary<string, UUID>(m_overrides);
+            }
+        }
+
+        public void CopyAOPairsFrom(Dictionary<string, UUID> src)
+        {
+            lock (m_overrides)
+            {
+                m_overrides.Clear();
+                m_overrides = new Dictionary<string, UUID>(src);
+            }
+        }
     }
 }

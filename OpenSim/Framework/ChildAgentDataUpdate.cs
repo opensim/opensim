@@ -349,6 +349,8 @@ namespace OpenSim.Framework
         public List<ISceneObject> AttachmentObjects;
         public List<string> AttachmentObjectStates;
 
+        public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
+
         public virtual OSDMap Pack()
         {
 //            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
@@ -415,6 +417,21 @@ namespace OpenSim.Framework
             if (AnimState != null)
             {
                 args["animation_state"] = AnimState.PackUpdateMessage();
+            }
+
+            if (MovementAnimationOverRides.Count > 0)
+            {
+                OSDArray AOs = new OSDArray(MovementAnimationOverRides.Count);
+                {
+                    foreach (KeyValuePair<string, UUID> kvp in MovementAnimationOverRides)
+                    {
+                        OSDMap ao = new OSDMap(2);
+                        ao["state"] = OSD.FromString(kvp.Key);
+                        ao["uuid"] = OSD.FromUUID(kvp.Value);
+                        AOs.Add(ao);
+                    }
+                }
+                args["movementAO"] = AOs;
             }
 
             if (Appearance != null)
@@ -637,6 +654,25 @@ namespace OpenSim.Framework
                 catch
                 {
                     AnimState = null;
+                }
+            }
+
+            MovementAnimationOverRides.Clear();
+
+            if (args["movementAO"] != null && args["movementAO"].Type == OSDType.Array)
+            {
+                OSDArray AOs = (OSDArray)(args["movementAO"]);
+                int count = AOs.Count;
+
+                for (int i = 0; i < count; i++)
+                {
+                    OSDMap ao = (OSDMap)AOs[i];
+                    if (ao["state"] != null && ao["uuid"] != null)
+                    {
+                        string state = ao["state"].AsString();
+                        UUID id = ao["uuid"].AsUUID();
+                        MovementAnimationOverRides[state] = id;
+                    }
                 }
             }
 

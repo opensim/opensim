@@ -4212,6 +4212,8 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.DefaultAnim = Animator.Animations.DefaultAnimation;
             cAgent.AnimState = Animator.Animations.ImplicitDefaultAnimation;
 
+            cAgent.MovementAnimationOverRides = Overrides.CloneAOPairs();
+
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);
         }
@@ -4282,7 +4284,9 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
 
             Animator.ResetAnimations();
-           
+
+            Overrides.CopyAOPairsFrom(cAgent.MovementAnimationOverRides);
+
             // FIXME: Why is this null check necessary?  Where are the cases where we get a null Anims object?
             if (cAgent.DefaultAnim != null)
                 Animator.Animations.SetDefaultAnimation(cAgent.DefaultAnim.AnimID, cAgent.DefaultAnim.SequenceNum, UUID.Zero);
