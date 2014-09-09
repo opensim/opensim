@@ -4845,17 +4845,24 @@ namespace OpenSim.Region.Framework.Scenes
 
             int nparts = j;
 
-            bool priv = sog.HasPrivateAttachmentPoint;
+            ControllingClient.SendEntityUpdate(rootpart, rootflag);
+
+            for (int i = 0; i < nparts; i++)
+            {
+                ControllingClient.SendEntityUpdate(parts[i], flags[i]);
+            }
+
+            if (sog.HasPrivateAttachmentPoint)
+                return;
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allPresences)
             {
-                if (p != this)
-                {
-                    if (priv ||
-                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                        continue;
-                }
+                if (p == this)
+                    continue;
+
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    continue;
 
                 p.ControllingClient.SendEntityUpdate(rootpart, rootflag);
 
@@ -4892,17 +4899,29 @@ namespace OpenSim.Region.Framework.Scenes
 
             rootpart.UpdateFlag = 0;
 
-            bool priv = sog.HasPrivateAttachmentPoint;
+            ControllingClient.SendEntityUpdate(rootpart, flag);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+                if (part == rootpart)
+                    continue;
+                ControllingClient.SendEntityUpdate(part, flag);
+                part.UpdateFlag = 0;
+            }
+
+            if (sog.HasPrivateAttachmentPoint)
+                return;
+
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allPresences)
             {
-                if (p != this)
-                {
-                    if (priv ||
-                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                        continue;
-                }
+                if (p == this)
+                    continue;
+
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    continue;
 
                 p.ControllingClient.SendEntityUpdate(rootpart, flag);
 
@@ -4941,22 +4960,24 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.UpdateFlag = 0;
 
-            bool priv = part.ParentGroup.HasPrivateAttachmentPoint;
+            ControllingClient.SendEntityUpdate(part, flag);
+
+            if (part.ParentGroup.HasPrivateAttachmentPoint)
+                return;
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allPresences)
             {
-                if (p != this)
-                {
+                if (p == this)
+                    continue;
 
-                    if (priv ||
-                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                        continue;
-                }
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    continue;
 
                 p.ControllingClient.SendEntityUpdate(part, flag);
             }
         }
+
 
         public void SendAttachmentUpdate(SceneObjectPart part, UpdateRequired UpdateFlag)
         {
@@ -4981,17 +5002,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.UpdateFlag = 0;
 
-            bool priv = part.ParentGroup.HasPrivateAttachmentPoint;
+            ControllingClient.SendEntityUpdate(part, flag);
+
+            if (part.ParentGroup.HasPrivateAttachmentPoint)
+                return;
 
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allPresences)
             {
-                if (p != this)
-                {
-                    if ( priv ||
-                        (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200))
-                        continue;
-                }
+                if (p == this)
+                    continue;
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && p.GodLevel < 200)
+                    continue;
 
                 p.ControllingClient.SendEntityUpdate(part, flag);
             }
