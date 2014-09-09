@@ -6035,6 +6035,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetAnimationOverride(string animState, UUID animID)
         {
             Overrides.SetOverride(animState, animID);
+            Animator.SendAnimPack();
         }
     }
 }

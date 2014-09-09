@@ -13494,7 +13494,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (KeyValuePair<string, string> kvp in MovementAnimationsForLSL)
             {
-                if (kvp.Value == animState)
+                if (kvp.Value.ToLower() == ((string)animState).ToLower())
                 {
                     state = kvp.Key;
                     break;
