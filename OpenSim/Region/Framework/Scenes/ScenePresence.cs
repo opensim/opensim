@@ -239,6 +239,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         public ScenePresenceAnimator Animator { get; private set; }
 
+        /// <value>
+        /// Server Side Animation Override
+        /// </value>
+        public MovementAnimationOverrides Overrides { get; private set; }
+
         /// <summary>
         /// Attachments recorded on this avatar.
         /// </summary>
@@ -967,6 +972,7 @@ namespace OpenSim.Region.Framework.Scenes
             IsLoggingIn = false;
             m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
+            Overrides = new MovementAnimationOverrides();
             PresenceType = type;
             DrawDistance = world.DefaultDrawDistance;
             RegionHandle = world.RegionInfo.RegionHandle;
@@ -6007,6 +6013,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetAnimationOverride(string animState, UUID animID)
         {
+            Overrides.SetOverride(animState, animID);
         }
     }
 }
