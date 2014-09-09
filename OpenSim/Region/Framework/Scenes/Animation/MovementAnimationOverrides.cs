@@ -57,7 +57,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (animID == UUID.Zero)
             {
-                m_overrides.Remove(state);
+                if (state == "ALL")
+                    m_overrides.Clear();
+                else
+                    m_overrides.Remove(state);
                 return;
             }
 
