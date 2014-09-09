@@ -713,13 +713,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     so.UpdateGroupRotationR(absoluteRot);
                 }
 
-//                rootPart.RemFlag(PrimFlags.TemporaryOnRez);
-//                rootPart.AddFlag(PrimFlags.Phantom);
-
-//                rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive,false);
+                rootPart.RemFlag(PrimFlags.TemporaryOnRez);
                 
                 // not physical, not temporary, phaton, not volume detector
-                so.UpdatePrimFlags(rootPart.LocalId,false,false,true,rootPart.VolumeDetectActive);
+//                so.UpdatePrimFlags(rootPart.LocalId,false,false,true,rootPart.VolumeDetectActive);
+
+                // restore full physical state instead
+                so.ApplyPhysics();
 
                 so.HasGroupChanged = true;
                 rootPart.Rezzed = DateTime.Now;
@@ -918,31 +918,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             so.AttachedAvatar = sp.UUID;
 
-//            if (so.RootPart.PhysActor != null)
-//                so.RootPart.RemoveFromPhysics();
-
             foreach (SceneObjectPart part in so.Parts)
             {
                 if (part.KeyframeMotion != null)
-                {
-                    part.KeyframeMotion.Delete();
-                    part.KeyframeMotion = null;
-                }
+                    part.KeyframeMotion.Suspend();
 
-//                if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
-//                {
-//                    PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
-//                }
-//                else
                 if (part.PhysActor != null)
                 {
-                    if(part.PhysActor.IsPhysical)
-                        so.Scene.RemovePhysicalPrim(1);
                     part.RemoveFromPhysics();
                 }
             }
-
-            so.RootPart.Flags &= ~PrimFlags.Physics;
 
             so.AbsolutePosition = attachOffset;
             so.RootPart.AttachedPos = attachOffset;
