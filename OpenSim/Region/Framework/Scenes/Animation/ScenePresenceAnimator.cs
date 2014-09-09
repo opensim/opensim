@@ -200,6 +200,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 if (overridenAnim != UUID.Zero)
                 {
                     m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
+                    SendAnimPack();
                     ret = true;
                 }
                 else if (m_animations.TrySetDefaultAnimation(
