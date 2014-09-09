@@ -908,7 +908,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 if (attachment)
                 {
-                    group.RootPart.Flags |= PrimFlags.Phantom;
+//                    group.RootPart.Flags |= PrimFlags.Phantom;
                     group.IsAttachment = true;
                 }
 
