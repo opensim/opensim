@@ -13525,25 +13525,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID animID;
-            if (animState == anim)
+
+            animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
+
+            if (animID == UUID.Zero)
             {
-                animID = UUID.Zero;
+                String animupper = ((string)anim).ToUpperInvariant();
+                DefaultAvatarAnimations.AnimsUUID.TryGetValue(animupper, out animID);
             }
-            else
+
+            if (animID == UUID.Zero)
             {
-                animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
-
-                if (animID == UUID.Zero)
-                {
-                    String animupper =  ((string)anim).ToUpperInvariant();
-                    DefaultAvatarAnimations.AnimsUUID.TryGetValue(animupper, out animID);
-                }
-
-                if (animID == UUID.Zero)
-                {
-                    llShout(ScriptBaseClass.DEBUG_CHANNEL, "Animation not found");
-                    return;
-                }
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "Animation not found");
+                return;
             }
 
             presence.SetAnimationOverride(state, animID);
