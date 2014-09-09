@@ -52,6 +52,8 @@ namespace OpenSim.Framework.Monitoring
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public int LogLevel { get; set; }
+
         public bool IsRunning { get; private set; } 
 
         /// <summary>
@@ -186,7 +188,8 @@ namespace OpenSim.Framework.Monitoring
 
         public bool QueueRequest(string name, WaitCallback req, object o)
         {
-            m_log.DebugFormat("[JOB ENGINE]: Queued job {0}", name);
+            if (LogLevel >= 1)
+                m_log.DebugFormat("[JOB ENGINE]: Queued job {0}", name);
 
             if (m_requestQueue.Count < m_requestQueue.BoundedCapacity)
             {
@@ -240,9 +243,14 @@ namespace OpenSim.Framework.Monitoring
                     //                    }
                     //                }
 
-                    m_log.DebugFormat("[JOB ENGINE]: Processing job {0}", m_currentJob.Name);
+                    if (LogLevel >= 1)
+                        m_log.DebugFormat("[JOB ENGINE]: Processing job {0}", m_currentJob.Name);
+
                     m_currentJob.Callback.Invoke(m_currentJob.O);
-                    m_log.DebugFormat("[JOB ENGINE]: Processed job {0}", m_currentJob.Name);
+
+                    if (LogLevel >= 1)
+                        m_log.DebugFormat("[JOB ENGINE]: Processed job {0}", m_currentJob.Name);
+
                     m_currentJob = null;
                 }
             }
@@ -258,9 +266,9 @@ namespace OpenSim.Framework.Monitoring
 //            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
 //                return;
 
-            if (args.Length != 3)
+            if (args.Length < 3)
             {
-                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status>");
+                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status|loglevel>");
                 return;
             }
 
@@ -282,6 +290,18 @@ namespace OpenSim.Framework.Monitoring
                 MainConsole.Instance.OutputFormat("Current job {0}", m_currentJob != null ? m_currentJob.Name : "none");
                 MainConsole.Instance.OutputFormat(
                     "Jobs waiting: {0}", IsRunning ? m_requestQueue.Count.ToString() : "n/a");
+                MainConsole.Instance.OutputFormat("Log Level: {0}", LogLevel);
+            }
+
+            else if (subCommand == "loglevel")
+            {
+//                int logLevel;
+                int logLevel = int.Parse(args[3]);
+//                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
+//                {                 
+                    LogLevel = logLevel;
+                    MainConsole.Instance.OutputFormat("Set log level to {0}", LogLevel);
+//                }
             }
             else 
             {
