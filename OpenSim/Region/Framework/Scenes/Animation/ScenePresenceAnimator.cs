@@ -196,7 +196,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //                    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
 //                    anim, m_scenePresence.Name);
 
-                if (m_animations.TrySetDefaultAnimation(
+                UUID overridenAnim = m_scenePresence.Overrides.GetOverriddenAnimation(anim);
+                if (overridenAnim != UUID.Zero)
+                {
+                    m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
+                    SendAnimPack();
+                    ret = true;
+                }
+                else if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
 //                    m_log.DebugFormat(

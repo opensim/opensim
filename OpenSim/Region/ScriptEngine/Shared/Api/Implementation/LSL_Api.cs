@@ -13508,7 +13508,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             if (m_item.PermsGranter == UUID.Zero)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
                 return;
+            }
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS) == 0)
             {
@@ -13521,11 +13524,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (presence == null)
                 return;
 
-            UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
-            if (animID == UUID.Zero)
+            UUID animID;
+            if (animState == anim)
             {
-                llShout(ScriptBaseClass.DEBUG_CHANNEL, "Animation not found");
-                return;
+                animID = UUID.Zero;
+            }
+            else if (MovementAnimationsForLSL.ContainsKey(anim))
+            {
+                animID = DefaultAvatarAnimations.AnimsUUID[MovementAnimationsForLSL[anim]];
+            }
+            else
+            {
+                animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
+                if (animID == UUID.Zero)
+                {
+                    llShout(ScriptBaseClass.DEBUG_CHANNEL, "Animation not found");
+                    return;
+                }
             }
 
             presence.SetAnimationOverride(state, animID);
