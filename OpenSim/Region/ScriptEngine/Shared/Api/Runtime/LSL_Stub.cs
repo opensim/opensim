@@ -2014,5 +2014,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llGetPhysicsMaterial();
         }
+
+        public void llSetAnimationOverride(LSL_String animState, LSL_String anim)
+        {
+            m_LSL_Functions.llSetAnimationOverride(animState, anim);
+        }
     }
 }

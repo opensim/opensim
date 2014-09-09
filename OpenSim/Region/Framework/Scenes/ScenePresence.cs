@@ -6004,5 +6004,9 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.SendAnimPackToClient(p.ControllingClient);
             SendAttachmentsToAgentNF(p);
         }
+
+        public void SetAnimationOverride(string animState, UUID animID)
+        {
+        }
     }
 }

@@ -3897,7 +3897,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
                         ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
                         ScriptBaseClass.PERMISSION_TRACK_CAMERA |
-                        ScriptBaseClass.PERMISSION_ATTACH;
+                        ScriptBaseClass.PERMISSION_ATTACH |
+                        ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS;
 
             }
             else
@@ -13485,6 +13486,49 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 m_UrlModule.HttpContentType(new UUID(id),type);
             }
+        }
+
+        public void llSetAnimationOverride(LSL_String animState, LSL_String anim)
+        {
+            string state = String.Empty;
+
+            foreach (KeyValuePair<string, string> kvp in MovementAnimationsForLSL)
+            {
+                if (kvp.Value == animState)
+                {
+                    state = kvp.Key;
+                    break;
+                }
+            }
+
+            if (state == String.Empty)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "Invalid animation state " + animState);
+                return;
+            }
+
+            if (m_item.PermsGranter == UUID.Zero)
+                return;
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS) == 0)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return;
+            }
+
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+
+            if (presence == null)
+                return;
+
+            UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
+            if (animID == UUID.Zero)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "Animation not found");
+                return;
+            }
+
+            presence.SetAnimationOverride(state, animID);
         }
     }
 
