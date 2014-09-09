@@ -13497,7 +13497,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             if (m_item.PermsGranter == UUID.Zero)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
                 return;
+            }
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS) == 0)
             {

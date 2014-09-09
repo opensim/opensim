@@ -49,6 +49,9 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class MovementAnimationOverrides
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private Dictionary<string, UUID> m_overrides = new Dictionary<string, UUID>();
         public void SetOverride(string state, UUID animID)
         {
@@ -57,6 +60,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_overrides.Remove(state);
                 return;
             }
+
+            m_log.DebugFormat("Setting override for {0} to {1}", state, animID);
 
             lock (m_overrides)
                 m_overrides[state] = animID;
