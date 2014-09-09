@@ -13529,13 +13529,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 animID = UUID.Zero;
             }
-            else if (MovementAnimationsForLSL.ContainsKey(anim))
-            {
-                animID = DefaultAvatarAnimations.AnimsUUID[MovementAnimationsForLSL[anim]];
-            }
             else
             {
                 animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
+
+                if (animID == UUID.Zero)
+                {
+                    String animupper =  ((string)anim).ToUpperInvariant();
+                    DefaultAvatarAnimations.AnimsUUID.TryGetValue(animupper, out animID);
+                }
+
                 if (animID == UUID.Zero)
                 {
                     llShout(ScriptBaseClass.DEBUG_CHANNEL, "Animation not found");
