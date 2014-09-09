@@ -13627,7 +13627,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             foreach (KeyValuePair<string, UUID> kvp in DefaultAvatarAnimations.AnimsUUID)
             {
                 if (kvp.Value == animID)
-                    return MovementAnimationsForLSL[kvp.Key];
+                    return kvp.Key.ToLower();
             }
 
             foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
