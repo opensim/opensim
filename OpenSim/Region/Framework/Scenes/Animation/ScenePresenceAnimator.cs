@@ -475,7 +475,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 string newMovementAnimation = DetermineMovementAnimation();
                 if (CurrentMovementAnimation != newMovementAnimation)
                 {
-                    CurrentMovementAnimation = DetermineMovementAnimation();
+                    CurrentMovementAnimation = newMovementAnimation;
 
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
@@ -485,6 +485,19 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     // a chance to stop a default animation
                     ret = TrySetMovementAnimation(CurrentMovementAnimation);
                 }
+            }
+            return ret;
+        }
+
+        public bool ForceUpdateMovementAnimations()
+        {
+            //            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Updating movement animations for {0}", m_scenePresence.Name);
+
+            bool ret = false;
+            lock (m_animations)
+            {
+                string newMovementAnimation = DetermineMovementAnimation();
+                ret = TrySetMovementAnimation(newMovementAnimation);
             }
             return ret;
         }

@@ -6040,7 +6040,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Overrides.SetOverride(animState, animID);
 //            Animator.SendAnimPack();
-            Animator.UpdateMovementAnimations();
+            Animator.ForceUpdateMovementAnimations();
         }
 
         public UUID GetAnimationOverride(string animState)
