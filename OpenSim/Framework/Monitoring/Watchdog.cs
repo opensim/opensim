@@ -133,6 +133,8 @@ namespace OpenSim.Framework.Monitoring
         /// /summary>
         public static event Action<ThreadWatchdogInfo> OnWatchdogTimeout;
 
+        private static JobEngine m_jobEngine;
+
         /// <summary>
         /// Is this watchdog active?
         /// </summary>
@@ -173,6 +175,7 @@ namespace OpenSim.Framework.Monitoring
 
         static Watchdog()
         {
+            m_jobEngine = new JobEngine();
             m_threads = new Dictionary<int, ThreadWatchdogInfo>();
             m_watchdogTimer = new System.Timers.Timer(WATCHDOG_INTERVAL_MS);
             m_watchdogTimer.AutoReset = false;
@@ -449,6 +452,21 @@ namespace OpenSim.Framework.Monitoring
             StatsManager.RecordStats();
 
             m_watchdogTimer.Start();
+        }
+
+        public static void RunWhenPossible(string jobType, WaitCallback callback, string name, object obj, bool log = false)
+        {
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
+            {
+                Culture.SetCurrentCulture();
+                callback(obj);
+                return;
+            }
+
+            if (m_jobEngine.IsRunning)
+                m_jobEngine.QueueRequest(name, callback, obj);
+            else
+                RunInThread(callback, name, obj, log);
         }
     }
 }

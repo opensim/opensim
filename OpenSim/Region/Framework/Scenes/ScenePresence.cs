@@ -3362,7 +3362,7 @@ namespace OpenSim.Region.Framework.Scenes
             SentInitialDataToClient = true;
 
             // Send all scene object to the new client
-            Watchdog.RunInThread(delegate
+            Watchdog.RunWhenPossible("SendInitialDataToClient", delegate
             {
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
