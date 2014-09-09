@@ -434,5 +434,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetKeyframedMotion(LSL_List frames, LSL_List options);
           LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
           LSL_List llGetPhysicsMaterial();
+          void     llSetAnimationOverride(LSL_String animState, LSL_String anim);
     }
 }
