@@ -1228,10 +1228,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
                 if (Scene.AttachmentsModule != null)
                 {
-                    Util.FireAndForget(o =>
-                    {
-                        Scene.AttachmentsModule.RezAttachments(this);
-                    });
+                    if (Watchdog.JobEngine.IsRunning)
+                        Watchdog.RunWhenPossible(
+                            "RezAttachments", 
+                            o => Scene.AttachmentsModule.RezAttachments(this), 
+                            string.Format("Rez attachments for {0} in {1}", Name, Scene.Name), 
+                            null);
+                    else
+                        Util.FireAndForget(o => Scene.AttachmentsModule.RezAttachments(this));
                 }
             }
             else
