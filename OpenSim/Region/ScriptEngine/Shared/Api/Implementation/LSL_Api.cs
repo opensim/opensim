@@ -13545,6 +13545,102 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             presence.SetAnimationOverride(state, animID);
         }
+
+        public void llResetAnimationOverride(LSL_String animState)
+        {
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+            if (presence == null)
+                return;
+
+            if (m_item.PermsGranter == UUID.Zero)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return;
+            }
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS) == 0)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return;
+            }
+
+            if (animState == "ALL")
+            {
+                presence.SetAnimationOverride("ALL", UUID.Zero);
+                return;
+            }
+                
+            string state = String.Empty;
+
+            foreach (KeyValuePair<string, string> kvp in MovementAnimationsForLSL)
+            {
+                if (kvp.Value.ToLower() == ((string)animState).ToLower())
+                {
+                    state = kvp.Key;
+                    break;
+                }
+            }
+
+            if (state == String.Empty)
+            {
+                return;
+            }
+
+            presence.SetAnimationOverride(state, UUID.Zero);
+        }
+
+        public LSL_String llGetAnimationOverride(LSL_String animState)
+        {
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+            if (presence == null)
+                return String.Empty;
+
+            if (m_item.PermsGranter == UUID.Zero)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return String.Empty;
+            }
+
+            if ((m_item.PermsMask & (ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS | ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION)) == 0)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return String.Empty;
+            }
+
+            string state = String.Empty;
+
+            foreach (KeyValuePair<string, string> kvp in MovementAnimationsForLSL)
+            {
+                if (kvp.Value.ToLower() == ((string)animState).ToLower())
+                {
+                    state = kvp.Key;
+                    break;
+                }
+            }
+
+            if (state == String.Empty)
+            {
+                return String.Empty;
+            }
+
+            UUID animID = presence.GetAnimationOverride(state);
+            if (animID == UUID.Zero)
+                return animState;
+
+            foreach (KeyValuePair<string, UUID> kvp in DefaultAvatarAnimations.AnimsUUID)
+            {
+                if (kvp.Value == animID)
+                    return MovementAnimationsForLSL[kvp.Key];
+            }
+
+            foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
+            {
+                if (item.AssetID == animID)
+                    return item.Name;
+            }
+
+            return String.Empty;
+        }
     }
 
     public class NotecardCache

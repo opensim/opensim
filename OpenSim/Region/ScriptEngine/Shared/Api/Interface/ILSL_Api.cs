@@ -435,5 +435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
           LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
           LSL_List llGetPhysicsMaterial();
           void     llSetAnimationOverride(LSL_String animState, LSL_String anim);
+              void llResetAnimationOverride(LSL_String anim_state);
+        LSL_String llGetAnimationOverride(LSL_String anim_state);
     }
 }

@@ -2019,5 +2019,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_LSL_Functions.llSetAnimationOverride(animState, anim);
         }
+
+        public void llResetAnimationOverride(LSL_String anim_state)
+        {
+            m_LSL_Functions.llResetAnimationOverride(anim_state);
+        }
+
+        public LSL_String llGetAnimationOverride(LSL_String anim_state)
+        {
+            return m_LSL_Functions.llGetAnimationOverride(anim_state);
+        }
     }
 }
