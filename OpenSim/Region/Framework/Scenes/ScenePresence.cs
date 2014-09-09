@@ -4897,7 +4897,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = sog.Parts;
             SceneObjectPart rootpart = sog.RootPart;
 
-            rootpart.UpdateFlag = 0;
+//            rootpart.UpdateFlag = 0;
 
             ControllingClient.SendEntityUpdate(rootpart, flag);
 
@@ -4907,7 +4907,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part == rootpart)
                     continue;
                 ControllingClient.SendEntityUpdate(part, flag);
-                part.UpdateFlag = 0;
+//                part.UpdateFlag = 0;
             }
 
             if (sog.HasPrivateAttachmentPoint)
@@ -4931,7 +4931,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part == rootpart)
                         continue;
                     p.ControllingClient.SendEntityUpdate(part, flag);
-                    part.UpdateFlag = 0;
                 }
             }
         }
@@ -5000,7 +4999,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            part.UpdateFlag = 0;
+//            part.UpdateFlag = 0;
 
             ControllingClient.SendEntityUpdate(part, flag);
 
