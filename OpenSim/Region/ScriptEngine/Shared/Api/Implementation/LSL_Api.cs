@@ -132,25 +132,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private Dictionary<string, string> MovementAnimationsForLSL =
                 new Dictionary<string, string> {
+                        {"CROUCH", "Crouching"},
+                        {"CROUCHWALK", "CrouchWalking"},
+                        {"FALLDOWN", "Falling Down"},
                         {"FLY", "Flying"},
                         {"FLYSLOW", "FlyingSlow"},
+                        {"HOVER", "Hovering"},
                         {"HOVER_UP", "Hovering Up"},
                         {"HOVER_DOWN", "Hovering Down"},
-                        {"HOVER", "Hovering"},
-                        {"LAND", "Landing"},
-                        {"FALLDOWN", "Falling Down"},
-                        {"PREJUMP", "PreJumping"},
                         {"JUMP", "Jumping"},
-                        {"STANDUP", "Standing Up"},
-                        {"SOFT_LAND", "Soft Landing"},
-                        {"STAND", "Standing"},
-                        {"CROUCHWALK", "CrouchWalking"},
+                        {"LAND", "Landing"},
+                        {"PREJUMP", "PreJumping"},
                         {"RUN", "Running"},
-                        {"WALK", "Walking"},
-                        {"CROUCH", "Crouching"},
+                        {"SIT","Sitting"},
+                        {"SITGROUND","Sitting on Ground"},
+                        {"STAND", "Standing"},
+                        {"STANDUP", "Standing Up"},
+                        {"STRIDE","Striding"},
+                        {"SOFT_LAND", "Soft Landing"},
                         {"TURNLEFT", "Turning Left"},
-                        {"TURNRIGHT", "Turning Right"}
+                        {"TURNRIGHT", "Turning Right"},
+                        {"WALK", "Walking"}
                 };
+
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
         private string[] HttpStandardHeaders =
@@ -4884,10 +4888,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (presence != null)
                 {
-                    if (presence.SitGround)
-                        return "Sitting on Ground";
-                    if (presence.ParentID != 0 || presence.ParentUUID != UUID.Zero)
-                        return "Sitting";
+//                    if (presence.SitGround)
+//                        return "Sitting on Ground";
+//                    if (presence.ParentID != 0 || presence.ParentUUID != UUID.Zero)
+//                        return "Sitting";
 
                     string movementAnimation = presence.Animator.CurrentMovementAnimation;
                     string lslMovementAnimation;

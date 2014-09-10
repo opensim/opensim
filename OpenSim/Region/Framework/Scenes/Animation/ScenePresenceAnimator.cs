@@ -200,21 +200,28 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 if (overridenAnim != UUID.Zero)
                 {
                     m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
-                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
+                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION });
                     SendAnimPack();
                     ret = true;
                 }
-                else if (m_animations.TrySetDefaultAnimation(
-                    anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
+                else
                 {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
-//                        anim, m_scenePresence.Name);
+                    // translate sit and sitground state animations
+                    if (anim == "SIT" || anim == "SITGROUND")
+                        anim = m_scenePresence.sitAnimation;
 
-                    // 16384 is CHANGED_ANIMATION
-                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
-                    SendAnimPack();
-                    ret = true;
+                    if (m_animations.TrySetDefaultAnimation(
+                    anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
+                    {
+                        //                    m_log.DebugFormat(
+                        //                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
+                        //                        anim, m_scenePresence.Name);
+
+                        // 16384 is CHANGED_ANIMATION
+                        m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION });
+                        SendAnimPack();
+                        ret = true;
+                    }
                 }
             }
             else
@@ -235,6 +242,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             const float PREJUMP_DELAY = 200f;
             const float JUMP_PERIOD = 800f;
             #region Inputs
+
+            if (m_scenePresence.SitGround)
+                return "SITGROUND";
+            if (m_scenePresence.ParentID != 0 || m_scenePresence.ParentUUID != UUID.Zero)
+                return "SIT";
 
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
             PhysicsActor actor = m_scenePresence.PhysicsActor;
@@ -491,15 +503,20 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public bool ForceUpdateMovementAnimations()
         {
-            //            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Updating movement animations for {0}", m_scenePresence.Name);
-
-            bool ret = false;
             lock (m_animations)
             {
-                string newMovementAnimation = DetermineMovementAnimation();
-                ret = TrySetMovementAnimation(newMovementAnimation);
+                CurrentMovementAnimation = DetermineMovementAnimation();
+                return TrySetMovementAnimation(CurrentMovementAnimation);
             }
-            return ret;
+        }
+
+        public bool SetMovementAnimations(string motionState)
+        {
+            lock (m_animations)
+            {
+                CurrentMovementAnimation = motionState;
+                return TrySetMovementAnimation(CurrentMovementAnimation);
+            }
         }
 
         public UUID[] GetAnimationArray()

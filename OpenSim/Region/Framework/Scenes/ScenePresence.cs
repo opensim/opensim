@@ -243,7 +243,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Server Side Animation Override
         /// </value>
         public MovementAnimationOverrides Overrides { get; private set; }
-
+        public String sitAnimation = "SIT";
         /// <summary>
         /// Attachments recorded on this avatar.
         /// </summary>
@@ -2779,7 +2779,11 @@ namespace OpenSim.Region.Framework.Scenes
                 SendAvatarDataToAllAgents();
             }
 
-            Animator.TrySetMovementAnimation("STAND");
+            // reset to default sitAnimation
+            sitAnimation = "SIT";
+            
+//            Animator.TrySetMovementAnimation("STAND");
+            Animator.SetMovementAnimations("STAND");
 
             TriggerScenePresenceUpdated();
         }
@@ -3058,11 +3062,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendAvatarDataToAllAgents();
 
+/*
             if(status == 3)
                 Animator.TrySetMovementAnimation("SIT_GROUND");
             else
                 Animator.TrySetMovementAnimation("SIT");
+*/
+            if (status == 3)
+                sitAnimation = "SIT_GROUND";
+            else
+                sitAnimation = "SIT";
 
+            Animator.SetMovementAnimations("SIT");
 
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
@@ -3164,12 +3175,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SendAvatarDataToAllAgents();
 
-                String sitAnimation = "SIT";
+                sitAnimation = "SIT";
                 if (!String.IsNullOrEmpty(part.SitAnimation))
                 {
                     sitAnimation = part.SitAnimation;
                 }
-                Animator.TrySetMovementAnimation(sitAnimation);
+//                Animator.TrySetMovementAnimation(sitAnimation);
+                Animator.SetMovementAnimations("SIT");
                 TriggerScenePresenceUpdated();
             }
         }
@@ -3181,10 +3193,14 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick..
             m_AngularVelocity = Vector3.Zero;
-            Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-            TriggerScenePresenceUpdated();
+            sitAnimation = "SIT_GROUND_CONSTRAINED";
+//            Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+//            TriggerScenePresenceUpdated();
             SitGround = true;
             RemoveFromPhysicalScene();
+
+            Animator.SetMovementAnimations("SITGROUND");
+            TriggerScenePresenceUpdated();
         }
 
         /// <summary>
