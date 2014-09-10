@@ -4982,7 +4982,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public LandData GetLandData(float x, float y)
         {
-            return LandChannel.GetLandObject(x, y).LandData;
+            ILandObject parcel = LandChannel.GetLandObject(x, y);
+            if (parcel == null)
+                return null;
+            return parcel.LandData;
         }
 
         /// <summary>
@@ -4998,7 +5001,10 @@ namespace OpenSim.Region.Framework.Scenes
         public LandData GetLandData(uint x, uint y)
         {
             m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
-            return LandChannel.GetLandObject((int)x, (int)y).LandData;
+            ILandObject parcel = LandChannel.GetLandObject((int)x, (int)y);
+            if (parcel == null)
+                return null;
+            return parcel.LandData;
         }
 
         #endregion
