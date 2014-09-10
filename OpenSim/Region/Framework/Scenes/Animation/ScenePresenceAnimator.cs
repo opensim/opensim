@@ -181,12 +181,19 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             m_animations.Clear();
         }
-        
+
+
+        UUID aoSitGndAnim = UUID.Zero;
+
         /// <summary>
         /// The movement animation is reserved for "main" animations
         /// that are mutually exclusive, e.g. flying and sitting.
         /// </summary>
         /// <returns>'true' if the animation was updated</returns>
+        /// 
+
+
+
         public bool TrySetMovementAnimation(string anim)
         {
             bool ret = false;
@@ -196,10 +203,28 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //                    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
 //                    anim, m_scenePresence.Name);
 
+                if (aoSitGndAnim != UUID.Zero)
+                {
+                    avnChangeAnim(aoSitGndAnim, false, false);
+                    aoSitGndAnim = UUID.Zero;
+                }
+
                 UUID overridenAnim = m_scenePresence.Overrides.GetOverriddenAnimation(anim);
                 if (overridenAnim != UUID.Zero)
                 {
-                    m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                    if (anim == "SITGROUND")
+                    {
+                        UUID defsit = DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"];
+                        if (defsit == UUID.Zero)
+                            return false;
+                        m_animations.SetDefaultAnimation(defsit, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                        aoSitGndAnim = overridenAnim;
+                        avnChangeAnim(overridenAnim, true, false);
+                    }
+                    else
+                    {
+                        m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                    }
                     m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION });
                     SendAnimPack();
                     ret = true;
