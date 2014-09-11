@@ -1589,20 +1589,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
         {
-            byte[] data = new byte[16];
-            int pos = 0;
+            byte[] data;
 
-            // The flags don't like conversion from uint to byte, so we have to do
-            // it the crappy way.  See the above function :(
+            if (pTexAnim.Flags == Primitive.TextureAnimMode.ANIM_OFF)
+            {
+                data = Utils.EmptyBytes;
+            }
+            else
+            {
+                data = new byte[16];
+                int pos = 0;
 
-            data[pos] = ConvertScriptUintToByte((uint)pTexAnim.Flags); pos++;
-            data[pos] = (byte)pTexAnim.Face; pos++;
-            data[pos] = (byte)pTexAnim.SizeX; pos++;
-            data[pos] = (byte)pTexAnim.SizeY; pos++;
+                // The flags don't like conversion from uint to byte, so we have to do
+                // it the crappy way.  See the above function :(
 
-            Utils.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
-            Utils.FloatToBytes(pTexAnim.Length).CopyTo(data, pos + 4);
-            Utils.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
+                data[pos] = ConvertScriptUintToByte((uint)pTexAnim.Flags); pos++;
+                data[pos] = (byte)pTexAnim.Face; pos++;
+                data[pos] = (byte)pTexAnim.SizeX; pos++;
+                data[pos] = (byte)pTexAnim.SizeY; pos++;
+
+                Utils.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
+                Utils.FloatToBytes(pTexAnim.Length).CopyTo(data, pos + 4);
+                Utils.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
+            }
 
             m_TextureAnimation = data;
         }
