@@ -2002,6 +2002,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             IClientAPI client = null;
+            bool createNew = false;
 
             // We currently synchronize this code across the whole scene to avoid issues such as
             // http://opensimulator.org/mantis/view.php?id=5365  However, once locking per agent circuit can be done
@@ -2009,6 +2010,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (this)
             {
                 if (!m_scene.TryGetClient(agentID, out client))
+                {
+                    createNew = true;
+                }
+                else
+                {
+                    if (client.SceneAgent == null)
+                    {
+                        m_scene.CloseAgent(agentID, true);
+                        createNew = true;
+                    }
+                }
+
+                if (createNew)
                 {
                     LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
     
