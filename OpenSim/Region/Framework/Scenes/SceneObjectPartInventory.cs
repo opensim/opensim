@@ -46,10 +46,10 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_inventoryFileName = String.Empty;
         private byte[] m_inventoryFileData = new byte[0];
         private uint m_inventoryFileNameSerial = 0;
         private bool m_inventoryPrivileged = false;
+        private object m_inventoryFileLock = new object();
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
         
@@ -1110,23 +1110,6 @@ namespace OpenSim.Region.Framework.Scenes
             return -1;
         }
 
-        private bool CreateInventoryFileName()
-        {
-//            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: Creating inventory file for {0} {1} {2}, serial {3}",
-//                m_part.Name, m_part.UUID, m_part.LocalId, m_inventorySerial);
-
-            if (m_inventoryFileName == String.Empty ||
-                m_inventoryFileNameSerial < m_inventorySerial)
-            {
-                m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
-                m_inventoryFileNameSerial = m_inventorySerial;
-
-                return true;
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Serialize all the metadata for the items in this prim's inventory ready for sending to the client
@@ -1134,110 +1117,122 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            bool changed = CreateInventoryFileName();
 
-            bool includeAssets = false;
-            if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
-                includeAssets = true;
-
-            if (m_inventoryPrivileged != includeAssets)
-                changed = true;
-
-            InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
-
-            Items.LockItemsForRead(true);
-
-            if (m_inventorySerial == 0) // No inventory
+            lock (m_inventoryFileLock)
             {
-                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
-                Items.LockItemsForRead(false);
-                return;
-            }
+                string filename = "inventory_" + UUID.Random().ToString() + ".tmp";
 
-			if (m_items.Count == 0) // No inventory
-			{
-				client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
-                Items.LockItemsForRead(false);
-				return;
-			}
-    
-            if (!changed)
-            {
-                if (m_inventoryFileData.Length > 2)
+                bool changed = false;
+                if (m_inventoryFileNameSerial < m_inventorySerial)
                 {
-                    xferManager.AddNewFile(m_inventoryFileName,
+                    m_inventoryFileNameSerial = m_inventorySerial;
+                    changed = true;
+                }
+
+                if (m_inventoryFileData.Length < 2)
+                    changed = true;
+
+                bool includeAssets = false;
+                if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
+                    includeAssets = true;
+
+                if (m_inventoryPrivileged != includeAssets)
+                    changed = true;
+
+
+                Items.LockItemsForRead(true);
+
+                if (m_inventorySerial == 0) // No inventory
+                {
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    Items.LockItemsForRead(false);
+                    return;
+                }
+
+                if (m_items.Count == 0) // No inventory
+                {
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    Items.LockItemsForRead(false);
+                    return;
+                }
+
+                if (!changed)
+                {
+                    xferManager.AddNewFile(filename,
                             m_inventoryFileData);
-                    client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                            Util.StringToBytes256(m_inventoryFileName));
+                    client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,
+                            Util.StringToBytes256(filename));
 
                     Items.LockItemsForRead(false);
                     return;
                 }
+
+                m_inventoryPrivileged = includeAssets;
+
+                InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
+
+                foreach (TaskInventoryItem item in m_items.Values)
+                {
+                    UUID ownerID = item.OwnerID;
+                    uint everyoneMask = 0;
+                    uint baseMask = item.BasePermissions;
+                    uint ownerMask = item.CurrentPermissions;
+                    uint groupMask = item.GroupPermissions;
+
+                    invString.AddItemStart();
+                    invString.AddNameValueLine("item_id", item.ItemID.ToString());
+                    invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
+
+                    invString.AddPermissionsStart();
+
+                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
+                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
+                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
+                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
+                    invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
+
+                    invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
+                    invString.AddNameValueLine("owner_id", ownerID.ToString());
+
+                    invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
+
+                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    invString.AddSectionEnd();
+
+                    if (includeAssets)
+                        invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                    else
+                        invString.AddNameValueLine("asset_id", UUID.Zero.ToString());
+                    invString.AddNameValueLine("type", Utils.AssetTypeToString((AssetType)item.Type));
+                    invString.AddNameValueLine("inv_type", Utils.InventoryTypeToString((InventoryType)item.InvType));
+                    invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
+
+                    invString.AddSaleStart();
+                    invString.AddNameValueLine("sale_type", "not");
+                    invString.AddNameValueLine("sale_price", "0");
+                    invString.AddSectionEnd();
+
+                    invString.AddNameValueLine("name", item.Name + "|");
+                    invString.AddNameValueLine("desc", item.Description + "|");
+
+                    invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
+                    invString.AddSectionEnd();
+                }
+
+                Items.LockItemsForRead(false);
+
+                m_inventoryFileData = Utils.StringToBytes(invString.BuildString);
+
+                if (m_inventoryFileData.Length > 2)
+                {
+                    xferManager.AddNewFile(filename, m_inventoryFileData);
+                    client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,
+                            Util.StringToBytes256(filename));
+                    return;
+                }
+
+                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
             }
-
-            m_inventoryPrivileged = includeAssets;
-
-            foreach (TaskInventoryItem item in m_items.Values)
-            {
-                UUID ownerID = item.OwnerID;
-                uint everyoneMask = 0;
-                uint baseMask = item.BasePermissions;
-                uint ownerMask = item.CurrentPermissions;
-                uint groupMask = item.GroupPermissions;
-
-                invString.AddItemStart();
-                invString.AddNameValueLine("item_id", item.ItemID.ToString());
-                invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
-
-                invString.AddPermissionsStart();
-
-                invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
-                invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
-                invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
-                invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
-                invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
-
-                invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                invString.AddNameValueLine("owner_id", ownerID.ToString());
-
-                invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
-
-                invString.AddNameValueLine("group_id", item.GroupID.ToString());
-                invString.AddSectionEnd();
-
-                if (includeAssets)
-                    invString.AddNameValueLine("asset_id", item.AssetID.ToString());
-                else
-                    invString.AddNameValueLine("asset_id", UUID.Zero.ToString());
-                invString.AddNameValueLine("type", Utils.AssetTypeToString((AssetType)item.Type));
-                invString.AddNameValueLine("inv_type", Utils.InventoryTypeToString((InventoryType)item.InvType));
-                invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
-
-                invString.AddSaleStart();
-                invString.AddNameValueLine("sale_type", "not");
-                invString.AddNameValueLine("sale_price", "0");
-                invString.AddSectionEnd();
-
-                invString.AddNameValueLine("name", item.Name + "|");
-                invString.AddNameValueLine("desc", item.Description + "|");
-
-                invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
-                invString.AddSectionEnd();
-            }
-
-            Items.LockItemsForRead(false);
-
-            m_inventoryFileData = Utils.StringToBytes(invString.BuildString);
-
-            if (m_inventoryFileData.Length > 2)
-            {
-                xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
-				client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-						Util.StringToBytes256(m_inventoryFileName));
-				return;
-            }
-
-			client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
         }
 
         /// <summary>
