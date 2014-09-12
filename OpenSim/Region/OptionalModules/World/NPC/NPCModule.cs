@@ -234,6 +234,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(agentID, out sp))
                     {
+                        if (sp.IsSatOnObject || sp.SitGround)
+                            return false;
+
 //                        m_log.DebugFormat(
 //                                "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
 //                                sp.Name, pos, scene.RegionInfo.RegionName,
