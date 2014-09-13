@@ -308,8 +308,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
 
-        private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
-
+//        private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
+        private Dictionary<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new Dictionary<IPEndPoint, Queue<UDPPacketBuffer>>();
         /// <summary>
         /// Event used to signal when queued packets are available for sending.
         /// </summary>
@@ -1416,10 +1416,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // And if there is a UseCircuitCode pending, also drop it
                     lock (m_pendingCache)
                     {
-                        if (m_pendingCache.Contains(endPoint))
+//                        if (m_pendingCache.Contains(endPoint))
+                        if (m_pendingCache.ContainsKey(endPoint))
                             return;
 
-                        m_pendingCache.AddOrUpdate(endPoint, new Queue<UDPPacketBuffer>(), 60);
+//                        m_pendingCache.AddOrUpdate(endPoint, new Queue<UDPPacketBuffer>(), 60);
+                        m_pendingCache.Add(endPoint, new Queue<UDPPacketBuffer>());
                     }
 
                     // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
@@ -1765,10 +1767,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             uccp.CircuitCode.SessionID,
                             endPoint,
                             sessionInfo);
-
-                    // Now we know we can handle more data
-                    Thread.Sleep(200);
-
+ 
                     // Obtain the pending queue and remove it from the cache
                     Queue<UDPPacketBuffer> queue = null;
 
@@ -1786,13 +1785,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.DebugFormat("[LLUDPSERVER]: Client created, processing pending queue, {0} entries", queue.Count);
 
                     // Reinject queued packets
-                    while (queue.Count > 0)
+                    if (queue != null)
                     {
-                        UDPPacketBuffer buf = queue.Dequeue();
-                        PacketReceived(buf);
-                    }
+                        while (queue.Count > 0)
+                        {
+                            UDPPacketBuffer buf = queue.Dequeue();
+                            PacketReceived(buf);
+                        }
 
-                    queue = null;
+                        queue = null;
+                    }
 
                     // Send ack straight away to let the viewer know that the connection is active.
                     // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
@@ -1815,6 +1817,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.WarnFormat(
                         "[LLUDPSERVER]: Ignoring connection request for {0} to {1} with unknown circuit code {2} from IP {3}",
                         uccp.CircuitCode.ID, m_scene.RegionInfo.RegionName, uccp.CircuitCode.Code, endPoint);
+
                     lock (m_pendingCache)
                         m_pendingCache.Remove(endPoint);
                 }    
@@ -1825,6 +1828,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception e)
             {
+                // this may already be done.. or not..
+                lock (m_pendingCache)
+                    m_pendingCache.Remove(endPoint);
+
                 m_log.ErrorFormat(
                     "[LLUDPSERVER]: UseCircuitCode handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
                     endPoint != null ? endPoint.ToString() : "n/a",
@@ -2058,11 +2065,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "[LLUDPSERVER]: No packets received from {0} agent of {1} for {2}ms in {3}.  Disconnecting.",
                     client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, timeoutTicks, m_scene.Name);
     
-                if (!client.SceneAgent.IsChildAgent)
+                if (client.SceneAgent != null && !client.SceneAgent.IsChildAgent)
                      client.Kick("Simulator logged you out due to connection timeout.");
             }
 
-            m_scene.CloseAgent(client.AgentId, true);
+            if (!m_scene.CloseAgent(client.AgentId, true))
+                client.Close(true,true);
         }
 
         private void IncomingPacketHandler()
