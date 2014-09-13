@@ -42,10 +42,10 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <param name="invPath">The inventory path saved</param>
     /// <param name="savePath">The stream to which the archive was saved</param>
     /// <param name="reportedException">Contains the exception generated if the save did not succeed</param>
-    /// <param name="SaveCount">Number of inventory items saved to archive</param>
-    /// <param name="FilterCount">Number of inventory items skipped due to perm filter option</param>
+    /// <param name="saveCount">Number of inventory items saved to archive</param>
+    /// <param name="filterCount">Number of inventory items skipped due to perm filter option</param>
     public delegate void InventoryArchiveSaved(
-        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, Exception reportedException, int SaveCount, int FilterCount);
+        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, Exception reportedException, int saveCount, int filterCount);
 
     /// <summary>
     /// Used for the OnInventoryArchiveLoaded event.
@@ -56,9 +56,9 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <param name="invPath">The inventory path loaded</param>
     /// <param name="savePath">The stream from which the archive was loaded</param>
     /// <param name="reportedException">Contains the exception generated if the load did not succeed</param>
-    /// <param name="LoadCount">Number of inventory items loaded from archive</param>
+    /// <param name="loadCount">Number of inventory items loaded from archive</param>
     public delegate void InventoryArchiveLoaded(
-        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream loadStream, Exception reportedException, int LoadCount);
+        UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream loadStream, Exception reportedException, int loadCount);
 
 
     public interface IInventoryArchiverModule

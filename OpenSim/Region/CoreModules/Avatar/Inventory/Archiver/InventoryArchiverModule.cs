@@ -141,7 +141,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     + "-e|--exclude=<name/uuid> don't save the inventory item in archive" + Environment.NewLine
                     + "-f|--excludefolder=<folder/uuid> don't save contents of the folder in archive" + Environment.NewLine
                     + "-v|--verbose extra debug messages.\n"
-                    + "--noassets stops assets being saved to the IAR.",
+                    + "--noassets stops assets being saved to the IAR."
+                    + "--perm=<permissions> stops items with insufficient permissions from being saved to the IAR.\n"
+                    + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer, \"M\" = Modify.\n",
                     HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
@@ -455,7 +457,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         options["excludefolders"] = new List<String>();
                     ((List<String>)options["excludefolders"]).Add(v);
                 });
-            ops.Add("perm=", delegate(string v) { options["perm"] = v; });
+            ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 

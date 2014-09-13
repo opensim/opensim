@@ -57,7 +57,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public bool SaveAssets { get; set; }
 
         /// <summary>
-        /// Determine whether this archive will filter content based on inventory permissions.  Default is false
+        /// Determines which items will be included in the archive, according to their permissions.
+        /// Default is null, meaning no permission checks.
         /// </summary>
         public string FilterContent { get; set; }
 
@@ -139,7 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer = new UuidGatherer(m_scene.AssetService);
 
             SaveAssets = true;
-            FilterContent = string.Empty;
+            FilterContent = null;
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut)
@@ -287,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns>Whether the user is allowed to export the object to an IAR</returns>
         private bool CanUserArchiveObject(UUID UserID, InventoryItemBase InvItem)
         {
-            if (FilterContent == string.Empty)
+            if (FilterContent == null)
                 return true;// Default To Allow Export
 
             bool permitted = true;
@@ -317,10 +318,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 SaveAssets = false;
 
             // Set Permission filter if flag is set
-            if (options.ContainsKey("perm"))
+            if (options.ContainsKey("checkPermissions"))
             {
                 Object temp;
-                if (options.TryGetValue("perm", out temp))
+                if (options.TryGetValue("checkPermissions", out temp))
                     FilterContent = temp.ToString().ToUpper();
             }
 
