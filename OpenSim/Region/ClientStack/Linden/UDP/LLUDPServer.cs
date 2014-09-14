@@ -2063,7 +2063,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                      client.Kick("Simulator logged you out due to connection timeout.");
             }
 
-            m_scene.CloseAgent(client.AgentId, true);
+            if (!m_scene.CloseAgent(client.AgentId, true))
+                client.Close(true,true);
         }
 
         private void IncomingPacketHandler()
