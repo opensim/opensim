@@ -4743,6 +4743,18 @@ namespace OpenSim.Region.Framework.Scenes
     
                 if (sp == null)
                 {
+                    // If there is no scene presence, we may be handling a dead
+                    // client. These can keep an avatar from reentering a region
+                    // and since they don't get cleaned up they will stick
+                    // around until region restart. So, if there is no SP,
+                    // remove the client as well.
+                    IClientAPI client = null;
+                    if (m_clientManager.TryGetValue(agentID, out client))
+                    {
+                        m_clientManager.Remove(agentID);
+                        m_log.DebugFormat( "[SCENE]: Dead client for agent ID {0} was cleaned up in {1}", agentID, Name);
+                        return true;
+                    }
                     m_log.DebugFormat(
                         "[SCENE]: Called CloseClient() with agent ID {0} but no such presence is in {1}", 
                         agentID, Name);
