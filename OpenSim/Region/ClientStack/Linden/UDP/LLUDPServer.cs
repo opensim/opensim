@@ -2055,12 +2055,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {    
                 ClientLogoutsDueToNoReceives++;
 
-                m_log.WarnFormat(
-                    "[LLUDPSERVER]: No packets received from {0} agent of {1} for {2}ms in {3}.  Disconnecting.",
-                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, timeoutTicks, m_scene.Name);
+                if (client.SceneAgent != null)
+                {
+                    m_log.WarnFormat(
+                        "[LLUDPSERVER]: No packets received from {0} agent of {1} for {2}ms in {3}.  Disconnecting.",
+                        client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, timeoutTicks, m_scene.Name);
     
-                if (client.SceneAgent != null && !client.SceneAgent.IsChildAgent)
-                     client.Kick("Simulator logged you out due to connection timeout.");
+                    if (!client.SceneAgent.IsChildAgent)
+                         client.Kick("Simulator logged you out due to connection timeout.");
+                }
             }
 
             if (!m_scene.CloseAgent(client.AgentId, true))
