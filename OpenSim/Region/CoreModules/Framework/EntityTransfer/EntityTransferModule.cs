@@ -868,6 +868,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Let's send a full update of the agent. This is a synchronous call.
             AgentData agent = new AgentData();
             sp.CopyTo(agent);
+
+            if ((teleportFlags & (uint)TeleportFlags.IsFlying) != 0)
+                agent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+
             agent.Position = agentCircuit.startpos;
             SetCallbackURL(agent, sp.Scene.RegionInfo);
 
@@ -1109,6 +1113,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             AgentData agent = new AgentData();
             sp.CopyTo(agent);
             agent.Position = agentCircuit.startpos;
+
+            if ((teleportFlags & (uint)TeleportFlags.IsFlying) != 0)
+                agent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+
             agent.SenderWantsToWaitForRoot = true;
             //SetCallbackURL(agent, sp.Scene.RegionInfo);
 

@@ -4268,10 +4268,11 @@ namespace OpenSim.Region.Framework.Scenes
                 GodLevel = cAgent.GodLevel;
             SetAlwaysRun = cAgent.AlwaysRun;
 
+            bool isFlying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0); 
+
             Appearance = new AvatarAppearance(cAgent.Appearance);
             if (PhysicsActor != null)
             {
-                bool isFlying = Flying;
                 RemoveFromPhysicalScene();
                 AddToPhysicalScene(isFlying);
             }
