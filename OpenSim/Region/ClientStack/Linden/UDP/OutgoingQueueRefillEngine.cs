@@ -217,6 +217,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ProcessRequests()
         {
+            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
             try
             {
                 while (IsRunning || m_requestQueue.Count > 0)
