@@ -1452,6 +1452,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                Thread.CurrentThread.Priority = ThreadPriority.Highest;
                 Update(-1);
                 Watchdog.RemoveThread();
                 m_isRunning = false;
