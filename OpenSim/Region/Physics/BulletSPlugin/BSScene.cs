@@ -838,6 +838,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public void BulletSPluginPhysicsThread()
     {
+        Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
         while (m_initialized)
         {
             int beginSimulationRealtimeMS = Util.EnvironmentTickCount();
