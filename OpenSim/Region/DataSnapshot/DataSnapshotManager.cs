@@ -391,6 +391,7 @@ namespace OpenSim.Region.DataSnapshot
                 {
                     m_log.Warn("[DATASNAPSHOT]: Ignoring unknown exception " + e.ToString());
                 }
+
                 byte[] response = new byte[1024];
                 // int n = 0;
                 try
@@ -405,6 +406,9 @@ namespace OpenSim.Region.DataSnapshot
                 // This is not quite working, so...
                 // string responseStr = Util.UTF8.GetString(response);
                 m_log.Info("[DATASNAPSHOT]: data service " + url + " notified. Secret: " + m_Secret);
+
+                if(reply != null)
+                    reply.Close();
             }
 
         }
