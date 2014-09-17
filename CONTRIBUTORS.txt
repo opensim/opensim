@@ -90,6 +90,7 @@ what it is today.
 * DoranZemlja
 * dr0b3rts
 * dslake
+* eeyore
 * FredoChaplin
 * Garmin Kawaguichi
 * Gerhard
