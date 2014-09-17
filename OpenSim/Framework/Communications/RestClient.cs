@@ -329,14 +329,15 @@ namespace OpenSim.Framework.Communications
                     return null;
                 }
 
-                Stream src = _response.GetResponseStream();
-                int length = src.Read(_readbuf, 0, BufferSize);
-                while (length > 0)
+                using (Stream src = _response.GetResponseStream())
                 {
-                    _resource.Write(_readbuf, 0, length);
-                    length = src.Read(_readbuf, 0, BufferSize);
+                    int length = src.Read(_readbuf, 0, BufferSize);
+                    while (length > 0)
+                    {
+                        _resource.Write(_readbuf, 0, length);
+                        length = src.Read(_readbuf, 0, BufferSize);
+                    }
                 }
-
 
                 // TODO! Implement timeout, without killing the server
                 // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
@@ -372,16 +373,19 @@ namespace OpenSim.Framework.Communications
             m_log.InfoFormat("[REST]: Sending Web Request {0}", buildUri());
             src.Seek(0, SeekOrigin.Begin);
             m_log.Info("[REST]: Seek is ok");
-            Stream dst = _request.GetRequestStream();
-            m_log.Info("[REST]: GetRequestStream is ok");
 
-            byte[] buf = new byte[1024];
-            int length = src.Read(buf, 0, 1024);
-            m_log.Info("[REST]: First Read is ok");
-            while (length > 0)
+            using (Stream dst = _request.GetRequestStream())
             {
-                dst.Write(buf, 0, length);
-                length = src.Read(buf, 0, 1024);
+                m_log.Info("[REST]: GetRequestStream is ok");
+
+                byte[] buf = new byte[1024];
+                int length = src.Read(buf, 0, 1024);
+                m_log.Info("[REST]: First Read is ok");
+                while (length > 0)
+                {
+                    dst.Write(buf, 0, length);
+                    length = src.Read(buf, 0, 1024);
+                }
             }
 
             _response = (HttpWebResponse) _request.GetResponse();
