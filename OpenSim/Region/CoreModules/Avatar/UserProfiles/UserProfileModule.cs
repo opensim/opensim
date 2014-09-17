@@ -1239,19 +1239,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 return false;
             }
 
-            Stream rstream = webResponse.GetResponseStream();
-              
             OSDMap mret = new OSDMap();
-            try
+
+            using (Stream rstream = webResponse.GetResponseStream())
             {
-                mret = (OSDMap)OSDParser.DeserializeJson(rstream);
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                return false;
+                try
+                {
+                    mret = (OSDMap)OSDParser.DeserializeJson(rstream);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
+                    if (webResponse != null)
+                        webResponse.Close();
+                    return false;
+                }
             }
 
+            if (webResponse != null)
+                webResponse.Close();
 
             if (mret.ContainsKey("error"))
                 return false;
@@ -1315,18 +1321,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 return false;
             }
 
-            Stream rstream = webResponse.GetResponseStream();
-
             OSDMap response = new OSDMap();
-            try
+
+            using (Stream rstream = webResponse.GetResponseStream())
             {
-                response = (OSDMap)OSDParser.DeserializeJson(rstream);
+                try
+                {
+                    response = (OSDMap)OSDParser.DeserializeJson(rstream);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
+                    if (webResponse != null)
+                        webResponse.Close();
+                    return false;
+                }
             }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                return false;
-            }
+
+            if (webResponse != null)
+                webResponse.Close();
 
             if(response.ContainsKey("error"))
             {
