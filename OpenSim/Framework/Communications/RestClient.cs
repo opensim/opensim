@@ -326,6 +326,9 @@ namespace OpenSim.Framework.Communications
                         m_log.Debug(e.ToString());
                     }
 
+                    if (_response != null)
+                        _response.Close();
+
                     return null;
                 }
 
@@ -389,6 +392,9 @@ namespace OpenSim.Framework.Communications
             }
 
             _response = (HttpWebResponse) _request.GetResponse();
+
+            if (_response != null)
+                _response.Close();
 
 //            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
 
