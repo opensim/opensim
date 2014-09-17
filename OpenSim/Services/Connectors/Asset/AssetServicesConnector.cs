@@ -284,9 +284,11 @@ namespace OpenSim.Services.Connectors
                 byte[] ret = new byte[s.Length];
                 s.Read(ret, 0, (int)s.Length);
 
+                s.Close();
                 return ret;
             }
 
+            s.Close();
             return null;
         }
 
@@ -325,13 +327,16 @@ namespace OpenSim.Services.Connectors
                             handlers = m_AssetHandlers[id];
                             m_AssetHandlers.Remove(id);
                         }
+
                         foreach (AssetRetrievedEx h in handlers)
                         {
                             Util.FireAndForget(x =>
                             {
-                                h.Invoke(a);
+                                try { h.Invoke(a); }
+                                catch { }
                             });
                         }
+
                         if (handlers != null)
                             handlers.Clear();
                     
