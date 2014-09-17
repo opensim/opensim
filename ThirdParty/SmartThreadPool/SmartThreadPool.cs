@@ -677,6 +677,7 @@ namespace Amib.Threading
                         : new Thread(ProcessQueuedItems);
 #endif
 					// Configure the new thread and start it
+					workerThread.Name = "STP " + Name + " Thread #" + _threadCounter;
                     workerThread.IsBackground = _stpStartInfo.AreThreadsBackground;
 
 #if !(_SILVERLIGHT) && !(_WINDOWS_CE) && !(WINDOWS_PHONE)
@@ -690,7 +691,6 @@ namespace Amib.Threading
                     workerThread.Priority = _stpStartInfo.ThreadPriority;
 #endif
                     workerThread.Start();
-                    workerThread.Name = string.Format("STP:{0}:{1}", Name, _threadCounter);
 					++_threadCounter;
 
                     // Add it to the dictionary and update its creation time.
