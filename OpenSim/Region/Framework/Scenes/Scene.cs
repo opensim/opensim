@@ -1080,7 +1080,6 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
-            Thread.CurrentThread.Name = string.Format ("Scene:{0}", regInfo.RegionName.Replace(" ", "_"));
         }
 
         public Scene(RegionInfo regInfo, PhysicsScene physicsScene) : base(regInfo)
