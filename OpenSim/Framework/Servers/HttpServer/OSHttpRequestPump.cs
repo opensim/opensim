@@ -70,9 +70,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             _id = id;
 
             _engine = new Thread(new ThreadStart(Engine));
-            _engine.Name = EngineID;
             _engine.IsBackground = true;
             _engine.Start();
+            _engine.Name = string.Format ("Engine:{0}",EngineID);
 
             ThreadTracker.Add(_engine);
         }
@@ -91,9 +91,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void Start()
         {
             _engine = new Thread(new ThreadStart(Engine));
-            _engine.Name = EngineID;
             _engine.IsBackground = true;
             _engine.Start();
+            _engine.Name = string.Format ("Engine:{0}",EngineID);
 
             ThreadTracker.Add(_engine);
         }

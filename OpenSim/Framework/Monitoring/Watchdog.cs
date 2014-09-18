@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Monitoring
             /// </summary>
             public Stat Stat { get; set; }
 
-            public ThreadWatchdogInfo(Thread thread, int timeout)
+            public ThreadWatchdogInfo(Thread thread, int timeout, string name)
             {
                 Thread = thread;
                 Timeout = timeout;
@@ -96,8 +96,8 @@ namespace OpenSim.Framework.Monitoring
 
                 Stat 
                     = new Stat(
-                        thread.Name,
-                        string.Format("Last update of thread {0}", thread.Name),
+                        name,
+                        string.Format("Last update of thread {0}", name),
                         "",
                         "ms",
                         "server",
@@ -216,12 +216,11 @@ namespace OpenSim.Framework.Monitoring
             bool alarmIfTimeout, Func<string> alarmMethod, int timeout, bool log = true)
         {
             Thread thread = new Thread(start);
-            thread.Name = name;
             thread.Priority = priority;
             thread.IsBackground = isBackground;
             
             ThreadWatchdogInfo twi
-                = new ThreadWatchdogInfo(thread, timeout)
+                = new ThreadWatchdogInfo(thread, timeout, name)
                     { AlarmIfTimeout = alarmIfTimeout, AlarmMethod = alarmMethod };
 
             if (log)
@@ -230,8 +229,10 @@ namespace OpenSim.Framework.Monitoring
 
             lock (m_threads)
                 m_threads.Add(twi.Thread.ManagedThreadId, twi);
-
+            
             thread.Start();
+            thread.Name = name;
+
 
             return thread;
         }
