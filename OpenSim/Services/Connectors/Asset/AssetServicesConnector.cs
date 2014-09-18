@@ -328,17 +328,24 @@ namespace OpenSim.Services.Connectors
                             m_AssetHandlers.Remove(id);
                         }
 
-                        foreach (AssetRetrievedEx h in handlers)
-                        {
-                            Util.FireAndForget(x =>
+                        Util.FireAndForget(x =>
                             {
-                                try { h.Invoke(a); }
-                                catch { }
-                            });
-                        }
+                                foreach (AssetRetrievedEx h in handlers)
+                                {
+                                    // Util.FireAndForget(x =>
+                                    // {
+                                    try { h.Invoke(a); }
+                                    catch { }
+                                    // });
+                                }
 
-                        if (handlers != null)
-                            handlers.Clear();
+                                if (handlers != null)
+                                    handlers.Clear();
+
+                            });
+
+//                        if (handlers != null)
+//                            handlers.Clear();
                     
                         success = true;
                     }
