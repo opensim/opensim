@@ -624,7 +624,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-
             if (m_group == null)
                 return;
 
@@ -636,7 +635,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_group.RootPart.Velocity = Vector3.Zero;
                     m_group.SendGroupRootTerseUpdate();
-
                 }
                 return;
             }
@@ -683,6 +681,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_currentFrame.TimeMS += (int)tickDuration;
                 }
                 //force a update on a keyframe transition
+                m_nextPosition = m_group.AbsolutePosition;
                 update = true;
             }
 
@@ -721,14 +720,10 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 motionThisFrame = v / (float)steps;
                 v = v * 1000 / m_currentFrame.TimeMS;
 
-                if (Vector3.Mag(motionThisFrame) >= 0.05f)
-                {
-                    // m_group.AbsolutePosition += motionThisFrame;
-                    m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
+                m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
 
-                    //m_group.RootPart.Velocity = v;
+                if (Vector3.Mag(motionThisFrame) >= 0.05f)
                     update = true;
-                }
 
                 if ((Quaternion)m_currentFrame.Rotation != m_group.GroupRotation)
                 {
