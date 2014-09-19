@@ -366,6 +366,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         // called on textures update
         public bool UpdateBakedTextureCache(IScenePresence sp, WearableCacheItem[] cacheItems)
         {
+            // npcs dont have baked cache
+            if (((ScenePresence)sp).isNPC)
+                return true;
+
             // uploaded baked textures will be in assets local cache
             IAssetService cache = m_scene.AssetService;
 
@@ -484,6 +488,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public bool ValidateBakedTextureCache(IScenePresence sp)
         {
             int hits = 0;
+
+            if (((ScenePresence)sp).isNPC)
+                return true;
 
             lock (m_setAppearanceLock)
             {
@@ -650,6 +657,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
+            if (((ScenePresence)sp).isNPC)
+                return 0;
+
             int texturesRebaked = 0;
             IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
 

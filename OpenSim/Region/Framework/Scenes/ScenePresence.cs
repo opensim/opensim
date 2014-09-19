@@ -1703,6 +1703,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+
                 if (!MakeRootAgent(AbsolutePosition, flying))
                 {
                     m_log.DebugFormat(
@@ -1724,7 +1725,7 @@ namespace OpenSim.Region.Framework.Scenes
                         look = new Vector3(0.99f, 0.042f, 0);
                 }
 
-                if (!IsChildAgent)
+                if (!IsChildAgent && !isNPC)
                 {
                     InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (AssetType)46);
                     if (cof == null)
@@ -1790,16 +1791,22 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // verify baked textures and cache
 
+
                     bool cachedbaked = false;
 
-                    if (m_scene.AvatarFactory != null)
-                        cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
-                   
-                    // not sure we need this
-                    if (!cachedbaked)
+                    if (isNPC)
+                        cachedbaked = true;
+                    else
                     {
                         if (m_scene.AvatarFactory != null)
-                            m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+                            cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
+
+                        // not sure we need this
+                        if (!cachedbaked)
+                        {
+                            if (m_scene.AvatarFactory != null)
+                                m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+                        }
                     }
 
                     List<ScenePresence> allpresences = m_scene.GetScenePresences();
