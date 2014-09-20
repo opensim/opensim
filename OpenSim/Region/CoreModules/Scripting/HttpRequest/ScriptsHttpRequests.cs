@@ -465,6 +465,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public void SendRequest()
         {
             HttpWebResponse response = null;
+            Stream resStream = null;
             StringBuilder sb = new StringBuilder();
             byte[] buf = new byte[8192];
             string tempString = null;
@@ -547,7 +548,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                 Status = (int)response.StatusCode;
 
-                Stream resStream = response.GetResponseStream();
+                resStream = response.GetResponseStream();
 
                 do
                 {
@@ -605,6 +606,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             }
             finally
             {
+                if (resStream != null)
+                    resStream.Close();
                 if (response != null)
                     response.Close();
             }
