@@ -308,7 +308,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="uuid">the Item UUID</param>
         private void RemoveItems(UUID uuid)
         {
-            lock (m_dbLock)
+            // locked by caller
+//            lock (m_dbLock)
             {
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
