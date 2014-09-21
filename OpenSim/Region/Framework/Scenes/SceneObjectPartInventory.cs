@@ -1244,11 +1244,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     datastore.StorePrimInventory(m_part.UUID, Items.Values);
                 }
-                catch(){}
-            
-                Items.LockItemsForRead(false);
+                catch {}
 
                 HasInventoryChanged = false;
+
+                Items.LockItemsForRead(false);
+
+                
 //            }
         }
 
