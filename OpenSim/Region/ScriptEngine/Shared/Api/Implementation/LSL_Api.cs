@@ -5283,7 +5283,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return item.AssetID.ToString();
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             return UUID.Zero.ToString();
         }
@@ -10203,7 +10202,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 case 4:
                     return (int)item.NextPermissions;
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             return -1;
         }
