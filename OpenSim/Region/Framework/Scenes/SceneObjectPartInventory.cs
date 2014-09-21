@@ -1133,26 +1133,28 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_inventorySerial == 0) // No inventory
                 {
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     Items.LockItemsForRead(false);
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                   
                     return;
                 }
 
                 if (m_items.Count == 0) // No inventory
                 {
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     Items.LockItemsForRead(false);
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     return;
                 }
 
                 if (!changed)
                 {
+                    Items.LockItemsForRead(false);
+
                     xferManager.AddNewFile(filename,
                             m_inventoryFileData);
                     client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,
                             Util.StringToBytes256(filename));
 
-                    Items.LockItemsForRead(false);
                     return;
                 }
 
@@ -1238,7 +1240,12 @@ namespace OpenSim.Region.Framework.Scenes
 //            if (HasInventoryChanged)
 //            {
                 Items.LockItemsForRead(true);
-                datastore.StorePrimInventory(m_part.UUID, Items.Values);
+                try
+                {
+                    datastore.StorePrimInventory(m_part.UUID, Items.Values);
+                }
+                catch(){}
+            
                 Items.LockItemsForRead(false);
 
                 HasInventoryChanged = false;
