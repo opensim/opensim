@@ -505,35 +505,22 @@ namespace OpenSim.Region.Framework.Scenes
         private void CreateScriptInstanceInternal(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
         {
             m_items.LockItemsForRead(true);
+
             if (m_items.ContainsKey(itemId))
             {
-                if (m_items.ContainsKey(itemId))
-                {
-                    m_items.LockItemsForRead(false);
-                    CreateScriptInstance(m_items[itemId], startParam, postOnRez, engine, stateSource);
-                }
-                else
-                {
-                    m_items.LockItemsForRead(false);
-                    string msg = String.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
-                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
-                    StoreScriptError(itemId, msg);
-                    m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Couldn't start script with ID {0} since it {1}", itemId, msg);
-                }
+                m_items.LockItemsForRead(false);
+                CreateScriptInstance(m_items[itemId], startParam, postOnRez, engine, stateSource);
             }
             else
             {
                 m_items.LockItemsForRead(false);
-                string msg = String.Format("couldn't be found for prim {0}, {1}", m_part.Name, m_part.UUID);
+                string msg = String.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
+                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
                 StoreScriptError(itemId, msg);
                 m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
-                    itemId, m_part.Name, m_part.UUID, 
-                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+                    "[PRIM INVENTORY]: " +
+                    "Couldn't start script with ID {0} since it {1}", itemId, msg);
             }
-            
         }
 
         /// <summary>
