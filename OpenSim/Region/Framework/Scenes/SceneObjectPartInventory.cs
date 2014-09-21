@@ -508,8 +508,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_items.ContainsKey(itemId))
             {
+                TaskInventoryItem it = m_items[itemId];
                 m_items.LockItemsForRead(false);
-                CreateScriptInstance(m_items[itemId], startParam, postOnRez, engine, stateSource);
+
+                CreateScriptInstance(it, startParam, postOnRez, engine, stateSource);
             }
             else
             {
