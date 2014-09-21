@@ -62,7 +62,7 @@ namespace OpenSim.Framework
         /// <value>
         /// An advanced lock for inventory data
         /// </value>
-        private System.Threading.ReaderWriterLockSlim m_itemLock = new System.Threading.ReaderWriterLockSlim();
+        private volatile System.Threading.ReaderWriterLockSlim m_itemLock = new System.Threading.ReaderWriterLockSlim();
 
         /// <summary>
         /// Are we readlocked by the calling thread?
@@ -143,8 +143,8 @@ namespace OpenSim.Framework
                 while (!m_itemLock.TryEnterReadLock(60000))
                 {
                     m_log.Error("Thread lock detected while trying to aquire READ lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
-                    if (m_itemLock.IsWriteLockHeld)
-                    {
+                    //if (m_itemLock.IsWriteLockHeld)
+                    //{
                         m_itemLock = new System.Threading.ReaderWriterLockSlim();
 //                        System.Console.WriteLine("------------------------------------------");
 //                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
@@ -153,7 +153,7 @@ namespace OpenSim.Framework
 //                        System.Console.WriteLine("------------------------------------------");
 //                        LockedByThread = null;
 //                        ReadLockers.Clear();
-                    }
+                    //}
                 }
 //                ReadLockers[Thread.CurrentThread] = Environment.StackTrace;
             }
