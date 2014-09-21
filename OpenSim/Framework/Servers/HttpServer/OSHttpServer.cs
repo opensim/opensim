@@ -150,9 +150,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void Start()
         {
             _engine = new Thread(new ThreadStart(Engine));
-            _engine.Name = _engineId;
             _engine.IsBackground = true;
             _engine.Start();
+            _engine.Name = string.Format ("Engine:{0}",_engineId);
 
             ThreadTracker.Add(_engine);
 

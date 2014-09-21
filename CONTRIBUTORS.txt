@@ -72,10 +72,12 @@ what it is today.
 * Allen Kerensky
 * BigFootAg
 * BlueWall Slade
+* bobshaffer2
 * brianw/Sir_Ahzz
 * CharlieO
 * ChrisDown
 * Chris Yeoh (IBM)
+* cinderblocks
 * controlbreak
 * coyled
 * ctrlaltdavid (David Rowe)
@@ -88,6 +90,7 @@ what it is today.
 * DoranZemlja
 * dr0b3rts
 * dslake
+* eeyore
 * FredoChaplin
 * Garmin Kawaguichi
 * Gerhard

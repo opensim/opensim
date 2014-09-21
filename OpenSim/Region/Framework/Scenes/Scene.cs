@@ -1079,6 +1079,7 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter = new SimStatsReporter(this);
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
+
         }
 
         public Scene(RegionInfo regInfo, PhysicsScene physicsScene) : base(regInfo)
@@ -1396,7 +1397,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_heartbeatThread
                 = Watchdog.StartThread(
-                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
+                    Heartbeat, string.Format("Heartbeat-({0})", RegionInfo.RegionName.Replace(" ", "_")), ThreadPriority.Normal, false, false);
 
             StartScripts();
         }

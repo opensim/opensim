@@ -171,7 +171,8 @@ namespace OpenSim.Framework.Monitoring
             foreach (char c in DisallowedShortNameCharacters)
             {
                 if (shortName.IndexOf(c) != -1)
-                    throw new Exception(string.Format("Stat name {0} cannot contain character {1}", shortName, c));
+                    shortName = shortName.Replace(c, '#');
+//                    throw new Exception(string.Format("Stat name {0} cannot contain character {1}", shortName, c));
             }
 
             ShortName = shortName;
