@@ -251,8 +251,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_building; }
             set
             {
-                if (value)
-                    m_building = true;
+//                if (value)
+//                    m_building = true;
                 AddChange(changes.building, value);
             }
         }
