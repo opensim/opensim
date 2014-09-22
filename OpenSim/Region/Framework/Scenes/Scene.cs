@@ -4752,6 +4752,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_clientManager.TryGetValue(agentID, out client))
                     {
                         m_clientManager.Remove(agentID);
+                        if (CapsModule != null)
+                            CapsModule.RemoveCaps(agentID, 0);
                         m_log.DebugFormat( "[SCENE]: Dead client for agent ID {0} was cleaned up in {1}", agentID, Name);
                         return true;
                     }

@@ -182,6 +182,16 @@ namespace OpenSim.Region.CoreModules.Framework
                 }
                 else
                 {
+                    foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
+                    {
+                        if (kvp.Value.AgentID == agentId)
+                        {
+                            kvp.Value.DeregisterHandlers();
+                            m_scene.EventManager.TriggerOnDeregisterCaps(agentId, kvp.Value);
+                            m_capsObjects.Remove(kvp.Key);
+                            return;
+                        }
+                    }
                     m_log.WarnFormat(
                         "[CAPS]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
                         agentId, m_scene.RegionInfo.RegionName);
