@@ -1962,20 +1962,17 @@ namespace OpenSim.Region.Framework.Scenes
                     // slated for unlink, we need to do this
                     // Unlink the remaining set
                     //
-                    bool sendEventsToRemainder = true;
-                    if (numChildren > 1)
-                        sendEventsToRemainder = false;
+                    bool sendEventsToRemainder = false;
+                    if (numChildren == 2) // only one child prim no re-link needed
+                        sendEventsToRemainder = true;
 
                     foreach (SceneObjectPart p in newSet)
                     {
                         if (p != group.RootPart)
                         {
                             group.DelinkFromGroup(p, sendEventsToRemainder);
-                            if (numChildren > 2)
-                            {
-                            }
-                            else
-                            {
+                            if (sendEventsToRemainder) // finish single child prim now
+                            {                              
                                 p.ParentGroup.HasGroupChanged = true;
                                 p.ParentGroup.ScheduleGroupForFullUpdate();
                             }
@@ -2008,8 +2005,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 newChild.ClearUpdateSchedule();
 
                         LinkObjects(newRoot, newSet);
-                        if (!affectedGroups.Contains(newRoot.ParentGroup))
-                            affectedGroups.Add(newRoot.ParentGroup);
+//                        if (!affectedGroups.Contains(newRoot.ParentGroup))
+//                            affectedGroups.Add(newRoot.ParentGroup);
                     }
                 }
 

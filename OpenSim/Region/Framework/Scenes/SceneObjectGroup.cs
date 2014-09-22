@@ -3177,9 +3177,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.AddNewSceneObject(objectGroup, true);
 
-            if (sendEvents)
-                linkPart.TriggerScriptChangedEvent(Changed.LINK);
-
             linkPart.Rezzed = RootPart.Rezzed;
 
             // When we delete a group, we currently have to force persist to the database if the object id has changed
@@ -3193,6 +3190,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.PhysActor.Building = false;
 
             objectGroup.HasGroupChangedDueToDelink = true;
+
+            if (sendEvents)
+                linkPart.TriggerScriptChangedEvent(Changed.LINK);
 
             return objectGroup;
         }
