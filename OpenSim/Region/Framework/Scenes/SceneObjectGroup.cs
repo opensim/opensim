@@ -2560,11 +2560,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cGroupID"></param>
         public SceneObjectPart CopyPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            // give new ID to the new part, letting old keep original
-            //            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed);
             SceneObjectPart newPart = part.Copy(part.LocalId, OwnerID, GroupID, m_parts.Count, userExposed);
             newPart.LocalId = m_scene.AllocateLocalId();
-            newPart.SetParent(this);
 
             AddPart(newPart);
 
@@ -2977,6 +2974,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parts.Add(linkPart.UUID, linkPart);
 
                 linkPart.SetParent(this);
+                m_scene.updateScenePartGroup(linkPart, this);
+
                 linkPart.CreateSelected = true;
 
                 // let physics know preserve part volume dtc messy since UpdatePrimFlags doesn't look to parent changes for now
@@ -3178,9 +3177,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.AddNewSceneObject(objectGroup, true);
 
-            if (sendEvents)
-                linkPart.TriggerScriptChangedEvent(Changed.LINK);
-
             linkPart.Rezzed = RootPart.Rezzed;
 
             // When we delete a group, we currently have to force persist to the database if the object id has changed
@@ -3194,6 +3190,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.PhysActor.Building = false;
 
             objectGroup.HasGroupChangedDueToDelink = true;
+
+            if (sendEvents)
+                linkPart.TriggerScriptChangedEvent(Changed.LINK);
 
             return objectGroup;
         }
@@ -3238,8 +3237,11 @@ namespace OpenSim.Region.Framework.Scenes
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalId;
             m_parts.Add(part.UUID, part);
+            
 
             part.LinkNum = linkNum;
+
+            m_scene.updateScenePartGroup(part, this);
 
             // Compute the new position of this SOP relative to the group position
             part.OffsetPosition = newPos - AbsolutePosition;

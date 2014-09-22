@@ -2548,6 +2548,11 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+
+        public void updateScenePartGroup(SceneObjectPart part, SceneObjectGroup grp)
+        {
+            m_sceneGraph.updateScenePartGroup(part, grp);
+        }
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.

@@ -505,35 +505,24 @@ namespace OpenSim.Region.Framework.Scenes
         private void CreateScriptInstanceInternal(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
         {
             m_items.LockItemsForRead(true);
+
             if (m_items.ContainsKey(itemId))
             {
-                if (m_items.ContainsKey(itemId))
-                {
-                    m_items.LockItemsForRead(false);
-                    CreateScriptInstance(m_items[itemId], startParam, postOnRez, engine, stateSource);
-                }
-                else
-                {
-                    m_items.LockItemsForRead(false);
-                    string msg = String.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
-                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
-                    StoreScriptError(itemId, msg);
-                    m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Couldn't start script with ID {0} since it {1}", itemId, msg);
-                }
+                TaskInventoryItem it = m_items[itemId];
+                m_items.LockItemsForRead(false);
+
+                CreateScriptInstance(it, startParam, postOnRez, engine, stateSource);
             }
             else
             {
                 m_items.LockItemsForRead(false);
-                string msg = String.Format("couldn't be found for prim {0}, {1}", m_part.Name, m_part.UUID);
+                string msg = String.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
+                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
                 StoreScriptError(itemId, msg);
                 m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
-                    itemId, m_part.Name, m_part.UUID, 
-                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+                    "[PRIM INVENTORY]: " +
+                    "Couldn't start script with ID {0} since it {1}", itemId, msg);
             }
-            
         }
 
         /// <summary>
@@ -1144,26 +1133,28 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_inventorySerial == 0) // No inventory
                 {
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     Items.LockItemsForRead(false);
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                   
                     return;
                 }
 
                 if (m_items.Count == 0) // No inventory
                 {
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     Items.LockItemsForRead(false);
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     return;
                 }
 
                 if (!changed)
                 {
+                    Items.LockItemsForRead(false);
+
                     xferManager.AddNewFile(filename,
                             m_inventoryFileData);
                     client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,
                             Util.StringToBytes256(filename));
 
-                    Items.LockItemsForRead(false);
                     return;
                 }
 
@@ -1249,10 +1240,17 @@ namespace OpenSim.Region.Framework.Scenes
 //            if (HasInventoryChanged)
 //            {
                 Items.LockItemsForRead(true);
-                datastore.StorePrimInventory(m_part.UUID, Items.Values);
-                Items.LockItemsForRead(false);
+                try
+                {
+                    datastore.StorePrimInventory(m_part.UUID, Items.Values);
+                }
+                catch {}
 
                 HasInventoryChanged = false;
+
+                Items.LockItemsForRead(false);
+
+                
 //            }
         }
 

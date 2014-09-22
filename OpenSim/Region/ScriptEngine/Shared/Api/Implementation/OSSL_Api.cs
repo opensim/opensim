@@ -991,7 +991,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else
                             animID = UUID.Zero;
                     }
-                    m_host.TaskInventory.LockItemsForRead(false);
+                    
                     
                     if (animID == UUID.Zero)
                         target.Animator.RemoveAnimation(animation);

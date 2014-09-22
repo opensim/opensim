@@ -296,13 +296,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+
             if (attachToBackup && (!alreadyPersisted))
             {
                 sceneObject.ForceInventoryPersistence();
                 sceneObject.HasGroupChanged = true;
             }
 
-            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+            return ret;
         }
                 
         /// <summary>
@@ -319,12 +321,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            // Ensure that we persist this new scene object if it's not an
+ 
+
+            bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+
+           // Ensure that we persist this new scene object if it's not an
             // attachment
+
             if (attachToBackup)
                 sceneObject.HasGroupChanged = true;
 
-            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+            return ret;
         }
         
         /// <summary>
@@ -432,13 +439,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             sceneObject.AttachToScene(m_parentScene);
 
-            if (sendClientUpdates)
-                sceneObject.ScheduleGroupForFullUpdate();
 
             Entities.Add(sceneObject);
 
-            if (attachToBackup)
-                sceneObject.AttachToBackup();
 
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
@@ -459,7 +462,27 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectGroupsByLocalPartID[part.LocalId] = sceneObject;
             }
 
+            if (sendClientUpdates)
+                sceneObject.ScheduleGroupForFullUpdate();
+
+            if (attachToBackup)
+                sceneObject.AttachToBackup();
+
             return true;
+        }
+
+        public void updateScenePartGroup(SceneObjectPart part, SceneObjectGroup grp)
+        {
+            // no tests, caller has responsability...
+            lock (SceneObjectGroupsByFullPartID)
+            {
+                    SceneObjectGroupsByFullPartID[part.UUID] = grp;
+            }
+
+            lock (SceneObjectGroupsByLocalPartID)
+            {
+                    SceneObjectGroupsByLocalPartID[part.LocalId] = grp;
+            }
         }
 
         /// <summary>
@@ -1804,7 +1827,7 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
                 // We do this in reverse to get the link order of the prims correct
-                for (int i = 0 ; i < children.Count ; i++)
+                for (int i = 0; i < children.Count; i++)
                 {
                     SceneObjectGroup child = children[i].ParentGroup;
 
@@ -1815,7 +1838,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Make sure no child prim is set for sale
                     // So that, on delink, no prims are unwittingly
                     // left for sale and sold off
-                   
+
                     if (child != null)
                     {
                         child.RootPart.ObjectSaleType = 0;
@@ -1850,12 +1873,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
+/*
                 lock (SceneObjectGroupsByLocalPartID)
                 {
                     foreach (SceneObjectPart part in parentGroup.Parts)
                         SceneObjectGroupsByLocalPartID[part.LocalId] = parentGroup;
                 }
-
+*/
                 parentGroup.AdjustChildPrimPermissions();
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
@@ -1938,20 +1962,17 @@ namespace OpenSim.Region.Framework.Scenes
                     // slated for unlink, we need to do this
                     // Unlink the remaining set
                     //
-                    bool sendEventsToRemainder = true;
-                    if (numChildren > 1)
-                        sendEventsToRemainder = false;
+                    bool sendEventsToRemainder = false;
+                    if (numChildren == 2) // only one child prim no re-link needed
+                        sendEventsToRemainder = true;
 
                     foreach (SceneObjectPart p in newSet)
                     {
                         if (p != group.RootPart)
                         {
                             group.DelinkFromGroup(p, sendEventsToRemainder);
-                            if (numChildren > 2)
-                            {
-                            }
-                            else
-                            {
+                            if (sendEventsToRemainder) // finish single child prim now
+                            {                              
                                 p.ParentGroup.HasGroupChanged = true;
                                 p.ParentGroup.ScheduleGroupForFullUpdate();
                             }
@@ -1984,8 +2005,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 newChild.ClearUpdateSchedule();
 
                         LinkObjects(newRoot, newSet);
-                        if (!affectedGroups.Contains(newRoot.ParentGroup))
-                            affectedGroups.Add(newRoot.ParentGroup);
+//                        if (!affectedGroups.Contains(newRoot.ParentGroup))
+//                            affectedGroups.Add(newRoot.ParentGroup);
                     }
                 }
 
