@@ -462,6 +462,20 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public void updateScenePartGroup(SceneObjectPart part, SceneObjectGroup grp)
+        {
+            // no tests, caller has responsability...
+            lock (SceneObjectGroupsByFullPartID)
+            {
+                    SceneObjectGroupsByFullPartID[part.UUID] = grp;
+            }
+
+            lock (SceneObjectGroupsByLocalPartID)
+            {
+                    SceneObjectGroupsByLocalPartID[part.LocalId] = grp;
+            }
+        }
+
         /// <summary>
         /// Delete an object from the scene
         /// </summary>
@@ -1804,7 +1818,7 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
                 // We do this in reverse to get the link order of the prims correct
-                for (int i = 0 ; i < children.Count ; i++)
+                for (int i = 0; i < children.Count; i++)
                 {
                     SceneObjectGroup child = children[i].ParentGroup;
 
@@ -1815,7 +1829,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Make sure no child prim is set for sale
                     // So that, on delink, no prims are unwittingly
                     // left for sale and sold off
-                   
+
                     if (child != null)
                     {
                         child.RootPart.ObjectSaleType = 0;
@@ -1850,12 +1864,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
+/*
                 lock (SceneObjectGroupsByLocalPartID)
                 {
                     foreach (SceneObjectPart part in parentGroup.Parts)
                         SceneObjectGroupsByLocalPartID[part.LocalId] = parentGroup;
                 }
-
+*/
                 parentGroup.AdjustChildPrimPermissions();
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
