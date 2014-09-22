@@ -950,7 +950,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.WarnFormat(
                             "[SCENE GRAPH]: Found scene object {0} {1} {2} via SceneObjectGroupsByLocalPartID index but it doesn't contain part with local id {3}.  Removing from entry from index in {4}.",
                             sog.Name, sog.UUID, sog.LocalId, localID, m_parentScene.RegionInfo.RegionName);
-
+                        m_log.WarnFormat("stack: {0}", Environment.StackTrace);
                         SceneObjectGroupsByLocalPartID.Remove(localID);
                     }
                 }
