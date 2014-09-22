@@ -432,13 +432,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             sceneObject.AttachToScene(m_parentScene);
 
-            if (sendClientUpdates)
-                sceneObject.ScheduleGroupForFullUpdate();
 
             Entities.Add(sceneObject);
 
-            if (attachToBackup)
-                sceneObject.AttachToBackup();
 
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
@@ -458,6 +454,12 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectPart part in parts)
                     SceneObjectGroupsByLocalPartID[part.LocalId] = sceneObject;
             }
+
+            if (sendClientUpdates)
+                sceneObject.ScheduleGroupForFullUpdate();
+
+            if (attachToBackup)
+                sceneObject.AttachToBackup();
 
             return true;
         }
