@@ -2929,22 +2929,24 @@ namespace OpenSim.Region.Framework.Scenes
             // First move the new group's root SOP's position to be relative to ours
             // (radams1: Not sure if the multiple setting of OffsetPosition is required. If not,
             //   this code can be reordered to have a more logical flow.)
-            linkPart.OffsetPosition = linkPart.GroupPosition - AbsolutePosition;
+            linkPart.setOffsetPosition(linkPart.GroupPosition - AbsolutePosition);
             // Assign the new parent to the root of the old group
             linkPart.ParentID = m_rootPart.LocalId;
             // Now that it's a child, it's group position is our root position
-            linkPart.GroupPosition = AbsolutePosition;
+            linkPart.setGroupPosition(AbsolutePosition);
 
-            Vector3 axPos = linkPart.OffsetPosition;
             // Rotate the linking root SOP's position to be relative to the new root prim
             Quaternion parentRot = m_rootPart.RotationOffset;
-            axPos *= Quaternion.Conjugate(parentRot);
-            linkPart.OffsetPosition = axPos;
 
             // Make the linking root SOP's rotation relative to the new root prim
             Quaternion oldRot = linkPart.RotationOffset;
             Quaternion newRot = Quaternion.Conjugate(parentRot) * oldRot;
-            linkPart.RotationOffset = newRot;
+            linkPart.setRotationOffset(newRot);
+
+            Vector3 axPos = linkPart.OffsetPosition;
+            axPos *= Quaternion.Conjugate(parentRot);
+            linkPart.OffsetPosition = axPos;
+
 
             // If there is only one SOP in a SOG, the LinkNum is zero. I.e., not a linkset.
             // Now that we know this SOG has at least two SOPs in it, the new root
@@ -3168,9 +3170,9 @@ namespace OpenSim.Region.Framework.Scenes
             linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
             linkPart.OffsetPosition = new Vector3(0, 0, 0);
              */
-            linkPart.GroupPosition = worldPos;
-            linkPart.OffsetPosition = Vector3.Zero;
-            linkPart.RotationOffset = worldRot;
+            linkPart.setGroupPosition(worldPos);
+            linkPart.setOffsetPosition(Vector3.Zero);
+            linkPart.setRotationOffset(worldRot);
 
             // Create a new SOG to go around this unlinked and unattached SOP
             SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
@@ -3221,15 +3223,14 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion parentRot = oldGroupRotation;
             Quaternion oldRot = part.RotationOffset;
 
-            // Move our position to not be relative to the old parent
+            // Move our position in world
             Vector3 axPos = part.OffsetPosition;
             axPos *= parentRot;
-            part.OffsetPosition = axPos;
-            Vector3 newPos = oldGroupPosition + part.OffsetPosition;
-            part.GroupPosition = newPos;
-            part.OffsetPosition = Vector3.Zero;
+            Vector3 newPos = oldGroupPosition + axPos;
+            part.setGroupPosition(newPos);
+            part.setOffsetPosition(Vector3.Zero);
 
-            // Compution our rotation to be not relative to the old parent
+            // Compution our rotation in world
             Quaternion worldRot = parentRot * oldRot;
             part.RotationOffset = worldRot;
 
@@ -3237,31 +3238,30 @@ namespace OpenSim.Region.Framework.Scenes
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalId;
             m_parts.Add(part.UUID, part);
-            
 
             part.LinkNum = linkNum;
 
             m_scene.updateScenePartGroup(part, this);
 
             // Compute the new position of this SOP relative to the group position
-            part.OffsetPosition = newPos - AbsolutePosition;
+            part.setOffsetPosition(newPos - AbsolutePosition);
 
             // (radams1 20120711: I don't know why part.OffsetPosition is set multiple times.
             //   It would have the affect of setting the physics engine position multiple 
             //   times. In theory, that is not necessary but I don't have a good linkset
             //   test to know that cleaning up this code wouldn't break things.)
 
-            // Rotate the relative position by the rotation of the group
-            Quaternion rootRotation = m_rootPart.RotationOffset;
-            Vector3 pos = part.OffsetPosition;
-            pos *= Quaternion.Conjugate(rootRotation);
-            part.OffsetPosition = pos;
-
             // Compute the SOP's rotation relative to the rotation of the group.
             parentRot = m_rootPart.RotationOffset;
+
             oldRot = part.RotationOffset;
             Quaternion newRot = Quaternion.Conjugate(parentRot) * worldRot;
-            part.RotationOffset = newRot;
+            part.setRotationOffset(newRot);
+
+            Vector3 pos = part.OffsetPosition;
+            pos *= Quaternion.Conjugate(parentRot);
+
+            part.OffsetPosition = pos; // update position and orientation on physics also
 
             // Since this SOP's state has changed, push those changes into the physics engine
             //    and the simulator.
@@ -3947,7 +3947,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             AbsolutePosition = newPos;
-            
+             
             if (IsAttachment)
                 m_rootPart.AttachedPos = newPos;
 

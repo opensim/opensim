@@ -771,9 +771,20 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_damage = value; }
         }
 
+
+
+
+        public void setGroupPosition(Vector3 pos)
+        {
+            m_groupPosition = pos;
+        }
+
         /// <summary>
         /// The position of the entire group that this prim belongs to.
         /// </summary>
+        /// 
+
+
         public Vector3 GroupPosition
         {
             get
@@ -811,7 +822,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // Root prim actually goes at Position
                         if (ParentID == 0)
                         {
-                            actor.Position = value;
+                            actor.Position = value;                           
                         }
                         else
                         {
@@ -830,6 +841,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+        }
+
+        public void setOffsetPosition(Vector3 pos)
+        {
+            m_offsetPosition = pos;
         }
 
         public Vector3 OffsetPosition
@@ -888,6 +904,11 @@ namespace OpenSim.Region.Framework.Scenes
                     return OffsetPosition;
                 }
             }
+        }
+
+        public void setRotationOffset(Quaternion q)
+        {
+            m_rotationOffset = q;
         }
 
         public Quaternion RotationOffset
