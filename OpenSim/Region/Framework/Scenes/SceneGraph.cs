@@ -296,13 +296,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+
             if (attachToBackup && (!alreadyPersisted))
             {
                 sceneObject.ForceInventoryPersistence();
                 sceneObject.HasGroupChanged = true;
             }
 
-            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+            return ret;
         }
                 
         /// <summary>
@@ -319,12 +321,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            // Ensure that we persist this new scene object if it's not an
+ 
+
+            bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+
+           // Ensure that we persist this new scene object if it's not an
             // attachment
+
             if (attachToBackup)
                 sceneObject.HasGroupChanged = true;
 
-            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+            return ret;
         }
         
         /// <summary>
