@@ -43,6 +43,14 @@ using pCampBot.Interfaces;
 
 namespace pCampBot
 {
+    public enum BotManagerBotConnectingState
+    {
+        Initializing,
+        Ready,
+        Connecting,
+        Disconnecting
+    }
+
     /// <summary>
     /// Thread/Bot manager for the application
     /// </summary>
@@ -53,14 +61,14 @@ namespace pCampBot
         public const int DefaultLoginDelay = 5000;
 
         /// <summary>
-        /// Is pCampbot in the process of connecting bots?
+        /// Is pCampbot ready to connect or currently in the process of connecting or disconnecting bots?
         /// </summary>
-        public bool ConnectingBots { get; private set; }
+        public BotManagerBotConnectingState BotConnectingState { get; private set; }
 
         /// <summary>
-        /// Is pCampbot in the process of disconnecting bots?
+        /// Used to control locking as we can't lock an enum.
         /// </summary>
-        public bool DisconnectingBots { get; private set; }
+        private object BotConnectingStateChangeObject = new object();
 
         /// <summary>
         /// Delay between logins of multiple bots.
@@ -239,11 +247,14 @@ namespace pCampBot
                 "Bots", false, "show regions", "show regions", "Show regions known to bots", HandleShowRegions);
 
             m_console.Commands.AddCommand(
-                "Bots", false, "show bots", "show bots", "Shows the status of all bots", HandleShowBotsStatus);
+                "Bots", false, "show bots", "show bots", "Shows the status of all bots.", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
                 "Bots", false, "show bot", "show bot <bot-number>", 
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
+
+            m_console.Commands.AddCommand(
+                "Bots", false, "show status", "show status", "Shows pCampbot status.", HandleShowStatus);
 
             m_bots = new List<Bot>();
 
@@ -254,6 +265,8 @@ namespace pCampBot
             m_serverStatsCollector.Initialise(null);
             m_serverStatsCollector.Enabled = true;
             m_serverStatsCollector.Start();
+
+            BotConnectingState = BotManagerBotConnectingState.Ready;
         }
 
         /// <summary>
@@ -335,7 +348,17 @@ namespace pCampBot
 
         public void ConnectBots(int botcount)
         {
-            ConnectingBots = true;
+            lock (BotConnectingStateChangeObject)
+            {
+                if (BotConnectingState != BotManagerBotConnectingState.Ready)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Bot connecting status is {0}.  Please wait for previous process to complete.", BotConnectingState);
+                    return;
+                }
+
+                BotConnectingState = BotManagerBotConnectingState.Connecting;
+            }
 
             Thread connectBotThread = new Thread(o => ConnectBotsInternal(botcount));
 
@@ -373,11 +396,14 @@ namespace pCampBot
 
             foreach (Bot bot in botsToConnect)
             {
-                if (!ConnectingBots)
+                lock (BotConnectingStateChangeObject)
                 {
-                    MainConsole.Instance.Output(
-                        "[BOT MANAGER]: Aborting bot connection due to user-initiated disconnection");
-                    break;
+                    if (BotConnectingState != BotManagerBotConnectingState.Connecting)
+                    {
+                        MainConsole.Instance.Output(
+                            "[BOT MANAGER]: Aborting bot connection due to user-initiated disconnection");
+                        return;
+                    }
                 }
 
                 bot.Connect();
@@ -386,7 +412,11 @@ namespace pCampBot
                 Thread.Sleep(LoginDelay);
             }
 
-            ConnectingBots = false;
+            lock (BotConnectingStateChangeObject)
+            {
+                if (BotConnectingState == BotManagerBotConnectingState.Connecting)
+                    BotConnectingState = BotManagerBotConnectingState.Ready;
+            }
         }
 
         /// <summary>
@@ -491,13 +521,7 @@ namespace pCampBot
         }
 
         private void HandleConnect(string module, string[] cmd)
-        {
-            if (ConnectingBots)
-            {
-                MainConsole.Instance.Output("Still connecting bots.  Please wait for previous process to complete.");
-                return;
-            }
-
+        {           
             lock (m_bots)
             {
                 int botsToConnect;
@@ -653,7 +677,8 @@ namespace pCampBot
                 botsToDisconnectCount = Math.Min(botsToDisconnectCount, connectedBots.Count);
             }
 
-            DisconnectingBots = true;
+            lock (BotConnectingStateChangeObject)
+                BotConnectingState = BotManagerBotConnectingState.Disconnecting;
 
             Thread disconnectBotThread = new Thread(o => DisconnectBotsInternal(connectedBots, botsToDisconnectCount));
 
@@ -662,9 +687,7 @@ namespace pCampBot
         }
 
         private void DisconnectBotsInternal(List<Bot> connectedBots, int disconnectCount)
-        {             
-            ConnectingBots = false;
-
+        {
             MainConsole.Instance.OutputFormat("Disconnecting {0} bots", disconnectCount);
 
             int disconnectedBots = 0;
@@ -683,7 +706,8 @@ namespace pCampBot
                 }
             }
 
-            DisconnectingBots = false;
+            lock (BotConnectingStateChangeObject)
+                BotConnectingState = BotManagerBotConnectingState.Ready;
         }
 
         private void HandleSit(string module, string[] cmd)
@@ -773,6 +797,14 @@ namespace pCampBot
                         outputFormat, region.Name, region.RegionHandle, region.X, region.Y);
                 }
             }
+        }
+
+        private void HandleShowStatus(string module, string[] cmd)
+        {
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            cdl.AddRow("Bot connecting state", BotConnectingState);
+
+            MainConsole.Instance.Output(cdl.ToString());
         }
 
         private void HandleShowBotsStatus(string module, string[] cmd)
