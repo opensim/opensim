@@ -32,6 +32,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.IO;
+using Nini.Config;
 using log4net;
 
 namespace OpenSim.Framework.Console
@@ -41,7 +43,9 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class LocalConsole : CommandConsole
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private string m_historyPath;
+        private bool m_historyEnable;
 
         // private readonly object m_syncRoot = new object();
         private const string LOGLEVEL_NONE = "(none)";
@@ -79,8 +83,54 @@ namespace OpenSim.Framework.Console
             return Colors[(Math.Abs(input.ToUpper().GetHashCode()) % Colors.Length)];
         }
 
-        public LocalConsole(string defaultPrompt) : base(defaultPrompt)
+        public LocalConsole(string defaultPrompt, IConfig startupConfig = null) : base(defaultPrompt)
         {
+
+            if (startupConfig == null) return;
+
+            m_historyEnable = startupConfig.GetBoolean("ConsoleHistoryFileEnabled", false);
+            if (!m_historyEnable)
+            {
+                m_log.Info("[LOCAL CONSOLE]: Persistent command line history from file is Disabled");
+                return;
+            }
+
+            string m_historyFile = startupConfig.GetString("ConsoleHistoryFile", "OpenSimConsoleHistory.txt");
+            int m_historySize = startupConfig.GetInt("ConsoleHistoryFileLines", 100);
+            m_historyPath = Path.GetFullPath(Path.Combine(Util.configDir(), m_historyFile));
+            m_log.InfoFormat("[LOCAL CONSOLE]: Persistent command line history is Enabled, up to {0} lines from file {1}", m_historySize, m_historyPath);
+
+            if (File.Exists(m_historyPath))
+            {
+                using (StreamReader history_file = new StreamReader(m_historyPath))
+                {
+                    string line;
+                    while ((line = history_file.ReadLine()) != null)
+                    {
+                        m_history.Add(line);
+                    }
+                }
+
+                if (m_history.Count > m_historySize)
+                {
+                    while (m_history.Count > m_historySize)
+                        m_history.RemoveAt(0);
+
+                    using (StreamWriter history_file = new StreamWriter(m_historyPath))
+                    {
+                        foreach (string line in m_history)
+                        {
+                            history_file.WriteLine(line);
+                        }
+                    }
+                }
+                m_log.InfoFormat("[LOCAL CONSOLE]: Read {0} lines of command line history from file {1}", m_history.Count, m_historyPath);
+            }
+            else
+            {
+                m_log.InfoFormat("[LOCAL CONSOLE]: Creating new empty command line history file {0}", m_historyPath);
+                File.Create(m_historyPath).Dispose();
+            }
         }
 
         private void AddToHistory(string text)
@@ -89,6 +139,10 @@ namespace OpenSim.Framework.Console
                 m_history.RemoveAt(0);
 
             m_history.Add(text);
+            if (m_historyEnable)
+            {
+                File.AppendAllText(m_historyPath, text + Environment.NewLine);
+            }
         }
 
         /// <summary>

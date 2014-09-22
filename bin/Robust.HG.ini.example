@@ -37,6 +37,16 @@
   ; The Robust.exe process must have R/W access to the location 
   ConfigDirectory = "."
 
+  ; Console commands can be saved to a file, so the command history persists after a restart. (default is true)
+  ConsoleHistoryFileEnabled = true
+
+  ; The history file can be just a filename (relative to OpenSim's bin/ directory
+  ; or it can be a full path to somewhere else. (default is OpenSimConsoleHistory.txt in bin/)
+  ConsoleHistoryFile = "RobustConsoleHistory.txt"
+
+  ; How many lines of command history should we keep? (default is 100)
+  ConsoleHistoryFileLines = 100
+
 [ServiceList]
 
 AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"

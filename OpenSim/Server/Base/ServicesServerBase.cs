@@ -158,7 +158,7 @@ namespace OpenSim.Server.Base
             }
             else
             {
-                MainConsole.Instance = new LocalConsole(prompt);
+                MainConsole.Instance = new LocalConsole(prompt, startupConfig);
             }
 
             m_console = MainConsole.Instance;

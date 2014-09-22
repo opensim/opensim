@@ -51,6 +51,19 @@
     ;; \\ - substitute \
     ; ConsolePrompt = "Region (\R) "
 
+    ;# {ConsoleHistoryFileEnabled} {} {Save console commands to a history file?} {true false} true
+    ;; Console commands can be saved to a file, so the command history persists after a restart. (default is false)
+    ; ConsoleHistoryFileEnabled = true
+
+    ;# {ConsoleHistoryFile} {} {Filename in which to save history} {} OpenSimConsoleHistory.txt
+    ;; The history file can be just a filename (relative to OpenSim's bin/ directory
+    ;; or it can be a full path to somewhere else. (default is OpenSimConsoleHistory.txt in bin/)
+    ; ConsoleHistoryFile = "OpenSimConsoleHistory.txt"
+
+    ;# {ConsoleHistoryFileLines} {} {How many lines of history to save?} {} 100
+    ;; How many lines of command history should we keep? (default is 100)
+    ; ConsoleHistoryFileLines = 100
+
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false
     ;; Set this to true if you want to log crashes to disk
     ;; this can be useful when submitting bug reports.
