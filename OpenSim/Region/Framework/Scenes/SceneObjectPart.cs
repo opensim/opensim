@@ -2707,6 +2707,7 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.velVector = obj.Velocity;
             detobj.colliderType = 0;
             detobj.groupUUID = obj.GroupID;
+            detobj.linkNumber = LinkNum; // pass my link number
 
             return detobj;
         }
@@ -2722,6 +2723,7 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.velVector = av.Velocity;
             detobj.colliderType = 0;
             detobj.groupUUID = av.ControllingClient.ActiveGroupId;
+            detobj.linkNumber = LinkNum; // pass my link number
 
             return detobj;
         }
@@ -2737,6 +2739,7 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.velVector = Vector3.Zero;
             detobj.colliderType = 0;
             detobj.groupUUID = UUID.Zero;
+            detobj.linkNumber = LinkNum; // pass my link number not sure needed.. but no harm
 
             return detobj;
         }
