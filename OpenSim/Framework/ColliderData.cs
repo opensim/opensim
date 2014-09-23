@@ -42,6 +42,7 @@ namespace OpenSim.Framework
         public Vector3 velVector = Vector3.Zero;
         public string nameStr = String.Empty;
         public int colliderType = 0;
+        public int linkNumber;
     }
 
     public class ColliderArgs : EventArgs

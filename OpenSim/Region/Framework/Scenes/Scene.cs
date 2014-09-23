@@ -3988,6 +3988,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // We need the circuit data here for some of the subsequent checks. (groups, for example)
                 // If the checks fail, we remove the circuit.
                 acd.teleportFlags = teleportFlags;
+
+                // Remove any preexisting circuit - we don't want duplicates
+                // This is a stab at preventing avatar "ghosting"
+                if (vialogin)
+                    m_authenticateHandler.RemoveCircuit(acd.AgentID);
+
                 m_authenticateHandler.AddNewCircuit(acd.circuitcode, acd);
 
                 land = LandChannel.GetLandObject(acd.startpos.X, acd.startpos.Y);

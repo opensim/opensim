@@ -139,6 +139,14 @@ namespace OpenSim.Region.CoreModules.Framework
                 {
                     Caps oldCaps = m_capsObjects[circuitCode];
 
+                    // Remove tge handlers. They may conflict with the
+                    // new object created below
+                    oldCaps.DeregisterHandlers();
+
+                    // Better safe ... should not be needed but also 
+                    // no big deal
+                    m_capsObjects.Remove(circuitCode);
+
 //                    if (capsObjectPath == oldCaps.CapsObjectPath)
 //                    {
 //                        m_log.WarnFormat(
