@@ -4467,14 +4467,9 @@ namespace OpenSim.Region.Framework.Scenes
                 sp.LifecycleState = ScenePresenceState.Removing;
             }
 
-            if (sp != null)
-            {
-                sp.ControllingClient.Close(force);
-                return true;
-            }
+            sp.ControllingClient.Close(force);
 
-            // Agent not here 
-            return false;
+            return true;
         }
 
         /// <summary>
