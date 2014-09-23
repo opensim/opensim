@@ -27,14 +27,17 @@
 
 using System;
 
-public const sbyte CustomTypeBase = 0x60;
-
-public enum CustomAssetType : sbyte
+namespace OpenSim.Framework
 {
-    AnimationSet = 0x60,
-}
+    public enum CustomAssetType : sbyte
+    {
+        CustomTypeBase = 0x60,
+        AnimationSet = 0x60,
+    }
 
-public enum CustomInventoryType : sbyte
-{
-    AnimationSet = 0x60,
+    public enum CustomInventoryType : sbyte
+    {
+        CustomTypeBase = 0x60,
+        AnimationSet = 0x60,
+    }
 }
