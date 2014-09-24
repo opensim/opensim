@@ -3583,6 +3583,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='closeChildAgents'>
         /// Close the neighbour child agents associated with this client.
         /// </param>
+        /// 
+
+        private object m_removeClientPrivLock = new Object();
+
         public void RemoveClient(UUID agentID, bool closeChildAgents)
         {
             AgentCircuitData acd = m_authenticateHandler.GetAgentCircuitData(agentID);
@@ -3603,7 +3607,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // TODO: Can we now remove this lock?
-            lock (acd)
+            lock (m_removeClientPrivLock)
             {    
                 bool isChildAgent = false;
 
