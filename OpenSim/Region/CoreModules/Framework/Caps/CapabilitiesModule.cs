@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public void CreateCaps(UUID agentId, uint circuitCode)
         {
-//            int ts = Util.EnvironmentTickCount();
+            int ts = Util.EnvironmentTickCount();
 /*  this as no business here...
  * must be done elsewhere ( and is )
             int flags = m_scene.GetUserFlags(agentId);
@@ -164,7 +164,8 @@ namespace OpenSim.Region.CoreModules.Framework
                         (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
                         capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
 
-//                m_log.ErrorFormat("[CreateCaps]: new caps {0} ", Util.EnvironmentTickCountSubtract(ts));
+                m_log.ErrorFormat("[CreateCaps]: new caps agent {0}, circuit {1}, path {3}, time {4} ",agentId,
+                    circuitCode,caps.CapsObjectPath, Util.EnvironmentTickCountSubtract(ts));
 
                 m_capsObjects[circuitCode] = caps;
             }
