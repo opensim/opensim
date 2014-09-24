@@ -393,7 +393,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 {
                     string r;
                     m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out r);
-                    m_log.DebugFormat("[AGENT HANDLER]: ASYNC CreateAgent {0} {1}", r);
+                    m_log.DebugFormat("[AGENT HANDLER]: ASYNC CreateAgent {0}", r);
                 });
 
                 return true;
