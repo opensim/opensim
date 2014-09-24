@@ -397,8 +397,9 @@ namespace OpenSim.Server.Handlers.Simulation
   
             return true;
 */
-
-            return m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            bool ret = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            m_log.DebugFormat("[AGENT HANDLER]: CreateAgent {0} {1}", ret.ToString(),reason);
+            return ret;
            
         }
     }
