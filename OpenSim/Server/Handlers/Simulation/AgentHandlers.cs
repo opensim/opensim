@@ -387,20 +387,25 @@ namespace OpenSim.Server.Handlers.Simulation
         protected virtual bool CreateAgent(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
             reason = String.Empty;
-/*            
-            Util.FireAndForget(x =>
+            if ((teleportFlags & (uint)TeleportFlags.ViaLogin) == 0)
             {
-                string r;
-                m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out r);
+                Util.FireAndForget(x =>
+                {
+                    string r;
+                    m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out r);
+                    m_log.DebugFormat("[AGENT HANDLER]: ASYNC CreateAgent {0} {1}", r);
+                });
 
-            });
-  
-            return true;
-*/
-            bool ret = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
-            m_log.DebugFormat("[AGENT HANDLER]: CreateAgent {0} {1}", ret.ToString(),reason);
-            return ret;
-           
+                return true;
+            }
+            else
+            {
+
+                bool ret = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+                m_log.DebugFormat("[AGENT HANDLER]: SYNC CreateAgent {0} {1}", ret.ToString(), reason);
+                return ret;
+            }
+
         }
     }
 
