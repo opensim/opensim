@@ -164,7 +164,7 @@ namespace OpenSim.Region.CoreModules.Framework
                         (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
                         capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
 
-                m_log.ErrorFormat("[CreateCaps]: new caps agent {0}, circuit {1}, path {3}, time {4} ",agentId,
+                m_log.ErrorFormat("[CreateCaps]: new caps agent {0}, circuit {1}, path {2}, time {3} ",agentId,
                     circuitCode,caps.CapsObjectPath, Util.EnvironmentTickCountSubtract(ts));
 
                 m_capsObjects[circuitCode] = caps;
