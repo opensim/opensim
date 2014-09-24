@@ -3841,6 +3841,8 @@ namespace OpenSim.Region.Framework.Scenes
                 acd.startpos
             );
 
+            m_log.DebugFormat("NewUserConnection stack {0}", Environment.StackTrace);
+
             if (!LoginsEnabled)
             {
                 reason = "Logins Disabled";
