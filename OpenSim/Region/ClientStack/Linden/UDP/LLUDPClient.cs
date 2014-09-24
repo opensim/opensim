@@ -76,6 +76,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// or removed, this number must also change</summary>
         const int THROTTLE_CATEGORY_COUNT = 8;
 
+        /// <summary>
+        /// Controls whether information is logged about each outbound packet immediately before it is sent.  For debug purposes.
+        /// </summary>
+        /// <remarks>Any level above 0 will turn on logging.</remarks>
+        public int DebugDataOutLevel { get; set; }
+
         /// <summary>Fired when updated networking stats are produced for this client</summary>
         public event PacketStats OnPacketStats;
         /// <summary>Fired when the queue for a packet category is empty. This event can be

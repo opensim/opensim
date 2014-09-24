@@ -686,7 +686,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MainConsole.Instance.Commands.AddCommand(
                 "Debug", false, "debug lludp packet",
                  "debug lludp packet [--default | --all] <level> [<avatar-first-name> <avatar-last-name>]",
-                 "Turn on packet debugging",
+                 "Turn on packet debugging.  This logs information when the client stack hands a processed packet off to downstream code or when upstream code first requests that a certain packet be sent.",
                    "If level >  255 then all incoming and outgoing packets are logged.\n"
                  + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
                  + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
@@ -698,6 +698,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  + "In these cases, you cannot also specify an avatar name.\n"
                  + "If an avatar name is given then only packets from that avatar are logged.",
                  HandlePacketCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug", false, "debug lludp data out",
+                "debug lludp data out <level> <avatar-first-name> <avatar-last-name>\"",
+                "Turn on debugging for final outgoing data to the given user's client.",
+                "This operates at a much lower level than the packet command and prints out available details when the data is actually sent.\n"
+                + "If level >  0 then information about all outgoing UDP data for this avatar is logged.\n"
+                + "If level <= 0 then no information about outgoing UDP data for this avatar is logged.",
+                HandleDataCommand);
 
             MainConsole.Instance.Commands.AddCommand(
                 "Debug", false, "debug lludp drop",
@@ -753,6 +762,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
                 HandleAgentUpdateCommand);
+        }
+
+        private void HandleDataCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
+                return;
+
+            if (args.Length != 7)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp data out <true|false> <avatar-first-name> <avatar-last-name>");
+                return;
+            }
+
+            int level;
+            if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out level))
+                return;
+
+            string firstName = args[5];
+            string lastName = args[6];
+
+            Scene.ForEachScenePresence(sp =>
+            {
+                if (sp.Firstname == firstName && sp.Lastname == lastName)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Data debug for {0} ({1}) set to {2} in {3}",
+                        sp.Name, sp.IsChildAgent ? "child" : "root", level, Scene.Name);
+
+                    ((LLClientView)sp.ControllingClient).UDPClient.DebugDataOutLevel = level;
+                }
+            });
         }
 
         private void HandlePacketCommand(string module, string[] args)
@@ -1359,6 +1399,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // We're not going to worry about interlock yet since its not currently critical that this total count
             // is 100% correct
             PacketsSentCount++;
+
+            if (udpClient.DebugDataOutLevel > 0)
+                m_log.DebugFormat(
+                    "[LLUDPSERVER]: Sending packet #{0} (rel: {1}, res: {2}) to {3} from {4}",
+                    outgoingPacket.SequenceNumber, isReliable, isResend, udpClient.AgentID, Scene.Name);
 
             // Put the UDP payload on the wire
             AsyncBeginSend(buffer);
