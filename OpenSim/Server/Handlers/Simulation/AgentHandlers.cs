@@ -387,14 +387,19 @@ namespace OpenSim.Server.Handlers.Simulation
         protected virtual bool CreateAgent(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
             reason = String.Empty;
-            
+/*            
             Util.FireAndForget(x =>
             {
                 string r;
                 m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out r);
-            });
 
+            });
+  
             return true;
+*/
+
+            return m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+           
         }
     }
 
