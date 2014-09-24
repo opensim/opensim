@@ -35,6 +35,7 @@ using System.Timers;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
+using OpenMetaverse.Packets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -55,6 +56,27 @@ namespace pCampBot
     public class Bot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public int PacketDebugLevel 
+        { 
+            get { return m_packetDebugLevel; }
+            set 
+            {
+                if (value == m_packetDebugLevel)
+                    return;
+
+                m_packetDebugLevel = value;
+
+                if (Client != null)
+                {
+                    if (m_packetDebugLevel <= 0)
+                        Client.Network.UnregisterCallback(PacketType.Default, PacketReceivedDebugHandler);
+                    else
+                        Client.Network.RegisterCallback(PacketType.Default, PacketReceivedDebugHandler, false);
+                }
+            }
+        }
+        private int m_packetDebugLevel;
 
         public delegate void AnEvent(Bot callbot, EventType someevent); // event delegate for bot events
 
@@ -231,6 +253,9 @@ namespace pCampBot
 
             if (Client != null)
             {
+                // Remove any registered debug handlers
+                Client.Network.UnregisterCallback(PacketType.Default, PacketReceivedDebugHandler);
+
                 newClient.Settings.LOGIN_SERVER = Client.Settings.LOGIN_SERVER;
                 newClient.Settings.ALWAYS_DECODE_OBJECTS = Client.Settings.ALWAYS_DECODE_OBJECTS;
                 newClient.Settings.AVATAR_TRACKING = Client.Settings.AVATAR_TRACKING;
@@ -272,6 +297,9 @@ namespace pCampBot
             newClient.Network.SimDisconnected += Network_SimDisconnected;
             newClient.Network.Disconnected += Network_OnDisconnected;
             newClient.Objects.ObjectUpdate += Objects_NewPrim;
+
+            if (m_packetDebugLevel > 0)
+                newClient.Network.RegisterCallback(PacketType.Default, PacketReceivedDebugHandler);
 
             Client = newClient;
         }
@@ -704,6 +732,17 @@ namespace pCampBot
 //            {
 //                SaveAsset((AssetWearable) asset);
 //            }
+        }
+         
+        private void PacketReceivedDebugHandler(object o, PacketReceivedEventArgs args)
+        {
+            Packet p = args.Packet;
+            Header h = p.Header;
+            Simulator s = args.Simulator;
+
+            m_log.DebugFormat(
+                "[BOT]: Bot {0} received from {1} packet {2} #{3}, rel {4}, res {5}", 
+                Name, s.Name, p.Type, h.Sequence, h.Reliable, h.Resent);
         }
     }
 }

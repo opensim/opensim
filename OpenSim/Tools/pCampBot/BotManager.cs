@@ -254,6 +254,16 @@ namespace pCampBot
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_console.Commands.AddCommand(
+                "Debug", 
+                false, 
+                "debug lludp packet", 
+                "debug lludp packet <level> <avatar-first-name> <avatar-last-name>", 
+                "Turn on received packet logging.",
+                "If level >  0 then all received packets that are not duplicates are logged.\n"
+                + "If level <= 0 then no received packets are logged.",
+                HandleDebugLludpPacketCommand);
+
+            m_console.Commands.AddCommand(
                 "Bots", false, "show status", "show status", "Shows pCampbot status.", HandleShowStatus);
 
             m_bots = new List<Bot>();
@@ -782,6 +792,38 @@ namespace pCampBot
             {
                 MainConsole.Instance.Output("Error: Only setting currently available is SEND_AGENT_UPDATES");
             }
+        }
+
+        private void HandleDebugLludpPacketCommand(string module, string[] args)
+        {
+            if (args.Length != 6)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp packet <level> <bot-first-name> <bot-last-name>");
+                return;
+            }
+
+            int level;
+
+            if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[3], out level))
+                return;
+
+            string botFirstName = args[4];
+            string botLastName = args[5];
+
+            Bot bot;
+
+            lock (m_bots)
+                bot = m_bots.FirstOrDefault(b => b.FirstName == botFirstName && b.LastName == botLastName);
+
+            if (bot == null)
+            {
+                MainConsole.Instance.OutputFormat("No bot named {0} {1}", botFirstName, botLastName);
+                return;
+            }
+
+            bot.PacketDebugLevel = level;
+
+            MainConsole.Instance.OutputFormat("Set debug level of {0} to {1}", bot.Name, bot.PacketDebugLevel);
         }
 
         private void HandleShowRegions(string module, string[] cmd)
