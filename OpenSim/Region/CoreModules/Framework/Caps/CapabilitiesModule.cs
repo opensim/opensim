@@ -139,21 +139,25 @@ namespace OpenSim.Region.CoreModules.Framework
                 {
                     Caps oldCaps = m_capsObjects[circuitCode];
 
-                    // Remove tge handlers. They may conflict with the
-                    // new object created below
-                    oldCaps.DeregisterHandlers();
 
-                    // Better safe ... should not be needed but also 
-                    // no big deal
-                    m_capsObjects.Remove(circuitCode);
+                    if (capsObjectPath == oldCaps.CapsObjectPath)
+                    {
+                        m_log.WarnFormat(
+                           "[CAPS]: Reusing caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ",
+                            agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
+                        return;
+                    }
+                    else
+                    {
+                        // not reusing  add extra melanie cleanup
+                        // Remove tge handlers. They may conflict with the
+                        // new object created below
+                        oldCaps.DeregisterHandlers();
 
-//                    if (capsObjectPath == oldCaps.CapsObjectPath)
-//                    {
-//                        m_log.WarnFormat(
-//                           "[CAPS]: Reusing caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ",
-//                            agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
-//                        return;
-//                    }
+                        // Better safe ... should not be needed but also 
+                        // no big deal
+                        m_capsObjects.Remove(circuitCode);
+                    }
                 }
 
                 caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
