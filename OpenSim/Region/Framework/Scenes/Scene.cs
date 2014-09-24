@@ -3803,6 +3803,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// or other applications where a full grid/Hypergrid presence may not be required.</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
+        /// 
+        private object m_newUserConnLock = new object();
+
         public bool NewUserConnection(AgentCircuitData acd, uint teleportFlags, out string reason, bool requirePresenceLookup)
         {
             bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
@@ -3961,7 +3964,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // TODO: can we remove this lock?
-            lock (acd)
+            lock (m_newUserConnLock)
             {
                 if (sp != null && !sp.IsChildAgent)
                 {
