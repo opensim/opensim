@@ -530,6 +530,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (llsdRequest.asset_type == "texture" ||
                 llsdRequest.asset_type == "animation" ||
+                llsdRequest.asset_type == "animatn" ||    // this is the asset name actually used by viewers
                 llsdRequest.asset_type == "mesh" ||
                 llsdRequest.asset_type == "sound")
             {
@@ -756,13 +757,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 inType = (sbyte)InventoryType.Animation;
                 assType = (sbyte)AssetType.Animation;
-            }
-// add add both animationset and animset until is clear what name Liru will use
-            else if (inventoryType == "animationset")
-            {
-                inType = (sbyte)CustomInventoryType.AnimationSet;
-                assType = (sbyte)CustomAssetType.AnimationSet;
-                m_log.Debug("got animationset upload request");
             }
             else if (inventoryType == "animset")
             {
@@ -1121,7 +1115,15 @@ namespace OpenSim.Region.ClientStack.Linden
             // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
             // (owner) permissions.  This becomes a problem if next permissions are changed.
 
-            if (restrictPerms)
+            if (inType == (sbyte)CustomInventoryType.AnimationSet)
+            {
+                item.BasePermissions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+                item.CurrentPermissions = (uint)(PermissionMask.Copy| PermissionMask.Modify);
+                item.EveryOnePermissions = 0;
+                item.NextPermissions = 0;
+            }
+
+            else if (restrictPerms)
             {
                 item.BasePermissions = (uint)(PermissionMask.Move | PermissionMask.Modify);
                 item.CurrentPermissions = (uint)(PermissionMask.Move | PermissionMask.Modify);
