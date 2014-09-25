@@ -757,11 +757,18 @@ namespace OpenSim.Region.ClientStack.Linden
                 inType = (sbyte)InventoryType.Animation;
                 assType = (sbyte)AssetType.Animation;
             }
+// add add both animationset and animset until is clear what name Liru will use
             else if (inventoryType == "animationset")
             {
                 inType = (sbyte)CustomInventoryType.AnimationSet;
                 assType = (sbyte)CustomAssetType.AnimationSet;
                 m_log.Debug("got animationset upload request");
+            }
+            else if (inventoryType == "animset")
+            {
+                inType = (sbyte)CustomInventoryType.AnimationSet;
+                assType = (sbyte)CustomAssetType.AnimationSet;
+                m_log.Debug("got animset upload request");
             }
             else if (inventoryType == "wearable")
             {
