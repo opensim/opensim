@@ -105,6 +105,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_getObjectCostPath = "0102/";
         private static readonly string m_ResourceCostSelectedPath = "0103/";
         private static readonly string m_UpdateAgentInformationPath = "0500/";
+        private static readonly string m_animSetTaskUpdatePath = "0260/";
         
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
@@ -267,6 +268,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
+
+//                IRequestHandler animSetRequestHandler
+//                    = new RestStreamHandler(
+//                        "POST", capsBase + m_animSetTaskUpdatePath, AnimSetTaskInventory, "UpdateScript", null);
+
+//                m_HostCapsObj.RegisterHandler("UpdateAnimSetTaskInventory", animSetRequestHandler);
             }
             catch (Exception e)
             {
@@ -292,6 +299,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         "POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory, "Update*", null);
 
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
+                m_HostCapsObj.RegisterHandler("UpdateAnimSetAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
 

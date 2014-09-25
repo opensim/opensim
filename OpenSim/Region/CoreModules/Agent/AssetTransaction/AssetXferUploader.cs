@@ -391,6 +391,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier item update for {1} for {2}",
 //                m_asset.FullID, item.Name, ourClient.Name);
 
+            ValidateAssets();
             m_Scene.AssetService.Store(m_asset);
             if (m_asset.FullID != UUID.Zero)
             {
@@ -411,6 +412,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier task item update for {1} for {2}",
 //                m_asset.FullID, taskItem.Name, ourClient.Name);
 
+            ValidateAssets();
             m_Scene.AssetService.Store(m_asset);
 
             m_transactions.RemoveXferUploader(m_transactionID);
