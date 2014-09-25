@@ -1938,6 +1938,8 @@ namespace OpenSim.Region.Framework.Scenes
  //               m_currentParcelHide = newhide;
  //           }
 
+            m_scene.EventManager.OnRegionHeartbeatEnd += RegionHeartbeatEnd;
+
             m_log.DebugFormat("[CompleteMovement] end: {0}ms", Util.EnvironmentTickCountSubtract(ts));
         }
 
