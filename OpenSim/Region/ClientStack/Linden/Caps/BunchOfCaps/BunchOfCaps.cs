@@ -757,6 +757,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 inType = (sbyte)InventoryType.Animation;
                 assType = (sbyte)AssetType.Animation;
             }
+            else if (inventoryType == "animationset")
+            {
+                inType = (sbyte)CustomInventoryType.AnimationSet;
+                assType = (sbyte)CustomAssetType.AnimationSet;
+                m_log.Debug("got animationset upload request");
+            }
             else if (inventoryType == "wearable")
             {
                 inType = (sbyte)InventoryType.Wearable;
