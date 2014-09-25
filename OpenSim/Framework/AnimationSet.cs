@@ -31,7 +31,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    public delegate bool Validator(UUID animID);
+    public delegate bool AnimationSetValidator(UUID animID);
 
     public class AnimationSet
     {
@@ -76,7 +76,7 @@ namespace OpenSim.Framework
             return new Byte[0];
         }
 
-        public bool Validate(Validator val)
+        public bool Validate(AnimationSetValidator val)
         {
             List<int> badAnims = new List<int>();
 
