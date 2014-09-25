@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Services.Interfaces;
+using AnimationSet = OpenSim.Region.Framework.Scenes.Animation.AnimationSet;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Animations
 {

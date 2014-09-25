@@ -454,6 +454,22 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         private void ValidateAssets()
         {
+            if (m_asset.Type == (sbyte)CustomAssetType.AnimationSet)
+            {
+                AnimationSet animSet = new AnimationSet(m_asset.Data);
+
+                bool allOk = animSet.Validate(x => {
+                    int perms = m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, x);
+                    int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
+                    if ((perms & required) != required)
+                        return false;
+                    return true;
+                    });
+
+                if (!allOk)
+                    m_asset.Data = animSet.ToBytes();
+            }
+
             if (m_asset.Type == (sbyte)AssetType.Clothing ||
                 m_asset.Type == (sbyte)AssetType.Bodypart)
             {
