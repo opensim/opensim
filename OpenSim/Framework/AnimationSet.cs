@@ -40,12 +40,12 @@ namespace OpenSim.Framework
 
         public const uint allowedPermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
 
-        public uint enforcePermitions(uint currentPerm)
+        public static uint enforcePermition(uint currentPerm)
         {
             return currentPerm & allowedPermitions;
         }
 
-        public void enforceItemPermitions(ref InventoryItemBase it)
+        public static void enforceItemPermitions(ref InventoryItemBase it)
         {
             if (it == null)
                 return;
