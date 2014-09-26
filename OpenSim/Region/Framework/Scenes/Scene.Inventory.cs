@@ -1063,6 +1063,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
 
+            if (type != (sbyte)AssetType.Link || type != (sbyte)AssetType.LinkFolder)
+                return;
+
+
             ScenePresence presence;
             if (TryGetScenePresence(remoteClient.AgentId, out presence))
             {
