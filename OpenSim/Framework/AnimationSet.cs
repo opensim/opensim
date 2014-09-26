@@ -33,30 +33,55 @@ namespace OpenSim.Framework
 {
     public delegate bool AnimationSetValidator(UUID animID);
 
-
     public class AnimationSet
     {
         private readonly int m_maxAnimations = 255;
 
-        public const uint allowedPermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+        public const uint createBasePermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+        public const uint createNextPermitions = (uint)PermissionMask.Modify;
 
-        public static uint enforcePermition(uint currentPerm)
-        {
-            return currentPerm & allowedPermitions;
-        }
+        public const uint allowedBasePermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+        public const uint allowedNextPermitions = (uint)PermissionMask.Modify;
 
-        public static void enforceItemPermitions(InventoryItemBase it)
+        public static void setCreateItemPermitions(InventoryItemBase it)
         {
             if (it == null)
                 return;
 
-            it.BasePermissions &= allowedPermitions;
-            it.CurrentPermissions &= allowedPermitions;
-//            it.GroupPermissions &= allowedPermitions;
-//            it.NextPermissions &= allowedPermitions;
-//            it.EveryOnePermissions &= allowedPermitions;
+            it.BasePermissions = createBasePermitions;
+            it.CurrentPermissions = createBasePermitions;
+            //            it.GroupPermissions &= allowedPermitions;
+            it.NextPermissions = createNextPermitions;
+            //            it.EveryOnePermissions &= allowedPermitions;
             it.GroupPermissions = 0;
-            it.NextPermissions = 0;
+            it.EveryOnePermissions = 0;
+        }
+
+        public static void enforceItemPermitions(InventoryItemBase it, bool IsCreator)
+        {
+            if (it == null)
+                return;
+
+            uint bp;
+            uint np;
+
+            if (IsCreator)
+            {
+                bp = createBasePermitions;
+                np = createNextPermitions;
+            }
+            else
+            {
+                bp = allowedBasePermitions;
+                np = allowedNextPermitions;
+            }
+
+            it.BasePermissions &= bp;
+            it.CurrentPermissions &= bp;
+            //            it.GroupPermissions &= allowedPermitions;
+            it.NextPermissions &= np;
+            //            it.EveryOnePermissions &= allowedPermitions;
+            it.GroupPermissions = 0;
             it.EveryOnePermissions = 0;
         }
         
