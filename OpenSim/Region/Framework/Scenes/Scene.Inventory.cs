@@ -133,8 +133,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item"></param>
         public bool AddInventoryItem(InventoryItemBase item)
         {
+            m_log.DebugFormat("[AGENT INVENTORY]: item {0}", item.Name);
+
             if (item.Folder != UUID.Zero && InventoryService.AddItem(item))
             {
+                 m_log.DebugFormat(
+                    "[AGENT INVENTORY]: added item {0}",item.Name);
+
                 int userlevel = 0;
                 if (Permissions.IsGod(item.Owner))
                 {
