@@ -130,6 +130,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     internal int m_maxUpdatesPerFrame;
     internal EntityProperties[] m_updateArray;
 
+    /// <summary>
+    /// Used to control physics simulation timing if Bullet is running on its own thread.
+    /// </summary>
+    private ManualResetEvent m_updateWaitEvent;
+
     public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
     public const uint CHILDTERRAIN_ID = 2;  // Terrain allocated based on our mega-prim childre start here
@@ -839,6 +844,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public void BulletSPluginPhysicsThread()
     {
         Thread.CurrentThread.Priority = ThreadPriority.Highest;
+        m_updateWaitEvent = new ManualResetEvent(false);
 
         while (m_initialized)
         {
@@ -853,8 +859,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (simulationTimeVsRealtimeDifferenceMS > 0)
             {
                 // The simulation of the time interval took less than realtime.
-                // Do a sleep for the rest of realtime.
-                Thread.Sleep(simulationTimeVsRealtimeDifferenceMS);
+                // Do a wait for the rest of realtime.
+                 m_updateWaitEvent.WaitOne(simulationTimeVsRealtimeDifferenceMS);
+                //Thread.Sleep(simulationTimeVsRealtimeDifferenceMS);
             }
             else
             {
