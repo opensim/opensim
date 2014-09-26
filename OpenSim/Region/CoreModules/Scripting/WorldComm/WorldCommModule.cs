@@ -379,15 +379,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 if (sp.IsChildAgent)
                     return;
 
-                // Send message to the avatar.
                 // Channel zero only goes to the avatar
-                // non zero channel messages only go to the attachments
-                if (channel == 0)
-                {
-                    m_scene.SimChatToAgent(target, Utils.StringToBytes(msg),
-                            pos, name, id, false);
-                }
-                else
+                // non zero channel messages only go to the attachments of the avatar.
+                if (channel != 0)
                 {
                     List<SceneObjectGroup> attachments = sp.GetAttachments();
                     if (attachments.Count == 0)
