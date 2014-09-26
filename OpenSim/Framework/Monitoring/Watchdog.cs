@@ -225,7 +225,7 @@ namespace OpenSim.Framework.Monitoring
 
             if (log)
                 m_log.DebugFormat(
-                    "[WATCHDOG]: Started tracking thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
+                    "[WATCHDOG]: Started tracking thread {0}, ID {1}", name, twi.Thread.ManagedThreadId);
 
             lock (m_threads)
                 m_threads.Add(twi.Thread.ManagedThreadId, twi);
