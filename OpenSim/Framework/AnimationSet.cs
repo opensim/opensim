@@ -45,7 +45,7 @@ namespace OpenSim.Framework
             return currentPerm & allowedPermitions;
         }
 
-        public static void enforceItemPermitions(ref InventoryItemBase it)
+        public static void enforceItemPermitions(InventoryItemBase it)
         {
             if (it == null)
                 return;

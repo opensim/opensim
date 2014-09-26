@@ -1125,7 +1125,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (inType == (sbyte)CustomInventoryType.AnimationSet)
             {
-                AnimationSet.enforceItemPermitions(ref item);
+                AnimationSet.enforceItemPermitions(item);
             }
 
             else if (restrictPerms)
