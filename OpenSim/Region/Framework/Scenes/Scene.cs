@@ -802,6 +802,7 @@ namespace OpenSim.Region.Framework.Scenes
             : this(regInfo, physicsScene)
         {
             m_config = config;
+            MinFrameTicks = 89;
             MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
@@ -1026,8 +1027,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (startupConfig.Contains("MinFrameTime"))
                     MinFrameTicks = (int)(startupConfig.GetFloat("MinFrameTime") * 1000);
-                else
-                    MinFrameTicks = 89;
 
                 m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);

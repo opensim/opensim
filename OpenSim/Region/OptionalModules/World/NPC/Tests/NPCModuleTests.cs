@@ -300,7 +300,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         public void TestMove()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             SetUpScene();
 
