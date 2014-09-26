@@ -360,14 +360,31 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MaintenanceRun { get; private set; }
 
         /// <summary>
-        /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
+        /// The minimum length of time in milliseconds that will be taken for a scene frame.  If the frame takes less time then we
         /// will sleep for the remaining period.
         /// </summary>
         /// <remarks>
         /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
         /// occur too quickly (viewer 1) or with even more slide (viewer 2).
         /// </remarks>
-        public float MinFrameTime { get; private set; }
+        public int MinFrameTicks 
+        { 
+            get { return m_minFrameTicks; } 
+            private set 
+            { 
+                m_minFrameTicks = value;
+                MinFrameSeconds = (float)m_minFrameTicks / 1000;
+            }
+        } 
+        private int m_minFrameTicks;
+
+        /// <summary>
+        /// The minimum length of time in seconds that will be taken for a scene frame.
+        /// </summary>
+        /// <remarks>
+        /// Always derived from MinFrameTicks.
+        /// </remarks>
+        public float MinFrameSeconds { get; private set; }
 
         /// <summary>
         /// The minimum length of time in seconds that will be taken for a maintenance run.
@@ -412,8 +429,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// asynchronously from the update loop.
         /// </summary>
         private bool m_cleaningTemps = false;
-
-//        private Object m_heartbeatLock = new Object();
+                
+        /// <summary>
+        /// Used to control main scene thread looping time when not updating via timer.
+        /// </summary>
+        private ManualResetEvent m_updateWaitEvent = new ManualResetEvent(false);
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
@@ -782,7 +802,6 @@ namespace OpenSim.Region.Framework.Scenes
             : this(regInfo, physicsScene)
         {
             m_config = config;
-            MinFrameTime = 0.089f;
             MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
@@ -1005,7 +1024,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
+                if (startupConfig.Contains("MinFrameTime"))
+                    MinFrameTicks = (int)(startupConfig.GetFloat("MinFrameTime") * 1000);
+                else
+                    MinFrameTicks = 89;
+
                 m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
                 m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
@@ -1445,7 +1468,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (UpdateOnTimer)
             {
-                m_sceneUpdateTimer = new Timer(MinFrameTime * 1000);
+                m_sceneUpdateTimer = new Timer(MinFrameTicks);
                 m_sceneUpdateTimer.AutoReset = true;
                 m_sceneUpdateTimer.Elapsed += Update;
                 m_sceneUpdateTimer.Start();
@@ -1552,7 +1575,7 @@ namespace OpenSim.Region.Framework.Scenes
                 runtc = (int)(MinMaintenanceTime * 1000) - runtc;
     
                 if (runtc > 0)
-                    Thread.Sleep(runtc);
+                    Thread.Sleep(runtc);                    
     
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
@@ -1613,7 +1636,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_physics == 0)
                     {
                         if (PhysicsEnabled)
-                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
+                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameSeconds);
     
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
@@ -1711,18 +1734,16 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Watchdog.UpdateThread();
 
-                    tmpMS = Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), m_lastFrameTick);
-                    tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
+                    spareMS = MinFrameTicks - Util.EnvironmentTickCountSubtract(m_lastFrameTick);
 
-                    if (tmpMS > 0)
-                    {
-                        spareMS = tmpMS;
-                        Thread.Sleep(tmpMS);
-                    }           
+                    if (spareMS > 0)
+                        m_updateWaitEvent.WaitOne(spareMS);
+                    else
+                        spareMS = 0;
                 }
                 else
                 {
-                    spareMS = Math.Max(0, (int)(MinFrameTime * 1000) - physicsMS2 - agentMS - physicsMS -otherMS);
+                    spareMS = Math.Max(0, MinFrameTicks - physicsMS2 - agentMS - physicsMS - otherMS);
                 }
 
                 previousFrameTick = m_lastFrameTick;
@@ -1745,11 +1766,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
-                        m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
+                        m_lastFrameTick, previousFrameTick) > MinFrameTicks * 2)
                     m_log.WarnFormat(
                         "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
-                        MinFrameTime * 1000,
+                        MinFrameTicks,
                         RegionInfo.RegionName);
             }
 
