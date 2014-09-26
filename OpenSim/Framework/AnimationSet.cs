@@ -49,11 +49,15 @@ namespace OpenSim.Framework
         {
             if (it == null)
                 return;
-            it.CurrentPermissions &= allowedPermitions;
-            it.NextPermissions &= allowedPermitions;
-            it.EveryOnePermissions &= allowedPermitions;
-            it.GroupPermissions &= allowedPermitions;
+
             it.BasePermissions &= allowedPermitions;
+            it.CurrentPermissions &= allowedPermitions;
+//            it.GroupPermissions &= allowedPermitions;
+//            it.NextPermissions &= allowedPermitions;
+//            it.EveryOnePermissions &= allowedPermitions;
+            it.GroupPermissions = 0;
+            it.NextPermissions = 0;
+            it.EveryOnePermissions = 0;
         }
         
         public int AnimationCount { get; private set; }
