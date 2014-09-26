@@ -33,10 +33,29 @@ namespace OpenSim.Framework
 {
     public delegate bool AnimationSetValidator(UUID animID);
 
+
     public class AnimationSet
     {
         private readonly int m_maxAnimations = 255;
 
+        public const uint allowedPermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+
+        public uint enforcePermitions(uint currentPerm)
+        {
+            return currentPerm & allowedPermitions;
+        }
+
+        public void enforceItemPermitions(ref InventoryItemBase it)
+        {
+            if (it == null)
+                return;
+            it.CurrentPermissions &= allowedPermitions;
+            it.NextPermissions &= allowedPermitions;
+            it.EveryOnePermissions &= allowedPermitions;
+            it.GroupPermissions &= allowedPermitions;
+            it.BasePermissions &= allowedPermitions;
+        }
+        
         public int AnimationCount { get; private set; }
         private Dictionary<int, UUID> m_animations = new Dictionary<int, UUID>();
 
