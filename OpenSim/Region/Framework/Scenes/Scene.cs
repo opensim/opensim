@@ -387,9 +387,14 @@ namespace OpenSim.Region.Framework.Scenes
         public float MinFrameSeconds { get; private set; }
 
         /// <summary>
-        /// The minimum length of time in seconds that will be taken for a maintenance run.
+        /// The minimum length of time in milliseconds that will be taken for a scene frame.  If the frame takes less time then we
+        /// will sleep for the remaining period.
         /// </summary>
-        public float MinMaintenanceTime { get; private set; }
+        /// <remarks>
+        /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
+        /// occur too quickly (viewer 1) or with even more slide (viewer 2).
+        /// </remarks>
+        public int MinMaintenanceTicks { get; set; }
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
@@ -434,6 +439,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Used to control main scene thread looping time when not updating via timer.
         /// </summary>
         private ManualResetEvent m_updateWaitEvent = new ManualResetEvent(false);
+
+        /// <summary>
+        /// Used to control maintenance thread runs.
+        /// </summary>
+        private ManualResetEvent m_maintenanceWaitEvent = new ManualResetEvent(false);
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
@@ -803,7 +813,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_config = config;
             MinFrameTicks = 89;
-            MinMaintenanceTime = 1;
+            MinMaintenanceTicks = 1000;
             SeeIntoRegion = true;
 
             Random random = new Random();
@@ -1571,19 +1581,19 @@ namespace OpenSim.Region.Framework.Scenes
                 previousMaintenanceTick = m_lastMaintenanceTick;
                 m_lastMaintenanceTick = Util.EnvironmentTickCount();
                 runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
-                runtc = (int)(MinMaintenanceTime * 1000) - runtc;
+                runtc = MinMaintenanceTicks - runtc;
     
                 if (runtc > 0)
-                    Thread.Sleep(runtc);                    
+                    m_maintenanceWaitEvent.WaitOne(runtc);
     
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
-                        m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
+                        m_lastMaintenanceTick, previousMaintenanceTick) > MinMaintenanceTicks * 2)
                     m_log.WarnFormat(
                         "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
-                        MinMaintenanceTime * 1000,
+                        MinMaintenanceTicks,
                         RegionInfo.RegionName);
             }
         }
