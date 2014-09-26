@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
     /// </remarks>
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageServiceModule")]
-    public class MapImageServiceModule : ISharedRegionModule
+    public class MapImageServiceModule : IMapImageUploadModule, ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -152,6 +152,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
             scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) UploadMapTile(s); };
+
+            scene.RegisterModuleInterface<IMapImageUploadModule>(this);
         }
 
         ///<summary>
@@ -198,14 +200,53 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             m_lastrefresh = Util.EnvironmentTickCount();
         }
 
+        public void UploadMapTile(IScene scene, Bitmap mapTile)
+        {
+            m_log.DebugFormat("{0} Upload maptile for {1}", LogHeader, scene.Name);
+
+            // mapTile.Save(   // DEBUG DEBUG
+            //     String.Format("maptiles/raw-{0}-{1}-{2}.jpg", regionName, scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY),
+            //     ImageFormat.Jpeg);
+            // If the region/maptile is legacy sized, just upload the one tile like it has always been done
+            if (mapTile.Width == Constants.RegionSize && mapTile.Height == Constants.RegionSize)
+            {
+                ConvertAndUploadMaptile(mapTile,
+                                        scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY,
+                                        scene.RegionInfo.RegionName);
+            }
+            else
+            {
+                // For larger regions (varregion) we must cut the region image into legacy sized
+                //    pieces since that is how the maptile system works.
+                // Note the assumption that varregions are always a multiple of legacy size.
+                for (uint xx = 0; xx < mapTile.Width; xx += Constants.RegionSize)
+                {
+                    for (uint yy = 0; yy < mapTile.Height; yy += Constants.RegionSize)
+                    {
+                        // Images are addressed from the upper left corner so have to do funny
+                        //     math to pick out the sub-tile since regions are numbered from
+                        //     the lower left.
+                        Rectangle rect = new Rectangle(
+                            (int)xx,
+                            mapTile.Height - (int)yy - (int)Constants.RegionSize,
+                            (int)Constants.RegionSize, (int)Constants.RegionSize);
+                        using (Bitmap subMapTile = mapTile.Clone(rect, mapTile.PixelFormat))
+                        {
+                            ConvertAndUploadMaptile(subMapTile,
+                                                    scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
+                                                    scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),
+                                                    scene.Name);
+                        }
+                    }
+                }
+            }
+        }
+
         ///<summary>
         ///
         ///</summary>
         private void UploadMapTile(IScene scene)
         {
-            m_log.DebugFormat("{0} Upload maptile for {1}", LogHeader, scene.RegionInfo.RegionName);
-            string regionName = scene.RegionInfo.RegionName;
-
             // Create a JPG map tile and upload it to the AddMapTile API
             IMapImageGenerator tileGenerator = scene.RequestModuleInterface<IMapImageGenerator>();
             if (tileGenerator == null)
@@ -213,46 +254,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 m_log.WarnFormat("{0} Cannot upload map tile without an ImageGenerator", LogHeader);
                 return;
             }
+
             using (Bitmap mapTile = tileGenerator.CreateMapTile())
             {
                 if (mapTile != null)
                 {
-                    // mapTile.Save(   // DEBUG DEBUG
-                    //     String.Format("maptiles/raw-{0}-{1}-{2}.jpg", regionName, scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY),
-                    //     ImageFormat.Jpeg);
-                    // If the region/maptile is legacy sized, just upload the one tile like it has always been done
-                    if (mapTile.Width == Constants.RegionSize && mapTile.Height == Constants.RegionSize)
-                    {
-                        ConvertAndUploadMaptile(mapTile,
-                                    scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY,
-                                    scene.RegionInfo.RegionName);
-                    }
-                    else
-                    {
-                        // For larger regions (varregion) we must cut the region image into legacy sized
-                        //    pieces since that is how the maptile system works.
-                        // Note the assumption that varregions are always a multiple of legacy size.
-                        for (uint xx = 0; xx < mapTile.Width; xx += Constants.RegionSize)
-                        {
-                            for (uint yy = 0; yy < mapTile.Height; yy += Constants.RegionSize)
-                            {
-                                // Images are addressed from the upper left corner so have to do funny
-                                //     math to pick out the sub-tile since regions are numbered from
-                                //     the lower left.
-                                Rectangle rect = new Rectangle(
-                                            (int)xx,
-                                            mapTile.Height - (int)yy - (int)Constants.RegionSize,
-                                            (int)Constants.RegionSize, (int)Constants.RegionSize);
-                                using (Bitmap subMapTile = mapTile.Clone(rect, mapTile.PixelFormat))
-                                {
-                                    ConvertAndUploadMaptile(subMapTile,
-                                                scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
-                                                scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),
-                                                regionName);
-                                }
-                            }
-                        }
-                    }
+                    UploadMapTile(scene, mapTile);
                 }
                 else
                 {

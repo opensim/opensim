@@ -68,6 +68,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private static readonly UUID STOP_UUID = UUID.Random();
         private static readonly string m_mapLayerPath = "0001/";
 
+        private IMapImageGenerator m_mapImageGenerator;
+        private IMapImageUploadModule m_mapImageServiceModule;
+
         private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
 
         protected Scene m_scene;
@@ -100,7 +103,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 = Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60) * 1000;
         }
 
-        public virtual void AddRegion (Scene scene)
+        public virtual void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -144,8 +147,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 return;
 
             m_ServiceThrottle = scene.RequestModuleInterface<IServiceThrottleModule>();
-        }
 
+            m_mapImageGenerator = m_scene.RequestModuleInterface<IMapImageGenerator>();
+            m_mapImageServiceModule = m_scene.RequestModuleInterface<IMapImageUploadModule>();
+        }
 
         public virtual void Close()
         {
@@ -1315,7 +1320,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (consoleScene != null && consoleScene != m_scene)
                 return;
 
-            GenerateMaptile();
+            if (m_mapImageGenerator == null)
+            {
+                Console.WriteLine("No map image generator available for {0}", m_scene.Name);
+                return;
+            }
+
+            using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
+            {
+                GenerateMaptile(mapbmp);
+                m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
+            }
         }
 
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
@@ -1444,16 +1459,25 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (m_scene.Heightmap == null)
                 return;
 
-            //create a texture asset of the terrain
-            IMapImageGenerator terrain = m_scene.RequestModuleInterface<IMapImageGenerator>();
-            if (terrain == null)
-                return;
+            m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.Name);
 
-            m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.RegionInfo.RegionName);
+            using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
+                GenerateMaptile(mapbmp);
+        }
 
-            byte[] data = terrain.WriteJpeg2000Image();
-            if (data == null)
+        private void GenerateMaptile(Bitmap mapbmp)
+        {
+            byte[] data;
+
+            try
+            {
+                data = OpenJPEG.EncodeFromImage(mapbmp, true);
+            }
+            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
+            {
+                m_log.Error("[WORLD MAP]: Failed generating terrain map: " + e);
                 return;
+            }
 
             byte[] overlay = GenerateOverlay();
 
