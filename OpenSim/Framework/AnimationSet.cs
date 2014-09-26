@@ -37,11 +37,11 @@ namespace OpenSim.Framework
     {
         private readonly int m_maxAnimations = 255;
 
-        public const uint createBasePermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
-        public const uint createNextPermitions = (uint)PermissionMask.Modify;
+        public const uint createBasePermitions = (uint)(PermissionMask.All); // no export ?
+        public const uint createNextPermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
 
         public const uint allowedBasePermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
-        public const uint allowedNextPermitions = (uint)PermissionMask.Modify;
+        public const uint allowedNextPermitions = 0;
 
         public static void setCreateItemPermitions(InventoryItemBase it)
         {
