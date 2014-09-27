@@ -172,6 +172,16 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             AssetXferUploader uploader = RequestXferUploader(transactionID);
 
+            // Here we need to get the old asset to extract the
+            // texture UUIDs if it's a wearable.
+            if (item.Type == (int)AssetType.Bodypart ||
+                item.Type == (int)AssetType.Clothing)
+            {
+                AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+                if (oldAsset != null)
+                    uploader.SetOldData(oldAsset.Data);
+            }
+
             uploader.RequestUpdateTaskInventoryItem(remoteClient, item);
         }
 
@@ -179,6 +189,16 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 UUID transactionID, InventoryItemBase item)
         {
             AssetXferUploader uploader = RequestXferUploader(transactionID);
+
+            // Here we need to get the old asset to extract the
+            // texture UUIDs if it's a wearable.
+            if (item.AssetType == (int)AssetType.Bodypart ||
+                item.AssetType == (int)AssetType.Clothing)
+            {
+                AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+                if (oldAsset != null)
+                    uploader.SetOldData(oldAsset.Data);
+            }
 
             uploader.RequestUpdateInventoryItem(remoteClient, item);
         }
