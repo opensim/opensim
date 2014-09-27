@@ -175,7 +175,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             // Here we need to get the old asset to extract the
             // texture UUIDs if it's a wearable.
             if (item.Type == (int)AssetType.Bodypart ||
-                item.Type == (int)AssetType.Clothing)
+                item.Type == (int)AssetType.Clothing ||
+                item.Type == (int)CustomAssetType.AnimationSet)
             {
                 AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
                 if (oldAsset != null)
@@ -193,7 +194,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             // Here we need to get the old asset to extract the
             // texture UUIDs if it's a wearable.
             if (item.AssetType == (int)AssetType.Bodypart ||
-                item.AssetType == (int)AssetType.Clothing)
+                item.AssetType == (int)AssetType.Clothing ||
+                item.AssetType == (int)CustomAssetType.AnimationSet)
             {
                 AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
                 if (oldAsset != null)
