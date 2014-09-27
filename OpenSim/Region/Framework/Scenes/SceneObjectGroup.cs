@@ -943,8 +943,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (CanBeBackedUp)
             {
-                //m_log.DebugFormat(
-                //    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
 
                 if (!Backup)
                     m_scene.EventManager.OnBackup += ProcessBackup;

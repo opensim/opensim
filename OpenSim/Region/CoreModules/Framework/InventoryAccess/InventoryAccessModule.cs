@@ -912,7 +912,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // one full update during the attachment
                 // process causes some clients to fail to display the
                 // attachment properly.
-                m_Scene.AddNewSceneObject(group, true, false);
+                m_Scene.AddNewSceneObject(group, !attachment, false);
 
                 // if attachment we set it's asset id so object updates
                 // can reflect that, if not, we set it's position in world.
