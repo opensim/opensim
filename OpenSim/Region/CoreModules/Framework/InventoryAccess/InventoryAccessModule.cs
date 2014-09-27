@@ -277,6 +277,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     remoteClient.SendAlertMessage("Script saved");
                 }
+                else if ((CustomInventoryType)item.InvType == CustomInventoryType.AnimationSet)
+                {
+                    AnimationSet animSet = new AnimationSet(data);
+                    if (!animSet.Validate(x => {
+                        int perms = m_Scene.InventoryService.GetAssetPermissions(remoteClient.AgentId, x);
+                        int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
+                        if ((perms & required) != required)
+                            return false;
+                        return true;
+                    }))
+                    {
+                        data = animSet.ToBytes();
+                    }
+                }
 
                 AssetBase asset =
                     CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data, remoteClient.AgentId.ToString());
