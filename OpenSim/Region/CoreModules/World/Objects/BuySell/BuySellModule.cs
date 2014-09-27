@@ -141,6 +141,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
                 part.ObjectSaleType = 0;
                 part.SalePrice = 10;
+                part.ClickAction = Convert.ToByte(0);
 
                 group.HasGroupChanged = true;
                 part.SendPropertiesToClient(remoteClient);
