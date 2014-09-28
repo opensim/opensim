@@ -121,14 +121,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Record the creator id that should be associated with an asset.  This is used to adjust asset creator ids
         /// after OSP resolution (since OSP creators are only stored in the item
         /// </summary>
-        protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();        
+        protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();
 
         public InventoryArchiveReadRequest(
-            UUID id, IInventoryService inv, InventoryArchiverModule module, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
+            IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
+            : this(UUID.Zero, null,
+                            inv,
+                assets,
+                uacc,
+                userInfo,
+                invPath,
+                loadPath,
+                merge)
+        {
+        }
+
+        public InventoryArchiveReadRequest(
+            UUID id, InventoryArchiverModule module, IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
             : this(
                 id,
-                inv,
                 module,
+                inv,
                 assets,
                 uacc,
                 userInfo,
@@ -139,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public InventoryArchiveReadRequest(
-            UUID id, IInventoryService inv, InventoryArchiverModule module, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, Stream loadStream, bool merge)
+            UUID id, InventoryArchiverModule module, IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, Stream loadStream, bool merge)
         {
             m_id = id;
             m_InventoryService = inv;

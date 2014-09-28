@@ -310,7 +310,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                         try
                         {
-                            request = new InventoryArchiveReadRequest(id, m_aScene.InventoryService, this, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadStream, merge);
+                            request = new InventoryArchiveReadRequest(id, this, m_aScene.InventoryService, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadStream, merge);
                         }
                         catch (EntryPointNotFoundException e)
                         {
@@ -358,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                         try
                         {
-                            request = new InventoryArchiveReadRequest(id, m_aScene.InventoryService, this, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadPath, merge);
+                            request = new InventoryArchiveReadRequest(id, this, m_aScene.InventoryService, m_aScene.AssetService, m_aScene.UserAccountService, userInfo, invPath, loadPath, merge);
                         }
                         catch (EntryPointNotFoundException e)
                         {
