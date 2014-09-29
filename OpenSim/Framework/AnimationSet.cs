@@ -35,7 +35,7 @@ namespace OpenSim.Framework
 
     public class AnimationSet
     {
-        private readonly int m_maxAnimations = 255;
+        private bool m_parseError = false;
 
         public const uint createBasePermitions = (uint)(PermissionMask.All); // no export ?
         public const uint createNextPermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
@@ -86,50 +86,41 @@ namespace OpenSim.Framework
         }
         
         public int AnimationCount { get; private set; }
-        private Dictionary<int, UUID> m_animations = new Dictionary<int, UUID>();
-
-        public UUID AnimationAt(int index)
+        private Dictionary<string, UUID> m_animations = new Dictionary<string, UUID>();
+        public AnimationSet(Byte[] data)
         {
-            if (m_animations.ContainsKey(index))
-                return m_animations[index];
-            return UUID.Zero;
-        }
-
-        public void SetAnimation(int index, UUID animation)
-        {
-            if (index < 0 || index > m_maxAnimations)
-                return;
-
-            m_animations[index] = animation;
-        }
-
-        public AnimationSet(Byte[] assetData)
-        {
-            if (assetData.Length < 2)
-                throw new System.ArgumentException();
-
-            if (assetData[0] != 1) // Only version 1 is supported
-                throw new System.ArgumentException();
-
-            AnimationCount = assetData[1];
-            if (assetData.Length - 2 != 16 * AnimationCount)
-                throw new System.ArgumentException();
-
-            // TODO: Read anims from blob
+            string assetData = System.Text.Encoding.ASCII.GetString(data);
+            Console.WriteLine("--------------------");
+            Console.WriteLine("AnimationSet length {0} bytes", assetData.Length);
+            Console.WriteLine("Data: {0}", assetData);
+            Console.WriteLine("--------------------");
         }
 
         public Byte[] ToBytes()
         {
-            // TODO: Make blob from anims
-            return new Byte[0];
+            // If there was an error parsing the input, we give back an
+            // empty set rather than the original data.
+            if (m_parseError)
+            {
+                string dummy = "version 1\ncount 0\n";
+                return System.Text.Encoding.ASCII.GetBytes(dummy);
+            }
+
+            string assetData = String.Format("version 1\ncount {0}\n", m_animations.Count);
+            foreach (KeyValuePair<string, UUID> kvp in m_animations)
+                assetData += String.Format("{0} {1}\n", kvp.Key, kvp.Value.ToString());
+            return System.Text.Encoding.ASCII.GetBytes(assetData);
         }
 
         public bool Validate(AnimationSetValidator val)
         {
-            List<int> badAnims = new List<int>();
+            if (m_parseError)
+                return false;
+
+            List<string> badAnims = new List<string>();
 
             bool allOk = true;
-            foreach (KeyValuePair<int, UUID> kvp in m_animations)
+            foreach (KeyValuePair<string, UUID> kvp in m_animations)
             {
                 if (!val(kvp.Value))
                 {
@@ -138,7 +129,7 @@ namespace OpenSim.Framework
                 }
             }
 
-            foreach (int idx in badAnims)
+            foreach (string idx in badAnims)
                 m_animations.Remove(idx);
 
             return allOk;
