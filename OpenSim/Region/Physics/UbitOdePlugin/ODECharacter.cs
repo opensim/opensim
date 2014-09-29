@@ -909,12 +909,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     return true;
                 }               
-
+/*
                 d.AABB aabb;
                 d.GeomGetAABB(other,out aabb);
                 float othertop = aabb.MaxZ - _position.Z;
-
-                if (offset.Z > 0 || othertop > -feetOff || contact.normal.Z > 0.35f)
+*/
+//                if (offset.Z > 0 || othertop > -feetOff || contact.normal.Z > 0.35f)
+                if (offset.Z > 0 || contact.normal.Z > 0.35f)
                 {
                     if (offset.Z <= 0)
                     {
