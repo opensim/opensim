@@ -36,7 +36,7 @@ ExternalHostName = "SYSTEMIP"
 ; * This allows limiting the sizes of prims and the region prim count
 ; *
 
-; NonphysicalPrimMax = 256
+; NonPhysicalPrimMax = 256
 ; PhysicalPrimMax = 64
 ; ClampPrimSize = False
 ; MaxPrims = 15000
