@@ -287,14 +287,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { PhysicsActor.Flying = value; }
         }
 
-        // add for fly velocity control
-        private bool FlyingOld {get; set;}
-        public bool WasFlying
-        {
-            get; private set;
-        }
-
-        public bool IsColliding
+         public bool IsColliding
         {
             get { return PhysicsActor != null && PhysicsActor.IsColliding; }
             // We would expect setting IsColliding to be private but it's used by a hack in Scene
@@ -936,7 +929,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// AGENT_CONTRL_STOP comes about if user holds down space key on viewers.
         /// </remarks>
-        private float AgentControlStopSlowWhilstMoving = 0.5f;
+        private float AgentControlStopSlowWhilstMoving = 0.2f;
 
         private bool m_forceFly;
 
@@ -2174,7 +2167,7 @@ namespace OpenSim.Region.Framework.Scenes
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
 
-                bool newFlying = actor.Flying;
+                bool newFlying = false;
 
                 if (ForceFly)
                     newFlying = true;
@@ -2286,11 +2279,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Flying && !ForceFly)
                 {
                     // Need to stop in mid air if user holds down AGENT_CONTROL_STOP
-                    if (AgentControlStopActive)
-                    {
-                        agent_control_v3 = Vector3.Zero;
-                    }
-                    else
+                    //                    if (AgentControlStopActive)
+                    //                    {
+                    //                        agent_control_v3 = Vector3.Zero;
+                    //                    }
+                    //                    else
                     {
                         // Landing detection code
 
@@ -2298,38 +2291,44 @@ namespace OpenSim.Region.Framework.Scenes
                         bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
                                             ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
-                       //m_log.Debug("[CONTROL]: " +flags);
+                        //m_log.Debug("[CONTROL]: " +flags);
                         // Applies a satisfying roll effect to the avatar when flying.
                         if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
                         {
                             ApplyFlyingRoll(
-                                FLY_ROLL_RADIANS_PER_UPDATE, 
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                                FLY_ROLL_RADIANS_PER_UPDATE,
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0,
                                 (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
-                        } 
+                        }
                         else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
                                  (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
                         {
                             ApplyFlyingRoll(
-                                -FLY_ROLL_RADIANS_PER_UPDATE, 
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);                      
+                                -FLY_ROLL_RADIANS_PER_UPDATE,
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0,
+                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
                         }
                         else
                         {
                             if (m_AngularVelocity.Z != 0)
-                                m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);                        
-                        }                  
-
-                        if (Flying && IsColliding && controlland)
-                        {
-                            // nesting this check because LengthSquared() is expensive and we don't 
-                            // want to do it every step when flying.
-                            if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
-                                StopFlying();
+                                m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);
                         }
+                        
+                        /*
+                                                if (Flying && IsColliding && controlland)
+                                                {
+                                                    // nesting this check because LengthSquared() is expensive and we don't 
+                                                    // want to do it every step when flying.
+                                                    if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
+                                                        StopFlying();
+                                                }
+                         */
                     }
                 }
+                else if (IsColliding && agent_control_v3.Z < 0f)
+                    agent_control_v3.Z = 0;
+//                else if(AgentControlStopActive %% Velocity.Z <0.01f)
+                    
 
 //                m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
 
@@ -2342,32 +2341,22 @@ namespace OpenSim.Region.Framework.Scenes
                 if (update_movementflag 
                     || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
                 {
-//                    if (update_movementflag || !AgentControlStopActive || MovementFlag != 0)
-//                    {
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, mf = {4}, ur = {5}",
-//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name, 
-//                            update_movementflag, MovementFlag, update_rotation);
 
-                        float speedModifier;
-
-                        if (AgentControlStopActive)
-                            speedModifier = AgentControlStopSlowWhilstMoving;
+                    if (AgentControlStopActive)
+                    {
+//                        if (MovementFlag == 0 && Animator.Falling)
+                        if (MovementFlag == 0 && Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
+                        {
+                            AddNewMovement(agent_control_v3, AgentControlStopSlowWhilstMoving, true);
+                        }
                         else
-                            speedModifier = 1;
+                            AddNewMovement(agent_control_v3, AgentControlStopSlowWhilstMoving);
+                    }
 
-                        AddNewMovement(agent_control_v3, speedModifier);
-//                    }
+                    else
+                        AddNewMovement(agent_control_v3);
+
                 }
-//                else
-//                {
-//                    if (!update_movementflag)
-//                    {
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: In {0} ignoring requested update of {1} for {2} as update_movementflag = false",
-//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name);
-//                    }
-//                }
 
                 if (update_movementflag && ParentID == 0)
                 {
@@ -3246,68 +3235,58 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
         /// <param name="thisAddSpeedModifier">
         /// Optional additional speed modifier for this particular add.  Default is 1</param>
-        public void AddNewMovement(Vector3 vec, float thisAddSpeedModifier = 1)
+        public void AddNewMovement(Vector3 vec, float thisAddSpeedModifier = 1, bool breaking = false)
         {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
-//                vec, Rotation, thisAddSpeedModifier, Name);
+            //            m_log.DebugFormat(
+            //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
+            //                vec, Rotation, thisAddSpeedModifier, Name);
 
             Vector3 direc = vec * Rotation;
             direc.Normalize();
-
-            if (Flying != FlyingOld)                // add for fly velocity control
-            {
-                FlyingOld = Flying;                 // add for fly velocity control
-                if (!Flying)
-                    WasFlying = true;      // add for fly velocity control
-            }
-
-            if (IsColliding)
-                WasFlying = false;        // add for fly velocity control
 
             if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
             direc *= 0.03f * 128f * SpeedModifier * thisAddSpeedModifier;
 
-//            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
+            //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
-            if (PhysicsActor != null)
+            if (Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
             {
-                if (Flying)
-                {
+                if (breaking)
+                    direc.Z = -9999f; //hack
+                else
+                    direc = Vector3.Zero;
+            }
+            else if (Flying)
+            {
+                if(IsColliding)
+                    direc = Vector3.Zero;
+                else
                     direc *= 4.0f;
-                    //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
-                    //if (controlland)
-                    //    m_log.Info("[AGENT]: landCommand");
-                    //if (IsColliding)
-                    //    m_log.Info("[AGENT]: colliding");
-                    //if (Flying && IsColliding && controlland)
-                    //{
-                    //    StopFlying();
-                    //    m_log.Info("[AGENT]: Stop Flying");
-                    //}
-                }
-                if (Animator.Falling && WasFlying)    // if falling from flying, disable motion add
+            }
+            else if (IsColliding)
+            {
+                if (direc.Z > 2.0f)
                 {
-                    direc *= 0.0f;
+                    direc.Z *= 2.6f;
                 }
-                else if (!Flying && IsColliding)
+                else if (direc.Z < 0)
+                    direc.Z = 0;
+/*                
+                float c = CollisionPlane.Z;
+                if (c > 0.2f && c < 0.94f && (direc.X != 0 || direc.Y != 0))
                 {
-                    if (direc.Z > 2.0f)
-                    {
-                        direc.Z *= 2.6f;
-
-                        // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
-//                        Animator.TrySetMovementAnimation("PREJUMP");
-//                        Animator.TrySetMovementAnimation("JUMP");
-                    }
+                    float p = direc.X * CollisionPlane.X + direc.Y * CollisionPlane.Y;
+                    direc.X -= p * CollisionPlane.X;
+                    direc.Y -= p * CollisionPlane.Y;
+                    direc.Z -= p * c;
                 }
+ */
             }
 
-//            m_log.DebugFormat("[SCENE PRESENCE]: Setting force to apply to {0} for {1}", direc, Name);
+            //            m_log.DebugFormat("[SCENE PRESENCE]: Setting force to apply to {0} for {1}", direc, Name);
 
-            // TODO: Add the force instead of only setting it to support multiple forces per frame?
             m_forceToApply = direc;
             Animator.UpdateMovementAnimations();
         }
