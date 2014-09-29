@@ -541,6 +541,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         if (message != null)
                             sp.ControllingClient.SendAgentAlertMessage(message, true);
 
+                        // Validate assorted conditions
+                        string reason = string.Empty;
+                        if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out reason))
+                        {
+                            sp.ControllingClient.SendTeleportFailed(reason);
+                            return;
+                        }
+
                         transferMod.DoTeleport(
                             sp, gatekeeper, finalDestination, lm.Position, Vector3.UnitX,
                             (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
