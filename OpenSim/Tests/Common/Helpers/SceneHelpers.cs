@@ -611,7 +611,7 @@ namespace OpenSim.Tests.Common
             //part.UpdatePrimFlags(false, false, true);
             //part.ObjectFlags |= (uint)PrimFlags.Phantom;
 
-            scene.AddNewSceneObject(so, false);
+            scene.AddNewSceneObject(so, true);
 
             return so;
         }

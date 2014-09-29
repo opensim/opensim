@@ -387,7 +387,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-            return AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, false, append);
+            group.DetachFromBackup();
+
+            bool success = AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, false, append);
+
+            if (!success)
+                group.AttachToBackup();
+
+            return success;
         }
 
         /// <summary>
@@ -814,8 +821,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 m_log.DebugFormat(
                     "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
                     so.Name, sp.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
-
-            so.DetachFromBackup();
 
             // Remove from database and parcel prim count
             m_scene.DeleteFromStorage(so.UUID);
