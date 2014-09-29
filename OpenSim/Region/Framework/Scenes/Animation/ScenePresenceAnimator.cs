@@ -282,6 +282,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             const int JUMP_PERIOD = 800;
             #region Inputs
 
+            if (m_scenePresence.IsInTransit)
+                return CurrentMovementAnimation;
+
             if (m_scenePresence.SitGround)
             {
                 currentControlState = motionControlStates.sitted;
