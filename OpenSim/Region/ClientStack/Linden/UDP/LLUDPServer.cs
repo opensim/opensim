@@ -774,6 +774,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
+                "debug lludp throttle status",
+                "debug lludp throttle status <avatar-first-name> <avatar-last-name>",
+                "Return status information about throttles.",
+                HandleThrottleStatusCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
                 "debug lludp toggle agentupdate",
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
@@ -838,6 +846,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         sp.Name, sp.IsChildAgent ? "child" : "root", level, Scene.Name);
 
                     ((LLClientView)sp.ControllingClient).UDPClient.ThrottleDebugLevel = level;
+                }
+            });
+        }
+
+        private void HandleThrottleStatusCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
+                return;
+
+            if (args.Length != 6)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp throttle status <avatar-first-name> <avatar-last-name>");
+                return;
+            }           
+
+            string firstName = args[4];
+            string lastName = args[5];
+
+            Scene.ForEachScenePresence(sp =>
+            {
+                if (sp.Firstname == firstName && sp.Lastname == lastName)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Status for {0} ({1}) in {2}",
+                        sp.Name, sp.IsChildAgent ? "child" : "root", Scene.Name);
+
+                    LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+                    MainConsole.Instance.OutputFormat("Adaptive throttle: {0}", udpClient.FlowThrottle.Enabled);
                 }
             });
         }
