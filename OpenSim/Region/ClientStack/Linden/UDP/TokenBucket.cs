@@ -340,10 +340,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Int64 MaxDripRate
         {
             get { return (m_maxDripRate == 0 ? m_totalDripRequest : m_maxDripRate); }
-            protected set { m_maxDripRate = (value == 0 ? 0 : Math.Max(value,m_minimumFlow)); }
+            set { m_maxDripRate = (value == 0 ? 0 : Math.Max(value,m_minimumFlow)); }
         }
 
-        public bool Enabled { get; private set; }
+        public bool Enabled { get; set; }
         
         // <summary>
         // 

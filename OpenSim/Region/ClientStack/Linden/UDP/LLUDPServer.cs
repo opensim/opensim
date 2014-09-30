@@ -782,6 +782,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
+                "debug lludp throttle set",
+                "debug lludp throttle set <param> <value> <avatar-first-name> <avatar-last-name>",
+                "Set a throttle parameter for the given client.",
+                "Only current setting is 'adaptive' which must be 'true' or 'false'",
+                HandleThrottleSetCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
                 "debug lludp toggle agentupdate",
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
@@ -850,6 +859,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             });
         }
 
+        private void HandleThrottleSetCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
+                return;
+
+            if (args.Length != 8)
+            {
+                MainConsole.Instance.OutputFormat(
+                    "Usage: debug lludp throttle set <param> <value> <avatar-first-name> <avatar-last-name>");
+                return;
+            }           
+
+            string param = args[4];
+            string rawValue = args[5];
+            string firstName = args[6];
+            string lastName = args[7];
+
+            if (param == "adaptive")
+            {
+                bool newValue;
+                if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newValue))
+                    return;
+
+                Scene.ForEachScenePresence(sp =>
+                {
+                    if (sp.Firstname == firstName && sp.Lastname == lastName)
+                    {
+                        MainConsole.Instance.OutputFormat(
+                            "Setting param {0} to {1} for {2} ({3}) in {4}",
+                            param, newValue, sp.Name, sp.IsChildAgent ? "child" : "root", Scene.Name);
+
+                        LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+                        udpClient.FlowThrottle.Enabled = newValue;
+//                        udpClient.FlowThrottle.MaxDripRate = 0;
+//                        udpClient.FlowThrottle.AdjustedDripRate = 0;
+                    }
+                });
+            }
+        }
+
         private void HandleThrottleStatusCommand(string module, string[] args)
         {
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
@@ -865,7 +914,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             string lastName = args[5];
 
             Scene.ForEachScenePresence(sp =>
-            {
+                                       {
                 if (sp.Firstname == firstName && sp.Lastname == lastName)
                 {
                     MainConsole.Instance.OutputFormat(
