@@ -434,7 +434,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion BinaryStats
 
-            m_throttle = new TokenBucket(null, sceneThrottleBps);
+            // FIXME: Can't add info here because don't know scene yet.
+//            m_throttle 
+//                = new TokenBucket(
+//                    string.Format("server throttle bucket for {0}", Scene.Name), null, sceneThrottleBps);
+
+            m_throttle = new TokenBucket("server throttle bucket", null, sceneThrottleBps);
+
             ThrottleRates = new ThrottleRates(configSource);
 
             if (usePools)
@@ -758,6 +764,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
+                "debug lludp throttle log",
+                "debug lludp throttle log <level> <avatar-first-name> <avatar-last-name>",
+                "Change debug logging level for throttles.",
+                "If level >= 0 then throttle debug logging is performed.\n"
+                + "If level <= 0 then no throttle debug logging is performed.",
+                HandleThrottleCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
                 "debug lludp toggle agentupdate",
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
@@ -791,6 +807,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         sp.Name, sp.IsChildAgent ? "child" : "root", level, Scene.Name);
 
                     ((LLClientView)sp.ControllingClient).UDPClient.DebugDataOutLevel = level;
+                }
+            });
+        }
+
+        private void HandleThrottleCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
+                return;
+
+            if (args.Length != 7)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp throttle log <level> <avatar-first-name> <avatar-last-name>");
+                return;
+            }
+
+            int level;
+            if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out level))
+                return;
+
+            string firstName = args[5];
+            string lastName = args[6];
+
+            Scene.ForEachScenePresence(sp =>
+            {
+                if (sp.Firstname == firstName && sp.Lastname == lastName)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Throttle log level for {0} ({1}) set to {2} in {3}",
+                        sp.Name, sp.IsChildAgent ? "child" : "root", level, Scene.Name);
+
+                    ((LLClientView)sp.ControllingClient).UDPClient.ThrottleDebugLevel = level;
                 }
             });
         }

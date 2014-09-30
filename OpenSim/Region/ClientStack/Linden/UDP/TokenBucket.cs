@@ -43,8 +43,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static Int32 m_counter = 0;
-        
-//        private Int32 m_identifier;
+
+        private LLUDPClient m_client;
+
+        public string Identifier { get; private set; }
+
+        public int DebugLevel { get; set; }
         
         /// <summary>
         /// Number of ticks (ms) per quantum, drip rate and max burst
@@ -165,16 +169,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Default constructor
         /// </summary>
+        /// <param name="identifier">Identifier for this token bucket</param>
         /// <param name="parent">Parent bucket if this is a child bucket, or
         /// null if this is a root bucket</param>
-        /// <param name="maxBurst">Maximum size of the bucket in bytes, or
-        /// zero if this bucket has no maximum capacity</param>
         /// <param name="dripRate">Rate that the bucket fills, in bytes per
         /// second. If zero, the bucket always remains full</param>
-        public TokenBucket(TokenBucket parent, Int64 dripRate) 
+        public TokenBucket(string identifier, TokenBucket parent, Int64 dripRate) 
         {
-//            m_identifier = m_counter++;
-            m_counter++;
+            Identifier = identifier;
 
             Parent = parent;
             RequestedDripRate = dripRate;
@@ -301,7 +303,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // with no drip rate...
             if (DripRate == 0)
             {
-                m_log.WarnFormat("[TOKENBUCKET] something odd is happening and drip rate is 0");
+                m_log.WarnFormat("[TOKENBUCKET] something odd is happening and drip rate is 0 for {0}", Identifier);
                 return;
             }
             
@@ -321,7 +323,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class AdaptiveTokenBucket : TokenBucket
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The minimum rate for flow control. Minimum drip rate is one
@@ -360,13 +362,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // <summary>
         // 
         // </summary>
-        public AdaptiveTokenBucket(TokenBucket parent, Int64 maxDripRate, bool enabled) : base(parent,maxDripRate)
+        public AdaptiveTokenBucket(string identifier, TokenBucket parent, Int64 maxDripRate, bool enabled) 
+            : base(identifier, parent, maxDripRate)
         {
             Enabled = enabled;
 
             if (Enabled)
             {
-                // m_log.DebugFormat("[TOKENBUCKET] Adaptive throttle enabled");
+//                m_log.DebugFormat("[TOKENBUCKET]: Adaptive throttle enabled");
                 MaxDripRate = maxDripRate;
                 AdjustedDripRate = m_minimumFlow;
             }
@@ -377,9 +380,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // </summary>
         public void ExpirePackets(Int32 count)
         {
-            // m_log.WarnFormat("[ADAPTIVEBUCKET] drop {0} by {1} expired packets",AdjustedDripRate,count);
             if (Enabled)
+            {
+                if (DebugLevel > 0)
+                    m_log.WarnFormat(
+                        "[ADAPTIVEBUCKET] drop {0} by {1} expired packets for {2}", 
+                        AdjustedDripRate, count, Identifier);
+
                 AdjustedDripRate = (Int64) (AdjustedDripRate / Math.Pow(2,count));
+            }
         }
 
         // <summary>
