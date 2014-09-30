@@ -607,7 +607,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Disable UDP handling for this client
             m_udpClient.Shutdown();
-
+            
             
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
@@ -4912,6 +4912,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
+
                     OSD message_body = updateMessage.Serialize();
                     // Add new fields here until OMV has them
                     OSDMap bodyMap = (OSDMap)message_body;
@@ -4923,8 +4924,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     OSDMap message = new OSDMap();
                     message.Add("message", OSD.FromString("ParcelProperties"));
                     message.Add("body", message_body);
+ 
                     eq.Enqueue (message, this.AgentId);
-                    //eq.ParcelProperties(updateMessage, this.AgentId);
+
+//                    eq.ParcelProperties(updateMessage, this.AgentId);
                 } 
                 else 
                 {
@@ -12420,8 +12423,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint regionY = 0;
 
             Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out regionX, out regionY);
-            locx = Convert.ToSingle(args[0]) - (float)regionX;
-            locy = Convert.ToSingle(args[1]) - (float)regionY;
+            locx = (float)(Convert.ToDouble(args[0]) - (double)regionX);
+            locy = (float)(Convert.ToDouble(args[1]) - (double)regionY);
             locz = Convert.ToSingle(args[2]);
 
             Action<Vector3, bool, bool> handlerAutoPilotGo = OnAutoPilotGo;
