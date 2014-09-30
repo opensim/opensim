@@ -3241,12 +3241,17 @@ namespace OpenSim.Region.Framework.Scenes
             //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
             //                vec, Rotation, thisAddSpeedModifier, Name);
 
+            // rotate from avatar coord space to world
+            // for now all controls assume this is only a rotation around Z
+            // if not all checks below need to be done before this rotation
             Vector3 direc = vec * Rotation;
             direc.Normalize();
 
+            // mouse look situation ?
             if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
+            // odd rescalings
             direc *= 0.03f * 128f * SpeedModifier * thisAddSpeedModifier;
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
@@ -3254,35 +3259,27 @@ namespace OpenSim.Region.Framework.Scenes
             if (Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
             {
                 if (breaking)
-                    direc.Z = -9999f; //hack
+                    direc.Z = -9999f; //hack to tell physics to stop on Z
                 else
                     direc = Vector3.Zero;
             }
             else if (Flying)
             {
-                if(IsColliding)
+                if (IsColliding && direc.Z < 0)
+                    // landing situation, prevent avatar moving or it may fail to land
+                    // animator will handle this condition and do the land
                     direc = Vector3.Zero;
                 else
                     direc *= 4.0f;
             }
             else if (IsColliding)
             {
-                if (direc.Z > 2.0f)
+                if (direc.Z > 2.0f) // reinforce jumps
                 {
                     direc.Z *= 2.6f;
                 }
-                else if (direc.Z < 0)
+                else if (direc.Z < 0) // on a surface moving down (pg down) only changes animation
                     direc.Z = 0;
-/*                
-                float c = CollisionPlane.Z;
-                if (c > 0.2f && c < 0.94f && (direc.X != 0 || direc.Y != 0))
-                {
-                    float p = direc.X * CollisionPlane.X + direc.Y * CollisionPlane.Y;
-                    direc.X -= p * CollisionPlane.X;
-                    direc.Y -= p * CollisionPlane.Y;
-                    direc.Z -= p * c;
-                }
- */
             }
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Setting force to apply to {0} for {1}", direc, Name);
