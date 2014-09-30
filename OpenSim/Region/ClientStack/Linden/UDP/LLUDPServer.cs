@@ -774,10 +774,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
-                "debug lludp throttle status",
-                "debug lludp throttle status <avatar-first-name> <avatar-last-name>",
-                "Return status information about throttles.",
-                HandleThrottleStatusCommand);
+                "debug lludp throttle get",
+                "debug lludp throttle get <avatar-first-name> <avatar-last-name>",
+                "Return debug settings for throttles.",
+                HandleThrottleGetCommand);
 
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
@@ -899,14 +899,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleThrottleStatusCommand(string module, string[] args)
+        private void HandleThrottleGetCommand(string module, string[] args)
         {
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != Scene)
                 return;
 
             if (args.Length != 6)
             {
-                MainConsole.Instance.OutputFormat("Usage: debug lludp throttle status <avatar-first-name> <avatar-last-name>");
+                MainConsole.Instance.OutputFormat("Usage: debug lludp throttle get <avatar-first-name> <avatar-last-name>");
                 return;
             }           
 
