@@ -135,7 +135,7 @@ namespace OpenMetaverse
         /// manner (not throwing an exception when the remote side resets the
         /// connection). This call is ignored on Mono where the flag is not
         /// necessary</remarks>
-        public void StartInbound(int recvBufferSize, bool asyncPacketHandling)
+        public virtual void StartInbound(int recvBufferSize, bool asyncPacketHandling)
         {
             m_asyncPacketHandling = asyncPacketHandling;
 
@@ -185,14 +185,14 @@ namespace OpenMetaverse
         /// <summary>
         /// Start outbound UDP packet handling.
         /// </summary>
-        public void StartOutbound()
+        public virtual void StartOutbound()
         {
             m_log.DebugFormat("[UDPBASE]: Starting outbound UDP loop");
 
             IsRunningOutbound = true;
         }
 
-        public void StopInbound()
+        public virtual void StopInbound()
         {
             if (IsRunningInbound)
             {
@@ -203,14 +203,14 @@ namespace OpenMetaverse
             }
         }
 
-        public void StopOutbound()
+        public virtual void StopOutbound()
         {
             m_log.DebugFormat("[UDPBASE]: Stopping outbound UDP loop");
 
             IsRunningOutbound = false;
         }
 
-        protected virtual bool EnablePools()
+        public virtual bool EnablePools()
         {
             if (!UsePools)
             {
@@ -224,7 +224,7 @@ namespace OpenMetaverse
             return false;
         }
 
-        protected virtual bool DisablePools()
+        public virtual bool DisablePools()
         {
             if (UsePools)
             {
