@@ -320,6 +320,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
+        /// Get the total number of pakcets queued for this client.
+        /// </summary>
+        /// <returns></returns>
+        public int GetTotalPacketsQueuedCount()
+        {
+            int total = 0;
+
+            for (int i = 0; i <= (int)ThrottleOutPacketType.Asset; i++)
+                total += m_packetOutboxes[i].Count;
+
+            return total;
+        }
+
+        /// <summary>
+        /// Get the number of packets queued for the given throttle type.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name="throttleType"></param>
+        public int GetPacketsQueuedCount(ThrottleOutPacketType throttleType)
+        {
+            if ((int)throttleType > 0)
+                return m_packetOutboxes[(int)throttleType].Count;
+            else
+                return 0;
+        }
+
+        /// <summary>
         /// Return statistics information about client packet queues.
         /// </summary>
         /// <remarks>

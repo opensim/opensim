@@ -688,6 +688,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatType.Pull,
                     stat => stat.Value = PacketPool.Instance.BlocksPooled,
                     StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "OutgoingPacketsQueuedCount",
+                    "Packets queued for outgoing send",
+                    "Number of queued outgoing packets across all connections",
+                    "",
+                    "clientstack",
+                    Scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = GetTotalQueuedOutgoingPackets(),
+                    StatVerbosity.Info));
         
             // We delay enabling pool stats to AddScene() instead of Initialize() so that we can distinguish pool stats by
             // scene name
@@ -701,6 +714,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool HandlesRegion(Location x)
         {
             return x == m_location;
+        }
+
+        public int GetTotalQueuedOutgoingPackets()
+        {
+            int total = 0;
+
+            foreach (ScenePresence sp in Scene.GetScenePresences())
+            {
+                LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+                total += udpClient.GetTotalPacketsQueuedCount();
+            }
+
+            return total;
         }
 
 //        public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
