@@ -42,9 +42,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public class TokenBucket
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static Int32 m_counter = 0;
-
-        private LLUDPClient m_client;
 
         public string Identifier { get; private set; }
 
