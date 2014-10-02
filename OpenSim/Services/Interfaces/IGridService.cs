@@ -126,7 +126,7 @@ namespace OpenSim.Services.Interfaces
 
     public class GridRegion
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 #pragma warning disable 414
         private static readonly string LogHeader = "[GRID REGION]";
