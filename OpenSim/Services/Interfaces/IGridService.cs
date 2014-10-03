@@ -135,12 +135,7 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// The port by which http communication occurs with the region 
         /// </summary>
-        public uint HttpPort
-        {
-            get { return m_httpPort; }
-            set { m_httpPort = value; }
-        }
-        protected uint m_httpPort;
+        public uint HttpPort { get; set; }
 
         /// <summary>
         /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
@@ -151,10 +146,10 @@ namespace OpenSim.Services.Interfaces
                 if (!String.IsNullOrEmpty(m_serverURI)) {
                     return m_serverURI;
                 } else {
-                    if (m_httpPort == 0)
+                    if (HttpPort == 0)
                         return "http://" + m_externalHostName + "/";
                     else
-                        return "http://" + m_externalHostName + ":" + m_httpPort + "/";
+                        return "http://" + m_externalHostName + ":" + HttpPort + "/";
                 }
             }
             set { 
@@ -290,7 +285,7 @@ namespace OpenSim.Services.Interfaces
             RegionSizeY = (int)ConvertFrom.RegionSizeY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
-            m_httpPort = ConvertFrom.HttpPort;
+            HttpPort = ConvertFrom.HttpPort;
             RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
             TerrainImage = ConvertFrom.RegionSettings.TerrainImageID;
@@ -310,7 +305,7 @@ namespace OpenSim.Services.Interfaces
             RegionSizeY = ConvertFrom.RegionSizeY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
-            m_httpPort = ConvertFrom.HttpPort;
+            HttpPort = ConvertFrom.HttpPort;
             RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
             TerrainImage = ConvertFrom.TerrainImage;
