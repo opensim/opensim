@@ -316,6 +316,23 @@ public abstract class BSLinkset
     // Called at taint-time!
     public abstract bool MakeDynamic(BSPrimLinkable child);
 
+    public virtual bool AllPartsComplete
+    {
+        get {
+            bool ret = true; 
+            this.ForEachMember((member) =>
+            {
+                if (member.IsIncomplete || member.PrimAssetState == BSPhysObject.PrimAssetCondition.Waiting)
+                {
+                    ret = false;
+                    return true;    // exit loop
+                }
+                return false;       // continue loop
+            });
+            return ret;
+        }
+    }
+
     // The object is going static (non-physical). Do any setup necessary
     //     for a static linkset.
     // Return 'true' if any properties updated on the passed object.
