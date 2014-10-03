@@ -935,18 +935,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             SharedTmpcontact.surface.mu = mu;
             SharedTmpcontact.surface.bounce = bounce;
 
+            d.ContactGeom altContact = new d.ContactGeom();
+            bool useAltcontact = false;
+            bool noskip = true;
+
             while (true)
             {
 //                if (!(IgnoreNegSides && curContact.side1 < 0))
                 {
-                    bool noskip = true;
+                    noskip = true;
+                    useAltcontact = false;
+
                     if (dop1ava)
                     {
-                        if (!(((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref FeetCollision)))
-                            noskip = false;
-                        else
+                        if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
                         {
-                            if(p2.PhysicsActorType == (int)ActorTypes.Agent)
+                            if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                             {
                                 p1.CollidingObj = true;
                                 p2.CollidingObj = true;
@@ -954,18 +958,32 @@ namespace OpenSim.Region.Physics.OdePlugin
                             else if (p2.Velocity.LengthSquared() > 0.0f)
                                     p2.CollidingObj = true;
                         }
+                        else
+                            noskip = false;
                     }
                     else if (dop2ava)
                     {
-                        if (!(((OdeCharacter)p2).Collide(g2,g1, true, ref curContact, ref FeetCollision)))
+                        if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
+                        {
+                            if (p1.PhysicsActorType == (int)ActorTypes.Agent)
+                            {
+                                p1.CollidingObj = true;
+                                p2.CollidingObj = true;
+                            }
+                            else if (p2.Velocity.LengthSquared() > 0.0f)
+                                p1.CollidingObj = true;
+                        }
+                        else
                             noskip = false;
-                        else if (p1.Velocity.LengthSquared() > 0.0f)
-                            p1.CollidingObj = true;
                     }
 
                     if (noskip)
                     {
-                        Joint = CreateContacJoint(ref curContact);
+                        if(useAltcontact)
+                            Joint = CreateContacJoint(ref altContact);
+                        else
+                            Joint = CreateContacJoint(ref curContact);
+
                         if (Joint == IntPtr.Zero)
                             break;
 
@@ -1924,12 +1942,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     dy = 0;
                 }
             }
-
             else
             {
                 // we  still have square fixed size regions
                 // also flip x and y because of how map is done for ODE fliped axis
                 // so ix,iy,dx and dy are inter exchanged
+
                 if (x < regsize - 1)
                 {
                     iy = (int)x;
@@ -1976,7 +1994,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             */
             h0 = ((float)heights[iy]); // 0,0 vertice
 
-            if ((dy > dx))
+            if (dy>dx)
             {
                 iy += regsize;
                 h2 = (float)heights[iy]; // 0,1 vertice
@@ -1994,6 +2012,133 @@ namespace OpenSim.Region.Physics.OdePlugin
             return h0 + h1 + h2;
         }
 
+        public Vector3 GetTerrainNormalAtXY(float x, float y)
+        {
+            int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+            int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+
+            IntPtr heightFieldGeom = IntPtr.Zero;
+            Vector3 norm = new Vector3(0, 0, 1);
+
+            // get region map
+            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+                return norm;
+
+            if (heightFieldGeom == IntPtr.Zero)
+                return norm;
+
+            if (!TerrainHeightFieldHeights.ContainsKey(heightFieldGeom))
+                return norm;
+
+            // TerrainHeightField for ODE as offset 1m
+            x += 1f - offsetX;
+            y += 1f - offsetY;
+
+            // make position fit into array
+            if (x < 0)
+                x = 0;
+            if (y < 0)
+                y = 0;
+
+            // integer indexs
+            int ix;
+            int iy;
+            //  interpolators offset
+            float dx;
+            float dy;
+
+
+            int regsize = (int)Constants.RegionSize + 3; // map size see setterrain number of samples
+            int xstep = 1;
+            int ystep = regsize;
+            bool firstTri = false;
+
+            if (OdeUbitLib)
+            {
+                if (x < regsize - 1)
+                {
+                    ix = (int)x;
+                    dx = x - (float)ix;
+                }
+                else // out world use external height
+                {
+                    ix = regsize - 2;
+                    dx = 0;
+                }
+                if (y < regsize - 1)
+                {
+                    iy = (int)y;
+                    dy = y - (float)iy;
+                }
+                else
+                {
+                    iy = regsize - 2;
+                    dy = 0;
+                }
+                firstTri = dy > dx;
+            }
+
+            else
+            {
+                xstep = regsize;
+                ystep = 1;
+                // we  still have square fixed size regions
+                // also flip x and y because of how map is done for ODE fliped axis
+                // so ix,iy,dx and dy are inter exchanged
+                if (x < regsize - 1)
+                {
+                    iy = (int)x;
+                    dy = x - (float)iy;
+                }
+                else // out world use external height
+                {
+                    iy = regsize - 2;
+                    dy = 0;
+                }
+                if (y < regsize - 1)
+                {
+                    ix = (int)y;
+                    dx = y - (float)ix;
+                }
+                else
+                {
+                    ix = regsize - 2;
+                    dx = 0;
+                }
+                firstTri = dx > dy;
+            }
+
+            float h0;
+            float h1;
+            float h2;
+
+            iy *= regsize;
+            iy += ix; // all indexes have iy + ix
+
+            float[] heights = TerrainHeightFieldHeights[heightFieldGeom];
+
+            if (firstTri)
+            {
+                h1 = ((float)heights[iy]); // 0,0 vertice
+                iy += ystep;
+                h0 = (float)heights[iy]; // 0,1
+                h2 = (float)heights[iy+xstep]; // 1,1 vertice
+                norm.X = h0 - h2;
+                norm.Y = h1 - h0;              
+            }
+            else
+            {
+                h2 = ((float)heights[iy]); // 0,0 vertice
+                iy += xstep;
+                h0 = ((float)heights[iy]); // 1,0 vertice
+                h1 = (float)heights[iy+ystep]; // vertice 1,1
+                norm.X = h2 - h0;
+                norm.Y = h0 - h1;
+            }
+            norm.Z = 1;
+            norm.Normalize();
+            return norm;
+        }
 
         public override void SetTerrain(float[] heightMap)
         {

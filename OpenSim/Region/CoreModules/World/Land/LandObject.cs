@@ -1244,6 +1244,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SetMediaUrl(string url)
         {
             LandData.MediaURL = url;
+            m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
             SendLandUpdateToAvatarsOverMe();
         }
         
@@ -1254,6 +1255,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SetMusicUrl(string url)
         {
             LandData.MusicURL = url;
+            m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
             SendLandUpdateToAvatarsOverMe();
         }
 

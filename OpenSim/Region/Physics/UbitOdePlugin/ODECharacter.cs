@@ -79,6 +79,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 _acceleration;
         private Vector3 m_rotationalVelocity;
         private Vector3 m_size;
+        private Vector3 m_collideNormal;
         private Quaternion m_orientation;
         private Quaternion m_orientation2D;
         private float m_mass = 80f;
@@ -108,6 +109,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_alwaysRun = false;
 
         private bool _zeroFlag = false;
+
 
         private uint m_localID = 0;
         public bool m_returnCollisions = false;
@@ -153,9 +155,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public UUID m_uuid;
         public bool bad = false;
 
-        float mu;
-
-        
+        float mu;       
 
         public OdeCharacter(uint localID, String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
@@ -864,11 +864,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             x = tx * cos - y * sin;
             y = tx * sin + y * cos;
         }
-
-
-        public bool Collide(IntPtr me,IntPtr other, bool reverse, ref d.ContactGeom contact, ref bool feetcollision)
+      
+        public bool Collide(IntPtr me, IntPtr other, bool reverse, ref d.ContactGeom contact,
+                ref d.ContactGeom altContact , ref bool useAltcontact, ref bool feetcollision)
         {
             feetcollision = false;
+            useAltcontact = false;
 
             if (me == capsule)
             {
@@ -899,31 +900,78 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         feetcollision = true;
                         if (h < boneOff)
+                        {
+                            m_collideNormal.X = contact.normal.X;
+                            m_collideNormal.Y = contact.normal.Y;
+                            m_collideNormal.Z = contact.normal.Z;
                             IsColliding = true;
+                        }
+                    }
+                    return true;
+                }               
+/*
+                d.AABB aabb;
+                d.GeomGetAABB(other,out aabb);
+                float othertop = aabb.MaxZ - _position.Z;
+*/
+//                if (offset.Z > 0 || othertop > -feetOff || contact.normal.Z > 0.35f)
+                if (offset.Z > 0 || contact.normal.Z > 0.35f)
+                {
+                    if (offset.Z <= 0)
+                    {
+                        feetcollision = true;
+                        if (h < boneOff)
+                        {
+                            m_collideNormal.X = contact.normal.X;
+                            m_collideNormal.Y = contact.normal.Y;
+                            m_collideNormal.Z = contact.normal.Z;
+                            IsColliding = true;
+                        }
+                    }
+
+                    if (contact.normal.Z < 0.2f)
+                    {
+                        contact.normal.Z = 0;
+                        float t = contact.normal.X * contact.normal.X + contact.normal.Y * contact.normal.Y;
+                        if (t > 0)
+                        {
+                            t = 1.0f / t;
+                            contact.normal.X *= t;
+                            contact.normal.Y *= t;
+                        }
                     }
                     return true;
                 }
 
-                if (offset.Z > 0)
-                    return true;
+                altContact = contact;
+                useAltcontact = true;
 
                 offset.Normalize();
 
+                if (contact.depth > 0.1f)
+                    contact.depth = 0.1f;
+
                 if (reverse)
                 {
-                    contact.normal.X = offset.X;
-                    contact.normal.Y = offset.Y;
-                    contact.normal.Z = offset.Z;
+                    altContact.normal.X = offset.X;
+                    altContact.normal.Y = offset.Y;
+                    altContact.normal.Z = offset.Z;
                 }
                 else
                 {
-                    contact.normal.X = -offset.X;
-                    contact.normal.Y = -offset.Y;
-                    contact.normal.Z = -offset.Z;
+                    altContact.normal.X = -offset.X;
+                    altContact.normal.Y = -offset.Y;
+                    altContact.normal.Z = -offset.Z;
                 }
+
                 feetcollision = true;
                 if (h < boneOff)
+                {
+                    m_collideNormal.X = contact.normal.X;
+                    m_collideNormal.Y = contact.normal.Y;
+                    m_collideNormal.Z = contact.normal.Z;
                     IsColliding = true;
+                }
                 return true;
             }
             return false;
@@ -1003,6 +1051,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
             float velLengthSquared = vel.LengthSquared();
 
+
+            Vector3 ctz = _target_velocity;
+
             float movementdivisor = 1f;
             //Ubit change divisions into multiplications below
             if (!m_alwaysRun)
@@ -1010,13 +1061,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
                 movementdivisor = 1 / runDivisor;
 
+            ctz.X *= movementdivisor;
+            ctz.Y *= movementdivisor;
+
             //******************************************
             // colide with land
 
             d.AABB aabb;
 //            d.GeomGetAABB(feetbox, out aabb);
             d.GeomGetAABB(capsule, out aabb);
-            float chrminZ = aabb.MinZ; ; // move up a bit
+            float chrminZ = aabb.MinZ; // move up a bit
             Vector3 posch = localpos;
 
             float ftmp;
@@ -1031,15 +1085,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             float terrainheight = _parent_scene.GetTerrainHeightAtXY(posch.X, posch.Y);
             if (chrminZ < terrainheight)
             {
-                float depth = terrainheight - chrminZ;
-                if (!flying)
-                {
-                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 50;
-                }
-                else
-                    vec.Z = depth * PID_P * 50;
+                if (ctz.Z < 0)
+                    ctz.Z = 0;
 
-                if (depth < 0.1f)
+                Vector3 n = _parent_scene.GetTerrainNormalAtXY(posch.X, posch.Y);
+                float depth = terrainheight - chrminZ;
+
+                vec.Z = depth * PID_P * 50;
+
+                if (!flying)
+                    vec.Z += -vel.Z * PID_D;
+
+                if (depth < 0.2f)
                 {
                     m_colliderGroundfilter++;
                     if (m_colliderGroundfilter > 2)
@@ -1053,50 +1110,83 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_freemove = false;
                         }
 
+                        m_collideNormal.X = n.X;
+                        m_collideNormal.Y = n.Y;
+                        m_collideNormal.Z = n.Z;
+
                         m_iscollidingGround = true;
+
 
                         ContactPoint contact = new ContactPoint();
                         contact.PenetrationDepth = depth;
                         contact.Position.X = localpos.X;
                         contact.Position.Y = localpos.Y;
                         contact.Position.Z = terrainheight;
-                        contact.SurfaceNormal.X = 0.0f;
-                        contact.SurfaceNormal.Y = 0.0f;
-                        contact.SurfaceNormal.Z = -1f;
+                        contact.SurfaceNormal.X = -n.X;
+                        contact.SurfaceNormal.Y = -n.Y;
+                        contact.SurfaceNormal.Z = -n.Z;
                         contact.RelativeSpeed = -vel.Z;
                         contact.CharacterFeet = true;
                         AddCollisionEvent(0, contact);
 
-                        vec.Z *= 0.5f;
+//                        vec.Z *= 0.5f;
                     }
                 }
 
                 else
                 {
-                    m_colliderGroundfilter = 0;
-                    m_iscollidingGround = false;
+                    m_colliderGroundfilter -= 5;
+                    if (m_colliderGroundfilter <= 0)
+                    {
+                        m_colliderGroundfilter = 0;
+                        m_iscollidingGround = false;
+                    }
                 }
             }
             else
             {
-                m_colliderGroundfilter = 0;
-                m_iscollidingGround = false;
+                m_colliderGroundfilter -= 5;
+                if (m_colliderGroundfilter <= 0)
+                {
+                    m_colliderGroundfilter = 0;
+                    m_iscollidingGround = false;
+                }
             }
 
             
             //******************************************
+            if (!m_iscolliding)
+                m_collideNormal.Z = 0;
 
-            bool tviszero = (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f);
+            bool tviszero = (ctz.X == 0.0f && ctz.Y == 0.0f && ctz.Z == 0.0f);
 
-            //            if (!tviszero || m_iscolliding || velLengthSquared <0.01)
+
+
             if (!tviszero)
+            {
                 m_freemove = false;
+
+                // movement relative to surface if moving on it
+                // dont disturbe vertical movement, ie jumps
+                if (m_iscolliding && !flying && ctz.Z == 0 && m_collideNormal.Z > 0.2f && m_collideNormal.Z < 0.94f)
+                {
+                    float p = ctz.X * m_collideNormal.X + ctz.Y * m_collideNormal.Y;
+                    ctz.X *= (float)Math.Sqrt(1 - m_collideNormal.X * m_collideNormal.X);
+                    ctz.Y *= (float)Math.Sqrt(1 - m_collideNormal.Y * m_collideNormal.Y);
+                    ctz.Z -= p;
+                    if (ctz.Z < 0)
+                        ctz.Z *= 2;
+
+                }
+
+            }
+
 
             if (!m_freemove)
             {
 
                 //  if velocity is zero, use position control; otherwise, velocity control
-                if (tviszero && m_iscolliding)
+                if (tviszero && m_iscolliding && !flying)
                 {
                     //  keep track of where we stopped.  No more slippin' & slidin'
                     if (!_zeroFlag)
@@ -1129,22 +1219,48 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (!flying)
                         {
-                            if (_target_velocity.Z > 0.0f)
+                            // we are on a surface
+                            if (ctz.Z > 0f)
                             {
-                                // We're colliding with something and we're not flying but we're moving
-                                // This means we're walking or running. JUMPING
-                                vec.Z += (_target_velocity.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
+                                // moving up or JUMPING
+                                vec.Z += (ctz.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
+                                vec.X += (ctz.X - vel.X) * (PID_D);
+                                vec.Y += (ctz.Y - vel.Y) * (PID_D);
                             }
+                            else
+                            {
+                                // we are moving down on a surface
+                                if (ctz.Z == 0)
+                                {
+                                    if (vel.Z > 0)
+                                        vec.Z -= vel.Z * PID_D * 2.0f;
+                                    vec.X += (ctz.X - vel.X) * (PID_D);
+                                    vec.Y += (ctz.Y - vel.Y) * (PID_D);
+                                }
+                                // intencionally going down
+                                else
+                                {
+                                    if (ctz.Z < vel.Z)
+                                        vec.Z += (ctz.Z - vel.Z) * PID_D * 2.0f;
+                                    else
+                                    {
+                                    }
+
+                                    if (Math.Abs(ctz.X) > Math.Abs(vel.X))
+                                        vec.X += (ctz.X - vel.X) * (PID_D);
+                                    if (Math.Abs(ctz.Y) > Math.Abs(vel.Y))
+                                        vec.Y += (ctz.Y - vel.Y) * (PID_D);
+                                }
+                            }
+
                             // We're standing on something
-                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D);
-                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D);
                         }
                         else
                         {
                             // We're flying and colliding with something
-                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 0.0625f);
-                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 0.0625f);
-                            vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                            vec.X += (ctz.X - vel.X) * (PID_D * 0.0625f);
+                            vec.Y += (ctz.Y - vel.Y) * (PID_D * 0.0625f);
+                            vec.Z += (ctz.Z - vel.Z) * (PID_D);
                         }
                     }
                     else // ie not colliding
@@ -1152,9 +1268,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (flying) //(!m_iscolliding && flying)
                         {
                             // we're in mid air suspended
-                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 1.667f);
-                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 1.667f);
-                            vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                            vec.X += (ctz.X - vel.X) * (PID_D * 1.667f);
+                            vec.Y += (ctz.Y - vel.Y) * (PID_D * 1.667f);
+                            vec.Z += (ctz.Z - vel.Z) * (PID_D);
                         }
 
                         else
@@ -1163,8 +1279,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                             // m_iscolliding includes collisions with the ground.
 
                             // d.Vector3 pos = d.BodyGetPosition(Body);
-                            vec.X = (_target_velocity.X - vel.X) * PID_D * 0.833f;
-                            vec.Y = (_target_velocity.Y - vel.Y) * PID_D * 0.833f;
+                            vec.X += (ctz.X - vel.X) * PID_D * 0.833f;
+                            vec.Y += (ctz.Y - vel.Y) * PID_D * 0.833f;
+                            // hack for  breaking on fall
+                            if (ctz.Z == -9999f)
+                                vec.Z += -vel.Z * PID_D - _parent_scene.gravityz * m_mass;
                         }
                     }
                 }

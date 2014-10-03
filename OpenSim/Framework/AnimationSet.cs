@@ -37,6 +37,54 @@ namespace OpenSim.Framework
     {
         private bool m_parseError = false;
 
+        public const uint createBasePermitions = (uint)(PermissionMask.All); // no export ?
+        public const uint createNextPermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+
+        public const uint allowedBasePermitions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+        public const uint allowedNextPermitions = 0;
+
+        public static void setCreateItemPermitions(InventoryItemBase it)
+        {
+            if (it == null)
+                return;
+
+            it.BasePermissions = createBasePermitions;
+            it.CurrentPermissions = createBasePermitions;
+            //            it.GroupPermissions &= allowedPermitions;
+            it.NextPermissions = createNextPermitions;
+            //            it.EveryOnePermissions &= allowedPermitions;
+            it.GroupPermissions = 0;
+            it.EveryOnePermissions = 0;
+        }
+
+        public static void enforceItemPermitions(InventoryItemBase it, bool IsCreator)
+        {
+            if (it == null)
+                return;
+
+            uint bp;
+            uint np;
+
+            if (IsCreator)
+            {
+                bp = createBasePermitions;
+                np = createNextPermitions;
+            }
+            else
+            {
+                bp = allowedBasePermitions;
+                np = allowedNextPermitions;
+            }
+
+            it.BasePermissions &= bp;
+            it.CurrentPermissions &= bp;
+            //            it.GroupPermissions &= allowedPermitions;
+            it.NextPermissions &= np;
+            //            it.EveryOnePermissions &= allowedPermitions;
+            it.GroupPermissions = 0;
+            it.EveryOnePermissions = 0;
+        }
+        
         public int AnimationCount { get; private set; }
         private Dictionary<string, KeyValuePair<string, UUID>> m_animations = new Dictionary<string, KeyValuePair<string, UUID>>();
 

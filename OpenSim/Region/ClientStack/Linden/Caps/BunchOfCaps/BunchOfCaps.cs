@@ -1125,10 +1125,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (inType == (sbyte)CustomInventoryType.AnimationSet)
             {
-                item.BasePermissions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
-                item.CurrentPermissions = (uint)(PermissionMask.Copy| PermissionMask.Modify);
-                item.EveryOnePermissions = 0;
-                item.NextPermissions = 0;
+                AnimationSet.setCreateItemPermitions(item);
             }
 
             else if (restrictPerms)

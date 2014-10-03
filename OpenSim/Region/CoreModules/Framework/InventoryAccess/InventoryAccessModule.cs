@@ -178,7 +178,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                            sbyte assetType,
                                            byte wearableType, uint nextOwnerMask, int creationDate)
         {
-            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Received request to create inventory item {0} in folder {1}", name, folderID);
+            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Received request to create inventory item {0} in folder {1}, transactionID {2}", name,
+                folderID, transactionID);
 
             if (!m_Scene.Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
@@ -219,7 +220,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_Scene.AssetService.Store(asset);
                 m_Scene.CreateNewInventoryItem(
                     remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                    name, description, 0, callbackID, asset, invType, nextOwnerMask, creationDate,transactionID);
+                    name, description, 0, callbackID, asset, invType, nextOwnerMask, creationDate,transactionID);               
             }
             else
             {

@@ -1200,32 +1200,30 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 //the proprieties to who changed them
 
-                land.SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, remote_client);
+                land.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
 
-                if (needOverlay)
-                {
-                    UUID parcelID = land.LandData.GlobalID;
-                    m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                     {
-                         if (avatar.IsDeleted || avatar.isNPC)
-                             return;
+                UUID parcelID = land.LandData.GlobalID;
+                m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                 {
+                     if (avatar.IsDeleted || avatar.isNPC)
+                         return;
 
-                         IClientAPI client = avatar.ControllingClient;
+                     IClientAPI client = avatar.ControllingClient;
+                     if (needOverlay)
                          SendParcelOverlay(client);
 
-                         if (avatar.IsChildAgent)
-                             return;
-                         
-                         ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-                         if (aland != null)
-                         {
-                             if (client != remote_client || land != aland)
-                                 aland.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, client);
-                         }
-                         if (avatar.currentParcelUUID == parcelID)
-                             avatar.currentParcelUUID = parcelID; // force parcel flags review
-                     });
-                }
+                     if (avatar.IsChildAgent)
+                         return;
+
+                     ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                     if (aland != null)
+                     {
+                         if (client != remote_client || land != aland)
+                             aland.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, client);
+                     }
+                     if (avatar.currentParcelUUID == parcelID)
+                         avatar.currentParcelUUID = parcelID; // force parcel flags review
+                 });
             }
         }
 
