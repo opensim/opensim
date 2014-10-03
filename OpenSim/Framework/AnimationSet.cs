@@ -38,13 +38,43 @@ namespace OpenSim.Framework
         private bool m_parseError = false;
 
         public int AnimationCount { get; private set; }
-        private Dictionary<string, UUID> m_animations = new Dictionary<string, UUID>();
+        private Dictionary<string, KeyValuePair<string, UUID>> m_animations = new Dictionary<string, KeyValuePair<string, UUID>>();
+
+        public UUID GetAnimation(string index)
+        {
+            KeyValuePair<string, UUID> val;
+            if (m_animations.TryGetValue(index, out val))
+                return val.Value;
+
+            return UUID.Zero;
+        }
+
+        public string GetAnimationName(string index)
+        {
+            KeyValuePair<string, UUID> val;
+            if (m_animations.TryGetValue(index, out val))
+                return val.Key;
+
+            return String.Empty;
+        }
+
+        public void SetAnimation(string index, string name, UUID anim)
+        {
+            if (anim == UUID.Zero)
+            {
+                m_animations.Remove(index);
+                return;
+            }
+
+            m_animations[index] = new KeyValuePair<string, UUID>(name, anim);
+        }
+
         public AnimationSet(Byte[] data)
         {
             string assetData = System.Text.Encoding.ASCII.GetString(data);
             Console.WriteLine("--------------------");
             Console.WriteLine("AnimationSet length {0} bytes", assetData.Length);
-            Console.WriteLine("Data: {0}", assetData);
+            Console.WriteLine(assetData);
             Console.WriteLine("--------------------");
         }
 
@@ -59,8 +89,8 @@ namespace OpenSim.Framework
             }
 
             string assetData = String.Format("version 1\ncount {0}\n", m_animations.Count);
-            foreach (KeyValuePair<string, UUID> kvp in m_animations)
-                assetData += String.Format("{0} {1}\n", kvp.Key, kvp.Value.ToString());
+            foreach (KeyValuePair<string, KeyValuePair<string, UUID>> kvp in m_animations)
+                assetData += String.Format("{0} {1} {2}\n", kvp.Key, kvp.Value.Value.ToString(), kvp.Value.Key);
             return System.Text.Encoding.ASCII.GetBytes(assetData);
         }
 
@@ -72,9 +102,9 @@ namespace OpenSim.Framework
             List<string> badAnims = new List<string>();
 
             bool allOk = true;
-            foreach (KeyValuePair<string, UUID> kvp in m_animations)
+            foreach (KeyValuePair<string, KeyValuePair<string, UUID>> kvp in m_animations)
             {
-                if (!val(kvp.Value))
+                if (!val(kvp.Value.Value))
                 {
                     allOk = false;
                     badAnims.Add(kvp.Key);
