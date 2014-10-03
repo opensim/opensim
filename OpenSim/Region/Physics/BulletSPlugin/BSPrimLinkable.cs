@@ -58,7 +58,29 @@ public class BSPrimLinkable : BSPrimDisplaced
     {
         get
         {
-            return base.IsIncomplete || Linkset.RebuildScheduled ;
+            // A linkset is incomplete when base objects are incomplete, waiting for assets,
+            //     or being rebuilt.
+            bool ret = false;
+            if (base.IsIncomplete || Linkset.RebuildScheduled)
+            {
+                ret = true;
+            }
+            else
+            {
+                if (Linkset.IsRoot(this))
+                {
+                    Linkset.ForEachMember((member) =>
+                    {
+                        if (member.PrimAssetState == PrimAssetCondition.Waiting)
+                        {
+                            ret = true;
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+            }
+            return ret;
         }
     }
 
