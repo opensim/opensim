@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -141,6 +141,18 @@ public class BSPrim : BSPhysObject
     public override bool Stopped {
         get { return false; }
     }
+
+    public override bool IsIncomplete {
+        get {
+            return ShapeRebuildScheduled;
+        }
+    }
+
+    // 'true' if this object's shape is in need of a rebuild and a rebuild has been queued.
+    // The prim is still available but its underlying shape will change soon.
+    // This is protected by a 'lock(this)'.
+    public bool ShapeRebuildScheduled { get; protected set; }
+
     public override OMV.Vector3 Size {
         get { return _size; }
         set {
@@ -159,13 +171,37 @@ public class BSPrim : BSPhysObject
             ForceBodyShapeRebuild(false);
         }
     }
+    // Cause the body and shape of the prim to be rebuilt if necessary.
+    // If there are no changes required, this is quick and does not make changes to the prim.
+    // If rebuilding is necessary (like changing from static to physical), that will happen.
+    // The 'ShapeRebuildScheduled' tells any checker that the body/shape may change shortly.
+    // The return parameter is not used by anyone.
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
-        PhysScene.TaintedObject(inTaintTime, LocalID, "BSPrim.ForceBodyShapeRebuild", delegate()
+        if (inTaintTime)
         {
+            // If called in taint time, do the operation immediately
             _mass = CalculateMass();   // changing the shape changes the mass
             CreateGeomAndObject(true);
-        });
+        }
+        else
+        {
+            lock (this)
+            {
+                // If a rebuild is not already in the queue
+                if (!ShapeRebuildScheduled)
+                {
+                    // Remember that a rebuild is queued -- this is used to flag an incomplete object
+                    ShapeRebuildScheduled = true;
+                    PhysScene.TaintedObject(LocalID, "BSPrim.ForceBodyShapeRebuild", delegate()
+                    {
+                        _mass = CalculateMass();   // changing the shape changes the mass
+                        CreateGeomAndObject(true);
+                        ShapeRebuildScheduled = false;
+                    });
+                }
+            }
+        }
         return true;
     }
     public override bool Grabbed {

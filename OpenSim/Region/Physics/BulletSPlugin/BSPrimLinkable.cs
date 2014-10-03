@@ -54,6 +54,14 @@ public class BSPrimLinkable : BSPrimDisplaced
 
     public BSLinkset.LinksetImplementation LinksetType { get; set; }
 
+    public override bool IsIncomplete
+    {
+        get
+        {
+            return base.IsIncomplete || Linkset.RebuildScheduled ;
+        }
+    }
+
     public BSPrimLinkable(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
         : base(localID, primName, parent_scene, pos, size, rotation, pbs, pisPhysical)

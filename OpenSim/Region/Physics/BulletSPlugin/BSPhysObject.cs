@@ -136,6 +136,15 @@ public abstract class BSPhysObject : PhysicsActor
     // This mostly prevents property updates and collisions until the object is completely here.
     public bool IsInitialized { get; protected set; }
 
+    // Set to 'true' if an object (mesh/linkset/sculpty) is not completely constructed.
+    // This test is used to prevent some updates to the object when it only partially exists.
+    // There are several reasons and object might be incomplete:
+    //     Its underlying mesh/sculpty is an asset which must be fetched from the asset store
+    //     It is a linkset who is being added to or removed from
+    //     It is changing state (static to physical, for instance) which requires rebuilding
+    // This is a computed value based on the underlying physical object construction
+    abstract public bool IsIncomplete { get; }
+
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
     // Set the raw mass but also update physical mass properties (inertia, ...)

@@ -73,8 +73,12 @@ public sealed class BSCharacter : BSPhysObject
 //                base.RawVelocity = value; }
 //        }
 
+    // Avatars are always complete (in the physics engine sense)
+    public override bool IsIncomplete { get { return false; } }
+
     public BSCharacter(
             uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, bool isFlying)
+
             : base(parent_scene, localID, avName, "BSCharacter")
     {
         _physicsActorType = (int)ActorTypes.Agent;

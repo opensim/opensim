@@ -106,13 +106,21 @@ public sealed class BSLinksetCompound : BSLinkset
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
-        if (!Rebuilding && HasAnyChildren)
+        lock (this)
         {
-            m_physicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
+            if (!RebuildScheduled)
             {
-                if (HasAnyChildren)
-                    RecomputeLinksetCompound();
-            });
+                if (!Rebuilding && HasAnyChildren)
+                {
+                    RebuildScheduled = true;
+                    m_physicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
+                    {
+                        if (HasAnyChildren)
+                            RecomputeLinksetCompound();
+                        RebuildScheduled = false;
+                    });
+                }
+            }
         }
     }
 
