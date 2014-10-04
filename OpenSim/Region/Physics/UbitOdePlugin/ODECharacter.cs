@@ -946,6 +946,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 altContact = contact;
                 useAltcontact = true;
 
+                offset.Z -= 0.2f;
+
                 offset.Normalize();
 
                 if (contact.depth > 0.1f)
