@@ -1023,6 +1023,10 @@ namespace OpenSim.Region.Framework.Scenes
             item.BasePermissions = baseMask;
             item.CreationDate = creationDate;
 
+            // special AnimationSet case
+            if (item.InvType == (int)CustomInventoryType.AnimationSet)
+                AnimationSet.enforceItemPermitions(item,true);
+
             if (AddInventoryItem(item))
             {
                 remoteClient.SendInventoryItemCreateUpdate(item, transationID, callbackID);
@@ -1062,10 +1066,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
-
-            if (type != (sbyte)AssetType.Link || type != (sbyte)AssetType.LinkFolder)
-                return;
-
 
             ScenePresence presence;
             if (TryGetScenePresence(remoteClient.AgentId, out presence))
