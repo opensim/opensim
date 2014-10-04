@@ -307,15 +307,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 );
 
             // Check control flags
-/* not in use
-            bool heldForward = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0);
-            bool heldBack = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0);
-            bool heldLeft = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0);
-            bool heldRight = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0);
-*/
+            /* not in use
+                        bool heldForward = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0);
+                        bool heldBack = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0);
+                        bool heldLeft = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0);
+                        bool heldRight = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0);
+            */
             bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
             bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
-//            bool heldUp = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS)) != 0);
+            //            bool heldUp = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS)) != 0);
             // excluded nudge up so it doesn't trigger jump state
             bool heldUp = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_POS)) != 0);
             bool heldDown = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0);
@@ -328,7 +328,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 heldTurnLeft = false;
                 heldTurnRight = false;
             }
-           
+
             #endregion Inputs
 
             // no physics actor case
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             #region Jumping     // section added for jumping...
 
             if (isColliding && heldUp && currentControlState != motionControlStates.jumping)
-                {
+            {
                 // Start jumping, prejump
                 currentControlState = motionControlStates.jumping;
                 m_jumping = true;
@@ -465,6 +465,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     m_jumping = true;
                     return "JUMP";
                 }
+                return CurrentMovementAnimation;
             }
 
             #endregion Jumping
@@ -508,7 +509,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 }
             }
 
-
             // next section moved outside paren. and realigned for jumping
 
             if (heldOnXY)
@@ -530,12 +530,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                         return "WALK";
                 }
             }
-            else if (!m_jumping)
+            else
             {
                 currentControlState = motionControlStates.onsurface;
                 Falling = false;
                 // Not walking
-                if(heldDown)
+                if (heldDown)
                     return "CROUCH";
                 else if (heldTurnLeft)
                     return "TURNLEFT";
