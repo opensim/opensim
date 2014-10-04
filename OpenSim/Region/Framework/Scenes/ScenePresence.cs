@@ -336,7 +336,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected ulong crossingFromRegion;
 
-        private readonly Vector3[] Dir_Vectors = new Vector3[11];
+        private readonly Vector3[] Dir_Vectors = new Vector3[12];
 
         protected Timer m_reprioritization_timer;
         protected bool m_reprioritizing;
@@ -393,7 +393,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Implemented Control Flags
         /// </summary>
-        private enum Dir_ControlFlags
+        private enum Dir_ControlFlags:uint
         {
             DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
             DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
@@ -405,6 +405,7 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_BACKWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
             DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
             DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS,
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
         
@@ -728,24 +729,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
-/*
-        public override Vector3 AngularVelocity
-        {
-            get
-            {
-                if (PhysicsActor != null)
-                {
-                    m_rotationalvelocity = PhysicsActor.RotationalVelocity;
 
-                    //                    m_log.DebugFormat(
-                    //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
-                    //                        m_velocity, Name, Scene.RegionInfo.RegionName);
-                }
-
-                return m_rotationalvelocity;
-            }
-        }
-*/
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         /// <summary>
@@ -915,13 +899,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private float m_speedModifier = 1.0f;
-
-        public float SpeedModifier
-        {
-            get { return m_speedModifier; }
-            set { m_speedModifier = value; }
-        }
 
         /// <summary>
         /// Modifier for agent movement if we get an AGENT_CONTROL_STOP whilst walking or running
@@ -929,7 +906,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// AGENT_CONTRL_STOP comes about if user holds down space key on viewers.
         /// </remarks>
-        private float AgentControlStopSlowWhilstMoving = 0.2f;
+        private const float AgentControlStopSlowVel = 0.2f;
+        // velocities
+        public const float AgentControlNudgeVel = 1.0f; // setting this diferent from normal as no effect currently
+        public const float AgentControlNormalVel = 1.0f;
+
+        // old normal speed was tuned to match sl normal plus Fast modifiers
+        // so we need to rescale it
+        private float m_speedModifier = 1.0f;
+
+        public float SpeedModifier
+        {
+            get { return m_speedModifier; }
+            set { m_speedModifier = value; }
+        }
 
         private bool m_forceFly;
 
@@ -1057,22 +1047,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SetDirectionVectors()
         {
-            Dir_Vectors[0] = Vector3.UnitX; //FORWARD
-            Dir_Vectors[1] = -Vector3.UnitX; //BACK
-            Dir_Vectors[2] = Vector3.UnitY; //LEFT
-            Dir_Vectors[3] = -Vector3.UnitY; //RIGHT
-            Dir_Vectors[4] = Vector3.UnitZ; //UP
-            Dir_Vectors[5] = -Vector3.UnitZ; //DOWN
-            Dir_Vectors[6] = new Vector3(0.5f, 0f, 0f); //FORWARD_NUDGE
-            Dir_Vectors[7] = new Vector3(-0.5f, 0f, 0f);  //BACK_NUDGE
-            Dir_Vectors[8] = new Vector3(0f, 0.5f, 0f);  //LEFT_NUDGE
-            Dir_Vectors[9] = new Vector3(0f, -0.5f, 0f);  //RIGHT_NUDGE
-            Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
+            Dir_Vectors[0] = new Vector3(AgentControlNormalVel,0,0); //FORWARD
+            Dir_Vectors[1] = new Vector3(-AgentControlNormalVel,0,0);; //BACK
+            Dir_Vectors[2] = new Vector3(0,AgentControlNormalVel,0); //LEFT
+            Dir_Vectors[3] = new Vector3(0,-AgentControlNormalVel,0); //RIGHT
+            Dir_Vectors[4] = new Vector3(0,0,AgentControlNormalVel); //UP
+            Dir_Vectors[5] = new Vector3(0,0,-AgentControlNormalVel); //DOWN
+            Dir_Vectors[6] = new Vector3(AgentControlNudgeVel, 0f, 0f); //FORWARD_NUDGE
+            Dir_Vectors[7] = new Vector3(-AgentControlNudgeVel, 0f, 0f);  //BACK_NUDGE
+            Dir_Vectors[8] = new Vector3(0f, AgentControlNudgeVel, 0f);  //LEFT_NUDGE
+            Dir_Vectors[9] = new Vector3(0f, -AgentControlNudgeVel, 0f);  //RIGHT_NUDGE
+            Dir_Vectors[10] = new Vector3(0f, 0f, AgentControlNudgeVel); //UP_Nudge
+            Dir_Vectors[11] = new Vector3(0f, 0f, -AgentControlNudgeVel); //DOWN_Nudge
         }
 
+/* dont see any use for this
         private Vector3[] GetWalkDirectionVectors()
         {
-            Vector3[] vector = new Vector3[11];
+            Vector3[] vector = new Vector3[12];
             vector[0] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD
             vector[1] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK
             vector[2] = Vector3.UnitY; //LEFT
@@ -1083,10 +1075,11 @@ namespace OpenSim.Region.Framework.Scenes
             vector[7] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK_NUDGE
             vector[8] = Vector3.UnitY; //LEFT_NUDGE
             vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
-            vector[10] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN_NUDGE
+            vector[10] = new Vector3(CameraAtAxis.Z, 0f, CameraUpAxis.Z); //UP_NUDGE
+            vector[11] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN_NUDGE
             return vector;
         }
-
+*/
         #endregion
 
         #region Status Methods
@@ -2192,10 +2185,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
                     // this prevents 'jumping' in inappropriate situations.
-                    if (!Flying && (m_mouseLook || m_leftButtonDown))
-                        dirVectors = GetWalkDirectionVectors();
-                    else
+//                    if (!Flying && (m_mouseLook || m_leftButtonDown))
+//                        dirVectors = GetWalkDirectionVectors();
+//                    else
                         dirVectors = Dir_Vectors;
+
 
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
@@ -2214,10 +2208,10 @@ namespace OpenSim.Region.Framework.Scenes
                                 // Why did I get this?
                             }
 
-                            if (((MovementFlag & (uint)DCF) == 0) & !AgentControlStopActive)
+                            if (((MovementFlag & (uint)DCF) == 0))
                             {   
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
-                                MovementFlag += (uint)DCF;
+                                MovementFlag |= (uint)DCF;
                                 update_movementflag = true;
                             }
                         }
@@ -2226,7 +2220,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if ((MovementFlag & (uint)DCF) != 0)
                             {
                                 //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
-                                MovementFlag -= (uint)DCF;
+                                MovementFlag &= (uint)~DCF;
                                 update_movementflag = true;
 
                                 /*
@@ -2344,17 +2338,18 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (AgentControlStopActive)
                     {
-//                        if (MovementFlag == 0 && Animator.Falling)
+                        //                        if (MovementFlag == 0 && Animator.Falling)
                         if (MovementFlag == 0 && Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
                         {
-                            AddNewMovement(agent_control_v3, AgentControlStopSlowWhilstMoving, true);
+                            AddNewMovement(agent_control_v3, AgentControlStopSlowVel, true);
                         }
                         else
-                            AddNewMovement(agent_control_v3, AgentControlStopSlowWhilstMoving);
+                            AddNewMovement(agent_control_v3, AgentControlStopSlowVel);
                     }
-
                     else
+                    {
                         AddNewMovement(agent_control_v3);
+                    }
 
                 }
 
@@ -2453,11 +2448,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool updated = false;
 
+            Vector3 LocalVectorToTarget3D = MoveToPositionTarget - AbsolutePosition;
+
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
 //                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
-            double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, MoveToPositionTarget);
+            double distanceToTarget = LocalVectorToTarget3D.Length();
 
 //                        m_log.DebugFormat(
 //                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
@@ -2480,11 +2477,11 @@ namespace OpenSim.Region.Framework.Scenes
                     // Theoretically we might need a more complex PID approach here if other
                     // unknown forces are acting on the avatar and we need to adaptively respond
                     // to such forces, but the following simple approach seems to works fine.
-                    Vector3 LocalVectorToTarget3D =
-                        (MoveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
-                        * Matrix4.CreateFromQuaternion(Quaternion.Inverse(Rotation)); // change to avatar coords
+
+                    LocalVectorToTarget3D = LocalVectorToTarget3D * Quaternion.Inverse(Rotation); // change to avatar coords
                     // Ignore z component of vector
 //                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
+
                     LocalVectorToTarget3D.Normalize();
 
                     // update avatar movement flags. the avatar coordinate system is as follows:
@@ -2508,28 +2505,37 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // based on the above avatar coordinate system, classify the movement into
                     // one of left/right/back/forward.
+
+                    const uint noMovFlagsMask = (uint)(~(Dir_ControlFlags.DIR_CONTROL_FLAG_BACK |
+                        Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD | Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT |
+                        Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT | Dir_ControlFlags.DIR_CONTROL_FLAG_UP |
+                        Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN));
+
+                    MovementFlag &= noMovFlagsMask;
+                    AgentControlFlags &= noMovFlagsMask;
+
                     if (LocalVectorToTarget3D.X < 0) //MoveBack
                     {
-                        MovementFlag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                         AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                         updated = true;
                     }
                     else if (LocalVectorToTarget3D.X > 0) //Move Forward
                     {
-                        MovementFlag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
                         AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
                         updated = true;
                     }
 
                     if (LocalVectorToTarget3D.Y > 0) //MoveLeft
                     {
-                        MovementFlag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                         AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                         updated = true;
                     }
                     else if (LocalVectorToTarget3D.Y < 0) //MoveRight
                     {
-                        MovementFlag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                         AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                         updated = true;
                     }
@@ -3016,6 +3022,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ResetMoveToTarget();
 
             Velocity = Vector3.Zero;
+            m_AngularVelocity = Vector3.Zero;
 
             part.AddSittingAvatar(UUID);
 
