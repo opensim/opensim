@@ -291,6 +291,10 @@ namespace OpenSim.Region.Framework.Scenes
                     EventManager.TriggerParcelPrimCountTainted();
             }
 
+            // restore targetOmega
+            if (part.AngularVelocity != Vector3.Zero)
+                part.ScheduleTerseUpdate();     
+
         }
 
         public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount, 
