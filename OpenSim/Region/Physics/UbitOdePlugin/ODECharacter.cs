@@ -928,7 +928,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             IsColliding = true;
                         }
                     }
-
+/*
                     if (contact.normal.Z < 0.2f)
                     {
                         contact.normal.Z = 0;
@@ -940,11 +940,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                             contact.normal.Y *= t;
                         }
                     }
+ */
                     return true;
                 }
 
                 altContact = contact;
                 useAltcontact = true;
+
+                offset.Z -= 0.2f;
 
                 offset.Normalize();
 
@@ -1201,8 +1204,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // Avatar to Avatar collisions
                         // Prim to avatar collisions
 
-                        vec.X = -vel.X * PID_D * 2 + (_zeroPosition.X - localpos.X) * (PID_P * 5);
-                        vec.Y = -vel.Y * PID_D * 2 + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
+                        vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 5);
+                        vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
                         if (flying)
                         {
                             vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
@@ -1223,7 +1226,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (ctz.Z > 0f)
                             {
                                 // moving up or JUMPING
-                                vec.Z += (ctz.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
+                                vec.Z += (ctz.Z - vel.Z) * PID_D;
                                 vec.X += (ctz.X - vel.X) * (PID_D);
                                 vec.Y += (ctz.Y - vel.Y) * (PID_D);
                             }
@@ -1233,7 +1236,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (ctz.Z == 0)
                                 {
                                     if (vel.Z > 0)
-                                        vec.Z -= vel.Z * PID_D * 2.0f;
+                                        vec.Z -= vel.Z * PID_D;
                                     vec.X += (ctz.X - vel.X) * (PID_D);
                                     vec.Y += (ctz.Y - vel.Y) * (PID_D);
                                 }
@@ -1241,7 +1244,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 else
                                 {
                                     if (ctz.Z < vel.Z)
-                                        vec.Z += (ctz.Z - vel.Z) * PID_D * 2.0f;
+                                        vec.Z += (ctz.Z - vel.Z) * PID_D;
                                     else
                                     {
                                     }
@@ -1260,7 +1263,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             // We're flying and colliding with something
                             vec.X += (ctz.X - vel.X) * (PID_D * 0.0625f);
                             vec.Y += (ctz.Y - vel.Y) * (PID_D * 0.0625f);
-                            vec.Z += (ctz.Z - vel.Z) * (PID_D);
+                            vec.Z += (ctz.Z - vel.Z) * (PID_D * 0.0625f);
                         }
                     }
                     else // ie not colliding
@@ -1268,8 +1271,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (flying) //(!m_iscolliding && flying)
                         {
                             // we're in mid air suspended
-                            vec.X += (ctz.X - vel.X) * (PID_D * 1.667f);
-                            vec.Y += (ctz.Y - vel.Y) * (PID_D * 1.667f);
+                            vec.X += (ctz.X - vel.X) * (PID_D);
+                            vec.Y += (ctz.Y - vel.Y) * (PID_D);
                             vec.Z += (ctz.Z - vel.Z) * (PID_D);
                         }
 
