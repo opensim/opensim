@@ -130,7 +130,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Debug",
                 false,
                 "debug lludp throttle log",
-                "debug lludp throttle log <level> <avatar-first-name> <avatar-last-name>",
+                "debug lludp throttle log <level> [<avatar-first-name> <avatar-last-name>]",
                 "Change debug logging level for throttles.",
                 "If level >= 0 then throttle debug logging is performed.\n"
                 + "If level <= 0 then no throttle debug logging is performed.",
@@ -140,7 +140,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Debug",
                 false,
                 "debug lludp throttle get",
-                "debug lludp throttle get <avatar-first-name> <avatar-last-name>",
+                "debug lludp throttle get [<avatar-first-name> <avatar-last-name>]",
                 "Return debug settings for throttles.",
                 HandleThrottleGetCommand);
 
@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Debug",
                 false,
                 "debug lludp throttle set",
-                "debug lludp throttle set <param> <value> <avatar-first-name> <avatar-last-name>",
+                "debug lludp throttle set <param> <value> [<avatar-first-name> <avatar-last-name>]",
                 "Set a throttle parameter for the given client.",
                 "Only current setting is 'adaptive' which must be 'true' or 'false'",
                 HandleThrottleSetCommand);
@@ -278,9 +278,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
                 return;
 
-            if (args.Length != 7)
+            bool all = args.Length == 5;
+            bool one = args.Length == 7;
+
+            if (!all && !one)
             {
-                MainConsole.Instance.OutputFormat("Usage: debug lludp throttle log <level> <avatar-first-name> <avatar-last-name>");
+                MainConsole.Instance.OutputFormat(
+                    "Usage: debug lludp throttle log <level> [<avatar-first-name> <avatar-last-name>]");
                 return;
             }
 
@@ -288,12 +292,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out level))
                 return;
 
-            string firstName = args[5];
-            string lastName = args[6];
+            string firstName = null;
+            string lastName = null;
+
+            if (one)
+            {
+                firstName = args[5];
+                lastName = args[6];
+            }
 
             m_udpServer.Scene.ForEachScenePresence(sp =>
-                                       {
-                if (sp.Firstname == firstName && sp.Lastname == lastName)
+            {
+                if (all || (sp.Firstname == firstName && sp.Lastname == lastName))
                 {
                     MainConsole.Instance.OutputFormat(
                         "Throttle log level for {0} ({1}) set to {2} in {3}",
@@ -309,17 +319,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
                 return;
 
-            if (args.Length != 8)
+            bool all = args.Length == 6;
+            bool one = args.Length == 8;
+
+            if (!all && !one)
             {
                 MainConsole.Instance.OutputFormat(
-                    "Usage: debug lludp throttle set <param> <value> <avatar-first-name> <avatar-last-name>");
+                    "Usage: debug lludp throttle set <param> <value> [<avatar-first-name> <avatar-last-name>]");
                 return;
             }           
 
             string param = args[4];
             string rawValue = args[5];
-            string firstName = args[6];
-            string lastName = args[7];
+
+            string firstName = null;
+            string lastName = null;
+
+            if (one)
+            {
+                firstName = args[6];
+                lastName = args[7];
+            }
 
             if (param == "adaptive")
             {
@@ -328,8 +348,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 m_udpServer.Scene.ForEachScenePresence(sp =>
-                                           {
-                    if (sp.Firstname == firstName && sp.Lastname == lastName)
+                {
+                    if (all || (sp.Firstname == firstName && sp.Lastname == lastName))
                     {
                         MainConsole.Instance.OutputFormat(
                             "Setting param {0} to {1} for {2} ({3}) in {4}",
@@ -349,18 +369,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
                 return;
 
-            if (args.Length != 6)
+            bool all = args.Length == 4;
+            bool one = args.Length == 6;
+
+            if (!all && !one)
             {
-                MainConsole.Instance.OutputFormat("Usage: debug lludp throttle get <avatar-first-name> <avatar-last-name>");
+                MainConsole.Instance.OutputFormat(
+                    "Usage: debug lludp throttle get [<avatar-first-name> <avatar-last-name>]");
                 return;
             }           
 
-            string firstName = args[4];
-            string lastName = args[5];
+            string firstName = null;
+            string lastName = null;
+
+            if (one)
+            {
+                firstName = args[4];
+                lastName = args[5];
+            }
 
             m_udpServer.Scene.ForEachScenePresence(sp =>
-                                       {
-                if (sp.Firstname == firstName && sp.Lastname == lastName)
+             {
+                if (all || (sp.Firstname == firstName && sp.Lastname == lastName))
                 {
                     MainConsole.Instance.OutputFormat(
                         "Status for {0} ({1}) in {2}",
