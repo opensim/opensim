@@ -513,8 +513,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             
             report.AppendLine();
             
-            bool firstClient = true;
-            
             lock (m_scenes)
             {
                 foreach (Scene scene in m_scenes.Values)
@@ -525,12 +523,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                             if (client is LLClientView)
                             {
                                 LLClientView llClient = client as LLClientView;
-
-                                if (firstClient)
-                                {
-                                    report.AppendLine(GetServerThrottlesReport(llClient.UDPServer));
-                                    firstClient = false;
-                                }
 
                                 bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
@@ -569,37 +561,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
 
             return report.ToString();
         }         
-                
-        protected string GetServerThrottlesReport(LLUDPServer udpServer)
-        {
-            StringBuilder report = new StringBuilder();
-            
-            int columnPadding = 2;
-            int maxNameLength = 18;                                    
-            int maxRegionNameLength = 14;
-            int maxTypeLength = 4;
-            
-            string name = "SERVER AGENT RATES";
-                                
-            report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
-            report.Append(GetColumnEntry("-", maxRegionNameLength, columnPadding));
-            report.Append(GetColumnEntry("-", maxTypeLength, columnPadding));             
-            
-            ThrottleRates throttleRates = udpServer.ThrottleRates;
-            report.AppendFormat(
-                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}",
-                "-",
-                (throttleRates.Total * 8) / 1000,
-                (throttleRates.Resend * 8) / 1000,
-                (throttleRates.Land * 8) / 1000,
-                (throttleRates.Wind * 8) / 1000,
-                (throttleRates.Cloud * 8) / 1000,
-                (throttleRates.Task * 8) / 1000,
-                (throttleRates.Texture  * 8) / 1000,
-                (throttleRates.Asset  * 8) / 1000);  
-
-            return report.ToString();
-        }
 
         /// <summary>
         /// Show client stats data

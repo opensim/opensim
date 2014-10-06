@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using NDesk.Options;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -174,6 +175,62 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_udpServer.MaxTotalDripRate != 0 ? string.Format("{0} kbit", m_udpServer.MaxTotalDripRate / 8 / 1000) : "unset");
 
             m_console.Output(cdl.ToString());
+
+            m_console.OutputFormat("{0}\n", GetServerThrottlesReport(m_udpServer));
+        }
+                
+        private string GetServerThrottlesReport(LLUDPServer udpServer)
+        {
+            StringBuilder report = new StringBuilder();     
+
+            report.AppendFormat(
+                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "Max",
+                "Total",
+                "Resend",
+                "Land",
+                "Wind",
+                "Cloud",
+                "Task",
+                "Texture",
+                "Asset");          
+
+            report.AppendFormat(
+                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s");                 
+
+            report.AppendLine();          
+
+            ThrottleRates throttleRates = udpServer.ThrottleRates;
+            report.AppendFormat(
+                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}",
+                "-",
+                (throttleRates.Total * 8) / 1000,
+                (throttleRates.Resend * 8) / 1000,
+                (throttleRates.Land * 8) / 1000,
+                (throttleRates.Wind * 8) / 1000,
+                (throttleRates.Cloud * 8) / 1000,
+                (throttleRates.Task * 8) / 1000,
+                (throttleRates.Texture  * 8) / 1000,
+                (throttleRates.Asset  * 8) / 1000);  
+
+            return report.ToString();
+        }
+
+        protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
+        {                       
+            return string.Format(
+                "{0,-" + maxLength +  "}{1,-" + columnPadding + "}", 
+                entry.Length > maxLength ? entry.Substring(0, maxLength) : entry, 
+                "");
         }
 
         private void HandleDataCommand(string module, string[] args)
