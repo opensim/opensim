@@ -193,8 +193,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             StringBuilder report = new StringBuilder();     
 
             report.AppendFormat(
-                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
-                "Max",
+                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
                 "Total",
                 "Resend",
                 "Land",
@@ -205,7 +204,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Asset");          
 
             report.AppendFormat(
-                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
                 "kb/s",
                 "kb/s",
                 "kb/s",
@@ -213,15 +212,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "kb/s",
                 "kb/s",
                 "kb/s",
-                "kb/s",
-                "kb/s");                 
-
-            report.AppendLine();          
+                "kb/s");     
 
             ThrottleRates throttleRates = udpServer.ThrottleRates;
             report.AppendFormat(
-                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}",
-                "-",
+                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
                 (throttleRates.Total * 8) / 1000,
                 (throttleRates.Resend * 8) / 1000,
                 (throttleRates.Land * 8) / 1000,
