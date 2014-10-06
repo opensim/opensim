@@ -435,7 +435,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (ThrottleDebugLevel > 0)
                 m_log.DebugFormat(
-                    "[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}",
+                    "[LLUDPCLIENT]: {0} is setting throttles in {1} to Resend={2}, Land={3}, Wind={4}, Cloud={5}, Task={6}, Texture={7}, Asset={8}",
                     AgentID, m_udpServer.Scene.Name, resend, land, wind, cloud, task, texture, asset);
 
             // Update the token buckets with new throttle values
