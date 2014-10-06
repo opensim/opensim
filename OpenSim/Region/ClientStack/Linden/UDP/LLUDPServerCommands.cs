@@ -156,6 +156,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_console.Commands.AddCommand(
                 "Debug",
                 false,
+                "debug lludp set",
+                "debug lludp set <param> <value>",
+                "Set a parameter for the server.",
+                "Only current setting is 'scene-throttle-max' which sets the current max cumulative kbit/s provided for this scene to clients",
+                HandleSetCommand);
+
+            m_console.Commands.AddCommand(
+                "Debug",
+                false,
                 "debug lludp toggle agentupdate",
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
@@ -361,6 +370,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     MainConsole.Instance.OutputFormat("Adaptive throttle: {0}", udpClient.FlowThrottle.Enabled);
                 }
             });
+        }
+
+        private void HandleSetCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+                return;
+
+            if (args.Length != 5)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp set <param> <value>");
+                return;
+            }           
+
+            string param = args[3];
+            string rawValue = args[4];
+
+            int newValue;
+
+            if (param == "scene-throttle-max")
+            {
+                if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, rawValue, out newValue))
+                    return;
+
+                m_udpServer.Throttle.RequestedDripRate = newValue * 8 * 1000;
+            }
+
+            m_console.OutputFormat("{0} set to {1} in {2}", param, rawValue, m_udpServer.Scene.Name);
         }
 
         private void HandlePacketCommand(string module, string[] args)

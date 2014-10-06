@@ -243,15 +243,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Incoming packets that are awaiting handling</summary>
         private OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
 
-        /// <summary></summary>
-        //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
-        protected TokenBucket m_throttle;
+        public TokenBucket Throttle { get; private set; }
 
         /// <summary>
         /// Gets the maximum total drip rate allowed to all clients.
         /// </summary>
-        public long MaxTotalDripRate { get { return m_throttle.RequestedDripRate; } }
+        public long MaxTotalDripRate { get { return Throttle.RequestedDripRate; } }
         
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
         public ThrottleRates ThrottleRates { get; private set; }
@@ -449,7 +447,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                = new TokenBucket(
 //                    string.Format("server throttle bucket for {0}", Scene.Name), null, sceneThrottleBps);
 
-            m_throttle = new TokenBucket("server throttle bucket", null, sceneThrottleBps);
+            Throttle = new TokenBucket("server throttle bucket", null, sceneThrottleBps);
 
             ThrottleRates = new ThrottleRates(configSource);
 
@@ -1761,7 +1759,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (!Scene.TryGetClient(agentID, out client))
                 {
-                    LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
+                    LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, Throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
     
                     client = new LLClientView(Scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                     client.OnLogout += LogoutHandler;
