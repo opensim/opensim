@@ -48,6 +48,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Register()
         {
             m_console.Commands.AddCommand(
+                "Comms", false, "show server throttles",
+                "show server throttles",
+                "Show information about server throttles",
+                HandleShowServerThrottlesCommand); 
+
+            m_console.Commands.AddCommand(
                 "Debug", false, "debug lludp packet",
                 "debug lludp packet [--default | --all] <level> [<avatar-first-name> <avatar-last-name>]",
                 "Turn on packet debugging.  This logs information when the client stack hands a processed packet off to downstream code or when upstream code first requests that a certain packet be sent.",
@@ -153,6 +159,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
                 HandleAgentUpdateCommand);
+        }
+
+        private void HandleShowServerThrottlesCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+                return;
+
+            m_console.OutputFormat("Throttles for {0}", m_udpServer.Scene.Name);
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            cdl.AddRow("Adaptive throttles", m_udpServer.ThrottleRates.AdaptiveThrottlesEnabled);
+            cdl.AddRow(
+                "Max scene throttle", 
+                m_udpServer.MaxTotalDripRate != 0 ? string.Format("{0} kbit", m_udpServer.MaxTotalDripRate / 8 / 1000) : "unset");
+
+            m_console.Output(cdl.ToString());
         }
 
         private void HandleDataCommand(string module, string[] args)

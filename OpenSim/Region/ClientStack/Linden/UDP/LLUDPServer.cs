@@ -247,6 +247,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
         protected TokenBucket m_throttle;
+
+        /// <summary>
+        /// Gets the maximum total drip rate allowed to all clients.
+        /// </summary>
+        public long MaxTotalDripRate { get { return m_throttle.RequestedDripRate; } }
         
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
         public ThrottleRates ThrottleRates { get; private set; }
