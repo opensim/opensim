@@ -150,7 +150,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp throttles set",
                 "debug lludp throttles set <param> <value> [<avatar-first-name> <avatar-last-name>]",
                 "Set a throttle parameter for the given client.",
-                "Only current setting is 'adaptive' which must be 'true' or 'false'",
+                "Avaiable parameters are:\n"
+                + "adaptive - true/false, control adaptive throttle setting\n"
+                + "throttle-max - kbps, control maximum throttle setting for current and future clients\n",
                 HandleThrottleSetCommand);
 
             m_console.Commands.AddCommand(
@@ -182,6 +184,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cdl.AddRow(
                 "Max scene throttle", 
                 m_udpServer.MaxTotalDripRate != 0 ? string.Format("{0} kbps", m_udpServer.MaxTotalDripRate * 8 / 1000) : "unset");
+            cdl.AddRow(
+                "Max new client throttle", 
+                string.Format("{0} kbps", m_udpServer.ThrottleRates.Total * 8 / 1000));
 
             m_console.Output(cdl.ToString());
 
@@ -357,6 +362,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 });
             }
+            else if (param == "throttle-max")
+            {
+                int newValue;
+                if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, rawValue, out newValue))
+                    return;
+
+                int newThrottleMaxKbps = newValue * 1000 / 8;
+                m_udpServer.ThrottleRates.Total = newThrottleMaxKbps;
+
+                m_udpServer.Scene.ForEachScenePresence(sp =>
+                {
+                    if (all || (sp.Firstname == firstName && sp.Lastname == lastName))
+                    {
+                        MainConsole.Instance.OutputFormat(
+                            "Setting param {0} to {1} for {2} ({3}) in {4}",
+                            param, newValue, sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
+
+                        LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+                        udpClient.FlowThrottle.RequestedDripRate = newThrottleMaxKbps;
+                        udpClient.FlowThrottle.MaxDripRate = newThrottleMaxKbps;
+                    }
+                });
+            }
         }
 
         private void HandleThrottleGetCommand(string module, string[] args)
@@ -392,7 +420,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
 
                     LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
-                    MainConsole.Instance.OutputFormat("Adaptive throttle: {0}", udpClient.FlowThrottle.Enabled);
+
+                    ConsoleDisplayList cdl = new ConsoleDisplayList();
+                    cdl.AddRow("Adaptive throttle", udpClient.FlowThrottle.Enabled);
+                    cdl.AddRow("Max throttle", string.Format("{0} kbps", udpClient.FlowThrottle.RequestedDripRate / 8 * 1000));
                 }
             });
         }
