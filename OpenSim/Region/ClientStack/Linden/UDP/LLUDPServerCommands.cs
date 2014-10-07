@@ -419,7 +419,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              {
                 if (all || (sp.Firstname == firstName && sp.Lastname == lastName))
                 {
-                    MainConsole.Instance.OutputFormat(
+                    m_console.OutputFormat(
                         "Status for {0} ({1}) in {2}",
                         sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
 
@@ -427,7 +427,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     ConsoleDisplayList cdl = new ConsoleDisplayList();
                     cdl.AddRow("Adaptive throttle", udpClient.FlowThrottle.Enabled);
-                    cdl.AddRow("Max throttle", string.Format("{0} kbps", udpClient.FlowThrottle.RequestedDripRate / 8 * 1000));
+                    cdl.AddRow("Max throttle", string.Format("{0} kbps", udpClient.FlowThrottle.RequestedDripRate * 8 / 1000));
+
+                    m_console.Output(cdl.ToString());
                 }
             });
         }
