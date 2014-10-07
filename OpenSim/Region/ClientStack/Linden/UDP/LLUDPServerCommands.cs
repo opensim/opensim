@@ -159,7 +159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp set",
                 "debug lludp set <param> <value>",
                 "Set a parameter for the server.",
-                "Only current setting is 'scene-throttle-max' which sets the current max cumulative kbit/s provided for this scene to clients",
+                "Only current setting is 'scene-throttle-max' which sets the current max cumulative kbps provided for this scene to clients",
                 HandleSetCommand);
 
             m_console.Commands.AddCommand(
@@ -181,7 +181,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cdl.AddRow("Adaptive throttles", m_udpServer.ThrottleRates.AdaptiveThrottlesEnabled);
             cdl.AddRow(
                 "Max scene throttle", 
-                m_udpServer.MaxTotalDripRate != 0 ? string.Format("{0} kbit", m_udpServer.MaxTotalDripRate / 8 / 1000) : "unset");
+                m_udpServer.MaxTotalDripRate != 0 ? string.Format("{0} kbps", m_udpServer.MaxTotalDripRate * 8 / 1000) : "unset");
 
             m_console.Output(cdl.ToString());
 
@@ -418,7 +418,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, rawValue, out newValue))
                     return;
 
-                m_udpServer.Throttle.RequestedDripRate = newValue * 8 * 1000;
+                m_udpServer.Throttle.RequestedDripRate = newValue * 1000 / 8;
             }
 
             m_console.OutputFormat("{0} set to {1} in {2}", param, rawValue, m_udpServer.Scene.Name);
