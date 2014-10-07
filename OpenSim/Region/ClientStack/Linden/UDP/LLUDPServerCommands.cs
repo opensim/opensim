@@ -129,8 +129,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_console.Commands.AddCommand(
                 "Debug",
                 false,
-                "debug lludp throttle log",
-                "debug lludp throttle log <level> [<avatar-first-name> <avatar-last-name>]",
+                "debug lludp throttles log",
+                "debug lludp throttles log <level> [<avatar-first-name> <avatar-last-name>]",
                 "Change debug logging level for throttles.",
                 "If level >= 0 then throttle debug logging is performed.\n"
                 + "If level <= 0 then no throttle debug logging is performed.",
@@ -139,16 +139,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_console.Commands.AddCommand(
                 "Debug",
                 false,
-                "debug lludp throttle get",
-                "debug lludp throttle get [<avatar-first-name> <avatar-last-name>]",
+                "debug lludp throttles get",
+                "debug lludp throttles get [<avatar-first-name> <avatar-last-name>]",
                 "Return debug settings for throttles.",
                 HandleThrottleGetCommand);
 
             m_console.Commands.AddCommand(
                 "Debug",
                 false,
-                "debug lludp throttle set",
-                "debug lludp throttle set <param> <value> [<avatar-first-name> <avatar-last-name>]",
+                "debug lludp throttles set",
+                "debug lludp throttles set <param> <value> [<avatar-first-name> <avatar-last-name>]",
                 "Set a throttle parameter for the given client.",
                 "Only current setting is 'adaptive' which must be 'true' or 'false'",
                 HandleThrottleSetCommand);
@@ -279,7 +279,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!all && !one)
             {
                 MainConsole.Instance.OutputFormat(
-                    "Usage: debug lludp throttle log <level> [<avatar-first-name> <avatar-last-name>]");
+                    "Usage: debug lludp throttles log <level> [<avatar-first-name> <avatar-last-name>]");
                 return;
             }
 
@@ -320,7 +320,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!all && !one)
             {
                 MainConsole.Instance.OutputFormat(
-                    "Usage: debug lludp throttle set <param> <value> [<avatar-first-name> <avatar-last-name>]");
+                    "Usage: debug lludp throttles set <param> <value> [<avatar-first-name> <avatar-last-name>]");
                 return;
             }           
 
@@ -370,7 +370,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!all && !one)
             {
                 MainConsole.Instance.OutputFormat(
-                    "Usage: debug lludp throttle get [<avatar-first-name> <avatar-last-name>]");
+                    "Usage: debug lludp throttles get [<avatar-first-name> <avatar-last-name>]");
                 return;
             }           
 
