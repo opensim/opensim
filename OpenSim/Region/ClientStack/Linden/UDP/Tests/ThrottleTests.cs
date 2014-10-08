@@ -98,7 +98,56 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// Test throttle setttings where max client throttle has been limited server side.
         /// </summary>
         [Test]
-        public void TestClientThrottleLimited()
+        public void TestClientThrottleRegionLimited()
+        {
+            TestHelpers.InMethod();
+            //            TestHelpers.EnableLogging();
+
+            int resendBytes = 4000;
+            int landBytes = 6000;
+            int windBytes = 8000;
+            int cloudBytes = 10000;
+            int taskBytes = 12000;
+            int textureBytes = 14000;
+            int assetBytes = 16000;
+            int totalBytes 
+                = (int)((resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes) / 2);
+
+            Scene scene = new SceneHelpers().SetupScene();
+            TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
+            udpServer.Throttle.RequestedDripRate = totalBytes;
+
+            ScenePresence sp 
+                = ClientStackHelpers.AddChildClient(
+                    scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
+
+            LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+            //            udpClient.ThrottleDebugLevel = 1;
+
+            SetThrottles(
+                udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
+
+            ClientInfo ci = udpClient.GetClientInfo();
+
+            //            Console.WriteLine(
+            //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+            //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+
+            Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
+            Assert.AreEqual(landBytes / 2, ci.landThrottle);
+            Assert.AreEqual(windBytes / 2, ci.windThrottle);
+            Assert.AreEqual(cloudBytes / 2, ci.cloudThrottle);
+            Assert.AreEqual(taskBytes / 2, ci.taskThrottle);
+            Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
+            Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
+            Assert.AreEqual(totalBytes, ci.totalThrottle);
+        }
+
+        /// <summary>
+        /// Test throttle setttings where max client throttle has been limited server side.
+        /// </summary>
+        [Test]
+        public void TestClientThrottlePerClientLimited()
         {
             TestHelpers.InMethod();
             //            TestHelpers.EnableLogging();
@@ -133,7 +182,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
 //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
 
-            // We expect this to be lower because of the minimum bound set by MTU
             Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
             Assert.AreEqual(landBytes / 2, ci.landThrottle);
             Assert.AreEqual(windBytes / 2, ci.windThrottle);
