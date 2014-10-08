@@ -35,7 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Data.Null;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Tests.Common
 {
     public class TestXInventoryDataPlugin : NullGenericDataHandler, IXInventoryData
     {

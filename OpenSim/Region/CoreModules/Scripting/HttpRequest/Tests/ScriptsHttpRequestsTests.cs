@@ -41,7 +41,6 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Scripting.HttpRequest;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
 {

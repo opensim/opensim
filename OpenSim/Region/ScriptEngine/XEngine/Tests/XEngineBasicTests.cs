@@ -36,7 +36,6 @@ using OpenSim.Region.CoreModules.Scripting.WorldComm;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 {

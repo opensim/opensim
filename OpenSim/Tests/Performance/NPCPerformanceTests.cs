@@ -45,7 +45,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Services.AvatarService;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Performance
 {

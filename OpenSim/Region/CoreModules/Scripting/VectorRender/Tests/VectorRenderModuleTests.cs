@@ -40,7 +40,6 @@ using OpenSim.Region.CoreModules.Scripting.VectorRender;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 {
