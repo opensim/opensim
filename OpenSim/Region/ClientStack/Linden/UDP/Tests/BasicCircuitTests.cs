@@ -47,7 +47,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     public class BasicCircuitTests : OpenSimTestCase
     {
         private Scene m_scene;
-        private TestLLUDPServer m_udpServer;
 
         [TestFixtureSetUp]
         public void FixtureInit()
@@ -90,55 +89,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             return onp;
         }
 
-        private void AddUdpServer()
-        {
-            AddUdpServer(new IniConfigSource());
-        }
-
-        private void AddUdpServer(IniConfigSource configSource)
-        {
-            uint port = 0;
-            AgentCircuitManager acm = m_scene.AuthenticateHandler;
-
-            m_udpServer = new TestLLUDPServer(IPAddress.Any, ref port, 0, false, configSource, acm);
-            m_udpServer.AddScene(m_scene);
-        }
-
-        /// <summary>
-        /// Used by tests that aren't testing this stage.
-        /// </summary>
-        private ScenePresence AddClient()
-        {
-            UUID myAgentUuid   = TestHelpers.ParseTail(0x1);
-            UUID mySessionUuid = TestHelpers.ParseTail(0x2);
-            uint myCircuitCode = 123456;
-            IPEndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
-
-            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
-
-            UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock
-                = new UseCircuitCodePacket.CircuitCodeBlock();
-            uccpCcBlock.Code = myCircuitCode;
-            uccpCcBlock.ID = myAgentUuid;
-            uccpCcBlock.SessionID = mySessionUuid;
-            uccp.CircuitCode = uccpCcBlock;
-
-            byte[] uccpBytes = uccp.ToBytes();
-            UDPPacketBuffer upb = new UDPPacketBuffer(testEp, uccpBytes.Length);
-            upb.DataLength = uccpBytes.Length;  // God knows why this isn't set by the constructor.
-            Buffer.BlockCopy(uccpBytes, 0, upb.Data, 0, uccpBytes.Length);
-
-            AgentCircuitData acd = new AgentCircuitData();
-            acd.AgentID = myAgentUuid;
-            acd.SessionID = mySessionUuid;
-
-            m_scene.AuthenticateHandler.AddNewCircuit(myCircuitCode, acd);
-
-            m_udpServer.PacketReceived(upb);
-
-            return m_scene.GetScenePresence(myAgentUuid);
-        }
-        
         /// <summary>
         /// Test adding a client to the stack
         /// </summary>
@@ -148,7 +98,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            AddUdpServer();
+            TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(m_scene);
 
             UUID myAgentUuid   = TestHelpers.ParseTail(0x1);
             UUID mySessionUuid = TestHelpers.ParseTail(0x2);
@@ -169,7 +119,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             upb.DataLength = uccpBytes.Length;  // God knows why this isn't set by the constructor.
             Buffer.BlockCopy(uccpBytes, 0, upb.Data, 0, uccpBytes.Length);
 
-            m_udpServer.PacketReceived(upb);
+            udpServer.PacketReceived(upb);
 
             // Presence shouldn't exist since the circuit manager doesn't know about this circuit for authentication yet
             Assert.That(m_scene.GetScenePresence(myAgentUuid), Is.Null);
@@ -180,15 +130,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             m_scene.AuthenticateHandler.AddNewCircuit(myCircuitCode, acd);
 
-            m_udpServer.PacketReceived(upb);
+            udpServer.PacketReceived(upb);
 
             // Should succeed now
             ScenePresence sp = m_scene.GetScenePresence(myAgentUuid);
             Assert.That(sp.UUID, Is.EqualTo(myAgentUuid));
 
-            Assert.That(m_udpServer.PacketsSent.Count, Is.EqualTo(1));
+            Assert.That(udpServer.PacketsSent.Count, Is.EqualTo(1));
 
-            Packet packet = m_udpServer.PacketsSent[0];
+            Packet packet = udpServer.PacketsSent[0];
             Assert.That(packet, Is.InstanceOf(typeof(PacketAckPacket)));
 
             PacketAckPacket ackPacket = packet as PacketAckPacket;
@@ -200,15 +150,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestLogoutClientDueToAck()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             IniConfigSource ics = new IniConfigSource();
             IConfig config = ics.AddConfig("ClientStack.LindenUDP");
             config.Set("AckTimeout", -1);
-            AddUdpServer(ics);
+            TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(m_scene, ics);
 
-            ScenePresence sp = AddClient();
-            m_udpServer.ClientOutgoingPacketHandler(sp.ControllingClient, true, false, false);
+            ScenePresence sp 
+                = ClientStackHelpers.AddChildClient(
+                    m_scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
+
+            udpServer.ClientOutgoingPacketHandler(sp.ControllingClient, true, false, false);
 
             ScenePresence spAfterAckTimeout = m_scene.GetScenePresence(sp.UUID);
             Assert.That(spAfterAckTimeout, Is.Null);

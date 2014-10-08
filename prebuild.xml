@@ -2800,6 +2800,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.ClientStack.LindenCaps"/>
+      <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>

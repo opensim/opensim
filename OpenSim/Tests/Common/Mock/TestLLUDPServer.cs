@@ -32,8 +32,9 @@ using System.Net.Sockets;
 using Nini.Config;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Region.ClientStack.LindenUDP;
 
-namespace OpenSim.Region.ClientStack.LindenUDP.Tests
+namespace OpenSim.Tests.Common
 {
     /// <summary>
     /// This class enables regression testing of the LLUDPServer by allowing us to intercept outgoing data.
