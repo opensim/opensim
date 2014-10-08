@@ -57,7 +57,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestClientThrottleSetNoLimit()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             Scene scene = new SceneHelpers().SetupScene();
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
