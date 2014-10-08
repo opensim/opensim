@@ -98,18 +98,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// Test throttle setttings where max client throttle has been limited server side.
         /// </summary>
         [Test]
-        public void TestClientThrottleRegionLimited()
+        public void TestSingleClientThrottleRegionLimited()
         {
             TestHelpers.InMethod();
             //            TestHelpers.EnableLogging();
 
-            int resendBytes = 4000;
-            int landBytes = 6000;
-            int windBytes = 8000;
-            int cloudBytes = 10000;
-            int taskBytes = 12000;
-            int textureBytes = 14000;
-            int assetBytes = 16000;
+            int resendBytes = 6000;
+            int landBytes = 8000;
+            int windBytes = 10000;
+            int cloudBytes = 12000;
+            int taskBytes = 14000;
+            int textureBytes = 16000;
+            int assetBytes = 18000;
             int totalBytes 
                 = (int)((resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes) / 2);
 
@@ -117,30 +117,76 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
             udpServer.Throttle.RequestedDripRate = totalBytes;
 
-            ScenePresence sp 
+            ScenePresence sp1 
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
 
-            LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+            LLUDPClient udpClient1 = ((LLClientView)sp1.ControllingClient).UDPClient;
+
+            SetThrottles(
+                udpClient1, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
+
+            {
+                ClientInfo ci = udpClient1.GetClientInfo();
+
+                //            Console.WriteLine(
+                //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+                //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+
+                Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
+                Assert.AreEqual(landBytes / 2, ci.landThrottle);
+                Assert.AreEqual(windBytes / 2, ci.windThrottle);
+                Assert.AreEqual(cloudBytes / 2, ci.cloudThrottle);
+                Assert.AreEqual(taskBytes / 2, ci.taskThrottle);
+                Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
+                Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
+                Assert.AreEqual(totalBytes, ci.totalThrottle);
+            }
+
+            // Now add another client
+            ScenePresence sp2
+                = ClientStackHelpers.AddChildClient(
+                    scene, udpServer, TestHelpers.ParseTail(0x10), TestHelpers.ParseTail(0x20), 123457);
+
+            LLUDPClient udpClient2 = ((LLClientView)sp2.ControllingClient).UDPClient;
             //            udpClient.ThrottleDebugLevel = 1;
 
             SetThrottles(
-                udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
+                udpClient2, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            ClientInfo ci = udpClient.GetClientInfo();
+            {
+                ClientInfo ci = udpClient1.GetClientInfo();
 
-            //            Console.WriteLine(
-            //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-            //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+//                            Console.WriteLine(
+//                                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+//                                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
 
-            Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
-            Assert.AreEqual(landBytes / 2, ci.landThrottle);
-            Assert.AreEqual(windBytes / 2, ci.windThrottle);
-            Assert.AreEqual(cloudBytes / 2, ci.cloudThrottle);
-            Assert.AreEqual(taskBytes / 2, ci.taskThrottle);
-            Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
-            Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
-            Assert.AreEqual(totalBytes, ci.totalThrottle);
+                Assert.AreEqual(resendBytes / 4, ci.resendThrottle);
+                Assert.AreEqual(landBytes / 4, ci.landThrottle);
+                Assert.AreEqual(windBytes / 4, ci.windThrottle);
+                Assert.AreEqual(cloudBytes / 4, ci.cloudThrottle);
+                Assert.AreEqual(taskBytes / 4, ci.taskThrottle);
+                Assert.AreEqual(textureBytes / 4, ci.textureThrottle);
+                Assert.AreEqual(assetBytes / 4, ci.assetThrottle);
+                Assert.AreEqual(totalBytes / 2, ci.totalThrottle);
+            }
+
+            {
+                ClientInfo ci = udpClient2.GetClientInfo();
+
+                //            Console.WriteLine(
+                //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+                //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+
+                Assert.AreEqual(resendBytes / 4, ci.resendThrottle);
+                Assert.AreEqual(landBytes / 4, ci.landThrottle);
+                Assert.AreEqual(windBytes / 4, ci.windThrottle);
+                Assert.AreEqual(cloudBytes / 4, ci.cloudThrottle);
+                Assert.AreEqual(taskBytes / 4, ci.taskThrottle);
+                Assert.AreEqual(textureBytes / 4, ci.textureThrottle);
+                Assert.AreEqual(assetBytes / 4, ci.assetThrottle);
+                Assert.AreEqual(totalBytes / 2, ci.totalThrottle);
+            }
         }
 
         /// <summary>
