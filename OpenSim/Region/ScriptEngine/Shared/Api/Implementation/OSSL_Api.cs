@@ -3353,7 +3353,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint)
         {
-            CheckThreatLevel(ThreatLevel.Severe, "osForceAttachToOtherAvatarFromInventory");
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceAttachToOtherAvatarFromInventory");
 
             m_host.AddScriptLPS(1);
 
