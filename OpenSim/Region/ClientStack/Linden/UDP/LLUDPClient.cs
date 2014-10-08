@@ -415,6 +415,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
 
+            if (ThrottleDebugLevel > 0)
+            {
+                long total = resend + land + wind + cloud + task + texture + asset;
+                m_log.DebugFormat(
+                    "[LLUDPCLIENT]: {0} is setting throttles in {1} to Resend={2}, Land={3}, Wind={4}, Cloud={5}, Task={6}, Texture={7}, Asset={8}, TOTAL = {9}",
+                    AgentID, m_udpServer.Scene.Name, resend, land, wind, cloud, task, texture, asset, total);
+            }
+
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
             resend = Math.Max(resend, LLUDPServer.MTU);
