@@ -72,23 +72,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             StatsManager.SimExtraStats = new SimExtraStatsCollector();
         }
         
-        /// <summary>
-        /// Build an object name packet for test purposes
-        /// </summary>
-        /// <param name="objectLocalId"></param>
-        /// <param name="objectName"></param>
-        private ObjectNamePacket BuildTestObjectNamePacket(uint objectLocalId, string objectName)
-        {
-            ObjectNamePacket onp = new ObjectNamePacket();
-            ObjectNamePacket.ObjectDataBlock odb = new ObjectNamePacket.ObjectDataBlock();
-            odb.LocalID = objectLocalId;
-            odb.Name = Utils.StringToBytes(objectName);
-            onp.ObjectData = new ObjectNamePacket.ObjectDataBlock[] { odb };
-            onp.Header.Zerocoded = false;
-            
-            return onp;
-        }
-
+//        /// <summary>
+//        /// Build an object name packet for test purposes
+//        /// </summary>
+//        /// <param name="objectLocalId"></param>
+//        /// <param name="objectName"></param>
+//        private ObjectNamePacket BuildTestObjectNamePacket(uint objectLocalId, string objectName)
+//        {
+//            ObjectNamePacket onp = new ObjectNamePacket();
+//            ObjectNamePacket.ObjectDataBlock odb = new ObjectNamePacket.ObjectDataBlock();
+//            odb.LocalID = objectLocalId;
+//            odb.Name = Utils.StringToBytes(objectName);
+//            onp.ObjectData = new ObjectNamePacket.ObjectDataBlock[] { odb };
+//            onp.Header.Zerocoded = false;
+//            
+//            return onp;
+//        }
+//
         /// <summary>
         /// Test adding a client to the stack
         /// </summary>
