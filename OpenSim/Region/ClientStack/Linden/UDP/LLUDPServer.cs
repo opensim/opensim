@@ -251,7 +251,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public long MaxTotalDripRate { get { return Throttle.RequestedDripRate; } }
         
-        /// <summary>Bandwidth throttle rates for this UDP server</summary>
+        /// <summary>Per client throttle rates enforced by this server</summary>
+        /// <remarks>
+        /// If the total rate is non-zero, then this is the maximum total throttle setting that any client can ever have.
+        /// The other rates (resend, asset, etc.) are the defaults for a new client and can be changed (and usually
+        /// do get changed immediately).  They do not need to sum to the total.
+        /// </remarks>
         public ThrottleRates ThrottleRates { get; private set; }
         
         /// <summary>Manages authentication for agent circuits</summary>

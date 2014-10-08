@@ -102,5 +102,63 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             Assert.AreEqual(assetBits / 8, ci.assetThrottle);
             Assert.AreEqual(totalBits / 8, ci.totalThrottle);
         }
+
+        /// <summary>
+        /// Test throttle setttings where max client throttle has been limited server side.
+        /// </summary>
+        [Test]
+        public void TestClientThrottleLimited()
+        {
+            TestHelpers.InMethod();
+            //            TestHelpers.EnableLogging();
+
+            float resendBytes = 4000;
+            float landBytes = 6000;
+            float windBytes = 8000;
+            float cloudBytes = 10000;
+            float taskBytes = 12000;
+            float textureBytes = 14000;
+            float assetBytes = 16000;
+            int totalBytes 
+                = (int)((resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes) / 2);
+
+            Scene scene = new SceneHelpers().SetupScene();
+            TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
+            udpServer.ThrottleRates.Total = totalBytes;
+
+            ScenePresence sp 
+                = ClientStackHelpers.AddChildClient(
+                    scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
+
+            LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+            //            udpClient.ThrottleDebugLevel = 1;
+
+            byte[] throttles = new byte[28];
+
+            Array.Copy(BitConverter.GetBytes(resendBytes * 8), 0, throttles, 0, 4);
+            Array.Copy(BitConverter.GetBytes(landBytes * 8), 0, throttles, 4, 4);
+            Array.Copy(BitConverter.GetBytes(windBytes * 8), 0, throttles, 8, 4);
+            Array.Copy(BitConverter.GetBytes(cloudBytes * 8), 0, throttles, 12, 4);
+            Array.Copy(BitConverter.GetBytes(taskBytes * 8), 0, throttles, 16, 4);
+            Array.Copy(BitConverter.GetBytes(textureBytes * 8), 0, throttles, 20, 4);
+            Array.Copy(BitConverter.GetBytes(assetBytes * 8), 0, throttles, 24, 4);
+
+            udpClient.SetThrottles(throttles);
+            ClientInfo ci = udpClient.GetClientInfo();
+
+//            Console.WriteLine(
+//                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+//                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+
+            // We expect this to be lower because of the minimum bound set by MTU
+            Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
+            Assert.AreEqual(landBytes / 2, ci.landThrottle);
+            Assert.AreEqual(windBytes / 2, ci.windThrottle);
+            Assert.AreEqual(cloudBytes / 2, ci.cloudThrottle);
+            Assert.AreEqual(taskBytes / 2, ci.taskThrottle);
+            Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
+            Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
+            Assert.AreEqual(totalBytes, ci.totalThrottle);
+        }
     }
 }
