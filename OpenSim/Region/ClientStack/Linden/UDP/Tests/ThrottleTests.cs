@@ -69,38 +69,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
 //            udpClient.ThrottleDebugLevel = 1;
 
-            byte[] throttles = new byte[28];
-            float resendBits = 10000;
-            float landBits = 20000;
-            float windBits = 30000;
-            float cloudBits = 40000;
-            float taskBits = 50000;
-            float textureBits = 60000;
-            float assetBits = 70000;
+            int resendBytes = 1000;
+            int landBytes = 2000;
+            int windBytes = 3000;
+            int cloudBytes = 4000;
+            int taskBytes = 5000;
+            int textureBytes = 6000;
+            int assetBytes = 7000;
 
-            Array.Copy(BitConverter.GetBytes(resendBits), 0, throttles, 0, 4);
-            Array.Copy(BitConverter.GetBytes(landBits), 0, throttles, 4, 4);
-            Array.Copy(BitConverter.GetBytes(windBits), 0, throttles, 8, 4);
-            Array.Copy(BitConverter.GetBytes(cloudBits), 0, throttles, 12, 4);
-            Array.Copy(BitConverter.GetBytes(taskBits), 0, throttles, 16, 4);
-            Array.Copy(BitConverter.GetBytes(textureBits), 0, throttles, 20, 4);
-            Array.Copy(BitConverter.GetBytes(assetBits), 0, throttles, 24, 4);
+            SetThrottles(
+                udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-//            Console.WriteLine(BitConverter.ToString(throttles));
-
-            udpClient.SetThrottles(throttles);
             ClientInfo ci = udpClient.GetClientInfo();
 
             // We expect this to be lower because of the minimum bound set by MTU
-            float totalBits = LLUDPServer.MTU * 8 + landBits + windBits + cloudBits + taskBits + textureBits + assetBits;
+            float totalBytes = LLUDPServer.MTU + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes;
             Assert.AreEqual(LLUDPServer.MTU, ci.resendThrottle);
-            Assert.AreEqual(landBits / 8, ci.landThrottle);
-            Assert.AreEqual(windBits / 8, ci.windThrottle);
-            Assert.AreEqual(cloudBits / 8, ci.cloudThrottle);
-            Assert.AreEqual(taskBits / 8, ci.taskThrottle);
-            Assert.AreEqual(textureBits / 8, ci.textureThrottle);
-            Assert.AreEqual(assetBits / 8, ci.assetThrottle);
-            Assert.AreEqual(totalBits / 8, ci.totalThrottle);
+            Assert.AreEqual(landBytes, ci.landThrottle);
+            Assert.AreEqual(windBytes, ci.windThrottle);
+            Assert.AreEqual(cloudBytes, ci.cloudThrottle);
+            Assert.AreEqual(taskBytes, ci.taskThrottle);
+            Assert.AreEqual(textureBytes, ci.textureThrottle);
+            Assert.AreEqual(assetBytes, ci.assetThrottle);
+            Assert.AreEqual(totalBytes, ci.totalThrottle);
         }
 
         /// <summary>
@@ -112,13 +103,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestHelpers.InMethod();
             //            TestHelpers.EnableLogging();
 
-            float resendBytes = 4000;
-            float landBytes = 6000;
-            float windBytes = 8000;
-            float cloudBytes = 10000;
-            float taskBytes = 12000;
-            float textureBytes = 14000;
-            float assetBytes = 16000;
+            int resendBytes = 4000;
+            int landBytes = 6000;
+            int windBytes = 8000;
+            int cloudBytes = 10000;
+            int taskBytes = 12000;
+            int textureBytes = 14000;
+            int assetBytes = 16000;
             int totalBytes 
                 = (int)((resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes) / 2);
 
@@ -133,17 +124,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
             //            udpClient.ThrottleDebugLevel = 1;
 
-            byte[] throttles = new byte[28];
+            SetThrottles(
+                udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            Array.Copy(BitConverter.GetBytes(resendBytes * 8), 0, throttles, 0, 4);
-            Array.Copy(BitConverter.GetBytes(landBytes * 8), 0, throttles, 4, 4);
-            Array.Copy(BitConverter.GetBytes(windBytes * 8), 0, throttles, 8, 4);
-            Array.Copy(BitConverter.GetBytes(cloudBytes * 8), 0, throttles, 12, 4);
-            Array.Copy(BitConverter.GetBytes(taskBytes * 8), 0, throttles, 16, 4);
-            Array.Copy(BitConverter.GetBytes(textureBytes * 8), 0, throttles, 20, 4);
-            Array.Copy(BitConverter.GetBytes(assetBytes * 8), 0, throttles, 24, 4);
-
-            udpClient.SetThrottles(throttles);
             ClientInfo ci = udpClient.GetClientInfo();
 
 //            Console.WriteLine(
@@ -159,6 +142,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
             Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
             Assert.AreEqual(totalBytes, ci.totalThrottle);
+        }
+
+        private void SetThrottles(
+            LLUDPClient udpClient, int resendBytes, int landBytes, int windBytes, int cloudBytes, int taskBytes, int textureBytes, int assetBytes)
+        {
+            byte[] throttles = new byte[28];
+
+            Array.Copy(BitConverter.GetBytes((float)resendBytes * 8), 0, throttles, 0, 4);
+            Array.Copy(BitConverter.GetBytes((float)landBytes * 8), 0, throttles, 4, 4);
+            Array.Copy(BitConverter.GetBytes((float)windBytes * 8), 0, throttles, 8, 4);
+            Array.Copy(BitConverter.GetBytes((float)cloudBytes * 8), 0, throttles, 12, 4);
+            Array.Copy(BitConverter.GetBytes((float)taskBytes * 8), 0, throttles, 16, 4);
+            Array.Copy(BitConverter.GetBytes((float)textureBytes * 8), 0, throttles, 20, 4);
+            Array.Copy(BitConverter.GetBytes((float)assetBytes * 8), 0, throttles, 24, 4);
+
+            udpClient.SetThrottles(throttles);
         }
     }
 }
