@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)
-                        sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
+                        Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
 
                     return success;
                 }
@@ -516,13 +516,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Local region?
             if (info != null)
             {
-                ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
+                Scene.RequestTeleportLocation(
+                    remoteClient, info.RegionHandle, lm.Position,
                     Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
             }
             else 
             {
                 // Foreign region
-                Scene scene = (Scene)(remoteClient.Scene);
                 GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
                 GridRegion gatekeeper = new GridRegion();
                 gatekeeper.ServerURI = lm.Gatekeeper;
@@ -533,10 +533,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (finalDestination != null)
                 {
-                    ScenePresence sp = scene.GetScenePresence(remoteClient.AgentId);
-                    IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
+                    ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
 
-                    if (transferMod != null && sp != null)
+                    if (sp != null)
                     {
                         if (message != null)
                             sp.ControllingClient.SendAgentAlertMessage(message, true);
@@ -549,7 +548,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             return;
                         }
 
-                        transferMod.DoTeleport(
+                        DoTeleport(
                             sp, gatekeeper, finalDestination, lm.Position, Vector3.UnitX,
                             (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
                     }
