@@ -15,7 +15,7 @@ namespace OpenSim.Framework.ServiceAuth
         private string m_Username, m_Password;
         private string m_CredentialsB64;
 
-        private string remove_me;
+//        private string remove_me;
 
         public string Credentials
         {
@@ -24,7 +24,7 @@ namespace OpenSim.Framework.ServiceAuth
 
         public BasicHttpAuthentication(IConfigSource config, string section)
         {
-            remove_me = section;
+//            remove_me = section;
             m_Username = Util.GetConfigVarFromSections<string>(config, "HttpAuthUsername", new string[] { "Network", section }, string.Empty);
             m_Password = Util.GetConfigVarFromSections<string>(config, "HttpAuthPassword", new string[] { "Network", section }, string.Empty); 
             string str = m_Username + ":" + m_Password;
