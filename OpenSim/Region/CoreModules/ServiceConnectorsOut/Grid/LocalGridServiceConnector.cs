@@ -198,8 +198,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             GridRegion region = null;
-            uint regionX = Util.WorldToRegionLoc((uint)x);
-            uint regionY = Util.WorldToRegionLoc((uint)y);
+//            uint regionX = Util.WorldToRegionLoc((uint)x);
+//            uint regionY = Util.WorldToRegionLoc((uint)y);
 
             // First see if it's a neighbour, even if it isn't on this sim.
             // Neighbour data is cached in memory, so this is fast
