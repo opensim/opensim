@@ -263,8 +263,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Notes Request");
                 return false;
             }
-            
-            string result = string.Empty;
+
             UserProfileNotes note = new UserProfileNotes();
             object Note = (object)note;
             OSD.DeserializeMembers(ref Note, (OSDMap)json["params"]);
