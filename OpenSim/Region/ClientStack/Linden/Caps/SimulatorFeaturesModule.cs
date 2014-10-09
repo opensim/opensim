@@ -57,8 +57,8 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimulatorFeaturesModule")]
     public class SimulatorFeaturesModule : ISharedRegionModule, ISimulatorFeaturesModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
 
