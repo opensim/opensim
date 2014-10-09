@@ -97,7 +97,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_throttleDebugLevel = value;
                 m_throttleClient.DebugLevel = m_throttleDebugLevel;
-                m_throttleCategory.DebugLevel = m_throttleDebugLevel;
                 foreach (TokenBucket tb in m_throttleCategories)
                     tb.DebugLevel = m_throttleDebugLevel;
             }
@@ -172,8 +171,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_throttleClient; }
         }
 
-        /// <summary>Throttle bucket for this agent's connection</summary>
-        private readonly TokenBucket m_throttleCategory;
         /// <summary>Throttle buckets for each packet category</summary>
         private readonly TokenBucket[] m_throttleCategories;
         /// <summary>Outgoing queues for throttled packets</summary>
@@ -234,12 +231,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     string.Format("adaptive throttle for {0} in {1}", AgentID, server.Scene.Name), 
                     parentThrottle, rates.Total, rates.AdaptiveThrottlesEnabled);
 
-            // Create a token bucket throttle for the total category with the client bucket as a throttle
-            m_throttleCategory 
-                = new TokenBucket(
-                    string.Format("total throttle for {0} in {1}", AgentID, server.Scene.Name), 
-                    m_throttleClient, 0);
-
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
@@ -256,7 +247,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_throttleCategories[i]
                     = new TokenBucket(
                         string.Format("{0} throttle for {1} in {2}", type, AgentID, server.Scene.Name), 
-                    m_throttleCategory, rates.GetRate(type));
+                    m_throttleClient, rates.GetRate(type));
             }
 
             // Default the retransmission timeout to one second
@@ -301,7 +292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_info.taskThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Task].DripRate;
             m_info.assetThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate;
             m_info.textureThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Texture].DripRate;
-            m_info.totalThrottle = (int)m_throttleCategory.DripRate;
+            m_info.totalThrottle = (int)m_throttleClient.DripRate;
             m_info.maxThrottle = (int)m_throttleClient.MaxDripRate;
 
             return m_info;

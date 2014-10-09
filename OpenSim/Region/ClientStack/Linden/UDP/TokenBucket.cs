@@ -352,13 +352,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_dripRate = OpenSim.Framework.Util.Clamp<Int64>(value,m_minimumFlow,MaxDripRate);
                 m_burstRate = (Int64)((double)m_dripRate * m_quantumsPerBurst);
                 if (m_parent != null)
-                    m_parent.RegisterRequest(this,m_dripRate);
+                    m_parent.RegisterRequest(this, m_dripRate);
             }
         }
 
-        // <summary>
-        // 
-        // </summary>
         public AdaptiveTokenBucket(string identifier, TokenBucket parent, Int64 maxDripRate, bool enabled) 
             : base(identifier, parent, maxDripRate)
         {
