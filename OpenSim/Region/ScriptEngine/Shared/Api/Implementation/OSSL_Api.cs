@@ -872,6 +872,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             TeleportAgent(m_host.OwnerID.ToString(), regionX, regionY, position, lookat, true);
         }
+        ///<summary>
+        /// Allows a script IN the target prim to force an avatar to sit on it using normal methods
+        /// as if called by the client.
+        /// Silent fail if agent (or target if overloaded) not found.
+        /// Does work if passed key (or keys if overloaded).
+        /// </summary>
+        /// <param name="avatar"></param>
+        public void osForceSit(string avatar)
+        {
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceSit");
+
+            m_host.AddScriptLPS(1);
+
+            ForceSit(avatar, m_host.UUID);
+        }
+        /// <summary>
+        /// Overload method of osForceSit(string avatar) to allow a script NOT in the target prim to force
+        /// an avatar to sit on the target prim using normal methods as if called by the client.
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="target"></param>
+        public void osForceSit(string avatar, string target)
+        {
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceSit");
+
+            m_host.AddScriptLPS(1);
+
+            UUID targetID = new UUID(target);
+            
+            ForceSit(avatar, targetID);
+
+ 
+        }
+
+        public void ForceSit(string avatar, UUID targetID)
+        {
+            UUID agentID; 
+
+            if (!UUID.TryParse(avatar, out agentID))
+                return;
+
+            ScenePresence presence = World.GetScenePresence(agentID);
+
+            SceneObjectPart part = World.GetSceneObjectPart(targetID);
+
+            if (presence != null &&
+                part != null &&
+                part.SitTargetAvatar == UUID.Zero)
+                presence.HandleAgentRequestSit(presence.ControllingClient,
+                    agentID,
+                    targetID,
+                    part.SitTargetPosition);
+        }
 
         // Functions that get information from the agent itself.
         //
