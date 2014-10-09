@@ -804,8 +804,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // once we reach here...
             //avatar.Scene.RemoveCapsHandler(avatar.UUID);
 
-            string capsPath = String.Empty;
-
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
             AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
             agentCircuit.startpos = position;
