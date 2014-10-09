@@ -45,7 +45,7 @@ namespace OpenSim.Server.Handlers.BakedTextures
 {
     public class BakesServerGetHandler : BaseStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IBakedTextureService m_BakesService;
         private System.Text.UTF8Encoding utf8 =
