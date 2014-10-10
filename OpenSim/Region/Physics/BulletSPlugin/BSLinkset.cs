@@ -305,7 +305,7 @@ public abstract class BSLinkset
     // This is turned on when the rebuild is requested and turned off when
     //     the rebuild is complete. Used to limit modifications to the
     //     linkset parameters while the linkset is in an intermediate state.
-    // Protected by a "lock(this)" on the BSLinkset object
+    // Protected by a "lock(m_linsetActivityLock)" on the BSLinkset object
     public bool RebuildScheduled { get; protected set; }
 
     // The object is going dynamic (physical). Do any setup necessary

@@ -106,22 +106,35 @@ public sealed class BSLinksetCompound : BSLinkset
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
-        lock (this)
+        lock (m_linksetActivityLock)
         {
-            if (!RebuildScheduled)
+            if (!RebuildScheduled && !Rebuilding && HasAnyChildren)
             {
-                if (!Rebuilding && HasAnyChildren)
-                {
-                    RebuildScheduled = true;
-                    m_physicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
-                    {
-                        if (HasAnyChildren)
-                            RecomputeLinksetCompound();
-                        RebuildScheduled = false;
-                    });
-                }
+                InternalScheduleRebuild(requestor);
             }
         }
+    }
+
+    private void InternalScheduleRebuild(BSPrimLinkable requestor)
+    {
+        RebuildScheduled = true;
+        m_physicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
+        {
+            if (HasAnyChildren)
+            {
+                if (this.AllPartsComplete)
+                {
+                    RecomputeLinksetCompound();
+                }
+                else
+                {
+                    DetailLog("{0},BSLinksetCompound.InternalScheduleRebuild,,rescheduling because not all children complete",
+                                                    requestor.LocalID);
+                    InternalScheduleRebuild(requestor);
+                }
+            }
+            RebuildScheduled = false;
+        });
     }
 
     // The object is going dynamic (physical). Do any setup necessary for a dynamic linkset.
@@ -412,7 +425,7 @@ public sealed class BSLinksetCompound : BSLinkset
                     // Just skip this linkset for the moment and cause the shape to be rebuilt next tick.
                     // One problem might be that the shape is broken somehow and it never becomes completely
                     //    available. This might cause the rebuild to happen over and over.
-                    LinksetRoot.ForceBodyShapeRebuild(false);
+                    InternalScheduleRebuild(LinksetRoot);
                     DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChildWithNoShape,indx={1},cShape={2},offPos={3},offRot={4}",
                                     LinksetRoot.LocalID, cPrim.LinksetChildIndex, childShape, offsetPos, offsetRot);
                     // Output an annoying warning. It should only happen once but if it keeps coming out,
