@@ -880,9 +880,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Does work if passed key (or keys if overloaded).
         /// </summary>
         /// <param name="avatar"></param>
-        public void osForceSit(string avatar)
+        public void osForceOtherSit(string avatar)
         {
-            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceSit");
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceOtherSit");
 
             m_host.AddScriptLPS(1);
 
@@ -890,14 +890,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Overload method of osForceSit(string avatar) to allow a script NOT in the target prim to force
+        /// Overload method of osForceOtherSit(string avatar) to allow a script NOT in the target prim to force
         /// an avatar to sit on the target prim using normal methods as if called by the client.
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="target"></param>
-        public void osForceSit(string avatar, string target)
+        public void osForceOtherSit(string avatar, string target)
         {
-            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceSit");
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osForceOtherSit");
 
             m_host.AddScriptLPS(1);
 

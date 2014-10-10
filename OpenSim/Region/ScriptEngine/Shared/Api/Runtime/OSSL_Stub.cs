@@ -920,13 +920,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osCauseHealing(avatar, healing);
         }
 
-        public void osForceSit(string avatar)
+        public void osForceOtherSit(string avatar)
         {
-            m_OSSL_Functions.osForceSit(avatar);
+            m_OSSL_Functions.osForceOtherSit(avatar);
         }
-        public void osForceSit(string avatar, string target)
+
+        public void osForceOtherSit(string avatar, string target)
         {
-            m_OSSL_Functions.osForceSit(avatar, target);
+            m_OSSL_Functions.osForceOtherSit(avatar, target);
         }
         
         public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
