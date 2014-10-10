@@ -872,6 +872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             TeleportAgent(m_host.OwnerID.ToString(), regionX, regionY, position, lookat, true);
         }
+
         ///<summary>
         /// Allows a script IN the target prim to force an avatar to sit on it using normal methods
         /// as if called by the client.
@@ -887,6 +888,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ForceSit(avatar, m_host.UUID);
         }
+
         /// <summary>
         /// Overload method of osForceSit(string avatar) to allow a script NOT in the target prim to force
         /// an avatar to sit on the target prim using normal methods as if called by the client.
@@ -901,9 +903,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID targetID = new UUID(target);
             
-            ForceSit(avatar, targetID);
-
- 
+            ForceSit(avatar, targetID);             
         }
 
         public void ForceSit(string avatar, UUID targetID)
