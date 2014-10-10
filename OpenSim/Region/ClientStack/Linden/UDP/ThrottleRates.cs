@@ -72,6 +72,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 IConfig throttleConfig = config.Configs["ClientStack.LindenUDP"];
 
+                // Current default total is 66750
                 Resend = throttleConfig.GetInt("resend_default", 6625);
                 Land = throttleConfig.GetInt("land_default", 9125);
                 Wind = throttleConfig.GetInt("wind_default", 1750);

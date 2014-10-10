@@ -487,8 +487,9 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));            
             
             report.AppendFormat(
-                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
                 "Max",
+                "Target", 
                 "Total",
                 "Resend",
                 "Land",
@@ -500,7 +501,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}\n",
+                "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
+                "kb/s",
                 "kb/s",
                 "kb/s",
                 "kb/s",
@@ -542,8 +544,9 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                                             
                             
                                 report.AppendFormat(
-                                    "{0,8} {1,7} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7}",
-                                    (ci.maxThrottle * 8) / 1000,
+                                    "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
+                                    ci.maxThrottle > 0 ? ((ci.maxThrottle * 8) / 1000).ToString() : "-",
+                                    llUdpClient.FlowThrottle.AdaptiveEnabled ? ((ci.targetThrottle * 8) / 1000).ToString() : "-",
                                     (ci.totalThrottle * 8) / 1000,
                                     (ci.resendThrottle * 8) / 1000,
                                     (ci.landThrottle * 8) / 1000,
@@ -551,9 +554,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                     (ci.cloudThrottle * 8) / 1000,
                                     (ci.taskThrottle * 8) / 1000,
                                     (ci.textureThrottle  * 8) / 1000,
-                                    (ci.assetThrottle  * 8) / 1000);                                                                                      
-                        
-                                report.AppendLine();
+                                    (ci.assetThrottle  * 8) / 1000);
                             }
                         });
                 }

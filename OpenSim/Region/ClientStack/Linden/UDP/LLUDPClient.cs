@@ -229,7 +229,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_throttleClient 
                 = new AdaptiveTokenBucket(
                     string.Format("adaptive throttle for {0} in {1}", AgentID, server.Scene.Name), 
-                    parentThrottle, rates.Total, rates.AdaptiveThrottlesEnabled);
+                    parentThrottle, 0, rates.Total, rates.AdaptiveThrottlesEnabled);
 
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
@@ -247,7 +247,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_throttleCategories[i]
                     = new TokenBucket(
                         string.Format("{0} throttle for {1} in {2}", type, AgentID, server.Scene.Name), 
-                    m_throttleClient, rates.GetRate(type));
+                    m_throttleClient, rates.GetRate(type), 0);
             }
 
             // Default the retransmission timeout to one second
@@ -293,6 +293,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_info.assetThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate;
             m_info.textureThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Texture].DripRate;
             m_info.totalThrottle = (int)m_throttleClient.DripRate;
+            m_info.targetThrottle = (int)m_throttleClient.TargetDripRate;
             m_info.maxThrottle = (int)m_throttleClient.MaxDripRate;
 
             return m_info;
@@ -441,28 +442,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Update the token buckets with new throttle values
-            TokenBucket bucket;
+            if (m_throttleClient.AdaptiveEnabled)
+            {
+                long total = resend + land + wind + cloud + task + texture + asset;
+                m_throttleClient.TargetDripRate = total;
+            }
+            else
+            {
+                TokenBucket bucket;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
-            bucket.RequestedDripRate = resend;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
+                bucket.RequestedDripRate = resend;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
-            bucket.RequestedDripRate = land;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
+                bucket.RequestedDripRate = land;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
-            bucket.RequestedDripRate = wind;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
+                bucket.RequestedDripRate = wind;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
-            bucket.RequestedDripRate = cloud;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
+                bucket.RequestedDripRate = cloud;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
-            bucket.RequestedDripRate = asset;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
+                bucket.RequestedDripRate = asset;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
-            bucket.RequestedDripRate = task;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
+                bucket.RequestedDripRate = task;
 
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
-            bucket.RequestedDripRate = texture;
+                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
+                bucket.RequestedDripRate = texture;
+            }
 
             // Reset the packed throttles cached data
             m_packedThrottles = null;

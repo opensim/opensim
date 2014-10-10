@@ -245,11 +245,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Bandwidth throttle for this UDP server</summary>
         public TokenBucket Throttle { get; private set; }
-
-        /// <summary>
-        /// Gets the maximum total drip rate allowed to all clients.
-        /// </summary>
-        public long MaxTotalDripRate { get { return Throttle.RequestedDripRate; } }
         
         /// <summary>Per client throttle rates enforced by this server</summary>
         /// <remarks>
@@ -452,7 +447,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                = new TokenBucket(
 //                    string.Format("server throttle bucket for {0}", Scene.Name), null, sceneThrottleBps);
 
-            Throttle = new TokenBucket("server throttle bucket", null, sceneThrottleBps);
+            Throttle = new TokenBucket("server throttle bucket", null, sceneThrottleBps, sceneThrottleBps);
 
             ThrottleRates = new ThrottleRates(configSource);
 
