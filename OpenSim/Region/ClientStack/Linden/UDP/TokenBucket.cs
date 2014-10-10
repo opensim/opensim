@@ -84,12 +84,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// parent. The parent bucket will limit the aggregate bandwidth of all
         /// of its children buckets
         /// </summary>
-        protected TokenBucket m_parent;
-        public TokenBucket Parent
-        {
-            get { return m_parent; }
-            set { m_parent = value; }
-        }
+        public TokenBucket Parent { get; protected set; }
 
         /// <summary>
         /// Maximum burst rate in bytes per second. This is the maximum number
@@ -124,23 +119,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Int64 m_dripRate;
         public virtual Int64 RequestedDripRate
         {
-            get { return (m_dripRate == 0 ? m_totalDripRequest : m_dripRate); }
+            get { return (m_dripRate == 0 ? TotalDripRequest : m_dripRate); }
             set {
                 m_dripRate = (value < 0 ? 0 : value);
                 m_burstRate = (Int64)((double)m_dripRate * m_quantumsPerBurst);
-                m_totalDripRequest = m_dripRate;
-                if (m_parent != null)
-                    m_parent.RegisterRequest(this,m_dripRate);
+                TotalDripRequest = m_dripRate;
+                if (Parent != null)
+                    Parent.RegisterRequest(this,m_dripRate);
             }
         }
 
         public virtual Int64 DripRate
         {
             get {
-                if (m_parent == null)
-                    return Math.Min(RequestedDripRate,TotalDripRequest);
+                if (Parent == null)
+                    return Math.Min(RequestedDripRate, TotalDripRequest);
                 
-                double rate = (double)RequestedDripRate * m_parent.DripRateModifier();
+                double rate = (double)RequestedDripRate * Parent.DripRateModifier();
                 if (rate < m_minimumDripRate)
                     rate = m_minimumDripRate;
 
@@ -152,12 +147,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// The current total of the requested maximum burst rates of 
         /// this bucket's children buckets.
         /// </summary>
-        protected Int64 m_totalDripRequest;
-        public Int64 TotalDripRequest 
-            {
-                get { return m_totalDripRequest; }
-                set { m_totalDripRequest = value; }
-            }
+        public Int64 TotalDripRequest { get; protected set; }
         
 #endregion Properties
 
@@ -216,16 +206,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (m_children)
             {
                 m_children[child] = request;
-                // m_totalDripRequest = m_children.Values.Sum();
+                // TotalDripRequest = m_children.Values.Sum();
 
-                m_totalDripRequest = 0;
+                TotalDripRequest = 0;
                 foreach (KeyValuePair<TokenBucket, Int64> cref in m_children)
-                    m_totalDripRequest += cref.Value;
+                    TotalDripRequest += cref.Value;
             }
             
             // Pass the new values up to the parent
-            if (m_parent != null)
-                m_parent.RegisterRequest(this,Math.Min(RequestedDripRate, TotalDripRequest));
+            if (Parent != null)
+                Parent.RegisterRequest(this,Math.Min(RequestedDripRate, TotalDripRequest));
         }
 
         /// <summary>
@@ -239,15 +229,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_children.Remove(child);
                 // m_totalDripRequest = m_children.Values.Sum();
 
-                m_totalDripRequest = 0;
+                TotalDripRequest = 0;
                 foreach (KeyValuePair<TokenBucket, Int64> cref in m_children)
-                    m_totalDripRequest += cref.Value;
+                    TotalDripRequest += cref.Value;
             }
-            
 
             // Pass the new values up to the parent
-            if (m_parent != null)
-                m_parent.RegisterRequest(this,Math.Min(RequestedDripRate, TotalDripRequest));
+            if (Parent != null)
+                Parent.RegisterRequest(this,Math.Min(RequestedDripRate, TotalDripRequest));
         }
         
         /// <summary>
@@ -336,7 +325,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Int64 m_maxDripRate = 0;
         public Int64 MaxDripRate
         {
-            get { return (m_maxDripRate == 0 ? m_totalDripRequest : m_maxDripRate); }
+            get { return (m_maxDripRate == 0 ? TotalDripRequest : m_maxDripRate); }
             set { m_maxDripRate = (value == 0 ? 0 : Math.Max(value,m_minimumFlow)); }
         }
 
@@ -351,8 +340,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set {
                 m_dripRate = OpenSim.Framework.Util.Clamp<Int64>(value,m_minimumFlow,MaxDripRate);
                 m_burstRate = (Int64)((double)m_dripRate * m_quantumsPerBurst);
-                if (m_parent != null)
-                    m_parent.RegisterRequest(this, m_dripRate);
+                if (Parent != null)
+                    Parent.RegisterRequest(this, m_dripRate);
             }
         }
 
