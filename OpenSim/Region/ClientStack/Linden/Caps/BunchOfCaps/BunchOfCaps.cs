@@ -920,7 +920,9 @@ namespace OpenSim.Region.ClientStack.Linden
                             meshitem.Name = name;
                             meshitem.AssetType = (int)AssetType.Mesh;
                             meshitem.InvType = (int)InventoryType.Mesh;
-                            meshitem.Folder = UUID.Zero; // send to default
+                            //                            meshitem.Folder = UUID.Zero; // send to default
+
+                            meshitem.Folder = parentFolder; // dont let it go to folder Meshes that viewers dont show
 
                             // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
                             // (owner) permissions.  This becomes a problem if next permissions are changed.
