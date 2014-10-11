@@ -830,7 +830,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     List<UUID> textures = new List<UUID>();
 
                    
-                    if (doTextInv)
+//                    if (doTextInv)
+                    if (doTextInv || avatarSkeleton)
                         m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
 
                     if(client == null) // don't put textures in inventory if there is no client
@@ -903,7 +904,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
 
                         // test code 
-                        if (avatarSkeleton)
+                        if (avatarSkeleton && client != null)
                         {
                             string name = assetName;
                             if (name.Length > 25)
