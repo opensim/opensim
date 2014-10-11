@@ -131,8 +131,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshRezEnabled"] = true;
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
+                m_features["AvatarSkeleton"] = true;
+                m_features["AnimationSet"] = true;
+
                 m_features["PhysicsMaterialsEnabled"] = true;
-    
+   
                 OSDMap typesMap = new OSDMap();
                 typesMap["convex"] = true;
                 typesMap["none"] = true;

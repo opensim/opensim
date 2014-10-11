@@ -666,8 +666,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_isSelected = value;
                 if (ParentGroup != null)
                     ParentGroup.PartSelectChanged(value);
-                if (!m_isSelected && m_angularVelocity != Vector3.Zero)
-                    ScheduleTerseUpdate();               
+          
             }
         }
         
