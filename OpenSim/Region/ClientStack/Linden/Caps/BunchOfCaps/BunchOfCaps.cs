@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
         byte[] data, string inventoryType, string assetType,
         int cost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-        bool IsAtestUpload, bool avatarSkeleton, bool avatarCollider, ref string error);
+        bool IsAtestUpload, ref string error);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -531,8 +531,6 @@ namespace OpenSim.Region.ClientStack.Linden
             int nreqmeshs= 0;
             int nreqinstances = 0;
             bool IsAtestUpload = false;
-            bool avatarSkeleton = false;
-            bool avatarCollider = false;
 
             string assetName = llsdRequest.name;
 
@@ -584,7 +582,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         
                         
                         if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
-                            meshcostdata,out avatarSkeleton, out avatarCollider, out error, ref warning))
+                            meshcostdata, out error, ref warning))
                         {
                             LLSDAssetUploadError resperror = new LLSDAssetUploadError();
                             resperror.message = error;
@@ -667,7 +665,7 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                         llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
-                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload, avatarSkeleton, avatarCollider);
+                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -714,7 +712,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType, int cost,
                                           UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                          bool IsAtestUpload,bool avatarSkeleton, bool avatarCollider, ref string error)
+                                          bool IsAtestUpload, ref string error)
         {
 
             lock (m_ModelCost)
@@ -800,7 +798,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     OSDMap request = (OSDMap)OSDParser.DeserializeLLSDXml(data);
 
                     // compare and get updated information
-
+/* does nothing still we do need something to avoid special viewer to upload something diferent from the cost estimation
                     bool mismatchError = true;
 
                     while (mismatchError)
@@ -816,7 +814,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         return;
                     }
-
+*/
                     OSDArray instance_list = (OSDArray)request["instance_list"];
                     OSDArray mesh_list = (OSDArray)request["mesh_list"];
                     OSDArray texture_list = (OSDArray)request["texture_list"];
@@ -831,7 +829,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
                    
 //                    if (doTextInv)
-                    if (doTextInv || avatarSkeleton)
                         m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
 
                     if(client == null) // don't put textures in inventory if there is no client
@@ -879,10 +876,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     // create and store meshs assets
                     List<UUID> meshAssets = new List<UUID>();
+                    List<bool> meshAvatarSkeletons = new List<bool>();
+                    List<bool> meshAvatarColliders = new List<bool>();
+
+                    bool curAvSkeleton;
+                    bool curAvCollider;
                     for (int i = 0; i < mesh_list.Count; i++)
                     {
-/*
-  //                    do we really need this heavy thing?
+                        curAvSkeleton = false;
+                        curAvCollider = false;
+
+                        // we do need to parse the mesh now
                         OSD osd = OSDParser.DeserializeLLSDBinary(mesh_list[i]);
                         if (osd is OSDMap)
                         {
@@ -891,9 +895,10 @@ namespace OpenSim.Region.ClientStack.Linden
                             {
                                 OSDMap skeleton = (OSDMap)mosd["skeleton"];
                                 int sksize = skeleton["size"].AsInteger();
+                                if (sksize > 0)
+                                    curAvSkeleton = true;
                             }
                         }
-*/
 
                         AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, creatorIDstr);
                         meshAsset.Data = mesh_list[i].AsBinary();
@@ -901,10 +906,11 @@ namespace OpenSim.Region.ClientStack.Linden
                             meshAsset.Local = true;
                         m_assetService.Store(meshAsset);
                         meshAssets.Add(meshAsset.FullID);
-
+                        meshAvatarSkeletons.Add(curAvSkeleton);
+                        meshAvatarColliders.Add(curAvCollider);
 
                         // test code 
-                        if (avatarSkeleton && client != null)
+                        if (curAvSkeleton && client != null)
                         {
                             string name = assetName;
                             if (name.Length > 25)
@@ -1594,14 +1600,12 @@ namespace OpenSim.Region.ClientStack.Linden
         private int m_nreqmeshs;
         private int m_nreqinstances;
         private bool m_IsAtestUpload;
-        private bool m_avatarSkeleton;
-        private bool m_avatarCollider;
-
+        
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
                                 IHttpServer httpServer, bool dumpAssetsToFile,
                                 int totalCost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                bool IsAtestUpload,bool avatarSkeleton, bool avatarCollider)
+                                bool IsAtestUpload)
         {
             m_assetName = assetName;
             m_assetDes = description;
@@ -1620,8 +1624,6 @@ namespace OpenSim.Region.ClientStack.Linden
             m_nreqmeshs = nreqmeshs;
             m_nreqinstances = nreqinstances;
             m_IsAtestUpload = IsAtestUpload;
-            m_avatarSkeleton = avatarSkeleton;
-            m_avatarCollider = avatarCollider;
 
             m_timeoutTimer.Elapsed += TimedOut;
             m_timeoutTimer.Interval = 120000;
@@ -1667,7 +1669,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
                     m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload,
-                    m_avatarSkeleton, m_avatarCollider, ref m_error);
+                    ref m_error);
             }
             if (m_IsAtestUpload)
             {

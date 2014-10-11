@@ -99,15 +99,13 @@ namespace OpenSim.Region.ClientStack.Linden
         // avatarSkeleton if mesh includes a avatar skeleton
         // useAvatarCollider if we should use physics mesh for avatar
         public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost,
-            LLSDAssetUploadResponseData meshcostdata,out bool avatarSkeleton, out bool useAvatarCollider,
-            out string error, ref string warning)
+            LLSDAssetUploadResponseData meshcostdata, out string error, ref string warning)
         {
             totalcost = 0;
             error = string.Empty;
 
-            avatarSkeleton = false;
-            useAvatarCollider = false;
-
+            bool avatarSkeleton = false;
+            
             if (resources == null ||
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
