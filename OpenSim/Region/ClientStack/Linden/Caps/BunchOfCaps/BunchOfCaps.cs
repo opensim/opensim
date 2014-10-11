@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
         byte[] data, string inventoryType, string assetType,
         int cost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-        bool IsAtestUpload, ref string error);
+        bool IsAtestUpload, bool avatarSkeleton, bool avatarCollider, ref string error);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -531,6 +531,8 @@ namespace OpenSim.Region.ClientStack.Linden
             int nreqmeshs= 0;
             int nreqinstances = 0;
             bool IsAtestUpload = false;
+            bool avatarSkeleton = false;
+            bool avatarCollider = false;
 
             string assetName = llsdRequest.name;
 
@@ -580,8 +582,9 @@ namespace OpenSim.Region.ClientStack.Linden
                         string error;
                         int modelcost;
                         
+                        
                         if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
-                            meshcostdata, out error, ref warning))
+                            meshcostdata,out avatarSkeleton, out avatarCollider, out error, ref warning))
                         {
                             LLSDAssetUploadError resperror = new LLSDAssetUploadError();
                             resperror.message = error;
@@ -664,7 +667,7 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                         llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
-                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload);
+                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload, avatarSkeleton, avatarCollider);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -711,7 +714,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType, int cost,
                                           UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                          bool IsAtestUpload, ref string error)
+                                          bool IsAtestUpload,bool avatarSkeleton, bool avatarCollider, ref string error)
         {
 
             lock (m_ModelCost)
@@ -877,12 +880,60 @@ namespace OpenSim.Region.ClientStack.Linden
                     List<UUID> meshAssets = new List<UUID>();
                     for (int i = 0; i < mesh_list.Count; i++)
                     {
+/*
+  //                    do we really need this heavy thing?
+                        OSD osd = OSDParser.DeserializeLLSDBinary(mesh_list[i]);
+                        if (osd is OSDMap)
+                        {
+                            OSDMap mosd = (OSDMap)osd;
+                            if (mosd.ContainsKey("skeleton"))
+                            {
+                                OSDMap skeleton = (OSDMap)mosd["skeleton"];
+                                int sksize = skeleton["size"].AsInteger();
+                            }
+                        }
+*/
+
                         AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, creatorIDstr);
                         meshAsset.Data = mesh_list[i].AsBinary();
                         if (istest)
                             meshAsset.Local = true;
                         m_assetService.Store(meshAsset);
                         meshAssets.Add(meshAsset.FullID);
+
+
+                        // test code 
+                        if (avatarSkeleton)
+                        {
+                            string name = assetName;
+                            if (name.Length > 25)
+                                name = name.Substring(0, 24);
+                            name += "_Mesh#" + i.ToString();
+                            InventoryItemBase meshitem = new InventoryItemBase();
+                            meshitem.Owner = m_HostCapsObj.AgentID;
+                            meshitem.CreatorId = creatorIDstr;
+                            meshitem.CreatorData = String.Empty;
+                            meshitem.ID = UUID.Random();
+                            meshitem.AssetID = meshAsset.FullID;
+                            meshitem.Description = "mesh ";
+                            meshitem.Name = name;
+                            meshitem.AssetType = (int)AssetType.Mesh;
+                            meshitem.InvType = (int)InventoryType.Mesh;
+                            meshitem.Folder = UUID.Zero; // send to default
+
+                            // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
+                            // (owner) permissions.  This becomes a problem if next permissions are changed.
+                            meshitem.CurrentPermissions
+                                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+
+                            meshitem.BasePermissions = (uint)PermissionMask.All;
+                            meshitem.EveryOnePermissions = 0;
+                            meshitem.NextPermissions = (uint)PermissionMask.All;
+                            meshitem.CreationDate = Util.UnixTimeSinceEpoch();
+
+                            m_Scene.AddInventoryItem(client, meshitem);
+                            meshitem = null;
+                        }
                     }
 
                     int skipedMeshs = 0;
@@ -1540,12 +1591,14 @@ namespace OpenSim.Region.ClientStack.Linden
         private int m_nreqmeshs;
         private int m_nreqinstances;
         private bool m_IsAtestUpload;
+        private bool m_avatarSkeleton;
+        private bool m_avatarCollider;
 
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
                                 IHttpServer httpServer, bool dumpAssetsToFile,
                                 int totalCost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                bool IsAtestUpload)
+                                bool IsAtestUpload,bool avatarSkeleton, bool avatarCollider)
         {
             m_assetName = assetName;
             m_assetDes = description;
@@ -1564,6 +1617,8 @@ namespace OpenSim.Region.ClientStack.Linden
             m_nreqmeshs = nreqmeshs;
             m_nreqinstances = nreqinstances;
             m_IsAtestUpload = IsAtestUpload;
+            m_avatarSkeleton = avatarSkeleton;
+            m_avatarCollider = avatarCollider;
 
             m_timeoutTimer.Elapsed += TimedOut;
             m_timeoutTimer.Interval = 120000;
@@ -1608,7 +1663,8 @@ namespace OpenSim.Region.ClientStack.Linden
             if (handlerUpLoad != null)
             {
                 handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
-                    m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload, ref m_error);
+                    m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload,
+                    m_avatarSkeleton, m_avatarCollider, ref m_error);
             }
             if (m_IsAtestUpload)
             {

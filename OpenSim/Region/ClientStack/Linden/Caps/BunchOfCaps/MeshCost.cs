@@ -96,12 +96,18 @@ namespace OpenSim.Region.ClientStack.Linden
         // basicCost input region assets upload cost
         // totalcost returns model total upload fee
         // meshcostdata returns detailed costs for viewer 
-        public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost, 
-            LLSDAssetUploadResponseData meshcostdata, out string error, ref string warning)
+        // avatarSkeleton if mesh includes a avatar skeleton
+        // useAvatarCollider if we should use physics mesh for avatar
+        public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost,
+            LLSDAssetUploadResponseData meshcostdata,out bool avatarSkeleton, out bool useAvatarCollider,
+            out string error, ref string warning)
         {
             totalcost = 0;
             error = string.Empty;
-            
+
+            avatarSkeleton = false;
+            useAvatarCollider = false;
+
             if (resources == null ||
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
@@ -145,6 +151,10 @@ namespace OpenSim.Region.ClientStack.Linden
             float meshsfee = 0;
             int numberMeshs = 0;
             bool haveMeshs = false;
+
+            bool curskeleton;
+            bool curAvatarPhys;
+
             List<ameshCostParam> meshsCosts = new List<ameshCostParam>();
 
             if (resources.mesh_list != null && resources.mesh_list.Array.Count > 0)
@@ -156,9 +166,19 @@ namespace OpenSim.Region.ClientStack.Linden
                     ameshCostParam curCost = new ameshCostParam();
                     byte[] data = (byte[])resources.mesh_list.Array[i];
 
-                    if (!MeshCost(data, curCost, out error))
+                    if (!MeshCost(data, curCost,out curskeleton, out curAvatarPhys, out error))
                     {
                         return false;
+                    }
+
+                    if (curskeleton)
+                    {
+                        if (avatarSkeleton)
+                        {
+                            error = "model can only contain a avatar skeleton";
+                            return false;
+                        }
+                        avatarSkeleton = true;
                     }
                     meshsCosts.Add(curCost);
                     meshsfee += curCost.costFee;
@@ -273,7 +293,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         // single mesh asset cost
-        private bool MeshCost(byte[] data, ameshCostParam cost, out string error)
+        private bool MeshCost(byte[] data, ameshCostParam cost,out bool skeleton, out bool avatarPhys, out string error)
         {
             cost.highLODSize = 0;
             cost.medLODSize = 0;
@@ -283,6 +303,9 @@ namespace OpenSim.Region.ClientStack.Linden
             cost.costFee = 0.0f;
 
             error = string.Empty;
+
+            skeleton = false;
+            avatarPhys = false;
 
             if (data == null || data.Length == 0)
             {
@@ -329,6 +352,17 @@ namespace OpenSim.Region.ClientStack.Linden
             int phys_ntriangles = 0;
 
             int submesh_offset = -1;
+
+            if (map.ContainsKey("skeleton"))
+            {
+                tmpmap = (OSDMap)map["skeleton"];
+                if (tmpmap.ContainsKey("offset") && tmpmap.ContainsKey("size"))
+                {
+                    int sksize = tmpmap["size"].AsInteger();
+                    if(sksize > 0)
+                        skeleton = true;
+                }               
+            }
 
             if (map.ContainsKey("physics_convex"))
             {
