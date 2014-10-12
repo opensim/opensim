@@ -37,3 +37,48 @@ ALTER TABLE xassetsmeta ALTER COLUMN "Hash" SET DATA TYPE char(66);
 ALTER TABLE xassetsdata ALTER COLUMN "Hash" SET DATA TYPE char(66);
 
 COMMIT;
+
+:VERSION 3
+
+BEGIN;
+
+ALTER TABLE xassetsmeta RENAME COLUMN "ID" TO id;
+ALTER TABLE xassetsmeta RENAME COLUMN "Hash" TO hash;
+ALTER TABLE xassetsmeta RENAME COLUMN "Name" TO name;
+ALTER TABLE xassetsmeta RENAME COLUMN "Description" TO description;
+ALTER TABLE xassetsmeta RENAME COLUMN "Local" to local;
+ALTER TABLE xassetsmeta RENAME COLUMN "Temporary" TO temporary;
+ALTER TABLE xassetsmeta RENAME COLUMN "CreateTime" TO create_time;
+ALTER TABLE xassetsmeta RENAME COLUMN "AccessTime" TO access_time;
+ALTER TABLE xassetsmeta RENAME COLUMN "AssetFlags" TO asset_flags;
+ALTER TABLE xassetsmeta RENAME COLUMN "CreatorID" TO creatorid;
+ALTER TABLE xassetsmeta DROP CONSTRAINT xassetsmeta_pkey;
+ALTER TABLE xassetsmeta ADD PRIMARY KEY (id);
+
+
+ALTER TABLE xassetsdata RENAME COLUMN "Hash" TO hash;
+ALTER TABLE xassetsdata RENAME COLUMN "Data" TO data;
+ALTER TABLE xassetsdata DROP CONSTRAINT xassetsdata_pkey;
+ALTER TABLE xassetsdata ADD PRIMARY KEY (hash);
+
+COMMIT;
+
+
+:VERSION 4
+
+BEGIN;
+
+;; This is a harsh way of migrating these columns to
+;; a different data type, but it didn't work otherwise
+;; and we have a strict warning when using the module
+;; so here we go ...
+
+ALTER TABLE xassetsmeta DROP COLUMN hash;
+ALTER TABLE xassetsmeta ADD COLUMN hash bytea NOT NULL;
+
+ALTER TABLE xassetsdata DROP CONSTRAINT xassetsdata_pkey;
+ALTER TABLE xassetsdata DROP COLUMN hash;
+ALTER TABLE xassetsdata ADD COLUMN hash bytea NOT NULL;
+ALTER TABLE xassetsdata ADD PRIMARY KEY (hash);
+
+COMMIT;
