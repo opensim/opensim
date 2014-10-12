@@ -131,8 +131,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshRezEnabled"] = true;
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
-                m_features["AvatarSkeleton"] = true;
-                m_features["AnimationSet"] = true;
 
                 m_features["PhysicsMaterialsEnabled"] = true;
    
@@ -143,15 +141,19 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["PhysicsShapeTypes"] = typesMap;
     
                 // Extra information for viewers that want to use it
-                // TODO: Take these out of here into their respective modules, like map-server-url
+                
                 OSDMap extrasMap = new OSDMap();
+
+                extrasMap["AvatarSkeleton"] = true;
+                extrasMap["AnimationSet"] = true;
+
+                // TODO: Take these out of here into their respective modules, like map-server-url
                 if (m_SearchURL != string.Empty)
                     extrasMap["search-server-url"] = m_SearchURL;
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
 
-                if (extrasMap.Count > 0)
-                    m_features["OpenSimExtras"] = extrasMap;
+                m_features["OpenSimExtras"] = extrasMap;
 
             }
         }
