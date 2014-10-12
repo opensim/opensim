@@ -311,9 +311,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value)
                 {
-                    m_colliderfilter += 2;
-                    if (m_colliderfilter > 2)
-                        m_colliderfilter = 2;
+                    m_colliderfilter += 3;
+                    if (m_colliderfilter > 3)
+                        m_colliderfilter = 3;
                 }
                 else
                 {
@@ -328,6 +328,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_pidControllerActive = true;
                     m_iscolliding = true;
+                    m_freemove = false;
                 }
             }
         }
@@ -928,19 +929,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             IsColliding = true;
                         }
                     }
-/*
-                    if (contact.normal.Z < 0.2f)
-                    {
-                        contact.normal.Z = 0;
-                        float t = contact.normal.X * contact.normal.X + contact.normal.Y * contact.normal.Y;
-                        if (t > 0)
-                        {
-                            t = 1.0f / t;
-                            contact.normal.X *= t;
-                            contact.normal.Y *= t;
-                        }
-                    }
- */
                     return true;
                 }
 
@@ -1204,12 +1192,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // Avatar to Avatar collisions
                         // Prim to avatar collisions
 
-                        vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 5);
-                        vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
+                        vec.X = -vel.X * PID_D * 2f + (_zeroPosition.X - localpos.X) * (PID_P * 5);
+                        vec.Y = -vel.Y * PID_D * 2f + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
+                        if(vel.Z > 0)
+                            vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
+                        else
+                            vec.Z += (-vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P) * 0.2f;
+/*
                         if (flying)
                         {
                             vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
                         }
+*/
                     }
                     //PidStatus = true;
                 }
@@ -1226,7 +1220,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (ctz.Z > 0f)
                             {
                                 // moving up or JUMPING
-                                vec.Z += (ctz.Z - vel.Z) * PID_D;
+                                vec.Z += (ctz.Z - vel.Z) * PID_D * 2f;
                                 vec.X += (ctz.X - vel.X) * (PID_D);
                                 vec.Y += (ctz.Y - vel.Y) * (PID_D);
                             }
@@ -1236,7 +1230,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (ctz.Z == 0)
                                 {
                                     if (vel.Z > 0)
-                                        vec.Z -= vel.Z * PID_D;
+                                        vec.Z -= vel.Z * PID_D * 2f;
                                     vec.X += (ctz.X - vel.X) * (PID_D);
                                     vec.Y += (ctz.Y - vel.Y) * (PID_D);
                                 }
@@ -1305,9 +1299,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 vec.X -= breakfactor * vel.X;
                 vec.Y -= breakfactor * vel.Y;
                 if (flying)
-                    vec.Z -= breakfactor * vel.Z;
+                    vec.Z -= 0.5f * breakfactor * vel.Z;
                 else
-                    vec.Z -= .5f* m_mass * vel.Z;
+                    vec.Z -= .16f* m_mass * vel.Z;
             }
 
             if (flying)
@@ -1687,9 +1681,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             _zeroFlag = false;
             _target_velocity = Vector3.Zero;
             m_freemove = true;
-            m_colliderfilter = -2;
-            m_colliderObjectfilter = -2;
-            m_colliderGroundfilter = -2;
+            m_colliderfilter = -1;
+            m_colliderObjectfilter = -1;
+            m_colliderGroundfilter = -1;
 
             m_iscolliding = false;
             m_iscollidingGround = false;
