@@ -92,3 +92,110 @@ BEGIN;
 
 
 COMMIT;
+
+
+
+:VERSION 3
+
+BEGIN;
+
+-- Not a pretty way to do this, but it did not work as-is
+-- and nothing was found about converting between existing data
+-- and the new type.
+-- Since there should be nothing to preserve ...
+
+DROP TABLE IF EXISTS os_groups_groups CASCADE;
+
+CREATE TABLE os_groups_groups (
+  "GroupID" uuid PRIMARY KEY NOT NULL,
+  "Location" varchar(255) NOT NULL DEFAULT '',
+  "Name" varchar(255) NOT NULL DEFAULT '',
+  "Charter" text NOT NULL,
+  "InsigniaID" uuid NOT NULL,
+  "FounderID" uuid NOT NULL,
+  "MembershipFee" integer NOT NULL DEFAULT '0',
+  "OpenEnrollment" varchar(255) NOT NULL DEFAULT '',
+  "ShowInList" integer NOT NULL DEFAULT '0',
+  "AllowPublish" integer NOT NULL DEFAULT '0',
+  "MaturePublish" integer NOT NULL DEFAULT '0',
+  "OwnerRoleID" uuid NOT NULL
+);
+
+
+DROP TABLE IF EXISTS os_groups_membership;
+
+CREATE TABLE os_groups_membership (
+  "GroupID"uuid NOT NULL,
+  "PrincipalID" VARCHAR(255) NOT NULL DEFAULT '',
+  "SelectedRoleID" uuid NOT NULL,
+  "Contribution" integer NOT NULL DEFAULT '0',
+  "ListInProfile" integer NOT NULL DEFAULT '1',
+  "AcceptNotices" integer NOT NULL DEFAULT '1',
+  "AccessToken" uuid NOT NULL,
+  constraint os_groupmemberpk PRIMARY KEY ("GroupID", "PrincipalID")
+);
+
+
+
+DROP TABLE IF EXISTS os_groups_roles;
+
+CREATE TABLE os_groups_roles (
+  "GroupID" uuid NOT NULL,
+  "RoleID" uuid NOT NULL,
+  "Name" varchar(255) NOT NULL DEFAULT '',
+  "Description" varchar(255) NOT NULL DEFAULT '',
+  "Title" varchar(255) NOT NULL DEFAULT '',
+  "Powers" varchar(36) NOT NULL DEFAULT '',
+  constraint os_grouprolepk PRIMARY KEY  ("GroupID","RoleID")
+);
+
+
+DROP TABLE IF EXISTS os_groups_rolemembership;
+
+CREATE TABLE os_groups_rolemembership (
+  "GroupID" uuid NOT NULL,
+  "RoleID" uuid NOT NULL,
+  "PrincipalID" VARCHAR(255) NOT NULL DEFAULT '',
+  constraint os_grouprolememberpk PRIMARY KEY  ("GroupID","RoleID","PrincipalID")
+);
+
+
+DROP TABLE IF EXISTS os_groups_invites;
+
+CREATE TABLE os_groups_invites (
+  "InviteID" uuid NOT NULL,
+  "GroupID" uuid NOT NULL,
+  "RoleID" uuid NOT NULL,
+  "PrincipalID" VARCHAR(255) NOT NULL DEFAULT '',
+  "TMStamp" timestamp NOT NULL DEFAULT now(),
+  constraint os_groupinvitespk PRIMARY KEY  ("InviteID")
+);
+
+
+DROP TABLE IF EXISTS os_groups_notices;
+
+CREATE TABLE os_groups_notices (
+  "GroupID" uuid NOT NULL,
+  "NoticeID" uuid NOT NULL,
+  "TMStamp" integer NOT NULL DEFAULT '0',
+  "FromName" varchar(255) NOT NULL DEFAULT '',
+  "Subject" varchar(255) NOT NULL DEFAULT '',
+  "Message" text NOT NULL,
+  "HasAttachment" integer NOT NULL DEFAULT '0',
+  "AttachmentType" integer NOT NULL DEFAULT '0',
+  "AttachmentName" varchar(128) NOT NULL DEFAULT '',
+  "AttachmentItemID" uuid NOT NULL,
+  "AttachmentOwnerID" varchar(255) NOT NULL DEFAULT '',
+  constraint os_groupsnoticespk PRIMARY KEY  ("NoticeID")
+);
+
+
+DROP TABLE IF EXISTS os_groups_principals;
+
+CREATE TABLE os_groups_principals (
+  "PrincipalID" VARCHAR(255) NOT NULL DEFAULT '',
+  "ActiveGroupID" uuid NOT NULL,
+  constraint os_groupprincpk PRIMARY KEY  ("PrincipalID")
+);
+
+COMMIT;
