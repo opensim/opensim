@@ -113,8 +113,8 @@ namespace OpenSim
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
                     Util.FireAndForgetMethod = asyncCallMethod;
 
-                stpMinThreads = startupConfig.GetInt("MinPoolThreads", 15);
-                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
+                stpMinThreads = startupConfig.GetInt("MinPoolThreads", 2 );
+                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 25);
                 m_consolePrompt = startupConfig.GetString("ConsolePrompt", @"Region (\R) ");
             }
 

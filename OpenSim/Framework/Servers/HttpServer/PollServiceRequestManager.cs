@@ -57,24 +57,35 @@ namespace OpenSim.Framework.Servers.HttpServer
         private bool m_running = true;
         private int slowCount = 0;
 
-        private SmartThreadPool m_threadPool = new SmartThreadPool(20000, 12, 2);
+        private SmartThreadPool m_threadPool;
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
             m_server = pSrv;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
+
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.IdleTimeout = 30000;
+            startInfo.MaxWorkerThreads = 15;
+            startInfo.MinWorkerThreads = 1;
+            startInfo.ThreadPriority = ThreadPriority.Normal;
+            startInfo.StartSuspended = true;
+            startInfo.ThreadPoolName = "PoolService";
+
+            m_threadPool = new SmartThreadPool(startInfo);
         }
 
         public void Start()
         {
+            m_threadPool.Start();
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
             {
                 m_workerThreads[i]
                     = Watchdog.StartThread(
                         PoolWorkerJob,
-                        string.Format("PollServiceWorkerThread{0}:{1}", i, m_server.Port),
+                        string.Format("PollServiceWorkerThread {0}:{1}", i, m_server.Port),
                         ThreadPriority.Normal,
                         false,
                         false,

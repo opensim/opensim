@@ -1850,7 +1850,7 @@ namespace OpenSim.Framework
 
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.ThreadPoolName = "Util";
-            startInfo.IdleTimeout = 2000;
+            startInfo.IdleTimeout = 20000;
             startInfo.MaxWorkerThreads = maxThreads;
             startInfo.MinWorkerThreads = minThreads;
 

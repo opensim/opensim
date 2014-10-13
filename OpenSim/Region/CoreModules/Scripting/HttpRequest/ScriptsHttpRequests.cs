@@ -320,7 +320,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
-            int maxThreads = 50;
+            int maxThreads = 15;
 
             IConfig httpConfig = config.Configs["HttpRequestModule"];
             if (httpConfig != null)
@@ -336,12 +336,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 STPStartInfo startInfo = new STPStartInfo();
                 startInfo.IdleTimeout = 20000;
                 startInfo.MaxWorkerThreads = maxThreads;
-                startInfo.MinWorkerThreads = 5;
+                startInfo.MinWorkerThreads = 1;
                 startInfo.ThreadPriority = ThreadPriority.BelowNormal;
                 startInfo.StartSuspended = true;
+                startInfo.ThreadPoolName = "ScriptsHttpReq";
 
                 ThreadPool = new SmartThreadPool(startInfo);
-
                 ThreadPool.Start();
             }
         }
