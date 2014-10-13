@@ -56,15 +56,16 @@ namespace OpenSim.Server.Base
 
             if (networkConfig == null)
             {
-                System.Console.WriteLine("Section 'Network' not found, server can't start");
-                Thread.CurrentThread.Abort();
+                System.Console.WriteLine("ERROR: Section [Network] not found, server can't start");
+                Environment.Exit(1);
             }
 
             uint port = (uint)networkConfig.GetInt("port", 0);
 
             if (port == 0)
             {
-                Thread.CurrentThread.Abort();
+                System.Console.WriteLine("ERROR: No 'port' entry found in [Network].  Server can't start");
+                Environment.Exit(1);
             }
 
             bool ssl_main = networkConfig.GetBoolean("https_main",false);
@@ -93,13 +94,13 @@ namespace OpenSim.Server.Base
                 if ( cert_path == String.Empty )
                 {
                     System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
-                    Thread.CurrentThread.Abort();
+                    Environment.Exit(1);
                 }
                 string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
                 if ( cert_pass == String.Empty )
                 {
                     System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
-                    Thread.CurrentThread.Abort();
+                    Environment.Exit(1);
                 }
 
                 httpServer = new BaseHttpServer(port, ssl_main, cert_path, cert_pass);
@@ -117,13 +118,13 @@ namespace OpenSim.Server.Base
                 if ( cert_path == String.Empty )
                 {
                     System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
-                    Thread.CurrentThread.Abort();
+                    Environment.Exit(1);
                 }
                 string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
                 if ( cert_pass == String.Empty )
                 {
                     System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
-                    Thread.CurrentThread.Abort();
+                    Environment.Exit(1);
                 }
 
                 MainServer.AddHttpServer(new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass));
