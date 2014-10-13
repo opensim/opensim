@@ -64,8 +64,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_server = pSrv;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
-            m_threadPool = new SmartThreadPool(30000, 15, 1);
-            m_threadPool.Name = "PoolService";
+
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.IdleTimeout = 30000;
+            startInfo.MaxWorkerThreads = 15;
+            startInfo.MinWorkerThreads = 1;
+            startInfo.ThreadPriority = ThreadPriority.Normal;
+            startInfo.StartSuspended = true;
+            startInfo.ThreadPoolName = "PoolService";
+
+            m_threadPool = new SmartThreadPool(startInfo);
         }
 
         public void Start()

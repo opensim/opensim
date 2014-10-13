@@ -339,9 +339,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 startInfo.MinWorkerThreads = 1;
                 startInfo.ThreadPriority = ThreadPriority.BelowNormal;
                 startInfo.StartSuspended = true;
+                startInfo.ThreadPoolName = "ScriptsHttpReq";
 
                 ThreadPool = new SmartThreadPool(startInfo);
-                ThreadPool.Name = "ScriptsHttpReq";
                 ThreadPool.Start();
             }
         }
