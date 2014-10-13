@@ -1305,8 +1305,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             PacketsSentCount++;
 
             // Put the UDP payload on the wire
-            //AsyncBeginSend(buffer);
-            SyncSend(buffer);
+            AsyncBeginSend(buffer);
+            //SyncSend(buffer);
 
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
