@@ -84,22 +84,23 @@ namespace OpenSim.Server.Base
             // Then, check for https settings and ADD a server to
             // m_Servers
             //
-            if ( !ssl_main )
+            if (!ssl_main)
             {
                 httpServer = new BaseHttpServer(port);
             }
             else
             {
                 string cert_path = networkConfig.GetString("cert_path",String.Empty);
-                if ( cert_path == String.Empty )
+                if (cert_path == String.Empty)
                 {
-                    System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
+                    System.Console.WriteLine("ERROR: Path to X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
                 }
+
                 string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
-                if ( cert_pass == String.Empty )
+                if (cert_pass == String.Empty)
                 {
-                    System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
+                    System.Console.WriteLine("ERROR: Password for X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
                 }
 
@@ -110,20 +111,21 @@ namespace OpenSim.Server.Base
             MainServer.Instance = httpServer;
 
             // If https_listener = true, then add an ssl listener on the https_port...
-            if ( ssl_listener == true ) {
-
+            if (ssl_listener == true) 
+            {
                 uint https_port = (uint)networkConfig.GetInt("https_port", 0);
 
                 string cert_path = networkConfig.GetString("cert_path",String.Empty);
-                if ( cert_path == String.Empty )
+                if (cert_path == String.Empty)
                 {
-                    System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
+                    System.Console.WriteLine("ERROR: Path to X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
                 }
+
                 string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
-                if ( cert_pass == String.Empty )
+                if (cert_pass == String.Empty)
                 {
-                    System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
+                    System.Console.WriteLine("ERROR: Password for X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
                 }
 
