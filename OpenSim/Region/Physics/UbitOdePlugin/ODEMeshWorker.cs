@@ -100,6 +100,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             m_running = true;
             m_thread = new Thread(DoWork);
+            m_thread.Name = "OdeMeshWorker";
             m_thread.Start();
         }
 
