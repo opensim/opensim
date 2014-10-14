@@ -246,7 +246,16 @@ namespace OpenSim.Framework.Monitoring
                     if (LogLevel >= 1)
                         m_log.DebugFormat("[JOB ENGINE]: Processing job {0}", m_currentJob.Name);
 
-                    m_currentJob.Callback.Invoke(m_currentJob.O);
+                    try
+                    {
+                        m_currentJob.Callback.Invoke(m_currentJob.O);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error(
+                            string.Format(
+                                "[JOB ENGINE]: Job {0} failed, continuing.  Exception  ", m_currentJob.Name), e);
+                    }
 
                     if (LogLevel >= 1)
                         m_log.DebugFormat("[JOB ENGINE]: Processed job {0}", m_currentJob.Name);
