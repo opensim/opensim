@@ -337,6 +337,8 @@ namespace OpenSim
         {
             // Called from base.StartUp()
 
+            Watchdog.JobEngine.Start();
+
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             SceneManager.OnRestartSim += HandleRestartRegion;
 
