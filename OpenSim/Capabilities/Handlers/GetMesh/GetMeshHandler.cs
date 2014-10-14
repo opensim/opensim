@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Reflection;
 using System.IO;
+using System.Text;
 using System.Web;
 using log4net;
 using Nini.Config;
@@ -43,41 +44,37 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class GetMeshHandler 
+    public class GetMeshHandler : BaseStreamHandler
     {
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private IAssetService m_assetService;
 
-        public GetMeshHandler(IAssetService assService)
+        public GetMeshHandler(string path, IAssetService assService, string name, string description)
+            : base("GET", path, name, description)
         {
             m_assetService = assService;
         }
 
-        public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
+        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 400; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = "Request wasn't what was expected";
+            // Try to parse the texture ID from the request URL
+            NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            string meshStr = query.GetOne("mesh_id");
 
-            string meshStr = string.Empty;
-
-            if (request.ContainsKey("mesh_id"))
-                meshStr = request["mesh_id"].ToString();
+//            m_log.DebugFormat("Fetching mesh {0}", meshStr);
 
             UUID meshID = UUID.Zero;
             if (!String.IsNullOrEmpty(meshStr) && UUID.TryParse(meshStr, out meshID))
             {
                 if (m_assetService == null)
                 {
-                    responsedata["int_response_code"] = 404; //501; //410; //404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "The asset service is unavailable.  So is your mesh.";
-                    return responsedata;
+                    httpResponse.StatusCode = 404;
+                    httpResponse.ContentType = "text/plain";
+                    byte[] data = Encoding.UTF8.GetBytes("The asset service is unavailable.  So is your mesh.");
+                    httpResponse.Body.Write(data, 0, data.Length);
+                    return null;
                 }
 
                 AssetBase mesh = m_assetService.Get(meshID.ToString());
@@ -86,31 +83,32 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     if (mesh.Type == (SByte)AssetType.Mesh)
                     {
-                        responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
-                        responsedata["content_type"] = "application/vnd.ll.mesh";
-                        responsedata["int_response_code"] = 200;
+                        byte[] data = mesh.Data;
+                        httpResponse.Body.Write(data, 0, data.Length);
+                        httpResponse.ContentType = "application/vnd.ll.mesh";
+                        httpResponse.StatusCode = 200;
                     }
                     // Optionally add additional mesh types here
                     else
                     {
-                        responsedata["int_response_code"] = 404; //501; //410; //404;
-                        responsedata["content_type"] = "text/plain";
-                        responsedata["keepalive"] = false;
-                        responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
-                        return responsedata;
+                        httpResponse.StatusCode = 404;
+                        httpResponse.ContentType = "text/plain";
+                        byte[] data = Encoding.UTF8.GetBytes("Unfortunately, this asset isn't a mesh.");
+                        httpResponse.Body.Write(data, 0, data.Length);
+                        httpResponse.KeepAlive = false;
                     }
                 }
                 else
                 {
-                    responsedata["int_response_code"] = 404; //501; //410; //404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
-                    return responsedata;
+                    httpResponse.StatusCode = 404;
+                    httpResponse.ContentType = "text/plain";
+                    byte[] data = Encoding.UTF8.GetBytes("Your Mesh wasn't found.  Sorry!");
+                    httpResponse.Body.Write(data, 0, data.Length);
+                    httpResponse.KeepAlive = false;
                 }
             }
 
-            return responsedata;
+            return null;
         }
     }
 }

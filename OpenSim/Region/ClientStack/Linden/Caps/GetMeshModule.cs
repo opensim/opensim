@@ -110,32 +110,29 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #endregion
 
-
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-//            UUID capID = UUID.Random();
 
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
             if (m_URL == "localhost")
             {
-//                m_log.DebugFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
-                IRequestHandler reqHandler
-                    = new RestHTTPHandler(
-                        "GET",
-                        "/CAPS/" + UUID.Random(),
-                        httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
-                        "GetMesh",
-                        agentID.ToString());
+                //                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
 
-                caps.RegisterHandler("GetMesh", reqHandler);
+                UUID capID = UUID.Random();
+
+                caps.RegisterHandler(
+                    "GetMesh",
+                    new GetMeshHandler("/CAPS/" + capID + "/", m_AssetService, "GetMesh", agentID.ToString()));
             }
             else
             {
-//                m_log.DebugFormat("[GETMESH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("GetMesh", m_URL);
+                //                m_log.DebugFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+                if (handler != null)
+                    handler.RegisterExternalUserCapsHandler(agentID, caps, "GetMesh", m_URL);
+                else
+                    caps.RegisterHandler("GetMesh", m_URL);
             }
-        }
-
+        }                             
     }
 }
