@@ -90,6 +90,7 @@ namespace OpenSim.Framework.Capabilities
             lock (m_capsHandlers)
             {
                 m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
+                m_httpListener.RemoveStreamHandler("PUT", m_capsHandlers[capsName].Path);
                 m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[capsName].Path);
                 m_capsHandlers.Remove(capsName);
             }
