@@ -1245,11 +1245,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
                 // not transporting the required data.
                 //
-                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                // not transporting the required data.
-                //
                 // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
                 // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
                 // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
@@ -1258,22 +1253,21 @@ namespace OpenSim.Region.Framework.Scenes
                 // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
                 // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
                 // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
-                //
-                // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
-                // be locked, allowing race conditions if other code changes the attachments list.
                 List<SceneObjectGroup> attachments = GetAttachments();
 
                 if (attachments.Count > 0)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-
-                    // Resume scripts
-                    foreach (SceneObjectGroup sog in attachments)
+                    if (Watchdog.JobEngine.IsRunning)
                     {
-                        sog.ScheduleGroupForFullUpdate();
-                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                        sog.ResumeScripts();
+                        Watchdog.RunWhenPossible(
+                            "StartAttachmentScripts", 
+                            o => RestartAttachmentScripts(attachments),
+                            string.Format("Start attachment scripts for {0} in {1}", Name, Scene.Name), 
+                            null);
+                    }
+                    else
+                    {
+                        RestartAttachmentScripts(attachments);
                     }
                 }
             }
@@ -1296,6 +1290,20 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
             return true;
+        }
+
+        private void RestartAttachmentScripts(List<SceneObjectGroup> attachments)
+        {
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+            // Resume scripts
+            foreach (SceneObjectGroup sog in attachments)
+            {
+                sog.ScheduleGroupForFullUpdate();
+                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                sog.ResumeScripts();
+            }
         }
 
         private static bool IsRealLogin(TeleportFlags teleportFlags)
@@ -1813,13 +1821,20 @@ namespace OpenSim.Region.Framework.Scenes
 
                 }
 
-                // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
+                // XXX: If we force an update after activity has completed, then multiple attachments do appear correctly on a destination region
                 // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
                 // This may be due to viewer code or it may be something we're not doing properly simulator side.
-                lock (m_attachments)
+                if (Watchdog.JobEngine.IsRunning)
                 {
-                    foreach (SceneObjectGroup sog in m_attachments)
-                        sog.ScheduleGroupForFullUpdate();
+                    Watchdog.RunWhenPossible(
+                        "ScheduleAttachmentsForFullUpdate", 
+                        o => ScheduleAttachmentsForFullUpdate(),
+                        string.Format("Schedule attachments for full update for {0} in {1}", Name, Scene.Name), 
+                        null);
+                }
+                else
+                {
+                    ScheduleAttachmentsForFullUpdate();
                 }
 
     //            m_log.DebugFormat(
@@ -1829,6 +1844,15 @@ namespace OpenSim.Region.Framework.Scenes
             finally
             {
                 IsInTransit = false;
+            }
+        }
+
+        private void ScheduleAttachmentsForFullUpdate()
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup sog in m_attachments)
+                    sog.ScheduleGroupForFullUpdate();
             }
         }
 
@@ -4039,9 +4063,25 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.Animations.SetImplicitDefaultAnimation(cAgent.AnimState.AnimID, cAgent.AnimState.SequenceNum, UUID.Zero);
 
             if (Scene.AttachmentsModule != null)
-                Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+            {
+                // If the JobEngine is running we can schedule this job now and continue rather than waiting for all
+                // attachments to copy, which might take a long time in the Hypergrid case as the entire inventory
+                // graph is inspected for each attachments and assets possibly fetched.
+                // 
+                // We don't need to worry about a race condition as the job to later start the scripts is also 
+                // JobEngine scheduled and so will always occur after this task.
+                // XXX: This will not be true if JobEngine ever gets more than one thread.
+                if (Watchdog.JobEngine.IsRunning)
+                    Watchdog.RunWhenPossible(
+                        "CopyAttachments", 
+                        o => Scene.AttachmentsModule.CopyAttachments(cAgent, this), 
+                        string.Format("Copy attachments for {0} entering {1}", Name, Scene.Name), 
+                        null);
+                else
+                    Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+            }
 
-            // This must occur after attachments are copied, as it releases the CompleteMovement() calling thread
+            // This must occur after attachments are copied or scheduled to be copied, as it releases the CompleteMovement() calling thread
             // originating from the client completing a teleport.  Otherwise, CompleteMovement() code to restart
             // script attachments can outrace this thread.
             lock (m_originRegionIDAccessLock)
