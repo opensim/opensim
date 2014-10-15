@@ -189,7 +189,10 @@ namespace OpenSim.Framework
         {
             if (DebugLevel == 5)
             {
-                output = output.Substring(0, 80);
+                int len = output.Length;
+                if(len > 80)
+                    len = 80;
+                output = output.Substring(0, len);
                 output = output + "...";
             }
 
@@ -1035,13 +1038,13 @@ namespace OpenSim.Framework
                     {
                         writer.Write(obj);
                         writer.Flush();
+                        if (WebUtil.DebugLevel >= 5)
+                            WebUtil.LogOutgoingDetail(buffer);
                     }
 
                     length = (int)obj.Length;
                     request.ContentLength = length;
 
-                    if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail(buffer);
 
                     Stream requestStream = null;
                     try
@@ -1188,13 +1191,12 @@ namespace OpenSim.Framework
                     XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(writer, obj);
                     writer.Flush();
+                    if (WebUtil.DebugLevel >= 5)
+                        WebUtil.LogOutgoingDetail(buffer);
                 }
 
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
-
-                if (WebUtil.DebugLevel >= 5)
-                    WebUtil.LogOutgoingDetail(buffer);
 
                 Stream requestStream = null;
                 try
