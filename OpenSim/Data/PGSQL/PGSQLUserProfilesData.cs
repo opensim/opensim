@@ -273,11 +273,8 @@ namespace OpenSim.Data.PGSQL
                         {
                             if(reader.Read ())
                             {
-                                // ad.CreatorId = GetUUID(reader["creatoruuid"]);
                                 ad.CreatorId = DBGuid.FromDB(reader["creatoruuid"]);
-                                // ad.ParcelId = GetUUID(reader["parceluuid"]);
                                 ad.ParcelId = DBGuid.FromDB(reader["parceluuid"]);
-                                // ad.SnapshotId = GetUUID(reader["snapshotuuid"]);
                                 ad.SnapshotId = DBGuid.FromDB(reader["snapshotuuid"]);
                                 ad.CreationDate = Convert.ToInt32(reader["creationdate"]);
                                 ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
@@ -290,7 +287,6 @@ namespace OpenSim.Data.PGSQL
                                 ad.SimName = reader["simname"].ToString();
                                 ad.GlobalPos = reader["posglobal"].ToString();
                                 ad.ParcelName = reader["parcelname"].ToString();
-                                
                             }
                         }
                     }
@@ -437,7 +433,6 @@ namespace OpenSim.Data.PGSQL
                       WHERE NOT EXISTS (
                         SELECT * FROM upsert )";
                     
-            
             try
             {
                 using (NpgsqlConnection dbcon = new NpgsqlConnection(ConnectionString))
@@ -557,15 +552,6 @@ namespace OpenSim.Data.PGSQL
             else
             {
                 remove = false;
-//                query = @"INSERT INTO usernotes VALUES ( :UserId, :TargetId, :Notes )
-//                            where not exists ( Select useruuid from usernotes where useruuid = :UserId and targetuuid = :TargetId );
-//
-//                           update usernotes
-//                              set notes = :Notes
-//                            where useruuid = :UserId 
-//                              and targetuuid = :TargetId;
-//                        ";
-
 
                 query = @"WITH upsert AS (
                           UPDATE usernotes SET notes = :Notes, useruuid = :UserId, targetuuid = :TargetId RETURNING * )
@@ -574,8 +560,6 @@ namespace OpenSim.Data.PGSQL
                             WHERE NOT EXISTS (
                               SELECT * FROM upsert
                             )";
-                        
-
             }
             
             try
@@ -621,20 +605,16 @@ namespace OpenSim.Data.PGSQL
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("Id", props.UserId));
-                        m_log.InfoFormat("Profile Data {0}", props.ToString());
                         
                         using (NpgsqlDataReader reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                         {
                             if(reader.HasRows)
                             {
-                                m_log.DebugFormat("[PROFILES_DATA]" +
-                                                  ": Getting data for {0}.", props.UserId);
+                                // m_log.DebugFormat("[PROFILES_DATA]" +
+                                //                  ": Getting data for {0}.", props.UserId);
                                 reader.Read();
                                 props.WebUrl = (string)reader["profileURL"].ToString();
-                                m_log.DebugFormat("[PROFILES_DATA]: WebURL {0} ", props.WebUrl);
-                                // UUID.TryParse((string)reader["profileImage"], out props.ImageId);
                                 props.ImageId = DBGuid.FromDB(reader["profileImage"]);
-                                m_log.DebugFormat("[PROFILES_DATA]: profileImage {0} ", props.ImageId);
                                 props.AboutText = (string)reader["profileAboutText"];
                                 props.FirstLifeImageId = DBGuid.FromDB(reader["profileFirstImage"]);
                                 props.FirstLifeText = (string)reader["profileFirstText"];
@@ -647,8 +627,8 @@ namespace OpenSim.Data.PGSQL
                             }
                             else
                             {
-                                m_log.DebugFormat("[PROFILES_DATA]" +
-                                                 ": No data for {0}", props.UserId);
+                                //m_log.DebugFormat("[PROFILES_DATA]" +
+                                //                 ": No data for {0}", props.UserId);
                                
                                 props.WebUrl = string.Empty;
                                 props.ImageId = UUID.Zero;
@@ -699,8 +679,8 @@ namespace OpenSim.Data.PGSQL
 
                                 using (NpgsqlCommand put = new NpgsqlCommand(query, dbcon))
                                 {
-                                    m_log.DebugFormat("[PROFILES_DATA]" +
-                                                      ": Adding new data for {0}", props.UserId);
+                                    //m_log.DebugFormat("[PROFILES_DATA]" +
+                                    //                  ": Adding new data for {0}", props.UserId);
 
                                     put.Parameters.Add(m_database.CreateParameter("userId", props.UserId));
                                     put.Parameters.Add(m_database.CreateParameter("profilePartner", props.PartnerId));
@@ -727,7 +707,7 @@ namespace OpenSim.Data.PGSQL
             catch (Exception e)
             {
                 m_log.DebugFormat("[PROFILES_DATA]" +
-                                  ": Requst properties exception {0} {1}", e.Message, e.StackTrace);
+                                  ": Requst properties exception {0}", e.Message;
                 result = e.Message;
                 return false;
             }
@@ -822,9 +802,6 @@ namespace OpenSim.Data.PGSQL
             OSDArray data = new OSDArray();
             string query = "SELECT \"snapshotuuid\" FROM {0} WHERE \"creatoruuid\" = :Id";
 
-            // Get classified image assets
-            
-            
             try
             {
                 using (NpgsqlConnection dbcon = new NpgsqlConnection(ConnectionString))
