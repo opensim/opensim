@@ -707,7 +707,7 @@ namespace OpenSim.Data.PGSQL
             catch (Exception e)
             {
                 m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": Requst properties exception {0}", e.Message;
+                                  ": Requst properties exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
