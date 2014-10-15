@@ -82,3 +82,13 @@ ALTER TABLE xassetsdata ADD COLUMN hash bytea NOT NULL;
 ALTER TABLE xassetsdata ADD PRIMARY KEY (hash);
 
 COMMIT;
+
+:VERSION 5
+
+BEGIN;
+
+ALTER TABLE xassetsmeta ALTER COLUMN id SET DATA TYPE uuid USING id::uuid;
+ALTER TABLE xassetsmeta ALTER COLUMN hash SET DATA TYPE bytea USING hash::bytea;
+ALTER TABLE xassetsdata ALTER COLUMN hash SET DATA TYPE bytea USING hash::bytea;
+
+COMMIT;

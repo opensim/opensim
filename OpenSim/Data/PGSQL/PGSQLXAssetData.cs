@@ -145,7 +145,7 @@ namespace OpenSim.Data.PGSQL
                             JOIN XAssetsData ON XAssetsMeta.hash = XAssetsData.Hash WHERE id=:ID",
                         dbcon))
                     {
-                        cmd.Parameters.AddWithValue("ID", assetID.ToString());
+                        cmd.Parameters.Add(m_database.CreateParameter("ID", assetID));
 
                         try
                         {
@@ -252,6 +252,9 @@ namespace OpenSim.Data.PGSQL
 
                         byte[] hash = hasher.ComputeHash(asset.Data);
 
+                        UUID asset_id;
+                        UUID.TryParse(asset.ID, out asset_id);
+
 //                        m_log.DebugFormat(
 //                            "[XASSET DB]: Compressed data size for {0} {1}, hash {2} is {3}",
 //                            asset.ID, asset.Name, hash, compressedData.Length);
@@ -260,21 +263,22 @@ namespace OpenSim.Data.PGSQL
                         {
                             using (NpgsqlCommand cmd =
                                 new NpgsqlCommand(
-                                    @"insert INTO XAssetsMeta(id, hash, name, description, " + " \"AssetType\" " + @", local, temporary, create_time, access_time, asset_flags, creatorid)
+                                    @"insert INTO XAssetsMeta(id, hash, name, description, ""AssetType"", local, temporary, create_time, access_time, asset_flags, creatorid)
                                        Select :ID, :Hash, :Name, :Description, :AssetType, :Local, :Temporary, :CreateTime, :AccessTime, :AssetFlags, :CreatorID
                                         where not exists( Select id from XAssetsMeta where id = :ID);
 
                                       update XAssetsMeta
-                                          set id = :ID, hash = :Hash, name = :Name, description = :Description, " +
-                                              "\"AssetType\" " + @" = :AssetType, local = :Local, temporary = :Temporary, create_time = :CreateTime, 
+                                          set id = :ID, hash = :Hash, name = :Name, description = :Description, 
+                                              ""AssetType"" = :AssetType, local = :Local, temporary = :Temporary, create_time = :CreateTime, 
                                               access_time = :AccessTime, asset_flags = :AssetFlags, creatorid = :CreatorID
                                         where id = :ID;
                                      ",
                                     dbcon))
                             {
+
                                 // create unix epoch time
                                 int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                                cmd.Parameters.Add(m_database.CreateParameter("ID", asset.ID));
+                                cmd.Parameters.Add(m_database.CreateParameter("ID", asset_id));
                                 cmd.Parameters.Add(m_database.CreateParameter("Hash", hash));
                                 cmd.Parameters.Add(m_database.CreateParameter("Name", assetName));
                                 cmd.Parameters.Add(m_database.CreateParameter("Description", assetDescription));
@@ -356,10 +360,13 @@ namespace OpenSim.Data.PGSQL
 
                     try
                     {
+                        UUID asset_id;
+                        UUID.TryParse(assetMetadata.ID, out asset_id);
+
                         using (cmd)
                         {
                             // create unix epoch time
-                            cmd.Parameters.Add(m_database.CreateParameter("id", assetMetadata.ID));
+                            cmd.Parameters.Add(m_database.CreateParameter("id", asset_id));
                             cmd.Parameters.Add(m_database.CreateParameter("access_time", (int)Utils.DateTimeToUnixTime(now)));
                             cmd.ExecuteNonQuery();
                         }
@@ -390,7 +397,7 @@ namespace OpenSim.Data.PGSQL
 
             using (NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT hash FROM XAssetsData WHERE hash=:Hash", dbcon))
             {
-                cmd.Parameters.AddWithValue("hash", hash);
+                cmd.Parameters.Add(m_database.CreateParameter("Hash", hash));
 
                 try
                 {
@@ -469,7 +476,7 @@ namespace OpenSim.Data.PGSQL
                     dbcon.Open();
                     using (NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT id FROM XAssetsMeta WHERE id=:ID", dbcon))
                     {
-                        cmd.Parameters.AddWithValue("id", uuid.ToString());
+                        cmd.Parameters.Add(m_database.CreateParameter("id", uuid));
 
                         try
                         {
@@ -514,8 +521,8 @@ namespace OpenSim.Data.PGSQL
                     NpgsqlCommand cmd = new NpgsqlCommand( @"SELECT name, description, access_time, ""AssetType"", temporary, id, asset_flags, creatorid
                                             FROM XAssetsMeta 
                                             LIMIT :start, :count", dbcon);
-                    cmd.Parameters.AddWithValue("start", start);
-                    cmd.Parameters.AddWithValue("count", count);
+                    cmd.Parameters.Add(m_database.CreateParameter("start", start));
+                    cmd.Parameters.Add(m_database.CreateParameter("count", count));
 
                     try
                     {
@@ -563,7 +570,7 @@ namespace OpenSim.Data.PGSQL
 
                     using (NpgsqlCommand cmd = new NpgsqlCommand(@"delete from XAssetsMeta where id=:ID", dbcon))
                     {
-                        cmd.Parameters.AddWithValue(id, id);
+                        cmd.Parameters.Add(m_database.CreateParameter(id, id));
                         cmd.ExecuteNonQuery();
                     }
 
