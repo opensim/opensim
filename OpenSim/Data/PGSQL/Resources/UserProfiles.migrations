@@ -90,3 +90,57 @@ CREATE TABLE usersettings (
     PRIMARY KEY ("useruuid")
 );
 commit;
+
+:VERSION 4
+
+BEGIN;
+
+-- Classifieds
+ALTER TABLE classifieds DROP CONSTRAINT classifiedspk;
+ALTER TABLE classifieds ALTER COLUMN classifieduuid SET DATA TYPE uuid using classifieduuid::uuid;
+ALTER TABLE classifieds ALTER COLUMN creatoruuid SET DATA TYPE uuid using creatoruuid::uuid;
+ALTER TABLE classifieds ALTER COLUMN parceluuid SET DATA TYPE uuid using parceluuid::uuid;
+ALTER TABLE classifieds ALTER COLUMN snapshotuuid SET DATA TYPE uuid using snapshotuuid::uuid;
+ALTER TABLE classifieds ADD CONSTRAINT classifiedspk PRIMARY KEY (classifieduuid);
+
+-- Notes
+ALTER TABLE usernotes DROP CONSTRAINT usernoteuk;
+ALTER TABLE usernotes ALTER COLUMN useruuid SET DATA TYPE uuid USING useruuid::uuid;
+ALTER TABLE usernotes ALTER COLUMN targetuuid SET DATA TYPE uuid USING targetuuid::uuid;
+ALTER TABLE usernotes ADD CONSTRAINT usernoteuk UNIQUE (useruuid,targetuuid);
+
+
+-- Userpicks
+ALTER TABLE userpicks DROP CONSTRAINT userpicks_pkey;
+ALTER TABLE userpicks ALTER COLUMN pickuuid SET DATA TYPE uuid USING pickuuid::uuid;
+ALTER TABLE userpicks ALTER COLUMN creatoruuid SET DATA TYPE uuid USING creatoruuid::uuid;
+ALTER TABLE userpicks ALTER COLUMN parceluuid SET DATA TYPE uuid USING parceluuid::uuid;
+ALTER TABLE userpicks ALTER COLUMN parceluuid SET DATA TYPE uuid USING parceluuid::uuid;
+ALTER TABLE userpicks ADD PRIMARY KEY (pickuuid);
+
+-- Userprofile
+ALTER TABLE userprofile DROP CONSTRAINT userprofile_pkey;
+ALTER TABLE userprofile ALTER COLUMN useruuid SET DATA TYPE uuid USING useruuid::uuid;
+ALTER TABLE userprofile ALTER COLUMN "profilePartner" SET DATA TYPE uuid USING "profilePartner"::uuid;
+-- Force column conversions
+ALTER TABLE userprofile ALTER COLUMN "profileAllowPublish" SET DATA TYPE boolean USING CASE WHEN false THEN false ELSE true END;
+ALTER TABLE userprofile ALTER COLUMN "profileMaturePublish" SET DATA TYPE boolean USING CASE WHEN false THEN false ELSE true END;
+ALTER TABLE userprofile ALTER COLUMN "profileImage" SET DATA TYPE uuid USING "profileImage"::uuid;
+ALTER TABLE userprofile ALTER COLUMN "profileFirstImage" SET DATA TYPE uuid USING "profileFirstImage"::uuid;
+ALTER TABLE userprofile ADD PRIMARY KEY (useruuid);
+
+-- Userdata
+ALTER TABLE userdata DROP CONSTRAINT userdata_pkey;
+ALTER TABLE userdata ALTER COLUMN "UserId" SET DATA TYPE uuid USING "UserId"::uuid;
+ALTER TABLE userdata ALTER COLUMN "UserId" SET DATA TYPE uuid USING "UserId"::uuid;
+ALTER TABLE userdata ADD PRIMARY KEY ("UserId","TagId");
+
+
+-- Usersettings
+ALTER TABLE usersettings DROP CONSTRAINT usersettings_pkey;
+ALTER TABLE usersettings ALTER COLUMN useruuid SET DATA TYPE uuid USING useruuid::uuid;
+ALTER TABLE usersettings ALTER COLUMN visible SET DATA TYPE boolean USING CASE WHEN false THEN false ELSE true END;
+ALTER TABLE usersettings ADD COLUMN email varchar(254) NOT NULL;
+ALTER TABLE usersettings ADD PRIMARY KEY (useruuid);
+
+COMMIT;
