@@ -1227,15 +1227,20 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
                 {
-                    uint perms = taskItem.CurrentPermissions;
+                    // Bake the new base permissions from folded permissions
+                    // The folded perms are in the lowest 3 bits of the current perms
+                    // We use base permissions here to avoid baking the "Locked" status
+                    // into the item as it is passed.
+                    uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms);
+                    // Avoid the "lock trap" - move must always be enabled but the above may remove it
+                    // Add it back here.
                     agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
-                    agentItem.CurrentPermissions = agentItem.BasePermissions;
+                    // Newly given items cannot be "locked" on rez. Make sure by
+                    // setting current equal to base.
                 }
-                else
-                {
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
-                }
+
+                agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.NextPermissions = taskItem.NextPermissions;
