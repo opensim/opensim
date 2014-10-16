@@ -68,25 +68,6 @@ COMMIT;
 
 BEGIN;
 
-;; This is a harsh way of migrating these columns to
-;; a different data type, but it didn't work otherwise
-;; and we have a strict warning when using the module
-;; so here we go ...
-
-ALTER TABLE xassetsmeta DROP COLUMN hash;
-ALTER TABLE xassetsmeta ADD COLUMN hash bytea NOT NULL;
-
-ALTER TABLE xassetsdata DROP CONSTRAINT xassetsdata_pkey;
-ALTER TABLE xassetsdata DROP COLUMN hash;
-ALTER TABLE xassetsdata ADD COLUMN hash bytea NOT NULL;
-ALTER TABLE xassetsdata ADD PRIMARY KEY (hash);
-
-COMMIT;
-
-:VERSION 5
-
-BEGIN;
-
 ALTER TABLE xassetsmeta ALTER COLUMN id SET DATA TYPE uuid USING id::uuid;
 ALTER TABLE xassetsmeta ALTER COLUMN hash SET DATA TYPE bytea USING hash::bytea;
 ALTER TABLE xassetsdata ALTER COLUMN hash SET DATA TYPE bytea USING hash::bytea;
