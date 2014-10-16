@@ -1236,16 +1236,14 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
                 {
-                    uint perms = taskItem.CurrentPermissions;
+                    uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms);
 //                    agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
 //                    agentItem.CurrentPermissions = agentItem.BasePermissions;
-                    agentItem.CurrentPermissions = perms | (uint)PermissionMask.Move;
+                    agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
                 }
-                else
-                {
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
-                }
+
+                agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.NextPermissions = taskItem.NextPermissions;
