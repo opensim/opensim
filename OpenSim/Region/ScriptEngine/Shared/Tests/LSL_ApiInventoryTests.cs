@@ -45,6 +45,7 @@ using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
@@ -166,6 +167,76 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 Assert.That(copiedItems.Count, Is.EqualTo(1));
                 Assert.That(copiedItems[0].Name, Is.EqualTo(inventoryItemName));
             }
+        }
+
+        /// <summary>
+        /// Test giving inventory from an object to an avatar that is not the object's owner.
+        /// </summary>
+        [Test]
+        public void TestLlGiveInventoryO2DifferentAvatar()
+        {
+            TestHelpers.InMethod();
+            //            TestHelpers.EnableLogging();
+
+            UUID user1Id = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+            string inventoryItemName = "item1";
+
+            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
+            m_scene.AddSceneObject(so1);
+            LSL_Api api = new LSL_Api();
+            api.Initialize(m_engine, so1.RootPart, null, null);
+
+            // Create an object embedded inside the first
+            UUID itemId = TestHelpers.ParseTail(0x20);
+            TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, user1Id);
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, user2Id);
+
+            api.llGiveInventory(user2Id.ToString(), inventoryItemName);
+
+            InventoryItemBase receivedItem 
+                = UserInventoryHelpers.GetInventoryItem(
+                    m_scene.InventoryService, user2Id, string.Format("Objects/{0}", inventoryItemName));
+
+            Assert.IsNotNull(receivedItem);
+        }
+
+        /// <summary>
+        /// Test giving inventory from an object to an avatar that is not the object's owner and where the next
+        /// permissions do not include mod.
+        /// </summary>
+        [Test]
+        public void TestLlGiveInventoryO2DifferentAvatarNoMod()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID user1Id = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+            string inventoryItemName = "item1";
+
+            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
+            m_scene.AddSceneObject(so1);
+            LSL_Api api = new LSL_Api();
+            api.Initialize(m_engine, so1.RootPart, null, null);
+
+            // Create an object embedded inside the first
+            UUID itemId = TestHelpers.ParseTail(0x20);
+            TaskInventoryItem tii 
+                = TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, user1Id);
+            tii.NextPermissions &= ~((uint)PermissionMask.Modify);
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, user2Id);
+
+            api.llGiveInventory(user2Id.ToString(), inventoryItemName);
+
+            InventoryItemBase receivedItem 
+                = UserInventoryHelpers.GetInventoryItem(
+                    m_scene.InventoryService, user2Id, string.Format("Objects/{0}", inventoryItemName));
+
+            Assert.IsNotNull(receivedItem);
+            Assert.AreEqual(0, receivedItem.CurrentPermissions & (uint)PermissionMask.Modify);
         }
     }
 }
