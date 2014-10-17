@@ -1102,11 +1102,14 @@ namespace OpenSim.Region.Framework.Scenes
         // other uses need fix
         private bool MakeRootAgent(Vector3 pos, bool isFlying)
         {
+            int ts = Util.EnvironmentTickCount();
+
             lock (m_completeMovementLock)
             {
                 if (!IsChildAgent)
                     return false;
 
+                m_log.DebugFormat("[MakeRootAgent] enter lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                 //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
                 //            m_log.InfoFormat(
@@ -1141,6 +1144,8 @@ namespace OpenSim.Region.Framework.Scenes
                 IsChildAgent = false;
             }
 
+            m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
             // Must reset this here so that a teleport to a region next to an existing region does not keep the flag
             // set and prevent the close of the connection on a subsequent re-teleport.
             // Should not be needed if we are not trying to tell this region to close
@@ -1150,9 +1155,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (gm != null)
                 Grouptitle = gm.GetGroupTitle(m_uuid);
 
+            m_log.DebugFormat("[MakeRootAgent] Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
+            m_log.DebugFormat("[MakeRootAgent] TriggerSetRootAgentScene: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
 
             if (ParentID == 0)
@@ -1229,6 +1237,7 @@ namespace OpenSim.Region.Framework.Scenes
             // elsewhere anyway
             // Animator.SendAnimPack();
 
+            m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
             m_scene.SwapRootAgentCount(false);
 
 
@@ -1239,6 +1248,7 @@ namespace OpenSim.Region.Framework.Scenes
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
+            m_log.DebugFormat("[MakeRootAgent] TriggerOnMakeRootAgent and done: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
             return true;
         }
