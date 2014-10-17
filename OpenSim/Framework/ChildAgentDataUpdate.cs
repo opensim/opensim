@@ -320,6 +320,7 @@ namespace OpenSim.Framework
         public Animation[] Anims;
         public Animation DefaultAnim = null;
         public Animation AnimState = null;
+        public Byte MotionState = 0;
 
         public UUID GranterID;
         public UUID ParentPart;
@@ -432,6 +433,11 @@ namespace OpenSim.Framework
                     }
                 }
                 args["movementAO"] = AOs;
+            }
+
+            if (MotionState != 0)
+            {
+                args["motion_state"] = OSD.FromInteger(MotionState);
             }
 
             if (Appearance != null)
@@ -675,6 +681,9 @@ namespace OpenSim.Framework
                     }
                 }
             }
+
+            if (args.ContainsKey("motion_state"))
+                MotionState = (byte)args["motion_state"].AsInteger();
 
             //if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
             //{

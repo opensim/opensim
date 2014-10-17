@@ -1313,7 +1313,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_currentParcelHide = false;
             m_currentParcelUUID = UUID.Zero;
             // FIXME: Set RegionHandle to the region handle of the scene this agent is moving into
-            
+
+            CollisionPlane = Vector4.UnitW;
+
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
         }
 
@@ -1659,7 +1661,7 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.Name, AbsolutePosition);
           
             m_inTransit = true;
-            bool newhide = false;
+
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
@@ -1805,6 +1807,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SendAppearanceToAgent(this);
 
                     // send this animations
+
                     UUID[] animIDs = null;
                     int[] animseqs = null;
                     UUID[] animsobjs = null;
@@ -4222,6 +4225,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.MovementAnimationOverRides = Overrides.CloneAOPairs();
 
+            cAgent.MotionState = (byte)Animator.currentControlState;
+
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);
         }
@@ -4305,6 +4310,8 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.Animations.SetImplicitDefaultAnimation(cAgent.AnimState.AnimID, cAgent.AnimState.SequenceNum, UUID.Zero);
             if (cAgent.Anims != null)
                 Animator.Animations.FromArray(cAgent.Anims);
+            if (cAgent.MotionState != 0)
+                Animator.currentControlState = (ScenePresenceAnimator.motionControlStates) cAgent.MotionState;
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
