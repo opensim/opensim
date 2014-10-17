@@ -740,10 +740,28 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.Id0 = currentAgentCircuit.Id0;
             }
 
+            IClientIPEndpoint ipepClient;
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
-                // brand new agent, let's create a new caps seed
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for agent {3} from {4}",
+                    finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
+
+                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
+                #region IP Translation for NAT
+                // Uses ipepClient above
+                if (sp.ClientView.TryGet(out ipepClient))
+                {
+                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                }
+                #endregion
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+            }
+            else
+            {
+                agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
+                if (agentCircuit.CapsPath == null)
+                    agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             }
 
             // We're going to fallback to V1 if the destination gives us anything smaller than 0.2 or we're forcing
@@ -768,6 +786,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Using TP V1 for {0} going from {1} to {2}", 
                 sp.Name, Scene.Name, finalDestination.RegionName);
+
+            string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
 
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
@@ -812,24 +832,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // OK, it got this agent. Let's close some child agents
             sp.CloseChildAgents(newRegionX, newRegionY);
 
-            IClientIPEndpoint ipepClient;
-            string capsPath = String.Empty;
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for incoming agent {3} from {4}",
-                    finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
-
-                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
-                #region IP Translation for NAT
-                // Uses ipepClient above
-                if (sp.ClientView.TryGet(out ipepClient))
-                {
-                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                }
-                #endregion
-                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-
                 if (m_eqModule != null)
                 {
                     // The EnableSimulator message makes the client establish a connection with the destination
@@ -858,11 +862,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // used anyway (with EQ being the one used).  But it is currently being used for test code.
                     sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
                 }
-            }
-            else
-            {
-                agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
-                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
             }
 
             // Let's send a full update of the agent. This is a synchronous call.
@@ -1028,6 +1027,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ulong destinationHandle = finalDestination.RegionHandle;
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
 
+            string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);;
+
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
@@ -1068,29 +1069,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
-            IClientIPEndpoint ipepClient;
-            string capsPath = String.Empty;
-            if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
-            {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for agent {3} from {4}",
-                    finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
-
-                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
-                #region IP Translation for NAT
-                // Uses ipepClient above
-                if (sp.ClientView.TryGet(out ipepClient))
-                {
-                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                }
-                #endregion
-                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-            }
-            else
-            {
-                agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
-                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-            }
 
             // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
             // where that neighbour simulator could otherwise request a child agent create on the source which then 
