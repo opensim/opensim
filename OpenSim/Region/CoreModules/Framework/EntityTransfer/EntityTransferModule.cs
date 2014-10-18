@@ -1875,9 +1875,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //m_log.DebugFormat("[XXX] Seeds 2 {0}", agent.ChildrenCapSeeds.Count);
 
             sp.AddNeighbourRegion(region.RegionHandle, agent.CapsPath);
-            //foreach (ulong h in agent.ChildrenCapSeeds.Keys)
-            //    m_log.DebugFormat("[XXX] --> {0}", h);
-            //m_log.DebugFormat("[XXX] Adding {0}", region.RegionHandle);
             agent.ChildrenCapSeeds.Add(region.RegionHandle, agent.CapsPath);
 
             if (sp.Scene.CapsModule != null)
@@ -1920,6 +1917,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="sp"></param>
         public void EnableChildAgents(ScenePresence sp)
         {
+            // assumes that out of view range regions are disconnected by the previus region
+
             List<GridRegion> neighbours = new List<GridRegion>();
             RegionInfo m_regionInfo = sp.Scene.RegionInfo;
 
@@ -1952,8 +1951,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
 
-            List<ulong> newneighbours = new List<ulong>();
             List<AgentCircuitData> cagents = new List<AgentCircuitData>();
+            List<GridRegion> newneighbours = new List<GridRegion>();
 
             ulong currentRegionHandler = sp.Scene.RegionInfo.RegionHandle;
 
@@ -1961,9 +1960,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 ulong handler = neighbour.RegionHandle;
 
+                if (previousRegionNeighbourHandles.Contains(handler))
+                {
+                    // agent already knows this region
+                    previousRegionNeighbourHandles.Remove(handler);
+                    continue;
+                }
+
                 if (handler == currentRegionHandler)
                     continue;
 
+                // a new region to add
                 AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
                 agent.BaseFolder = UUID.Zero;
                 agent.InventoryFolder = UUID.Zero;
@@ -1982,86 +1989,71 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     agent.Id0 = currentAgentCircuit.Id0;
                 }
 
-                if (previousRegionNeighbourHandles.Contains(handler))
-                {
-                    previousRegionNeighbourHandles.Remove(handler);
-                    agent.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, handler);
-                }
-                else
-                {
-                    newneighbours.Add(handler);
-                    agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
-                    sp.AddNeighbourRegion(handler, agent.CapsPath);
-                    seeds.Add(handler, agent.CapsPath);
-                }
-
+                newneighbours.Add(neighbour);
+                agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+                seeds.Add(handler, agent.CapsPath);
                 cagents.Add(agent);
             }
 
-            //sp.DropOldNeighbours(previousRegionNeighbourHandles);
-            foreach (ulong handle in previousRegionNeighbourHandles)
-            {
-                sp.RemoveNeighbourRegion(handle);
-                Scene.CapsModule.DropChildSeed(sp.UUID, handle);
-            }
+            if (previousRegionNeighbourHandles.Contains(currentRegionHandler))
+                previousRegionNeighbourHandles.Remove(currentRegionHandler);
+
+            // previousRegionNeighbourHandles now contains regions to forget
+            foreach (uint handler in previousRegionNeighbourHandles)
+                seeds.Remove(handler);
 
             /// Update all child agent with everyone's seeds
             foreach (AgentCircuitData a in cagents)
-            {
                 a.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
-            }
 
             if (sp.Scene.CapsModule != null)
-            {
                 sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, seeds);
-            }
 
             sp.KnownRegions = seeds;
-            //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
-            //avatar.DumpKnownRegions();
-
-            Util.FireAndForget(delegate
+            
+            if (newneighbours.Count > 0)
             {
-                Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
-                int count = 0;
-                bool newagent;
-
-                foreach (GridRegion neighbour in neighbours)
+                Util.FireAndForget(delegate
                 {
-                    try
-                    {
-                        newagent = newneighbours.Contains(neighbour.RegionHandle);
-                        InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newagent);
-                    }
+                    Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
+                    int count = 0;
 
-                    catch (ArgumentOutOfRangeException)
+                    foreach (GridRegion neighbour in newneighbours)
                     {
-                        m_log.ErrorFormat(
-                           "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
-                           neighbour.ExternalHostName,
-                            neighbour.RegionHandle,
-                        neighbour.RegionLocX,
-                       neighbour.RegionLocY);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
-                            neighbour.ExternalHostName,
-                            neighbour.RegionHandle,
+                        try
+                        {
+                            InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
+                                neighbour.ExternalEndPoint, true);
+                            count++;
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            m_log.ErrorFormat(
+                               "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                               neighbour.ExternalHostName,
+                                neighbour.RegionHandle,
                             neighbour.RegionLocX,
-                            neighbour.RegionLocY,
-                            e);
+                           neighbour.RegionLocY);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                                neighbour.ExternalHostName,
+                                neighbour.RegionHandle,
+                                neighbour.RegionLocX,
+                                neighbour.RegionLocY,
+                                e);
 
-                        // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
-                        // since I don't know what will happen if we just let the client continue
+                            // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
+                            // since I don't know what will happen if we just let the client continue
 
-                        // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
-                        // throw e;
+                            // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
+                            // throw e;
+                        }
                     }
-                    count++;
-                }
-            });
+                });
+            }
         }
 
         Vector3 CalculateOffset(ScenePresence sp, GridRegion neighbour)
@@ -2095,56 +2087,59 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private void InformClientOfNeighbourAsync(ScenePresence sp, AgentCircuitData a, GridRegion reg,
                                                   IPEndPoint endPoint, bool newAgent)
         {
-             Scene scene = sp.Scene;
-             if (!newAgent)
-                 return;
 
-            m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: Informing {0} {1} about neighbour {2} {3} at ({4},{5})",
-                sp.Name, sp.UUID, reg.RegionName, endPoint, reg.RegionCoordX, reg.RegionCoordY);
-
-            string capsPath = reg.ServerURI + CapsUtil.GetCapsSeedPath(a.CapsPath);
-
-            string reason = String.Empty;
-
-            bool regionAccepted = scene.SimulationService.CreateAgent(reg, a, (uint)TeleportFlags.Default, out reason);
-
-            if (regionAccepted && newAgent)
+            if (newAgent)
             {
-                // give  time for createAgent to finish, since it is async and does grid services access              
-                Thread.Sleep(500);
+                Scene scene = sp.Scene;
 
-                if (m_eqModule != null)
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Informing {0} {1} about neighbour {2} {3} at ({4},{5})",
+                    sp.Name, sp.UUID, reg.RegionName, endPoint, reg.RegionCoordX, reg.RegionCoordY);
+
+                string capsPath = reg.ServerURI + CapsUtil.GetCapsSeedPath(a.CapsPath);
+
+                string reason = String.Empty;
+
+                bool regionAccepted = scene.SimulationService.CreateAgent(reg, a, (uint)TeleportFlags.Default, out reason);
+
+                if (regionAccepted)
                 {
-                    #region IP Translation for NAT
-                    IClientIPEndpoint ipepClient;
-                    if (sp.ClientView.TryGet(out ipepClient))
+                    // give  time for createAgent to finish, since it is async and does grid services access              
+                    Thread.Sleep(500);
+
+                    if (m_eqModule != null)
                     {
-                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                        #region IP Translation for NAT
+                        IClientIPEndpoint ipepClient;
+                        if (sp.ClientView.TryGet(out ipepClient))
+                        {
+                            endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                        }
+                        #endregion
+
+                        m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +
+                            "and EstablishAgentCommunication with seed cap {8}", LogHeader,
+                            scene.RegionInfo.RegionName, sp.Name,
+                            reg.RegionName, reg.RegionLocX, reg.RegionLocY, reg.RegionSizeX, reg.RegionSizeY, capsPath);
+
+                        m_eqModule.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID, reg.RegionSizeX, reg.RegionSizeY);
+                        m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath, reg.RegionHandle, reg.RegionSizeX, reg.RegionSizeY);
                     }
-                    #endregion
+                    else
+                    {
+                        sp.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, endPoint);
+                        // TODO: make Event Queue disablable!
+                    }
 
-                    m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +
-                        "and EstablishAgentCommunication with seed cap {8}", LogHeader,
-                        scene.RegionInfo.RegionName, sp.Name,
-                        reg.RegionName, reg.RegionLocX, reg.RegionLocY, reg.RegionSizeX, reg.RegionSizeY , capsPath);
-
-                    m_eqModule.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID, reg.RegionSizeX, reg.RegionSizeY);
-                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath, reg.RegionHandle, reg.RegionSizeX, reg.RegionSizeY);
-                }
-                else
-                {
-                    sp.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, endPoint);
-                    // TODO: make Event Queue disablable!
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Completed inform {0} {1} about neighbour {2}", sp.Name, sp.UUID, endPoint);
                 }
 
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Completed inform {0} {1} about neighbour {2}", sp.Name, sp.UUID, endPoint);
+                if (!regionAccepted)
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: Region {0} did not accept {1} {2}: {3}",
+                        reg.RegionName, sp.Name, sp.UUID, reason);
             }
-
-            if (!regionAccepted)
-                m_log.WarnFormat(
-                    "[ENTITY TRANSFER MODULE]: Region {0} did not accept {1} {2}: {3}",
-                    reg.RegionName, sp.Name, sp.UUID, reason);
+ 
         }
 
         /// <summary>
@@ -2203,6 +2198,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 int endX = (int)pRegionLocX * (int)Constants.RegionSize + dd + (int)(Constants.RegionSize/2);
                 int endY = (int)pRegionLocY * (int)Constants.RegionSize + dd + (int)(Constants.RegionSize/2);
 
+                if (startX < 0) startX = 0;
+                if (startY < 0) startY = 0;
+
                 List<GridRegion> neighbours =
                     avatar.Scene.GridService.GetRegionRange(m_regionInfo.ScopeID, startX, endX, startY, endY);
 
@@ -2227,7 +2225,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return neighbours;
             }
         }
-
+/* not in use
         private List<ulong> NewNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
         {
             return currentNeighbours.FindAll(delegate(ulong handle) { return !previousNeighbours.Contains(handle); });
@@ -2238,20 +2236,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //            return currentNeighbours.FindAll(delegate(ulong handle) { return previousNeighbours.Contains(handle); });
         //        }
 
-        private List<ulong> OldNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
-        {
-            return previousNeighbours.FindAll(delegate(ulong handle) { return !currentNeighbours.Contains(handle); });
-        }
+//        private List<ulong> OldNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+//        {
+//            return previousNeighbours.FindAll(delegate(ulong handle) { return !currentNeighbours.Contains(handle); });
+//        }
 
-        private List<ulong> NeighbourHandles(List<GridRegion> neighbours)
-        {
-            List<ulong> handles = new List<ulong>();
-            foreach (GridRegion reg in neighbours)
-            {
-                handles.Add(reg.RegionHandle);
-            }
-            return handles;
-        }
+//        private List<ulong> NeighbourHandles(List<GridRegion> neighbours)
+//        {
+//            List<ulong> handles = new List<ulong>();
+//            foreach (GridRegion reg in neighbours)
+//            {
+//                handles.Add(reg.RegionHandle);
+//            }
+//            return handles;
+//        }
 
 //        private void Dump(string msg, List<ulong> handles)
 //        {
@@ -2265,7 +2263,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                m_log.InfoFormat("({0}, {1})", x, y);
 //            }
 //        }
-
+*/
         #endregion
 
         #region Agent Arrived

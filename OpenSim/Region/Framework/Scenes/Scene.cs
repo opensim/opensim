@@ -4080,15 +4080,15 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
-                            acd.AgentID, RegionInfo.RegionName);
-    
-                        sp.AdjustKnownSeeds();
+                            acd.AgentID, RegionInfo.RegionName);   
 
                         if (CapsModule != null)
                         {
                             CapsModule.SetAgentCapsSeeds(acd);
                             CapsModule.CreateCaps(acd.AgentID, acd.circuitcode);
                         }
+
+                        sp.AdjustKnownSeeds();
                     }
                 }
 
