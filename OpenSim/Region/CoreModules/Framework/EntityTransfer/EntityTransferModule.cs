@@ -1400,9 +1400,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
 
-            uint neighbourx = scene.RegionInfo.RegionLocX;
+            uint neighbourx = scene.RegionInfo.RegionLocX;          
             uint neighboury = scene.RegionInfo.RegionLocY;
-            const float boundaryDistance = 1.7f;
+            const float boundaryDistance = 0.7f;
             Vector3 northCross = new Vector3(0, boundaryDistance, 0);
             Vector3 southCross = new Vector3(0, -1 * boundaryDistance, 0);
             Vector3 eastCross = new Vector3(boundaryDistance, 0, 0);
@@ -1410,6 +1410,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // distance into new region to place avatar
             const float enterDistance = 0.5f;
+            const float maxX = Constants.RegionSize - enterDistance;
+            const float maxY = Constants.RegionSize - enterDistance;
 
             if (scene.TestBorderCross(pos + westCross, Cardinals.W))
             {
@@ -1417,72 +1419,50 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     Border b = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
                     neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
-                    newpos.Y = enterDistance;
+                    newpos.Y -= Constants.RegionSize;
                 }
                 else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
                 {
                     neighboury--;
-                    newpos.Y = Constants.RegionSize - enterDistance;
+                    newpos.Y += Constants.RegionSize;
                 }
 
                 neighbourx--;
-                newpos.X = Constants.RegionSize - enterDistance;
+                newpos.X += Constants.RegionSize;
             }
             else if (scene.TestBorderCross(pos + eastCross, Cardinals.E))
             {
                 Border b = scene.GetCrossedBorder(pos + eastCross, Cardinals.E);
                 neighbourx += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
-                newpos.X = enterDistance;
+                newpos.X -= Constants.RegionSize;
 
                 if (scene.TestBorderCross(pos + southCross, Cardinals.S))
                 {
                     neighboury--;
-                    newpos.Y = Constants.RegionSize - enterDistance;
+                    newpos.Y += Constants.RegionSize;
                 }
                 else if (scene.TestBorderCross(pos + northCross, Cardinals.N))
                 {
                     Border c = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
                     neighboury += (uint)(int)(c.BorderLine.Z / (int)Constants.RegionSize);
-                    newpos.Y = enterDistance;
+                    newpos.Y -= Constants.RegionSize;
                 }
             }
             else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
             {
                 Border b = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
                 neighboury--;
-                newpos.Y = Constants.RegionSize - enterDistance;
+                newpos.Y += Constants.RegionSize;
             }
             else if (scene.TestBorderCross(pos + northCross, Cardinals.N))
             {
                 Border b = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
                 neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
-                newpos.Y = enterDistance;
+                newpos.Y -= Constants.RegionSize;
             }
 
-            /*
-
-            if (pos.X < boundaryDistance) //West
-            {
-                neighbourx--;
-                newpos.X = Constants.RegionSize - enterDistance;
-            }
-            else if (pos.X > Constants.RegionSize - boundaryDistance) // East
-            {
-                neighbourx++;
-                newpos.X = enterDistance;
-            }
-
-            if (pos.Y < boundaryDistance) // South
-            {
-                neighboury--;
-                newpos.Y = Constants.RegionSize - enterDistance;
-            }
-            else if (pos.Y > Constants.RegionSize - boundaryDistance) // North
-            {
-                neighboury++;
-                newpos.Y = enterDistance;
-            }
-            */
+            newpos.X = Util.Clamp(newpos.X, enterDistance, maxX);
+            newpos.Y = Util.Clamp(newpos.Y, enterDistance, maxY);
 
             xDest = neighbourx;
             yDest = neighboury;
