@@ -1417,6 +1417,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     Border b = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
                     neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                    newpos.Y = enterDistance;
                 }
                 else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
                 {
@@ -1536,7 +1537,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string version;
             string reason;
 
-            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out x, out y, out version, out newpos, out reason);
+            Vector3 pos = agent.AbsolutePosition + agent.Velocity;
+
+            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, pos, out x, out y, out version, out newpos, out reason);
             if (neighbourRegion == null)
             {
                 if (reason == String.Empty)
@@ -1678,7 +1681,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 //                agent.Appearance.WearableCacheItems = null;
 
-                cAgent.Position = pos + agent.Velocity;
+                cAgent.Position = pos;
                 if (isFlying)
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
 
