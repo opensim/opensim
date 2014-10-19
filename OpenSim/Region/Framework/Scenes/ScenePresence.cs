@@ -1684,20 +1684,6 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
 
-                // Prevent teleporting to an underground location
-                // (may crash client otherwise)
-                //
-
-/* this is done in MakeRootAgent 
-                Vector3 pos = AbsolutePosition;
-                float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
-                if (pos.Z < ground + 1.5f)
-                {
-                    pos.Z = ground + 1.5f;
-                    AbsolutePosition = pos;
-                }
-*/
-
                 m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
@@ -1904,7 +1890,9 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                         if (m_agentTransfer != null)
+                        {
                             m_agentTransfer.EnableChildAgents(this);
+                        }
                     }
                 }
 
@@ -4170,6 +4158,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
+
+            if(cAgentData.ChildrenCapSeeds != null && cAgentData.ChildrenCapSeeds.Count >0)
+            {
+                if (Scene.CapsModule != null)
+                {
+                    Scene.CapsModule.SetChildrenSeed(UUID, cAgentData.ChildrenCapSeeds);
+                }
+
+                KnownRegions = cAgentData.ChildrenCapSeeds;
+            }
 
             //cAgentData.AVHeight;
             //m_velocity = cAgentData.Velocity;

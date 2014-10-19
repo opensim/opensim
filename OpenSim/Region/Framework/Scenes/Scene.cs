@@ -4558,8 +4558,14 @@ namespace OpenSim.Region.Framework.Scenes
             // a UseCircuitCode packet which in turn calls AddNewAgent which finally creates the ScenePresence.
             ScenePresence sp = WaitGetScenePresence(cAgentData.AgentID);
 
-            if (sp != null)
+            if (sp != null)           
             {
+                if (!sp.IsChildAgent)
+                {
+                    m_log.WarnFormat("[SCENE]: Ignoring a child update on a root agent {0} {1} in {2}",
+                            sp.Name, sp.UUID, Name);
+                    return false;
+                }
                 if (cAgentData.SessionID != sp.ControllingClient.SessionId)
                 {
                     m_log.WarnFormat(

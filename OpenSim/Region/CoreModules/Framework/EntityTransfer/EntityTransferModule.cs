@@ -1838,32 +1838,42 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             m_log.DebugFormat("[ENTITY TRANSFER]: Enabling child agent in new neighbour {0}", region.RegionName);
 
+            ulong currentRegionHandler = sp.Scene.RegionInfo.RegionHandle;
+            ulong regionhandler = region.RegionHandle;
+
+            Dictionary<ulong, string> seeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
+
+            if (seeds.ContainsKey(regionhandler))
+                seeds.Remove(regionhandler);
+
+            List<ulong> oldregions = new List<ulong>(seeds.Keys);
+
+            if (oldregions.Contains(currentRegionHandler))
+                oldregions.Remove(currentRegionHandler);
+
+            if (!seeds.ContainsKey(currentRegionHandler))
+                seeds.Add(currentRegionHandler, sp.ControllingClient.RequestClientInfo().CapsPath);
+
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
             AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, region);
             agent.child = true;
-
             agent.Appearance = new AvatarAppearance();
             agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
 
             agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+            seeds.Add(regionhandler, agent.CapsPath);
 
-            agent.ChildrenCapSeeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
-            //m_log.DebugFormat("[XXX] Seeds 1 {0}", agent.ChildrenCapSeeds.Count);
-
-            if (!agent.ChildrenCapSeeds.ContainsKey(sp.Scene.RegionInfo.RegionHandle))
-                agent.ChildrenCapSeeds.Add(sp.Scene.RegionInfo.RegionHandle, sp.ControllingClient.RequestClientInfo().CapsPath);
-            //m_log.DebugFormat("[XXX] Seeds 2 {0}", agent.ChildrenCapSeeds.Count);
-
-            sp.AddNeighbourRegion(region.RegionHandle, agent.CapsPath);
-            agent.ChildrenCapSeeds.Add(region.RegionHandle, agent.CapsPath);
-
+            agent.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
+            
             if (sp.Scene.CapsModule != null)
             {
-                sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, agent.ChildrenCapSeeds);
+                sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, seeds);
             }
+
+            sp.KnownRegions = seeds;
 
             if (currentAgentCircuit != null)
             {
@@ -1875,7 +1885,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.Id0 = currentAgentCircuit.Id0;
             }
 
-            Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
+            AgentPosition agentpos = null;
+
+            if (oldregions.Count > 0)
+            {
+                agentpos = new AgentPosition();
+                agentpos.AgentID = new UUID(sp.UUID.Guid);
+                agentpos.SessionID = sp.ControllingClient.SessionId;
+                agentpos.Size = sp.Appearance.AvatarSize;
+                agentpos.Center = sp.CameraPosition;
+                agentpos.Far = sp.DrawDistance;
+                agentpos.Position = sp.AbsolutePosition;
+                agentpos.Velocity = sp.Velocity;
+                agentpos.RegionHandle = currentRegionHandler;
+                agentpos.Throttles = sp.ControllingClient.GetThrottlesPacked(1);
+                agentpos.ChildrenCapSeeds = seeds;
+            }
 
             IPEndPoint external = region.ExternalEndPoint;
             if (external != null)
@@ -1885,7 +1910,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                           InformClientOfNeighbourCompleted,
                           d);
             }
+
+            if(oldregions.Count >0)
+            {
+                uint neighbourx;
+                uint neighboury;
+                UUID scope = sp.Scene.RegionInfo.ScopeID;
+                foreach (ulong handler in oldregions)
+                {
+                    // crap code
+                    Utils.LongToUInts(handler, out neighbourx, out neighboury);
+                    GridRegion neighbour = sp.Scene.GridService.GetRegionByPosition(scope, (int)neighbourx, (int)neighboury);
+                    sp.Scene.SimulationService.UpdateAgent(neighbour, agentpos);
+                }
+            }
         }
+
         #endregion
 
         #region Enable Child Agents
@@ -1935,7 +1975,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
 
             List<AgentCircuitData> cagents = new List<AgentCircuitData>();
-            List<GridRegion> newneighbours = new List<GridRegion>();
+            List<ulong> newneighbours = new List<ulong>();
 
             ulong currentRegionHandler = sp.Scene.RegionInfo.RegionHandle;
 
@@ -1972,7 +2012,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     agent.Id0 = currentAgentCircuit.Id0;
                 }
 
-                newneighbours.Add(neighbour);
+                newneighbours.Add(handler);
                 agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
                 seeds.Add(handler, agent.CapsPath);
                 cagents.Add(agent);
@@ -1993,21 +2033,41 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, seeds);
 
             sp.KnownRegions = seeds;
-            
-            if (newneighbours.Count > 0)
+
+            AgentPosition agentpos = new AgentPosition();
+            agentpos.AgentID = new UUID(sp.UUID.Guid);
+            agentpos.SessionID = sp.ControllingClient.SessionId;
+            agentpos.Size = sp.Appearance.AvatarSize;
+            agentpos.Center = sp.CameraPosition;
+            agentpos.Far = sp.DrawDistance;
+            agentpos.Position = sp.AbsolutePosition;
+            agentpos.Velocity = sp.Velocity;
+            agentpos.RegionHandle = currentRegionHandler;
+            agentpos.Throttles = sp.ControllingClient.GetThrottlesPacked(1);
+            agentpos.ChildrenCapSeeds = seeds;
+
+            if (neighbours.Count - previousRegionNeighbourHandles.Count > 0)
             {
                 Util.FireAndForget(delegate
                 {
                     Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
                     int count = 0;
 
-                    foreach (GridRegion neighbour in newneighbours)
+                    foreach (GridRegion neighbour in neighbours)
                     {
+                        ulong handler = neighbour.RegionHandle;
                         try
                         {
-                            InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
-                                neighbour.ExternalEndPoint, true);
-                            count++;
+                            if (newneighbours.Contains(handler))
+                            {
+                                InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
+                                    neighbour.ExternalEndPoint, true);
+                                count++;
+                            }
+                            else if(!previousRegionNeighbourHandles.Contains(handler))
+                            {
+                                sp.Scene.SimulationService.UpdateAgent(neighbour, agentpos); 
+                            }
                         }
                         catch (ArgumentOutOfRangeException)
                         {
@@ -2483,7 +2543,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // no one or failed lets go back and tell physics to go on
             oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X, 0.5f, (float)Constants.RegionSize - 0.5f);
             oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
-            oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z, 0.5f, 4096.0f);
+//            oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z, 0.5f, 4096.0f);
 
             grp.AbsolutePosition = oldGroupPosition;
             grp.Velocity = Vector3.Zero;

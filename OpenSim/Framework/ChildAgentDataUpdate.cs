@@ -94,6 +94,7 @@ namespace OpenSim.Framework
         // This probably shouldn't be here
         public byte[] Throttles;
 
+        public Dictionary<ulong, string> ChildrenCapSeeds = null;
 
         public OSDMap Pack()
         {
@@ -118,6 +119,19 @@ namespace OpenSim.Framework
 
             if ((Throttles != null) && (Throttles.Length > 0))
                 args["throttles"] = OSD.FromBinary(Throttles);
+
+            if (ChildrenCapSeeds != null && ChildrenCapSeeds.Count > 0)
+            {
+                OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
+                foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
+                {
+                    OSDMap pair = new OSDMap();
+                    pair["handle"] = OSD.FromString(kvp.Key.ToString());
+                    pair["seed"] = OSD.FromString(kvp.Value);
+                    childrenSeeds.Add(pair);
+                }
+                args["children_seeds"] = childrenSeeds;
+            }
 
             return args;
         }
@@ -165,6 +179,30 @@ namespace OpenSim.Framework
 
             if (args["throttles"] != null)
                 Throttles = args["throttles"].AsBinary();
+
+            if (args.ContainsKey("children_seeds") && (args["children_seeds"] != null) &&
+                            (args["children_seeds"].Type == OSDType.Array))
+            {
+                OSDArray childrenSeeds = (OSDArray)(args["children_seeds"]);
+                ChildrenCapSeeds = new Dictionary<ulong, string>();
+                foreach (OSD o in childrenSeeds)
+                {
+                    if (o.Type == OSDType.Map)
+                    {
+                        ulong handle = 0;
+                        string seed = "";
+                        OSDMap pair = (OSDMap)o;
+                        if (pair["handle"] != null)
+                            if (!UInt64.TryParse(pair["handle"].AsString(), out handle))
+                                continue;
+                        if (pair["seed"] != null)
+                            seed = pair["seed"].AsString();
+                        if (!ChildrenCapSeeds.ContainsKey(handle))
+                            ChildrenCapSeeds.Add(handle, seed);
+                    }
+                }
+            }
+
         }
 
         /// <summary>
