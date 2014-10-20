@@ -4262,6 +4262,15 @@ namespace OpenSim.Region.Framework.Scenes
             // DrawDistance = cAgent.Far;
             DrawDistance = Scene.DefaultDrawDistance;
 
+            if (cAgent.ChildrenCapSeeds != null && cAgent.ChildrenCapSeeds.Count > 0)
+            {
+                if (Scene.CapsModule != null)
+                {
+                    Scene.CapsModule.SetChildrenSeed(UUID, cAgent.ChildrenCapSeeds);
+                }
+                KnownRegions = cAgent.ChildrenCapSeeds;
+            }
+
             if ((cAgent.Throttles != null) && cAgent.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgent.Throttles);
 
