@@ -44,6 +44,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         public void TestPostAssetRewrite()
         {
             TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
 
             string homeUrl = "http://hg.HomeTestPostAssetRewriteGrid.com";
             string foreignUrl = "http://hg.ForeignTestPostAssetRewriteGrid.com";

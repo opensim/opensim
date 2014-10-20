@@ -189,50 +189,203 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return Utils.StringToBytes(RewriteSOP(xml));
         }
 
-        protected string RewriteSOP(string xml)
+        protected void TransformXml(XmlReader reader, XmlWriter writer)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
-            XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
+//            m_log.DebugFormat("[HG ASSET MAPPER]: Transforming XML");
 
-            foreach (XmlNode sop in sops)
+            int sopDepth = -1;
+            UserAccount creator = null;
+            bool hasCreatorData = false;
+
+            while (reader.Read())
             {
-                UserAccount creator = null;
-                bool hasCreatorData = false;
-                XmlNodeList nodes = sop.ChildNodes;
-                foreach (XmlNode node in nodes)
+                //Console.WriteLine("Depth: {0}", reader.Depth);
+
+                switch (reader.NodeType)
                 {
-                    if (node.Name == "CreatorID")
+                    case XmlNodeType.Attribute:
+                    writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
+                    break;
+
+                    case XmlNodeType.CDATA:
+                    writer.WriteCData(reader.Value);
+                    break;
+
+                    case XmlNodeType.Comment:
+                    writer.WriteComment(reader.Value);
+                    break;
+
+                    case XmlNodeType.DocumentType:
+                    writer.WriteDocType(reader.Name, reader.Value, null, null);
+                    break;
+
+                    case XmlNodeType.Element: 
+//                    m_log.DebugFormat("Depth {0} at element {1}", reader.Depth, reader.Name);
+
+                    writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
+
+                    if (reader.LocalName == "SceneObjectPart")
                     {
-                        UUID uuid = UUID.Zero;
-                        UUID.TryParse(node.InnerText, out uuid);
-                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                        if (sopDepth < 0)
+                        {
+                            sopDepth = reader.Depth;
+//                            m_log.DebugFormat("[HG ASSET MAPPER]: Set sopDepth to {0}", sopDepth);
+                        }
                     }
-                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
-                        hasCreatorData = true;
+                    else
+                    {
+                        if (sopDepth >= 0 && reader.Depth == sopDepth + 1)
+                        {
+                            if (reader.Name == "CreatorID")
+                            {
+                                reader.Read();
+                                if (reader.NodeType == XmlNodeType.Element && reader.Name == "Guid" || reader.Name == "UUID")
+                                {
+                                    reader.Read();
 
-                    //if (node.Name == "OwnerID")
-                    //{
-                    //    UserAccount owner = GetUser(node.InnerText);
-                    //    if (owner != null)
-                    //        node.InnerText = m_ProfileServiceURL + "/" + node.InnerText + "/" + owner.FirstName + " " + owner.LastName;
-                    //}
-                }
+                                    if (reader.NodeType == XmlNodeType.Text)
+                                    {
+                                        UUID uuid = UUID.Zero;
+                                        UUID.TryParse(reader.Value, out uuid);
+                                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                                        writer.WriteElementString("UUID", reader.Value);
+                                        reader.Read();
+                                    }
+                                    else
+                                    {
+                                        // If we unexpected run across mixed content in this node, still carry on
+                                        // transforming the subtree (this replicates earlier behaviour).
+                                        TransformXml(reader, writer);
+                                    }
+                                }
+                                else
+                                {
+                                    // If we unexpected run across mixed content in this node, still carry on
+                                    // transforming the subtree (this replicates earlier behaviour).
+                                    TransformXml(reader, writer);
+                                }
+                            }
+                            else if (reader.Name == "CreatorData")
+                            {
+                                reader.Read();
+                                if (reader.NodeType == XmlNodeType.Text)
+                                {
+                                    hasCreatorData = true;
+                                    writer.WriteString(reader.Value);
+                                }
+                                else
+                                {
+                                    // If we unexpected run across mixed content in this node, still carry on
+                                    // transforming the subtree (this replicates earlier behaviour).
+                                    TransformXml(reader, writer);
+                                }
+                            }
+                        }
+                    }
+                                        
+                    if (reader.IsEmptyElement)
+                    {
+//                        m_log.DebugFormat("[HG ASSET MAPPER]: Writing end for empty element {0}", reader.Name);
+                        writer.WriteEndElement();
+                    }
 
-                if (!hasCreatorData && creator != null)
-                {
-                    XmlElement creatorData = doc.CreateElement("CreatorData");
-                    creatorData.InnerText = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
-                    sop.AppendChild(creatorData);
+                    break;
+
+                    case XmlNodeType.EndElement:
+//                    m_log.DebugFormat("Depth {0} at EndElement", reader.Depth);
+                    if (sopDepth == reader.Depth)
+                    {
+                        if (!hasCreatorData && creator != null)
+                            writer.WriteElementString(reader.Prefix, "CreatorData", reader.NamespaceURI, string.Format("{0};{1} {2}", m_HomeURI, creator.FirstName, creator.LastName));
+
+//                        m_log.DebugFormat("[HG ASSET MAPPER]: Reset sopDepth");
+                        sopDepth = -1;
+                        creator = null;
+                        hasCreatorData = false;
+                    }
+                    writer.WriteEndElement();
+                    break;
+
+                    case XmlNodeType.EntityReference:
+                    writer.WriteEntityRef(reader.Name);
+                    break;
+
+                    case XmlNodeType.ProcessingInstruction:
+                    writer.WriteProcessingInstruction(reader.Name, reader.Value);
+                    break;
+
+                    case XmlNodeType.Text:
+                    writer.WriteString(reader.Value);
+                    break;
+
+                    default:
+                    m_log.WarnFormat("[HG ASSET MAPPER]: Unrecognized node in asset XML transform in {0}", m_scene.Name);
+                    break;
                 }
             }
+        }
 
-            using (StringWriter wr = new StringWriter())
+        protected string RewriteSOP(string xmlData)
+        {
+//            Console.WriteLine("Input XML [{0}]", xmlData);
+
+            using (StringWriter sw = new StringWriter())
+            using (XmlTextWriter writer = new XmlTextWriter(sw))
+            using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
+            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
             {
-                doc.Save(wr);
-                return wr.ToString();
+                TransformXml(reader, writer);
+
+                writer.WriteEndDocument();
+
+//                Console.WriteLine("Output: [{0}]", sw.ToString());
+
+                return sw.ToString();
             }
 
+            // We are now taking the more complex streaming approach above because some assets can be very large
+            // and can trigger higher CPU use or possibly memory problems.
+//            XmlDocument doc = new XmlDocument();
+//            doc.LoadXml(xml);
+//            XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
+//
+//            foreach (XmlNode sop in sops)
+//            {
+//                UserAccount creator = null;
+//                bool hasCreatorData = false;
+//                XmlNodeList nodes = sop.ChildNodes;
+//                foreach (XmlNode node in nodes)
+//                {
+//                    if (node.Name == "CreatorID")
+//                    {
+//                        UUID uuid = UUID.Zero;
+//                        UUID.TryParse(node.InnerText, out uuid);
+//                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+//                    }
+//                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
+//                        hasCreatorData = true;
+//
+//                    //if (node.Name == "OwnerID")
+//                    //{
+//                    //    UserAccount owner = GetUser(node.InnerText);
+//                    //    if (owner != null)
+//                    //        node.InnerText = m_ProfileServiceURL + "/" + node.InnerText + "/" + owner.FirstName + " " + owner.LastName;
+//                    //}
+//                }
+//
+//                if (!hasCreatorData && creator != null)
+//                {
+//                    XmlElement creatorData = doc.CreateElement("CreatorData");
+//                    creatorData.InnerText = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
+//                    sop.AppendChild(creatorData);
+//                }
+//            }
+//
+//            using (StringWriter wr = new StringWriter())
+//            {
+//                doc.Save(wr);
+//                return wr.ToString();
+//            }
         }
 
         // TODO: unused
