@@ -4532,6 +4532,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat(
                 "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
 
+            if (!LoginsEnabled)
+            {
+//                reason = "Logins Disabled";
+                m_log.DebugFormat(
+                    "[SCENE]: update for {0} in {1} refused: Logins Disabled", cAgentData.AgentID, RegionInfo.RegionName);
+                return false;
+            }
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
             int flags = GetUserFlags(cAgentData.AgentID);
