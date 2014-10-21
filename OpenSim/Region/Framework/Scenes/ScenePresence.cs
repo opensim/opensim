@@ -3980,6 +3980,30 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        public void CrossToNewRegionFail()
+        {
+            if (m_requestedSitTargetUUID == UUID.Zero)
+            {
+                bool isFlying = Flying;
+                RemoveFromPhysicalScene();
+
+                Vector3 pos = AbsolutePosition;
+                if (AbsolutePosition.X < 0)
+                    pos.X += Velocity.X * 2;
+                else if (AbsolutePosition.X > Constants.RegionSize)
+                    pos.X -= Velocity.X * 2;
+                if (AbsolutePosition.Y < 0)
+                    pos.Y += Velocity.Y * 2;
+                else if (AbsolutePosition.Y > Constants.RegionSize)
+                    pos.Y -= Velocity.Y * 2;
+                Velocity = Vector3.Zero;
+                AbsolutePosition = pos;
+
+                AddToPhysicalScene(isFlying);
+            }
+
+        }
+
         /// <summary>
         /// Moves the agent outside the region bounds
         /// Tells neighbor region that we're crossing to it
@@ -3996,7 +4020,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch
             {
-                result = m_scene.CrossAgentToNewRegion(this, false);
+//                result = m_scene.CrossAgentToNewRegion(this, false);
             }
  //           if(!result)
  //               parcelRegionCross(true);

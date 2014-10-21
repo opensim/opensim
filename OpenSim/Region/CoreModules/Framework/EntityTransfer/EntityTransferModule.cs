@@ -1511,6 +1511,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public bool Cross(ScenePresence agent, bool isFlying)
         {
+            agent.IsInTransit = true;
+            CrossAsyncDelegate d = CrossAsync;
+            d.BeginInvoke(agent, isFlying, CrossCompleted, d);
+            return true;
+        }
+
+        private void CrossCompleted(IAsyncResult iar)
+        {
+            CrossAsyncDelegate icon = (CrossAsyncDelegate)iar.AsyncState;
+            ScenePresence agent = icon.EndInvoke(iar);
+
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+
+            if(!agent.IsChildAgent)
+            {
+                // crossing failed
+                agent.CrossToNewRegionFail();
+            }
+            agent.IsInTransit = false;
+        }
+
+
+        public ScenePresence CrossAsync(ScenePresence agent, bool isFlying)
+        {
             uint x;
             uint y;
             Vector3 newpos;
@@ -1525,16 +1549,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (reason == String.Empty)
                     agent.ControllingClient.SendAlertMessage("Cannot cross to region");
                 else
-                    agent.ControllingClient.SendAlertMessage("Cannot cross to region: " + reason); 
-                return false;
+                    agent.ControllingClient.SendAlertMessage("Cannot cross to region: " + reason);
+                return agent;
             }
 
-            agent.IsInTransit = true;
+//            agent.IsInTransit = true;
 
-            CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
-            d.BeginInvoke(agent, newpos, neighbourRegion, isFlying, version, CrossAgentToNewRegionCompleted, d);
-
-            return true;
+            CrossAgentToNewRegionAsync(agent, newpos, neighbourRegion, isFlying, version);
+            agent.IsInTransit = false;
+            return agent;
         }
 
 
@@ -1786,8 +1809,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             neighboury /= Constants.RegionSize;
 
             agent.CloseChildAgents(neighbourx, neighboury);
-
- 
 
             // the user may change their profile information in other region,
             // so the userinfo in UserProfileCache is not reliable any more, delete it
