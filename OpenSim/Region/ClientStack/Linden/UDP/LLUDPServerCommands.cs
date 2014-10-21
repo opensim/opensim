@@ -158,6 +158,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_console.Commands.AddCommand(
                 "Debug",
                 false,
+                "debug lludp get",
+                "debug lludp get",
+                "Get debug parameters for the server.",
+                "scene-throttle-max is the current max cumulative kbps provided for this scene to clients",
+                HandleGetCommand);
+
+            m_console.Commands.AddCommand(
+                "Debug",
+                false,
                 "debug lludp set",
                 "debug lludp set <param> <value>",
                 "Set a parameter for the server.",
@@ -432,6 +441,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_console.Output(cdl.ToString());
                 }
             });
+        }
+
+        private void HandleGetCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+                return;
+
+            m_console.OutputFormat("Debug settings for {0}", m_udpServer.Scene.Name);
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+
+            long maxSceneDripRate = m_udpServer.Throttle.MaxDripRate;
+            cdl.AddRow(
+                "scene-throttle-max", 
+                maxSceneDripRate != 0 ? string.Format("{0} kbps", maxSceneDripRate * 8 / 1000) : "unset");
+
+            m_console.Output(cdl.ToString());
         }
 
         private void HandleSetCommand(string module, string[] args)
