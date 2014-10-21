@@ -4021,6 +4021,7 @@ namespace OpenSim.Region.Framework.Scenes
             catch
             {
 //                result = m_scene.CrossAgentToNewRegion(this, false);
+                return false;
             }
  //           if(!result)
  //               parcelRegionCross(true);
