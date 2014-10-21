@@ -3834,11 +3834,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-            //double priority = m_prioritizer.GetUpdatePriority(this, entity);
-            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            if (entity.UUID == m_agentId && !updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
+            {
+                ImprovedTerseObjectUpdatePacket packet
+                    = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
 
-            lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
+                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                packet.RegionData.TimeDilation = Utils.FloatToUInt16(1, 0.0f, 1.0f);
+                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+                packet.ObjectData[0] = CreateImprovedTerseBlock(entity, false);
+                OutPacket(packet, ThrottleOutPacketType.Unknown, true);
+            }
+            else
+            {
+                //double priority = m_prioritizer.GetUpdatePriority(this, entity);
+                uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+
+                lock (m_entityUpdates.SyncRoot)
+                    m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
+            }
         }
 
         /// <summary>

@@ -898,6 +898,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // packet so that it isn't sent before a queued update packet.
             bool forceQueue = (type == PacketType.KillObject);
 
+//            if (type == PacketType.ImprovedTerseObjectUpdate)
+//            {
+//                m_log.DebugFormat("Direct send ITOU to {0} in {1}", udpClient.AgentID, Scene.Name);
+//                SendPacketFinal(outgoingPacket);
+//                return false;
+//            }
+//            else
+//            {
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, forceQueue))
             {
                 SendPacketFinal(outgoingPacket);
@@ -907,6 +915,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 return false;
             }
+//            }
 
             #endregion Queue or Send
         }
