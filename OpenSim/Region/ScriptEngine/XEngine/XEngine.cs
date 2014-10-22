@@ -1478,18 +1478,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // Do we even have it?
             if (!m_Scripts.ContainsKey(itemID))
             {
-                // Do we even have it?
-                if (!m_Scripts.ContainsKey(itemID))
-                    return;
-
                 lockScriptsForRead(false);
-                lockScriptsForWrite(true);
-                m_Scripts.Remove(itemID);
-                lockScriptsForWrite(false);
-
                 return;
-            }
-             
+            }           
 
             IScriptInstance instance=m_Scripts[itemID];
             lockScriptsForRead(false);
@@ -1523,11 +1514,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             instance.RemoveState();
             instance.DestroyScriptInstance();
 
-            m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
-            if (m_DomainScripts[instance.AppDomain].Count == 0)
+            if (m_DomainScripts.ContainsKey(instance.AppDomain))
             {
-                m_DomainScripts.Remove(instance.AppDomain);
-                UnloadAppDomain(instance.AppDomain);
+                m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                if (m_DomainScripts[instance.AppDomain].Count == 0)
+                {
+                    m_DomainScripts.Remove(instance.AppDomain);
+                    UnloadAppDomain(instance.AppDomain);
+                }
             }
 
             ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
