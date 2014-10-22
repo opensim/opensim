@@ -2789,29 +2789,41 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat(
                         "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}",
                         client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos);
-    
+                           
+                    sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
+
+                    // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
+                    // client is for a root or child agent.
+                    // We must also set this before adding the client to the client manager so that an exception later on
+                    // does not leave a client manager entry without the scene agent set, which will cause other code
+                    // to fail since any entry in the client manager should have a ScenePresence
+                    //
+                    // XXX: This may be better set for a new client before that client is added to the client manager.
+                    // But need to know what happens in the case where a ScenePresence is already present (and if this 
+                    // actually occurs).
+                    client.SceneAgent = sp;
+
                     m_clientManager.Add(client);
                     SubscribeToClientEvents(client);
-    
-                    sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
                     m_eventManager.TriggerOnNewPresence(sp);
     
                     sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
                 }
                 else
                 {
+                    // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
+                    // client is for a root or child agent.
+                    // XXX: This may be better set for a new client before that client is added to the client manager.
+                    // But need to know what happens in the case where a ScenePresence is already present (and if this 
+                    // actually occurs).
+                    client.SceneAgent = sp;
+
                     m_log.WarnFormat(
                         "[SCENE]: Already found {0} scene presence for {1} in {2} when asked to add new scene presence",
                         sp.IsChildAgent ? "child" : "root", sp.Name, RegionInfo.RegionName);
+
                     reallyNew = false;
-                }
-    
-                // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
-                // client is for a root or child agent.
-                // XXX: This may be better set for a new client before that client is added to the client manager.
-                // But need to know what happens in the case where a ScenePresence is already present (and if this 
-                // actually occurs).
-                client.SceneAgent = sp;
+                }   
 
                 // This is currently also being done earlier in NewUserConnection for real users to see if this 
                 // resolves problems where HG agents are occasionally seen by others as "Unknown user" in chat and other
