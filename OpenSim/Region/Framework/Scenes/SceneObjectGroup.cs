@@ -2115,7 +2115,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if (IsDeleted || UUID == UUID.Zero)
+            if (IsDeleted || inTransit || UUID == UUID.Zero)
             {
 //                m_log.DebugFormat(
 //                    "[WATER WARS]: Ignoring backup of {0} {1} since object is marked as already deleted", Name, UUID);
