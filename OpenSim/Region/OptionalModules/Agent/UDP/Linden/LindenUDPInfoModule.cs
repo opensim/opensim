@@ -603,7 +603,9 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                          string.Format(
                                             "{0} ({1:0.00}%)", 
                                             llClient.TotalAgentUpdates, 
-                                            (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100));
+                                            cinfo.SyncRequests.ContainsKey("AgentUpdate") 
+                                                ? (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100 
+                                                : 0));
                             }
                         });
                 }
