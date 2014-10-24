@@ -83,20 +83,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            ClientInfo ci = udpClient.GetClientInfo();
-
             // We expect this to be lower because of the minimum bound set by MTU
             int totalBytes = LLUDPServer.MTU + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes;
-            Assert.AreEqual(LLUDPServer.MTU, ci.resendThrottle);
-            Assert.AreEqual(landBytes, ci.landThrottle);
-            Assert.AreEqual(windBytes, ci.windThrottle);
-            Assert.AreEqual(cloudBytes, ci.cloudThrottle);
-            Assert.AreEqual(taskBytes, ci.taskThrottle);
-            Assert.AreEqual(textureBytes, ci.textureThrottle);
-            Assert.AreEqual(assetBytes, ci.assetThrottle);
-            Assert.AreEqual(totalBytes, ci.totalThrottle);
 
-            Assert.AreEqual(0, ci.maxThrottle);
+            AssertThrottles(
+                udpClient, 
+                LLUDPServer.MTU, landBytes, windBytes, cloudBytes, taskBytes, 
+                textureBytes, assetBytes, totalBytes, 0, 0);
         }
 
         [Test]
@@ -133,8 +126,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            ClientInfo ci = udpClient.GetClientInfo();
-
             // We expect individual throttle changes to currently have no effect under adaptive, since this is managed
             // purely by that throttle.  However, we expect the max to change.
             // XXX: At the moment we check against defaults, but at some point there should be a better test to 
@@ -145,16 +136,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             int totalBytes = defaultRates.Resend + defaultRates.Land + defaultRates.Wind + defaultRates.Cloud + defaultRates.Task + defaultRates.Texture + defaultRates.Asset;
             int totalMaxBytes = resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes;
 
-            Assert.AreEqual(0, ci.maxThrottle);
-            Assert.AreEqual(totalMaxBytes, ci.targetThrottle);
-            Assert.AreEqual(defaultRates.Resend, ci.resendThrottle);
-            Assert.AreEqual(defaultRates.Land, ci.landThrottle);
-            Assert.AreEqual(defaultRates.Wind, ci.windThrottle);
-            Assert.AreEqual(defaultRates.Cloud, ci.cloudThrottle);
-            Assert.AreEqual(defaultRates.Task, ci.taskThrottle);
-            Assert.AreEqual(defaultRates.Texture, ci.textureThrottle);
-            Assert.AreEqual(defaultRates.Asset, ci.assetThrottle);
-            Assert.AreEqual(totalBytes, ci.totalThrottle);
+            AssertThrottles(
+                udpClient, 
+                defaultRates.Resend, defaultRates.Land, defaultRates.Wind, defaultRates.Cloud, defaultRates.Task, 
+                defaultRates.Texture, defaultRates.Asset, totalBytes, totalMaxBytes, 0);
         }
 
         /// <summary>
@@ -189,22 +174,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient1, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            {
-                ClientInfo ci = udpClient1.GetClientInfo();
-
-                //            Console.WriteLine(
-                //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-                //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
-
-                Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
-                Assert.AreEqual(landBytes / 2, ci.landThrottle);
-                Assert.AreEqual(windBytes / 2, ci.windThrottle);
-                Assert.AreEqual(cloudBytes / 2, ci.cloudThrottle);
-                Assert.AreEqual(taskBytes / 2, ci.taskThrottle);
-                Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
-                Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
-                Assert.AreEqual(totalBytes, ci.totalThrottle);
-            }
+            AssertThrottles(
+                udpClient1, 
+                resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2, 
+                textureBytes / 2, assetBytes / 2, totalBytes, 0, 0);
 
             // Now add another client
             ScenePresence sp2
@@ -217,39 +190,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient2, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            {
-                ClientInfo ci = udpClient1.GetClientInfo();
+            AssertThrottles(
+                udpClient1, 
+                resendBytes / 4, landBytes / 4, windBytes / 4, cloudBytes / 4, taskBytes / 4, 
+                textureBytes / 4, assetBytes / 4, totalBytes / 2, 0, 0);
 
-//                            Console.WriteLine(
-//                                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-//                                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
-
-                Assert.AreEqual(resendBytes / 4, ci.resendThrottle);
-                Assert.AreEqual(landBytes / 4, ci.landThrottle);
-                Assert.AreEqual(windBytes / 4, ci.windThrottle);
-                Assert.AreEqual(cloudBytes / 4, ci.cloudThrottle);
-                Assert.AreEqual(taskBytes / 4, ci.taskThrottle);
-                Assert.AreEqual(textureBytes / 4, ci.textureThrottle);
-                Assert.AreEqual(assetBytes / 4, ci.assetThrottle);
-                Assert.AreEqual(totalBytes / 2, ci.totalThrottle);
-            }
-
-            {
-                ClientInfo ci = udpClient2.GetClientInfo();
-
-                //            Console.WriteLine(
-                //                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-                //                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
-
-                Assert.AreEqual(resendBytes / 4, ci.resendThrottle);
-                Assert.AreEqual(landBytes / 4, ci.landThrottle);
-                Assert.AreEqual(windBytes / 4, ci.windThrottle);
-                Assert.AreEqual(cloudBytes / 4, ci.cloudThrottle);
-                Assert.AreEqual(taskBytes / 4, ci.taskThrottle);
-                Assert.AreEqual(textureBytes / 4, ci.textureThrottle);
-                Assert.AreEqual(assetBytes / 4, ci.assetThrottle);
-                Assert.AreEqual(totalBytes / 2, ci.totalThrottle);
-            }
+            AssertThrottles(
+                udpClient2, 
+                resendBytes / 4, landBytes / 4, windBytes / 4, cloudBytes / 4, taskBytes / 4, 
+                textureBytes / 4, assetBytes / 4, totalBytes / 2, 0, 0);
         }
 
         /// <summary>
@@ -285,20 +234,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            ClientInfo ci = udpClient.GetClientInfo();
-
-//            Console.WriteLine(
-//                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-//                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
-
-            Assert.AreEqual(resendBytes / 2, ci.resendThrottle);
-            Assert.AreEqual(landBytes / 2, ci.landThrottle);
-            Assert.AreEqual(windBytes / 2, ci.windThrottle);
-            Assert.AreEqual(cloudBytes / 2, ci.cloudThrottle);
-            Assert.AreEqual(taskBytes / 2, ci.taskThrottle);
-            Assert.AreEqual(textureBytes / 2, ci.textureThrottle);
-            Assert.AreEqual(assetBytes / 2, ci.assetThrottle);
-            Assert.AreEqual(totalBytes, ci.totalThrottle);
+            AssertThrottles(
+                udpClient, 
+                resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2, 
+                textureBytes / 2, assetBytes / 2, totalBytes, 0, totalBytes);
         }
 
         [Test]
@@ -333,22 +272,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient1, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            {
-                ClientInfo ci = udpClient1.GetClientInfo();
-               
-                            //                            Console.WriteLine(
-                            //                                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-                            //                                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
-
-                Assert.AreEqual(resendBytes, ci.resendThrottle);
-                Assert.AreEqual(landBytes, ci.landThrottle);
-                Assert.AreEqual(windBytes, ci.windThrottle);
-                Assert.AreEqual(cloudBytes, ci.cloudThrottle);
-                Assert.AreEqual(taskBytes, ci.taskThrottle);
-                Assert.AreEqual(textureBytes, ci.textureThrottle);
-                Assert.AreEqual(assetBytes, ci.assetThrottle);
-                Assert.AreEqual(totalBytes, ci.totalThrottle);
-            }
+            AssertThrottles(
+                udpClient1, 
+                resendBytes, landBytes, windBytes, cloudBytes, taskBytes, 
+                textureBytes, assetBytes, totalBytes, 0, totalBytes * 1.1);
 
             // Now add another client
             ScenePresence sp2
@@ -361,39 +288,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient2, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            {
-                ClientInfo ci = udpClient1.GetClientInfo();
-            
-//                Console.WriteLine(
-//                    "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-//                    ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
-            
-                Assert.AreEqual(resendBytes * 0.75, ci.resendThrottle);
-                Assert.AreEqual(landBytes * 0.75, ci.landThrottle);
-                Assert.AreEqual(windBytes * 0.75, ci.windThrottle);
-                Assert.AreEqual(cloudBytes * 0.75, ci.cloudThrottle);
-                Assert.AreEqual(taskBytes * 0.75, ci.taskThrottle);
-                Assert.AreEqual(textureBytes * 0.75, ci.textureThrottle);
-                Assert.AreEqual(assetBytes * 0.75, ci.assetThrottle);
-                Assert.AreEqual(totalBytes * 0.75, ci.totalThrottle);
-            }
+            AssertThrottles(
+                udpClient1, 
+                resendBytes * 0.75, landBytes * 0.75, windBytes * 0.75, cloudBytes * 0.75, taskBytes * 0.75, 
+                textureBytes * 0.75, assetBytes * 0.75, totalBytes * 0.75, 0, totalBytes * 1.1);
 
-            {
-                ClientInfo ci = udpClient2.GetClientInfo();
+            AssertThrottles(
+                udpClient2, 
+                resendBytes * 0.75, landBytes * 0.75, windBytes * 0.75, cloudBytes * 0.75, taskBytes * 0.75, 
+                textureBytes * 0.75, assetBytes * 0.75, totalBytes * 0.75, 0, totalBytes * 1.1);
+        }
 
-//                Console.WriteLine(
-//                    "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-//                    ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+        private void AssertThrottles(
+            LLUDPClient udpClient, 
+            double resendBytes, double landBytes, double windBytes, double cloudBytes, double taskBytes, double textureBytes, double assetBytes,
+            double totalBytes, double targetBytes, double maxBytes)
+        {
+            ClientInfo ci = udpClient.GetClientInfo();
 
-                Assert.AreEqual(resendBytes * 0.75, ci.resendThrottle);
-                Assert.AreEqual(landBytes * 0.75, ci.landThrottle);
-                Assert.AreEqual(windBytes * 0.75, ci.windThrottle);
-                Assert.AreEqual(cloudBytes * 0.75, ci.cloudThrottle);
-                Assert.AreEqual(taskBytes * 0.75, ci.taskThrottle);
-                Assert.AreEqual(textureBytes * 0.75, ci.textureThrottle);
-                Assert.AreEqual(assetBytes * 0.75, ci.assetThrottle);
-                Assert.AreEqual(totalBytes * 0.75, ci.totalThrottle);
-            }
+            //                Console.WriteLine(
+            //                    "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+            //                    ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+
+            Assert.AreEqual((int)resendBytes, ci.resendThrottle);
+            Assert.AreEqual((int)landBytes, ci.landThrottle);
+            Assert.AreEqual((int)windBytes, ci.windThrottle);
+            Assert.AreEqual((int)cloudBytes, ci.cloudThrottle);
+            Assert.AreEqual((int)taskBytes, ci.taskThrottle);
+            Assert.AreEqual((int)textureBytes, ci.textureThrottle);
+            Assert.AreEqual((int)assetBytes, ci.assetThrottle);
+            Assert.AreEqual((int)totalBytes, ci.totalThrottle);
+            Assert.AreEqual((int)targetBytes, ci.targetThrottle);
+            Assert.AreEqual((int)maxBytes, ci.maxThrottle);
         }
 
         private void SetThrottles(
