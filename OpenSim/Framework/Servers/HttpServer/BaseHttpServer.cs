@@ -966,6 +966,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             string responseString = String.Empty;
             XmlRpcRequest xmlRprcRequest = null;
 
+            bool gridproxy = false;
+            if (requestBody.Contains("encoding=\"utf-8"))
+            {
+                int channelindx = -1;
+                int optionsindx = requestBody.IndexOf(">options<");
+                if(optionsindx >0)
+                {
+                    channelindx = requestBody.IndexOf(">channel<");
+                    if (optionsindx < channelindx)
+                        gridproxy = true;
+                }
+            }
+
             try
             {
                 xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
@@ -1023,6 +1036,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
 
+                        if (gridproxy)
+                            xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
                         try
                         {
                             xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
