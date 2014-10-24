@@ -58,29 +58,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestSetRequestDripRate()
         {
             TokenBucket tb = new TokenBucket("tb", null, 5000, 0);
-            AssertRates(tb, 5000, 5000, 0);
+            AssertRates(tb, 5000, 5000, 5000, 0);
 
             tb.RequestedDripRate = 4000;
-            AssertRates(tb, 4000, 4000, 0);
+            AssertRates(tb, 4000, 4000, 4000, 0);
 
             tb.RequestedDripRate = 6000;
-            AssertRates(tb, 6000, 6000, 0);
+            AssertRates(tb, 6000, 6000, 6000, 0);
         }
 
         [Test]
         public void TestSetRequestDripRateWithMax()
         {
             TokenBucket tb = new TokenBucket("tb", null, 5000, 10000);
-            AssertRates(tb, 5000, 5000, 10000);
+            AssertRates(tb, 5000, 5000, 5000, 10000);
 
             tb.RequestedDripRate = 4000;
-            AssertRates(tb, 4000, 4000, 10000);
+            AssertRates(tb, 4000, 4000, 4000, 10000);
 
             tb.RequestedDripRate = 6000;
-            AssertRates(tb, 6000, 6000, 10000);
+            AssertRates(tb, 6000, 6000, 6000, 10000);
 
             tb.RequestedDripRate = 12000;
-            AssertRates(tb, 10000, 10000, 10000);
+            AssertRates(tb, 10000, 10000, 10000, 10000);
         }
 
         [Test]
@@ -90,15 +90,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TokenBucket tbChild1 = new TokenBucket("tbChild1", tbParent, 3000, 0);
             TokenBucket tbChild2 = new TokenBucket("tbChild2", tbParent, 5000, 0);
 
-            AssertRates(tbParent, 8000, 8000, 0);
-            AssertRates(tbChild1, 3000, 3000, 0);
-            AssertRates(tbChild2, 5000, 5000, 0);
+            AssertRates(tbParent, 8000, 8000, 8000, 0);
+            AssertRates(tbChild1, 3000, 3000, 3000, 0);
+            AssertRates(tbChild2, 5000, 5000, 5000, 0);
         }
 
-        private void AssertRates(TokenBucket tb, double dripRate, double totalDripRequest, double maxDripRate)
+        private void AssertRates(
+            TokenBucket tb, double requestedDripRate, double totalDripRequest, double dripRate, double maxDripRate)
         {
-            Assert.AreEqual((int)dripRate, tb.DripRate);
+            Assert.AreEqual((int)requestedDripRate, tb.RequestedDripRate);
             Assert.AreEqual((int)totalDripRequest, tb.TotalDripRequest);
+            Assert.AreEqual((int)dripRate, tb.DripRate);
             Assert.AreEqual((int)maxDripRate, tb.MaxDripRate);
         }
 
