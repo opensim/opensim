@@ -1518,6 +1518,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 */
             float regionSizeX = regInfo.RegionSizeX;
             float regionSizeY = regInfo.RegionSizeY;
+            if (regionSizeX == 0)
+                regionSizeX = 256f;
+            if (regionSizeY == 0)
+                regionSizeY = 256f;
 
             if (pos.X < boundaryDistance)
                 neighbourx--;
@@ -2446,6 +2450,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int neighboury = (int)srcRegionInfo.RegionLocY;
             float regionSizeX = srcRegionInfo.RegionSizeX;
             float regionSizeY = srcRegionInfo.RegionSizeY;
+            if (regionSizeX == 0)
+                regionSizeX = 256f;
+            if (regionSizeY == 0)
+                regionSizeY = 256f;
 
             float edgeJitter = 0.2f;
 
@@ -2470,6 +2478,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             float newRegionSizeX = neighbourRegion.RegionSizeX;
             float newRegionSizeY = neighbourRegion.RegionSizeY;
+            if (newRegionSizeX == 0)
+                newRegionSizeX = 256f;
+            if (newRegionSizeY == 0)
+                newRegionSizeY = 256f;
 
             if (targetPosition.X < edgeJitter)
                 newpos.X += newRegionSizeX;
