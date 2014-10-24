@@ -55,6 +55,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
 
         [Test]
+        public void TestSetRequestDripRate()
+        {
+            TokenBucket tb = new TokenBucket("tb", null, 5000, 0);
+            AssertRates(tb, 5000, 5000, 0);
+
+            tb.RequestedDripRate = 4000;
+            AssertRates(tb, 4000, 4000, 0);
+
+            tb.RequestedDripRate = 6000;
+            AssertRates(tb, 6000, 6000, 0);
+        }
+
+        [Test]
+        public void TestSetRequestDripRateWithMax()
+        {
+            TokenBucket tb = new TokenBucket("tb", null, 5000, 10000);
+            AssertRates(tb, 5000, 5000, 10000);
+
+            tb.RequestedDripRate = 4000;
+            AssertRates(tb, 4000, 4000, 10000);
+
+            tb.RequestedDripRate = 6000;
+            AssertRates(tb, 6000, 6000, 10000);
+
+            tb.RequestedDripRate = 12000;
+            AssertRates(tb, 10000, 10000, 10000);
+        }
+
+        [Test]
+        public void TestSetRequestDripRateWithChildren()
+        {
+            TokenBucket tbParent = new TokenBucket("tbParent", null, 0, 0);
+            TokenBucket tbChild1 = new TokenBucket("tbChild1", tbParent, 3000, 0);
+            TokenBucket tbChild2 = new TokenBucket("tbChild2", tbParent, 5000, 0);
+
+            AssertRates(tbParent, 8000, 8000, 0);
+            AssertRates(tbChild1, 3000, 3000, 0);
+            AssertRates(tbChild2, 5000, 5000, 0);
+        }
+
+        private void AssertRates(TokenBucket tb, double dripRate, double totalDripRequest, double maxDripRate)
+        {
+            Assert.AreEqual((int)dripRate, tb.DripRate);
+            Assert.AreEqual((int)totalDripRequest, tb.TotalDripRequest);
+            Assert.AreEqual((int)maxDripRate, tb.MaxDripRate);
+        }
+
+        [Test]
         public void TestClientThrottleSetNoLimit()
         {
             TestHelpers.InMethod();
@@ -179,7 +227,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2, 
                 textureBytes / 2, assetBytes / 2, totalBytes, 0, 0);
 
-            // Now add another client
+            // Test: Now add another client
             ScenePresence sp2
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x10), TestHelpers.ParseTail(0x20), 123457);
