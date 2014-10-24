@@ -1560,6 +1560,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             float newRegionSizeX = neighbourRegion.RegionSizeX;
             float newRegionSizeY = neighbourRegion.RegionSizeY;
+            if (newRegionSizeX == 0)
+                newRegionSizeX = 256f;
+            if (newRegionSizeY == 0)
+                newRegionSizeY = 256f;
 
             if (pos.X < boundaryDistance)
                 newpos.X += newRegionSizeX;
