@@ -516,6 +516,10 @@ namespace OpenSim.Region.Framework.Scenes
             public uint ParentID;
         }
 
+
+        public bool inTransit = false;
+        public delegate SceneObjectGroup SOGCrossDelegate(SceneObjectGroup sog,Vector3 pos);
+
         /// <summary>
         /// The absolute position of this scene object in the scene
         /// </summary>
@@ -525,8 +529,8 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 Vector3 val = value;
-
-                if (Scene != null)
+              
+                if (Scene != null && !inTransit)
                 {
                     if (
                         // (Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E)
@@ -543,130 +547,10 @@ namespace OpenSim.Region.Framework.Scenes
                             || Scene.TestBorderCross(val, Cardinals.S))
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
-                        IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                        uint x = 0;
-                        uint y = 0;
-                        string version = String.Empty;
-                        Vector3 newpos = Vector3.Zero;
-                        OpenSim.Services.Interfaces.GridRegion destination = null;
-
-                        if (m_rootPart.DIE_AT_EDGE || m_rootPart.RETURN_AT_EDGE)
-                        {
-                            // this should delete the grp in this case
-                            m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
-                            // actually assume this sog was removed from simulation
-                            return;
-                        }
-
-                        if (m_rootPart.KeyframeMotion != null)
-                            m_rootPart.KeyframeMotion.StartCrossingCheck();
-
-                        bool canCross = true;
-
-                        foreach (ScenePresence av in m_linkedAvatars)
-                        {
-                            // We need to cross these agents. First, let's find
-                            // out if any of them can't cross for some reason.
-                            // We have to deny the crossing entirely if any
-                            // of them are banned. Alternatively, we could
-                            // unsit banned agents....
-
-
-                            // We set the avatar position as being the object
-                            // position to get the region to send to
-                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out x, out y, out version, out newpos)) == null)
-                            {
-                                canCross = false;
-                                break;
-                            }
-
-                            m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
-                        }
-
-                        if (canCross)
-                        {
-                            // We unparent the SP quietly so that it won't
-                            // be made to stand up
-
-                            List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
-
-                            foreach (ScenePresence av in m_linkedAvatars)
-                            {
-                                avtocrossInfo avinfo = new avtocrossInfo();
-                                SceneObjectPart parentPart = m_scene.GetSceneObjectPart(av.ParentID);
-                                if (parentPart != null)
-                                    av.ParentUUID = parentPart.UUID;
-
-                                avinfo.av = av;
-                                avinfo.ParentID = av.ParentID;
-                                avsToCross.Add(avinfo);
-
-                                av.PrevSitOffset = av.OffsetPosition;
-                                av.ParentID = 0;
-                            }
-
-                            //                            m_linkedAvatars.Clear();
-                            m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
-
-                            // Normalize
-                            if (val.X >= Constants.RegionSize)
-                                val.X -= Constants.RegionSize;
-                            if (val.Y >= Constants.RegionSize)
-                                val.Y -= Constants.RegionSize;
-                            if (val.X < 0)
-                                val.X += Constants.RegionSize;
-                            if (val.Y < 0)
-                                val.Y += Constants.RegionSize;
-
-                            // If it's deleted, crossing was successful
-                            if (IsDeleted)
-                            {
-                                //                                foreach (ScenePresence av in m_linkedAvatars)
-                                foreach (avtocrossInfo avinfo in avsToCross)
-                                {
-                                    ScenePresence av = avinfo.av;
-                                    if (!av.IsInTransit) // just in case...
-                                    {
-                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
-
-                                        av.IsInTransit = true;
-
-                                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
-                                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
-                                    }
-                                    else
-                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
-                                }
-                                avsToCross.Clear();
-                                return;
-                            }
-                            else // cross failed, put avas back ??
-                            {
-                                foreach (avtocrossInfo avinfo in avsToCross)
-                                {
-                                    ScenePresence av = avinfo.av;
-                                    av.ParentUUID = UUID.Zero;
-                                    av.ParentID = avinfo.ParentID;
-                                    //                                    m_linkedAvatars.Add(av);
-                                }
-                            }
-                            avsToCross.Clear();
-                        }
-                        else
-                        {
-                            if (m_rootPart.KeyframeMotion != null)
-                                m_rootPart.KeyframeMotion.CrossingFailure();
-
-                            if (RootPart.PhysActor != null)
-                            {
-                                RootPart.PhysActor.CrossingFailure();
-                            }
-                        }
-                        Vector3 oldp = AbsolutePosition;
-                        val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
-                        val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
-                        // dont crash land StarShips
-                        // val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
+                        inTransit = true;
+                        SOGCrossDelegate d = CrossAsync;
+                        d.BeginInvoke(this, val, CrossAsyncCompleted, d);
+                        return;
                     }
                 }
 
@@ -714,46 +598,197 @@ namespace OpenSim.Region.Framework.Scenes
                         part.TriggerScriptChangedEvent(Changed.POSITION);
                     }
                 }
-
-/*
-    This seems not needed and should not be needed:
-    sp absolute position depends on sit part absolute position fixed above.
-    sp ParentPosition is not used anywhere.
-    Since presence is sitting, viewer considers it 'linked' to root prim, so it will move/rotate it
-    Sending a extra packet with avatar position is not only bandwidth waste, but may cause jitter in viewers due to UPD nature.
- 
-                if (!m_dupeInProgress)
-                {
-                    foreach (ScenePresence av in m_linkedAvatars)
-                    {
-                        SceneObjectPart p = m_scene.GetSceneObjectPart(av.ParentID);
-                        if (p != null && m_parts.TryGetValue(p.UUID, out p))
-                        {
-                            Vector3 offset = p.GetWorldPosition() - av.ParentPosition;
-                            av.AbsolutePosition += offset;
-//                            av.ParentPosition = p.GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
-                            av.SendAvatarDataToAllAgents();
-                        }
-                    }
-                }
-*/
-                //if (m_rootPart.PhysActor != null)
-                //{
-                //m_rootPart.PhysActor.Position =
-                //new PhysicsVector(m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y,
-                //m_rootPart.GroupPosition.Z);
-                //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
-                //}
-                
-                if (Scene != null)
-                    Scene.EventManager.TriggerParcelPrimCountTainted();
+               
+                Scene.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
-        public override Vector3 Velocity
+        public SceneObjectGroup CrossAsync(SceneObjectGroup sog, Vector3 val)
         {
-            get { return RootPart.Velocity; }
-            set { RootPart.Velocity = value; }
+            Scene sogScene = sog.m_scene;
+            IEntityTransferModule entityTransfer = sogScene.RequestModuleInterface<IEntityTransferModule>();
+
+            Vector3 newpos = Vector3.Zero;
+            OpenSim.Services.Interfaces.GridRegion destination = null;
+
+            if (sog.RootPart.DIE_AT_EDGE)
+            {               
+                try
+                {
+                    sogScene.DeleteSceneObject(sog, false);
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[SCENE]: exception when trying to remove the prim that crossed the border.");
+                }
+                return sog;
+            }
+
+            if (sog.RootPart.RETURN_AT_EDGE)
+            {
+                // We remove the object here
+                try
+                {
+                    List<uint> localIDs = new List<uint>();
+                    localIDs.Add(sog.RootPart.LocalId);
+                    sogScene.AddReturn(sog.OwnerID, sog.Name, sog.AbsolutePosition,
+                        "Returned at region cross");
+                    sogScene.DeRezObjects(null, localIDs, UUID.Zero, DeRezAction.Return, UUID.Zero);                   
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[SCENE]: exception when trying to return the prim that crossed the border.");
+                }
+                return sog;
+            }
+
+            if (sog.m_rootPart.KeyframeMotion != null)
+                sog.m_rootPart.KeyframeMotion.StartCrossingCheck();
+
+            if (entityTransfer == null)
+                return sog;
+
+            destination = entityTransfer.GetObjectDestination(sog, val, out newpos);
+            if (destination == null)
+                return sog;
+
+            if (sog.m_linkedAvatars.Count == 0)
+            {
+                entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true);
+                return sog;
+            }
+
+            string reason = String.Empty;
+            string version = String.Empty;
+
+            foreach (ScenePresence av in sog.m_linkedAvatars)
+            {
+                // We need to cross these agents. First, let's find
+                // out if any of them can't cross for some reason.
+                // We have to deny the crossing entirely if any
+                // of them are banned. Alternatively, we could
+                // unsit banned agents....
+
+                // We set the avatar position as being the object
+                // position to get the region to send to
+                if(!entityTransfer.checkAgentAccessToRegion(av, destination, newpos, out version, out reason))
+                {
+                    return sog;
+                }
+                m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
+            }
+
+            // We unparent the SP quietly so that it won't
+            // be made to stand up
+
+            List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
+
+            foreach (ScenePresence av in sog.m_linkedAvatars)
+            {
+                avtocrossInfo avinfo = new avtocrossInfo();
+                SceneObjectPart parentPart = sogScene.GetSceneObjectPart(av.ParentID);
+                if (parentPart != null)
+                    av.ParentUUID = parentPart.UUID;
+
+                avinfo.av = av;
+                avinfo.ParentID = av.ParentID;
+                avsToCross.Add(avinfo);
+
+                av.PrevSitOffset = av.OffsetPosition;
+                av.ParentID = 0;
+            }
+
+            if (entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true))
+            {
+                foreach (avtocrossInfo avinfo in avsToCross)
+                {
+                    ScenePresence av = avinfo.av;
+                    if (!av.IsInTransit) // just in case...
+                    {
+                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
+
+                        av.IsInTransit = true;
+
+//                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
+//                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                        entityTransfer.CrossAgentToNewRegionAsync(av, newpos, destination, av.Flying, version);
+                        if(av.IsChildAgent)
+                        {
+                            if (av.ParentUUID != UUID.Zero)
+                            {
+                                av.ClearControls();
+                                av.ParentPart = null;
+                            }
+                        }
+                        av.ParentUUID = UUID.Zero;
+                        // In any case
+                        av.IsInTransit = false;
+
+                        m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", av.Firstname, av.Lastname);
+                    }
+                    else
+                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar already in transit {0} to {1}", av.Name, val);
+                }
+                avsToCross.Clear();
+                return sog;
+            }
+            else // cross failed, put avas back ??
+            {
+                foreach (avtocrossInfo avinfo in avsToCross)
+                {
+                    ScenePresence av = avinfo.av;
+                    av.ParentUUID = UUID.Zero;
+                    av.ParentID = avinfo.ParentID;
+                }
+            }
+            avsToCross.Clear();
+
+            return sog;
+        }
+
+        public void CrossAsyncCompleted(IAsyncResult iar)
+        {
+            SOGCrossDelegate icon = (SOGCrossDelegate)iar.AsyncState;
+            SceneObjectGroup sog = icon.EndInvoke(iar);
+
+            if (sog.IsDeleted)
+            {
+                sog.inTransit = false; // just in case...
+            }
+            else
+            {
+                SceneObjectPart rootp = sog.m_rootPart;
+                Vector3 oldp = rootp.GroupPosition;
+                oldp.X = Util.Clamp<float>(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
+                oldp.Y = Util.Clamp<float>(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
+                rootp.GroupPosition = oldp;
+
+                SceneObjectPart[] parts = sog.m_parts.GetArray();
+
+                foreach (SceneObjectPart part in parts)
+                {
+                    if (part != rootp)
+                        part.GroupPosition = oldp;
+                }
+
+                foreach (ScenePresence av in sog.m_linkedAvatars)
+                {
+                    av.sitSOGmoved();
+                }
+
+                sog.Velocity = Vector3.Zero;
+
+                if (sog.m_rootPart.KeyframeMotion != null)
+                    sog.m_rootPart.KeyframeMotion.CrossingFailure();
+
+                if (sog.RootPart.PhysActor != null)
+                {
+                    sog.RootPart.PhysActor.CrossingFailure();
+                }
+
+                sog.inTransit = false;
+                sog.ScheduleGroupForFullUpdate();
+            }
         }
 
         private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
@@ -782,6 +817,12 @@ namespace OpenSim.Region.Framework.Scenes
             agent.IsInTransit = false;
 
             m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+        }
+
+        public override Vector3 Velocity
+        {
+            get { return RootPart.Velocity; }
+            set { RootPart.Velocity = value; }
         }
 
         public override uint LocalId
@@ -2620,7 +2661,7 @@ namespace OpenSim.Region.Framework.Scenes
             // an object has been deleted from a scene before update was processed.
             // A more fundamental overhaul of the update mechanism is required to eliminate all
             // the race conditions.
-            if (IsDeleted)
+            if (IsDeleted || inTransit)
                 return;
 
             // Even temporary objects take part in physics (e.g. temp-on-rez bullets)
@@ -2736,7 +2777,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendGroupRootTerseUpdate()
         {
-            if (IsDeleted)
+            if (IsDeleted || inTransit)
                 return;
 
             RootPart.SendTerseUpdateToAllClients();
@@ -2755,7 +2796,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
-            if (IsDeleted)
+            if (IsDeleted || inTransit)
                 return;
 
             if (IsAttachment)

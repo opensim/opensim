@@ -3865,7 +3865,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
 
-                    if (part.ParentGroup.IsDeleted)
+                    if (part.ParentGroup.IsDeleted || part.ParentGroup.inTransit)
                         continue;
 
                     if (part.ParentGroup.IsAttachment)

@@ -1385,13 +1385,61 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 
         #region Agent Crossings
-        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out uint xDest, out uint yDest, out string version, out Vector3 newpos)
+
+        public bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, out string version, out string reason)
         {
-            string r = String.Empty;
-            return GetDestination(scene, agentID, pos, out xDest, out yDest, out version, out newpos, out r);
+            reason = String.Empty;
+            version = String.Empty;
+
+            UUID agentID = agent.UUID;
+            ulong destinyHandle = destiny.RegionHandle;
+
+            ExpiringCache<ulong, DateTime> r;
+            DateTime banUntil;
+            if (m_bannedRegions.TryGetValue(agentID, out r))
+            {
+                if (r.TryGetValue(destinyHandle, out banUntil))
+                {
+                    if (DateTime.Now < banUntil)
+                    {
+                        reason = "Cannot connect to region";
+                        return false;
+                    }
+                    r.Remove(destinyHandle);
+                }
+            }
+            else
+            {
+                r = null;
+            }
+
+            Scene ascene = agent.Scene;
+
+            if (!ascene.SimulationService.QueryAccess(destiny, agentID, position, out version, out reason))
+            {
+                if (r == null)
+                {
+                    r = new ExpiringCache<ulong, DateTime>();
+                    r.Add(destinyHandle, DateTime.Now + TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+
+                    m_bannedRegions.Add(agentID, r, TimeSpan.FromSeconds(30));
+                }
+                else
+                {
+                    r.Add(destinyHandle, DateTime.Now + TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+                }
+                return false;
+            }
+            return true;
         }
 
-        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out uint xDest, out uint yDest, out string version, out Vector3 newpos, out string reason)
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos)
+        {
+            string r = String.Empty;
+            return GetDestination(scene, agentID, pos, out version, out newpos, out r);
+        }
+
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos, out string reason)
         {
             version = String.Empty;
             reason = String.Empty;
@@ -1400,9 +1448,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
 
-            uint neighbourx = scene.RegionInfo.RegionLocX;          
-            uint neighboury = scene.RegionInfo.RegionLocY;
+            RegionInfo regInfo = scene.RegionInfo;
+
+            uint neighbourx = regInfo.RegionLocX;
+            uint neighboury = regInfo.RegionLocY;
             const float boundaryDistance = 0.7f;
+
+/*
             Vector3 northCross = new Vector3(0, boundaryDistance, 0);
             Vector3 southCross = new Vector3(0, -1 * boundaryDistance, 0);
             Vector3 eastCross = new Vector3(boundaryDistance, 0, 0);
@@ -1463,11 +1515,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             newpos.X = Util.Clamp(newpos.X, enterDistance, maxX);
             newpos.Y = Util.Clamp(newpos.Y, enterDistance, maxY);
+*/
+            float regionSizeX = regInfo.RegionSizeX;
+            float regionSizeY = regInfo.RegionSizeY;
 
-            xDest = neighbourx;
-            yDest = neighboury;
+            if (pos.X < boundaryDistance)
+                neighbourx--;
+            else if (pos.X > regionSizeX - boundaryDistance)
+                neighbourx += (uint)(regionSizeX / Constants.RegionSize);
 
-            int x = (int)(neighbourx * Constants.RegionSize), y = (int)(neighboury * Constants.RegionSize);
+            if (pos.Y < boundaryDistance)
+                neighboury--;
+            else if (pos.Y > regionSizeY - boundaryDistance)
+                neighboury += (uint)(regionSizeY / Constants.RegionSize);
+
+            int x = (int)(neighbourx * Constants.RegionSize);
+            int y = (int)(neighboury * Constants.RegionSize);
 
             ulong neighbourHandle = Utils.UIntsToLong((uint)x, (uint)y);
 
@@ -1489,6 +1552,28 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
+            if (neighbourRegion == null)
+            {
+                reason = "";
+                return null;
+            }
+
+            float newRegionSizeX = neighbourRegion.RegionSizeX;
+            float newRegionSizeY = neighbourRegion.RegionSizeY;
+
+            if (pos.X < boundaryDistance)
+                newpos.X += newRegionSizeX;
+            else if (pos.X > regionSizeX - boundaryDistance)
+                newpos.X -= regionSizeX;
+
+            if (pos.Y < boundaryDistance)
+                newpos.Y += newRegionSizeY;
+            else if (pos.Y > regionSizeY - boundaryDistance)
+                newpos.Y -= regionSizeY;
+
+            const float enterDistance = 0.5f;
+            newpos.X = Util.Clamp(newpos.X, enterDistance, newRegionSizeX - enterDistance);
+            newpos.Y = Util.Clamp(newpos.Y, enterDistance, newRegionSizeY - enterDistance);
            
             if (!scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out reason))
             {
@@ -1543,13 +1628,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             Vector3 pos = agent.AbsolutePosition + agent.Velocity;
 
-            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, pos, out x, out y, out version, out newpos, out reason);
+            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, pos, out version, out newpos, out reason);
             if (neighbourRegion == null)
             {
-                if (reason == String.Empty)
+                if (reason != String.Empty)
                     agent.ControllingClient.SendAlertMessage("Cannot cross to region");
-                else
-                    agent.ControllingClient.SendAlertMessage("Cannot cross to region: " + reason);
                 return agent;
             }
 
@@ -2346,6 +2429,62 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Object Transfers
 
+        public GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition,out Vector3 newpos)
+        {
+            newpos = targetPosition;
+
+            Scene scene = grp.Scene;
+            if (scene == null)
+                return null;
+
+            RegionInfo srcRegionInfo = scene.RegionInfo;
+            int neighbourx = (int)srcRegionInfo.RegionLocX;
+            int neighboury = (int)srcRegionInfo.RegionLocY;
+            float regionSizeX = srcRegionInfo.RegionSizeX;
+            float regionSizeY = srcRegionInfo.RegionSizeY;
+
+            float edgeJitter = 0.2f;
+
+            if (targetPosition.X < edgeJitter)
+                neighbourx--;
+            else if (targetPosition.X > regionSizeX - edgeJitter)
+                neighbourx += (int)(regionSizeX / Constants.RegionSize);
+
+            if (targetPosition.Y < edgeJitter)
+                neighboury--;
+            else if (targetPosition.Y > regionSizeY - edgeJitter)
+                neighboury += (int)(regionSizeY / Constants.RegionSize);
+
+            int x = neighbourx * (int)Constants.RegionSize;
+            int y = neighboury * (int)Constants.RegionSize;
+
+            GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
+            if (neighbourRegion == null)
+            {
+                return null;
+            }
+
+            float newRegionSizeX = neighbourRegion.RegionSizeX;
+            float newRegionSizeY = neighbourRegion.RegionSizeY;
+
+            if (targetPosition.X < edgeJitter)
+                newpos.X += newRegionSizeX;
+            else if (targetPosition.X > regionSizeX - edgeJitter)
+                newpos.X -= regionSizeX;
+
+            if (targetPosition.Y < edgeJitter)
+                newpos.Y += newRegionSizeY;
+            else if (targetPosition.Y > regionSizeY - edgeJitter)
+                newpos.Y -= regionSizeY;
+
+            const float enterDistance = 0.2f;
+            newpos.X = Util.Clamp(newpos.X, enterDistance, newRegionSizeX - enterDistance);
+            newpos.Y = Util.Clamp(newpos.Y, enterDistance, newRegionSizeY - enterDistance);
+
+            return neighbourRegion;
+        }
+
+
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.
@@ -2365,23 +2504,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (scene == null)
                 return;
 
-// http://wiki.secondlife.com/wiki/STATUS_DIE_AT_EDGE
-// DieAtEdge does NOT mean that objects can't cross regions.
-// It just means they die when they go off world, unless
-// RETURN_AT_EDGE is set.
-//            if (grp.RootPart.DIE_AT_EDGE)
-//            {
-//                // We remove the object here
-//                try
-//                {
-//                    scene.DeleteSceneObject(grp, false);
-//                }
-//                catch (Exception)
-//                {
-//                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
-//                }
-//                return;
-//            }
 
             int thisx = (int)scene.RegionInfo.RegionLocX;
             int thisy = (int)scene.RegionInfo.RegionLocY;
@@ -2594,7 +2716,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// true if the crossing itself was successful, false on failure
         /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
         /// </returns>
-        protected bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent)
+        public bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent)
         {
             //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
 

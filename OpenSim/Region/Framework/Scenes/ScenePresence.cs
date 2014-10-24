@@ -1123,6 +1123,11 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part == null)
                     {
                         m_log.ErrorFormat("[SCENE PRESENCE]: Can't find prim {0} to sit on", ParentUUID);
+                        ParentID = 0;
+                        ParentPart = null;
+                        PrevSitOffset = Vector3.Zero;
+                        ClearControls();
+                        IsLoggingIn = false;
                     }
                     else
                     {
@@ -1216,13 +1221,6 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     AddToPhysicalScene(isFlying);
 
-                // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
-                // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
-                // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
-                // the value to a negative position which does not trigger the border cross.
-                // This may not be the best location for this.
-                CheckForBorderCrossing();
-
                 if (ForceFly)
                 {
                     Flying = true;
@@ -1231,12 +1229,18 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Flying = false;
                 }
-            }
-            // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
-            // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
-            // elsewhere anyway
-            // Animator.SendAnimPack();
 
+                // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
+                // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
+                // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
+                // the value to a negative position which does not trigger the border cross.
+                // This may not be the best location for this.
+
+
+                // its not               
+//                CheckForBorderCrossing();
+            }
+ 
             m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
             m_scene.SwapRootAgentCount(false);
 
@@ -2734,7 +2738,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ParentID = 0;
                 ParentPart = null;
 
-
                 if (part.SitTargetAvatar == UUID)
                     standRotation = standRotation * part.SitTargetOrientation;
                 else
@@ -2761,12 +2764,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Vector3 standPos = sitPartWorldPosition + adjustmentForSitPose;
 
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: Setting stand to pos {0}, (adjustmentForSitPosition {1}, adjustmentForSitPose {2}) rotation {3} for {4} in {5}", 
-//                    standPos, adjustmentForSitPosition, adjustmentForSitPose, standRotation, Name, Scene.Name);
-
-                standPos.X = Util.Clamp<float>(standPos.X, 0.5f, (float)Constants.RegionSize - 0.5f);
-                standPos.Y = Util.Clamp<float>(standPos.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
                 m_pos = standPos;
             }
 
@@ -3308,6 +3305,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (IsChildAgent == false)
             {
+                CheckForBorderCrossing();
+
                 if (IsInTransit)
                     return;
 
@@ -3328,8 +3327,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastRotation = Rotation;
                     m_lastVelocity = Velocity;
                 }
-
-                CheckForBorderCrossing();
 
                 CheckForSignificantMovement(); // sends update to the modules.
             }
@@ -3847,7 +3844,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void CheckForBorderCrossing()
         {
             // Check that we we are not a child
-            if (IsChildAgent)
+            if (IsChildAgent || IsInTransit)
                 return;
 
             // If we don't have a PhysActor, we can't cross anyway
@@ -3857,25 +3854,22 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentID != 0 || PhysicsActor == null || ParentUUID != UUID.Zero)
                 return;
 
-            if (IsInTransit)
-                return;
-
             Vector3 pos2 = AbsolutePosition;
             Vector3 vel = Velocity;
-            int neighbor = 0;
-            int[] fix = new int[2];
 
             float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X * timeStep);
-            pos2.Y = pos2.Y + (vel.Y * timeStep);
-            pos2.Z = pos2.Z + (vel.Z * timeStep);
-
+            pos2.X += vel.X * timeStep;
+            pos2.Y += vel.Y * timeStep;
+            pos2.Z += vel.Z * timeStep;
 
             //                    m_log.DebugFormat(
             //                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
             //                        pos2, Name, Scene.Name);
-
+/*
             // Checks if where it's headed exists a region
+            int neighbor = 0;
+            int[] fix = new int[2];
+
             bool needsTransit = false;
             if (m_scene.TestBorderCross(pos2, Cardinals.W))
             {
@@ -3925,59 +3919,55 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Makes sure avatar does not end up outside region
+
             if (neighbor <= 0)
             {
                 if (needsTransit)
                 {
-                    if (m_requestedSitTargetUUID == UUID.Zero)
-                    {
-                        bool isFlying = Flying;
-                        RemoveFromPhysicalScene();
-
-                        Vector3 pos = AbsolutePosition;
-                        if (AbsolutePosition.X < 0)
-                            pos.X += Velocity.X * 2;
-                        else if (AbsolutePosition.X > Constants.RegionSize)
-                            pos.X -= Velocity.X * 2;
-                        if (AbsolutePosition.Y < 0)
-                            pos.Y += Velocity.Y * 2;
-                        else if (AbsolutePosition.Y > Constants.RegionSize)
-                            pos.Y -= Velocity.Y * 2;
-                        Velocity = Vector3.Zero;
-                        AbsolutePosition = pos;
-
-                        //                                m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
-
-                        AddToPhysicalScene(isFlying);
-                    }
+                    CrossToNewRegionFail();
                 }
             }
             else if (neighbor > 0)
             {
                 if (!CrossToNewRegion())
                 {
-                    if (m_requestedSitTargetUUID == UUID.Zero)
-                    {
-                        bool isFlying = Flying;
-                        RemoveFromPhysicalScene();
-
-                        Vector3 pos = AbsolutePosition;
-                        if (AbsolutePosition.X < 0)
-                            pos.X += Velocity.X * 2;
-                        else if (AbsolutePosition.X > Constants.RegionSize)
-                            pos.X -= Velocity.X * 2;
-                        if (AbsolutePosition.Y < 0)
-                            pos.Y += Velocity.Y * 2;
-                        else if (AbsolutePosition.Y > Constants.RegionSize)
-                            pos.Y -= Velocity.Y * 2;
-                        Velocity = Vector3.Zero;
-                        AbsolutePosition = pos;
-
-                        AddToPhysicalScene(isFlying);
-                    }
+                    CrossToNewRegionFail();
                 }
             }
+ */
+            bool needsTransit = false;
 
+            if (pos2.X < 0)
+                needsTransit = true;
+            else if (pos2.X > m_scene.RegionInfo.RegionSizeX)
+                needsTransit = true;
+            else if (pos2.Y < 0)
+                needsTransit = true;
+            else if (pos2.Y > m_scene.RegionInfo.RegionSizeY)
+                needsTransit = true;
+
+            if (needsTransit)
+            {
+                if (!CrossToNewRegion() && m_requestedSitTargetUUID == UUID.Zero)
+                {
+                    // we don't have entity transfer module
+                    Vector3 pos = AbsolutePosition;
+                    float px = pos.X;
+                    if (px < 0)
+                        pos.X += Velocity.X * 2;
+                    else if (px > m_scene.RegionInfo.RegionSizeX)
+                        pos.X -= Velocity.X * 2;
+
+                    float py = pos.Y;
+                    if (py < 0)
+                        pos.Y += Velocity.Y * 2;
+                    else if (py > m_scene.RegionInfo.RegionSizeY)
+                        pos.Y -= Velocity.Y * 2;
+
+                    Velocity = Vector3.Zero;
+                    AbsolutePosition = pos;
+                }
+            }
         }
 
         public void CrossToNewRegionFail()
@@ -3988,14 +3978,18 @@ namespace OpenSim.Region.Framework.Scenes
                 RemoveFromPhysicalScene();
 
                 Vector3 pos = AbsolutePosition;
-                if (AbsolutePosition.X < 0)
+                float px = pos.X;
+                if (px < 0)
                     pos.X += Velocity.X * 2;
-                else if (AbsolutePosition.X > Constants.RegionSize)
+                else if (px > m_scene.RegionInfo.RegionSizeX)
                     pos.X -= Velocity.X * 2;
-                if (AbsolutePosition.Y < 0)
+
+                float py = pos.Y;
+                if (py < 0)
                     pos.Y += Velocity.Y * 2;
-                else if (AbsolutePosition.Y > Constants.RegionSize)
+                else if (py > m_scene.RegionInfo.RegionSizeY)
                     pos.Y -= Velocity.Y * 2;
+
                 Velocity = Vector3.Zero;
                 AbsolutePosition = pos;
 
