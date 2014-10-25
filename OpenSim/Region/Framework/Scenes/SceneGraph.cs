@@ -271,28 +271,40 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!m_parentScene.CombineRegions)
             {
+                // temporary checks to remove after varsize suport
+                float regionSizeX = m_parentScene.RegionInfo.RegionSizeX;
+                if (regionSizeX == 0)
+                    regionSizeX = Constants.RegionSize;
+                float regionSizeY = m_parentScene.RegionInfo.RegionSizeY;
+                if (regionSizeY == 0)
+                    regionSizeY = Constants.RegionSize;
+
                 // KF: Check for out-of-region, move inside and make static.
                 Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
                                            sceneObject.RootPart.GroupPosition.Y,
                                            sceneObject.RootPart.GroupPosition.Z);
                 if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || npos.Z < 0.0 ||
-                    npos.X > Constants.RegionSize ||
-                    npos.Y > Constants.RegionSize))
+                    npos.X > regionSizeX ||
+                    npos.Y > regionSizeY))
                 {
                     if (npos.X < 0.0) npos.X = 1.0f;
                     if (npos.Y < 0.0) npos.Y = 1.0f;
                     if (npos.Z < 0.0) npos.Z = 0.0f;
-                    if (npos.X > Constants.RegionSize) npos.X = Constants.RegionSize - 1.0f;
-                    if (npos.Y > Constants.RegionSize) npos.Y = Constants.RegionSize - 1.0f;
-     
+                    if (npos.X > regionSizeX) npos.X = regionSizeX - 1.0f;
+                    if (npos.Y > regionSizeY) npos.Y = regionSizeY - 1.0f;
+
+                    SceneObjectPart rootpart = sceneObject.RootPart;
+                    rootpart.GroupPosition = npos;
+
                     foreach (SceneObjectPart part in sceneObject.Parts)
                     {
+                        if (part == rootpart)
+                            continue;
                         part.GroupPosition = npos;
                     }
-                    sceneObject.RootPart.Velocity = Vector3.Zero;
-                    sceneObject.RootPart.AngularVelocity = Vector3.Zero;
-                    sceneObject.RootPart.Acceleration = Vector3.Zero;
-                    sceneObject.RootPart.Velocity = Vector3.Zero;
+                    rootpart.Velocity = Vector3.Zero;
+                    rootpart.AngularVelocity = Vector3.Zero;
+                    rootpart.Acceleration = Vector3.Zero;
                 }
             }
 
@@ -321,7 +333,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
- 
 
             bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
 
@@ -428,9 +439,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Vector3 scale = part.Shape.Scale;
 
-                    scale.X = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.X));
-                    scale.Y = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.Y));
-                    scale.Z = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.Z));
+                    scale.X = Util.Clamp(scale.X, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
+                    scale.Y = Util.Clamp(scale.Y, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
+                    scale.Z = Util.Clamp(scale.Z, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
 
                     part.Shape.Scale = scale;
                 }
@@ -439,26 +450,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             sceneObject.AttachToScene(m_parentScene);
 
-
             Entities.Add(sceneObject);
-
 
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
 
-            lock (SceneObjectGroupsByFullPartID)
+            foreach (SceneObjectPart part in parts)
             {
-                foreach (SceneObjectPart part in parts)
+                lock (SceneObjectGroupsByFullPartID)
                     SceneObjectGroupsByFullPartID[part.UUID] = sceneObject;
-            }
 
-            lock (SceneObjectGroupsByLocalPartID)
-            {
-//                m_log.DebugFormat(
-//                    "[SCENE GRAPH]: Adding scene object {0} {1} {2} to SceneObjectGroupsByLocalPartID in {3}",
-//                    sceneObject.Name, sceneObject.UUID, sceneObject.LocalId, m_parentScene.RegionInfo.RegionName);
-
-                foreach (SceneObjectPart part in parts)
+                lock (SceneObjectGroupsByLocalPartID)
                     SceneObjectGroupsByLocalPartID[part.LocalId] = sceneObject;
             }
 
@@ -475,14 +477,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // no tests, caller has responsability...
             lock (SceneObjectGroupsByFullPartID)
-            {
                     SceneObjectGroupsByFullPartID[part.UUID] = grp;
-            }
 
             lock (SceneObjectGroupsByLocalPartID)
-            {
                     SceneObjectGroupsByLocalPartID[part.LocalId] = grp;
-            }
         }
 
         /// <summary>
@@ -511,25 +509,23 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
                     RemovePhysicalPrim(grp.PrimCount);
             }
-            
+
+            bool ret = Entities.Remove(uuid);
+
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID.Remove(grp.UUID);
 
-            lock (SceneObjectGroupsByFullPartID)
+            SceneObjectPart[] parts = grp.Parts;
+            for (int i = 0; i < parts.Length; i++)
             {
-                SceneObjectPart[] parts = grp.Parts;
-                for (int i = 0; i < parts.Length; i++)
+                lock (SceneObjectGroupsByFullPartID)
                     SceneObjectGroupsByFullPartID.Remove(parts[i].UUID);
-            }
 
-            lock (SceneObjectGroupsByLocalPartID)
-            {
-                SceneObjectPart[] parts = grp.Parts;
-                for (int i = 0; i < parts.Length; i++)
+                lock (SceneObjectGroupsByLocalPartID)
                     SceneObjectGroupsByLocalPartID.Remove(parts[i].LocalId);
             }
 
-            return Entities.Remove(uuid);
+            return ret;
         }
 
         /// <summary>
@@ -2133,21 +2129,15 @@ namespace OpenSim.Region.Framework.Scenes
                     lock (SceneObjectGroupsByFullID)
                         SceneObjectGroupsByFullID[copy.UUID] = copy;
 
-                    SceneObjectPart[] children = copy.Parts;
-
-                    lock (SceneObjectGroupsByFullPartID)
+                    SceneObjectPart[] parts = copy.Parts;
+                    foreach (SceneObjectPart part in parts)
                     {
-                        SceneObjectGroupsByFullPartID[copy.UUID] = copy;
-                        foreach (SceneObjectPart part in children)
+                        lock (SceneObjectGroupsByFullPartID)
                             SceneObjectGroupsByFullPartID[part.UUID] = copy;
-                    }
-
-                    lock (SceneObjectGroupsByLocalPartID)
-                    {
-                        SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
-                        foreach (SceneObjectPart part in children)
+                        lock (SceneObjectGroupsByLocalPartID)
                             SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
                     }
+
                     // PROBABLE END OF FIXME
 
                     // Since we copy from a source group that is in selected
