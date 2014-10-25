@@ -447,7 +447,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                = new TokenBucket(
 //                    string.Format("server throttle bucket for {0}", Scene.Name), null, sceneThrottleBps);
 
-            Throttle = new TokenBucket("server throttle bucket", null, sceneThrottleBps, sceneThrottleBps);
+            Throttle = new TokenBucket("server throttle bucket", null, 0, sceneThrottleBps);
 
             ThrottleRates = new ThrottleRates(configSource);
 

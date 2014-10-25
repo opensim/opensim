@@ -490,7 +490,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
                 "Max",
                 "Target", 
-                "Total",
+                "Actual",
                 "Resend",
                 "Land",
                 "Wind",
@@ -546,7 +546,9 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 report.AppendFormat(
                                     "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
                                     ci.maxThrottle > 0 ? ((ci.maxThrottle * 8) / 1000).ToString() : "-",
-                                    llUdpClient.FlowThrottle.AdaptiveEnabled ? ((ci.targetThrottle * 8) / 1000).ToString() : "-",
+                                    llUdpClient.FlowThrottle.AdaptiveEnabled 
+                                        ? ((ci.targetThrottle * 8) / 1000).ToString() 
+                                        : (llUdpClient.FlowThrottle.TotalDripRequest * 8 / 1000).ToString(),
                                     (ci.totalThrottle * 8) / 1000,
                                     (ci.resendThrottle * 8) / 1000,
                                     (ci.landThrottle * 8) / 1000,

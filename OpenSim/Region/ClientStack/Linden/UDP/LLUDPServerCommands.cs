@@ -512,7 +512,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, rawValue, out newValue))
                     return;
 
-                m_udpServer.Throttle.RequestedDripRate = newValue * 1000 / 8;
+                m_udpServer.Throttle.MaxDripRate = newValue * 1000 / 8;
             }
             else if (param == "max-new-client-throttle")
             {

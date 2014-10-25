@@ -57,51 +57,71 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]
         public void TestSetRequestDripRate()
         {
+            TestHelpers.InMethod();
+
             TokenBucket tb = new TokenBucket("tb", null, 5000, 0);
-            AssertRates(tb, 5000, 5000, 5000, 0);
+            AssertRates(tb, 5000, 0, 5000, 0);
 
             tb.RequestedDripRate = 4000;
-            AssertRates(tb, 4000, 4000, 4000, 0);
+            AssertRates(tb, 4000, 0, 4000, 0);
 
             tb.RequestedDripRate = 6000;
-            AssertRates(tb, 6000, 6000, 6000, 0);
+            AssertRates(tb, 6000, 0, 6000, 0);
         }
 
         [Test]
         public void TestSetRequestDripRateWithMax()
         {
+            TestHelpers.InMethod();
+
             TokenBucket tb = new TokenBucket("tb", null, 5000, 10000);
-            AssertRates(tb, 5000, 5000, 5000, 10000);
+            AssertRates(tb, 5000, 0, 5000, 10000);
 
             tb.RequestedDripRate = 4000;
-            AssertRates(tb, 4000, 4000, 4000, 10000);
+            AssertRates(tb, 4000, 0, 4000, 10000);
 
             tb.RequestedDripRate = 6000;
-            AssertRates(tb, 6000, 6000, 6000, 10000);
+            AssertRates(tb, 6000, 0, 6000, 10000);
 
             tb.RequestedDripRate = 12000;
-            AssertRates(tb, 10000, 10000, 10000, 10000);
+            AssertRates(tb, 10000, 0, 10000, 10000);
         }
 
         [Test]
         public void TestSetRequestDripRateWithChildren()
         {
+            TestHelpers.InMethod();
+
             TokenBucket tbParent = new TokenBucket("tbParent", null, 0, 0);
             TokenBucket tbChild1 = new TokenBucket("tbChild1", tbParent, 3000, 0);
             TokenBucket tbChild2 = new TokenBucket("tbChild2", tbParent, 5000, 0);
 
             AssertRates(tbParent, 8000, 8000, 8000, 0);
-            AssertRates(tbChild1, 3000, 3000, 3000, 0);
-            AssertRates(tbChild2, 5000, 5000, 5000, 0);
+            AssertRates(tbChild1, 3000, 0, 3000, 0);
+            AssertRates(tbChild2, 5000, 0, 5000, 0);
+
+            // Test: Setting a parent request greater than total children requests.
+            tbParent.RequestedDripRate = 10000;
+
+            AssertRates(tbParent, 10000, 8000, 8000, 0);
+            AssertRates(tbChild1, 3000, 0, 3000, 0);
+            AssertRates(tbChild2, 5000, 0, 5000, 0);
+
+            // Test: Setting a parent request lower than total children requests.
+            tbParent.RequestedDripRate = 6000;
+
+            AssertRates(tbParent, 6000, 8000, 6000, 0);
+            AssertRates(tbChild1, 3000, 0, 6000 / 8 * 3, 0);
+            AssertRates(tbChild2, 5000, 0, 6000 / 8 * 5, 0);
         }
 
         private void AssertRates(
             TokenBucket tb, double requestedDripRate, double totalDripRequest, double dripRate, double maxDripRate)
         {
-            Assert.AreEqual((int)requestedDripRate, tb.RequestedDripRate);
-            Assert.AreEqual((int)totalDripRequest, tb.TotalDripRequest);
-            Assert.AreEqual((int)dripRate, tb.DripRate);
-            Assert.AreEqual((int)maxDripRate, tb.MaxDripRate);
+            Assert.AreEqual((int)requestedDripRate, tb.RequestedDripRate, "Requested drip rate");
+            Assert.AreEqual((int)totalDripRequest, tb.TotalDripRequest, "Total drip request");
+            Assert.AreEqual((int)dripRate, tb.DripRate, "Drip rate");
+            Assert.AreEqual((int)maxDripRate, tb.MaxDripRate, "Max drip rate");
         }
 
         [Test]
@@ -360,16 +380,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             //                    "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
             //                    ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
 
-            Assert.AreEqual((int)resendBytes, ci.resendThrottle);
-            Assert.AreEqual((int)landBytes, ci.landThrottle);
-            Assert.AreEqual((int)windBytes, ci.windThrottle);
-            Assert.AreEqual((int)cloudBytes, ci.cloudThrottle);
-            Assert.AreEqual((int)taskBytes, ci.taskThrottle);
-            Assert.AreEqual((int)textureBytes, ci.textureThrottle);
-            Assert.AreEqual((int)assetBytes, ci.assetThrottle);
-            Assert.AreEqual((int)totalBytes, ci.totalThrottle);
-            Assert.AreEqual((int)targetBytes, ci.targetThrottle);
-            Assert.AreEqual((int)maxBytes, ci.maxThrottle);
+            Assert.AreEqual((int)resendBytes, ci.resendThrottle, "Resend");
+            Assert.AreEqual((int)landBytes, ci.landThrottle, "Land");
+            Assert.AreEqual((int)windBytes, ci.windThrottle, "Wind");
+            Assert.AreEqual((int)cloudBytes, ci.cloudThrottle, "Cloud");
+            Assert.AreEqual((int)taskBytes, ci.taskThrottle, "Task");
+            Assert.AreEqual((int)textureBytes, ci.textureThrottle, "Texture");
+            Assert.AreEqual((int)assetBytes, ci.assetThrottle, "Asset");
+            Assert.AreEqual((int)totalBytes, ci.totalThrottle, "Total");
+            Assert.AreEqual((int)targetBytes, ci.targetThrottle, "Target");
+            Assert.AreEqual((int)maxBytes, ci.maxThrottle, "Max");
         }
 
         private void SetThrottles(
