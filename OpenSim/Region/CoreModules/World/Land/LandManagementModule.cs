@@ -1199,8 +1199,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (land.UpdateLandProperties(args, remote_client, out snap_selection, out needOverlay))
             {
                 //the proprieties to who changed them
-
-                land.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
+                ScenePresence av = m_scene.GetScenePresence(remote_client.AgentId);
+                if(av.IsChildAgent || land != GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y))
+                    land.SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
+                else
+                    land.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
 
                 UUID parcelID = land.LandData.GlobalID;
                 m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
@@ -1218,7 +1221,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                      ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
                      if (aland != null)
                      {
-                         if (client != remote_client || land != aland)
+                         if (client != remote_client && land == aland)
                              aland.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, client);
                      }
                      if (avatar.currentParcelUUID == parcelID)
@@ -1848,7 +1851,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             }
                         }
                     }
-                                                    );
+                    );
                 }
                 if (flags == 4) //not target parcel, scripted object
                 {
