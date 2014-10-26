@@ -2187,20 +2187,16 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
                         HasGroupChanged = false;
                         HasGroupChangedDueToDelink = false;
+// debug
+                        if (RootPart.KeyframeMotion != null)
+                        {
+                            m_log.DebugFormat(
+                                "[BACKUP]: test prim {0} {1}, intransit = {2}",
+                                Name, UUID, inTransit);
+                        }
 
+                        m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
 
-// DEBUG
-//                        m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
-/*
-                        backup_group.ForEachPart(delegate(SceneObjectPart part) 
-                        { 
-                            if (part.KeyframeMotion != null)
-                            {
-                                part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
-//                                part.KeyframeMotion.UpdateSceneObject(this);
-                            }
-                        });
-*/
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
 
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
@@ -2261,6 +2257,8 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
+
+            dupe.inTransit = inTransit; // this shouldn't be needed TEST
 
             // new group as no sitting avatars            
             dupe.m_linkedAvatars = new List<ScenePresence>();
