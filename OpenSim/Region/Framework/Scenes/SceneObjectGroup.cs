@@ -530,77 +530,71 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 val = value;
 
-                if (Scene != null && !inTransit)
+                if (!IsAttachmentCheckFull() && !Scene.LoadingPrims &&
+                    ( Scene.TestBorderCross(val, Cardinals.E) ||
+                      Scene.TestBorderCross(val, Cardinals.W) ||
+                      Scene.TestBorderCross(val, Cardinals.N) ||
+                      Scene.TestBorderCross(val, Cardinals.S))
+                    )
                 {
-                    if (
-                        // (Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E)
-                        //     || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
-                        //     || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N)
-                        //     || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S))
-                        // Experimental change for better border crossings.
-                        //    The commented out original lines above would, it seems, trigger
-                        //    a border crossing a little early or late depending on which
-                        //    direction the object was moving.
-                        (Scene.TestBorderCross(val, Cardinals.E)
-                            || Scene.TestBorderCross(val, Cardinals.W)
-                            || Scene.TestBorderCross(val, Cardinals.N)
-                            || Scene.TestBorderCross(val, Cardinals.S))
-                        && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
+                    lock (m_parts)
                     {
-                        inTransit = true;
-                        SOGCrossDelegate d = CrossAsync;
-                        d.BeginInvoke(this, val, CrossAsyncCompleted, d);
+                        if (!inTransit)
+                        {
+                            inTransit = true;
+                            SOGCrossDelegate d = CrossAsync;
+                            d.BeginInvoke(this, val, CrossAsyncCompleted, d);
+                        }
                         return;
                     }
+                }
 
-
-                    if (RootPart.GetStatusSandbox())
+                if (RootPart.GetStatusSandbox())
+                {
+                    if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
                     {
-                        if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
-                        {
-                            RootPart.ScriptSetPhysicsStatus(false);
+                        RootPart.ScriptSetPhysicsStatus(false);
 
-                            if (Scene != null)
-                                Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
-                                      ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+                        if (Scene != null)
+                            Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                                  ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
 
-                            return;
-                        }
+                        return;
                     }
+                }
 
-                    bool triggerScriptEvent = m_rootPart.GroupPosition != val;
-                    if (m_dupeInProgress || IsDeleted)
-                        triggerScriptEvent = false;
+                bool triggerScriptEvent = m_rootPart.GroupPosition != val;
+                if (m_dupeInProgress || IsDeleted)
+                    triggerScriptEvent = false;
 
-                    m_rootPart.GroupPosition = val;
+                m_rootPart.GroupPosition = val;
 
-                    // Restuff the new GroupPosition into each child SOP of the linkset.
-                    // this is needed because physics may not have linksets but just loose SOPs in world
+                // Restuff the new GroupPosition into each child SOP of the linkset.
+                // this is needed because physics may not have linksets but just loose SOPs in world
 
-                    SceneObjectPart[] parts = m_parts.GetArray();
+                SceneObjectPart[] parts = m_parts.GetArray();
 
+                foreach (SceneObjectPart part in parts)
+                {
+                    if (part != m_rootPart)
+                        part.GroupPosition = val;
+                }
+
+                foreach (ScenePresence av in m_linkedAvatars)
+                {
+                    av.sitSOGmoved();
+                }
+
+                // now that position is changed tell it to scripts
+                if (triggerScriptEvent)
+                {
                     foreach (SceneObjectPart part in parts)
                     {
-                        if (part != m_rootPart)
-                            part.GroupPosition = val;
+                        part.TriggerScriptChangedEvent(Changed.POSITION);
                     }
-
-                    foreach (ScenePresence av in m_linkedAvatars)
-                    {
-                        av.sitSOGmoved();
-                    }
-
-                    // now that position is changed tell it to scripts
-                    if (triggerScriptEvent)
-                    {
-                        foreach (SceneObjectPart part in parts)
-                        {
-                            part.TriggerScriptChangedEvent(Changed.POSITION);
-                        }
-                    }
-
-                    Scene.EventManager.TriggerParcelPrimCountTainted();
                 }
+
+                Scene.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
