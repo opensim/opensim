@@ -2202,7 +2202,15 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
                         { 
                             part.Inventory.ProcessInventoryBackup(datastore); 
+
+                            // take the change to delete things 
+                            if(part.KeyframeMotion != null)
+                            {
+                                part.KeyframeMotion.Delete();
+                                part.KeyframeMotion = null;
+                            }
                         });
+
 
                         backup_group = null;
                     }
