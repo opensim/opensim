@@ -543,6 +543,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     // we may have received a full cache
                     // check same coerence and store
+                    wearableCacheValid = true;
                     for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
                     {
                         int idx = AvatarAppearance.BAKE_INDICES[i];
@@ -555,16 +556,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 wearableCache[idx].TextureAsset.Temporary = true;
                                 wearableCache[idx].TextureAsset.Local = true;
                                 cache.Store(wearableCache[idx].TextureAsset);
-                                
+
                             }
                             else if (cache.GetCached((wearableCache[idx].TextureID).ToString()) != null)
                             {
                                 hits++;
                             }
+                            else
+                            {
+                                wearableCacheValid = false;
+                                break;
+                            }
                         }
                     }
-
-                    wearableCacheValid = (hits >= AvatarAppearance.BAKE_INDICES.Length - 1); // skirt is optional
+                   
+                    wearableCacheValid = (wearableCacheValid && (hits >= AvatarAppearance.BAKE_INDICES.Length - 1));
                     if (wearableCacheValid)
                         m_log.Debug("[ValidateBakedCache] have valid local cache");
                 }
