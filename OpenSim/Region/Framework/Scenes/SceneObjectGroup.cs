@@ -529,7 +529,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 Vector3 val = value;
-              
+
                 if (Scene != null && !inTransit)
                 {
                     if (
@@ -552,54 +552,55 @@ namespace OpenSim.Region.Framework.Scenes
                         d.BeginInvoke(this, val, CrossAsyncCompleted, d);
                         return;
                     }
-                }
 
-                if (RootPart.GetStatusSandbox())
-                {
-                    if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
+
+                    if (RootPart.GetStatusSandbox())
                     {
-                        RootPart.ScriptSetPhysicsStatus(false);
-                        
-                        if (Scene != null)
-                            Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
-                                  ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
-                        
-                        return;
+                        if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
+                        {
+                            RootPart.ScriptSetPhysicsStatus(false);
+
+                            if (Scene != null)
+                                Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                                      ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+
+                            return;
+                        }
                     }
-                }
 
-                bool triggerScriptEvent = m_rootPart.GroupPosition != val;
-                if (m_dupeInProgress || IsDeleted)
-                    triggerScriptEvent = false;
+                    bool triggerScriptEvent = m_rootPart.GroupPosition != val;
+                    if (m_dupeInProgress || IsDeleted)
+                        triggerScriptEvent = false;
 
-                m_rootPart.GroupPosition = val;
+                    m_rootPart.GroupPosition = val;
 
-                // Restuff the new GroupPosition into each child SOP of the linkset.
-                // this is needed because physics may not have linksets but just loose SOPs in world
+                    // Restuff the new GroupPosition into each child SOP of the linkset.
+                    // this is needed because physics may not have linksets but just loose SOPs in world
 
-                SceneObjectPart[] parts = m_parts.GetArray();
+                    SceneObjectPart[] parts = m_parts.GetArray();
 
-                foreach (SceneObjectPart part in parts)
-                {
-                    if (part != m_rootPart)
-                        part.GroupPosition = val;
-                }
-
-                foreach (ScenePresence av in m_linkedAvatars)
-                {
-                    av.sitSOGmoved();
-                }
-
-                // now that position is changed tell it to scripts
-                if (triggerScriptEvent)
-                {
                     foreach (SceneObjectPart part in parts)
                     {
-                        part.TriggerScriptChangedEvent(Changed.POSITION);
+                        if (part != m_rootPart)
+                            part.GroupPosition = val;
                     }
+
+                    foreach (ScenePresence av in m_linkedAvatars)
+                    {
+                        av.sitSOGmoved();
+                    }
+
+                    // now that position is changed tell it to scripts
+                    if (triggerScriptEvent)
+                    {
+                        foreach (SceneObjectPart part in parts)
+                        {
+                            part.TriggerScriptChangedEvent(Changed.POSITION);
+                        }
+                    }
+
+                    Scene.EventManager.TriggerParcelPrimCountTainted();
                 }
-               
-                Scene.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
@@ -751,11 +752,7 @@ namespace OpenSim.Region.Framework.Scenes
             SOGCrossDelegate icon = (SOGCrossDelegate)iar.AsyncState;
             SceneObjectGroup sog = icon.EndInvoke(iar);
 
-            if (sog.IsDeleted)
-            {
-                sog.inTransit = false; // just in case...
-            }
-            else
+            if (!sog.IsDeleted)
             {
                 SceneObjectPart rootp = sog.m_rootPart;
                 Vector3 oldp = rootp.GroupPosition;
