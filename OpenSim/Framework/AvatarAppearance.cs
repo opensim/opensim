@@ -732,14 +732,13 @@ namespace OpenSim.Framework
             }
             data["textures"] = textures;
 
-/* don't send bakes.
             if (m_cacheitems != null)
             {
                 OSDArray baked = WearableCacheItem.BakedToOSD(m_cacheitems);
                 if (baked != null)
                     data["bakedcache"] = baked;
             }
-*/
+
             // Visual Parameters
             OSDBinary visualparams = new OSDBinary(m_visualparams);
             data["visualparams"] = visualparams;
