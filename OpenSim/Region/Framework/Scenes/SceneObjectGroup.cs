@@ -537,8 +537,6 @@ namespace OpenSim.Region.Framework.Scenes
                       Scene.TestBorderCross(val, Cardinals.S))
                     )
                 {
-                    lock (m_parts)
-                    {
                         if (!inTransit)
                         {
                             inTransit = true;
@@ -546,7 +544,6 @@ namespace OpenSim.Region.Framework.Scenes
                             d.BeginInvoke(this, val, CrossAsyncCompleted, d);
                         }
                         return;
-                    }
                 }
 
                 if (RootPart.GetStatusSandbox())
@@ -2191,7 +2188,9 @@ namespace OpenSim.Region.Framework.Scenes
                         HasGroupChanged = false;
                         HasGroupChangedDueToDelink = false;
 
-                        m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
+
+// DEBUG
+//                        m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
 /*
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
                         { 
