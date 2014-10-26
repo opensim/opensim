@@ -2274,27 +2274,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // new group as no sitting avatars            
             dupe.m_linkedAvatars = new List<ScenePresence>();
-
-            // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
-            // attachments do not bordercross while they're being duplicated.  This is hacktastic!
-            // Normally, setting AbsolutePosition will bordercross a prim if it's outside the region!
-            // unless IsAttachment is true!, so to prevent border crossing, we save it's attachment state 
-            // (which should be false anyway) set it as an Attachment and then set it's Absolute Position, 
-            // then restore it's attachment state
-
-            // This is only necessary when userExposed is false!
-
-            bool previousAttachmentStatus = dupe.IsAttachment;
-
-            if (!userExposed)
-                dupe.IsAttachment = true;
-
             dupe.m_sittingAvatars = new List<UUID>();
-
-            if (!userExposed)
-            {
-                dupe.IsAttachment = previousAttachmentStatus;
-            }
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
@@ -2318,7 +2298,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
                     newPart.LinkNum = part.LinkNum;
-                    if (userExposed)
+//                    if (userExposed)
                         newPart.ParentID = dupe.m_rootPart.LocalId;
                  }
                 else
@@ -2379,10 +2359,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cGroupID"></param>
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            //            SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
-            // give newpart a new local ID lettng old part keep same
-            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
-            newpart.LocalId = m_scene.AllocateLocalId();
+            SceneObjectPart newpart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed);
+//            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
+//            newpart.LocalId = m_scene.AllocateLocalId();
 
             SetRootPart(newpart);
             if (userExposed)
@@ -2601,8 +2580,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cGroupID"></param>
         public SceneObjectPart CopyPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(part.LocalId, OwnerID, GroupID, m_parts.Count, userExposed);
-            newPart.LocalId = m_scene.AllocateLocalId();
+            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed);
+//            SceneObjectPart newPart = part.Copy(part.LocalId, OwnerID, GroupID, m_parts.Count, userExposed);
+//            newPart.LocalId = m_scene.AllocateLocalId();
 
             AddPart(newPart);
 

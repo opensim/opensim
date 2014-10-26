@@ -2132,7 +2132,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="linkNum"></param>
         /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
         /// <returns></returns>
-        public SceneObjectPart Copy(uint localID, UUID AgentID, UUID GroupID, int linkNum, bool userExposed)
+        public SceneObjectPart Copy(uint plocalID, UUID AgentID, UUID GroupID, int linkNum, bool userExposed)
         {
             SceneObjectPart dupe = (SceneObjectPart)MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
@@ -2178,7 +2178,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Move afterwards ResetIDs as it clears the localID
-            dupe.LocalId = localID;
+            dupe.LocalId = plocalID;
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe.LastOwnerID = OwnerID;
@@ -2208,7 +2208,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
             if (dupe.PhysActor != null)
-                dupe.PhysActor.LocalID = localID;
+                dupe.PhysActor.LocalID = plocalID;
 
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
