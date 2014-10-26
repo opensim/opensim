@@ -785,6 +785,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Byte[] Serialize()
         {
+            bool timerWasStopped;
+            lock (m_frames)
+            {
+                timerWasStopped = m_timerStopped;
+            }
             StopTimer();
             MemoryStream ms = new MemoryStream();
 
@@ -795,7 +800,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_serializedPosition = tmp.AbsolutePosition;
             fmt.Serialize(ms, this);
             m_group = tmp;
-            if (m_running && !m_waitingCrossing)
+            if (!timerWasStopped && m_running && !m_waitingCrossing)
                 StartTimer();
 
             return ms.ToArray();
