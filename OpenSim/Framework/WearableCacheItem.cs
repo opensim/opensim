@@ -144,12 +144,14 @@ namespace OpenSim.Framework
                 itemmap.Add("textureindex", OSD.FromUInteger(item.TextureIndex));
                 itemmap.Add("cacheid", OSD.FromUUID(item.CacheId));
                 itemmap.Add("textureid", OSD.FromUUID(item.TextureID));
+/*
                 if (item.TextureAsset != null)
                 {
                     itemmap.Add("assetdata", OSD.FromBinary(item.TextureAsset.Data));
                     itemmap.Add("assetcreator", OSD.FromString(item.TextureAsset.CreatorID));
                     itemmap.Add("assetname", OSD.FromString(item.TextureAsset.Name));
                 }
+ */
                 arr.Add(itemmap);
             }
             return arr;
@@ -169,6 +171,7 @@ namespace OpenSim.Framework
                         continue;
                     pcache[idx].CacheId = item["cacheid"].AsUUID();
                     pcache[idx].TextureID = item["textureid"].AsUUID();
+/*
                     if (item.ContainsKey("assetdata"))
                     {
                         AssetBase asset = new AssetBase(item["textureid"].AsUUID(), "BakedTexture", (sbyte)AssetType.Texture, UUID.Zero.ToString());
@@ -178,6 +181,7 @@ namespace OpenSim.Framework
                         pcache[idx].TextureAsset = asset;
                     }
                     else
+ */ 
                         pcache[idx].TextureAsset = null;
                 }
             }

@@ -547,12 +547,20 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     {
                         int idx = AvatarAppearance.BAKE_INDICES[i];
                         Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
-                        if (face != null && face.TextureID == wearableCache[idx].TextureID && wearableCache[idx].TextureAsset != null)
+                        if (face != null && face.TextureID == wearableCache[idx].TextureID)
                         {
-                            hits++;
-                            wearableCache[idx].TextureAsset.Temporary = true;
-                            wearableCache[idx].TextureAsset.Local = true;
-                            cache.Store(wearableCache[idx].TextureAsset);
+                            if (wearableCache[idx].TextureAsset != null)
+                            {
+                                hits++;
+                                wearableCache[idx].TextureAsset.Temporary = true;
+                                wearableCache[idx].TextureAsset.Local = true;
+                                cache.Store(wearableCache[idx].TextureAsset);
+                                
+                            }
+                            else if (cache.GetCached((wearableCache[idx].TextureID).ToString()) != null)
+                            {
+                                hits++;
+                            }
                         }
                     }
 
