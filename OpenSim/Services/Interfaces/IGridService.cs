@@ -445,7 +445,7 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("sizeY"))
                 RegionSizeY = Convert.ToInt32((string)kvp["sizeY"]);
             else
-                RegionSizeX = (int)Constants.RegionSize;
+                RegionSizeY = (int)Constants.RegionSize;
 
             if (kvp.ContainsKey("regionName"))
                 RegionName = (string)kvp["regionName"];
