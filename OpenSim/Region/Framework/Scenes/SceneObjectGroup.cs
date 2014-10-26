@@ -2187,13 +2187,6 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
                         HasGroupChanged = false;
                         HasGroupChangedDueToDelink = false;
-// debug
-                        if (RootPart.KeyframeMotion != null)
-                        {
-                            m_log.DebugFormat(
-                                "[BACKUP]: test prim {0} {1}, intransit = {2}",
-                                Name, UUID, inTransit);
-                        }
 
                         m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
 
