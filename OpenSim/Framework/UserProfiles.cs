@@ -80,6 +80,7 @@ namespace OpenSim.Framework
         public string User = string.Empty;
         public string SimName = string.Empty;
         public string GlobalPos = "<0,0,0>";
+        public string Gatekeeper = string.Empty;
         public int SortOrder = 0;
         public bool Enabled = false;
     }

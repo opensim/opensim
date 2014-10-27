@@ -945,6 +945,13 @@ namespace OpenSim.Services.LLLoginService
                     m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
                 }
 
+                if (!account.ServiceURLs.ContainsKey("GatekeeperURI") && !string.IsNullOrEmpty(m_GatekeeperURL))
+                {
+                    m_log.DebugFormat("[LLLOGIN SERVICE]: adding gatekeeper uri {0}", m_GatekeeperURL);
+                    account.ServiceURLs["GatekeeperURI"] = m_GatekeeperURL;
+                    newUrls = true;
+                }
+
                 // The grid operator decided to override the defaults in the
                 // [LoginService] configuration. Let's store the correct ones.
                 if (newUrls)

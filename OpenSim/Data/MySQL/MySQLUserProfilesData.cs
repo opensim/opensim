@@ -397,6 +397,7 @@ namespace OpenSim.Data.MySQL
                                 UUID.TryParse((string)reader["parceluuid"], out pick.ParcelId);
                                 UUID.TryParse((string)reader["snapshotuuid"], out pick.SnapshotId);
                                 pick.GlobalPos = (string)reader["posglobal"];
+                                pick.Gatekeeper = (string)reader["gatekeeper"];
                                 bool.TryParse((string)reader["toppick"], out pick.TopPick);
                                 bool.TryParse((string)reader["enabled"], out pick.Enabled);
                                 pick.Name = (string)reader["name"];
@@ -436,14 +437,16 @@ namespace OpenSim.Data.MySQL
             query += "?SimName,";
             query += "?GlobalPos,";
             query += "?SortOrder,";
-            query += "?Enabled) ";
+            query += "?Enabled,";
+            query += "?Gatekeeper)";
             query += "ON DUPLICATE KEY UPDATE ";
             query += "parceluuid=?ParcelId,";
             query += "name=?Name,";
             query += "description=?Desc,";
             query += "snapshotuuid=?SnapshotId,";
             query += "pickuuid=?PickId,";
-            query += "posglobal=?GlobalPos";
+            query += "posglobal=?GlobalPos,";
+            query += "gatekeeper=?Gatekeeper";
             
             try
             {
@@ -463,6 +466,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?Original", pick.OriginalName.ToString());
                         cmd.Parameters.AddWithValue("?SimName",pick.SimName.ToString());
                         cmd.Parameters.AddWithValue("?GlobalPos", pick.GlobalPos);
+                        cmd.Parameters.AddWithValue("?Gatekeeper",pick.Gatekeeper);
                         cmd.Parameters.AddWithValue("?SortOrder", pick.SortOrder.ToString ());
                         cmd.Parameters.AddWithValue("?Enabled", pick.Enabled.ToString());
                         
