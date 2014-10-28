@@ -51,7 +51,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private List<Scene> m_scenes = new List<Scene>();
+
 //        private IAvatarFactoryModule m_avatarFactory;
         
         public string Name { get { return "Appearance Information Module"; } }        
@@ -83,7 +84,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
             
             lock (m_scenes)
-                m_scenes.Remove(scene.RegionInfo.RegionID);
+                m_scenes.Remove(scene);
         }        
         
         public void RegionLoaded(Scene scene)
@@ -91,7 +92,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
             
             lock (m_scenes)
-                m_scenes[scene.RegionInfo.RegionID] = scene;
+                m_scenes.Add(scene);
 
             scene.AddCommand(
                 "Users", this, "show appearance",
@@ -140,6 +141,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 "If no avatar name is given then a general summary for all avatars in the scene is shown.\n"
                 + "If an avatar name is given then specific information about current wearables is shown.",
                 HandleShowWearablesCommand);
+
+            scene.AddCommand(
+                "Users", this, "wearables check",
+                "wearables check <first-name> <last-name>",
+                "Check that the wearables of a given avatar in the scene are valid.",
+                "This currently checks that the wearable assets themselves and any assets referenced by them exist.",
+                HandleCheckWearablesCommand);
         }
 
         private void HandleSendAppearanceCommand(string module, string[] cmd)
@@ -163,7 +171,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
             lock (m_scenes)
             {
-                foreach (Scene scene in m_scenes.Values)
+                foreach (Scene scene in m_scenes)
                 {
                     if (targetNameSupplied)
                     {
@@ -215,7 +223,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
             lock (m_scenes)
             {   
-                foreach (Scene scene in m_scenes.Values)
+                foreach (Scene scene in m_scenes)
                 {
                     if (targetNameSupplied)
                     {
@@ -251,7 +259,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
             lock (m_scenes)
             {
-                foreach (Scene scene in m_scenes.Values)
+                foreach (Scene scene in m_scenes)
                 {
                     ScenePresence sp = scene.GetScenePresence(firstname, lastname);
                     if (sp != null && !sp.IsChildAgent)
@@ -285,7 +293,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
             lock (m_scenes)
             {
-                foreach (Scene scene in m_scenes.Values)
+                foreach (Scene scene in m_scenes)
                 {
                     scene.ForEachRootScenePresence(
                         sp =>
@@ -338,7 +346,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             {
                 lock (m_scenes)   
                 {
-                    foreach (Scene scene in m_scenes.Values)
+                    foreach (Scene scene in m_scenes)
                     {
                         ScenePresence sp = scene.GetScenePresence(optionalTargetFirstName, optionalTargetLastName);
                         if (sp != null && !sp.IsChildAgent)
@@ -354,7 +362,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
                 lock (m_scenes)   
                 {
-                    foreach (Scene scene in m_scenes.Values)
+                    foreach (Scene scene in m_scenes)
                     {
                         scene.ForEachRootScenePresence(
                             sp => 
@@ -371,6 +379,76 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 }
 
                 sb.Append(cdt.ToString());
+            }
+
+            MainConsole.Instance.Output(sb.ToString());
+        }
+
+        private void HandleCheckWearablesCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: wearables check <first-name> <last-name>");
+                return;
+            }
+
+            string firstname = cmd[2];
+            string lastname = cmd[3];
+
+            StringBuilder sb = new StringBuilder();
+            UuidGatherer uuidGatherer = new UuidGatherer(m_scenes[0].AssetService);
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes)
+                {
+                    ScenePresence sp = scene.GetScenePresence(firstname, lastname);
+                    if (sp != null && !sp.IsChildAgent)
+                    {
+                        sb.AppendFormat("Wearables checks for {0}\n\n", sp.Name);
+
+                        for (int i = (int)WearableType.Shape; i < (int)WearableType.Physics; i++)
+                        {
+                            AvatarWearable aw = sp.Appearance.Wearables[i];
+
+                            if (aw.Count > 0)
+                            {
+                                sb.Append(Enum.GetName(typeof(WearableType), i));
+                                sb.Append("\n");
+
+                                for (int j = 0; j < aw.Count; j++)
+                                {
+                                    WearableItem wi = aw[j];
+
+                                    ConsoleDisplayList cdl = new ConsoleDisplayList();
+                                    cdl.Indent = 2;
+                                    cdl.AddRow("Item UUID", wi.ItemID);
+                                    cdl.AddRow("Assets", "");
+                                    sb.Append(cdl.ToString());
+
+                                    Dictionary<UUID, sbyte> assetUuids = new Dictionary<UUID, sbyte>();
+                                    uuidGatherer.GatherAssetUuids(wi.AssetID, assetUuids);
+                                    string[] assetStrings 
+                                        = Array.ConvertAll<UUID, string>(assetUuids.Keys.ToArray(), u => u.ToString());
+
+                                    bool[] existChecks = scene.AssetService.AssetsExist(assetStrings);
+
+                                    ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+                                    cdt.Indent = 4;
+                                    cdt.AddColumn("Type", 10);
+                                    cdt.AddColumn("UUID", ConsoleDisplayUtil.UuidSize);
+                                    cdt.AddColumn("Found", 5);
+                                            
+                                    for (int k = 0; k < existChecks.Length; k++)
+                                        cdt.AddRow((AssetType)assetUuids[new UUID(assetStrings[k])], assetStrings[k], existChecks[k] ? "yes" : "no");
+
+                                    sb.Append(cdt.ToString());
+                                    sb.Append("\n");
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             MainConsole.Instance.Output(sb.ToString());
