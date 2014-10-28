@@ -184,7 +184,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             udpServer.Throttle.DebugLevel = 1;
             udpClient.ThrottleDebugLevel = 1;
 
-            // Total is 28000
+            // Total is 280000
             int resendBytes = 10000;
             int landBytes = 20000;
             int windBytes = 30000;
@@ -192,24 +192,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             int taskBytes = 50000;
             int textureBytes = 60000;
             int assetBytes = 70000;
+            int totalBytes = resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes;
 
             SetThrottles(
                 udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            // We expect individual throttle changes to currently have no effect under adaptive, since this is managed
-            // purely by that throttle.  However, we expect the max to change.
-            // XXX: At the moment we check against defaults, but at some point there should be a better test to 
-            // active see change over time.
-            ThrottleRates defaultRates = udpServer.ThrottleRates;
-
-            // Current total is 66750
-            int totalBytes = defaultRates.Resend + defaultRates.Land + defaultRates.Wind + defaultRates.Cloud + defaultRates.Task + defaultRates.Texture + defaultRates.Asset;
-            int totalMaxBytes = resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes;
+            // Ratio of current adaptive drip rate to requested bytes
+            // XXX: Should hard code this as below so we don't rely on values given by tested code to construct
+            // expected values.
+            double commitRatio = (double)udpClient.FlowThrottle.AdjustedDripRate / udpClient.FlowThrottle.TargetDripRate;
 
             AssertThrottles(
                 udpClient, 
-                defaultRates.Resend, defaultRates.Land, defaultRates.Wind, defaultRates.Cloud, defaultRates.Task, 
-                defaultRates.Texture, defaultRates.Asset, totalBytes, totalMaxBytes, 0);
+                LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
+                textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
+
+            // Test an increase in target throttle
+            udpClient.FlowThrottle.AcknowledgePackets(35000);
+            commitRatio = 0.2;
+
+            AssertThrottles(
+                udpClient, 
+                resendBytes * commitRatio, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
+                textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
+
+            // Test a decrease in target throttle
+            udpClient.FlowThrottle.ExpirePackets(1);
+            commitRatio = 0.1;
+
+            AssertThrottles(
+                udpClient, 
+                LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
+                textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
         }
 
         /// <summary>
@@ -376,9 +390,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         {
             ClientInfo ci = udpClient.GetClientInfo();
 
-            //                Console.WriteLine(
-            //                    "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
-            //                    ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
+//                            Console.WriteLine(
+//                                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+//                                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
 
             Assert.AreEqual((int)resendBytes, ci.resendThrottle, "Resend");
             Assert.AreEqual((int)landBytes, ci.landThrottle, "Land");

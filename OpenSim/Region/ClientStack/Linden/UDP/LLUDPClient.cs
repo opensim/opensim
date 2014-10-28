@@ -447,31 +447,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 long total = resend + land + wind + cloud + task + texture + asset;
                 m_throttleClient.TargetDripRate = total;
             }
-            else
-            {
-                TokenBucket bucket;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
-                bucket.RequestedDripRate = resend;
+            TokenBucket bucket;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
-                bucket.RequestedDripRate = land;
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
+            bucket.RequestedDripRate = resend;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
-                bucket.RequestedDripRate = wind;
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
+            bucket.RequestedDripRate = land;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
-                bucket.RequestedDripRate = cloud;
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
+            bucket.RequestedDripRate = wind;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
-                bucket.RequestedDripRate = asset;
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
+            bucket.RequestedDripRate = cloud;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
-                bucket.RequestedDripRate = task;
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
+            bucket.RequestedDripRate = asset;
 
-                bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
-                bucket.RequestedDripRate = texture;
-            }
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
+            bucket.RequestedDripRate = task;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
+            bucket.RequestedDripRate = texture;
 
             // Reset the packed throttles cached data
             m_packedThrottles = null;
