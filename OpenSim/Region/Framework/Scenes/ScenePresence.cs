@@ -1126,7 +1126,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ParentID = 0;
                         ParentPart = null;
                         PrevSitOffset = Vector3.Zero;
-                        ClearControls();
+                        HandleForceReleaseControls(ControllingClient, UUID); // needs testing
                         IsLoggingIn = false;
                     }
                     else
@@ -1211,6 +1211,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 AbsolutePosition = pos;
 
+
                 if (m_teleportFlags == TeleportFlags.Default)
                 {
                     Vector3 vel = Velocity;
@@ -1220,6 +1221,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                     AddToPhysicalScene(isFlying);
+
 
                 if (ForceFly)
                 {
@@ -3862,91 +3864,15 @@ namespace OpenSim.Region.Framework.Scenes
             pos2.Y += vel.Y * timeStep;
             pos2.Z += vel.Z * timeStep;
 
-            //                    m_log.DebugFormat(
-            //                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
-            //                        pos2, Name, Scene.Name);
-/*
-            // Checks if where it's headed exists a region
-            int neighbor = 0;
-            int[] fix = new int[2];
-
-            bool needsTransit = false;
-            if (m_scene.TestBorderCross(pos2, Cardinals.W))
-            {
-                if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
-                }
-                else
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
-                }
-            }
-            else if (m_scene.TestBorderCross(pos2, Cardinals.E))
-            {
-                if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
-                }
-                else
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
-                }
-            }
-            else if (m_scene.TestBorderCross(pos2, Cardinals.S))
-            {
-                needsTransit = true;
-                neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
-            }
-            else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-            {
-                needsTransit = true;
-                neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
-            }
-
-            // Makes sure avatar does not end up outside region
-
-            if (neighbor <= 0)
-            {
-                if (needsTransit)
-                {
-                    CrossToNewRegionFail();
-                }
-            }
-            else if (neighbor > 0)
-            {
-                if (!CrossToNewRegion())
-                {
-                    CrossToNewRegionFail();
-                }
-            }
- */
-            bool needsTransit = false;
-
-            if (pos2.X < 0)
-                needsTransit = true;
-            else if (pos2.X > m_scene.RegionInfo.RegionSizeX)
-                needsTransit = true;
-            else if (pos2.Y < 0)
-                needsTransit = true;
-            else if (pos2.Y > m_scene.RegionInfo.RegionSizeY)
-                needsTransit = true;
-
-            if (needsTransit)
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
+//                        pos2, Name, Scene.Name);
+            
+            if( Scene.TestBorderCross(pos2, Cardinals.E) ||
+                Scene.TestBorderCross(pos2, Cardinals.W) ||
+                Scene.TestBorderCross(pos2, Cardinals.N) ||
+                Scene.TestBorderCross(pos2, Cardinals.S)
+               )
             {
                 if (!CrossToNewRegion() && m_requestedSitTargetUUID == UUID.Zero)
                 {
