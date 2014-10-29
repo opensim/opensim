@@ -452,7 +452,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 foreach (UUID id in missing)
                     sp.ControllingClient.SendRebakeAvatarTextures(id);
             }
-            else if (validDirtyBakes > 0 && hits == cacheItems.Length)
+
+            if (validDirtyBakes > 0 && hits == cacheItems.Length)
             {
                 // if we got a full set of baked textures save all in BakedTextureModule
                 if (m_BakedTextureModule != null)
