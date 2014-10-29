@@ -420,16 +420,18 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         continue;
                     }
 */
-
                     wearableCache[idx].TextureAsset = null;
                     if (cache != null)
                        wearableCache[idx].TextureAsset = cache.GetCached(face.TextureID.ToString());
 
                     if (wearableCache[idx].TextureAsset != null)
                     {
-                        wearableCache[idx].CacheId = cacheItems[i].CacheId;
+                        if ( wearableCache[idx].TextureID != face.TextureID ||
+                                wearableCache[idx].CacheId != cacheItems[i].CacheId)
+                            validDirtyBakes++;
+
                         wearableCache[idx].TextureID = face.TextureID;
-                        validDirtyBakes++;
+                        wearableCache[idx].CacheId = cacheItems[i].CacheId;
                         hits++;
                     }
                     else
@@ -444,11 +446,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             sp.Appearance.WearableCacheItems = wearableCache;
-
-            // if we got a full set of baked textures save all in BakedTextureModule
-
-            if (validDirtyBakes > 0 && hits == cacheItems.Length)
+           
+            if (missing.Count > 0)
             {
+                foreach (UUID id in missing)
+                    sp.ControllingClient.SendRebakeAvatarTextures(id);
+            }
+            else if (validDirtyBakes > 0 && hits == cacheItems.Length)
+            {
+                // if we got a full set of baked textures save all in BakedTextureModule
                 if (m_BakedTextureModule != null)
                 {
                     m_log.Debug("[UpdateBakedCache] uploading to bakedModule cache");
@@ -466,11 +472,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 }
             }
 
-            if(missing.Count > 0)
-            {
-                foreach(UUID id in missing)
-                    sp.ControllingClient.SendRebakeAvatarTextures(id);
-            }
 
             // debug
             m_log.Debug("[UpdateBakedCache] cache hits: " + hits.ToString() + " changed entries: " + validDirtyBakes.ToString() + " rebakes " + missing.Count);
