@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules
         {
             string response = null;
 
-            int simulatorCapacity = lo.GetParcelMaxPrimCount();
+            int simulatorCapacity = lo.GetSimulatorMaxPrimCount();
             if ((objectCount + lo.PrimCounts.Total) > simulatorCapacity)
             {
                 response = "Unable to rez object because the parcel is too full";
