@@ -152,6 +152,8 @@ namespace OpenMetaverse
                     SocketType.Dgram,
                     ProtocolType.Udp);
 
+                m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
+
                 try
                 {
                     // This udp socket flag is not supported under mono, 
