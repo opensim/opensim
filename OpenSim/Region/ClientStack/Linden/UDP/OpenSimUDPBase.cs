@@ -168,6 +168,12 @@ namespace OpenMetaverse
                     m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
                 }
 
+                // On at least Mono 3.2.8, multiple UDP sockets can bind to the same port by default.  At the moment
+                // we never want two regions to listen on the same port as they cannot demultiplex each other's messages,
+                // leading to a confusing bug.
+                // By default, Windows does not allow two sockets to bind to the same port.
+                m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
+
                 if (recvBufferSize != 0)
                     m_udpSocket.ReceiveBufferSize = recvBufferSize;
 
