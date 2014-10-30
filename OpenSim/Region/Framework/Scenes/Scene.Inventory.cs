@@ -1946,7 +1946,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            if (destPart.ScriptAccessPin != pin)
+            if (destPart.ScriptAccessPin == 0 || destPart.ScriptAccessPin != pin)
             {
                 m_log.WarnFormat(
                         "[PRIM INVENTORY]: " +
