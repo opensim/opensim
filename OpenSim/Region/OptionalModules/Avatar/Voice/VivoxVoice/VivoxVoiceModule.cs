@@ -630,6 +630,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 // voice, if all do retrieve or obtain the parcel
                 // voice channel
                 LandData land = scene.GetLandData(avatar.AbsolutePosition);
+                if (land == null)
+                {
+                    return "<llsd><undef /></llsd>";
+                }
 
 //                    m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": request: {4}, path: {5}, param: {6}",
 //                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);
