@@ -87,6 +87,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Regions", false, "show region",
                 "show region",
                 "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                "A synonym for \"region get\"",
+                HandleShowRegion);
+
+            m_console.Commands.AddCommand(
+                "Regions", false, "region get",
+                "region get",
+                "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                "Some parameters can be set with the \"region set\" command.\n"
+                + "Others must be changed via a viewer (usually via the region/estate dialog box).",
                 HandleShowRegion);
         }
 
