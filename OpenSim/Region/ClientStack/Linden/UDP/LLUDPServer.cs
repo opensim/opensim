@@ -1245,7 +1245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int dataLength = buffer.DataLength;
 
             // NOTE: I'm seeing problems with some viewers when ACKs are appended to zerocoded packets so I've disabled that here
-            if (!isZerocoded && !isResend)
+            if (!isZerocoded && !isResend && outgoingPacket.UnackedMethod == null)
             {
                 // Keep appending ACKs until there is no room left in the buffer or there are
                 // no more ACKs to append
