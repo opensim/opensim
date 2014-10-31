@@ -103,8 +103,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "region get",
                 "Set control information for the currently selected region.",
                 "Currently, the following parameters can be set:\n"
-                + "agent-limit <int>     - Current root agent limit.\n"
-                + "max-agent-limit <int> - Maximum root agent limit.  agent-limit cannot exceed this.",
+                + "agent-limit <int>     - Current root agent limit.  This is persisted over restart.\n"
+                + "max-agent-limit <int> - Maximum root agent limit.  agent-limit cannot exceed this."
+                + "  This is not persisted over restart - to set it every time you must add a MaxAgents entry to your regions file.",
                 HandleRegionSet);
         }
 
@@ -224,6 +225,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     MainConsole.Instance.OutputFormat(
                         "{0} set to {1} in {2}", "agent-limit", newValue, m_scene.Name);
                 }
+
+                rs.Save();
             }
             else if (param == "max-agent-limit")
             {
@@ -244,6 +247,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     MainConsole.Instance.OutputFormat(
                         "Reducing {0} to {1} in {2}", "agent-limit", rs.AgentLimit, m_scene.Name);
                 }
+
+                rs.Save();
             }
         }
 
