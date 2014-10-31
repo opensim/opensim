@@ -402,7 +402,7 @@ namespace OpenSim.Server.Handlers
             
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
-            m_log.InfoFormat("[PROFILES]: User preferences request error - {0}", response.Error.Message);
+//            m_log.InfoFormat("[PROFILES]: User preferences request error - {0}", response.Error.Message);
             return false;
         }
 

@@ -921,8 +921,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             object Pref = (object)pref;
             if(!rpc.JsonRpcRequest(ref Pref, "user_preferences_request", serverURI, UUID.Random().ToString()))
             {
-                m_log.InfoFormat("[PROFILES]: UserPreferences request error");
-                remoteClient.SendAgentAlertMessage("Error requesting preferences", false);
+//                m_log.InfoFormat("[PROFILES]: UserPreferences request error");
+//                remoteClient.SendAgentAlertMessage("Error requesting preferences", false);
                 return;
             }
             pref = (UserPreferences) Pref;
