@@ -830,7 +830,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
             // OK, it got this agent. Let's close some child agents
-            sp.CloseChildAgents(newRegionX, newRegionY);
+            
 
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
@@ -972,7 +972,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
             // For backwards compatibility
             if (version == "Unknown" || version == string.Empty)
@@ -981,6 +980,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Old simulator, sending attachments one by one...");
                 CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
             }
+
+            m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
+
 
             // May need to logout or other cleanup
 //            AgentHasMovedAway(sp, logout);
@@ -991,6 +993,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             bool l_needsclosing = NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg);
             sp.HasMovedAway(!l_needsclosing);
+
+            sp.CloseChildAgents(newRegionX, newRegionY);
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
@@ -1518,10 +1522,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 */
             float regionSizeX = regInfo.RegionSizeX;
             float regionSizeY = regInfo.RegionSizeY;
-            if (regionSizeX == 0)
-                regionSizeX = 256f;
-            if (regionSizeY == 0)
-                regionSizeY = 256f;
 
             if (pos.X < boundaryDistance)
                 neighbourx--;
@@ -1565,9 +1565,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             float newRegionSizeX = neighbourRegion.RegionSizeX;
             float newRegionSizeY = neighbourRegion.RegionSizeY;
             if (newRegionSizeX == 0)
-                newRegionSizeX = 256f;
+                newRegionSizeX = Constants.RegionSize;
             if (newRegionSizeY == 0)
-                newRegionSizeY = 256f;
+                newRegionSizeY = Constants.RegionSize;
 
             if (pos.X < boundaryDistance)
                 newpos.X += newRegionSizeX;
@@ -2450,10 +2450,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int neighboury = (int)srcRegionInfo.RegionLocY;
             float regionSizeX = srcRegionInfo.RegionSizeX;
             float regionSizeY = srcRegionInfo.RegionSizeY;
-            if (regionSizeX == 0)
-                regionSizeX = 256f;
-            if (regionSizeY == 0)
-                regionSizeY = 256f;
 
             float edgeJitter = 0.2f;
 
@@ -2479,9 +2475,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             float newRegionSizeX = neighbourRegion.RegionSizeX;
             float newRegionSizeY = neighbourRegion.RegionSizeY;
             if (newRegionSizeX == 0)
-                newRegionSizeX = 256f;
+                newRegionSizeX = Constants.RegionSize;
             if (newRegionSizeY == 0)
-                newRegionSizeY = 256f;
+                newRegionSizeY = Constants.RegionSize;
 
             if (targetPosition.X < edgeJitter)
                 newpos.X += newRegionSizeX;
@@ -2773,30 +2769,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             grp, e);
                     }
                 }
-/*
- * done on caller ( not in attachments crossing for now)
-                else
-                {
-
-                    if (!grp.IsDeleted)
-                    {
-                        PhysicsActor pa = grp.RootPart.PhysActor;
-                        if (pa != null)
-                        {
-                            pa.CrossingFailure();
-                            if (grp.RootPart.KeyframeMotion != null)
-                            {
-                                // moved to KeyframeMotion.CrossingFailure
-//                                grp.RootPart.Velocity = Vector3.Zero;
-                                grp.RootPart.KeyframeMotion.CrossingFailure();
-//                                grp.SendGroupRootTerseUpdate();
-                            }
-                        }
-                    }
-
-                    m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: Prim crossing failed for {0}", grp);
-                }
- */
             }
             else
             {
