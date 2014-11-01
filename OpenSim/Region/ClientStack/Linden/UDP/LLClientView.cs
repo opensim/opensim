@@ -3832,8 +3832,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// The original update time is used for the merged update.
         /// </summary>
         private void ResendPrimUpdate(EntityUpdate update)
-        {
-            // If the update exists in priority queue, it will be updated.
+        {          
+            // If the update exists in priority queue, it will be updated.           
             // If it does not exist then it will be added with the current (rather than its original) priority
             uint priority = m_prioritizer.GetUpdatePriority(this, update.Entity);
 
@@ -3975,7 +3975,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else if (update.Entity is ScenePresence)
                 {
                     ScenePresence presence = (ScenePresence)update.Entity;
-
+                    if (presence.IsDeleted)
+                        continue;
                     // If ParentUUID is not UUID.Zero and ParentID is 0, this
                     // avatar is in the process of crossing regions while
                     // sat on an object. In this state, we don't want any
