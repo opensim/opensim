@@ -281,7 +281,7 @@ namespace OpenSim.Framework
                     {
                         string responseStr = null;
                         responseStr = responseStream.GetStreamString();
-                        // m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
+                        m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
                         return CanonicalizeResults(responseStr);
                     }
                 }
