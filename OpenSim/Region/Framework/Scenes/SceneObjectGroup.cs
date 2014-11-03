@@ -529,21 +529,21 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 Vector3 val = value;
-
-                if (!IsAttachmentCheckFull() && !Scene.LoadingPrims &&
-                    ( Scene.TestBorderCross(val, Cardinals.E) ||
+                if (Scene != null && !IsAttachmentCheckFull()
+                    && !Scene.LoadingPrims &&
+                    (Scene.TestBorderCross(val, Cardinals.E) ||
                       Scene.TestBorderCross(val, Cardinals.W) ||
                       Scene.TestBorderCross(val, Cardinals.N) ||
                       Scene.TestBorderCross(val, Cardinals.S))
                     )
                 {
-                        if (!inTransit)
-                        {
-                            inTransit = true;
-                            SOGCrossDelegate d = CrossAsync;
-                            d.BeginInvoke(this, val, CrossAsyncCompleted, d);
-                        }
-                        return;
+                    if (!inTransit)
+                    {
+                        inTransit = true;
+                        SOGCrossDelegate d = CrossAsync;
+                        d.BeginInvoke(this, val, CrossAsyncCompleted, d);
+                    }
+                    return;
                 }
 
                 if (RootPart.GetStatusSandbox())
@@ -582,6 +582,7 @@ namespace OpenSim.Region.Framework.Scenes
                     av.sitSOGmoved();
                 }
 
+
                 // now that position is changed tell it to scripts
                 if (triggerScriptEvent)
                 {
@@ -591,7 +592,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                Scene.EventManager.TriggerParcelPrimCountTainted();
+                if (Scene != null)
+                    Scene.EventManager.TriggerParcelPrimCountTainted();
+
             }
         }
 
@@ -789,7 +792,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (agent.ParentUUID != UUID.Zero)
                 {
-                    agent.ClearControls();
+                    agent.HandleForceReleaseControls(agent.ControllingClient,agent.UUID);
                     agent.ParentPart = null;
 //                    agent.ParentPosition = Vector3.Zero;
 //                    agent.ParentUUID = UUID.Zero;
