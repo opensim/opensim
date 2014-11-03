@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -292,6 +293,12 @@ namespace OpenSim.Framework.Servers
                 HandleDebugThreadpoolLevel);
 
             m_console.Commands.AddCommand(
+                "Debug", false, "show threadpool calls",
+                "show threadpool calls",
+                "Show the number of labelled threadpool calls.",
+                HandleShowThreadpoolCalls);
+
+            m_console.Commands.AddCommand(
                 "Debug", false, "force gc",
                 "force gc",
                 "Manually invoke runtime garbage collection.  For debugging purposes",
@@ -352,6 +359,20 @@ namespace OpenSim.Framework.Servers
             WebUtil.SerializeOSDRequestsPerEndpoint = setSerializeOsdRequests;
 
             Notice("serialosdreq is now {0}", setSerializeOsdRequests);
+        }
+
+        private void HandleShowThreadpoolCalls(string module, string[] args)
+        {
+            List<KeyValuePair<string, int>> calls = Util.GetFireAndForgetCallsMade().ToList();
+            calls.Sort((kvp1, kvp2) => kvp2.Value.CompareTo(kvp1.Value));
+
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            foreach (KeyValuePair<string, int> kvp in calls)
+            {
+                cdl.AddRow(kvp.Key, kvp.Value);
+            }
+
+            MainConsole.Instance.Output(cdl.ToString());
         }
 
         private void HandleDebugThreadpoolStatus(string module, string[] args)

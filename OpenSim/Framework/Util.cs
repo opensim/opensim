@@ -2086,14 +2086,28 @@ namespace OpenSim.Framework
             }
         }
 
+        public static Dictionary<string, int> GetFireAndForgetCallsMade()
+        {
+            return new Dictionary<string, int>(m_fireAndForgetCallsMade);
+        }
+
+        private static Dictionary<string, int> m_fireAndForgetCallsMade = new Dictionary<string, int>();
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             FireAndForget(callback, obj, null);
         }
-
+        
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
         {
+            if (context != null)
+            {
+                if (!m_fireAndForgetCallsMade.ContainsKey(context))
+                    m_fireAndForgetCallsMade[context] = 1;
+                else
+                    m_fireAndForgetCallsMade[context]++;
+            }
+
             WaitCallback realCallback;
 
             bool loggingEnabled = LogThreadPool > 0;
