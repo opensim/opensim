@@ -1415,8 +1415,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if (sop.VehicleParams != null)
                 sop.VehicleParams.ToXml2(writer);
 
-            if(sop.PhysicsShapeType != sop.DefaultPhysicsShapeType())
-                writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
+            writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
             if (sop.Density != 1000.0f)
                 writer.WriteElementString("Density", sop.Density.ToString().ToLower());
             if (sop.Friction != 0.6f)
