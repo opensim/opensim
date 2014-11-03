@@ -2139,7 +2139,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 previousRegionNeighbourHandles.Remove(currentRegionHandler);
 
             // previousRegionNeighbourHandles now contains regions to forget
-            foreach (uint handler in previousRegionNeighbourHandles)
+            foreach (ulong handler in previousRegionNeighbourHandles)
                 seeds.Remove(handler);
 
             /// Update all child agent with everyone's seeds
