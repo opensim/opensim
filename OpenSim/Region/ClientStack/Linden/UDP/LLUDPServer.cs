@@ -991,7 +991,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Fire this out on a different thread so that we don't hold up outgoing packet processing for
                 // everybody else if this is being called due to an ack timeout.
                 // This is the same as processing as the async process of a logout request.
-                Util.FireAndForget(o => DeactivateClientDueToTimeout(client, timeoutTicks));
+                Util.FireAndForget(
+                    o => DeactivateClientDueToTimeout(client, timeoutTicks), null, "LLUDPServer.DeactivateClientDueToTimeout");
 
                 return;
             }
@@ -1225,7 +1226,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // buffer.
                 object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
 
-                Util.FireAndForget(HandleUseCircuitCode, array);
+                Util.FireAndForget(HandleUseCircuitCode, array, "LLUDPServer.HandleUseCircuitCode");
 
                 return;
             }
@@ -1238,7 +1239,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // buffer.
                 object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
 
-                Util.FireAndForget(HandleCompleteMovementIntoRegion, array);
+                Util.FireAndForget(
+                    HandleCompleteMovementIntoRegion, array, "LLUDPServer.HandleCompleteMovementIntoRegion");
 
                 return;
             }

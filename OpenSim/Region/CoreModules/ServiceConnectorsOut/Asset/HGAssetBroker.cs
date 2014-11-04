@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (asset != null)
             {
-                Util.FireAndForget(delegate { handler(id, sender, asset); });
+                Util.FireAndForget(delegate { handler(id, sender, asset); }, null, "HGAssetBroker.GotFromCache");
                 return true;
             }
 

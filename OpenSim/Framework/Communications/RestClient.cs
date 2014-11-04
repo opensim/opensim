@@ -483,7 +483,7 @@ namespace OpenSim.Framework.Communications
             /// In case, we are invoked asynchroneously this object will keep track of the state
             /// </summary>
             AsyncResult<Stream> ar = new AsyncResult<Stream>(callback, state);
-            Util.FireAndForget(RequestHelper, ar);
+            Util.FireAndForget(RequestHelper, ar, "RestClient.BeginRequest");
             return ar;
         }
 

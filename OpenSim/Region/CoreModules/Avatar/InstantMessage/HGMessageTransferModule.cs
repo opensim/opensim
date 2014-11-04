@@ -213,7 +213,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     HandleUndeliverableMessage(im, result);
                 else
                     result(success);
-            });
+            }, null, "HGMessageTransferModule.SendInstantMessage");
 
             return;
         }

@@ -294,7 +294,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             for (int i = 0 ; i < selection.Count ; i++)
                 sel.Add(selection[i].AsUInteger());
 
-            Util.FireAndForget(x => { m_module.HandleMenuSelection(action, m_agentID, sel); });
+            Util.FireAndForget(
+                x => { m_module.HandleMenuSelection(action, m_agentID, sel); }, null, "DynamicMenuModule.HandleMenuSelection");
 
             Encoding encoding = Encoding.UTF8;
             return encoding.GetBytes(OSDParser.SerializeLLSDXmlString(new OSD()));

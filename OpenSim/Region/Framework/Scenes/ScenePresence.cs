@@ -1235,7 +1235,8 @@ namespace OpenSim.Region.Framework.Scenes
                             string.Format("Rez attachments for {0} in {1}", Name, Scene.Name), 
                             null);
                     else
-                        Util.FireAndForget(o => Scene.AttachmentsModule.RezAttachments(this));
+                        Util.FireAndForget(
+                            o => Scene.AttachmentsModule.RezAttachments(this), null, "ScenePresence.RezAttachmentsOnLogin");
                 }
             }
             else
@@ -1338,7 +1339,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 UseFakeGroupTitle = false;
                 SendAvatarDataToAllClients(false);
-            });
+            }, null, "Scenepresence.ForceViewersUpdateName");
         }
 
         public int GetStateSource()
@@ -3645,7 +3646,8 @@ namespace OpenSim.Region.Framework.Scenes
                 agentpos.CopyFrom(cadu, ControllingClient.SessionId);
 
                 // Let's get this out of the update loop
-                Util.FireAndForget(delegate { m_scene.SendOutChildAgentUpdates(agentpos, this); });
+                Util.FireAndForget(
+                    o => m_scene.SendOutChildAgentUpdates(agentpos, this), null, "ScenePresence.SendOutChildAgentUpdates");
             }
         }
 
@@ -4515,7 +4517,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-            });
+            }, null, "ScenePresence.SendScriptEventToAttachments");
         }
 
         /// <summary>

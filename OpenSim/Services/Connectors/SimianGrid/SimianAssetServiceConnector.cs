@@ -225,7 +225,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 {
                     AssetBase asset = SimianGetOperation(id);
                     handler(id, sender, asset);
-                }
+                }, null, "SimianAssetServiceConnector.GetFromService"
             );
 
             return true;

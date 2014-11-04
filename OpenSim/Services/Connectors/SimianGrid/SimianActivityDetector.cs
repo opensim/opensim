@@ -69,7 +69,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             Util.FireAndForget(delegate(object o)
             {
                 m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
-            });
+            }, null, "SimianActivityDetector.SetLastPositionOnMakeRootAgent");
         }
 
         public void OnNewClient(IClientAPI client)
@@ -94,7 +94,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             Util.FireAndForget(delegate(object o)
             {
                 m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
-            });
+            }, null, "SimianActivityDetector.SetLastPositionOnEnteringNewParcel");
         }
     }
 }

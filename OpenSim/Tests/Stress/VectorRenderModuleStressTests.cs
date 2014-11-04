@@ -78,7 +78,7 @@ namespace OpenSim.Tests.Stress
                 Drawer d = new Drawer(this, i);
                 drawers.Add(d);
                 Console.WriteLine("Starting drawer {0}", i);
-                Util.FireAndForget(o => d.Draw());
+                Util.FireAndForget(o => d.Draw(), null, "VectorRenderModuleStressTests.TestConcurrentRepeatedDraw");
             }
 
             Thread.Sleep(10 * 60 * 1000);

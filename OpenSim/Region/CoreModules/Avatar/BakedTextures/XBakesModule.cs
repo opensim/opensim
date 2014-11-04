@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 {
                     rc.Request(reqStream, m_Auth);
                     m_log.DebugFormat("[XBakes]: stored {0} textures for user {1}", data.Length, agentId);
-                }
+                }, null, "XBakesModule.Store"
             );
         }
     }

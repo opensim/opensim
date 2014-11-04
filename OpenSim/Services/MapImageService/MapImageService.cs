@@ -166,7 +166,8 @@ namespace OpenSim.Services.MapImageService
                 // m_log.DebugFormat("{0} UpdateMultiResolutionFilesAsync: scheduling update for <{1},{2}>", LogHeader, x, y);
                 multiRezToBuild.Enqueue(new mapToMultiRez(x, y));
                 if (multiRezToBuild.Count == 1)
-                    Util.FireAndForget(DoUpdateMultiResolutionFilesAsync);
+                    Util.FireAndForget(
+                        DoUpdateMultiResolutionFilesAsync, null, "MapImageService.DoUpdateMultiResolutionFilesAsync");
             }
 
             return true;

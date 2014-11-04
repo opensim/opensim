@@ -790,9 +790,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         // We will launch the teleport on a new thread so that when the script threads are terminated
                         // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.                        
-                        Util.FireAndForget(o => World.RequestTeleportLocation(
-                            presence.ControllingClient, regionName, position,
-                            lookat, (uint)TPFlags.ViaLocation));
+                        Util.FireAndForget(
+                            o => World.RequestTeleportLocation(
+                                presence.ControllingClient, regionName, position,
+                                lookat, (uint)TPFlags.ViaLocation), 
+                            null, "OSSL_Api.TeleportAgentByRegionCoords");
 
                         ScriptSleep(5000);
 
@@ -836,9 +838,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         // We will launch the teleport on a new thread so that when the script threads are terminated
                         // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
-                        Util.FireAndForget(o => World.RequestTeleportLocation(
-                            presence.ControllingClient, regionHandle, 
-                            position, lookat, (uint)TPFlags.ViaLocation));
+                        Util.FireAndForget(
+                            o => World.RequestTeleportLocation(
+                                presence.ControllingClient, regionHandle, 
+                                position, lookat, (uint)TPFlags.ViaLocation), 
+                            null, "OSSL_Api.TeleportAgentByRegionName");
 
                         ScriptSleep(5000);
 

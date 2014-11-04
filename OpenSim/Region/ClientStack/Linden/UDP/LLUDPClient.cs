@@ -732,7 +732,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (!m_udpServer.OqrEngine.IsRunning)
                     {
                         // Asynchronously run the callback
-                        Util.FireAndForget(FireQueueEmpty, categories);
+                        Util.FireAndForget(FireQueueEmpty, categories, "LLUDPClient.BeginFireQueueEmpty");
                     }
                     else
                     {

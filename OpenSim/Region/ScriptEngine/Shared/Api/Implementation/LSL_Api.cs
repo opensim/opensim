@@ -2979,7 +2979,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 money.ObjectGiveMoney(
                     m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
-            });
+            }, null, "LSL_Api.llGiveMoney");
         }
 
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
@@ -3075,7 +3075,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                 }
-            });
+            }, null, "LSL_Api.llRezAtRoot");
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
             ScriptSleep(100);
@@ -3270,7 +3270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void DetachFromAvatar()
         {
-            Util.FireAndForget(DetachWrapper, m_host);
+            Util.FireAndForget(DetachWrapper, m_host, "LSL_Api.DetachFromAvatar");
         }
 
         private void DetachWrapper(object o)
@@ -12421,7 +12421,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             new LSL_String(replydata) },
                             new DetectParams[0]));
                 }
-            });
+            }, null, "LSL_Api.llTransferLindenDollars");
 
             return txn.ToString();
         }

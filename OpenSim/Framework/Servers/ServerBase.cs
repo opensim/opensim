@@ -365,12 +365,20 @@ namespace OpenSim.Framework.Servers
         {
             List<KeyValuePair<string, int>> calls = Util.GetFireAndForgetCallsMade().ToList();
             calls.Sort((kvp1, kvp2) => kvp2.Value.CompareTo(kvp1.Value));
+            int namedCallsMade = 0;
 
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             foreach (KeyValuePair<string, int> kvp in calls)
             {
                 cdl.AddRow(kvp.Key, kvp.Value);
+                namedCallsMade += kvp.Value;
             }
+
+            cdl.AddRow("TOTAL NAMED", namedCallsMade);
+
+            long allCallsMade = Util.TotalFireAndForgetCallsMade;
+            cdl.AddRow("TOTAL ANONYMOUS", allCallsMade - namedCallsMade);
+            cdl.AddRow("TOTAL ALL", allCallsMade);
 
             MainConsole.Instance.Output(cdl.ToString());
         }

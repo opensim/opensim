@@ -323,7 +323,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonRezAtRoot(UUID hostID, UUID scriptID, string item, Vector3 pos, Vector3 vel, Quaternion rot, string param)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(o => DoJsonRezObject(hostID, scriptID, reqID, item, pos, vel, rot, param));
+            Util.FireAndForget(
+                o => DoJsonRezObject(hostID, scriptID, reqID, item, pos, vel, rot, param), null, "JsonStoreScriptModule.DoJsonRezObject");
             return reqID;
         }
 
@@ -336,7 +337,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonReadNotecard(UUID hostID, UUID scriptID, UUID storeID, string path, string notecardIdentifier)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(o => DoJsonReadNotecard(reqID, hostID, scriptID, storeID, path, notecardIdentifier));
+            Util.FireAndForget(
+                o => DoJsonReadNotecard(reqID, hostID, scriptID, storeID, path, notecardIdentifier), null, "JsonStoreScriptModule.JsonReadNotecard");
             return reqID;
         }
         
@@ -349,7 +351,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonWriteNotecard(UUID hostID, UUID scriptID, UUID storeID, string path, string name)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(delegate(object o) { DoJsonWriteNotecard(reqID,hostID,scriptID,storeID,path,name); });
+            Util.FireAndForget(
+                o => DoJsonWriteNotecard(reqID,hostID,scriptID,storeID,path,name), null, "JsonStoreScriptModule.DoJsonWriteNotecard");
             return reqID;
         }
 
@@ -464,7 +467,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonTakeValue(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(delegate(object o) { DoJsonTakeValue(scriptID,reqID,storeID,path,false); });
+            Util.FireAndForget(
+                o => DoJsonTakeValue(scriptID,reqID,storeID,path,false), null, "JsonStoreScriptModule.DoJsonTakeValue");
             return reqID;
         }
 
@@ -472,7 +476,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonTakeValueJson(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(delegate(object o) { DoJsonTakeValue(scriptID,reqID,storeID,path,true); });
+            Util.FireAndForget(
+                o => DoJsonTakeValue(scriptID,reqID,storeID,path,true), null, "JsonStoreScriptModule.DoJsonTakeValueJson");
             return reqID;
         }
         
@@ -485,7 +490,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonReadValue(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(delegate(object o) { DoJsonReadValue(scriptID,reqID,storeID,path,false); });
+            Util.FireAndForget(
+                o => DoJsonReadValue(scriptID,reqID,storeID,path,false), null, "JsonStoreScriptModule.DoJsonReadValue");
             return reqID;
         }
 
@@ -493,7 +499,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public UUID JsonReadValueJson(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(delegate(object o) { DoJsonReadValue(scriptID,reqID,storeID,path,true); });
+            Util.FireAndForget(
+                o => DoJsonReadValue(scriptID,reqID,storeID,path,true), null, "JsonStoreScriptModule.DoJsonReadValueJson");
             return reqID;
         }
         

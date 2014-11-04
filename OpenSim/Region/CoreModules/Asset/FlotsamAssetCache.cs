@@ -302,7 +302,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     }
 
                     Util.FireAndForget(
-                        delegate { WriteFileCache(filename, asset); });
+                        delegate { WriteFileCache(filename, asset); }, null, "FlotsamAssetCache.UpdateFileCache");
                 }
             }
             catch (Exception e)

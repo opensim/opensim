@@ -1928,11 +1928,6 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void FireAndForget(System.Threading.WaitCallback callback)
-        {
-            FireAndForget(callback, null, null);
-        }
-
         public static void InitThreadPool(int minThreads, int maxThreads)
         {
             if (maxThreads < 2)
@@ -1977,8 +1972,7 @@ namespace OpenSim.Framework
                     throw new NotImplementedException();
             }
         }
-
-        
+                
         /// <summary>
         /// Additional information about threads in the main thread pool. Used to time how long the
         /// thread has been running, and abort it if it has timed-out.
@@ -2052,10 +2046,10 @@ namespace OpenSim.Framework
             }
         }
 
-
         private static long nextThreadFuncNum = 0;
         private static long numQueuedThreadFuncs = 0;
         private static long numRunningThreadFuncs = 0;
+        private static long numTotalThreadFuncsCalled = 0;
         private static Int32 threadFuncOverloadMode = 0;
 
         // Maps (ThreadFunc number -> Thread)
@@ -2086,20 +2080,29 @@ namespace OpenSim.Framework
             }
         }
 
+        public static long TotalFireAndForgetCallsMade { get { return numTotalThreadFuncsCalled; } }
+
         public static Dictionary<string, int> GetFireAndForgetCallsMade()
         {
             return new Dictionary<string, int>(m_fireAndForgetCallsMade);
-        }
+        }       
 
         private static Dictionary<string, int> m_fireAndForgetCallsMade = new Dictionary<string, int>();
+
+        public static void FireAndForget(System.Threading.WaitCallback callback)
+        {
+            FireAndForget(callback, null, null);
+        }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             FireAndForget(callback, obj, null);
         }
-        
+     
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
         {
+            Interlocked.Increment(ref numTotalThreadFuncsCalled);
+
             if (context != null)
             {
                 if (!m_fireAndForgetCallsMade.ContainsKey(context))

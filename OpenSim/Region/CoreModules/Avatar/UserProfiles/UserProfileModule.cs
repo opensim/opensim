@@ -194,7 +194,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Util.FireAndForget(delegate
             {
                 GetImageAssets(((IScenePresence)obj).UUID);
-            });
+            }, null, "UserProfileModule.GetImageAssets");
         }
 
         /// <summary>

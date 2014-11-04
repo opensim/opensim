@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.AttachedAvatar);
             if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
             {
-                if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServRezerURI"))
                 {
                     string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", so.Name, so.AttachedAvatar, url);

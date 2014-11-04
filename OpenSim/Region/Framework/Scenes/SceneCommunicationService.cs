@@ -226,7 +226,10 @@ namespace OpenSim.Region.Framework.Scenes
                 // We must take a copy here since handle is acts like a reference when used in an iterator.
                 // This leads to race conditions if directly passed to SendCloseChildAgent with more than one neighbour region.
                 ulong handleCopy = handle;
-                Util.FireAndForget((o) => { SendCloseChildAgent(agentID, handleCopy, auth_code); });
+                Util.FireAndForget(
+                    o => SendCloseChildAgent(agentID, handleCopy, auth_code), 
+                    null, 
+                    "SceneCommunicationService.SendCloseChildAgentConnections");
             }
         }
        

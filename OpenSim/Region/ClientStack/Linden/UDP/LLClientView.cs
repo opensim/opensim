@@ -1161,7 +1161,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
         {
-            Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData());
+            Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData(), "LLClientView.DoSendLayerData");
         }
 
         /// <summary>
@@ -1373,7 +1373,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="windSpeeds">16x16 array of wind speeds</param>
         public virtual void SendWindData(Vector2[] windSpeeds)
         {
-            Util.FireAndForget(DoSendWindData, windSpeeds);
+            Util.FireAndForget(DoSendWindData, windSpeeds, "LLClientView.SendWindData");
         }
 
         /// <summary>
@@ -1382,7 +1382,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="windSpeeds">16x16 array of cloud densities</param>
         public virtual void SendCloudData(float[] cloudDensity)
         {
-            Util.FireAndForget(DoSendCloudData, cloudDensity);
+            Util.FireAndForget(DoSendCloudData, cloudDensity, "LLClientView.SendCloudData");
         }
 
         /// <summary>
@@ -8093,7 +8093,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // This requests the asset if needed
                         HandleSimInventoryTransferRequestWithPermsCheck(sender, transfer);
-                    });
+                    }, null, "LLClientView.HandleTransferRequest");
+
                     return true;
                 }
             }

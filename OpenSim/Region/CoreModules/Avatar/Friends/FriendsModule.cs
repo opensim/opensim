@@ -511,7 +511,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                         // Notify about this user status
                         StatusNotify(friendList, agentID, online);
-                    }
+                    }, null, "FriendsModule.StatusChange"
                 );
             }
         }
