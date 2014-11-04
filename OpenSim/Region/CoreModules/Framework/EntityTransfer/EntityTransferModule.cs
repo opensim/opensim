@@ -2700,5 +2700,69 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
         #endregion
 
+        public virtual bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
+        {
+            // If the user is banned, we won't let any of their objects
+            // enter. Period.
+            //
+            if (Scene.RegionInfo.EstateSettings.IsBanned(so.OwnerID))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Denied prim crossing of {0} {1} into {2} for banned avatar {3}", 
+                    so.Name, so.UUID, Scene.Name, so.OwnerID);
+
+                return false;
+            }
+
+            if (newPosition != Vector3.Zero)
+                so.RootPart.GroupPosition = newPosition;
+
+            if (!Scene.AddSceneObject(so))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Problem adding scene object {0} {1} into {2} ", 
+                    so.Name, so.UUID, Scene.Name);
+
+                return false;
+            }
+
+            if (!so.IsAttachment)
+            {
+                // FIXME: It would be better to never add the scene object at all rather than add it and then delete
+                // it
+                if (!Scene.Permissions.CanObjectEntry(so.UUID, true, so.AbsolutePosition))
+                {
+                    // Deny non attachments based on parcel settings
+                    //
+                    m_log.Info("[ENTITY TRANSFER MODULE]: Denied prim crossing because of parcel settings");
+
+                    Scene.DeleteSceneObject(so, false);
+
+                    return false;
+                }
+
+                // For attachments, we need to wait until the agent is root
+                // before we restart the scripts, or else some functions won't work.
+                so.RootPart.ParentGroup.CreateScriptInstances(
+                    0, false, Scene.DefaultScriptEngine, GetStateSource(so));
+
+                so.ResumeScripts();
+
+                if (so.RootPart.KeyframeMotion != null)
+                    so.RootPart.KeyframeMotion.UpdateSceneObject(so);
+            }
+
+            return true;
+        }
+
+        private int GetStateSource(SceneObjectGroup sog)
+        {
+            ScenePresence sp = Scene.GetScenePresence(sog.OwnerID);
+
+            if (sp != null)
+                return sp.GetStateSource();
+
+            return 2; // StateSource.PrimCrossing
+        }
     }
 }

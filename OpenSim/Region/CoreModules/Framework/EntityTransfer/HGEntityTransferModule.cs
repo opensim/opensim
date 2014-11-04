@@ -153,33 +153,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (m_Enabled)
             {
                 scene.RegisterModuleInterface<IUserAgentVerificationModule>(this);
-                scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
-            }
-        }
+                //scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
 
-        void OnIncomingSceneObject(SceneObjectGroup so)
-        {
-            if (!so.IsAttachment)
-                return;
-
-            if (so.AttachedAvatar == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(so.AttachedAvatar))
-                return;
-
-            // foreign user
-            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.AttachedAvatar);
-            if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
-            {
-                if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServRezerURI"))
-                {
-                    string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", so.Name, so.AttachedAvatar, url);
-                    Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
-                    HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url);
-                    uuidGatherer.GatherAssetUuids(so, ids);
-
-                    foreach (KeyValuePair<UUID, sbyte> kvp in ids)
-                        uuidGatherer.FetchAsset(kvp.Key);
-                }
+                m_incomingSceneObjectEngine.Start();
             }
         }
 
@@ -209,12 +185,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.RemoveRegion(scene);
 
             if (m_Enabled)
+            {
                 scene.UnregisterModuleInterface<IUserAgentVerificationModule>(this);
+                m_incomingSceneObjectEngine.Stop();
+            }
         }
 
         #endregion
 
-        #region HG overrides of IEntiryTransferModule
+        #region HG overrides of IEntityTransferModule
 
         protected override GridRegion GetFinalDestination(GridRegion region, UUID agentID, string agentHomeURI, out string message)
         {
@@ -559,6 +538,53 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
             }
+        }
+
+        private HGIncomingSceneObjectEngine m_incomingSceneObjectEngine = new HGIncomingSceneObjectEngine();
+
+        public override bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
+        {
+            // FIXME: We must make it so that we can use SOG.IsAttachment here.  At the moment it is always null!
+            if (!so.IsAttachmentCheckFull())
+                return base.HandleIncomingSceneObject(so, newPosition);
+
+            // Equally, we can't use so.AttachedAvatar here.
+            if (so.OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(so.OwnerID))
+                return base.HandleIncomingSceneObject(so, newPosition);
+
+            // foreign user
+            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.OwnerID);
+            if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+            {
+                if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                {
+                    m_incomingSceneObjectEngine.QueueRequest(
+                        string.Format("HG UUID Gather for attachment {0} for {1}", so.Name, aCircuit.Name), 
+                        o => 
+                        {
+                            string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
+                            m_log.DebugFormat(
+                                "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", 
+                                so.Name, so.AttachedAvatar, url);
+
+                            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
+                            HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url);
+                            uuidGatherer.GatherAssetUuids(so, ids);
+
+                            foreach (KeyValuePair<UUID, sbyte> kvp in ids)
+                                uuidGatherer.FetchAsset(kvp.Key);
+
+                            base.HandleIncomingSceneObject(so, newPosition);
+
+                            m_log.DebugFormat(
+                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}", 
+                                so.Name, so.OwnerID, url);
+                        }, 
+                        null);
+                }
+            }
+
+            return true;
         }
 
         #endregion
