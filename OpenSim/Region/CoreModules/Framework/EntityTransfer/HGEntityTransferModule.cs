@@ -110,6 +110,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
+        /// <summary>
+        /// Used for processing analysis of incoming attachments in a controlled fashion.
+        /// </summary>
+        private HGIncomingSceneObjectEngine m_incomingSceneObjectEngine;
+
         #region ISharedRegionModule
 
         public override string Name
@@ -155,6 +160,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 scene.RegisterModuleInterface<IUserAgentVerificationModule>(this);
                 //scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
 
+                m_incomingSceneObjectEngine = new HGIncomingSceneObjectEngine(scene.Name);
                 m_incomingSceneObjectEngine.Start();
             }
         }
@@ -539,8 +545,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             }
         }
-
-        private HGIncomingSceneObjectEngine m_incomingSceneObjectEngine = new HGIncomingSceneObjectEngine();
 
         public override bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
         {

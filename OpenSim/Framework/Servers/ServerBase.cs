@@ -293,10 +293,16 @@ namespace OpenSim.Framework.Servers
                 HandleDebugThreadpoolLevel);
 
             m_console.Commands.AddCommand(
-                "Debug", false, "show threadpool calls",
-                "show threadpool calls",
-                "Show the number of labelled threadpool calls.",
-                HandleShowThreadpoolCalls);
+                "Debug", false, "show threadpool calls active",
+                "show threadpool calls active",
+                "Show details about threadpool calls that are still active (currently waiting or in progress)",
+                HandleShowThreadpoolCallsActive);
+
+            m_console.Commands.AddCommand(
+                "Debug", false, "show threadpool calls complete",
+                "show threadpool calls complete",
+                "Show details about threadpool calls that have been completed.",
+                HandleShowThreadpoolCallsComplete);
 
             m_console.Commands.AddCommand(
                 "Debug", false, "force gc",
@@ -361,7 +367,36 @@ namespace OpenSim.Framework.Servers
             Notice("serialosdreq is now {0}", setSerializeOsdRequests);
         }
 
-        private void HandleShowThreadpoolCalls(string module, string[] args)
+        private void HandleShowThreadpoolCallsActive(string module, string[] args)
+        {
+            List<KeyValuePair<string, int>> calls = Util.GetFireAndForgetCallsInProgress().ToList();
+            calls.Sort((kvp1, kvp2) => kvp2.Value.CompareTo(kvp1.Value));
+            int namedCalls = 0;
+
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            foreach (KeyValuePair<string, int> kvp in calls)
+            {
+                if (kvp.Value > 0)
+                {
+                    cdl.AddRow(kvp.Key, kvp.Value);
+                    namedCalls += kvp.Value;
+                }
+            }
+
+            cdl.AddRow("TOTAL NAMED", namedCalls);
+
+            long allQueuedCalls = Util.TotalQueuedFireAndForgetCalls;
+            long allRunningCalls = Util.TotalRunningFireAndForgetCalls;
+
+            cdl.AddRow("TOTAL QUEUED", allQueuedCalls);
+            cdl.AddRow("TOTAL RUNNING", allRunningCalls);
+            cdl.AddRow("TOTAL ANONYMOUS", allQueuedCalls + allRunningCalls - namedCalls);
+            cdl.AddRow("TOTAL ALL", allQueuedCalls + allRunningCalls);
+
+            MainConsole.Instance.Output(cdl.ToString());
+        }
+
+        private void HandleShowThreadpoolCallsComplete(string module, string[] args)
         {
             List<KeyValuePair<string, int>> calls = Util.GetFireAndForgetCallsMade().ToList();
             calls.Sort((kvp1, kvp2) => kvp2.Value.CompareTo(kvp1.Value));

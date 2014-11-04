@@ -2052,6 +2052,9 @@ namespace OpenSim.Framework
         private static long numTotalThreadFuncsCalled = 0;
         private static Int32 threadFuncOverloadMode = 0;
 
+        public static long TotalQueuedFireAndForgetCalls { get { return numQueuedThreadFuncs; } }
+        public static long TotalRunningFireAndForgetCalls { get { return numRunningThreadFuncs; } }
+
         // Maps (ThreadFunc number -> Thread)
         private static ConcurrentDictionary<long, ThreadInfo> activeThreads = new ConcurrentDictionary<long, ThreadInfo>();
 
@@ -2089,6 +2092,13 @@ namespace OpenSim.Framework
 
         private static Dictionary<string, int> m_fireAndForgetCallsMade = new Dictionary<string, int>();
 
+        public static Dictionary<string, int> GetFireAndForgetCallsInProgress()
+        {
+            return new Dictionary<string, int>(m_fireAndForgetCallsInProgress);
+        }
+
+        private static Dictionary<string, int> m_fireAndForgetCallsInProgress = new Dictionary<string, int>();
+
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
             FireAndForget(callback, null, null);
@@ -2109,6 +2119,11 @@ namespace OpenSim.Framework
                     m_fireAndForgetCallsMade[context] = 1;
                 else
                     m_fireAndForgetCallsMade[context]++;
+
+                if (!m_fireAndForgetCallsInProgress.ContainsKey(context))
+                    m_fireAndForgetCallsInProgress[context] = 1;
+                else
+                    m_fireAndForgetCallsInProgress[context]++;
             }
 
             WaitCallback realCallback;
@@ -2121,7 +2136,15 @@ namespace OpenSim.Framework
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
                 // If we're running regression tests, then we want any exceptions to rise up to the test code.
-                realCallback = o => { Culture.SetCurrentCulture(); callback(o); };
+                realCallback = 
+                    o => 
+                    { 
+                        Culture.SetCurrentCulture(); 
+                        callback(o); 
+                        
+                        if (context != null)
+                            m_fireAndForgetCallsInProgress[context]--;
+                    };
             }
             else
             {
@@ -2160,6 +2183,9 @@ namespace OpenSim.Framework
                         activeThreads.TryRemove(threadFuncNum, out dummy);
                         if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
+
+                        if (context != null)
+                            m_fireAndForgetCallsInProgress[context]--;
                     }
                 };
             }
