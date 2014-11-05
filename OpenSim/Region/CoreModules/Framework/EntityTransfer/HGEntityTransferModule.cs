@@ -571,9 +571,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", 
                                 so.Name, so.AttachedAvatar, url);
 
-                            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
-                            HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url);
-                            uuidGatherer.GatherAssetUuids(so, ids);
+                            IteratingHGUuidGatherer uuidGatherer = new IteratingHGUuidGatherer(Scene.AssetService, url);
+                            uuidGatherer.RecordAssetUuids(so);
+                            
+                            // XXX: We will shortly use this iterating mechanism to check if a fetch is taking too long
+                            // but just for now we will simply fetch everything.  If this was permanent could use
+                            // GatherAll()
+                            while (uuidGatherer.GatherNext())
+                                m_log.DebugFormat(
+                                    "[HG ENTITY TRANSFER]: Gathered attachment {0} for HG user {1} with asset server {2}",
+                                    so.Name, so.OwnerID, url);
+
+                            IDictionary<UUID, sbyte> ids = uuidGatherer.GetGatheredUuids();
+
+                            m_log.DebugFormat(
+                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset server {3}",
+                                ids.Count, so.Name, so.OwnerID, url);
 
                             foreach (KeyValuePair<UUID, sbyte> kvp in ids)
                                 uuidGatherer.FetchAsset(kvp.Key);
