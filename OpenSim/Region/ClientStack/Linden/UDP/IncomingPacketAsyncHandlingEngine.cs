@@ -34,7 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
+namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class Job
     {
@@ -51,15 +51,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     }
 
     // TODO: These kinds of classes MUST be generalized with JobEngine, etc.
-    public class HGIncomingSceneObjectEngine
+    public class IncomingPacketAsyncHandlingEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public int LogLevel { get; set; }
 
         public bool IsRunning { get; private set; } 
-
-        public string Name { get; set; }
 
         /// <summary>
         /// The timeout in milliseconds to wait for at least one event to be written when the recorder is stopping.
@@ -79,6 +77,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private CancellationTokenSource m_cancelSource = new CancellationTokenSource();
 
+        private LLUDPServer m_udpServer;
+
         private Stat m_requestsWaitingStat;
 
         private Job m_currentJob;
@@ -88,19 +88,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         private ManualResetEvent m_finishedProcessingAfterStop = new ManualResetEvent(false);
 
-        public HGIncomingSceneObjectEngine(string name)
+        public IncomingPacketAsyncHandlingEngine(LLUDPServer server)
         {
-            Name = name;
+            //LogLevel = 1;
+            m_udpServer = server;
             RequestProcessTimeoutOnStop = 5000;
 
-//            MainConsole.Instance.Commands.AddCommand(
-//                "Debug",
-//                false,
-//                "debug jobengine",
-//                "debug jobengine <start|stop|status>",
-//                "Start, stop or get status of the job engine.",
-//                "If stopped then all jobs are processed immediately.",
-//                HandleControlCommand);
+            //            MainConsole.Instance.Commands.AddCommand(
+            //                "Debug",
+            //                false,
+            //                "debug jobengine",
+            //                "debug jobengine <start|stop|status>",
+            //                "Start, stop or get status of the job engine.",
+            //                "If stopped then all jobs are processed immediately.",
+            //                HandleControlCommand);
         }
 
         public void Start()
@@ -118,12 +119,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 m_requestsWaitingStat = 
                     new Stat(
-                        "HGIncomingAttachmentsWaiting",
-                        "Number of incoming attachments waiting for processing.",
+                        "IncomingPacketAsyncRequestsWaiting",
+                        "Number of incoming packets waiting for async processing in engine.",
                         "",
                         "",
-                        "entitytransfer",
-                        Name,
+                        "clientstack",
+                        m_udpServer.Scene.Name,
                         StatType.Pull,
                         MeasuresOfInterest.None,
                         stat => stat.Value = m_requestQueue.Count,
@@ -133,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 Watchdog.StartThread(
                     ProcessRequests,
-                    string.Format("HG Incoming Scene Object Engine Thread ({0})", Name),
+                    string.Format("Incoming Packet Async Handling Engine Thread ({0})", m_udpServer.Scene.Name),
                     ThreadPriority.Normal,
                     false,
                     true,
@@ -161,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                     else 
                     {
-                        m_log.InfoFormat("[HG INCOMING SCENE OBJECT ENGINE]: Waiting to write {0} events after stop.", requestsLeft);
+                        m_log.InfoFormat("[INCOMING PACKET ASYNC HANDLING ENGINE]: Waiting to write {0} events after stop.", requestsLeft);
 
                         while (requestsLeft > 0)
                         {
@@ -171,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 if (requestsLeft == m_requestQueue.Count)
                                 {
                                     m_log.WarnFormat(
-                                        "[HG INCOMING SCENE OBJECT ENGINE]: No requests processed after {0} ms wait.  Discarding remaining {1} requests", 
+                                        "[INCOMING PACKET ASYNC HANDLING ENGINE]: No requests processed after {0} ms wait.  Discarding remaining {1} requests", 
                                         RequestProcessTimeoutOnStop, requestsLeft);
 
                                     break;
@@ -195,7 +196,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public bool QueueRequest(string name, WaitCallback req, object o)
         {
             if (LogLevel >= 1)
-                m_log.DebugFormat("[HG INCOMING SCENE OBJECT ENGINE]: Queued job {0}", name);
+                m_log.DebugFormat("[INCOMING PACKET ASYNC HANDLING ENGINE]: Queued job {0}", name);
 
             if (m_requestQueue.Count < m_requestQueue.BoundedCapacity)
             {
@@ -218,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     //                        "[JOB ENGINE]: Request queue at maximum capacity, not recording request from {0} in {1}", 
                     //                        client.AgentID, m_udpServer.Scene.Name);
 
-                    m_log.WarnFormat("[HG INCOMING SCENE OBJECT ENGINE]: Request queue at maximum capacity, not recording job");
+                    m_log.WarnFormat("[INCOMING PACKET ASYNC HANDLING ENGINE]: Request queue at maximum capacity, not recording job");
 
                     m_warnOverMaxQueue = false;
                 }
@@ -250,7 +251,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     //                }
 
                     if (LogLevel >= 1)
-                        m_log.DebugFormat("[HG INCOMING SCENE OBJECT ENGINE]: Processing job {0}", m_currentJob.Name);
+                        m_log.DebugFormat("[INCOMING PACKET ASYNC HANDLING ENGINE]: Processing job {0}", m_currentJob.Name);
 
                     try
                     {
@@ -260,11 +261,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     {
                         m_log.Error(
                             string.Format(
-                            "[HG INCOMING SCENE OBJECT ENGINE]: Job {0} failed, continuing.  Exception  ", m_currentJob.Name), e);
+                            "[INCOMING PACKET ASYNC HANDLING ENGINE]: Job {0} failed, continuing.  Exception  ", m_currentJob.Name), e);
                     }
 
                     if (LogLevel >= 1)
-                        m_log.DebugFormat("[HG INCOMING SCENE OBJECT ENGINE]: Processed job {0}", m_currentJob.Name);
+                        m_log.DebugFormat("[INCOMING PACKET ASYNC HANDLING ENGINE]: Processed job {0}", m_currentJob.Name);
 
                     m_currentJob = null;
                 }
@@ -276,52 +277,52 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_finishedProcessingAfterStop.Set();
         }
 
-//        private void HandleControlCommand(string module, string[] args)
-//        {
-//            //            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
-//            //                return;
-//
-//            if (args.Length < 3)
-//            {
-//                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status|loglevel>");
-//                return;
-//            }
-//
-//            string subCommand = args[2];
-//
-//            if (subCommand == "stop")
-//            {
-//                Stop();
-//                MainConsole.Instance.OutputFormat("Stopped job engine.");
-//            }
-//            else if (subCommand == "start")
-//            {
-//                Start();
-//                MainConsole.Instance.OutputFormat("Started job engine.");
-//            }
-//            else if (subCommand == "status")
-//            {
-//                MainConsole.Instance.OutputFormat("Job engine running: {0}", IsRunning);
-//                MainConsole.Instance.OutputFormat("Current job {0}", m_currentJob != null ? m_currentJob.Name : "none");
-//                MainConsole.Instance.OutputFormat(
-//                    "Jobs waiting: {0}", IsRunning ? m_requestQueue.Count.ToString() : "n/a");
-//                MainConsole.Instance.OutputFormat("Log Level: {0}", LogLevel);
-//            }
-//
-//            else if (subCommand == "loglevel")
-//            {
-//                //                int logLevel;
-//                int logLevel = int.Parse(args[3]);
-//                //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
-//                //                {                 
-//                LogLevel = logLevel;
-//                MainConsole.Instance.OutputFormat("Set log level to {0}", LogLevel);
-//                //                }
-//            }
-//            else 
-//            {
-//                MainConsole.Instance.OutputFormat("Unrecognized job engine subcommand {0}", subCommand);
-//            }
-//        }
+        //        private void HandleControlCommand(string module, string[] args)
+        //        {
+        //            //            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+        //            //                return;
+        //
+        //            if (args.Length < 3)
+        //            {
+        //                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status|loglevel>");
+        //                return;
+        //            }
+        //
+        //            string subCommand = args[2];
+        //
+        //            if (subCommand == "stop")
+        //            {
+        //                Stop();
+        //                MainConsole.Instance.OutputFormat("Stopped job engine.");
+        //            }
+        //            else if (subCommand == "start")
+        //            {
+        //                Start();
+        //                MainConsole.Instance.OutputFormat("Started job engine.");
+        //            }
+        //            else if (subCommand == "status")
+        //            {
+        //                MainConsole.Instance.OutputFormat("Job engine running: {0}", IsRunning);
+        //                MainConsole.Instance.OutputFormat("Current job {0}", m_currentJob != null ? m_currentJob.Name : "none");
+        //                MainConsole.Instance.OutputFormat(
+        //                    "Jobs waiting: {0}", IsRunning ? m_requestQueue.Count.ToString() : "n/a");
+        //                MainConsole.Instance.OutputFormat("Log Level: {0}", LogLevel);
+        //            }
+        //
+        //            else if (subCommand == "loglevel")
+        //            {
+        //                //                int logLevel;
+        //                int logLevel = int.Parse(args[3]);
+        //                //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
+        //                //                {                 
+        //                LogLevel = logLevel;
+        //                MainConsole.Instance.OutputFormat("Set log level to {0}", LogLevel);
+        //                //                }
+        //            }
+        //            else 
+        //            {
+        //                MainConsole.Instance.OutputFormat("Unrecognized job engine subcommand {0}", subCommand);
+        //            }
+        //        }
     }
 }

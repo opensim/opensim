@@ -364,6 +364,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private IClientAPI m_currentIncomingClient;
 
         /// <summary>
+        /// Queue some low priority but potentially high volume async requests so that they don't overwhelm available
+        /// threadpool threads.
+        /// </summary>
+        public IncomingPacketAsyncHandlingEngine IpahEngine { get; private set; }
+
+        /// <summary>
         /// Experimental facility to run queue empty processing within a controlled number of threads rather than
         /// requiring massive numbers of short-lived threads from the threadpool when there are a high number of 
         /// connections.
@@ -454,6 +460,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (usePools)
                 EnablePools();
 
+            IpahEngine = new IncomingPacketAsyncHandlingEngine(this);
             OqrEngine = new OutgoingQueueRefillEngine(this);
         }
 
@@ -461,6 +468,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             StartInbound();
             StartOutbound();
+            IpahEngine.Start();
             OqrEngine.Start();
 
             m_elapsedMSSinceLastStatReport = Environment.TickCount;
@@ -506,6 +514,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + Scene.Name);
             base.StopOutbound();
             base.StopInbound();
+            IpahEngine.Stop();
             OqrEngine.Stop();
         }
 
