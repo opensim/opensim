@@ -1184,6 +1184,7 @@ namespace OpenSim.Framework
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
         void SetChildAgentThrottle(byte[] throttle);
+        void SetChildAgentThrottle(byte[] throttle,float factor);
 
         void SetAgentThrottleSilent(int throttle, int setting);
         int GetAgentThrottleSilent(int throttle);

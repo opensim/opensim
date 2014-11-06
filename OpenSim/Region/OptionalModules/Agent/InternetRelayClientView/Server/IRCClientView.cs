@@ -1433,6 +1433,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
+        public virtual void SetChildAgentThrottle(byte[] throttle,float factor)
+        {
+
+        }
+
         public void SetAgentThrottleSilent(int throttle, int setting)
         {
            

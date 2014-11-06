@@ -544,6 +544,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public virtual void SetChildAgentThrottle(byte[] throttle, float factor)
+        {
+        }
+
         public void SetAgentThrottleSilent(int throttle, int setting)
         {
         }

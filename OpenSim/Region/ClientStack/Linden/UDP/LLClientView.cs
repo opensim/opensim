@@ -12344,7 +12344,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="throttles"></param>
         public void SetChildAgentThrottle(byte[] throttles)
         {
-            m_udpClient.SetThrottles(throttles);
+            SetChildAgentThrottle(throttles, 1.0f);
+        }
+
+        public void SetChildAgentThrottle(byte[] throttles,float factor)
+        {
+            m_udpClient.SetThrottles(throttles, factor);
             GenericCall2 handler = OnUpdateThrottles;
             if (handler != null)
             {

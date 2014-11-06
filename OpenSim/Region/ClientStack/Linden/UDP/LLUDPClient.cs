@@ -340,6 +340,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SetThrottles(byte[] throttleData)
         {
+            SetThrottles(throttleData, 1.0f);
+        }
+
+        public void SetThrottles(byte[] throttleData, float factor)
+        {
             byte[] adjData;
             int pos = 0;
 
@@ -359,13 +364,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // 0.125f converts from bits to bytes
-            int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
+            float scale = 0.125f * factor;
+            int resend = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
+            int land = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
+            int wind = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
+            int cloud = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
+            int task = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
+            int texture = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
+            int asset = (int)(BitConverter.ToSingle(adjData, pos) * scale);
 
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged

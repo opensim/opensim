@@ -4104,7 +4104,24 @@ namespace OpenSim.Region.Framework.Scenes
             CameraPosition = cAgentData.Center + offset;
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
-                ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
+            {
+                // some scaling factor
+                float x = m_pos.X;
+                if (x > m_scene.RegionInfo.RegionSizeX)
+                    x -= m_scene.RegionInfo.RegionSizeX;
+                float y = m_pos.Y;
+                if (y > m_scene.RegionInfo.RegionSizeY)
+                    y -= m_scene.RegionInfo.RegionSizeY;
+
+                x = x * x + y * y;
+
+                const float distScale = 0.4f / Constants.RegionSize / Constants.RegionSize;
+                float factor = 1.0f - distScale * x;
+                if (factor < 0.2f)
+                    factor = 0.2f;
+
+                ControllingClient.SetChildAgentThrottle(cAgentData.Throttles,factor);
+            }
 
             if(cAgentData.ChildrenCapSeeds != null && cAgentData.ChildrenCapSeeds.Count >0)
             {

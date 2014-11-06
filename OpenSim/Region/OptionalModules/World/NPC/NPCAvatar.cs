@@ -621,6 +621,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public virtual void SetChildAgentThrottle(byte[] throttle, float factor)
+        {
+
+        }
+
         public void SetAgentThrottleSilent(int throttle, int setting)
         {
 
