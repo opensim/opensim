@@ -655,7 +655,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Is gathering complete?
         /// </summary>
-        public bool GatheringComplete { get { return m_assetUuidsToInspect.Count <= 0; } }
+        public bool Complete { get { return m_assetUuidsToInspect.Count <= 0; } }
+
+        /// <summary>
+        /// Gets the next UUID to inspect.
+        /// </summary>
+        /// <value>If there is no next UUID then returns null</value>
+        public UUID? NextUuidToInspect
+        {
+            get
+            {
+                if (Complete)
+                    return null;
+                else
+                    return m_assetUuidsToInspect.Peek();
+            }
+        }
 
         protected IAssetService m_assetService;
 
@@ -693,7 +708,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>false if gathering is already complete, true otherwise</returns>
         public bool GatherNext()
         {
-            if (GatheringComplete)
+            if (Complete)
                 return false;
 
             GetAssetUuids(m_assetUuidsToInspect.Dequeue());
@@ -707,7 +722,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>false if gathering is already complete, true otherwise</returns>
         public bool GatherAll()
         {
-            if (GatheringComplete)
+            if (Complete)
                 return false;
 
             while (GatherNext());

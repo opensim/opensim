@@ -38,13 +38,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
     public class Job
     {
-        public string Name;
-        public WaitCallback Callback;
-        public object O;
+        public string Name { get; private set; }
+        public string CommonId { get; private set; }
+        public WaitCallback Callback { get; private set; }
+        public object O { get; private set; }
 
-        public Job(string name, WaitCallback callback, object o)
+        public Job(string name, string commonId, WaitCallback callback, object o)
         {
             Name = name;
+            CommonId = commonId;
             Callback = callback;
             O = o;
         }
@@ -90,6 +92,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public HGIncomingSceneObjectEngine(string name)
         {
+//            LogLevel = 1;
             Name = name;
             RequestProcessTimeoutOnStop = 5000;
 
@@ -192,10 +195,24 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        public bool QueueRequest(string name, WaitCallback req, object o)
+        public Job RemoveNextRequest()
+        {
+            Job nextRequest;
+            m_requestQueue.TryTake(out nextRequest);
+
+            return nextRequest;
+        }
+
+        public bool QueueRequest(string name, string commonId, WaitCallback req, object o)
+        {
+            return QueueRequest(new Job(name, commonId, req, o));
+        }
+
+        public bool QueueRequest(Job job)
         {
             if (LogLevel >= 1)
-                m_log.DebugFormat("[HG INCOMING SCENE OBJECT ENGINE]: Queued job {0}", name);
+                m_log.DebugFormat(
+                    "[HG INCOMING SCENE OBJECT ENGINE]: Queued job {0}, common ID {1}", job.Name, job.CommonId);
 
             if (m_requestQueue.Count < m_requestQueue.BoundedCapacity)
             {
@@ -203,7 +220,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 //                    "[OUTGOING QUEUE REFILL ENGINE]: Adding request for categories {0} for {1} in {2}", 
                 //                    categories, client.AgentID, m_udpServer.Scene.Name);
 
-                m_requestQueue.Add(new Job(name, req, o));
+                m_requestQueue.Add(job);
 
                 if (!m_warnOverMaxQueue)
                     m_warnOverMaxQueue = true;
