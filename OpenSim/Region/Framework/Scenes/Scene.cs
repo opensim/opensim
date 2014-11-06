@@ -227,6 +227,13 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_defaultDrawDistance; }
         }
 
+//        protected float m_maxDrawDistance = 512.0f;
+        protected float m_maxDrawDistance = 256.0f;
+        public float MaxDrawDistance
+        {
+            get { return m_maxDrawDistance; }
+        }
+
         private List<string> m_AllowedViewers = new List<string>();
         private List<string> m_BannedViewers = new List<string>();
         
@@ -862,7 +869,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 StartDisabled = startupConfig.GetBoolean("StartDisabled", false);
 
-                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
+                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
+                m_defaultDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
                 UseBackup = startupConfig.GetBoolean("UseSceneBackup", UseBackup);
                 if (!UseBackup)
                     m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
@@ -1069,7 +1077,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             BordersLocked = true;
             Border northBorder = new Border();
-            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
+            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, RegionInfo.RegionSizeY);  //<---
             northBorder.CrossDirection = Cardinals.N;
             NorthBorders.Add(northBorder);
 
@@ -1079,7 +1087,7 @@ namespace OpenSim.Region.Framework.Scenes
             SouthBorders.Add(southBorder);
 
             Border eastBorder = new Border();
-            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);   //<---
+            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, RegionInfo.RegionSizeX);   //<---
             eastBorder.CrossDirection = Cardinals.E;
             EastBorders.Add(eastBorder);
 
@@ -1092,6 +1100,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_eventManager = new EventManager();
 
             m_permissions = new ScenePermissions(this);
+
         }
 
         #endregion

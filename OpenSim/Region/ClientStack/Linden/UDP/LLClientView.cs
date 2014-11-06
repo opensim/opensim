@@ -5765,8 +5765,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
                 || (qdelta1 < QDELTABody)                                   // significant if body rotation above(below cos) threshold
                 // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
-                // || (qdelta2 < QDELTAHead)                               // significant if head rotation above(below cos) threshold
-                || (x.Far != m_thisAgentUpdateArgs.Far)                     // significant if far distance changed
+                // || (qdelta2 < QDELTAHead)                                // significant if head rotation above(below cos) threshold
+                || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
             ;
             //if (movementSignificant)
             //{

@@ -2352,11 +2352,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 int dd = avatar.DrawDistance < Constants.RegionSize ? (int)Constants.RegionSize : (int)avatar.DrawDistance;
 
-                int startX = (int)pRegionLocX * (int)Constants.RegionSize - dd + (int)(Constants.RegionSize/2);
-                int startY = (int)pRegionLocY * (int)Constants.RegionSize - dd + (int)(Constants.RegionSize/2);
+                dd--;
 
-                int endX = (int)pRegionLocX * (int)Constants.RegionSize + dd + (int)(Constants.RegionSize/2);
-                int endY = (int)pRegionLocY * (int)Constants.RegionSize + dd + (int)(Constants.RegionSize/2);
+                // region center
+                int endX = (int)pRegionLocX * (int)Constants.RegionSize + (int)(Constants.RegionSize / 2);
+                int endY = (int)pRegionLocY * (int)Constants.RegionSize + (int)(Constants.RegionSize / 2);
+                
+                int startX = endX - dd;
+                int startY = endY - dd;
+
+                endX +=  dd;
+                endY +=  dd;
 
                 if (startX < 0) startX = 0;
                 if (startY < 0) startY = 0;
