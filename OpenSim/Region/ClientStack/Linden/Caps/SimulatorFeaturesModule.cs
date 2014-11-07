@@ -34,7 +34,7 @@ using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-//using OpenSim.Framework;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -72,6 +72,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_SearchURL = string.Empty;
         private string m_DestinationGuideURL = string.Empty;
         private bool m_ExportSupported = false;
+        private string m_GridName = string.Empty;
+        private string m_GridURL = string.Empty;
 
         #region ISharedRegionModule Members
 
@@ -85,6 +87,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
                 m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
+                m_GridURL = Util.GetConfigVarFromSections<string>(source, "GatekeeperURI",
+                        new string[] { "Startup", "Hypergrid", "SimulatorFeatures" }, String.Empty);
+                m_GridName = config.GetString("GridName", string.Empty);
+                if (m_GridName == string.Empty)
+                    m_GridName = Util.GetConfigVarFromSections<string>(source, "gridname",
+                            new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
             }
 
             AddDefaultFeatures();
@@ -161,6 +169,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     extrasMap["destination-guide-url"] = m_DestinationGuideURL;
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
+                if (m_GridURL != string.Empty)
+                    extrasMap["GridURL"] = m_GridURL;
+                if (m_GridName != string.Empty)
+                    extrasMap["GridName"] = m_GridName;
 
                 if (extrasMap.Count > 0)
                     m_features["OpenSimExtras"] = extrasMap;
