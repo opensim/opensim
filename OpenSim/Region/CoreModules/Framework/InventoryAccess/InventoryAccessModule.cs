@@ -512,7 +512,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
 
-                AddPermissions(item, objlist[0], objlist, remoteClient);
+                //preserve perms on return
+                if(DeRezAction.Return == action)
+                    AddPermissions(item, objlist[0], objlist, null);
+                else
+                    AddPermissions(item, objlist[0], objlist, remoteClient);
 
                 m_Scene.AddInventoryItem(item);
 
