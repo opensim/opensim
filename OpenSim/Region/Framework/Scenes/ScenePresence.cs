@@ -73,6 +73,8 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class ScenePresence : EntityBase, IScenePresence
     {
+        public bool Invisible = false;
+
 //        ~ScenePresence()
 //        {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
