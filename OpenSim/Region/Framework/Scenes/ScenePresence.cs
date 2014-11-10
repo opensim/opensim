@@ -3870,6 +3870,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_attachments.Add(gobj);
             }
+
+            IBakedTextureModule bakedModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
+            if (bakedModule != null)
+                bakedModule.UpdateMeshAvatar(m_uuid);
         }
 
         /// <summary>
