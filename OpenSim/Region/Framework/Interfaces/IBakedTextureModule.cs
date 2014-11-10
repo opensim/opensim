@@ -36,5 +36,6 @@ namespace OpenSim.Services.Interfaces
     {
         WearableCacheItem[] Get(UUID id);
         void Store(UUID id, WearableCacheItem[] data);
+        void UpdateMeshAvatar(UUID id);
     }
 }
