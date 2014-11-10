@@ -152,7 +152,9 @@ namespace OpenMetaverse
                     SocketType.Dgram,
                     ProtocolType.Udp);
 
-                m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
+                // OpenSim may need this but in AVN, this messes up automated
+                // sim restarts badly
+                //m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
 
                 try
                 {
