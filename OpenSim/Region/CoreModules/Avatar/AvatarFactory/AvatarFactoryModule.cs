@@ -462,14 +462,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     WearableCacheItem[] toBakedModule = new WearableCacheItem[AvatarAppearance.BAKE_INDICES.Length];
 
-                    for (int i = 0; i < cacheItems.Length; i++)
+                    for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
                     {
-                        int idx = (int)cacheItems[i].TextureIndex;
-                        cacheItems[i].CacheId = wearableCache[idx].CacheId;
-                        cacheItems[i].TextureID = wearableCache[idx].TextureID;
-                        cacheItems[i].TextureAsset = wearableCache[idx].TextureAsset;
+                        int idx = (int)AvatarAppearance.BAKE_INDICES[i];
+                        toBakedModule[i] = new WearableCacheItem();
+                        toBakedModule[i].TextureIndex = (uint)idx;
+                        toBakedModule[i].CacheId = wearableCache[idx].CacheId;
+                        toBakedModule[i].TextureID = wearableCache[idx].TextureID;
+                        toBakedModule[i].TextureAsset = wearableCache[idx].TextureAsset;
                     }
-                    m_BakedTextureModule.Store(sp.UUID, cacheItems);
+                    m_BakedTextureModule.Store(sp.UUID, toBakedModule);
                 }
             }
 
