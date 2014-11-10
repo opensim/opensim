@@ -72,6 +72,7 @@ namespace OpenSim.Framework
         protected float m_avatarAnimOffset = 0;
         protected WearableCacheItem[] m_cacheitems;
         protected bool m_cacheItemsDirty = true;
+        public static Primitive.TextureEntry Invisible = null;
 
         public virtual int Serial
         {
@@ -134,8 +135,30 @@ namespace OpenSim.Framework
             set { m_cacheItemsDirty = value; }
         }
 
+        private void CreateInvisibleTextureEntry()
+        {
+            if (Invisible != null)
+                return;
+            Invisible = new Primitive.TextureEntry(new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"));
+
+            Invisible.FaceTextures[8] = new Primitive.TextureEntryFace(null);
+            Invisible.FaceTextures[8].TextureID = new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+            Invisible.FaceTextures[9] = new Primitive.TextureEntryFace(null);
+            Invisible.FaceTextures[9].TextureID = new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+            Invisible.FaceTextures[10] = new Primitive.TextureEntryFace(null);
+            Invisible.FaceTextures[10].TextureID = new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+            Invisible.FaceTextures[11] = new Primitive.TextureEntryFace(null);
+            Invisible.FaceTextures[11].TextureID = new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+            Invisible.FaceTextures[19] = new Primitive.TextureEntryFace(null);
+            Invisible.FaceTextures[19].TextureID = new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+            Invisible.FaceTextures[20] = new Primitive.TextureEntryFace(null);
+            Invisible.FaceTextures[20].TextureID = new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+        }
+
         public AvatarAppearance()
         {
+            CreateInvisibleTextureEntry();
+
 //            m_log.WarnFormat("[AVATAR APPEARANCE]: create empty appearance");
 
             m_serial = 0;
@@ -149,6 +172,9 @@ namespace OpenSim.Framework
 
         public AvatarAppearance(OSDMap map)
         {
+            CreateInvisibleTextureEntry();
+
+            Invisible = new Primitive.TextureEntry(new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"));
 //            m_log.WarnFormat("[AVATAR APPEARANCE]: create appearance from OSDMap");
 
             Unpack(map);
@@ -157,6 +183,7 @@ namespace OpenSim.Framework
 
         public AvatarAppearance(AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
+            CreateInvisibleTextureEntry();
 //            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance");
 
             m_serial = 0;
@@ -194,6 +221,7 @@ namespace OpenSim.Framework
 
         public AvatarAppearance(AvatarAppearance appearance, bool copyWearables, bool copyBaked)
         {
+            CreateInvisibleTextureEntry();
 //            m_log.WarnFormat("[AVATAR APPEARANCE] create from an existing appearance");
 
             if (appearance == null)

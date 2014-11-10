@@ -5142,7 +5142,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 acceleration = Vector3.Zero;
 
                 if (sendTexture)
-                    textureEntry = presence.Appearance.Texture.GetBytes();
+                {
+                    if (presence.Invisible)
+                        textureEntry = AvatarAppearance.Invisible.GetBytes();
+                    else
+                        textureEntry = presence.Appearance.Texture.GetBytes();
+                }
                 else
                     textureEntry = null;
             }
