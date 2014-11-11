@@ -1940,8 +1940,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rez a script into a prim's inventory from another prim
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="itemID"> </param>
-        /// <param name="localID"></param>
+        /// <param name="srcPart"> </param>
+        /// <param name="destId"> </param>
+        /// <param name="pin"></param>
+        /// <param name="running"></param>
+        /// <param name="start_param"></param>
         public void RezScriptFromPrim(UUID srcId, SceneObjectPart srcPart, UUID destId, int pin, int running, int start_param)
         {
             TaskInventoryItem srcTaskItem = srcPart.Inventory.GetInventoryItem(srcId);
@@ -1961,12 +1964,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (destPart == null)
             {
                 m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Could not find script for ID {0}",
-                        destId);
+                    "[PRIM INVENTORY]: Could not find part {0} to insert script item {1} from {2} {3} in {4}",
+                    destId, srcId, srcPart.Name, srcPart.UUID, Name);
                 return;
             }
-        
+
             // Must own the object, and have modify rights
             if (srcPart.OwnerID != destPart.OwnerID)
             {
@@ -1974,12 +1976,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
                     ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
                     return;
-            } else {
+            } 
+            else 
+            {
                 if ((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
             }
 
-            if (destPart.ScriptAccessPin != pin)
+            if (destPart.ScriptAccessPin == 0 || destPart.ScriptAccessPin != pin)
             {
                 m_log.WarnFormat(
                         "[PRIM INVENTORY]: " +
