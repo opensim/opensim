@@ -90,7 +90,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool isNPC { get; private set; }
 
-        public bool Invisible { get; set; }
         private PresenceType m_presenceType;
         public PresenceType PresenceType {
             get {return m_presenceType;}
@@ -950,7 +949,6 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence(
             IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {            
-            Invisible = false;
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
@@ -3716,12 +3714,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAppearanceToAgentNF(ScenePresence avatar)
         {
-            if (Invisible)
-                avatar.ControllingClient.SendAppearance(
-                    UUID, Appearance.VisualParams, AvatarAppearance.Invisible.GetBytes());
-            else
-                avatar.ControllingClient.SendAppearance(
-                    UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+            avatar.ControllingClient.SendAppearance(
+                UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
         }
 
         public void SendAnimPackToAgent(ScenePresence p)

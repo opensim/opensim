@@ -5143,10 +5143,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (sendTexture)
                 {
-                    if (presence.Invisible)
-                        textureEntry = AvatarAppearance.Invisible.GetBytes();
-                    else
-                        textureEntry = presence.Appearance.Texture.GetBytes();
+                    textureEntry = presence.Appearance.Texture.GetBytes();
                 }
                 else
                     textureEntry = null;

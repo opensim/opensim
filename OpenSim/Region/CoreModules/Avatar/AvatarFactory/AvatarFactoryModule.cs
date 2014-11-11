@@ -460,18 +460,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.Debug("[UpdateBakedCache] uploading to bakedModule cache");
 
-                    WearableCacheItem[] toBakedModule = new WearableCacheItem[AvatarAppearance.BAKE_INDICES.Length];
-
-                    for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
-                    {
-                        int idx = (int)AvatarAppearance.BAKE_INDICES[i];
-                        toBakedModule[i] = new WearableCacheItem();
-                        toBakedModule[i].TextureIndex = (uint)idx;
-                        toBakedModule[i].CacheId = wearableCache[idx].CacheId;
-                        toBakedModule[i].TextureID = wearableCache[idx].TextureID;
-                        toBakedModule[i].TextureAsset = wearableCache[idx].TextureAsset;
-                    }
-                    m_BakedTextureModule.Store(sp.UUID, toBakedModule);
+                    m_BakedTextureModule.Store(sp.UUID);
                 }
             }
 
@@ -610,8 +599,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     {
                         bakedModuleCache = bakedModule.Get(sp.UUID);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        m_log.ErrorFormat(e.ToString());
                         bakedModuleCache = null;
                     }
 
