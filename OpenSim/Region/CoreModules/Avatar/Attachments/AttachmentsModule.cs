@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 DebugLevel = debugLevel;
                 MainConsole.Instance.OutputFormat(
-                    "Set event queue debug level to {0} in {1}", DebugLevel, m_scene.Name);
+                    "Set attachments debug level to {0} in {1}", DebugLevel, m_scene.Name);
             }
         }
 
