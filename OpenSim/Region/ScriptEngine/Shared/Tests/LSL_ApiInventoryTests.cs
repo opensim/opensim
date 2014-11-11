@@ -247,7 +247,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             UUID user1Id = TestHelpers.ParseTail(0x1);
             UUID user2Id = TestHelpers.ParseTail(0x2);
 
-            SceneObjectGroup sourceSo = SceneHelpers.AddSceneObject((m_scene, "sourceSo", user1Id);
+            SceneObjectGroup sourceSo = SceneHelpers.AddSceneObject(m_scene, "sourceSo", user1Id);
             m_scene.AddSceneObject(sourceSo);
             LSL_Api api = new LSL_Api();
             api.Initialize(m_engine, sourceSo.RootPart, null, null);
