@@ -237,5 +237,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.IsNotNull(receivedItem);
             Assert.AreEqual(0, receivedItem.CurrentPermissions & (uint)PermissionMask.Modify);
         }
+
+        [Test]
+        public void TestLlRemoteLoadScriptPin()
+        {
+            TestHelpers.InMethod();
+//                        TestHelpers.EnableLogging();
+
+            UUID user1Id = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+
+            SceneObjectGroup sourceSo = SceneHelpers.AddSceneObject((m_scene, "sourceSo", user1Id);
+            m_scene.AddSceneObject(sourceSo);
+            LSL_Api api = new LSL_Api();
+            api.Initialize(m_engine, sourceSo.RootPart, null, null);
+            TaskInventoryHelpers.AddScript(m_scene, sourceSo.RootPart, "script", "Hello World");
+
+            SceneObjectGroup targetSo = SceneHelpers.AddSceneObject(m_scene, "targetSo", user1Id);
+            SceneObjectGroup otherOwnedTargetSo = SceneHelpers.AddSceneObject(m_scene, "otherOwnedTargetSo", user2Id);
+
+            // Test that we cannot load a script when the target pin has never been set (i.e. it is zero)
+            api.llRemoteLoadScriptPin(targetSo.UUID.ToString(), "script", 0, 0, 0);
+            Assert.IsNull(targetSo.RootPart.Inventory.GetInventoryItem("script"));
+
+            // Test that we cannot load a script when the given pin does not match the target
+            targetSo.RootPart.ScriptAccessPin = 5;
+            api.llRemoteLoadScriptPin(targetSo.UUID.ToString(), "script", 3, 0, 0);
+            Assert.IsNull(targetSo.RootPart.Inventory.GetInventoryItem("script"));
+
+            // Test that we cannot load into a prim with a different owner
+            otherOwnedTargetSo.RootPart.ScriptAccessPin = 3;
+            api.llRemoteLoadScriptPin(otherOwnedTargetSo.UUID.ToString(), "script", 3, 0, 0);
+            Assert.IsNull(otherOwnedTargetSo.RootPart.Inventory.GetInventoryItem("script"));
+
+            // Test that we can load a script when given pin and dest pin match.
+            targetSo.RootPart.ScriptAccessPin = 3;
+            api.llRemoteLoadScriptPin(targetSo.UUID.ToString(), "script", 3, 0, 0);
+            TaskInventoryItem insertedItem = targetSo.RootPart.Inventory.GetInventoryItem("script");
+            Assert.IsNotNull(insertedItem);
+
+            // Test that we can no longer load if access pin is unset
+            targetSo.RootPart.Inventory.RemoveInventoryItem(insertedItem.ItemID);
+            Assert.IsNull(targetSo.RootPart.Inventory.GetInventoryItem("script"));
+
+            targetSo.RootPart.ScriptAccessPin = 0;
+            api.llRemoteLoadScriptPin(otherOwnedTargetSo.UUID.ToString(), "script", 3, 0, 0);
+            Assert.IsNull(otherOwnedTargetSo.RootPart.Inventory.GetInventoryItem("script"));
+        }
     }
 }
