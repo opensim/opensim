@@ -255,7 +255,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (m_BakedTextureModule != null)
                     {
-                        m_BakedTextureModule.Store(remoteClient.AgentId, cacheItems);
+                        m_BakedTextureModule.Store(remoteClient.AgentId);
                         p.Appearance.WearableCacheItemsDirty = true;
                         
                     }
