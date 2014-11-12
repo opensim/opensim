@@ -95,8 +95,6 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             if (m_Enabled)
             {
                 m_scene = scene;
-                IEntityTransferModule et = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                m_Helper = new SimulatorFeaturesHelper(scene, et);
             }
         }
 
@@ -104,9 +102,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         {
             if (m_Enabled)
             {
-                ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                IEntityTransferModule et = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                m_Helper = new SimulatorFeaturesHelper(scene, et);
 
-                if (featuresModule != null && m_Enabled)
+                ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                if (featuresModule != null)
                     featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
             }
         }

@@ -95,8 +95,6 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             if (m_Enabled)
             {
                 m_scene = scene;
-                IEntityTransferModule et = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                m_Helper = new SimulatorFeaturesHelper(scene, et);
                 //m_scene.EventManager.OnMakeRootAgent += (OnMakeRootAgent);
             }
         }
@@ -110,9 +108,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         {
             if (m_Enabled)
             {
-                ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                IEntityTransferModule et = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                m_Helper = new SimulatorFeaturesHelper(scene, et);
 
-                if (featuresModule != null && m_Enabled)
+                ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                if (featuresModule != null)
                     featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
             }
         }
@@ -138,7 +138,10 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                 }
                 extrasMap["camera-only-mode"] = OSDMap.FromString("true");
                 m_log.DebugFormat("[CAMERA-ONLY MODE]: Sent in {0}", m_scene.RegionInfo.RegionName);
-                Util.FireAndForget(delegate { DetachAttachments(agentID); });
+
+                // Detaching attachments doesn't work for HG visitors,
+                // so I'm giving that up.
+                //Util.FireAndForget(delegate { DetachAttachments(agentID); });
             }
             else
                 m_log.DebugFormat("[CAMERA-ONLY MODE]: NOT Sending camera-only-mode in {0}", m_scene.RegionInfo.RegionName);

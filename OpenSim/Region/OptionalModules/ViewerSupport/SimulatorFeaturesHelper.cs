@@ -101,6 +101,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             if (client != null)
             {
                 ScenePresence sp = WaitGetScenePresence(agentID);
+
                 if (sp == null) // Client is connected but SP still doesn't exist: this may happen on login
                 {
                     m_log.DebugFormat("[XXX]: SP is null");
@@ -123,10 +124,12 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                         rsend.send = true;
                     else
                         m_log.DebugFormat("[XXX]: Child or in transit");
+
                 }
             }
             else
                 m_log.DebugFormat("[XXX]: client is null");
+
 
             if (rsendlist == null)
             {
