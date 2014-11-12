@@ -43,7 +43,7 @@ namespace OpenSim.Framework
 
         public static WearableCacheItem[] GetDefaultCacheItem()
         {
-            int itemmax = 21;
+            int itemmax = 32;
             WearableCacheItem[] retitems = new WearableCacheItem[itemmax];
             for (uint i=0;i<itemmax;i++)
                 retitems[i] = new WearableCacheItem() {CacheId = UUID.Zero, TextureID = UUID.Zero, TextureIndex = i + 1};
