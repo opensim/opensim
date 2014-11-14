@@ -5081,7 +5081,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             if (local != 0)
                             {
-                                applied_linear_impulse *= m_host.GetWorldRotation();
+//                                applied_linear_impulse *= m_host.GetWorldRotation();
+                                applied_linear_impulse *= pusheeav.GetWorldRotation();
                             }
 
                             pa.AddForce(applied_linear_impulse, true);
