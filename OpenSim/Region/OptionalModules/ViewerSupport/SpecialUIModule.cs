@@ -120,9 +120,10 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             m_log.DebugFormat("[SPECIAL UI]: OnSimulatorFeaturesRequest in {0}", m_scene.RegionInfo.RegionName);
             if (m_Helper.ShouldSend(agentID) && m_Helper.UserLevel(agentID) <= m_UserLevel)
             {
+                OSDMap extrasMap;
+                OSDMap specialUI = new OSDMap();
                 using (StreamReader s = new StreamReader(Path.Combine(VIEWER_SUPPORT_DIR, "panel_toolbar.xml")))
                 {
-                    OSDMap extrasMap;
                     if (features.ContainsKey("OpenSimExtras"))
                         extrasMap = (OSDMap)features["OpenSimExtras"];
                     else
@@ -131,11 +132,29 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                         features["OpenSimExtras"] = extrasMap;
                     }
 
-                    OSDMap specialUI = new OSDMap();
                     specialUI["toolbar"] = OSDMap.FromString(s.ReadToEnd());
                     extrasMap["special-ui"] = specialUI;
                 }
                 m_log.DebugFormat("[SPECIAL UI]: Sending panel_toolbar.xml in {0}", m_scene.RegionInfo.RegionName);
+
+                if (Directory.Exists(Path.Combine(VIEWER_SUPPORT_DIR, "Floaters")))
+                {
+                    OSDMap floaters = new OSDMap();
+                    uint n = 0;
+                    foreach (String name in Directory.GetFiles(Path.Combine(VIEWER_SUPPORT_DIR, "Floaters"), "*.xml"))
+                    {
+                        using (StreamReader s = new StreamReader(name))
+                        {
+                            string simple_name = Path.GetFileNameWithoutExtension(name);
+                            m_log.DebugFormat("[XXX]: Reading {0} ({1})", name, simple_name);
+                            OSDMap floater = new OSDMap();
+                            floaters[simple_name] = OSDMap.FromString(s.ReadToEnd());
+                            n++;
+                        }
+                    }
+                    specialUI["floaters"] = floaters;
+                    m_log.DebugFormat("[SPECIAL UI]: Sending {0} floaters", n);
+                }
             }
             else
                 m_log.DebugFormat("[SPECIAL UI]: NOT Sending panel_toolbar.xml in {0}", m_scene.RegionInfo.RegionName);
