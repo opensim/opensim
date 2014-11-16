@@ -69,6 +69,7 @@ namespace OpenSim.Groups
                                                 GroupPowers.DeleteRole |
                                                 GroupPowers.Eject |
                                                 GroupPowers.FindPlaces |
+                                                GroupPowers.HostEvent |
                                                 GroupPowers.Invite |
                                                 GroupPowers.JoinChat |
                                                 GroupPowers.LandChangeIdentity |
