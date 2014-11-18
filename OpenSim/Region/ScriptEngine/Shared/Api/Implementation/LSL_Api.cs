@@ -3269,6 +3269,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (new_groups == null)
                     return;
 
+                bool notAttachment = !m_host.ParentGroup.IsAttachment;
+
                 foreach (SceneObjectGroup group in new_groups)
                 {
                     // objects rezzed with this method are die_at_edge by default.
@@ -3282,17 +3284,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             group.RootPart.UUID.ToString()) },
                             new DetectParams[0]));
 
-                    float groupmass = group.GetMass();
-
-                    PhysicsActor pa = group.RootPart.PhysActor;
-
-                    //Recoil.
-                    if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
+                    if (notAttachment)
                     {
-                        Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
-                        if (recoil != Vector3.Zero)
+                        float groupmass = group.GetMass();
+
+                        PhysicsActor pa = group.RootPart.PhysActor;
+
+                        //Recoil.
+                        if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
                         {
-                            llApplyImpulse(recoil, 0);
+                            Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
+                            if (recoil != Vector3.Zero)
+                            {
+                                llApplyImpulse(recoil, 0);
+                            }
                         }
                     }
                     // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
