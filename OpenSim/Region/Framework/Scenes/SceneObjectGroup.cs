@@ -1891,10 +1891,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsAttachment)
             {
                 ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+
                 if (avatar != null)
-                {
                     avatar.MoveToTarget(target, false, false);
-                }
             }
             else
             {
@@ -1911,10 +1910,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void stopMoveToTarget()
         {
-            PhysicsActor pa = RootPart.PhysActor;
+            if (IsAttachment)
+            {
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
-            if (pa != null)
-                pa.PIDActive = false;
+                if (avatar != null)
+                    avatar.ResetMoveToTarget();
+            }
+            else
+            {
+                PhysicsActor pa = RootPart.PhysActor;
+
+                if (pa != null)
+                {
+                    pa.PIDActive = false;
+                    
+                    ScheduleGroupForTerseUpdate();
+                    //ParentGroup.ScheduleGroupForFullUpdate();
+                }
+            }
         }
         
         /// <summary>
