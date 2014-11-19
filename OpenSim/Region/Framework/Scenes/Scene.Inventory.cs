@@ -2491,6 +2491,28 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
 
+            SceneObjectGroup sog;
+            //  position adjust
+            if (totalPrims > 1) // nothing to do on a single prim
+            {
+                if (objlist.Count == 1)
+                {
+                    // current object position is root position
+                    if(!atRoot)
+                    {
+                        sog = objlist[0];
+                        Quaternion orot;
+                        if (rot == null)
+                            orot = sog.RootPart.GetWorldRotation();
+                        else
+                            orot = rot.Value;
+                        Vector3 off = sog.GetGeometricCenter();
+                        off *= orot;
+                        pos -= off;
+                    }
+                }
+            }
+
             for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup group = objlist[i];
