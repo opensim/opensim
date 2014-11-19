@@ -273,9 +273,10 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
-        public override bool PIDActive
-        {
-            set { return; }
+        public override bool PIDActive 
+        { 
+            get { return false; }
+            set { return; } 
         }
 
         public override float PIDTau

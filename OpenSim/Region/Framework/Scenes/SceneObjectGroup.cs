@@ -1921,12 +1921,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 PhysicsActor pa = RootPart.PhysActor;
 
-                if (pa != null)
+                if (pa != null && pa.PIDActive)
                 {
                     pa.PIDActive = false;
                     
                     ScheduleGroupForTerseUpdate();
-                    //ParentGroup.ScheduleGroupForFullUpdate();
                 }
             }
         }

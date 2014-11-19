@@ -114,7 +114,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_PIDTau;
         private float PID_D = 35f;
         private float PID_G = 25f;
-        private bool m_usePID;
 
         // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
         // and are for non-VEHICLES only.
@@ -1723,7 +1722,7 @@ Console.WriteLine(" JointCreateFixed");
                     // gravityz multiplier = 1 - m_buoyancy
                     fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass;
 
-                    if (m_usePID)
+                    if (PIDActive)
                     {
 //Console.WriteLine("PID " +  Name);
                         // KF - this is for object move? eg. llSetPos() ?
@@ -1792,10 +1791,10 @@ Console.WriteLine(" JointCreateFixed");
 
                             fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
                         }
-                    }        // end if (m_usePID)
+                    }        // end if (PIDActive)
 
                     // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
-                    if (m_useHoverPID && !m_usePID)
+                    if (m_useHoverPID && !PIDActive)
                     {
 //Console.WriteLine("Hover " +  Name);
                     
@@ -2866,7 +2865,7 @@ Console.WriteLine(" JointCreateFixed");
                         // it does make sense to do this for tiny little instabilities with physical prim, however 0.5m/frame is fairly large. 
                         // reducing this to 0.02m/frame seems to help the angular rubberbanding quite a bit, however, to make sure it doesn't affect elevators and vehicles
                         // adding these logical exclusion situations to maintain this where I think it was intended to be.
-                        if (m_throttleUpdates || m_usePID || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
+                        if (m_throttleUpdates || PIDActive || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
                         {
                             m_minvelocity = 0.5f;
                         }
@@ -2947,7 +2946,7 @@ Console.WriteLine(" JointCreateFixed");
                     m_log.WarnFormat("[PHYSICS]: Got NaN PIDTarget from Scene on Object {0}", Name);
             } 
         }
-        public override bool PIDActive { set { m_usePID = value; } }
+        public override bool PIDActive { get; set; }
         public override float PIDTau { set { m_PIDTau = value; } }
 
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }

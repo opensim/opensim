@@ -246,7 +246,12 @@ public abstract class BSPhysObject : PhysicsActor
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
-    public override bool PIDActive { set { MoveToTargetActive = value; } }
+    public override bool PIDActive 
+    {
+        get { return MoveToTargetActive; }
+        set { MoveToTargetActive = value; } 
+    }
+
     public override OMV.Vector3 PIDTarget { set { MoveToTargetTarget = value; } }
     public override float PIDTau { set { MoveToTargetTau = value; } }
 
