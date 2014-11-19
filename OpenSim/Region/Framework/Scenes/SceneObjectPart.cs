@@ -3280,9 +3280,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void StopMoveToTarget()
         {
             ParentGroup.stopMoveToTarget();
-
-            ParentGroup.ScheduleGroupForTerseUpdate();
-            //ParentGroup.ScheduleGroupForFullUpdate();
         }
 
         public void StoreUndoState()
