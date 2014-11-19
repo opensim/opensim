@@ -2447,7 +2447,7 @@ namespace OpenSim.Region.Framework.Scenes
                         RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true, scale, false);            
                 
-                RezObject(part, item, pos, null, Vector3.Zero, 0);
+                RezObject(part, item, pos, null, Vector3.Zero, 0, false);
             }
         }
         
@@ -2463,7 +2463,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="param"></param>
         /// <returns>The SceneObjectGroup(s) rezzed, or null if rez was unsuccessful</returns>
         public virtual List<SceneObjectGroup> RezObject(
-            SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param)
+            SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot)
         {
             if (null == item)
                 return null;
@@ -2474,6 +2474,7 @@ namespace OpenSim.Region.Framework.Scenes
             float offsetHeight;
 
             bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist,out bbox, out offsetHeight);
+
             if (!success)
                 return null;
 
