@@ -1886,7 +1886,7 @@ namespace OpenSim.Region.Framework.Scenes
             return Vector3.Zero;
         }
 
-        public void moveToTarget(Vector3 target, float tau)
+        public void MoveToTarget(Vector3 target, float tau)
         {
             if (IsAttachment)
             {
@@ -1908,7 +1908,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void stopMoveToTarget()
+        public void StopMoveToTarget()
         {
             if (IsAttachment)
             {
