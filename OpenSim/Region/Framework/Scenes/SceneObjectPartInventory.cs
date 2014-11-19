@@ -871,7 +871,7 @@ namespace OpenSim.Region.Framework.Scenes
             return items;
         }
 
-        public bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist)
+        public bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist, out Vector3 bbox, out float offsetHeight)
         {
             AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
 
@@ -882,12 +882,11 @@ namespace OpenSim.Region.Framework.Scenes
                     item.AssetID, item.Name, m_part.Name);
                 objlist = null;
                 veclist = null;
+                bbox = Vector3.Zero;
+                offsetHeight = 0;
                 return false;
             }
-
-            Vector3 bbox;
-            float offsetHeight;
-
+          
             bool single = m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
 
             for (int i = 0; i < objlist.Count; i++)

@@ -2470,8 +2470,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             List<SceneObjectGroup> objlist;
             List<Vector3> veclist;
-            
-            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist);
+            Vector3 bbox;
+            float offsetHeight;
+
+            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist,out bbox, out offsetHeight);
             if (!success)
                 return null;
 
