@@ -132,6 +132,7 @@ public static class BSParam
     public static float PhysicsUnmanLoggingFrames { get; private set; }
 
     // Avatar parameters
+    public static bool AvatarToAvatarCollisionsByDefault { get; private set; }
     public static float AvatarFriction { get; private set; }
     public static float AvatarStandingFriction { get; private set; }
     public static float AvatarAlwaysRunFactor { get; private set; }
@@ -571,6 +572,8 @@ public static class BSParam
         new ParameterDefn<float>("TerrainCollisionMargin", "Margin where collision checking starts" ,
             0.04f ),
 
+        new ParameterDefn<bool>("AvatarToAvatarCollisionsByDefault", "Should avatars collide with other avatars by default?",
+            true),
         new ParameterDefn<float>("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
             0.2f ),
         new ParameterDefn<float>("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",

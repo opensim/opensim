@@ -619,6 +619,11 @@
     ; ForwardOfflineGroupMessages = true
 
 
+[BulletSim]
+    ;# {AvatarToAvatarCollisionsByDefault} {[Startup]physics:BulletSim} {Should avatars collide with each other?} {true false} true
+    AvatarToAvatarCollisionsByDefault = true
+
+
 [ODEPhysicsSettings]
     ;# {mesh_sculpted_prim} {[Startup]physics:OpenDynamicsEngine} {Mesh sculpties so they collide as they look?} {true false} true
     ;; Do we want to mesh sculpted prim to collide like they look?

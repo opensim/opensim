@@ -174,15 +174,19 @@ public sealed class BSCharacter : BSPhysObject
         PhysScene.PE.UpdateSingleAabb(PhysScene.World, PhysBody);
 
         // Do this after the object has been added to the world
-        PhysBody.collisionType = CollisionType.Avatar;
+        if (BSParam.AvatarToAvatarCollisionsByDefault)
+            PhysBody.collisionType = CollisionType.Avatar;
+        else
+            PhysBody.collisionType = CollisionType.PhantomToOthersAvatar;
+
         PhysBody.ApplyCollisionMask(PhysScene);
     }
-
 
     public override void RequestPhysicsterseUpdate()
     {
         base.RequestPhysicsterseUpdate();
     }
+
     // No one calls this method so I don't know what it could possibly mean
     public override bool Stopped { get { return false; } }
 
