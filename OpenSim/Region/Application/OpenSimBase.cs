@@ -338,7 +338,7 @@ namespace OpenSim
             // Called from base.StartUp()
 
             IConfig startupConfig = Config.Configs["Startup"];
-            if (startupConfig != null && startupConfig.GetBoolean("JobEngineEnabled", true))
+            if (startupConfig == null || startupConfig.GetBoolean("JobEngineEnabled", true))
                 Watchdog.JobEngine.Start();
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
