@@ -91,9 +91,9 @@ namespace OpenSim.Framework.Monitoring
                 "Debug",
                 false,
                 "debug jobengine",
-                "debug jobengine <start|stop|status>",
-                "Start, stop or get status of the job engine.",
-                "If stopped then all jobs are processed immediately.",
+                "debug jobengine <start|stop|status|log>",
+                "Start, stop, get status or set logging level of the job engine.",
+                "If stopped then all outstanding jobs are processed immediately.",
                 HandleControlCommand);
         }
 
@@ -277,7 +277,7 @@ namespace OpenSim.Framework.Monitoring
 
             if (args.Length < 3)
             {
-                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status|loglevel>");
+                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status|log>");
                 return;
             }
 
@@ -301,15 +301,14 @@ namespace OpenSim.Framework.Monitoring
                     "Jobs waiting: {0}", IsRunning ? m_requestQueue.Count.ToString() : "n/a");
                 MainConsole.Instance.OutputFormat("Log Level: {0}", LogLevel);
             }
-
-            else if (subCommand == "loglevel")
+            else if (subCommand == "log")
             {
 //                int logLevel;
                 int logLevel = int.Parse(args[3]);
 //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
 //                {                 
                     LogLevel = logLevel;
-                    MainConsole.Instance.OutputFormat("Set log level to {0}", LogLevel);
+                    MainConsole.Instance.OutputFormat("Set debug log level to {0}", LogLevel);
 //                }
             }
             else 
