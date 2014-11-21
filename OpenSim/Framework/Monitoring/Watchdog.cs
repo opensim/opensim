@@ -454,7 +454,38 @@ namespace OpenSim.Framework.Monitoring
             m_watchdogTimer.Start();
         }
 
-        public static void RunWhenPossible(string jobType, WaitCallback callback, string name, object obj, bool log = false)
+        /// <summary>
+        /// Run a job.
+        /// </summary>
+        /// <remarks>
+        /// This differs from direct scheduling (e.g. Util.FireAndForget) in that a job can be run in the job
+        /// engine if it is running, where all jobs are currently performed in sequence on a single thread.  This is
+        /// to prevent observed overload and server freeze problems when there are hundreds of connections which all attempt to 
+        /// perform work at once (e.g. in conference situations).  With lower numbers of connections, the small
+        /// delay in performing jobs in sequence rather than concurrently has not been notiecable in testing, though a future more 
+        /// sophisticated implementation could perform jobs concurrently when the server is under low load.
+        /// 
+        /// However, be advised that some callers of this function rely on all jobs being performed in sequence if any
+        /// jobs are performed in sequence (i.e. if jobengine is active or not).  Therefore, expanding the jobengine
+        /// beyond a single thread will require considerable thought.
+        /// 
+        /// Also, any jobs submitted must be guaranteed to complete within a reasonable timeframe (e.g. they cannot
+        /// incorporate a network delay with a long timeout).  At the moment, work that could suffer such issues 
+        /// should still be run directly with RunInThread(), Util.FireAndForget(), etc.  This is another area where
+        /// the job engine could be improved and so CPU utilization improved by better management of concurrency within
+        /// OpenSimulator.
+        /// </remarks>
+        /// <param name="jobType">General classification for the job (e.g. "RezAttachments").</param>
+        /// <param name="callback">Callback for job.</param>
+        /// <param name="name">Specific name of job (e.g. "RezAttachments for Joe Bloggs"</param>
+        /// <param name="obj">Object to pass to callback when run</param>
+        /// <param name="canRunInThisThread">If set to true then the job may be run in ths calling thread.</param>
+        /// <param name="mustNotTimeout">If the true then the job must never timeout.</param>
+        /// <param name="log">If set to true then extra logging is performed.</param>
+        public static void RunJob(
+            string jobType, WaitCallback callback, string name, object obj, 
+            bool canRunInThisThread = false, bool mustNotTimeout = false, 
+            bool log = false)
         {
             if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
             {
@@ -465,8 +496,12 @@ namespace OpenSim.Framework.Monitoring
 
             if (JobEngine.IsRunning)
                 JobEngine.QueueRequest(name, callback, obj);
-            else
+            else if (canRunInThisThread)
+                callback(obj);
+            else if (mustNotTimeout)
                 RunInThread(callback, name, obj, log);
+            else
+                Util.FireAndForget(callback, obj, name);
         }
     }
 }
