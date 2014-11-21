@@ -146,7 +146,6 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                         using (StreamReader s = new StreamReader(name))
                         {
                             string simple_name = Path.GetFileNameWithoutExtension(name);
-                            m_log.DebugFormat("[XXX]: Reading {0} ({1})", name, simple_name);
                             OSDMap floater = new OSDMap();
                             floaters[simple_name] = OSDMap.FromString(s.ReadToEnd());
                             n++;

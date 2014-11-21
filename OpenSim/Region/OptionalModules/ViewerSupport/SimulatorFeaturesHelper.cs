@@ -102,11 +102,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             {
                 ScenePresence sp = WaitGetScenePresence(agentID);
 
-                if (sp == null) // Client is connected but SP still doesn't exist: this may happen on login
-                {
-                    m_log.DebugFormat("[XXX]: SP is null");
-                }
-                else
+                if (sp != null)
                 {
                     // On the receiving region, the call to this cap may arrive before
                     // the agent is root. Make sure we only proceed from here when the agent
@@ -122,13 +118,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                     // The agent must be root and not going anywhere
                     if (!sp.IsChildAgent && !m_TransferModule.IsInTransit(agentID))
                         rsend.send = true;
-                    else
-                        m_log.DebugFormat("[XXX]: Child or in transit");
 
                 }
             }
-            else
-                m_log.DebugFormat("[XXX]: client is null");
+            //else
+            //    m_log.DebugFormat("[XXX]: client is null");
 
 
             if (rsendlist == null)
