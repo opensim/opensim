@@ -8540,6 +8540,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llXorBase64Strings(string str1, string str2)
         {
+            int padding = 0;
+
             string b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
             ScriptSleep(300);
@@ -8583,6 +8585,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // than the decoded length of s1, simply perform a normal
             // decode and XOR
             //
+            /*
             if (data2.Length >= data1.Length)
             {
                 for (int pos = 0 ; pos < data1.Length ; pos++ )
@@ -8590,10 +8593,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 return Convert.ToBase64String(data1);
             }
+            */
 
             // Remove padding
             while (str1.EndsWith("="))
+            {
                 str1 = str1.Substring(0, str1.Length - 1);
+                padding++;
+            }
             while (str2.EndsWith("="))
                 str2 = str2.Substring(0, str2.Length - 1);
             
@@ -8621,7 +8628,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             for (int pos = 0 ; pos < d1.Length ; pos++)
                 output += b64[d1[pos] ^ d2[pos % d2.Length]];
 
-            while (output.Length % 3 > 0)
+            // Here's a funny thing: LL blithely violate the base64
+            // standard pretty much everywhere. Here, padding is
+            // added only if the first input string had it, rather
+            // than when the data actually needs it. This can result
+            // in invalid base64 being returned. Go figure.
+
+            while (padding-- > 0)
                 output += "=";
 
             return output;
