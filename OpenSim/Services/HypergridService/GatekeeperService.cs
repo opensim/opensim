@@ -206,14 +206,19 @@ namespace OpenSim.Services.HypergridService
 
         public GridRegion GetHyperlinkRegion(UUID regionID, UUID agentID, string agentHomeURI, out string message)
         {
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get hyperlink region {0} for user {1}{2}",
-                regionID, agentID, (agentHomeURI == null) ? "" : " @ " + agentHomeURI);
-
             message = null;
 
             if (!m_AllowTeleportsToAnyRegion)
             {
                 // Don't even check the given regionID
+                m_log.DebugFormat(
+                    "[GATEKEEPER SERVICE]: Returning gateway region {0} {1} @ {2} to user {3}{4} as teleporting to arbitrary regions is not allowed.", 
+                    m_DefaultGatewayRegion.RegionName, 
+                    m_DefaultGatewayRegion.RegionID,
+                    m_DefaultGatewayRegion.ServerURI,
+                    agentID, 
+                    agentHomeURI == null ? "" : " @ " + agentHomeURI);
+
                 message = "Teleporting to the default region.";
                 return m_DefaultGatewayRegion;
             }
@@ -222,9 +227,21 @@ namespace OpenSim.Services.HypergridService
 
             if (region == null)
             {
+                m_log.DebugFormat(
+                    "[GATEKEEPER SERVICE]: Could not find region with ID {0} as requested by user {1}{2}.  Returning null.",
+                    regionID, agentID, (agentHomeURI == null) ? "" : " @ " + agentHomeURI);
+
                 message = "The teleport destination could not be found.";
                 return null;
             }
+
+            m_log.DebugFormat(
+                "[GATEKEEPER SERVICE]: Returning region {0} {1} @ {2} to user {3}{4}.",
+                region.RegionName, 
+                region.RegionID,
+                region.ServerURI,
+                agentID, 
+                agentHomeURI == null ? "" : " @ " + agentHomeURI);
 
             return region;
         }
