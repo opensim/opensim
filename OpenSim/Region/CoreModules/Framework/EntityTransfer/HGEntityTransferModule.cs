@@ -583,81 +583,89 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // foreign user
             AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.OwnerID);
-            if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+            if (aCircuit != null)
             {
-                if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) == 0)
                 {
-                    m_incomingSceneObjectEngine.QueueRequest(
-                        string.Format("HG UUID Gather for attachment {0} for {1}", so.Name, aCircuit.Name), 
-                        so.OwnerID.ToString(),
-                        o => 
-                        {
-                            string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-//                            m_log.DebugFormat(
-//                                "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset service {2}", 
-//                                so.Name, so.AttachedAvatar, url);
-
-                            IteratingHGUuidGatherer uuidGatherer = new IteratingHGUuidGatherer(Scene.AssetService, url);
-                            uuidGatherer.RecordAssetUuids(so);
-
-                            while (!uuidGatherer.Complete)
+                    // We have already pulled the necessary attachments from the source grid.
+                    base.HandleIncomingSceneObject(so, newPosition);
+                }
+                else
+                {
+                    if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                    {
+                        m_incomingSceneObjectEngine.QueueRequest(
+                            string.Format("HG UUID Gather for attachment {0} for {1}", so.Name, aCircuit.Name), 
+                            so.OwnerID.ToString(),
+                            o => 
                             {
-                                int tickStart = Util.EnvironmentTickCount();
+                                string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
+    //                            m_log.DebugFormat(
+    //                                "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset service {2}", 
+    //                                so.Name, so.AttachedAvatar, url);
 
-                                UUID? nextUuid = uuidGatherer.NextUuidToInspect;
-                                uuidGatherer.GatherNext();
+                                IteratingHGUuidGatherer uuidGatherer = new IteratingHGUuidGatherer(Scene.AssetService, url);
+                                uuidGatherer.RecordAssetUuids(so);
 
-//                                m_log.DebugFormat(
-//                                    "[HG ENTITY TRANSFER]: Gathered attachment asset uuid {0} for object {1} for HG user {2} took {3} ms with asset service {4}",
-//                                    nextUuid, so.Name, so.OwnerID, Util.EnvironmentTickCountSubtract(tickStart), url);
-
-                                int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
-
-                                if (ticksElapsed > 30000)
+                                while (!uuidGatherer.Complete)
                                 {
-                                    m_log.WarnFormat(
-                                        "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as gather of {1} from {2} took {3} ms to respond (> {4} ms)",
-                                        so.OwnerID, so.Name, url, ticksElapsed, 30000);
+                                    int tickStart = Util.EnvironmentTickCount();
 
-                                    RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
+                                    UUID? nextUuid = uuidGatherer.NextUuidToInspect;
+                                    uuidGatherer.GatherNext();
 
-                                    return;
-                                }                                                           
-                            }
+    //                                m_log.DebugFormat(
+    //                                    "[HG ENTITY TRANSFER]: Gathered attachment asset uuid {0} for object {1} for HG user {2} took {3} ms with asset service {4}",
+    //                                    nextUuid, so.Name, so.OwnerID, Util.EnvironmentTickCountSubtract(tickStart), url);
 
-                            IDictionary<UUID, sbyte> ids = uuidGatherer.GetGatheredUuids();
+                                    int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
 
-//                            m_log.DebugFormat(
-//                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
-//                                ids.Count, so.Name, so.OwnerID, url);
+                                    if (ticksElapsed > 30000)
+                                    {
+                                        m_log.WarnFormat(
+                                            "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as gather of {1} from {2} took {3} ms to respond (> {4} ms)",
+                                            so.OwnerID, so.Name, url, ticksElapsed, 30000);
 
-                            foreach (KeyValuePair<UUID, sbyte> kvp in ids)
-                            {
-                                int tickStart = Util.EnvironmentTickCount();
+                                        RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
 
-                                uuidGatherer.FetchAsset(kvp.Key);   
+                                        return;
+                                    }                                                           
+                                }
 
-                                int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
+                                IDictionary<UUID, sbyte> ids = uuidGatherer.GetGatheredUuids();
 
-                                if (ticksElapsed > 30000)
+    //                            m_log.DebugFormat(
+    //                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
+    //                                ids.Count, so.Name, so.OwnerID, url);
+
+                                foreach (KeyValuePair<UUID, sbyte> kvp in ids)
                                 {
-                                    m_log.WarnFormat(
-                                        "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as fetch of {1} from {2} took {3} ms to respond (> {4} ms)",
-                                        so.OwnerID, kvp.Key, url, ticksElapsed, 30000);
+                                    int tickStart = Util.EnvironmentTickCount();
 
-                                    RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
+                                    uuidGatherer.FetchAsset(kvp.Key);   
 
-                                    return;
-                                }   
-                            }
+                                    int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
 
-                            base.HandleIncomingSceneObject(so, newPosition);
+                                    if (ticksElapsed > 30000)
+                                    {
+                                        m_log.WarnFormat(
+                                            "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as fetch of {1} from {2} took {3} ms to respond (> {4} ms)",
+                                            so.OwnerID, kvp.Key, url, ticksElapsed, 30000);
 
-//                            m_log.DebugFormat(
-//                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}", 
-//                                so.Name, so.OwnerID, url);
-                        }, 
-                        null);
+                                        RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
+
+                                        return;
+                                    }   
+                                }
+
+                                base.HandleIncomingSceneObject(so, newPosition);
+
+    //                            m_log.DebugFormat(
+    //                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}", 
+    //                                so.Name, so.OwnerID, url);
+                            }, 
+                            null);
+                    }
                 }
             }
 
