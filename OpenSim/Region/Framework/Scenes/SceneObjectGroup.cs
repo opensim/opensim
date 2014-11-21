@@ -1886,15 +1886,14 @@ namespace OpenSim.Region.Framework.Scenes
             return Vector3.Zero;
         }
 
-        public void moveToTarget(Vector3 target, float tau)
+        public void MoveToTarget(Vector3 target, float tau)
         {
             if (IsAttachment)
             {
                 ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+
                 if (avatar != null)
-                {
                     avatar.MoveToTarget(target, false, false);
-                }
             }
             else
             {
@@ -1909,12 +1908,26 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void stopMoveToTarget()
+        public void StopMoveToTarget()
         {
-            PhysicsActor pa = RootPart.PhysActor;
+            if (IsAttachment)
+            {
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
-            if (pa != null)
-                pa.PIDActive = false;
+                if (avatar != null)
+                    avatar.ResetMoveToTarget();
+            }
+            else
+            {
+                PhysicsActor pa = RootPart.PhysActor;
+
+                if (pa != null && pa.PIDActive)
+                {
+                    pa.PIDActive = false;
+                    
+                    ScheduleGroupForTerseUpdate();
+                }
+            }
         }
         
         /// <summary>

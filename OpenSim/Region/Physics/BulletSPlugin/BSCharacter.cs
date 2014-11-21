@@ -614,9 +614,9 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 PIDTarget {
         set { _PIDTarget = value; }
     }
-    public override bool PIDActive {
-        set { _usePID = value; }
-    }
+
+    public override bool PIDActive { get; set; }
+
     public override float PIDTau {
         set { _PIDTau = value; }
     }

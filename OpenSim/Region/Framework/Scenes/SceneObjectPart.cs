@@ -2229,7 +2229,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (tau > 0)
             {
-                ParentGroup.moveToTarget(target, tau);
+                ParentGroup.MoveToTarget(target, tau);
             }
             else
             {
@@ -3279,10 +3279,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopMoveToTarget()
         {
-            ParentGroup.stopMoveToTarget();
-
-            ParentGroup.ScheduleGroupForTerseUpdate();
-            //ParentGroup.ScheduleGroupForFullUpdate();
+            ParentGroup.StopMoveToTarget();
         }
 
         public void StoreUndoState()

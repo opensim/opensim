@@ -1430,6 +1430,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return false;
                 }
             }
+            
+            public static bool operator true(key k)
+            {
+                return (Boolean)k;
+            }
+
+            public static bool operator false(key k)
+            {
+                return !(Boolean)k;
+            }
 
             static public implicit operator key(string s)
             {

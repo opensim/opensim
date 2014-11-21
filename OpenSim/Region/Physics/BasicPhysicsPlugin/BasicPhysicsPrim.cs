@@ -251,6 +251,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override bool PIDActive
         {
+            get { return false; }
             set { return; }
         }
 
