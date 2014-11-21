@@ -2468,12 +2468,23 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void stopMoveToTarget()
         {
-            PhysicsActor pa = RootPart.PhysActor;
+            if (IsAttachment)
+            {
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+                if (avatar != null)
+                {
+                    avatar.ResetMoveToTarget();
+                }
+            }
+            else
+            {
+                PhysicsActor pa = RootPart.PhysActor;
 
-            if (pa != null)
-                pa.PIDActive = false;
+                if (pa != null)
+                    pa.PIDActive = false;
 
-            RootPart.ScheduleTerseUpdate(); // send a stop information
+                RootPart.ScheduleTerseUpdate(); // send a stop information
+            }
         }
         
         public void rotLookAt(Quaternion target, float strength, float damping)

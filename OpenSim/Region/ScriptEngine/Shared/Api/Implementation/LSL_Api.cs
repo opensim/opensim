@@ -3234,6 +3234,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llRezAtRoot(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param)
         {
+            doObjectRez(inventory, pos, vel, rot, param, true);
+        }
+
+        public void doObjectRez(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param, bool atRoot)
+        {
             m_host.AddScriptLPS(1);
 
             Util.FireAndForget(x =>
@@ -3260,10 +3265,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                // need the magnitude later
-                // float velmag = (float)Util.GetMagnitude(llvel);
-
-                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, rot, vel, param);
+                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, rot, vel, param, atRoot);
 
                 // If either of these are null, then there was an unknown error.
                 if (new_groups == null)
@@ -3311,7 +3313,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llRezObject(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param)
         {
-            llRezAtRoot(inventory, pos, vel, rot, param);
+            doObjectRez(inventory, pos, vel, rot, param, false);
         }
 
         public void llLookAt(LSL_Vector target, double strength, double damping)

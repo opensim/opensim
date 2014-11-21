@@ -2447,7 +2447,7 @@ namespace OpenSim.Region.Framework.Scenes
                         RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true, scale, false);            
                 
-                RezObject(part, item, pos, null, Vector3.Zero, 0);
+                RezObject(part, item, pos, null, Vector3.Zero, 0, false);
             }
         }
         
@@ -2463,15 +2463,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="param"></param>
         /// <returns>The SceneObjectGroup(s) rezzed, or null if rez was unsuccessful</returns>
         public virtual List<SceneObjectGroup> RezObject(
-            SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param)
+            SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot)
         {
             if (null == item)
                 return null;
 
             List<SceneObjectGroup> objlist;
             List<Vector3> veclist;
-            
-            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist);
+            Vector3 bbox;
+            float offsetHeight;
+
+            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist,out bbox, out offsetHeight);
+
             if (!success)
                 return null;
 
@@ -2486,6 +2489,28 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
+            }
+
+            SceneObjectGroup sog;
+            //  position adjust
+            if (totalPrims > 1) // nothing to do on a single prim
+            {
+                if (objlist.Count == 1)
+                {
+                    // current object position is root position
+                    if(!atRoot)
+                    {
+                        sog = objlist[0];
+                        Quaternion orot;
+                        if (rot == null)
+                            orot = sog.RootPart.GetWorldRotation();
+                        else
+                            orot = rot.Value;
+                        Vector3 off = sog.GetGeometricCenter();
+                        off *= orot;
+                        pos -= off;
+                    }
+                }
             }
 
             for (int i = 0; i < objlist.Count; i++)

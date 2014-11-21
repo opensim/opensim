@@ -246,7 +246,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="objlist">The scene objects</param>
         /// <param name="veclist">Relative offsets for each object</param>
         /// <returns>true = success, false = the scene object asset couldn't be found</returns>
-        bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist);
+        bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist, out Vector3 bbox, out float offsetHeight);
 
         /// <summary>
         /// Update an existing inventory item.
