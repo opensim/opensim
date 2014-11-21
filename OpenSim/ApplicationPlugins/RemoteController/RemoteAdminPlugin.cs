@@ -170,6 +170,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_refresh_search"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshSearch);
                     availableMethods["admin_refresh_map"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshMap);
                     availableMethods["admin_get_opensim_version"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcGetOpenSimVersion);
+                    availableMethods["admin_get_agent_count"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcGetAgentCount);
 
                     // Either enable full remote functionality or just selected features
                     string enabledMethods = m_config.GetString("enabled_methods", "all");
@@ -2264,6 +2265,31 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Get OpenSim Version Request complete");
+        }
+
+        private void XmlRpcGetAgentCount(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            m_log.Info("[RADMIN]: Received Get Agent Count Request");
+
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            CheckRegionParams(requestData, responseData);
+
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
+
+            if (scene == null)
+            {
+                responseData["success"] = false;
+            }
+            else
+            {
+                responseData["count"] = scene.GetRootAgentCount();
+                responseData["success"] = true;
+            }
+
+            m_log.Info("[RADMIN]: Get Agent Count Request complete");
         }
 
         /// <summary>
