@@ -86,6 +86,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 // These are normaly set in their respective modules
                 m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
                 m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
+                if (m_DestinationGuideURL == string.Empty) // Make this consistent with the variable in the LoginService config
+                    m_DestinationGuideURL = config.GetString("DestinationGuide", m_DestinationGuideURL);
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
                 m_GridURL = Util.GetConfigVarFromSections<string>(source, "GatekeeperURI",
                         new string[] { "Startup", "Hypergrid", "SimulatorFeatures" }, String.Empty);
@@ -225,9 +227,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod, UUID agentID)
         {
-//            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
 
             OSDMap copy = DeepCopy();
+
+            // Let's add the agentID to the destination guide, if it is expecting that.
+            if (copy.ContainsKey("OpenSimExtras") && ((OSDMap)(copy["OpenSimExtras"])).ContainsKey("destination-guide-url"))
+                ((OSDMap)copy["OpenSimExtras"])["destination-guide-url"] = Replace(((OSDMap)copy["OpenSimExtras"])["destination-guide-url"], "[USERID]", agentID.ToString());
 
             SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
 
@@ -254,6 +260,11 @@ namespace OpenSim.Region.ClientStack.Linden
         private void GetGridExtraFeatures(Scene scene)
         {
             Dictionary<string, object> extraFeatures = scene.GridService.GetExtraFeatures();
+            if (extraFeatures.ContainsKey("Result") && extraFeatures["Result"] != null && extraFeatures["Result"].ToString() == "Failure")
+            {
+                m_log.WarnFormat("[SIMULATOR FEATURES MODULE]: Unable to retrieve grid-wide features");
+                return;
+            }
 
             lock (m_features)
             {
@@ -269,7 +280,16 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
                 m_features["OpenSimExtras"] = extrasMap;
+
             }
+        }
+
+        private string Replace(string url, string substring, string replacement)
+        {
+            if (!String.IsNullOrEmpty(url) && url.Contains(substring))
+                return url.Replace(substring, replacement);
+
+            return url;
         }
     }
 }
