@@ -915,7 +915,10 @@ namespace OpenSim.Data.MySQL
                                 reader.Read();
                                 bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
                                 bool.TryParse((string)reader["visible"], out pref.Visible);
-                                pref.EMail = (string)reader["email"];
+								pref.EMail = (string)reader["email"];
+
+								if(string.IsNullOrEmpty(pref.EMail))
+									pref.EMail = "No EMail Address Provided";
                             }
                             else
                             {
@@ -954,7 +957,8 @@ namespace OpenSim.Data.MySQL
 
             query += "UPDATE usersettings SET ";
             query += "imviaemail=?ImViaEmail, ";
-            query += "visible=?Visible ";
+            query += "visible=?Visible, ";
+			query += "email=?EMail ";
             query += "WHERE useruuid=?uuid";
             
             try
@@ -966,7 +970,8 @@ namespace OpenSim.Data.MySQL
                     {
                         cmd.Parameters.AddWithValue("?ImViaEmail", pref.IMViaEmail.ToString().ToLower());
                         cmd.Parameters.AddWithValue("?Visible", pref.Visible.ToString().ToLower());
-                        cmd.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
+						cmd.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
+						cmd.Parameters.AddWithValue("?EMail", pref.EMail.ToString().ToLower());
 
                         cmd.ExecuteNonQuery();
                     }
@@ -975,7 +980,7 @@ namespace OpenSim.Data.MySQL
             catch (Exception e)
             {
                 m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentInterestsUpdate exception {0}", e.Message);
+					": UserPreferencesUpdate exception {0} {1}", e.Message, e.InnerException);
                 result = e.Message;
                 return false;
             }

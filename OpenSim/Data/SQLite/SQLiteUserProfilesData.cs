@@ -747,7 +747,8 @@ namespace OpenSim.Data.SQLite
             
             query += "UPDATE usersettings SET ";
             query += "imviaemail=:ImViaEmail, ";
-            query += "visible=:Visible ";
+            query += "visible=:Visible, ";
+			query += "email=:EMail ";
             query += "WHERE useruuid=:uuid";
             
             try
@@ -757,6 +758,7 @@ namespace OpenSim.Data.SQLite
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":ImViaEmail", pref.IMViaEmail);
                     cmd.Parameters.AddWithValue(":Visible", pref.Visible);
+					cmd.Parameters.AddWithValue(":EMail", pref.EMail);
                     cmd.Parameters.AddWithValue(":uuid", pref.UserId.ToString());
                         
                     cmd.ExecuteNonQuery();
@@ -796,7 +798,10 @@ namespace OpenSim.Data.SQLite
                         {
                             bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
                             bool.TryParse((string)reader["visible"], out pref.Visible);
-                            pref.EMail = (string)reader["email"];
+							pref.EMail = (string)reader["email"];
+
+							if(string.IsNullOrEmpty(pref.EMail))
+								pref.EMail = "No EMail Address Provided";
                          }
                          else
                          {

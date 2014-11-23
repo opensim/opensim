@@ -901,7 +901,10 @@ namespace OpenSim.Data.PGSQL
                                 reader.Read();
                                 bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
                                 bool.TryParse((string)reader["visible"], out pref.Visible);
-                                pref.EMail = (string)reader["email"];
+								pref.EMail = (string)reader["email"];
+
+								if(string.IsNullOrEmpty(pref.EMail))
+									pref.EMail = "No EMail Address Provided";
                             }
                             else
                             {
@@ -935,7 +938,8 @@ namespace OpenSim.Data.PGSQL
             
             query += "UPDATE usersettings SET ";
             query += "imviaemail=:ImViaEmail, ";
-            query += "visible=:Visible,";
+            query += "visible=:Visible, ";
+			query += "email=:Email ";
             query += "WHERE useruuid=:uuid";
             
             try
@@ -946,7 +950,8 @@ namespace OpenSim.Data.PGSQL
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("ImViaEmail", pref.IMViaEmail.ToString().ToLower ()));
-                        cmd.Parameters.Add(m_database.CreateParameter("Visible", pref.Visible.ToString().ToLower ()));
+						cmd.Parameters.Add(m_database.CreateParameter("Visible", pref.Visible.ToString().ToLower ()));
+						cmd.Parameters.Add(m_database.CreateParameter("EMail", pref.EMail.ToString().ToLower ()));
                         cmd.Parameters.Add(m_database.CreateParameter("uuid", pref.UserId.ToString()));
                         
                         lock(Lock)

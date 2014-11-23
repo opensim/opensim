@@ -47,7 +47,6 @@ namespace OpenSim.Services.ProfilesService
                 MethodBase.GetCurrentMethod().DeclaringType);
         
         IUserAccountService userAccounts;
-        IAuthenticationService authService;
 
         public UserProfilesService(IConfigSource config, string configName):
             base(config, configName)
@@ -55,7 +54,7 @@ namespace OpenSim.Services.ProfilesService
             IConfig Config = config.Configs[configName];
             if (Config == null)
             {
-                m_log.Warn("[PROFILES]: No configuration found!");
+                m_log.Warn("[PROFILES SERVICE]: No configuration found!");
                 return;
             }
             Object[] args = null;
@@ -66,9 +65,6 @@ namespace OpenSim.Services.ProfilesService
                 userAccounts = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             
             args = new Object[] { config };
-            string authServiceConfig = Config.GetString("AuthenticationServiceModule", String.Empty);
-            if (accountService != string.Empty)
-                authService = ServerUtils.LoadPlugin<IAuthenticationService>(authServiceConfig, args);
         }
         
         #region Classifieds
@@ -176,23 +172,22 @@ namespace OpenSim.Services.ProfilesService
                         account = userAccounts.GetUserAccount(UUID.Zero, pref.UserId);
                         if(string.IsNullOrEmpty(account.Email))
                         {
-                            result = "No Email address on record!";
-                            return false;
+                            pref.EMail = string.Empty;
                         }
                         else
                             pref.EMail = account.Email;
                     }
                     catch
                     {
-                        m_log.Info ("[PROFILES]: UserAccountService Exception: Could not get user account");
-                        result = "Missing Email address!";
+                        m_log.Error ("[PROFILES SERVICE]: UserAccountService Exception: Could not get user account");
+                        result = "UserAccountService settings error in UserProfileService!";
                         return false;
                     }
                 }
                 else
                 {
-                    m_log.Info ("[PROFILES]: UserAccountService: Could not get user account");
-                    result = "Missing Email address!";
+                    m_log.Error ("[PROFILES SERVICE]: UserAccountService: Could not get user account");
+                    result = "UserAccountService settings error in UserProfileService!";
                     return false;
                 }
             }
@@ -211,23 +206,22 @@ namespace OpenSim.Services.ProfilesService
                         account = userAccounts.GetUserAccount(UUID.Zero, pref.UserId);
                         if(string.IsNullOrEmpty(account.Email))
                         {
-                            result = "No Email address on record!";
-                            return false;
+                            pref.EMail = string.Empty;
                         }
                         else
                             pref.EMail = account.Email;
                     }
                     catch
                     {
-                        m_log.Info ("[PROFILES]: UserAccountService Exception: Could not get user account");
-                        result = "Missing Email address!";
+                        m_log.Error ("[PROFILES SERVICE]: UserAccountService Exception: Could not get user account");
+                        result = "UserAccountService settings error in UserProfileService!";
                         return false;
                     }
                 }
                 else
                 {
-                    m_log.Info ("[PROFILES]: UserAccountService: Could not get user account");
-                    result = "Missing Email address!";
+                    m_log.Error ("[PROFILES SERVICE]: UserAccountService: Could not get user account");
+                    result = "UserAccountService settings error in UserProfileService!";
                     return false;
                 }
             }
