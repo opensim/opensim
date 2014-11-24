@@ -916,9 +916,6 @@ namespace OpenSim.Data.MySQL
                                 bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
                                 bool.TryParse((string)reader["visible"], out pref.Visible);
 								pref.EMail = (string)reader["email"];
-
-								if(string.IsNullOrEmpty(pref.EMail))
-									pref.EMail = "No EMail Address Provided";
                             }
                             else
                             {

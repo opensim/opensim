@@ -209,7 +209,10 @@ namespace OpenSim.Services.ProfilesService
                             pref.EMail = string.Empty;
                         }
                         else
+                        {
                             pref.EMail = account.Email;
+                            UserPreferencesUpdate(ref pref, ref result);
+                        }
                     }
                     catch
                     {
@@ -225,7 +228,14 @@ namespace OpenSim.Services.ProfilesService
                     return false;
                 }
             }
-            return ProfilesData.GetUserPreferences(ref pref, ref result);
+            if (!ProfilesData.GetUserPreferences (ref pref, ref result))
+                return false;
+
+
+            if(string.IsNullOrEmpty(pref.EMail))
+                pref.EMail = "No Email Address On Record";
+
+            return true;
         }
         #endregion User Preferences
 
