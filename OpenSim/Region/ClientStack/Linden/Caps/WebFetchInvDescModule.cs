@@ -207,7 +207,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 for (uint i = 0; i < 2; i++)
                 {
-                    m_workerThreads[i] = Watchdog.StartThread(DoInventoryRequests,
+                    m_workerThreads[i] = WorkManager.StartThread(DoInventoryRequests,
                             String.Format("InventoryWorkerThread{0}", i),
                             ThreadPriority.Normal,
                             false,

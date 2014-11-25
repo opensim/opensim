@@ -132,7 +132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 StatsManager.RegisterStat(m_requestsWaitingStat);
 
-                Watchdog.StartThread(
+                WorkManager.StartThread(
                     ProcessRequests,
                     string.Format("Incoming Packet Async Handling Engine Thread ({0})", m_udpServer.Scene.Name),
                     ThreadPriority.Normal,

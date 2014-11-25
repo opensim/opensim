@@ -1228,11 +1228,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
                 if (Scene.AttachmentsModule != null)
                 {
-                    Watchdog.RunJob(
+                    WorkManager.RunJob(
                         "RezAttachments", 
                         o => Scene.AttachmentsModule.RezAttachments(this), 
-                        string.Format("Rez attachments for {0} in {1}", Name, Scene.Name), 
-                        null);
+                        null,
+                        string.Format("Rez attachments for {0} in {1}", Name, Scene.Name));
                 }
             }
             else
@@ -1254,11 +1254,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (attachments.Count > 0)
                 {
-                    Watchdog.RunJob(
+                    WorkManager.RunJob(
                         "StartAttachmentScripts", 
                         o => RestartAttachmentScripts(attachments),
-                        string.Format("Start attachment scripts for {0} in {1}", Name, Scene.Name),
                         null,
+                        string.Format("Start attachment scripts for {0} in {1}", Name, Scene.Name),
                         true);
                 }
             }
@@ -1815,11 +1815,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // XXX: If we force an update after activity has completed, then multiple attachments do appear correctly on a destination region
                 // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
                 // This may be due to viewer code or it may be something we're not doing properly simulator side.
-                Watchdog.RunJob(
+                WorkManager.RunJob(
                     "ScheduleAttachmentsForFullUpdate", 
                     o => ScheduleAttachmentsForFullUpdate(),
-                    string.Format("Schedule attachments for full update for {0} in {1}", Name, Scene.Name),
                     null,
+                    string.Format("Schedule attachments for full update for {0} in {1}", Name, Scene.Name),
                     true);
 
     //            m_log.DebugFormat(
@@ -3375,7 +3375,7 @@ namespace OpenSim.Region.Framework.Scenes
             SentInitialDataToClient = true;
 
             // Send all scene object to the new client
-            Watchdog.RunJob("SendInitialDataToClient", delegate
+            WorkManager.RunJob("SendInitialDataToClient", delegate
             {
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
@@ -3393,7 +3393,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (e != null && e is SceneObjectGroup)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
-            }, string.Format("SendInitialDataToClient ({0} in {1})", Name, Scene.Name),null,  false, true);
+            }, null, string.Format("SendInitialDataToClient ({0} in {1})", Name, Scene.Name), false, true);
         }
 
         /// <summary>
@@ -4057,11 +4057,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // We don't need to worry about a race condition as the job to later start the scripts is also 
                 // JobEngine scheduled and so will always occur after this task.
                 // XXX: This will not be true if JobEngine ever gets more than one thread.
-                Watchdog.RunJob(
+                WorkManager.RunJob(
                     "CopyAttachments", 
                     o => Scene.AttachmentsModule.CopyAttachments(cAgent, this), 
-                    string.Format("Copy attachments for {0} entering {1}", Name, Scene.Name),
                     null,
+                    string.Format("Copy attachments for {0} entering {1}", Name, Scene.Name),
                     true);
             }
 

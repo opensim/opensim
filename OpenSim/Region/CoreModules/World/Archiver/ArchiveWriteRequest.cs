@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
                             m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
 
-                    Watchdog.RunInThread(o => ar.Execute(), "Archive Assets Request", null);
+                    WorkManager.RunInThread(o => ar.Execute(), null, "Archive Assets Request");
 
                     // CloseArchive() will be called from ReceivedAllAssets()
                 }

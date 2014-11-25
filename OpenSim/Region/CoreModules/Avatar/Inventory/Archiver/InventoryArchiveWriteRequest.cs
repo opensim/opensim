@@ -431,7 +431,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
                             options, ReceivedAllAssets);
 
-                    Watchdog.RunInThread(o => ar.Execute(), string.Format("AssetsRequest ({0})", m_scene.Name), null);
+                    WorkManager.RunInThread(o => ar.Execute(), null, string.Format("AssetsRequest ({0})", m_scene.Name));
                 }
                 else
                 {

@@ -381,7 +381,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
 //            m_log.Debug("[WORLD MAP]: Starting remote MapItem request thread");
 
-            Watchdog.StartThread(
+            WorkManager.StartThread(
                 process,
                 string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName),
                 ThreadPriority.BelowNormal,

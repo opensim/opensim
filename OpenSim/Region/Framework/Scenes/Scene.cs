@@ -1428,7 +1428,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_heartbeatThread
-                = Watchdog.StartThread(
+                = WorkManager.StartThread(
                     Heartbeat, string.Format("Heartbeat-({0})", RegionInfo.RegionName.Replace(" ", "_")), ThreadPriority.Normal, false, false);
 
             StartScripts();
@@ -1469,7 +1469,7 @@ namespace OpenSim.Region.Framework.Scenes
             // alarms for scenes with many objects.
             Update(1);
 
-            Watchdog.StartThread(
+            WorkManager.StartThread(
                 Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
 
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
@@ -1568,10 +1568,10 @@ namespace OpenSim.Region.Framework.Scenes
                     tmpMS = Util.EnvironmentTickCount();
                     m_cleaningTemps = true;
 
-                    Watchdog.RunInThread(
+                    WorkManager.RunInThread(
                         delegate { CleanTempObjects(); m_cleaningTemps = false;  }, 
-                        string.Format("CleanTempObjects ({0})", Name), 
-                        null);
+                        null,
+                        string.Format("CleanTempObjects ({0})", Name));
 
                     tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                 }
@@ -1843,7 +1843,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                Watchdog.RunInThread(o => Backup(false), string.Format("BackupWaitCallback ({0})", Name), null);
+                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWaitCallback ({0})", Name));
             }
         }
 

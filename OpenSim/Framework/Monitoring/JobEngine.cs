@@ -125,7 +125,7 @@ namespace OpenSim.Framework.Monitoring
 
                 StatsManager.RegisterStat(m_requestsWaitingStat);
 
-                Watchdog.StartThread(
+                WorkManager.StartThread(
                     ProcessRequests,
                     "JobEngineThread",
                     ThreadPriority.Normal,

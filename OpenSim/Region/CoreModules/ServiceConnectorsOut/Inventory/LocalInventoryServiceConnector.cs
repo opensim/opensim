@@ -184,12 +184,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 // Protect ourselves against the caller subsequently modifying the items list
                 List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
 
-                Watchdog.RunInThread(delegate
+                WorkManager.RunInThread(delegate
                 {
                     foreach (InventoryItemBase item in items)
                         if (!string.IsNullOrEmpty(item.CreatorData))
                             UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
-                }, string.Format("GetFolderContent (user {0}, folder {1})", userID, folderID), null);
+                }, null, string.Format("GetFolderContent (user {0}, folder {1})", userID, folderID));
             }
 
             return invCol;

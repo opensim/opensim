@@ -483,7 +483,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             base.StartInbound(m_recvBufferSize, m_asyncPacketHandling);
 
             // This thread will process the packets received that are placed on the packetInbox
-            Watchdog.StartThread(
+            WorkManager.StartThread(
                 IncomingPacketHandler,
                 string.Format("Incoming Packets ({0})", Scene.Name),
                 ThreadPriority.Normal,
@@ -499,7 +499,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             base.StartOutbound();
 
-            Watchdog.StartThread(
+            WorkManager.StartThread(
                 OutgoingPacketHandler,
                 string.Format("Outgoing Packets ({0})", Scene.Name),
                 ThreadPriority.Normal,

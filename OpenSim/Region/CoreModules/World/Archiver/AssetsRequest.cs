@@ -227,7 +227,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             finally
             {
                 if (timedOut)
-                    Watchdog.RunInThread(PerformAssetsRequestCallback, "Archive Assets Request Callback", true);
+                    WorkManager.RunInThread(PerformAssetsRequestCallback, true, "Archive Assets Request Callback");
             }
         }
 
@@ -296,7 +296,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
-                        Watchdog.RunInThread(PerformAssetsRequestCallback, "Archive Assets Request Callback", false);
+                        WorkManager.RunInThread(PerformAssetsRequestCallback, false, "Archive Assets Request Callback");
                     }
                     else
                     {

@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 StatsManager.RegisterStat(m_requestsWaitingStat);
 
-                Watchdog.StartThread(
+                WorkManager.StartThread(
                     ProcessRequests,
                     string.Format("HG Incoming Scene Object Engine Thread ({0})", Name),
                     ThreadPriority.Normal,

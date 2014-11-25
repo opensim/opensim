@@ -58,7 +58,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             m_listener.Start(50);
 
-            Watchdog.StartThread(ListenLoop, "IRCServer", ThreadPriority.Normal, false, true);
+            WorkManager.StartThread(ListenLoop, "IRCServer", ThreadPriority.Normal, false, true);
             m_baseScene = baseScene;
         }
 

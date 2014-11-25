@@ -964,11 +964,11 @@ namespace OpenSim.Region.CoreModules.Asset
                     case "assets":
                         con.Output("Ensuring assets are cached for all scenes.");
 
-                        Watchdog.RunInThread(delegate 
+                        WorkManager.RunInThread(delegate 
                         {
                             int assetReferenceTotal = TouchAllSceneAssets(true);
                             con.OutputFormat("Completed check with {0} assets.", assetReferenceTotal);
-                        }, "TouchAllSceneAssets", null);
+                        }, null, "TouchAllSceneAssets");
 
                         break;
 

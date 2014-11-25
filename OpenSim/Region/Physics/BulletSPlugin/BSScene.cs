@@ -293,7 +293,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             // The physics simulation should happen independently of the heartbeat loop
             m_physicsThread 
-                = Watchdog.StartThread(
+                = WorkManager.StartThread(
                     BulletSPluginPhysicsThread, 
                     string.Format("{0} ({1})", BulletEngineName, RegionName), 
                     ThreadPriority.Normal, 

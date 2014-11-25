@@ -339,7 +339,7 @@ namespace OpenSim
 
             IConfig startupConfig = Config.Configs["Startup"];
             if (startupConfig == null || startupConfig.GetBoolean("JobEngineEnabled", true))
-                Watchdog.JobEngine.Start();
+                WorkManager.JobEngine.Start();
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             SceneManager.OnRestartSim += HandleRestartRegion;

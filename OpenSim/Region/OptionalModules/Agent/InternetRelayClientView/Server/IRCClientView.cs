@@ -71,7 +71,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             m_client = client;
             m_scene = scene;
 
-            Watchdog.StartThread(InternalLoop, "IRCClientView", ThreadPriority.Normal, false, true);
+            WorkManager.StartThread(InternalLoop, "IRCClientView", ThreadPriority.Normal, false, true);
         }
 
         private void SendServerCommand(string command)

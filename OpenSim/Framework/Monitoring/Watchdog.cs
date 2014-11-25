@@ -38,6 +38,8 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public static class Watchdog
     {
+        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>Timer interval in milliseconds for the watchdog timer</summary>
         public const double WATCHDOG_INTERVAL_MS = 2500.0d;
 
@@ -133,8 +135,6 @@ namespace OpenSim.Framework.Monitoring
         /// /summary>
         public static event Action<ThreadWatchdogInfo> OnWatchdogTimeout;
 
-        public static JobEngine JobEngine { get; private set; }
-
         /// <summary>
         /// Is this watchdog active?
         /// </summary>
@@ -143,7 +143,7 @@ namespace OpenSim.Framework.Monitoring
             get { return m_enabled; }
             set
             {
-//                m_log.DebugFormat("[MEMORY WATCHDOG]: Setting MemoryWatchdog.Enabled to {0}", value);
+                //                m_log.DebugFormat("[MEMORY WATCHDOG]: Setting MemoryWatchdog.Enabled to {0}", value);
 
                 if (value == m_enabled)
                     return;
@@ -159,9 +159,8 @@ namespace OpenSim.Framework.Monitoring
                 m_watchdogTimer.Enabled = m_enabled;
             }
         }
-        private static bool m_enabled;
 
-        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static bool m_enabled;
         private static Dictionary<int, ThreadWatchdogInfo> m_threads;
         private static System.Timers.Timer m_watchdogTimer;
 
@@ -175,7 +174,6 @@ namespace OpenSim.Framework.Monitoring
 
         static Watchdog()
         {
-            JobEngine = new JobEngine();
             m_threads = new Dictionary<int, ThreadWatchdogInfo>();
             m_watchdogTimer = new System.Timers.Timer(WATCHDOG_INTERVAL_MS);
             m_watchdogTimer.AutoReset = false;
@@ -183,94 +181,19 @@ namespace OpenSim.Framework.Monitoring
         }
 
         /// <summary>
-        /// Start a new thread that is tracked by the watchdog timer.
+        /// Add a thread to the watchdog tracker.
         /// </summary>
-        /// <param name="start">The method that will be executed in a new thread</param>
-        /// <param name="name">A name to give to the new thread</param>
-        /// <param name="priority">Priority to run the thread at</param>
-        /// <param name="isBackground">True to run this thread as a background thread, otherwise false</param>
-        /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
+        /// <param name="info">Information about the thread.</info>
+        /// <param name="info">Name of the thread.</info>
         /// <param name="log">If true then creation of thread is logged.</param>
-        /// <returns>The newly created Thread object</returns>
-        public static Thread StartThread(
-            ThreadStart start, string name, ThreadPriority priority, bool isBackground, bool alarmIfTimeout, bool log = true)
+        public static void AddThread(ThreadWatchdogInfo info, string name, bool log = true)
         {
-            return StartThread(start, name, priority, isBackground, alarmIfTimeout, null, DEFAULT_WATCHDOG_TIMEOUT_MS, log);
-        }
-
-        /// <summary>
-        /// Start a new thread that is tracked by the watchdog
-        /// </summary>
-        /// <param name="start">The method that will be executed in a new thread</param>
-        /// <param name="name">A name to give to the new thread</param>
-        /// <param name="priority">Priority to run the thread at</param>
-        /// <param name="isBackground">True to run this thread as a background
-        /// thread, otherwise false</param>
-        /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
-        /// <param name="alarmMethod">
-        /// Alarm method to call if alarmIfTimeout is true and there is a timeout.
-        /// Normally, this will just return some useful debugging information.
-        /// </param>
-        /// <param name="timeout">Number of milliseconds to wait until we issue a warning about timeout.</param>
-        /// <param name="log">If true then creation of thread is logged.</param>
-        /// <returns>The newly created Thread object</returns>
-        public static Thread StartThread(
-            ThreadStart start, string name, ThreadPriority priority, bool isBackground,
-            bool alarmIfTimeout, Func<string> alarmMethod, int timeout, bool log = true)
-        {
-            Thread thread = new Thread(start);
-            thread.Priority = priority;
-            thread.IsBackground = isBackground;
-            
-            ThreadWatchdogInfo twi
-                = new ThreadWatchdogInfo(thread, timeout, name)
-                    { AlarmIfTimeout = alarmIfTimeout, AlarmMethod = alarmMethod };
-
             if (log)
                 m_log.DebugFormat(
-                    "[WATCHDOG]: Started tracking thread {0}, ID {1}", name, twi.Thread.ManagedThreadId);
+                    "[WATCHDOG]: Started tracking thread {0}, ID {1}", name, info.Thread.ManagedThreadId);
 
             lock (m_threads)
-                m_threads.Add(twi.Thread.ManagedThreadId, twi);
-            
-            thread.Start();
-            thread.Name = name;
-
-
-            return thread;
-        }
-
-        /// <summary>
-        /// Run the callback in a new thread immediately.  If the thread exits with an exception log it but do
-        /// not propogate it.
-        /// </summary>
-        /// <param name="callback">Code for the thread to execute.</param>
-        /// <param name="name">Name of the thread</param>
-        /// <param name="obj">Object to pass to the thread.</param>
-        public static void RunInThread(WaitCallback callback, string name, object obj, bool log = false)
-        {
-            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
-            {
-                Culture.SetCurrentCulture();
-                callback(obj);
-                return;
-            }
-
-            ThreadStart ts = new ThreadStart(delegate()
-            {
-                try
-                {
-                    Culture.SetCurrentCulture();
-                    callback(obj);
-                    Watchdog.RemoveThread(log:false);
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(string.Format("[WATCHDOG]: Exception in thread {0}.", name), e);
-                }
-            });
-
-            StartThread(ts, name, ThreadPriority.Normal, true, false, log:log);
+                m_threads.Add(info.Thread.ManagedThreadId, info);
         }
 
         /// <summary>
@@ -361,7 +284,7 @@ namespace OpenSim.Framework.Monitoring
             }
             catch { }
         }
-        
+
         /// <summary>
         /// Get currently watched threads for diagnostic purposes
         /// </summary>
@@ -452,56 +375,6 @@ namespace OpenSim.Framework.Monitoring
             StatsManager.RecordStats();
 
             m_watchdogTimer.Start();
-        }
-
-        /// <summary>
-        /// Run a job.
-        /// </summary>
-        /// <remarks>
-        /// This differs from direct scheduling (e.g. Util.FireAndForget) in that a job can be run in the job
-        /// engine if it is running, where all jobs are currently performed in sequence on a single thread.  This is
-        /// to prevent observed overload and server freeze problems when there are hundreds of connections which all attempt to 
-        /// perform work at once (e.g. in conference situations).  With lower numbers of connections, the small
-        /// delay in performing jobs in sequence rather than concurrently has not been notiecable in testing, though a future more 
-        /// sophisticated implementation could perform jobs concurrently when the server is under low load.
-        /// 
-        /// However, be advised that some callers of this function rely on all jobs being performed in sequence if any
-        /// jobs are performed in sequence (i.e. if jobengine is active or not).  Therefore, expanding the jobengine
-        /// beyond a single thread will require considerable thought.
-        /// 
-        /// Also, any jobs submitted must be guaranteed to complete within a reasonable timeframe (e.g. they cannot
-        /// incorporate a network delay with a long timeout).  At the moment, work that could suffer such issues 
-        /// should still be run directly with RunInThread(), Util.FireAndForget(), etc.  This is another area where
-        /// the job engine could be improved and so CPU utilization improved by better management of concurrency within
-        /// OpenSimulator.
-        /// </remarks>
-        /// <param name="jobType">General classification for the job (e.g. "RezAttachments").</param>
-        /// <param name="callback">Callback for job.</param>
-        /// <param name="name">Specific name of job (e.g. "RezAttachments for Joe Bloggs"</param>
-        /// <param name="obj">Object to pass to callback when run</param>
-        /// <param name="canRunInThisThread">If set to true then the job may be run in ths calling thread.</param>
-        /// <param name="mustNotTimeout">If the true then the job must never timeout.</param>
-        /// <param name="log">If set to true then extra logging is performed.</param>
-        public static void RunJob(
-            string jobType, WaitCallback callback, string name, object obj, 
-            bool canRunInThisThread = false, bool mustNotTimeout = false, 
-            bool log = false)
-        {
-            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
-            {
-                Culture.SetCurrentCulture();
-                callback(obj);
-                return;
-            }
-
-            if (JobEngine.IsRunning)
-                JobEngine.QueueRequest(name, callback, obj);
-            else if (canRunInThisThread)
-                callback(obj);
-            else if (mustNotTimeout)
-                RunInThread(callback, name, obj, log);
-            else
-                Util.FireAndForget(callback, obj, name);
         }
     }
 }
