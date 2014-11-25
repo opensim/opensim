@@ -57,8 +57,8 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimulatorFeaturesModule")]
     public class SimulatorFeaturesModule : ISharedRegionModule, ISimulatorFeaturesModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
 
@@ -85,16 +85,21 @@ namespace OpenSim.Region.ClientStack.Linden
             {  
                 // These are normaly set in their respective modules
                 m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
+
                 m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
+
                 if (m_DestinationGuideURL == string.Empty) // Make this consistent with the variable in the LoginService config
                     m_DestinationGuideURL = config.GetString("DestinationGuide", m_DestinationGuideURL);
+
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
-                m_GridURL = Util.GetConfigVarFromSections<string>(source, "GatekeeperURI",
-                        new string[] { "Startup", "Hypergrid", "SimulatorFeatures" }, String.Empty);
+
+                m_GridURL = Util.GetConfigVarFromSections<string>(
+                    source, "GatekeeperURI", new string[] { "Startup", "Hypergrid", "SimulatorFeatures" }, String.Empty);
+
                 m_GridName = config.GetString("GridName", string.Empty);
                 if (m_GridName == string.Empty)
-                    m_GridName = Util.GetConfigVarFromSections<string>(source, "gridname",
-                            new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
+                    m_GridName = Util.GetConfigVarFromSections<string>(
+                        source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
             }
 
             AddDefaultFeatures();
@@ -148,13 +153,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
                 m_features["PhysicsMaterialsEnabled"] = true;
-    
+
                 OSDMap typesMap = new OSDMap();
                 typesMap["convex"] = true;
                 typesMap["none"] = true;
                 typesMap["prim"] = true;
                 m_features["PhysicsShapeTypes"] = typesMap;
-    
+
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;
