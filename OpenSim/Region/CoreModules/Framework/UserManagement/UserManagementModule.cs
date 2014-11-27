@@ -613,8 +613,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         catch (UriFormatException)
                         {
                             m_log.DebugFormat(
-                                "[USER MANAGEMENT MODULE]: Unable to parse home URL {0} for user name {1}, ID {2} when adding user info.", 
-                                parts[0], user.FirstName ?? "Unknown", id);
+                                "[USER MANAGEMENT MODULE]: Unable to parse home URL {0} for user name {1}, ID {2} from original creator data {3} when adding user info.", 
+                                parts[0], user.FirstName ?? "Unknown", id, creatorData);
 
                             user.LastName = "@unknown";
                         }
