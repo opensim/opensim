@@ -2492,6 +2492,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             SceneObjectGroup sog;
+
+            bool fixrot = false;
+            Quaternion netRot = Quaternion.Identity;
+
             //  position adjust
             if (totalPrims > 1) // nothing to do on a single prim
             {
@@ -2506,8 +2510,37 @@ namespace OpenSim.Region.Framework.Scenes
                             orot = sog.RootPart.GetWorldRotation();
                         else
                             orot = rot.Value;
+                        // possible should be bbox, but geometric center looks better
                         Vector3 off = sog.GetGeometricCenter();
+//                        Vector3 off = bbox * 0.5f;
                         off *= orot;
+                        pos -= off;
+                    }
+                }
+                else
+                {
+                    //veclist[] are relative to bbox corner with min X,Y and Z
+                    // rez at root, and rot will be referenced to first object in list
+                    if (rot == null)
+                    {
+                        // use original rotations
+                        if (atRoot)
+                            pos -= veclist[0];
+                        else
+                            pos -= bbox / 2;
+                    }
+                    else
+                    {
+                        fixrot = true;
+                        sog = objlist[0];
+                        netRot = Quaternion.Conjugate(sog.RootPart.GetWorldRotation());
+                        netRot = netRot * rot.Value;
+                        Vector3 off;
+                        if (atRoot)
+                            off = veclist[0];
+                        else
+                            off = bbox / 2;
+                        off *= netRot;
                         pos -= off;
                     }
                 }
@@ -2516,7 +2549,11 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup group = objlist[i];
-                Vector3 curpos = pos + veclist[i];
+                Vector3 curpos;
+                if(fixrot)
+                    curpos = pos + veclist[i] * netRot;
+                else
+                    curpos = pos + veclist[i];
 
                 if (group.IsAttachment == false && group.RootPart.Shape.State != 0)
                 {
@@ -2525,7 +2562,17 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 group.FromPartID = sourcePart.UUID;
-                AddNewSceneObject(group, true, curpos, rot, vel);
+                if( i == 0)
+                    AddNewSceneObject(group, true, curpos, rot, vel);
+                else
+                {
+                    Quaternion crot = objlist[i].RootPart.GetWorldRotation();
+                    if (fixrot)
+                    {
+                        crot *= netRot;
+                    }
+                    AddNewSceneObject(group, true, curpos, crot, vel);
+                }
 
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
