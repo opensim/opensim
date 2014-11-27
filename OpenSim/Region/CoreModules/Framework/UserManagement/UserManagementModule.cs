@@ -598,6 +598,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     //creatorData = <endpoint>;<name>
 
                     string[] parts = creatorData.Split(';');
+
+                    if (parts.Length >= 2)
+                        user.FirstName = parts[1].Replace(' ', '.');
+
                     if (parts.Length >= 1)
                     {
                         user.HomeURL = parts[0];
@@ -608,13 +612,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         }
                         catch (UriFormatException)
                         {
-                            m_log.DebugFormat("[SCENE]: Unable to parse Uri {0}", parts[0]);
+                            m_log.DebugFormat(
+                                "[USER MANAGEMENT MODULE]: Unable to parse home URL {0} for user name {1}, ID {2} when adding user info.", 
+                                parts[0], user.FirstName ?? "Unknown", id);
+
                             user.LastName = "@unknown";
                         }
                     }
-
-                    if (parts.Length >= 2)
-                        user.FirstName = parts[1].Replace(' ', '.');
                 }
                 else
                 {
