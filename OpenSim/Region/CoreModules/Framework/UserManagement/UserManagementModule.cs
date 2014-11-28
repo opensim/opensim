@@ -462,12 +462,14 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
 //                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
 
-                if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                if (userdata.ServerURLs != null)
                 {
-                    return userdata.ServerURLs[serverType].ToString();
-                }
+                    object url;
 
-                if (!string.IsNullOrEmpty(userdata.HomeURL))
+                    if (userdata.ServerURLs.TryGetValue(serverType, out url))
+                        return url.ToString();              
+                }
+                else if (!string.IsNullOrEmpty(userdata.HomeURL))
                 {
                     //m_log.DebugFormat(
                     //    "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
@@ -483,9 +485,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
                         userdata.ServerURLs = new Dictionary<string, object>();
                     }
-                    
-                    if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
-                        return userdata.ServerURLs[serverType].ToString();
+
+                    object url;
+
+                    if (userdata.ServerURLs.TryGetValue(serverType, out url))
+                        return url.ToString();
                 }
             }
 
