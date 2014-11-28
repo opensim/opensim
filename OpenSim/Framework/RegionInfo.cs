@@ -827,7 +827,7 @@ namespace OpenSim.Framework
             {
                 config.Set("SizeX", RegionSizeX);
                 config.Set("SizeY", RegionSizeY);
-                config.Set("SizeZ", RegionSizeZ);
+//                config.Set("SizeZ", RegionSizeZ);
             }
 
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
