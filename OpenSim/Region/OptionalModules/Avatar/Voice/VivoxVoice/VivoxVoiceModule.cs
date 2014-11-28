@@ -121,6 +121,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
         public void Initialise(IConfigSource config)
         {
+            MainConsole.Instance.Commands.AddCommand("vivox", false, "vivox debug", "vivox debug <on>|<off>", "Set vivox debugging", HandleDebug);
 
             m_config = config.Configs["VivoxVoice"];
 
@@ -1334,6 +1335,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
             result = String.Empty;
             return false;
+        }
+
+        private void HandleDebug(string module, string[] cmd)
+        {
+            if (cmd.Length < 3)
+            {
+                MainConsole.Instance.Output("Error: missing on/off flag");
+                return;
+            }
+
+            if (cmd[2] == "on")
+                m_dumpXml = true;
+            else if (cmd[2] == "off")
+                m_dumpXml = false;
+            else
+                MainConsole.Instance.Output("Error: only on and off are supported");
         }
     }
 }
