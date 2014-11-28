@@ -41,9 +41,6 @@ using System.Data.Common;
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
 
-using System.Data.SqlClient;
-using OpenSim.Data.MSSQL;
-
 using Mono.Data.Sqlite;
 using OpenSim.Data.SQLite;
 
@@ -56,11 +53,6 @@ namespace OpenSim.Data.Tests
 
     [TestFixture(Description = "Estate store tests (MySQL)")]
     public class MySqlEstateTests : EstateTests<MySqlConnection, MySQLEstateStore>
-    {
-    }
-
-    [TestFixture(Description = "Estate store tests (MS SQL Server)")]
-    public class MSSQLEstateTests : EstateTests<SqlConnection, MSSQLEstateStore>
     {
     }
 

@@ -39,9 +39,6 @@ using System.Data.Common;
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
 
-using System.Data.SqlClient;
-using OpenSim.Data.MSSQL;
-
 using Mono.Data.Sqlite;
 using OpenSim.Data.SQLite;
 
@@ -55,11 +52,6 @@ namespace OpenSim.Data.Tests
     [TestFixture(Description = "Inventory store tests (MySQL)")]
     public class MySqlInventoryTests : InventoryTests<MySqlConnection, MySQLInventoryData>
     { 
-    }
-
-    [TestFixture(Description = "Inventory store tests (MS SQL Server)")]
-    public class MSSQLInventoryTests : InventoryTests<SqlConnection, MSSQLInventoryData>
-    {
     }
 
     public class InventoryTests<TConn, TInvStore> : BasicDataServiceTest<TConn, TInvStore>
