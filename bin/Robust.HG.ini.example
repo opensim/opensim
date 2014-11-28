@@ -21,73 +21,74 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-  ; Place to create a PID file
-  ; If no path if specified then a PID file is not created.
-  ; PIDFile = "/tmp/Robust.exe.pid"
+    ; Place to create a PID file
+    ; If no path if specified then a PID file is not created.
+    ; PIDFile = "/tmp/Robust.exe.pid"
 
-  ; Plugin Registry Location
-  ; Set path to directory for plugin registry. Information
-  ; about the registered repositories and installed plugins
-  ; will be stored here
-  ; The Robust.exe process must have R/W access to the location 
-  RegistryLocation = "."
+    ; Plugin Registry Location
+    ; Set path to directory for plugin registry. Information
+    ; about the registered repositories and installed plugins
+    ; will be stored here
+    ; The Robust.exe process must have R/W access to the location 
+    RegistryLocation = "."
 
-  ; Modular configurations
-  ; Set path to directory for modular ini files...
-  ; The Robust.exe process must have R/W access to the location 
-  ConfigDirectory = "."
+    ; Modular configurations
+    ; Set path to directory for modular ini files...
+    ; The Robust.exe process must have R/W access to the location 
+    ConfigDirectory = "."
 
-  ; Console commands can be saved to a file, so the command history persists after a restart. (default is true)
-  ConsoleHistoryFileEnabled = true
+    ; Console commands can be saved to a file, so the command history persists after a restart. (default is true)
+    ConsoleHistoryFileEnabled = true
 
-  ; The history file can be just a filename (relative to OpenSim's bin/ directory
-  ; or it can be a full path to somewhere else. (default is OpenSimConsoleHistory.txt in bin/)
-  ConsoleHistoryFile = "RobustConsoleHistory.txt"
+    ; The history file can be just a filename (relative to OpenSim's bin/ directory
+    ; or it can be a full path to somewhere else. (default is OpenSimConsoleHistory.txt in bin/)
+    ConsoleHistoryFile = "RobustConsoleHistory.txt"
 
-  ; How many lines of command history should we keep? (default is 100)
-  ConsoleHistoryFileLines = 100
+    ; How many lines of command history should we keep? (default is 100)
+    ConsoleHistoryFileLines = 100
+
 
 [ServiceList]
+    AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+    InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
+    ;; Uncomment if you have set up Freeswitch (see [FreeswitchService] below)
+    ;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+    GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
+    GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
+    AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
+    OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
+    AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
+    LLLoginServiceInConnector = "8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector"
+    PresenceServiceConnector = "8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector"
+    UserAccountServiceConnector = "8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
+    GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector"
+    FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
+    MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
+    MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+    ;; Uncomment this if you want offline IM to work
+    ; OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+    ;; Uncomment this if you want Groups V2 to work
+    ; GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
+    ;; Uncomment to provide bakes caching
+    ;BakedTextureService = "8003/OpenSim.Server.Handlers.dll:XBakesConnector"
 
-AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
-InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-;; Uncomment if you have set up Freeswitch (see [FreeswitchService] below)
-;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
-GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
-GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
-AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
-OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
-AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
-LLLoginServiceInConnector = "8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector"
-PresenceServiceConnector = "8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector"
-UserAccountServiceConnector = "8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
-GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector"
-FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
-MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
-MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
-;; Uncomment this if you want offline IM to work
-; OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
-;; Uncomment this if you want Groups V2 to work
-; GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
-;; Uncomment to provide bakes caching
-;BakedTextureService = "8003/OpenSim.Server.Handlers.dll:XBakesConnector"
+    ;; Additions for Hypergrid
 
-;; Additions for Hypergrid
+    GatekeeperServiceInConnector = "8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector"
+    UserAgentServerConnector = "8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector"
+    HeloServiceInConnector = "8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
+    HGFriendsServerConnector = "8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector"
+    InstantMessageServerConnector = "8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector"
+    HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector"
+    HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+    ;; Uncomment this if you want Groups V2, HG to work
+    ; HGGroupsServiceConnector = "8002/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
+    ;; Additions for other add-on modules. For example:
+    ;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
 
-GatekeeperServiceInConnector = "8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector"
-UserAgentServerConnector = "8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector"
-HeloServiceInConnector = "8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
-HGFriendsServerConnector = "8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector"
-InstantMessageServerConnector = "8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector"
-HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
-;; Uncomment this if you want Groups V2, HG to work
-; HGGroupsServiceConnector = "8002/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
-;; Additions for other add-on modules. For example:
-;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
+    ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
+    ; UserProfilesServiceConnector = "8002/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
-;; Uncomment for UserProfiles see [UserProfilesService] to configure...
-; UserProfilesServiceConnector = "8002/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -114,28 +115,28 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; Password for cert
     ; cert_pass = "password"
 
-	;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
-	;; Use this if your central services in port 8003 need to be accessible on the Internet
-	;; but you want to protect them from unauthorized access.
+    ;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
+    ;; Use this if your central services in port 8003 need to be accessible on the Internet
+    ;; but you want to protect them from unauthorized access.
     ; AuthType = "BasicHttpAuthentication"
     ; HttpAuthUsername = "some_username"
     ; HttpAuthPassword = "some_password"
-	;;
-	;; AuthType above can be overriden in any of the service sections below by
-	; AuthType = "None"
-	;; This is useful in cases where you want to protect most of the services,
-	;; but unprotect individual services. Username and Password can also be
-	;; overriden if you want to use different credentials for the different services.
-	;; Hypgergrid services are not affected by this; they are publicly available 
-	;; by design.
+    ;;
+    ;; AuthType above can be overriden in any of the service sections below by
+    ; AuthType = "None"
+    ;; This is useful in cases where you want to protect most of the services,
+    ;; but unprotect individual services. Username and Password can also be
+    ;; overriden if you want to use different credentials for the different services.
+    ;; Hypergrid services are not affected by this; they are publicly available 
+    ;; by design.
 
+    ; * The following are for the remote console
+    ; * They have no effect for the local or basic console types
+    ; * Leave commented to diable logins to the console
+    ;ConsoleUser = Test
+    ;ConsolePass = secret
+    ;ConsolePort = 0
 
-; * The following are for the remote console
-; * They have no effect for the local or basic console types
-; * Leave commented to diable logins to the console
-;ConsoleUser = Test
-;ConsolePass = secret
-;ConsolePort = 0
 
 [Hypergrid]
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
@@ -152,6 +153,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	;; This is a default that can be overwritten in some sections.
 	; GatekeeperURI = "http://127.0.0.1:8002"
 
+
 [DatabaseService]
     ; PGSQL
     ; Uncomment these lines if you want to use PGSQL storage
@@ -165,6 +167,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
 
+
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
 ; * and it then loads the OUT connector (a local database module). That,
@@ -175,11 +178,13 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
 
+
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server
 ; *
 [InventoryService]
     LocalServiceModule = "OpenSim.Services.InventoryService.dll:XInventoryService"
+
 
 ; * This is the new style grid service.
 ; * "Realm" is the table that is used for user lookup.
@@ -270,6 +275,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; EchoPort = 50505
     ; AttemptSTUN = false
 
+
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. 
 ; *
@@ -290,11 +296,13 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Default is false.
     ; AllowSetPassword = false
 
+
 [OpenIdService]
     ; for the server connector
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 	
+
 ; * This is the new style user service.
 ; * "Realm" is the table that is used for user lookup.
 ; * It defaults to "useraccounts", which uses the new style.
@@ -331,21 +339,26 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:GridUserService"
 
+
 [PresenceService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
+
 
 [AvatarService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AvatarService.dll:AvatarService"
 
+
 [FriendsService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.FriendsService.dll:FriendsService"
 
+
 [LibraryService]
     LibraryName = "OpenSim Library"
     DefaultLibrary = "./inventory/Libraries.xml"
+
 
 [LoginService]
     ; for the server connector
@@ -392,8 +405,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HasProxy = false
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
-	;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
-	; GatekeeperURI = "http://127.0.0.1:8002"
+    ;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
+    ; GatekeeperURI = "http://127.0.0.1:8002"
 
     SRV_HomeURI = "http://127.0.0.1:8002"
     SRV_InventoryServerURI = "http://127.0.0.1:8002"
@@ -403,20 +416,20 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     SRV_IMServerURI = "http://127.0.0.1:8002"
     SRV_GroupsServerURI = "http://127.0.0.1:8002"
 
-	;; Regular expressions for controlling which client versions are accepted/denied.
-	;; An empty string means nothing is checked.
-	;;
-	;; Example 1: allow only these 3 types of clients (any version of them)
-	;; AllowedClients = "Imprudence|Hippo|Second Life"
-	;;
-	;; Example 2: allow all clients except these
-	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
-	;;
-	;; Note that these are regular expressions, so every character counts.
-	;; Also note that this is very weak security and should not be trusted as a reliable means
-	;; for keeping bad clients out; modified clients can fake their identifiers.
-	;;
-	;;
+    ;; Regular expressions for controlling which client versions are accepted/denied.
+    ;; An empty string means nothing is checked.
+    ;;
+    ;; Example 1: allow only these 3 types of clients (any version of them)
+    ;; AllowedClients = "Imprudence|Hippo|Second Life"
+    ;;
+    ;; Example 2: allow all clients except these
+    ;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+    ;;
+    ;; Note that these are regular expressions, so every character counts.
+    ;; Also note that this is very weak security and should not be trusted as a reliable means
+    ;; for keeping bad clients out; modified clients can fake their identifiers.
+    ;;
+    ;;
     ;AllowedClients = ""
     ;DeniedClients = ""
 
@@ -432,17 +445,20 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;;      'America/Los_Angeles' is used on Linux/Mac systems whilst 'Pacific Standard Time' is used on Windows
     DSTZone = "America/Los_Angeles;Pacific Standard Time"
 
+
 [MapImageService]
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"
-	; Set this if you want to change the default
-	; TilesStoragePath = "maptiles"
-	;
-	; If for some reason you have the AddMapTile service outside the firewall (e.g. 8002),
-	; you may want to set this. Otherwise, don't set it, because it's already protected.
-	; GridService = "OpenSim.Services.GridService.dll:GridService"
-	;
+
+    ; Set this if you want to change the default
+    ; TilesStoragePath = "maptiles"
+    ;
+    ; If for some reason you have the AddMapTile service outside the firewall (e.g. 8002),
+    ; you may want to set this. Otherwise, don't set it, because it's already protected.
+    ; GridService = "OpenSim.Services.GridService.dll:GridService"
+    ;
     ; Additionally, if you run this server behind a proxy, set this to true
     ; HasProxy = false
+
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
@@ -490,6 +506,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HG user domain, if you have one
     ; this is the entry point for all user-related HG services
     ; uas = http://127.0.0.1:8002/
+
 
 [GatekeeperService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"
@@ -594,17 +611,18 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 [HGInventoryService]
     ; For the InventoryServiceInConnector
     LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
-	;; alternatives:
-	;;  HG1.5, more permissive, not recommended, but still supported
+    ;; alternatives:
+    ;;  HG1.5, more permissive, not recommended, but still supported
     ;LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGInventoryService"
-	;;  HG1.0, totally permissive, not recommended, but OK for grids with 100% trust
+    ;;  HG1.0, totally permissive, not recommended, but OK for grids with 100% trust
     ;LocalServiceModule    = "OpenSim.Services.InventoryService.dll:XInventoryService"
 
-	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-	AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
+    UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
 
-	;; Can overwrite the default in [Hypergrid], but probably shouldn't
-	; HomeURI = "http://127.0.0.1:8002"
+    ;; Can overwrite the default in [Hypergrid], but probably shouldn't
+    ; HomeURI = "http://127.0.0.1:8002"
+
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the access that the rest of the world has to
@@ -614,28 +632,30 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 
-	;; Can overwrite the default in [Hypergrid], but probably shouldn't
-	; HomeURI = "http://127.0.0.1:8002"
+    ;; Can overwrite the default in [Hypergrid], but probably shouldn't
+    ; HomeURI = "http://127.0.0.1:8002"
 
     ;; The asset types that this grid can export to / import from other grids.
-	;; Comma separated.
-	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
-	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
-	;;
-	;; Leave blank or commented if you don't want to apply any restrictions.
-	;; A more strict, but still reasonable, policy may be to disallow the exchange 
-	;; of scripts, like so:
+    ;; Comma separated.
+    ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+    ;;
+    ;; Leave blank or commented if you don't want to apply any restrictions.
+    ;; A more strict, but still reasonable, policy may be to disallow the exchange 
+    ;; of scripts, like so:
     ; DisallowExport ="LSLText"
     ; DisallowImport ="LSLBytecode"
 
+
 [HGFriendsService]
-	LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFriendsService"
-	UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
-	FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
-	UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-	GridService = "OpenSim.Services.GridService.dll:GridService"
-	PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFriendsService"
+    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+    FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    GridService = "OpenSim.Services.GridService.dll:GridService"
+    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+
 
 [HGInstantMessageService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInstantMessageService"
@@ -645,9 +665,11 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; This should always be true in the Robust config
     InGatekeeper = True
 
+
 [Messaging]
     ; OfflineIM
     OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
+
 
 [Groups]
     ;; for the HG Groups service
@@ -655,8 +677,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 
     ;; What is the HomeURI of users associated with this grid?
-	;; Can overwrite the default in [Hypergrid], but probably shouldn't
-	; HomeURI = "http://127.0.0.1:8002"
+    ;; Can overwrite the default in [Hypergrid], but probably shouldn't
+    ; HomeURI = "http://127.0.0.1:8002"
+
 
 [UserProfilesService]
     LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
@@ -667,6 +690,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 	
+
 [BakedTextureService]
     LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"
     ;; This directory must be writable by the user ROBUST runs as. It will be created automatically.
