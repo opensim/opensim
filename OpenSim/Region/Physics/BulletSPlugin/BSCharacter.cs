@@ -146,7 +146,6 @@ public sealed class BSCharacter : BSPhysObject
     {
         PhysScene.PE.RemoveObjectFromWorld(PhysScene.World, PhysBody);
 
-        ZeroMotion(true);
         ForcePosition = RawPosition;
 
         // Set the velocity
@@ -269,6 +268,7 @@ public sealed class BSCharacter : BSPhysObject
     // Called at taint time!
     public override void ZeroMotion(bool inTaintTime)
     {
+        RawVelocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
