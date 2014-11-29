@@ -461,10 +461,10 @@ public sealed class BSCharacter : BSPhysObject
             PhysScene.TaintedObject(LocalID, "BSCharacter.setVelocity", delegate()
             {
                 if (m_moveActor != null)
-                        m_moveActor.SetVelocityAndTarget(vel, vel, true /* inTaintTime */);
+                    m_moveActor.SetVelocityAndTarget(vel, vel, true /* inTaintTime */);
 
-                    m_log.DebugFormat("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, vel);
-                    ForceVelocity = vel;
+                DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, vel);
+                ForceVelocity = vel;
             });
         }
     }
