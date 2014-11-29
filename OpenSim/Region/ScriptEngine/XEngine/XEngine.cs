@@ -1046,49 +1046,61 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public Object DoOnRezScriptQueue(Object dummy)
         {
-            if (m_InitialStartup)
+            try
             {
-                // This delay exists to stop mono problems where script compilation and startup would stop the sim
-                // working properly for the session.
-                System.Threading.Thread.Sleep(m_StartDelay);
-
-                m_log.InfoFormat("[XEngine]: Performing initial script startup on {0}", m_Scene.Name);
-            }
-
-            object[] o;
-
-            int scriptsStarted = 0;
-
-            while (m_CompileQueue.Dequeue(out o))
-            {
-                if (DoOnRezScript(o))
+                if (m_InitialStartup)
                 {
-                    scriptsStarted++;
+                    // This delay exists to stop mono problems where script compilation and startup would stop the sim
+                    // working properly for the session.
+                    System.Threading.Thread.Sleep(m_StartDelay);
 
-                    if (m_InitialStartup)
-                        if (scriptsStarted % 50 == 0)
-                            m_log.InfoFormat(
-                                "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.Name);
+                    m_log.InfoFormat("[XEngine]: Performing initial script startup on {0}", m_Scene.Name);
                 }
+
+                object[] o;
+
+                int scriptsStarted = 0;
+
+                while (m_CompileQueue.Dequeue(out o))
+                {
+                    if (DoOnRezScript(o))
+                    {
+                        scriptsStarted++;
+
+                        if (m_InitialStartup)
+                            if (scriptsStarted % 50 == 0)
+                                m_log.InfoFormat(
+                                    "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.Name);
+                    }
+                }
+
+                if (m_InitialStartup)
+                    m_log.InfoFormat(
+                        "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.Name);
+
             }
+            catch (Exception e)
+            {
+                m_log.Error(string.Format("[XEngine]: Failure in DoOnRezScriptQueue().  Exception  ", e));
+            }
+            finally
+            {
+                // FIXME: On failure we must trigger this even if the compile queue is not actually empty so that the 
+                // RegionReadyModule is not forever waiting.  This event really needs a different name.
+                m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
+                                                                    m_ScriptErrorMessage);
 
-            if (m_InitialStartup)
-                m_log.InfoFormat(
-                    "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.Name);
+                m_ScriptFailCount = 0;
+                m_InitialStartup = false;
 
-            m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
-                                                                m_ScriptErrorMessage);
-
-            m_ScriptFailCount = 0;
-            m_InitialStartup = false;
-
-            // NOTE: Despite having a lockless queue, this lock is required
-            // to make sure there is never no compile thread while there
-            // are still scripts to compile. This could otherwise happen
-            // due to a race condition
-            //
-            lock (m_CompileQueue)
-                m_CurrentCompile = null;
+                // NOTE: Despite having a lockless queue, this lock is required
+                // to make sure there is never no compile thread while there
+                // are still scripts to compile. This could otherwise happen
+                // due to a race condition
+                //
+                lock (m_CompileQueue)
+                    m_CurrentCompile = null;
+            }
 
             return null;
         }
