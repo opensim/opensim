@@ -1081,7 +1081,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             catch (Exception e)
             {
-                m_log.Error(string.Format("[XEngine]: Failure in DoOnRezScriptQueue().  Exception  ", e));
+                m_log.Error(
+                    string.Format("[XEngine]: Failure in DoOnRezScriptQueue() in {0}.  Exception  ", m_Scene.Name), e);
             }
             finally
             {
