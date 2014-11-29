@@ -1076,6 +1076,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_log.InfoFormat(
                     "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.Name);
 
+            m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
+                                                                m_ScriptErrorMessage);
+
+            m_ScriptFailCount = 0;
+            m_InitialStartup = false;
+
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
             // are still scripts to compile. This could otherwise happen
@@ -1083,12 +1089,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             //
             lock (m_CompileQueue)
                 m_CurrentCompile = null;
-
-            m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
-                                                                m_ScriptErrorMessage);
-
-            m_ScriptFailCount = 0;
-            m_InitialStartup = false;
 
             return null;
         }
