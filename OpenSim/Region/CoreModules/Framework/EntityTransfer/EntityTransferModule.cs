@@ -1695,7 +1695,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 AgentData cAgent = new AgentData(); 
                 agent.CopyTo(cAgent);
-                cAgent.Position = pos + agent.Velocity;
+                cAgent.Position = pos;
+
                 if (isFlying)
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
 
