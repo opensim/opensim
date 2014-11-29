@@ -3674,10 +3674,10 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 origPosition = pos2;
             Vector3 vel = Velocity;
 
-            // Compute the avatar position in the next physics tick.
+            // Compute the future avatar position.
             // If the avatar will be crossing, we force the crossing to happen now
             //     in the hope that this will make the avatar movement smoother when crossing.
-            pos2 += vel * 0.1f;
+            pos2 += vel * 0.05f;
 
             if (m_scene.PositionIsInCurrentRegion(pos2))
                 return;
