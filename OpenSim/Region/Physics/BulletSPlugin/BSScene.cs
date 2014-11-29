@@ -461,19 +461,19 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     #region Prim and Avatar addition and removal
 
-    public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
+    public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
     {
         m_log.ErrorFormat("{0}: CALL TO AddAvatar in BSScene. NOT IMPLEMENTED", LogHeader);
         return null;
     }
 
-    public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, bool isFlying)
+    public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
     {
         // m_log.DebugFormat("{0}: AddAvatar: {1}", LogHeader, avName);
 
         if (!m_initialized) return null;
 
-        BSCharacter actor = new BSCharacter(localID, avName, this, position, size, isFlying);
+        BSCharacter actor = new BSCharacter(localID, avName, this, position, velocity, size, isFlying);
         lock (PhysObjects)
             PhysObjects.Add(localID, actor);
 

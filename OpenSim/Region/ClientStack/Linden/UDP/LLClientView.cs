@@ -5195,8 +5195,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 ScenePresence presence = (ScenePresence)entity;
 
-//                m_log.DebugFormat(
-//                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+//                m_log.DebugFormat( 
+//                    "[LLCLIENTVIEW]: Sending terse update to {0} with pos {1}, vel {2} in {3}", 
+//                    Name, presence.OffsetPosition, presence.Velocity, m_scene.Name);
 
                 attachPoint = presence.State;
                 collisionPlane = presence.CollisionPlane;
@@ -5333,13 +5334,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(ScenePresence data)
         {
 //            m_log.DebugFormat(
-//                "[LLCLIENTVIEW]: Sending full update to {0} with position {1} in {2}", Name, data.OffsetPosition, m_scene.Name);
+//                "[LLCLIENTVIEW]: Sending full update to {0} with pos {1}, vel {2} in {3}", Name, data.OffsetPosition, data.Velocity, m_scene.Name);
 
             byte[] objectData = new byte[76];
 
             data.CollisionPlane.ToBytes(objectData, 0);
             data.OffsetPosition.ToBytes(objectData, 16);
-//            data.Velocity.ToBytes(objectData, 28);
+            data.Velocity.ToBytes(objectData, 28);
 //            data.Acceleration.ToBytes(objectData, 40);
 
             // Whilst not in mouselook, an avatar will transmit only the Z rotation as this is the only axis

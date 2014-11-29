@@ -45,7 +45,8 @@ namespace OpenSim.Region.Physics.Manager
             // Does nothing right now
         }
 
-        public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
+        public override PhysicsActor AddAvatar(
+            string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
             m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddAvatar({0})", position);
             return PhysicsActor.Null;

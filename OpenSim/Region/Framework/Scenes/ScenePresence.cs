@@ -636,6 +636,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
+//                Util.PrintCallStack();
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, value);  
+
                 if (PhysicsActor != null)
                 {
                     try
@@ -648,11 +653,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_velocity = value;
-
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
-//                    Scene.RegionInfo.RegionName, Name, m_velocity);
+                m_velocity = value;                                            
             }
         }
 /*
@@ -1185,15 +1186,23 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 AbsolutePosition = pos;
 
+//                m_log.DebugFormat(
+//                    "Set pos {0}, vel {1} in {1} to {2} from input position of {3} on MakeRootAgent", 
+//                    Name, Scene.Name, AbsolutePosition, pos);
+//
                 if (m_teleportFlags == TeleportFlags.Default)
                 {
-                    Vector3 vel = Velocity;
                     AddToPhysicalScene(isFlying);
-                    if (PhysicsActor != null)
-                        PhysicsActor.SetMomentum(vel);
+//
+//                        Console.WriteLine(
+//                            "Set velocity of {0} in {1} to {2} from input velocity of {3} on MakeRootAgent", 
+//                            Name, Scene.Name, PhysicsActor.Velocity, vel);
+//                    }
                 }
                 else
+                {
                     AddToPhysicalScene(isFlying);
+                }
 
                 // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
                 // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
@@ -1211,6 +1220,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Flying = false;
                 }
             }
+
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
             // elsewhere anyway
@@ -1275,7 +1285,6 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
@@ -3668,10 +3677,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Compute the avatar position in the next physics tick.
             // If the avatar will be crossing, we force the crossing to happen now
             //     in the hope that this will make the avatar movement smoother when crossing.
-            float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X * timeStep);
-            pos2.Y = pos2.Y + (vel.Y * timeStep);
-            pos2.Z = pos2.Z + (vel.Z * timeStep);
+            pos2 += vel * 0.1f;
 
             if (m_scene.PositionIsInCurrentRegion(pos2))
                 return;
@@ -3682,9 +3688,11 @@ namespace OpenSim.Region.Framework.Scenes
             // Disconnect from the current region
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
+
             // pos2 is the forcasted position so make that the 'current' position so the crossing
             //    code will move us into the newly addressed region.
             m_pos = pos2;
+
             if (CrossToNewRegion())
             {
                 AddToPhysicalScene(isFlying);
@@ -4116,19 +4124,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (Appearance.AvatarHeight == 0)
 //                Appearance.SetHeight();
                 Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
-
-            PhysicsScene scene = m_scene.PhysicsScene;
-
-            Vector3 pVec = AbsolutePosition;
-
+                    
 /*
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
                 new Vector3(0.45f, 0.6f, Appearance.AvatarHeight), isFlying);
 */
 
-            PhysicsActor = scene.AddAvatar(
-                LocalId, Firstname + "." + Lastname, pVec,
+            PhysicsActor = m_scene.PhysicsScene.AddAvatar(
+                LocalId, Firstname + "." + Lastname, AbsolutePosition, Velocity,
                 Appearance.AvatarBoxSize, isFlying);
 
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;

@@ -64,15 +64,25 @@ public sealed class BSCharacter : BSPhysObject
     private bool _usePID;
     private float _PIDTau;
 
-    public BSCharacter(uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size, bool isFlying)
+//        public override OMV.Vector3 RawVelocity 
+//        { get { return base.RawVelocity; } 
+//            set { 
+//                if (value != base.RawVelocity)
+//                    Util.PrintCallStack();
+//                Console.WriteLine("Set rawvel to {0}", value);
+//                base.RawVelocity = value; }
+//        }
+
+    public BSCharacter(
+            uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, bool isFlying)
             : base(parent_scene, localID, avName, "BSCharacter")
     {
         _physicsActorType = (int)ActorTypes.Agent;
-        RawPosition = pos;
+        RawPosition = pos;        
 
         _flying = isFlying;
         RawOrientation = OMV.Quaternion.Identity;
-        RawVelocity = OMV.Vector3.Zero;
+        RawVelocity = vel;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         Friction = BSParam.AvatarStandingFriction;
         Density = BSParam.AvatarDensity;
@@ -89,13 +99,15 @@ public sealed class BSCharacter : BSPhysObject
         // set _avatarVolume and _mass based on capsule size, _density and Scale
         ComputeAvatarVolumeAndMass();
 
-        DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5},pos={6}",
-                            LocalID, _size, Scale, Density, _avatarVolume, RawMass, pos);
+        DetailLog(
+            "{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5},pos={6},vel={7}",
+            LocalID, _size, Scale, Density, _avatarVolume, RawMass, pos, vel);
 
         // do actual creation in taint time
         PhysScene.TaintedObject(LocalID, "BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
+
             // New body and shape into PhysBody and PhysShape
             PhysScene.Shapes.GetBodyAndShape(true, PhysScene.World, this);
 
@@ -142,6 +154,7 @@ public sealed class BSCharacter : BSPhysObject
             m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, false);
 
         ForceVelocity = RawVelocity;
+        TargetVelocity = RawVelocity;
 
         // This will enable or disable the flying buoyancy of the avatar.
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
@@ -256,7 +269,6 @@ public sealed class BSCharacter : BSPhysObject
     // Called at taint time!
     public override void ZeroMotion(bool inTaintTime)
     {
-        RawVelocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
@@ -267,6 +279,7 @@ public sealed class BSCharacter : BSPhysObject
                 PhysScene.PE.ClearAllForces(PhysBody);
         });
     }
+
     public override void ZeroAngularMotion(bool inTaintTime)
     {
         _rotationalVelocity = OMV.Vector3.Zero;
@@ -441,32 +454,40 @@ public sealed class BSCharacter : BSPhysObject
         get { return RawVelocity; }
         set {
             RawVelocity = value;
-            // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, RawVelocity);
+                OMV.Vector3 vel = RawVelocity;
+
+            DetailLog("{0}: set Velocity = {1}", LogHeader, value);
+
             PhysScene.TaintedObject(LocalID, "BSCharacter.setVelocity", delegate()
             {
                 if (m_moveActor != null)
-                    m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, true /* inTaintTime */);
+                        m_moveActor.SetVelocityAndTarget(vel, vel, true /* inTaintTime */);
 
-                DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, RawVelocity);
-                ForceVelocity = RawVelocity;
+                    m_log.DebugFormat("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, vel);
+                    ForceVelocity = vel;
             });
         }
     }
+
     public override OMV.Vector3 ForceVelocity {
         get { return RawVelocity; }
         set {
             PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
+//                Util.PrintCallStack();
+            DetailLog("{0}: set ForceVelocity = {1}", LogHeader, value);
 
             RawVelocity = value;
             PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);
             PhysScene.PE.Activate(PhysBody, true);
         }
     }
+
     public override OMV.Vector3 Torque {
         get { return RawTorque; }
         set { RawTorque = value;
         }
     }
+
     public override float CollisionScore {
         get { return _collisionScore; }
         set { _collisionScore = value;

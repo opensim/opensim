@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
 using OMV = OpenMetaverse;
@@ -109,6 +110,10 @@ public class BSActorAvatarMove : BSActor
         {
             if (m_velocityMotor != null)
             {
+//                    if (targ == OMV.Vector3.Zero)
+//                        Util.PrintCallStack();
+//
+//                    Console.WriteLine("SetVelocityAndTarget, {0} {1}", vel, targ);
                 m_velocityMotor.Reset();
                 m_velocityMotor.SetTarget(targ);
                 m_velocityMotor.SetCurrent(vel);

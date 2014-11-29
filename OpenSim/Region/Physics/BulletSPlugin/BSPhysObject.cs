@@ -228,7 +228,7 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
-    public OMV.Vector3 RawVelocity { get; set; }
+    public virtual OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public OMV.Vector3 RawForce { get; set; }

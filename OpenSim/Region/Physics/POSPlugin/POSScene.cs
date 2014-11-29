@@ -58,7 +58,8 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
         }
 
-        public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
+        public override PhysicsActor AddAvatar(
+            string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
             POSCharacter act = new POSCharacter();
             act.Position = position;
