@@ -42,6 +42,17 @@
 ;;    out.
 
 
+[Const]
+    ;# {BaseURL} {} {BaseURL} {"http://example.com","http://127.0.0.1"} "http://127.0.0.1"
+    BaseURL = http://127.0.0.1
+    
+    ;# {PublicPort} {} {PublicPort} {8002} "8002"
+    PublicPort = "8002"
+
+    ;# {PrivatePort} {} {PublicPort} {8003} "8003"
+    PrivatePort = "8003"
+
+
 [Startup]
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
@@ -597,7 +608,8 @@
 
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
-    ; OfflineMessageURL = http://yourserver/Offline.php or http://yourrobustserver:8003
+    ; OfflineMessageURL = ${Const|BaseURL}/Offline.php
+    ; OfflineMessageURL = ${Const|BaseURL}:${Const|PrivtePort}
 
     ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
     ;; For standalones, this is the storage dll.
@@ -1037,7 +1049,7 @@
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
-    ;; or http:://mygridserver.com:8003 for robust, V2
+    ;; or http:://${Const|BaseURL}:${Const|PrivatePort} for robust, V2
     ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
@@ -1105,13 +1117,13 @@
   ;# {ProfileServiceURL} {} {Set url to UserProfilesService} {}
   ;; Set the value of the url to your UserProfilesService
   ;; If un-set / "" the module is disabled
-  ;; ProfileServiceURL = http://127.0.0.1:8002
+  ;; ProfileServiceURL = ${Const|BaseURL}:${Const|PublicPort}
 
 [XBakes]
   ;# {URL} {} {Set URL for Baked texture service} {}
   ;; Sets the URL for the baked texture ROBUST service.
   ;; Disabled when unset.
-  ;; URL = http://127.0.0.1:8003
+  ;; URL = ${Const|BaseURL}:${Const|PrivatePort}
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
