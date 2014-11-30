@@ -40,7 +40,7 @@
     ;; If this is a standalone world, this is the address of this instance.
     ;; If this is a grided simulator, this is the address of the external robust server that
     ;; runs the UserAgentsService.
-    ;; For example http://myworld.com:9000 or http://myworld.com:${Const|PublicPort}
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
@@ -48,7 +48,7 @@
     ;; If this is a standalone world, this is the address of this instance.
     ;; If this is a grided simulator, this is the address of the external robust server
     ;; that runs the Gatekeeper service.
-    ;; For example http://myworld.com:9000 or http://myworld.com:${Const|PublicPort}
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 

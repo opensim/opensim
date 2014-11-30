@@ -259,7 +259,7 @@
     ExportSupported = true
 
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI = "http://127.0.0.1:${Const|PublicPort}"
+    ; GatekeeperURI = "http://${Const|BaseURL}:${Const|PublicPort}"
 
 
 ; * This is the configuration for the freeswitch server in grid mode
@@ -574,11 +574,11 @@
     ;;
     ;; If ForeignAgentsAllowed is true, make exceptions using AllowExcept.
     ;; Leave blank or commented for no exceptions.
-    ; AllowExcept = "http://griefer.com:${Const|PublicPort}, http://enemy.com:8002"
+    ; AllowExcept = "http://griefer.com:8002, http://enemy.com:8002"
     ;;
     ;; If ForeignAgentsAllowed is false, make exceptions using DisallowExcept
     ;; Leave blank or commented for no exceptions.
-    ; DisallowExcept = "http://myfriendgrid.com:${Const|PublicPort}, http://myboss.com:8002"
+    ; DisallowExcept = "http://myfriendgrid.com:8002, http://myboss.com:8002"
 
 
 [UserAgentService]
@@ -612,11 +612,11 @@
     ;;
     ;; If ForeignTripsAllowed is false, make exceptions using DisallowExcept
     ;; Leave blank or commented for no exceptions.
-    ; DisallowExcept_Level_0 = "http://myothergrid.com:${Const|PublicPort}, http://boss.com:8002"
+    ; DisallowExcept_Level_0 = "http://myothergrid.com:8002, http://boss.com:8002"
 	;;
     ;; If ForeignTripsAllowed is true, make exceptions using AllowExcept.
     ;; Leave blank or commented for no exceptions.
-    ; AllowExcept_Level_200 = "http://griefer.com:${Const|PublicPort}, http://enemy.com:8002"
+    ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
 
 	;; This variable controls what is exposed to profiles of local users
 	;; as seen from outside of this grid. Leave it uncommented for exposing
