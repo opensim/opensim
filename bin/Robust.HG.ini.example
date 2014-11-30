@@ -165,14 +165,14 @@
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
 	;; This is the address of the external robust server that
 	;; runs the UserAgentsService, possibly this server.
-	;; For example http://myworld.com:${Const|PublicPort}
+	;; For example http://myworld.com:8002
 	;; This is a default that can be overwritten in some sections.
 	; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
 	;; This is the address of the external robust server
 	;; that runs the Gatekeeper service, possibly this server.
-	;; For example http://myworld.com:${Const|PublicPort}
+	;; For example http://myworld.com:8002
 	;; This is a default that can be overwritten in some sections.
 	; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
@@ -259,7 +259,7 @@
     ExportSupported = true
 
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI = "http://${Const|BaseURL}:${Const|PublicPort}"
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 
 ; * This is the configuration for the freeswitch server in grid mode
