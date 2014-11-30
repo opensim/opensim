@@ -100,9 +100,6 @@ public sealed class BSLinksetCompound : BSLinkset
     // Schedule a refresh to happen after all the other taint processing.
     private void ScheduleRebuild(BSPrimLinkable requestor)
     {
-        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2},actuallyScheduling={3}",
-                            requestor.LocalID, Rebuilding, HasAnyChildren, (!Rebuilding && HasAnyChildren));
-
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
@@ -115,8 +112,11 @@ public sealed class BSLinksetCompound : BSLinkset
         }
     }
 
+    // Must be called with m_linksetActivityLock or race conditions will haunt you.
     private void InternalScheduleRebuild(BSPrimLinkable requestor)
     {
+        DetailLog("{0},BSLinksetCompound.InternalScheduleRebuild,,rebuilding={1},hasChildren={2}",
+                            requestor.LocalID, Rebuilding, HasAnyChildren);
         RebuildScheduled = true;
         m_physicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
         {
@@ -396,7 +396,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 // Get a reference to the shape of the child for adding of that shape to the linkset compound shape
                 BSShape childShape = cPrim.PhysShape.GetReference(m_physicsScene, cPrim);
 
-                // Offset the child shape from the center-of-mass and rotate it to vehicle relative.
+                // Offset the child shape from the center-of-mass and rotate it to root relative.
                 OMV.Vector3 offsetPos = (cPrim.RawPosition - origRootPosition) * invRootOrientation - centerDisplacementV;
                 OMV.Quaternion offsetRot = OMV.Quaternion.Normalize(cPrim.RawOrientation) * invRootOrientation;
 
@@ -435,7 +435,7 @@ public sealed class BSLinksetCompound : BSLinkset
                                     LogHeader, LinksetRoot.Name, cPrim.LinksetChildIndex, childShape);
 
                     // This causes the loop to bail on building the rest of this linkset.
-                    // The rebuild operation should fix it up or declare the object unbuildable.
+                    // The rebuild operation will fix it up next tick or declare the object unbuildable.
                     return true;
                 }
 
