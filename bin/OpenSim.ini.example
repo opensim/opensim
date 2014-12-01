@@ -609,7 +609,7 @@
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
     ; OfflineMessageURL = ${Const|BaseURL}/Offline.php
-    ; OfflineMessageURL = ${Const|BaseURL}:${Const|PrivtePort}
+    ; OfflineMessageURL = ${Const|BaseURL}:${Const|PrivatePort}
 
     ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
     ;; For standalones, this is the storage dll.
