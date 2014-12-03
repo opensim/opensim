@@ -1065,10 +1065,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 try
                 {
-                    FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state"));
-                    Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
-                    fs.Write(buf, 0, buf.Length);
-                    fs.Close();
+                    using (FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state")))
+                    {
+                        Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
+                        fs.Write(buf, 0, buf.Length);
+                    }
                 }
                 catch(Exception)
                 {

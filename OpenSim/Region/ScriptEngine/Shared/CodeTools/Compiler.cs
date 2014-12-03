@@ -663,9 +663,8 @@ namespace SecondLife
 
             try
             {
-                FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
-                fs.Read(data, 0, data.Length);
-                fs.Close();
+                using (FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read))
+                    fs.Read(data, 0, data.Length);
             }
             catch (Exception)
             {
@@ -680,9 +679,8 @@ namespace SecondLife
 
             Byte[] buf = Encoding.ASCII.GetBytes(filetext);
 
-            FileStream sfs = File.Create(assembly + ".text");
-            sfs.Write(buf, 0, buf.Length);
-            sfs.Close();
+            using (FileStream sfs = File.Create(assembly + ".text"))
+                sfs.Write(buf, 0, buf.Length);
 
             return assembly;
         }
@@ -775,7 +773,6 @@ namespace SecondLife
             return message;
         }
 
-
         private static void WriteMapFile(string filename, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
             string mapstring = String.Empty;
@@ -787,39 +784,41 @@ namespace SecondLife
             }
 
             Byte[] mapbytes = Encoding.ASCII.GetBytes(mapstring);
-            FileStream mfs = File.Create(filename);
-            mfs.Write(mapbytes, 0, mapbytes.Length);
-            mfs.Close();
-        }
 
+            using (FileStream mfs = File.Create(filename))
+                mfs.Write(mapbytes, 0, mapbytes.Length);
+        }
 
         private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> ReadMapFile(string filename)
         {
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
             try
             {
-                StreamReader r = File.OpenText(filename);
-                linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
-
-                string line;
-                while ((line = r.ReadLine()) != null)
+                using (StreamReader r = File.OpenText(filename))
                 {
-                    String[] parts = line.Split(new Char[] { ',' });
-                    int kk = System.Convert.ToInt32(parts[0]);
-                    int kv = System.Convert.ToInt32(parts[1]);
-                    int vk = System.Convert.ToInt32(parts[2]);
-                    int vv = System.Convert.ToInt32(parts[3]);
+                    linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
 
-                    KeyValuePair<int, int> k = new KeyValuePair<int, int>(kk, kv);
-                    KeyValuePair<int, int> v = new KeyValuePair<int, int>(vk, vv);
+                    string line;
+                    while ((line = r.ReadLine()) != null)
+                    {
+                        String[] parts = line.Split(new Char[] { ',' });
+                        int kk = System.Convert.ToInt32(parts[0]);
+                        int kv = System.Convert.ToInt32(parts[1]);
+                        int vk = System.Convert.ToInt32(parts[2]);
+                        int vv = System.Convert.ToInt32(parts[3]);
 
-                    linemap[k] = v;
+                        KeyValuePair<int, int> k = new KeyValuePair<int, int>(kk, kv);
+                        KeyValuePair<int, int> v = new KeyValuePair<int, int>(vk, vv);
+
+                        linemap[k] = v;
+                    }
                 }
             }
             catch
             {
                 linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
             }
+
             return linemap;
         }
     }
