@@ -70,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <remarks>
         /// If DebugLevel >= 1, then we log every time that a script is started.
         /// </remarks>
-//        public int DebugLevel { get; set; }
+        public int DebugLevel { get; set; }
 
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
@@ -403,12 +403,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     + "Level >= 2, log event invocations.\n",
                 HandleDebugScriptLogCommand);
 
-//            MainConsole.Instance.Commands.AddCommand(
-//                "Debug", false, "debug xengine", "debug xengine [<level>]",
-//                "Turn on detailed xengine debugging.",
-//                  "If level <= 0, then no extra logging is done.\n"
-//                + "If level >= 1, then we log every time that a script is started.",
-//                HandleDebugLevelCommand);
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug", false, "debug xengine log", "debug xengine log [<level>]",
+                "Turn on detailed xengine debugging.",
+                  "If level <= 0, then no extra logging is done.\n"
+                + "If level >= 1, then we log every time that a script is started.",
+                HandleDebugLevelCommand);
         }
 
         private void HandleDebugScriptLogCommand(string module, string[] args)
@@ -451,26 +451,26 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// </summary>
         /// <param name="module"></param>
         /// <param name="args"></param>
-//        private void HandleDebugLevelCommand(string module, string[] args)
-//        {
-//            if (args.Length == 3)
-//            {
-//                int newDebug;
-//                if (int.TryParse(args[2], out newDebug))
-//                {
-//                    DebugLevel = newDebug;
-//                    MainConsole.Instance.OutputFormat("Debug level set to {0}", newDebug);
-//                }
-//            }
-//            else if (args.Length == 2)
-//            {
-//                MainConsole.Instance.OutputFormat("Current debug level is {0}", DebugLevel);
-//            }
-//            else
-//            {
-//                MainConsole.Instance.Output("Usage: debug xengine 0..1");
-//            }
-//        }
+        private void HandleDebugLevelCommand(string module, string[] args)
+        {
+            if (args.Length <= 4)
+            {
+                int newDebug;
+                if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, args[3], out newDebug))
+                {
+                    DebugLevel = newDebug;
+                    MainConsole.Instance.OutputFormat("Debug level set to {0} in XEngine for region {1}", newDebug, m_Scene.Name);
+                }
+            }
+            else if (args.Length == 3)
+            {
+                MainConsole.Instance.OutputFormat("Current debug level is {0}", DebugLevel);
+            }
+            else
+            {
+                MainConsole.Instance.Output("Usage: debug xengine log <level>");
+            }
+        }
 
         /// <summary>
         /// Parse the raw item id into a script instance from the command params if it's present.
@@ -1148,10 +1148,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return false;
             }
 
-            m_log.DebugFormat(
-                "[XEngine]: Loading script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
-                part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
-                part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
+            if (DebugLevel > 0)
+                m_log.DebugFormat(
+                    "[XEngine]: Loading script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
+                    part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
+                    part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
             UUID assetID = item.AssetID;
 
