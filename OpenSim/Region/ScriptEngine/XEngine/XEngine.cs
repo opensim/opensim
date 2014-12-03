@@ -1349,7 +1349,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     // simulator session if the script halt strategy has been changed.  Instead, we'll continue with
                     // the existing DLL and the new one will be used in the next simulator session.
                     if (recompile)
+                    {
+                        m_log.DebugFormat(
+                            "[XEngine]: Recompiling script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5} to switch it to {6} termination.  Will be active on next restart.",
+                            part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
+                            part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.Name, 
+                            m_coopTermination ? "co-op" : "abort");
+
                         m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, true, out assemblyPath, out linemap);
+                    }
 
                     instance = new ScriptInstance(this, part,
                                                   item,
