@@ -2155,7 +2155,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     catch (IOException ex)
                     {
                         // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: Linemap file {0} already exists! {1}", mappath, ex.Message);
+                        m_log.Error(
+                            string.Format("[XEngine]: Linemap file {0} could not be written.  Exception  ", mappath), ex);
                     }
                 }
             }
