@@ -648,6 +648,15 @@ namespace OpenSim.Region.Framework.Scenes
         }
     }
 
+    /// <summary>
+    /// Gather uuids for a given entity.
+    /// </summary>
+    /// <remarks>
+    /// This does a deep inspection of the entity to retrieve all the assets it uses (whether as textures, as scripts
+    /// contained in inventory, as scripts contained in objects contained in another object's inventory, etc.  Assets
+    /// are only retrieved when they are necessary to carry out the inspection (i.e. a serialized object needs to be
+    /// retrieved to work out which assets it references).
+    /// </remarks>
     public class IteratingUuidGatherer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -678,18 +687,23 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected Queue<UUID> m_assetUuidsToInspect;
 
-        public IteratingUuidGatherer(IAssetService assetService)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OpenSim.Region.Framework.Scenes.UuidGatherer"/> class.
+        /// </summary>
+        /// <param name="assetService">
+        /// Asset service.
+        /// </param>
+        /// <param name="collector">
+        /// Gathered UUIDs will be collected in this dictinaory.  
+        /// It can be pre-populated if you want to stop the gatherer from analyzing assets that have already been fetched and inspected.
+        /// </param>
+        public IteratingUuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector)
         {
             m_assetService = assetService;
-            m_gatheredAssetUuids = new Dictionary<UUID, sbyte>();
+            m_gatheredAssetUuids = collector;
 
             // FIXME: Not efficient for searching, can improve.
             m_assetUuidsToInspect = new Queue<UUID>();
-        }
-
-        public IDictionary<UUID, sbyte> GetGatheredUuids()
-        {
-            return new Dictionary<UUID, sbyte>(m_gatheredAssetUuids);
         }
 
         public bool AddAssetUuidToInspect(UUID uuid)
@@ -1147,8 +1161,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected string m_assetServerURL;
 
-        public IteratingHGUuidGatherer(IAssetService assetService, string assetServerURL)
-            : base(assetService)
+        public IteratingHGUuidGatherer(IAssetService assetService, string assetServerURL, IDictionary<UUID, sbyte> collector)
+            : base(assetService, collector)
         {
             m_assetServerURL = assetServerURL;
             if (!m_assetServerURL.EndsWith("/") && !m_assetServerURL.EndsWith("="))

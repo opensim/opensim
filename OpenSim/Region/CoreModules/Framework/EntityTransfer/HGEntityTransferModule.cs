@@ -604,7 +604,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     //                                "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset service {2}", 
     //                                so.Name, so.AttachedAvatar, url);
 
-                                IteratingHGUuidGatherer uuidGatherer = new IteratingHGUuidGatherer(Scene.AssetService, url);
+                                IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
+                                IteratingHGUuidGatherer uuidGatherer 
+                                    = new IteratingHGUuidGatherer(Scene.AssetService, url, ids);
                                 uuidGatherer.RecordAssetUuids(so);
 
                                 while (!uuidGatherer.Complete)
@@ -631,8 +633,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                         return;
                                     }                                                           
                                 }
-
-                                IDictionary<UUID, sbyte> ids = uuidGatherer.GetGatheredUuids();
 
     //                            m_log.DebugFormat(
     //                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
