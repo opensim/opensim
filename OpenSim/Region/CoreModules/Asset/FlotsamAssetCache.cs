@@ -256,13 +256,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 // If the file is already cached, don't cache it, just touch it so access time is updated
                 if (File.Exists(filename))
                 {
-                    try
-                    {
-                        File.SetLastAccessTime(filename, DateTime.Now);
-                    }
-                    catch
-                    {
-                    }
+                    UpdateFileLastAccessTime(filename);
                 } 
                 else 
                 {
@@ -318,6 +312,24 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (m_FileCacheEnabled)
                     UpdateFileCache(asset.ID, asset);
+            }
+        }
+
+        /// <summary>
+        /// Updates the cached file with the current time.
+        /// </summary>
+        /// <param name="filename">Filename.</param>
+        /// <returns><c>true</c>, if the update was successful, false otherwise.</returns>
+        private bool UpdateFileLastAccessTime(string filename)
+        {
+            try
+            {
+                File.SetLastAccessTime(filename, DateTime.Now);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
