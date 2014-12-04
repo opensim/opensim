@@ -256,16 +256,9 @@ namespace OpenSim.Region.CoreModules.Asset
                 // If the file is already cached, don't cache it, just touch it so access time is updated
                 if (File.Exists(filename))
                 {
-                    // We don't really want to know about sharing
-                    // violations here. If the file is locked, then
-                    // the other thread has updated the time for us.
                     try
                     {
-                        lock (m_CurrentlyWriting)
-                        {
-                            if (!m_CurrentlyWriting.Contains(filename))
-                                File.SetLastAccessTime(filename, DateTime.Now);
-                        }
+                        File.SetLastAccessTime(filename, DateTime.Now);
                     }
                     catch
                     {
