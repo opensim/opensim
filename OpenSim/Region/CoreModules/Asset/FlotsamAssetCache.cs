@@ -795,7 +795,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         if (File.Exists(filename))
                         {
-                            File.SetLastAccessTime(filename, DateTime.Now);
+                            UpdateFileLastAccessTime(filename);
                         }
                         else if (storeUncached)
                         {
@@ -810,7 +810,6 @@ namespace OpenSim.Region.CoreModules.Asset
                     assets.Clear();
                 });
             }
-
 
             return uniqueUuids.Count;
         }
