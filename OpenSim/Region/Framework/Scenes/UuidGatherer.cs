@@ -706,7 +706,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_assetUuidsToInspect = new Queue<UUID>();
         }
 
-        public bool AddAssetUuidToInspect(UUID uuid)
+        /// <summary>
+        /// Adds the asset uuid for inspection during the gathering process.
+        /// </summary>
+        /// <returns><c>true</c>, if for inspection was added, <c>false</c> otherwise.</returns>
+        /// <param name="uuid">UUID.</param>
+        public bool AddForInspection(UUID uuid)
         {
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
@@ -714,6 +719,107 @@ namespace OpenSim.Region.Framework.Scenes
             m_assetUuidsToInspect.Enqueue(uuid);
 
             return true;
+        }
+        
+        /// <summary>
+        /// Gather all the asset uuids associated with a given object.
+        /// </summary>
+        /// <remarks>
+        /// This includes both those directly associated with
+        /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
+        /// within this object).
+        /// </remarks>
+        /// <param name="sceneObject">The scene object for which to gather assets</param>
+        public void AddForInspection(SceneObjectGroup sceneObject)
+        {
+            //            m_log.DebugFormat(
+            //                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
+
+            SceneObjectPart[] parts = sceneObject.Parts;
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+
+                //                m_log.DebugFormat(
+                //                    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
+
+                try
+                {
+                    Primitive.TextureEntry textureEntry = part.Shape.Textures;
+                    if (textureEntry != null)
+                    {
+                        // Get the prim's default texture.  This will be used for faces which don't have their own texture
+                        if (textureEntry.DefaultTexture != null)
+                            RecordTextureEntryAssetUuids(textureEntry.DefaultTexture);
+
+                        if (textureEntry.FaceTextures != null)
+                        {
+                            // Loop through the rest of the texture faces (a non-null face means the face is different from DefaultTexture)
+                            foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
+                            {
+                                if (texture != null)
+                                    RecordTextureEntryAssetUuids(texture);
+                            }
+                        }
+                    }
+
+                    // If the prim is a sculpt then preserve this information too
+                    if (part.Shape.SculptTexture != UUID.Zero)
+                        m_gatheredAssetUuids[part.Shape.SculptTexture] = (sbyte)AssetType.Texture;
+
+                    if (part.Shape.ProjectionTextureUUID != UUID.Zero)
+                        m_gatheredAssetUuids[part.Shape.ProjectionTextureUUID] = (sbyte)AssetType.Texture;
+
+                    if (part.CollisionSound != UUID.Zero)
+                        m_gatheredAssetUuids[part.CollisionSound] = (sbyte)AssetType.Sound;
+
+                    if (part.ParticleSystem.Length > 0)
+                    {
+                        try
+                        {
+                            Primitive.ParticleSystem ps = new Primitive.ParticleSystem(part.ParticleSystem, 0);
+                            if (ps.Texture != UUID.Zero)
+                                m_gatheredAssetUuids[ps.Texture] = (sbyte)AssetType.Texture;
+                        }
+                        catch (Exception)
+                        {
+                            m_log.WarnFormat(
+                                "[UUID GATHERER]: Could not check particle system for part {0} {1} in object {2} {3} since it is corrupt.  Continuing.", 
+                                part.Name, part.UUID, sceneObject.Name, sceneObject.UUID);
+                        }
+                    }
+
+                    TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
+
+                    // Now analyze this prim's inventory items to preserve all the uuids that they reference
+                    foreach (TaskInventoryItem tii in taskDictionary.Values)
+                    {
+                        //                        m_log.DebugFormat(
+                        //                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}", 
+                        //                            tii.Name, tii.Type, part.Name, part.UUID);
+
+                        if (!m_gatheredAssetUuids.ContainsKey(tii.AssetID))
+                            AddForInspection(tii.AssetID, (sbyte)tii.Type);
+                    }
+
+                    // FIXME: We need to make gathering modular but we cannot yet, since gatherers are not guaranteed
+                    // to be called with scene objects that are in a scene (e.g. in the case of hg asset mapping and
+                    // inventory transfer.  There needs to be a way for a module to register a method without assuming a 
+                    // Scene.EventManager is present.
+                    //                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
+
+
+                    // still needed to retrieve textures used as materials for any parts containing legacy materials stored in DynAttrs
+                    RecordMaterialsUuids(part); 
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[UUID GATHERER]: Failed to get part - {0}", e);
+                    m_log.DebugFormat(
+                        "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)", 
+                        part.Shape.TextureEntry.Length);
+                }
+            }
         }
 
         /// <summary>
@@ -804,7 +910,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }       
 
-        private void RecordAssetUuids(UUID assetUuid, sbyte assetType)
+        private void AddForInspection(UUID assetUuid, sbyte assetType)
         {
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
             try
@@ -813,27 +919,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if ((sbyte)AssetType.Bodypart == assetType || (sbyte)AssetType.Clothing == assetType)
                 {
-                    AddAssetUuidToInspect(assetUuid);
+                    AddForInspection(assetUuid);
                 }
                 else if ((sbyte)AssetType.Gesture == assetType)
                 {
-                    AddAssetUuidToInspect(assetUuid);
+                    AddForInspection(assetUuid);
                 }
                 else if ((sbyte)AssetType.Notecard == assetType)
                 {
-                    AddAssetUuidToInspect(assetUuid);
+                    AddForInspection(assetUuid);
                 }
                 else if ((sbyte)AssetType.LSLText == assetType)
                 {
-                    AddAssetUuidToInspect(assetUuid);
+                    AddForInspection(assetUuid);
                 }
                 else if ((sbyte)OpenSimAssetType.Material == assetType)
                 {
-                    AddAssetUuidToInspect(assetUuid);
+                    AddForInspection(assetUuid);
                 }
                 else if ((sbyte)AssetType.Object == assetType)
                 {
-                    AddAssetUuidToInspect(assetUuid);
+                    AddForInspection(assetUuid);
                 }
             }
             catch (Exception)
@@ -846,107 +952,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Gather all the asset uuids associated with a given object.
-        /// </summary>
-        /// <remarks>
-        /// This includes both those directly associated with
-        /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
-        /// within this object).
-        /// </remarks>
-        /// <param name="sceneObject">The scene object for which to gather assets</param>
-        public void RecordAssetUuids(SceneObjectGroup sceneObject)
-        {
-            //            m_log.DebugFormat(
-            //                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
-
-            SceneObjectPart[] parts = sceneObject.Parts;
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-
-                //                m_log.DebugFormat(
-                //                    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
-
-                try
-                {
-                    Primitive.TextureEntry textureEntry = part.Shape.Textures;
-                    if (textureEntry != null)
-                    {
-                        // Get the prim's default texture.  This will be used for faces which don't have their own texture
-                        if (textureEntry.DefaultTexture != null)
-                            RecordTextureEntryAssetUuids(textureEntry.DefaultTexture);
-
-                        if (textureEntry.FaceTextures != null)
-                        {
-                            // Loop through the rest of the texture faces (a non-null face means the face is different from DefaultTexture)
-                            foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
-                            {
-                                if (texture != null)
-                                    RecordTextureEntryAssetUuids(texture);
-                            }
-                        }
-                    }
-
-                    // If the prim is a sculpt then preserve this information too
-                    if (part.Shape.SculptTexture != UUID.Zero)
-                        m_gatheredAssetUuids[part.Shape.SculptTexture] = (sbyte)AssetType.Texture;
-
-                    if (part.Shape.ProjectionTextureUUID != UUID.Zero)
-                        m_gatheredAssetUuids[part.Shape.ProjectionTextureUUID] = (sbyte)AssetType.Texture;
-
-                    if (part.CollisionSound != UUID.Zero)
-                        m_gatheredAssetUuids[part.CollisionSound] = (sbyte)AssetType.Sound;
-
-                    if (part.ParticleSystem.Length > 0)
-                    {
-                        try
-                        {
-                            Primitive.ParticleSystem ps = new Primitive.ParticleSystem(part.ParticleSystem, 0);
-                            if (ps.Texture != UUID.Zero)
-                                m_gatheredAssetUuids[ps.Texture] = (sbyte)AssetType.Texture;
-                        }
-                        catch (Exception)
-                        {
-                            m_log.WarnFormat(
-                                "[UUID GATHERER]: Could not check particle system for part {0} {1} in object {2} {3} since it is corrupt.  Continuing.", 
-                                part.Name, part.UUID, sceneObject.Name, sceneObject.UUID);
-                        }
-                    }
-
-                    TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
-
-                    // Now analyze this prim's inventory items to preserve all the uuids that they reference
-                    foreach (TaskInventoryItem tii in taskDictionary.Values)
-                    {
-                        //                        m_log.DebugFormat(
-                        //                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}", 
-                        //                            tii.Name, tii.Type, part.Name, part.UUID);
-
-                        if (!m_gatheredAssetUuids.ContainsKey(tii.AssetID))
-                            RecordAssetUuids(tii.AssetID, (sbyte)tii.Type);
-                    }
-
-                    // FIXME: We need to make gathering modular but we cannot yet, since gatherers are not guaranteed
-                    // to be called with scene objects that are in a scene (e.g. in the case of hg asset mapping and
-                    // inventory transfer.  There needs to be a way for a module to register a method without assuming a 
-                    // Scene.EventManager is present.
-                    //                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
-
-
-                    // still needed to retrieve textures used as materials for any parts containing legacy materials stored in DynAttrs
-                    RecordMaterialsUuids(part); 
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[UUID GATHERER]: Failed to get part - {0}", e);
-                    m_log.DebugFormat(
-                        "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)", 
-                        part.Shape.TextureEntry.Length);
-                }
-            }
-        }
-
-        /// <summary>
         /// Collect all the asset uuids found in one face of a Texture Entry.
         /// </summary>
         private void RecordTextureEntryAssetUuids(Primitive.TextureEntryFace texture)
@@ -954,7 +959,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_gatheredAssetUuids[texture.TextureID] = (sbyte)AssetType.Texture;
 
             if (texture.MaterialID != UUID.Zero)
-                AddAssetUuidToInspect(texture.MaterialID);
+                AddForInspection(texture.MaterialID);
         }
 
         /// <summary>
@@ -962,7 +967,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// stored in legacy format in part.DynAttrs
         /// </summary>
         /// <param name="part"></param>
-        public void RecordMaterialsUuids(SceneObjectPart part)
+        private void RecordMaterialsUuids(SceneObjectPart part)
         {
             // scan thru the dynAttrs map of this part for any textures used as materials
             OSD osdMaterials = null;
@@ -1053,7 +1058,7 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID uuid = new UUID(uuidMatch.Value);
                 //                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in text", uuid);
 
-                AddAssetUuidToInspect(uuid);
+                AddForInspection(uuid);
             }
         }
 
@@ -1088,14 +1093,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (CoalescedSceneObjectsSerializer.TryFromXml(xml, out coa))
             {
                 foreach (SceneObjectGroup sog in coa.Objects)
-                    RecordAssetUuids(sog);
+                    AddForInspection(sog);
             }
             else
             {
                 SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
 
                 if (null != sog)
-                    RecordAssetUuids(sog);
+                    AddForInspection(sog);
             }
         }
 

@@ -607,7 +607,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
                                 IteratingHGUuidGatherer uuidGatherer 
                                     = new IteratingHGUuidGatherer(Scene.AssetService, url, ids);
-                                uuidGatherer.RecordAssetUuids(so);
+                                uuidGatherer.AddForInspection(so);
 
                                 while (!uuidGatherer.Complete)
                                 {
