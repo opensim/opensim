@@ -1020,11 +1020,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                m_CompileQueue.Enqueue(parms);
                 lock (m_CompileDict)
-                {
                     m_CompileDict[itemID] = 0;
-                }
+
+                // This must occur after the m_CompileDict so that an existing compile thread cannot hit the check
+                // in DoOnRezScript() before m_CompileDict has been updated.
+                m_CompileQueue.Enqueue(parms);
 
 //                m_log.DebugFormat("[XEngine]: Added script {0} to compile queue", itemID);
 
