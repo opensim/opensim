@@ -1101,7 +1101,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // due to a race condition
                 //
                 lock (m_CompileQueue)
+                {
                     m_CurrentCompile = null;
+
+                    // This is to avoid a situation where the m_CompileQueue while loop above could complete but 
+                    // OnRezScript() place a new script on the queue and check m_CurrentCompile = null before we hit 
+                    // this section.
+                    if (m_CompileQueue.Count > 0)
+                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
+                }
             }
 
             return null;
