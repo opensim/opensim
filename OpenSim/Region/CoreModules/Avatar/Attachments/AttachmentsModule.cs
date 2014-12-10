@@ -255,6 +255,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void CopyAttachments(AgentData ad, IScenePresence sp)
         {
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Copying attachment data into {0} in {1}", sp.Name, m_scene.Name);
+
             if (ad.AttachmentObjects != null && ad.AttachmentObjects.Count > 0)
             {
                 lock (sp.AttachmentsSyncLock)
@@ -265,6 +267,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     ((SceneObjectGroup)so).LocalId = 0;
                     ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
+
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENTS MODULE]: Copying script state with {0} bytes for object {1} for {2} in {3}", 
+//                        ad.AttachmentObjectStates[i].Length, so.Name, sp.Name, m_scene.Name);
+
                     so.SetState(ad.AttachmentObjectStates[i++], m_scene);
                     m_scene.IncomingCreateObject(Vector3.Zero, so);
                 }

@@ -716,22 +716,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     // Force a final state save
                     //
-                    if (m_Assemblies.ContainsKey(instance.AssetID))
+                    try
                     {
-                        string assembly = m_Assemblies[instance.AssetID];
-
-                        try
-                        {
-                            instance.SaveState(assembly);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error(
-                                string.Format(
-                                    "[XEngine]: Failed final state save for script {0}.{1}, item UUID {2}, prim UUID {3} in {4}.  Exception ",
-                                    instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, World.Name)
-                                , e);
-                        }
+                        instance.SaveState();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error(
+                            string.Format(
+                                "[XEngine]: Failed final state save for script {0}.{1}, item UUID {2}, prim UUID {3} in {4}.  Exception ",
+                                instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, World.Name)
+                            , e);
                     }
 
                     // Clear the event queue and abort the instance thread
@@ -840,18 +835,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             foreach (IScriptInstance i in instances)
             {
-                string assembly = String.Empty;
-
-                lock (m_Scripts)
-                {
-                    if (!m_Assemblies.ContainsKey(i.AssetID))
-                        continue;
-                    assembly = m_Assemblies[i.AssetID];
-                }
-
                 try
                 {
-                    i.SaveState(assembly);
+                    i.SaveState();
                 }
                 catch (Exception e)
                 {
@@ -1180,7 +1166,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     lock (m_AddingAssemblies)
                     {
                         m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, out assemblyPath, out linemap);
-                        
+
+//                        m_log.DebugFormat(
+//                            "[XENGINE]: Found assembly path {0} onrez {1} in {2}", 
+//                            assemblyPath, item.ItemID, World.Name);
+
                         if (!m_AddingAssemblies.ContainsKey(assemblyPath)) {
                             m_AddingAssemblies[assemblyPath] = 1;
                         } else {
@@ -1373,7 +1363,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                   startParam, postOnRez,
                                                   m_MaxScriptQueue);
 
-                    if (!instance.Load(m_AppDomains[appDomain], scriptAssembly, stateSource))
+                    if (!instance.Load(
+                        m_AppDomains[appDomain], scriptAssembly, 
+                        Path.Combine(ScriptEnginePath, World.RegionInfo.RegionID.ToString()), stateSource))
                         return false;
 
 //                    if (DebugLevel >= 1)
@@ -1604,7 +1596,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             IScriptInstance instance = (ScriptInstance) parms;
             
-            //m_log.DebugFormat("[XEngine]: Processing event for {0}", instance);
+//            m_log.DebugFormat("[XEngine]: Processing event for {0}", instance);
 
             return instance.EventProcessor();
         }
@@ -2199,6 +2191,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // if there already exists a file at that location, it may be locked.
                 m_log.ErrorFormat("[XEngine]: Error whilst writing state file {0}, {1}", statepath, ex.Message);
             }
+
+//            m_log.DebugFormat(
+//                "[XEngine]: Wrote state for script item with ID {0} at {1} in {2}", itemID, statepath, m_Scene.Name);
 
             return true;
         }
