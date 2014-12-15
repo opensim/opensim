@@ -101,7 +101,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_InitialStartup = true;
         private int m_ScriptFailCount; // Number of script fails since compile queue was last empty
         private string m_ScriptErrorMessage;
-        private Dictionary<string, string> m_uniqueScripts = new Dictionary<string, string>();
         private bool m_AppDomainLoading;
         private Dictionary<UUID,ArrayList> m_ScriptErrors =
                 new Dictionary<UUID,ArrayList>();
@@ -570,7 +569,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             sb.AppendFormat("Scripts loaded             : {0}\n", scriptsLoaded);
-            sb.AppendFormat("Unique scripts             : {0}\n", m_uniqueScripts.Count);
             sb.AppendFormat("Scripts waiting for load   : {0}\n", m_CompileQueue.Count);
             sb.AppendFormat("Max threads                : {0}\n", m_ThreadPool.MaxThreads);
             sb.AppendFormat("Min threads                : {0}\n", m_ThreadPool.MinThreads);
@@ -986,12 +984,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (engine != ScriptEngineName)
                 return;
-
-            // If we've seen this exact script text before, use that reference instead
-            if (m_uniqueScripts.ContainsKey(script))
-                script = m_uniqueScripts[script];
-            else
-                m_uniqueScripts[script] = script;
 
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez, (StateSource)stateSource};
 
