@@ -341,10 +341,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return;
 
-            if (DebugLevel > 0)
-                m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
-
             List<SceneObjectGroup> attachments = sp.GetAttachments();
+
+            if (DebugLevel > 0)
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Saving for {0} attachments for {1} in {2}",
+                    attachments.Count, sp.Name, m_scene.Name);
 
             if (attachments.Count <= 0)
                 return;
@@ -359,6 +361,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
                 // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
                 scriptStates[so] = PrepareScriptInstanceForSave(so, false);
+
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: For object {0} for {1} in {2} got saved state {3}", 
+//                    so.Name, sp.Name, m_scene.Name, scriptStates[so]);
             }
 
             lock (sp.AttachmentsSyncLock)
@@ -826,8 +832,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             if (DebugLevel > 0)
                 m_log.DebugFormat(
-                    "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
-                    so.Name, sp.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
+                    "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} at pt {2} pos {3} {4} in {5}",
+                    so.Name, sp.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos, m_scene.Name);
 
             // Remove from database and parcel prim count
             m_scene.DeleteFromStorage(so.UUID);
