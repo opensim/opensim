@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Communications
         private byte[] _readbuf;
 
         /// <summary>
-        /// MemoryStream representing the resultiong resource
+        /// MemoryStream representing the resulting resource
         /// </summary>
         private Stream _resource;
 
