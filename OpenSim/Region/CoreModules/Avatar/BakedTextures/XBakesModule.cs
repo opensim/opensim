@@ -112,33 +112,32 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
             try
             {
-                Stream s = rc.Request(m_Auth);
-                XmlTextReader sr = new XmlTextReader(s);
-
-                sr.ReadStartElement("BakedAppearance");
-                while (sr.LocalName == "BakedTexture")
+                using (Stream s = rc.Request(m_Auth))
+                using (XmlTextReader sr = new XmlTextReader(s))
                 {
-                    string sTextureIndex = sr.GetAttribute("TextureIndex");
-                    int lTextureIndex = Convert.ToInt32(sTextureIndex);
-                    string sCacheId = sr.GetAttribute("CacheId");
-                    UUID lCacheId = UUID.Zero;
-                    if (!(UUID.TryParse(sCacheId, out lCacheId)))
+                    sr.ReadStartElement("BakedAppearance");
+                    while (sr.LocalName == "BakedTexture")
                     {
-                        // ??  Nothing here
+                        string sTextureIndex = sr.GetAttribute("TextureIndex");
+                        int lTextureIndex = Convert.ToInt32(sTextureIndex);
+                        string sCacheId = sr.GetAttribute("CacheId");
+                        UUID lCacheId = UUID.Zero;
+                        if (!(UUID.TryParse(sCacheId, out lCacheId)))
+                        {
+                            // ??  Nothing here
+                        }
+
+                        ++size;
+
+                        sr.ReadStartElement("BakedTexture");
+                        AssetBase a = (AssetBase)m_serializer.Deserialize(sr);
+                        ret.Add(new WearableCacheItem() { CacheId = lCacheId, TextureIndex = (uint)lTextureIndex, TextureAsset = a, TextureID = a.FullID });
+
+                        sr.ReadEndElement();
                     }
 
-                    ++size;
-
-                    sr.ReadStartElement("BakedTexture");
-                    AssetBase a = (AssetBase)m_serializer.Deserialize(sr);
-                    ret.Add(new WearableCacheItem() { CacheId = lCacheId, TextureIndex = (uint)lTextureIndex, TextureAsset = a, TextureID = a.FullID });
-
-                    sr.ReadEndElement();
+                    m_log.DebugFormat("[XBakes]: read {0} textures for user {1}", ret.Count, id);
                 }
-                m_log.DebugFormat("[XBakes]: read {0} textures for user {1}", ret.Count, id);
-                sr.Close();
-                s.Close();
-
 
                 return ret.ToArray();
             }
@@ -153,27 +152,32 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
             if (m_URL == String.Empty)
                 return;
 
-            MemoryStream bakeStream = new MemoryStream();
-            XmlTextWriter bakeWriter = new XmlTextWriter(bakeStream, null);
+            MemoryStream reqStream;
 
-            bakeWriter.WriteStartElement(String.Empty, "BakedAppearance", String.Empty);
-
-            for (int i = 0; i < data.Length; i++)
+            using (MemoryStream bakeStream = new MemoryStream())
+            using (XmlTextWriter bakeWriter = new XmlTextWriter(bakeStream, null))
             {
-                if (data[i] != null)
+                bakeWriter.WriteStartElement(String.Empty, "BakedAppearance", String.Empty);
+
+                for (int i = 0; i < data.Length; i++)
                 {
-                    bakeWriter.WriteStartElement(String.Empty, "BakedTexture", String.Empty);
-                    bakeWriter.WriteAttributeString(String.Empty, "TextureIndex", String.Empty, data[i].TextureIndex.ToString());
-                    bakeWriter.WriteAttributeString(String.Empty, "CacheId", String.Empty, data[i].CacheId.ToString());
-                    if (data[i].TextureAsset != null)
-                        m_serializer.Serialize(bakeWriter, data[i].TextureAsset);
+                    if (data[i] != null)
+                    {
+                        bakeWriter.WriteStartElement(String.Empty, "BakedTexture", String.Empty);
+                        bakeWriter.WriteAttributeString(String.Empty, "TextureIndex", String.Empty, data[i].TextureIndex.ToString());
+                        bakeWriter.WriteAttributeString(String.Empty, "CacheId", String.Empty, data[i].CacheId.ToString());
+                        if (data[i].TextureAsset != null)
+                            m_serializer.Serialize(bakeWriter, data[i].TextureAsset);
 
-                    bakeWriter.WriteEndElement();
+                        bakeWriter.WriteEndElement();
+                    }
                 }
-            }
 
-            bakeWriter.WriteEndElement();
-            bakeWriter.Flush();
+                bakeWriter.WriteEndElement();
+                bakeWriter.Flush();
+
+                reqStream = new MemoryStream(bakeStream.ToArray());
+            }
 
             RestClient rc = new RestClient(m_URL);
             rc.AddResourcePath("bakes");
@@ -181,7 +185,6 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
             rc.RequestMethod = "POST";
 
-            MemoryStream reqStream = new MemoryStream(bakeStream.ToArray());
             Util.FireAndForget(
                 delegate
                 {
