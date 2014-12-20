@@ -103,47 +103,51 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 return null;
 
             int size = 0;
-            RestClient rc = new RestClient(m_URL);
-            List<WearableCacheItem> ret = new List<WearableCacheItem>();
-            rc.AddResourcePath("bakes");
-            rc.AddResourcePath(id.ToString());
 
-            rc.RequestMethod = "GET";
-
-            try
+            using (RestClient rc = new RestClient(m_URL))
             {
-                using (Stream s = rc.Request(m_Auth))
-                using (XmlTextReader sr = new XmlTextReader(s))
+                List<WearableCacheItem> ret = new List<WearableCacheItem>();
+                rc.AddResourcePath("bakes");
+                rc.AddResourcePath(id.ToString());
+
+                rc.RequestMethod = "GET";
+
+                try
                 {
-                    sr.ReadStartElement("BakedAppearance");
-                    while (sr.LocalName == "BakedTexture")
+                    Stream s = rc.Request(m_Auth);
+
+                    using (XmlTextReader sr = new XmlTextReader(s))
                     {
-                        string sTextureIndex = sr.GetAttribute("TextureIndex");
-                        int lTextureIndex = Convert.ToInt32(sTextureIndex);
-                        string sCacheId = sr.GetAttribute("CacheId");
-                        UUID lCacheId = UUID.Zero;
-                        if (!(UUID.TryParse(sCacheId, out lCacheId)))
+                        sr.ReadStartElement("BakedAppearance");
+                        while (sr.LocalName == "BakedTexture")
                         {
-                            // ??  Nothing here
+                            string sTextureIndex = sr.GetAttribute("TextureIndex");
+                            int lTextureIndex = Convert.ToInt32(sTextureIndex);
+                            string sCacheId = sr.GetAttribute("CacheId");
+                            UUID lCacheId = UUID.Zero;
+                            if (!(UUID.TryParse(sCacheId, out lCacheId)))
+                            {
+                                // ??  Nothing here
+                            }
+
+                            ++size;
+
+                            sr.ReadStartElement("BakedTexture");
+                            AssetBase a = (AssetBase)m_serializer.Deserialize(sr);
+                            ret.Add(new WearableCacheItem() { CacheId = lCacheId, TextureIndex = (uint)lTextureIndex, TextureAsset = a, TextureID = a.FullID });
+
+                            sr.ReadEndElement();
                         }
 
-                        ++size;
-
-                        sr.ReadStartElement("BakedTexture");
-                        AssetBase a = (AssetBase)m_serializer.Deserialize(sr);
-                        ret.Add(new WearableCacheItem() { CacheId = lCacheId, TextureIndex = (uint)lTextureIndex, TextureAsset = a, TextureID = a.FullID });
-
-                        sr.ReadEndElement();
+                        m_log.DebugFormat("[XBakes]: read {0} textures for user {1}", ret.Count, id);
                     }
 
-                    m_log.DebugFormat("[XBakes]: read {0} textures for user {1}", ret.Count, id);
+                    return ret.ToArray();
                 }
-
-                return ret.ToArray();
-            }
-            catch (XmlException)
-            {
-                return null;
+                catch (XmlException)
+                {
+                    return null;
+                }
             }
         }
 
