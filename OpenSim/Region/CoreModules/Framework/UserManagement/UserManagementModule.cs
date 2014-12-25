@@ -680,6 +680,21 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 "Show the bindings between user UUIDs and user names",
                 String.Empty,
                 HandleShowUsers);
+
+            MainConsole.Instance.Commands.AddCommand("Users", true,
+                "reset user cache",
+                "reset user cache",
+                "reset user cache to allow changed settings to be applied",
+                String.Empty,
+                HandleResetUserCache);
+        }
+
+        private void HandleResetUserCache(string module, string[] cmd)
+        {
+            lock(m_UserCache)
+            {
+                m_UserCache.Clear();
+            }
         }
 
         private void HandleShowUser(string module, string[] cmd)

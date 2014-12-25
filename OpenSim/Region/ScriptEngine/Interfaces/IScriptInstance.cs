@@ -222,7 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void SetVars(Dictionary<string, object> vars);
         DetectParams GetDetectParams(int idx);
         UUID GetDetectID(int idx);
-        void SaveState(string assembly);
+        void SaveState();
         void DestroyScriptInstance();
 
         IScriptApi GetApi(string name);

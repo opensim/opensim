@@ -71,7 +71,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private bool m_TimerQueued;
         private DateTime m_EventStart;
         private bool m_InEvent;
-        private string m_Assembly;
+        private string m_assemblyPath;
+        private string m_dataPath;
         private string m_CurrentEvent = String.Empty;
         private bool m_InSelfDelete;
         private int m_MaxScriptQueue;
@@ -244,12 +245,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// </summary>
         /// <param name='dom'></param>
         /// <param name='assembly'></param>
+        /// <param name='dataPath'>
+        /// Path for all script associated data (state, etc.).  In a multi-region set up
+        /// with all scripts loading into the same AppDomain this may not be the same place as the DLL itself.
+        /// </param>
         /// <param name='stateSource'></param>
         /// <returns>false if load failed, true if suceeded</returns>
-        public bool Load(AppDomain dom, Assembly scriptAssembly, StateSource stateSource)
+        public bool Load(AppDomain dom, Assembly scriptAssembly, string dataPath, StateSource stateSource)
         {
-            //m_Assembly = scriptAssembly.CodeBase;
-            m_Assembly = scriptAssembly.Location;
+            m_assemblyPath = scriptAssembly.Location;
+            m_dataPath = dataPath;
             m_stateSource = stateSource;
     
             try
@@ -270,14 +275,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     constructorParams = null;
                 }
 
-//                m_log.DebugFormat(
-//                    "[SCRIP
-//                    scriptType.FullName, m_Assembly, Engine.World.Name);
-
                 if (dom != System.AppDomain.CurrentDomain)
                     m_Script 
                         = (IScript)dom.CreateInstanceAndUnwrap(
-                            Path.GetFileNameWithoutExtension(m_Assembly),
+                            Path.GetFileNameWithoutExtension(m_assemblyPath),
                             scriptType.FullName,
                             false,
                             BindingFlags.Default,
@@ -305,7 +306,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 m_log.ErrorFormat(
                     "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Error loading assembly {6}.  Exception {7}{8}",
-                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, m_Assembly, e.Message, e.StackTrace);
+                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, scriptAssembly.Location, e.Message, e.StackTrace);
 
                 return false;
             }
@@ -340,10 +341,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             m_SaveState = true;
 
-            string savedState = Path.Combine(Path.GetDirectoryName(m_Assembly), ItemID.ToString() + ".state");
+            string savedState = Path.Combine(m_dataPath, ItemID.ToString() + ".state");
 
             if (File.Exists(savedState))
             {
+//                m_log.DebugFormat(
+//                    "[SCRIPT INSTANCE]: Found state for script {0} for {1} ({2}) at {3} in {4}", 
+//                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
+
                 string xml = String.Empty;
 
                 try
@@ -385,12 +390,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_startedFromSavedState = true;
                         }
                     }
-                    else
-                    {
-                        m_log.WarnFormat(
-                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
-                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
-                    }
+//                    else
+//                    {
+//                        m_log.WarnFormat(
+//                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
+//                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
+//                    }
                 }
                 catch (Exception e)
                 {
@@ -401,11 +406,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
 //            else
 //            {
-//                ScenePresence presence = Engine.World.GetScenePresence(part.OwnerID);
-
-//                if (presence != null && (!postOnRez))
-//                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
-
+//                m_log.DebugFormat(
+//                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}", 
+//                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
 //            }
 
             return true;
@@ -498,8 +501,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void RemoveState()
         {
-            string savedState = Path.Combine(Path.GetDirectoryName(m_Assembly),
-                    ItemID.ToString() + ".state");
+            string savedState = Path.Combine(m_dataPath, ItemID.ToString() + ".state");
+
+//            m_log.DebugFormat(
+//                "[SCRIPT INSTANCE]: Deleting state {0} for script {1} (id {2}) in part {3} (id {4}) in object {5} in {6}.",
+//                savedState, ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name);
 
             try
             {
@@ -822,8 +828,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     if (Engine.World.PipeEventsForScript(LocalID) ||
                         data.EventName == "control") // Don't freeze avies!
                     {
-        //                m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
-        //                        PrimName, ScriptName, data.EventName, State);
+//                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
+//                                PrimName, ScriptName, data.EventName, State);
 
                         try
                         {
@@ -849,7 +855,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 // This will be the very first event we deliver
                                 // (state_entry) in default state
                                 //
-                                SaveState(m_Assembly);
+                                SaveState();
 
                                 m_SaveState = false;
                             }
@@ -1043,7 +1049,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             return m_DetectParams[idx].Key;
         }
 
-        public void SaveState(string assembly)
+        public void SaveState()
         {
             // If we're currently in an event, just tell it to save upon return
             //
@@ -1065,10 +1071,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 try
                 {
-                    FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state"));
-                    Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
-                    fs.Write(buf, 0, buf.Length);
-                    fs.Close();
+                    using (FileStream fs = File.Create(Path.Combine(m_dataPath, ItemID.ToString() + ".state")))
+                    {
+                        Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
+                        fs.Write(buf, 0, buf.Length);
+                    }
                 }
                 catch(Exception)
                 {
@@ -1148,7 +1155,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public string GetAssemblyName()
         {
-            return m_Assembly;
+            return m_assemblyPath;
         }
 
         public string GetXMLState()

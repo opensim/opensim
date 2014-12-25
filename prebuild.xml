@@ -2926,7 +2926,6 @@
       <Reference name="Nini" path="../../../bin/"/>
 
       <Reference name="OpenSim.Data.MySQL"/>
-      <Reference name="OpenSim.Data.MSSQL"/>
       <Reference name="OpenSim.Data.SQLite"/>
       
       <Reference name="MySql.Data" path="../../../bin/"/>

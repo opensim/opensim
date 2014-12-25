@@ -1228,45 +1228,27 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.SwapRootAgentCount(false);
 
-            // The initial login scene presence is already root when it gets here
-            // and it has already rezzed the attachments and started their scripts.
-            // We do the following only for non-login agents, because their scripts
-            // haven't started yet.
-            if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
+            if (Scene.AttachmentsModule != null)
             {
-                // Viewers which have a current outfit folder will actually rez their own attachments.  However,
-                // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
-                if (Scene.AttachmentsModule != null)
+                // The initial login scene presence is already root when it gets here
+                // and it has already rezzed the attachments and started their scripts.
+                // We do the following only for non-login agents, because their scripts
+                // haven't started yet.
+                if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
                 {
+                    // Viewers which have a current outfit folder will actually rez their own attachments.  However,
+                    // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
                     WorkManager.RunJob(
                         "RezAttachments", 
                         o => Scene.AttachmentsModule.RezAttachments(this), 
                         null,
                         string.Format("Rez attachments for {0} in {1}", Name, Scene.Name));
                 }
-            }
-            else
-            {
-                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                // not transporting the required data.
-                //
-                // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
-                // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
-                // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
-                //
-                // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
-                // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
-                // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
-                // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
-                List<SceneObjectGroup> attachments = GetAttachments();
-
-                if (attachments.Count > 0)
+                else
                 {
                     WorkManager.RunJob(
-                        "StartAttachmentScripts", 
-                        o => RestartAttachmentScripts(attachments),
+                        "StartAttachmentScripts",
+                        o => RestartAttachmentScripts(),
                         null,
                         string.Format("Start attachment scripts for {0} in {1}", Name, Scene.Name),
                         true);
@@ -1292,10 +1274,25 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private void RestartAttachmentScripts(List<SceneObjectGroup> attachments)
+        private void RestartAttachmentScripts()
         {
+            // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+            // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+            // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+            // not transporting the required data.
+            //
+            // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of
+            // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
+            // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
+            //
+            // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
+            // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
+            // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the
+            // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
+            List<SceneObjectGroup> attachments = GetAttachments();
+
             m_log.DebugFormat(
-                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+                "[SCENE PRESENCE]: Restarting scripts in {0} attachments for {1} in {2}", attachments.Count, Name, Scene.Name);
 
             // Resume scripts
             foreach (SceneObjectGroup sog in attachments)

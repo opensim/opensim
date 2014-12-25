@@ -256,20 +256,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 // If the file is already cached, don't cache it, just touch it so access time is updated
                 if (File.Exists(filename))
                 {
-                    // We don't really want to know about sharing
-                    // violations here. If the file is locked, then
-                    // the other thread has updated the time for us.
-                    try
-                    {
-                        lock (m_CurrentlyWriting)
-                        {
-                            if (!m_CurrentlyWriting.Contains(filename))
-                                File.SetLastAccessTime(filename, DateTime.Now);
-                        }
-                    }
-                    catch
-                    {
-                    }
+                    UpdateFileLastAccessTime(filename);
                 } 
                 else 
                 {
@@ -325,6 +312,24 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (m_FileCacheEnabled)
                     UpdateFileCache(asset.ID, asset);
+            }
+        }
+
+        /// <summary>
+        /// Updates the cached file with the current time.
+        /// </summary>
+        /// <param name="filename">Filename.</param>
+        /// <returns><c>true</c>, if the update was successful, false otherwise.</returns>
+        private bool UpdateFileLastAccessTime(string filename)
+        {
+            try
+            {
+                File.SetLastAccessTime(filename, DateTime.Now);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -771,8 +776,8 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
-            HashSet<UUID> uniqueUuids = new HashSet<UUID>();
-            Dictionary<UUID, sbyte> assets = new Dictionary<UUID, sbyte>();
+            Dictionary<UUID, sbyte> assetIdsToCheck = new Dictionary<UUID, sbyte>();
+            Dictionary<UUID, bool> assetsFound = new Dictionary<UUID, bool>();
 
             foreach (Scene s in m_Scenes)
             {
@@ -780,34 +785,40 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 s.ForEachSOG(delegate(SceneObjectGroup e)
                 {                   
-                    gatherer.GatherAssetUuids(e, assets);
+                    gatherer.GatherAssetUuids(e, assetIdsToCheck);
 
-                    foreach (UUID assetID in assets.Keys)
+                    foreach (UUID assetID in assetIdsToCheck.Keys)
                     {
-                        uniqueUuids.Add(assetID);
-
-                        string filename = GetFileName(assetID.ToString());
-
-                        if (File.Exists(filename))
+                        if (!assetsFound.ContainsKey(assetID))
                         {
-                            File.SetLastAccessTime(filename, DateTime.Now);
+                            string filename = GetFileName(assetID.ToString());
+
+                            if (File.Exists(filename))
+                            {
+                                UpdateFileLastAccessTime(filename);
+                            }
+                            else if (storeUncached)
+                            {
+                                AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
+                                if (cachedAsset == null && assetIdsToCheck[assetID] != (sbyte)AssetType.Unknown)
+                                    assetsFound[assetID] = false;
+                                else
+                                    assetsFound[assetID] = true;
+                            }
                         }
-                        else if (storeUncached)
+                        else if (!assetsFound[assetID])
                         {
-                            AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
-                            if (cachedAsset == null && assets[assetID] != (sbyte)AssetType.Unknown)
-                                m_log.DebugFormat(
+                            m_log.DebugFormat(
                                 "[FLOTSAM ASSET CACHE]: Could not find asset {0}, type {1} referenced by object {2} at {3} in scene {4} when pre-caching all scene assets",
-                                    assetID, assets[assetID], e.Name, e.AbsolutePosition, s.Name);
+                                    assetID, assetIdsToCheck[assetID], e.Name, e.AbsolutePosition, s.Name);
                         }
                     }
 
-                    assets.Clear();
+                    assetIdsToCheck.Clear();
                 });
             }
 
-
-            return uniqueUuids.Count;
+            return assetsFound.Count;
         }
 
         /// <summary>

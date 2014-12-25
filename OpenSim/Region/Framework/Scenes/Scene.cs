@@ -823,7 +823,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService = sceneGridService;
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
-            m_regionHandle = RegionInfo.RegionHandle;
 
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
@@ -2042,11 +2041,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             GridRegion region = new GridRegion(RegionInfo);
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
-            m_log.DebugFormat("{0} RegisterRegionWithGrid. name={1},id={2},loc=<{3},{4}>,size=<{5},{6}>",
-                                LogHeader, m_regionName, 
-                                RegionInfo.RegionID,
-                                RegionInfo.RegionLocX, RegionInfo.RegionLocY,
-                                RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+//            m_log.DebugFormat("[SCENE]: RegisterRegionWithGrid. name={0},id={1},loc=<{2},{3}>,size=<{4},{5}>",
+//                                m_regionName, 
+//                                RegionInfo.RegionID,
+//                                RegionInfo.RegionLocX, RegionInfo.RegionLocY,
+//                                RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
 
             if (error != String.Empty)
                 throw new Exception(error);

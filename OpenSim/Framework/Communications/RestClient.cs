@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Communications
         private byte[] _readbuf;
 
         /// <summary>
-        /// MemoryStream representing the resultiong resource
+        /// MemoryStream representing the resulting resource
         /// </summary>
         private Stream _resource;
 
@@ -352,42 +352,46 @@ namespace OpenSim.Framework.Communications
                     m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} REST {1} to {2}", reqnum, _request.Method, _request.RequestUri);
 
 //                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
+
                 try
                 {
-                    _response = (HttpWebResponse) _request.GetResponse();
+                    using (_response = (HttpWebResponse) _request.GetResponse())
+                    {
+                        using (Stream src = _response.GetResponseStream())
+                        {
+                            int length = src.Read(_readbuf, 0, BufferSize);
+                            while (length > 0)
+                            {
+                                _resource.Write(_readbuf, 0, length);
+                                length = src.Read(_readbuf, 0, BufferSize);
+                            }
+
+                            // TODO! Implement timeout, without killing the server
+                            // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
+                            //ThreadPool.RegisterWaitForSingleObject(responseAsyncResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
+
+                            //                _allDone.WaitOne();
+                        }
+                    }
                 }
                 catch (WebException e)
                 {
-                    HttpWebResponse errorResponse = e.Response as HttpWebResponse;
-                    if (null != errorResponse && HttpStatusCode.NotFound == errorResponse.StatusCode)
+                    using (HttpWebResponse errorResponse = e.Response as HttpWebResponse)
                     {
-                        // This is often benign. E.g., requesting a missing asset will return 404.
-                        m_log.DebugFormat("[REST CLIENT] Resource not found (404): {0}", _request.Address.ToString());
-                    }
-                    else
-                    {
-                        m_log.Error(string.Format("[REST CLIENT] Error fetching resource from server: {0} ", _request.Address.ToString()), e);
+                        if (null != errorResponse && HttpStatusCode.NotFound == errorResponse.StatusCode)
+                        {
+                            // This is often benign. E.g., requesting a missing asset will return 404.
+                            m_log.DebugFormat("[REST CLIENT] Resource not found (404): {0}", _request.Address.ToString());
+                        }
+                        else
+                        {
+                            m_log.Error(string.Format("[REST CLIENT] Error fetching resource from server: {0} ", _request.Address.ToString()), e);
+                        }
                     }
 
                     return null;
                 }
 
-                Stream src = _response.GetResponseStream();
-                int length = src.Read(_readbuf, 0, BufferSize);
-                while (length > 0)
-                {
-                    _resource.Write(_readbuf, 0, length);
-                    length = src.Read(_readbuf, 0, BufferSize);
-                }
-
-
-                // TODO! Implement timeout, without killing the server
-                // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
-                //ThreadPool.RegisterWaitForSingleObject(responseAsyncResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
-
-//                _allDone.WaitOne();
-                if (_response != null)
-                    _response.Close();
                 if (_asyncException != null)
                     throw _asyncException;
 

@@ -107,11 +107,9 @@ namespace OpenSim.Server.Handlers.BakedTextures
             File.Delete(diskFile);
 
             byte[] data = utf8encoding.GetBytes(sdata);
-            FileStream fs = File.Create(diskFile);
 
-            fs.Write(data, 0, data.Length);
-
-            fs.Close();
+            using (FileStream fs = File.Create(diskFile))
+                fs.Write(data, 0, data.Length);
         }
 
         private void HandleDeleteBakes(string module, string[] args)
