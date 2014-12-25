@@ -2182,13 +2182,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            // OK, we're done with permissions. Let's check if any part of the code prevents the objects from being deleted
+            bool canDelete = EventManager.TriggerDeRezRequested(remoteClient, deleteGroups, action);
+
             if (permissionToTake && (action != DeRezAction.Delete || this.m_useTrashOnDelete))
             {
                 m_asyncSceneObjectDeleter.DeleteToInventory(
                         action, destinationID, deleteGroups, remoteClient,
-                        permissionToDelete);
+                        permissionToDelete && canDelete);
             }
-            else if (permissionToDelete)
+            else if (permissionToDelete && canDelete)
             {
                 foreach (SceneObjectGroup g in deleteGroups)
                     DeleteSceneObject(g, false);
