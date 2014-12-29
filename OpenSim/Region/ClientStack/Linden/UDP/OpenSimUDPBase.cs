@@ -107,6 +107,62 @@ namespace OpenMetaverse
         /// </summary>
         public float AverageReceiveTicksForLastSamplePeriod { get; private set; }
 
+        #region PacketDropDebugging
+        /// <summary>
+        /// For debugging purposes only... random number generator for dropping
+        /// outbound packets.
+        /// </summary>
+        private Random m_dropRandomGenerator;
+        
+        /// <summary>
+        /// For debugging purposes only... parameters for a simplified
+        /// model of packet loss with bursts, overall drop rate should
+        /// be roughly 1 - m_dropLengthProbability / (m_dropProbabiliy + m_dropLengthProbability)
+        /// which is about 1% for parameters 0.0015 and 0.15
+        /// </summary>
+        private double m_dropProbability = 0.0030;
+        private double m_dropLengthProbability = 0.15;
+        private bool m_dropState = false;
+
+        /// <summary>
+        /// For debugging purposes only... parameters to control the time
+        /// duration over which packet loss bursts can occur, if no packets
+        /// have been sent for m_dropResetTicks milliseconds, then reset the
+        /// state of the packet dropper to its default.
+        /// </summary>
+        private int m_dropLastTick = 0;
+        private int m_dropResetTicks = 500;
+        
+        /// <summary>
+        /// Debugging code used to simulate dropped packets with bursts
+        /// </summary>
+        private bool DropOutgoingPacket()
+        {
+            double rnum = m_dropRandomGenerator.NextDouble();
+
+            // if the connection has been idle for awhile (more than m_dropResetTicks) then
+            // reset the state to the default state, don't continue a burst
+            int curtick = Util.EnvironmentTickCount();
+            if (Util.EnvironmentTickCountSubtract(curtick, m_dropLastTick) > m_dropResetTicks)
+                m_dropState = false;
+
+            m_dropLastTick = curtick;
+
+            // if we are dropping packets, then the probability of dropping
+            // this packet is the probability that we stay in the burst
+            if (m_dropState)
+            {
+                m_dropState = (rnum < (1.0 - m_dropLengthProbability)) ? true : false;
+            }
+            else
+            {
+                m_dropState = (rnum < m_dropProbability) ? true : false;
+            }
+
+            return m_dropState;
+        }
+        #endregion PacketDropDebugging
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -117,6 +173,10 @@ namespace OpenMetaverse
         {
             m_localBindAddress = bindAddress;
             m_udpPort = port;
+
+            // for debugging purposes only, initializes the random number generator
+            // used for simulating packet loss
+            // m_dropRandomGenerator = new Random();
         }
 
         /// <summary>
@@ -395,6 +455,12 @@ namespace OpenMetaverse
         {
 //            if (IsRunningOutbound)
 //            {
+
+                // This is strictly for debugging purposes to simulate dropped
+                // packets when testing throttles & retransmission code
+                // if (DropOutgoingPacket())
+                //     return;
+            
                 try
                 {
                     m_udpSocket.BeginSendTo(
