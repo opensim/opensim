@@ -50,7 +50,7 @@ using OpenSim.Services.Interfaces;
 
 
 //[assembly: Addin("FlotsamAssetCache", "1.1")]
-//[assembly: AddinDependency("OpenSim", "0.5")]
+//[assembly: AddinDependency("OpenSim", "0.8.1")]
 
 namespace OpenSim.Region.CoreModules.Asset
 {

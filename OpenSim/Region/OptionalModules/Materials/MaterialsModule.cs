@@ -50,7 +50,7 @@ using Ionic.Zlib;
 // specify its assembly.  Otherwise, the region modules in the assembly will not be picked up when OpenSimulator scans
 // the available DLLs
 //[assembly: Addin("MaterialsModule", "1.0")]
-//[assembly: AddinDependency("OpenSim", "0.5")]
+//[assembly: AddinDependency("OpenSim", "0.8.1")]
 
 namespace OpenSim.Region.OptionalModules.Materials
 {

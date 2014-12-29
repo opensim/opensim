@@ -51,7 +51,7 @@ using OSD = OpenMetaverse.StructuredData.OSD;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 [assembly: Addin("WebStats", "1.0")]
-[assembly: AddinDependency("OpenSim", "0.5")]
+[assembly: AddinDependency("OpenSim", "0.8.1")]
 
 namespace OpenSim.Region.UserStatistics
 {

@@ -1,4 +1,4 @@
-<Addin id="OpenSim" isroot="true" version="0.5">
+<Addin id="OpenSim" isroot="true" version="0.8.1">
     <Runtime>
         <Import assembly="OpenSim.exe"/>
         <Import assembly="OpenSim.Framework.dll"/>

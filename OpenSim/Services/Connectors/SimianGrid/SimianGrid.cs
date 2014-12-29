@@ -40,7 +40,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 [assembly: Addin("SimianGrid", "1.0")]
-[assembly: AddinDependency("OpenSim", "0.5")]
+[assembly: AddinDependency("OpenSim", "0.8.1")]
 
 namespace OpenSim.Services.Connectors.SimianGrid
 {

@@ -34,5 +34,5 @@ using Mono.Addins;
 
 
 [assembly: Addin("OpenSim.Region.CoreModules", "0.1")]
-[assembly: AddinDependency("OpenSim", "0.5")]
+[assembly: AddinDependency("OpenSim", "0.8.1")]
 
