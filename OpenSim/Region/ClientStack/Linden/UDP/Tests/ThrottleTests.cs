@@ -186,8 +186,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             udpServer.Throttle.DebugLevel = 1;
             udpClient.ThrottleDebugLevel = 1;
 
-            // Total is 280000
-            int resendBytes = 10000;
+            // Total is 275000
+            int resendBytes = 5000; // this is set low to test the minimum throttle override
             int landBytes = 20000;
             int windBytes = 30000;
             int cloudBytes = 40000;
@@ -214,13 +214,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             AssertThrottles(
                 udpClient, 
-                resendBytes * commitRatio, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
+                LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
 
             // Test a decrease in target throttle, adaptive throttle should cut the rate by 50% with a floor
             // set by the minimum adaptive rate
             udpClient.FlowThrottle.ExpirePackets(1);
-            commitRatio = Math.Max((32000.0 + 20.0 * LLUDPServer.MTU)/Math.Pow(2,1), 32000.0) / totalBytes;
+            commitRatio = (32000.0 + (20.0 * LLUDPServer.MTU)/Math.Pow(2,1)) / totalBytes;
 
             AssertThrottles(
                 udpClient, 
