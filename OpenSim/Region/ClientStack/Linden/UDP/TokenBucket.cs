@@ -395,16 +395,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// The minimum rate for adaptive flow control. 
         /// </summary>
         protected Int64 m_minimumFlow = 32000;
-        public Int64 MinimumFlow
-        {
-            get { return m_minimumFlow; }
-            set
-            {
-                m_minimumFlow = value;
-                TargetDripRate = Math.Max(m_minimumFlow, TargetDripRate);
-                AdjustedDripRate = Math.Max(m_minimumFlow, AdjustedDripRate);
-            }
-        }
 
         /// <summary>
         /// Constructor for the AdaptiveTokenBucket class
@@ -441,7 +431,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         "[ADAPTIVEBUCKET] drop {0} by {1} expired packets for {2}", 
                         AdjustedDripRate, packets, Identifier);
 
-                AdjustedDripRate = (Int64) (AdjustedDripRate / Math.Pow(2,packets));
+                // AdjustedDripRate = (Int64) (AdjustedDripRate / Math.Pow(2,packets));
+
+                // Compute the fallback solely on the rate allocated beyond the minimum, this
+                // should smooth out the fallback to the minimum rate
+                AdjustedDripRate = m_minimumFlow + (Int64) ((AdjustedDripRate - m_minimumFlow) / Math.Pow(2, packets));
             }
         }
 
@@ -453,6 +447,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (AdaptiveEnabled)
                 AdjustedDripRate = AdjustedDripRate + packets * LLUDPServer.MTU;
+        }
+
+        /// <summary>
+        /// Adjust the minimum flow level for the adaptive throttle, this will drop adjusted
+        /// throttles back to the minimum levels
+        /// <param>minDripRate--the new minimum flow</param>
+        /// </summary>
+        public void ResetMinimumAdaptiveFlow(Int64 minDripRate)
+        {
+            m_minimumFlow = minDripRate;
+            TargetDripRate = m_minimumFlow;
+            AdjustedDripRate = m_minimumFlow;
         }
     }
 }
