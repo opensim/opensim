@@ -42,6 +42,7 @@ using OpenMetaverse.StructuredData;
 using log4net;
 using Nini.Config;
 using Amib.Threading;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Scenes;
@@ -60,6 +61,7 @@ using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XEngine")]
     public class XEngine : INonSharedRegionModule, IScriptModule, IScriptEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

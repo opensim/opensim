@@ -31,10 +31,12 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 namespace OpenSim.Region.RegionCombinerModule
 {
- public class RegionCombinerPermissionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RegionCombinerModule")]
+    public class RegionCombinerPermissionModule
     {
         private Scene m_rootScene;
 

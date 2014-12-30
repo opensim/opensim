@@ -2355,6 +2355,7 @@
       <Reference name="SmartThreadPool"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../../bin/"/>
 
       <Files>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
