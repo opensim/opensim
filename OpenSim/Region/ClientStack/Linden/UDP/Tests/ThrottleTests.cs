@@ -173,6 +173,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             IniConfigSource ics = new IniConfigSource();
             IConfig config = ics.AddConfig("ClientStack.LindenUDP");
             config.Set("enable_adaptive_throttles", true);
+            config.Set("adaptive_throttle_min_bps", 32000);
+
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene, ics);
 
             ScenePresence sp 
@@ -197,28 +199,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             SetThrottles(
                 udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
-            // Ratio of current adaptive drip rate to requested bytes
-            // XXX: Should hard code this as below so we don't rely on values given by tested code to construct
-            // expected values.
-            double commitRatio = (double)udpClient.FlowThrottle.AdjustedDripRate / udpClient.FlowThrottle.TargetDripRate;
+            // Ratio of current adaptive drip rate to requested bytes, minimum rate is 32000
+            double commitRatio = 32000.0 / totalBytes;
 
             AssertThrottles(
                 udpClient, 
                 LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
 
-            // Test an increase in target throttle
-            udpClient.FlowThrottle.AcknowledgePackets(25);
-            commitRatio = 0.2;
+            // Test an increase in target throttle, ack of 20 packets adds 20 * LLUDPServer.MTU bytes
+            // to the throttle, recompute commitratio from those numbers
+            udpClient.FlowThrottle.AcknowledgePackets(20);
+            commitRatio = (32000.0 + 20.0 * LLUDPServer.MTU) / totalBytes;
 
             AssertThrottles(
                 udpClient, 
                 resendBytes * commitRatio, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
 
-            // Test a decrease in target throttle
+            // Test a decrease in target throttle, adaptive throttle should cut the rate by 50% with a floor
+            // set by the minimum adaptive rate
             udpClient.FlowThrottle.ExpirePackets(1);
-            commitRatio = 0.1;
+            commitRatio = Math.Max((32000.0 + 20.0 * LLUDPServer.MTU)/Math.Pow(2,1), 32000.0) / totalBytes;
 
             AssertThrottles(
                 udpClient, 
