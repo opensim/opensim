@@ -39,8 +39,8 @@ using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-[assembly: Addin("SimianGrid", OpenSim.VersionInfo.VERSION_NUMBER)]
-[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VERSION_NUMBER)]
+[assembly: Addin("SimianGrid", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 
 namespace OpenSim.Services.Connectors.SimianGrid
 {
