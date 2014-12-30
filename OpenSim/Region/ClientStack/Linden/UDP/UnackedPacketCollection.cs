@@ -31,6 +31,9 @@ using System.Net;
 using System.Threading;
 using OpenMetaverse;
 
+using System.Reflection;
+using log4net;
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
@@ -59,6 +62,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 FromResend = fromResend;
             }
         }
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Holds the actual unacked packet data, sorted by sequence number</summary>
         private Dictionary<uint, OutgoingPacket> m_packets = new Dictionary<uint, OutgoingPacket>();
@@ -207,8 +212,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                         //m_log.WarnFormat("[UNACKED PACKET COLLECTION]: Could not find packet with sequence number {0} to ack", pendingAcknowledgement.SequenceNumber);
+                         m_log.WarnFormat("[UNACKED PACKET COLLECTION]: found null packet for sequence number {0} to ack",
+                                          pendingAcknowledgement.SequenceNumber);
                     }
+                }
+                else
+                {
+                    m_log.WarnFormat("[UNACKED PACKET COLLECTION]: Could not find packet with sequence number {0} to ack",
+                                     pendingAcknowledgement.SequenceNumber);                    
                 }
             }
 
