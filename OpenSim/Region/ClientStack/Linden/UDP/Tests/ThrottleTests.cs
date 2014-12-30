@@ -141,7 +141,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             udpServer.Throttle.DebugLevel = 1;
             udpClient.ThrottleDebugLevel = 1;
-
+            
             int resendBytes = 1000;
             int landBytes = 2000;
             int windBytes = 3000;
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
 
             // Test an increase in target throttle
-            udpClient.FlowThrottle.AcknowledgePackets(35000);
+            udpClient.FlowThrottle.AcknowledgePackets(25);
             commitRatio = 0.2;
 
             AssertThrottles(

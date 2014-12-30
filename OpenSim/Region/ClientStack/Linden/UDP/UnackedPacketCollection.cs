@@ -192,7 +192,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         // As with other network applications, assume that an acknowledged packet is an
                         // indication that the network can handle a little more load, speed up the transmission
-                        ackedPacket.Client.FlowThrottle.AcknowledgePackets(ackedPacket.Buffer.DataLength);
+                        ackedPacket.Client.FlowThrottle.AcknowledgePackets(1);
 
                         // Update stats
                         Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);

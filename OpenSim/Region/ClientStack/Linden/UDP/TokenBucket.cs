@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 
         /// <summary>
         /// </summary>
-        protected const Int32 m_minimumDripRate = 1400;
+        protected const Int32 m_minimumDripRate = LLUDPServer.MTU;
         
         /// <summary>Time of the last drip, in system ticks</summary>
         protected Int32 m_lastDrip;
@@ -447,12 +447,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>
         /// Reliable packets acked by the client adjust the drip rate up.
-        /// <param name="bytes">Number of bytes acknowledged</param>
+        /// <param name="packets">Number of packets successfully acknowledged</param>
         /// </summary>
-        public void AcknowledgePackets(Int32 bytes)
+        public void AcknowledgePackets(Int32 packets)
         {
             if (AdaptiveEnabled)
-                AdjustedDripRate = AdjustedDripRate + bytes;
+                AdjustedDripRate = AdjustedDripRate + packets * LLUDPServer.MTU;
         }
     }
 }
