@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Mono.Addins;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -30,3 +31,6 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 [assembly: AssemblyVersion("0.8.1.*")]
+
+[assembly: AddinRoot("OpenSim", "0.8.1")]
+[assembly: ImportAddinAssembly("Opensim.Framework.dll")]
