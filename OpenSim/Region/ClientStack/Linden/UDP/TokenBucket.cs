@@ -117,7 +117,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <seealso cref="RemoveTokens"/> is called, at the granularity of
         /// the system tick interval (typically around 15-22ms)
         /// FIXME: It is extremely confusing to be able to set a RequestedDripRate of 0 and then receive a positive
-        /// number on get if TotalDripRequest is sent.  This also stops us being able to retrieve the fact that
+        /// number on get if TotalDripRequest is set.  This also stops us being able to retrieve the fact that
         /// RequestedDripRate is set to 0.  Really, this should always return m_dripRate and then we can get
         /// (m_dripRate == 0 ? TotalDripRequest : m_dripRate) on some other properties.
         /// </remarks>
