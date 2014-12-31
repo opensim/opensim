@@ -31,6 +31,9 @@ using System.Net;
 using System.Threading;
 using OpenMetaverse;
 
+//using System.Reflection;
+//using log4net;
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
@@ -59,6 +62,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 FromResend = fromResend;
             }
         }
+
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Holds the actual unacked packet data, sorted by sequence number</summary>
         private Dictionary<uint, OutgoingPacket> m_packets = new Dictionary<uint, OutgoingPacket>();
@@ -164,8 +169,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-                //if (expiredPackets != null)
-                //   m_log.DebugFormat("[UNACKED PACKET COLLECTION]: Found {0} expired packets on timeout of {1}", expiredPackets.Count, timeoutMS);
+            // if (expiredPackets != null)
+            //     m_log.DebugFormat("[UNACKED PACKET COLLECTION]: Found {0} expired packets on timeout of {1}", expiredPackets.Count, timeoutMS);
 
             return expiredPackets;
         }
@@ -192,7 +197,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         // As with other network applications, assume that an acknowledged packet is an
                         // indication that the network can handle a little more load, speed up the transmission
-                        ackedPacket.Client.FlowThrottle.AcknowledgePackets(ackedPacket.Buffer.DataLength);
+                        ackedPacket.Client.FlowThrottle.AcknowledgePackets(1);
 
                         // Update stats
                         Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
@@ -207,8 +212,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                         //m_log.WarnFormat("[UNACKED PACKET COLLECTION]: Could not find packet with sequence number {0} to ack", pendingAcknowledgement.SequenceNumber);
+                        // m_log.WarnFormat("[UNACKED PACKET COLLECTION]: found null packet for sequence number {0} to ack",
+                        //                  pendingAcknowledgement.SequenceNumber);
                     }
+                }
+                else
+                {
+                    // m_log.WarnFormat("[UNACKED PACKET COLLECTION]: Could not find packet with sequence number {0} to ack",
+                    //                  pendingAcknowledgement.SequenceNumber);                    
                 }
             }
 

@@ -229,7 +229,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_throttleClient 
                 = new AdaptiveTokenBucket(
                     string.Format("adaptive throttle for {0} in {1}", AgentID, server.Scene.Name), 
-                    parentThrottle, 0, rates.Total, rates.AdaptiveThrottlesEnabled);
+                    parentThrottle, 0, rates.Total, rates.MinimumAdaptiveThrottleRate, rates.AdaptiveThrottlesEnabled);
 
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
