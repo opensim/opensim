@@ -96,11 +96,9 @@ public class BSPrim : BSPhysObject
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
 
-        // Add a dynamic vehicle to our set of actors that can move this prim.
-        // PhysicalActors.Add(VehicleActorName, new BSDynamics(PhysScene, this, VehicleActorName));
-
         _mass = CalculateMass();
 
+        DetailLog("{0},BSPrim.constructor,pbs={1}", LocalID, BSScene.PrimitiveBaseShapeToString(pbs));
         // DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
         PhysScene.TaintedObject(LocalID, "BSPrim.create", delegate()
@@ -168,6 +166,7 @@ public class BSPrim : BSPhysObject
     public override PrimitiveBaseShape Shape {
         set {
             BaseShape = value;
+            DetailLog("{0},BSPrim.changeShape,pbs={1}", LocalID, BSScene.PrimitiveBaseShapeToString(BaseShape));
             PrimAssetState = PrimAssetCondition.Unknown;
             ForceBodyShapeRebuild(false);
         }
