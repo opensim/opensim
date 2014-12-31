@@ -201,7 +201,10 @@ public sealed class BSLinksetCompound : BSLinkset
             if ((whichUpdated & ~(UpdatedProperties.Position | UpdatedProperties.Orientation)) == 0)
             {
                 // Find the physical instance of the child
-                if (LinksetRoot.PhysShape.HasPhysicalShape && m_physicsScene.PE.IsCompound(LinksetRoot.PhysShape.physShapeInfo))
+                if (!RebuildScheduled   // if rebuilding, let the rebuild do it
+                        && !LinksetRoot.IsIncomplete    // if waiting for assets or whatever, don't change
+                        && LinksetRoot.PhysShape.HasPhysicalShape   // there must be a physical shape assigned
+                        && m_physicsScene.PE.IsCompound(LinksetRoot.PhysShape.physShapeInfo))
                 {
                     // It is possible that the linkset is still under construction and the child is not yet
                     //    inserted into the compound shape. A rebuild of the linkset in a pre-step action will
