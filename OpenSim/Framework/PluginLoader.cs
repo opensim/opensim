@@ -217,10 +217,10 @@ namespace OpenSim.Framework
 
             clear_registry_(dir);
 
-            suppress_console_output_(true);
+            //suppress_console_output_(true);
             AddinManager.Initialize(dir);
             AddinManager.Registry.Update(null);
-            suppress_console_output_(false);
+            //suppress_console_output_(false);
         }
 
         private void on_addinloaded_(object sender, AddinEventArgs args)
