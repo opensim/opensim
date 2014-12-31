@@ -95,6 +95,16 @@
     ;; Place to create a PID file
     ; PIDFile = "/tmp/OpenSim.exe.pid"
 
+    ;# {RegistryLocation} {} {Addins Registry Location} {}
+    ; Set path to directory for addin registry if you want addins outside of bin.  
+    ; Information about the registered repositories and installed plugins will 
+    ; be stored here. The OpenSim.exe process must have R/W access to the location.
+    ; RegistryLocation = "."
+
+	;# {Include-Addins} {} {Loads all inis of all addins} {}
+    ; Leave this as is if you want 3rd-party addins to be automatically initialized.  
+    Include-Addins = "${RegistryLocation}/addins/*/*.ini"
+
     ;# {region_info_source} {} {Where to load region from?} {filesystem web} filesystem
     ;; Determine where OpenSimulator looks for the files which tell it
     ;; which regions to server
