@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 
         /// <summary>
         /// </summary>
-        protected const Int32 m_minimumDripRate = 1400;
+        protected const Int32 m_minimumDripRate = LLUDPServer.MTU;
         
         /// <summary>Time of the last drip, in system ticks</summary>
         protected Int32 m_lastDrip;
@@ -392,13 +392,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
                 
         /// <summary>
-        /// The minimum rate for flow control. Minimum drip rate is one
-        /// packet per second. Open the throttle to 15 packets per second
-        /// or about 160kbps.
+        /// The minimum rate for adaptive flow control. 
         /// </summary>
-        protected const Int64 m_minimumFlow = m_minimumDripRate * 15;
+        protected Int64 m_minimumFlow = 32000;
 
-        public AdaptiveTokenBucket(string identifier, TokenBucket parent, Int64 requestedDripRate, Int64 maxDripRate, bool enabled) 
+        /// <summary>
+        /// Constructor for the AdaptiveTokenBucket class
+        /// <param name="identifier">Unique identifier for the client</param>
+        /// <param name="parent">Parent bucket in the hierarchy</param>
+        /// <param name="requestedDripRate"></param>
+        /// <param name="maxDripRate">The ceiling rate for adaptation</param>
+        /// <param name="minDripRate">The floor rate for adaptation</param>
+        /// </summary>
+        public AdaptiveTokenBucket(string identifier, TokenBucket parent, Int64 requestedDripRate, Int64 maxDripRate, Int64 minDripRate, bool enabled) 
             : base(identifier, parent, requestedDripRate, maxDripRate)
         {
             AdaptiveEnabled = enabled;
@@ -406,34 +412,53 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (AdaptiveEnabled)
             {
 //                m_log.DebugFormat("[TOKENBUCKET]: Adaptive throttle enabled");
+                m_minimumFlow = minDripRate;
                 TargetDripRate = m_minimumFlow;
                 AdjustedDripRate = m_minimumFlow;
             }
         }
                 
-        // <summary>
-        // Reliable packets sent to the client for which we never received an ack adjust the drip rate down.
-        // </summary>
-        public void ExpirePackets(Int32 count)
+        /// <summary>
+        /// Reliable packets sent to the client for which we never received an ack adjust the drip rate down.
+        /// <param name="packets">Number of packets that expired without successful delivery</param>
+        /// </summary>
+        public void ExpirePackets(Int32 packets)
         {
             if (AdaptiveEnabled)
             {
                 if (DebugLevel > 0)
                     m_log.WarnFormat(
                         "[ADAPTIVEBUCKET] drop {0} by {1} expired packets for {2}", 
-                        AdjustedDripRate, count, Identifier);
+                        AdjustedDripRate, packets, Identifier);
 
-                AdjustedDripRate = (Int64) (AdjustedDripRate / Math.Pow(2,count));
+                // AdjustedDripRate = (Int64) (AdjustedDripRate / Math.Pow(2,packets));
+
+                // Compute the fallback solely on the rate allocated beyond the minimum, this
+                // should smooth out the fallback to the minimum rate
+                AdjustedDripRate = m_minimumFlow + (Int64) ((AdjustedDripRate - m_minimumFlow) / Math.Pow(2, packets));
             }
         }
 
-        // <summary>
-        // Reliable packets acked by the client adjust the drip rate up.
-        // </summary>
-        public void AcknowledgePackets(Int32 count)
+        /// <summary>
+        /// Reliable packets acked by the client adjust the drip rate up.
+        /// <param name="packets">Number of packets successfully acknowledged</param>
+        /// </summary>
+        public void AcknowledgePackets(Int32 packets)
         {
             if (AdaptiveEnabled)
-                AdjustedDripRate = AdjustedDripRate + count;
+                AdjustedDripRate = AdjustedDripRate + packets * LLUDPServer.MTU;
+        }
+
+        /// <summary>
+        /// Adjust the minimum flow level for the adaptive throttle, this will drop adjusted
+        /// throttles back to the minimum levels
+        /// <param>minDripRate--the new minimum flow</param>
+        /// </summary>
+        public void ResetMinimumAdaptiveFlow(Int64 minDripRate)
+        {
+            m_minimumFlow = minDripRate;
+            TargetDripRate = m_minimumFlow;
+            AdjustedDripRate = m_minimumFlow;
         }
     }
 }
