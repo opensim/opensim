@@ -307,7 +307,7 @@ namespace OpenSim.Framework.Monitoring
 
             if (request.ContainsKey("cat")) pCategoryName = request["cat"].ToString();
             if (request.ContainsKey("cont")) pContainerName = request["cat"].ToString();
-            if (request.ContainsKey("stat")) pStatName = request["cat"].ToString();
+            if (request.ContainsKey("stat")) pStatName = request["stat"].ToString();
 
             string strOut = StatsManager.GetStatsAsOSDMap(pCategoryName, pContainerName, pStatName).ToString();
 
