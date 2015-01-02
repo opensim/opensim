@@ -101,9 +101,11 @@
     ; be stored here. The OpenSim.exe process must have R/W access to the location.
     ; RegistryLocation = "."
 
-	;# {Include-Addins} {} {Loads all inis of all addins} {}
-    ; Leave this as is if you want 3rd-party addins to be automatically initialized.  
-    Include-Addins = "${RegistryLocation}/addins/*/*.ini"
+	;# {ConfigDirectory} {} {Set path to directory for modular ini files} {}
+    ; Used by region module addins. You can set this to outside bin, so that addin
+	; configurations will survive updates. The OpenSim.exe process must have R/W access 
+	; to the location.
+    ; ConfigDirectory = "."
 
     ;# {region_info_source} {} {Where to load region from?} {filesystem web} filesystem
     ;; Determine where OpenSimulator looks for the files which tell it
