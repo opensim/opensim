@@ -28,14 +28,15 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using Nini.Config;
 
 using OpenSim.Framework;
-using OpenSim.Region.Physics.BulletSPlugin;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.Meshing;
+
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin.Tests
 {
@@ -77,16 +78,20 @@ public static class BulletSimTestsUtil
             bulletSimConfig.Set("VehicleLoggingEnabled","True");
         }
 
-        BSPlugin bsPlugin = new BSPlugin();
+        PhysicsPluginManager physicsPluginManager;
+        physicsPluginManager = new PhysicsPluginManager();
+        physicsPluginManager.LoadPluginsFromAssemblies("Physics");
 
-        BSScene bsScene = (BSScene)bsPlugin.GetScene("BSTestRegion");
+        Vector3 regionExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+       
+        PhysicsScene pScene = physicsPluginManager.GetPhysicsScene(
+                        "BulletSim", "Meshmerizer", openSimINI, "BSTestRegion", regionExtent);
+
+        BSScene bsScene = pScene as BSScene;
 
         // Since the asset requestor is not initialized, any mesh or sculptie will be a cube.
         // In the future, add a fake asset fetcher to get meshes and sculpts.
         // bsScene.RequestAssetMethod = ???;
-
-        Meshing.Meshmerizer mesher = new Meshmerizer(openSimINI);
-        bsScene.Initialise(mesher, openSimINI);
 
         return bsScene;
     }
