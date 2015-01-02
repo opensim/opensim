@@ -41,7 +41,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Servers;
 
 
-[assembly:AddinRoot("Robust", "0.1")]
+[assembly:AddinRoot("Robust", OpenSim.VersionInfo.VersionNumber)]
 namespace OpenSim.Server.Base
 {
     [TypeExtensionPoint(Path="/Robust/Connector", Name="RobustConnector")]
