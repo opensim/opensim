@@ -89,9 +89,9 @@ namespace OpenSim.Server.Base
             Config = config;
 
             Registry = new AddinRegistry(registryPath, ".");
-            suppress_console_output_(true);
+            //suppress_console_output_(true);
             AddinManager.Initialize(registryPath);
-            suppress_console_output_(false);
+            //suppress_console_output_(false);
             AddinManager.Registry.Update();
             CommandManager commandmanager = new CommandManager(Registry);
             AddinManager.AddExtensionNodeHandler("/Robust/Connector", OnExtensionChanged);
