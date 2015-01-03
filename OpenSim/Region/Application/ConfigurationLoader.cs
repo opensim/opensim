@@ -325,8 +325,6 @@ namespace OpenSim
                     Environment.Exit(1);
                 }
             }
-
-            configSource.Source.ExpandKeyValues();
             return success;
         }
 
