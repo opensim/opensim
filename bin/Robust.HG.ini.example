@@ -107,7 +107,8 @@
     ;; Uncomment this if you want Groups V2, HG to work
     ; HGGroupsServiceConnector = "${Const|PublicPort}/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
     ;; Additions for other add-on modules. For example:
-    ;; WifiServerConnector = "${Const|PublicPort}/Diva.Wifi.dll:WifiServerConnector"
+    ;; WifiServerConnector = "${Const|PublicPort}/Diva.Wifi.Robust.dll:WifiServerConnector"
+	;; But check also for the new mono addin installs that don't use this and are much easier to use!
 
     ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
     ; UserProfilesServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:UserProfilesConnector"
