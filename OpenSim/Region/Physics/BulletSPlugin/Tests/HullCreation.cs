@@ -184,8 +184,8 @@ public class HullCreation : OpenSimTestCase
                         prim.PhysScene.DetailLog("{0}, mesh, shapeInfo={1}", prim.Name, mShape.shapeInfo);
                         break;
                     case "OpenSim.Region.Physics.BulletSPlugin.BSShapeHull":
-                        BSShapeHull hShape = physShape as BSShapeHull;
-                        prim.PhysScene.DetailLog("{0}, hull, shapeInfo={1}", prim.Name, hShape.shapeInfo);
+                        // BSShapeHull hShape = physShape as BSShapeHull;
+                        // prim.PhysScene.DetailLog("{0}, hull, shapeInfo={1}", prim.Name, hShape.shapeInfo);
                         break;
                     case "OpenSim.Region.Physics.BulletSPlugin.BSShapeConvexHull":
                         BSShapeConvexHull chShape = physShape as BSShapeConvexHull;
