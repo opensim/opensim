@@ -953,8 +953,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         float pathShearY = pbs.PathShearY < 128 ? (float)pbs.PathShearY * 0.01f : (float)(pbs.PathShearY - 256) * 0.01f;
         float pathBegin = (float)pbs.PathBegin * 2.0e-5f;
         float pathEnd = 1.0f - (float)pbs.PathEnd * 2.0e-5f;
-        float pathScaleX = (float)(pbs.PathScaleX - 100) * 0.01f;
-        float pathScaleY = (float)(pbs.PathScaleY - 100) * 0.01f;
+        float pathScaleX = (float)(200 - pbs.PathScaleX) * 0.01f;
+        float pathScaleY = (float)(200 - pbs.PathScaleY) * 0.01f;
+        float pathTaperX = pbs.PathTaperX * 0.01f;
+        float pathTaperY = pbs.PathTaperY * 0.01f;
 
         float profileBegin = (float)pbs.ProfileBegin * 2.0e-5f;
         float profileEnd = 1.0f - (float)pbs.ProfileEnd * 2.0e-5f;
