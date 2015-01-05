@@ -538,6 +538,11 @@ namespace OpenSim.Framework
 
         public static bool LoadArchSpecificWindowsDll(string libraryName)
         {
+            return LoadArchSpecificWindowsDll(libraryName, string.Empty);
+        }
+
+        public static bool LoadArchSpecificWindowsDll(string libraryName, string path)
+        {
             // We do this so that OpenSimulator on Windows loads the correct native library depending on whether
             // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
             // will find it already loaded later on.
@@ -547,9 +552,9 @@ namespace OpenSim.Framework
             string nativeLibraryPath;
 
             if (Util.Is64BitProcess())
-                nativeLibraryPath = "lib64/" + libraryName;
+                nativeLibraryPath = Path.Combine(Path.Combine(path, "lib64"), libraryName);
             else
-                nativeLibraryPath = "lib32/" + libraryName;
+                nativeLibraryPath = Path.Combine(Path.Combine(path, "lib32"), libraryName);
 
             m_log.DebugFormat("[UTIL]: Loading native Windows library at {0}", nativeLibraryPath);
 
