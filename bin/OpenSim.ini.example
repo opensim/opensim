@@ -49,7 +49,7 @@
     ;# {PublicPort} {} {PublicPort} {8002} "8002"
     PublicPort = "8002"
 
-    ;# {PrivatePort} {} {PublicPort} {8003} "8003"
+    ;# {PrivatePort} {} {PrivatePort} {8003} "8003"
     PrivatePort = "8003"
 
 
