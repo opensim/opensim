@@ -153,6 +153,8 @@ public static class BSParam
 	public static int AvatarJumpFrames { get; private set; }
 	public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
 	public static float AvatarStepHeight { get; private set; }
+	public static float AvatarStepAngle { get; private set; }
+	public static float AvatarStepGroundFudge { get; private set; }
 	public static float AvatarStepApproachFactor { get; private set; }
 	public static float AvatarStepForceFactor { get; private set; }
 	public static float AvatarStepUpCorrectionFactor { get; private set; }
@@ -614,13 +616,17 @@ public static class BSParam
 	    new ParameterDefn<int>("AvatarJumpFrames", "Number of frames to allow jump forces. Changes jump height.",
             4 ),
 	    new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
-            0.6f ) ,
+            0.999f ) ,
+	    new ParameterDefn<float>("AvatarStepAngle", "The angle (in radians) for a vertical surface to be considered a step",
+            0.3f ) ,
+	    new ParameterDefn<float>("AvatarStepGroundFudge", "Fudge factor subtracted from avatar base when comparing collision height",
+            0.1f ) ,
 	    new ParameterDefn<float>("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",
-            0.6f ),
+            2f ),
 	    new ParameterDefn<float>("AvatarStepForceFactor", "Controls the amount of force up applied to step up onto a step",
-            1.0f ),
+            0f ),
 	    new ParameterDefn<float>("AvatarStepUpCorrectionFactor", "Multiplied by height of step collision to create up movement at step",
-            2.0f ),
+            0.8f ),
 	    new ParameterDefn<int>("AvatarStepSmoothingSteps", "Number of frames after a step collision that we continue walking up stairs",
             1 ),
 

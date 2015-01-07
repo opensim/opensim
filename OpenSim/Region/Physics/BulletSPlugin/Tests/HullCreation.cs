@@ -136,7 +136,7 @@ public class HullCreation : OpenSimTestCase
         pbs.ProfileShape = (byte)ProfileShape.Circle;
         pbs.PathCurve = (byte)Extrusion.Curve1;
         pbs.PathScaleX = 100;   // default hollow info as set in the viewer
-        pbs.PathScaleY = 25;
+        pbs.PathScaleY = (int)(.25f / 0.01f) + 200;
         pos = new Vector3(120.0f, 120.0f, 0f);
         pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
         ObjectInitPosition = pos;

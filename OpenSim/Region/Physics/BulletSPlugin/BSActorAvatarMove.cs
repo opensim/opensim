@@ -341,7 +341,7 @@ public class BSActorAvatarMove : BSActor
             // float nearFeetHeightMin = m_controllingPrim.RawPosition.Z - (m_controllingPrim.Size.Z / 2f) + 0.05f;
             // Note: there is a problem with the computation of the capsule height. Thus RawPosition is off
             //    from the height. Revisit size and this computation when height is scaled properly.
-            float nearFeetHeightMin = m_controllingPrim.RawPosition.Z - (m_controllingPrim.Size.Z / 2f) - 0.05f;
+            float nearFeetHeightMin = m_controllingPrim.RawPosition.Z - (m_controllingPrim.Size.Z / 2f) - BSParam.AvatarStepGroundFudge;
             float nearFeetHeightMax = nearFeetHeightMin + BSParam.AvatarStepHeight;
 
             // Look for a collision point that is near the character's feet and is oriented the same as the charactor is.
@@ -363,15 +363,25 @@ public class BSActorAvatarMove : BSActor
                             if (touchPosition.Z >= nearFeetHeightMin && touchPosition.Z <= nearFeetHeightMax)
                             {
                                 // This contact is within the 'near the feet' range.
-                                // The normal should be our contact point to the object so it is pointing away
-                                //    thus the difference between our facing orientation and the normal should be small.
+                                // The step is presumed to be more or less vertical. Thus the Z component should
+                                //    be nearly horizontal.
                                 OMV.Vector3 directionFacing = OMV.Vector3.UnitX * m_controllingPrim.RawOrientation;
                                 OMV.Vector3 touchNormal = OMV.Vector3.Normalize(kvp.Value.SurfaceNormal);
-                                float diff = Math.Abs(OMV.Vector3.Distance(directionFacing, touchNormal));
-                                if (diff < BSParam.AvatarStepApproachFactor)
+                                const float PIOver2 = 1.571f; // Used to make unit vector axis into approx radian angles
+                                // m_physicsScene.DetailLog("{0},BSCharacter.WalkUpStairs,avNormal={1},colNormal={2},diff={3}",
+                                //             m_controllingPrim.LocalID, directionFacing, touchNormal,
+                                //             Math.Abs(OMV.Vector3.Distance(directionFacing, touchNormal)) );
+                                if ((Math.Abs(directionFacing.Z) * PIOver2) < BSParam.AvatarStepAngle
+                                    && (Math.Abs(touchNormal.Z) * PIOver2) < BSParam.AvatarStepAngle)
                                 {
-                                    if (highestTouchPosition.Z < touchPosition.Z)
-                                        highestTouchPosition = touchPosition;
+                                    // The normal should be our contact point to the object so it is pointing away
+                                    //    thus the difference between our facing orientation and the normal should be small.
+                                    float diff = Math.Abs(OMV.Vector3.Distance(directionFacing, touchNormal));
+                                    if (diff < BSParam.AvatarStepApproachFactor)
+                                    {
+                                        if (highestTouchPosition.Z < touchPosition.Z)
+                                            highestTouchPosition = touchPosition;
+                                    }
                                 }
                             }
                         }
