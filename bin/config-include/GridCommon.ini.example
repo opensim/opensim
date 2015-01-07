@@ -108,6 +108,16 @@
     ;; Robust server in port ${Const|PublicPort}, but not always)
     Gatekeeper="${Const|BaseURL}:${Const|PublicPort}"
 
+[EstateDataStore]
+	;
+	; Uncomment if you want centralized estate data at robust server,
+	; in which case the URL in [EstateService] will be used
+	;
+	;LocalServiceModule = "OpenSim.Services.Connectors.dll:EstateDataConnector"
+
+[EstateService]
+	EstateServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
 [Messaging]
     ; === HG ONLY ===
     ;; Change this to the address of your Gatekeeper service

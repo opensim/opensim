@@ -110,6 +110,8 @@
     ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
     ; UserProfilesServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
+	;; Uncomment if you want to have centralized estate data
+	; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -379,6 +381,8 @@
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.FriendsService.dll:FriendsService"
 
+[EstateService]
+    LocalServiceModule = "OpenSim.Services.EstateService.dll:EstateDataService"
 
 [LibraryService]
     LibraryName = "OpenSim Library"

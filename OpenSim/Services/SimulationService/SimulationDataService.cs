@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using System.Reflection;
 using OpenSim.Services.Base;
@@ -39,7 +38,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Services.Connectors
+namespace OpenSim.Services.SimulationService
 {
     public class SimulationDataService : ServiceBase, ISimulationDataService
     {
