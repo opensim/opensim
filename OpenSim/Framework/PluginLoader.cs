@@ -215,7 +215,7 @@ namespace OpenSim.Framework
             AddinManager.AddinLoadError += on_addinloaderror_;
             AddinManager.AddinLoaded += on_addinloaded_;
 
-            clear_registry_(dir);
+            //clear_registry_(dir);
 
             //suppress_console_output_(true);
             AddinManager.Initialize(dir);
