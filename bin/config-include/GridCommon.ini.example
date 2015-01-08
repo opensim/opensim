@@ -113,7 +113,7 @@
 	; Uncomment if you want centralized estate data at robust server,
 	; in which case the URL in [EstateService] will be used
 	;
-	;LocalServiceModule = "OpenSim.Services.Connectors.dll:EstateDataConnector"
+	;LocalServiceModule = "OpenSim.Services.Connectors.dll:EstateDataRemoteConnector"
 
 [EstateService]
 	EstateServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
