@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids)
         {
-            m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.Name);
 
             EntityBase[] entities = scene.GetEntities();
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
@@ -253,13 +253,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (SaveAssets)
             {
-                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService);
+                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids);
                 int prevAssets = assetUuids.Count;
                     
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
-                {
-                    assetGatherer.GatherAssetUuids(sceneObject, assetUuids);
-                }
+                    assetGatherer.AddForInspection(sceneObject);
+
+                assetGatherer.GatherAll();
 
                 m_log.DebugFormat(
                     "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
