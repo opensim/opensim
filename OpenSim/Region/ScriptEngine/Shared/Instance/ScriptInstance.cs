@@ -889,8 +889,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 
                                     m_log.Debug(string.Format(
-                                        "[SCRIPT INSTANCE]: Runtime error in script {0}, part {1} {2} at {3} in {4} ", 
+                                        "[SCRIPT INSTANCE]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ", 
                                         ScriptName, 
+                                        data.EventName,
                                         PrimName, 
                                         Part.UUID,
                                         Part.AbsolutePosition,
