@@ -451,7 +451,7 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID uuid = new UUID(uuidMatch.Value);
 //                m_log.DebugFormat("[UUID GATHERER]: Recording {0} in text", uuid);
 
-                GatheredUuids[uuid] = (sbyte)AssetType.Unknown;
+                AddForInspection(uuid);
             }
         }
 

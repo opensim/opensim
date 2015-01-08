@@ -88,11 +88,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestNotecardAsset()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID ownerId = TestHelpers.ParseTail(0x10);
             UUID embeddedId = TestHelpers.ParseTail(0x20);
-            UUID missingEmbeddedId = TestHelpers.ParseTail(0x21);
+            UUID secondLevelEmbeddedId = TestHelpers.ParseTail(0x21);
+            UUID missingEmbeddedId = TestHelpers.ParseTail(0x22);
             UUID ncAssetId = TestHelpers.ParseTail(0x30);
 
             AssetBase ncAsset 
@@ -100,8 +101,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                     ncAssetId, string.Format("Hello{0}World{1}", embeddedId, missingEmbeddedId));
             m_assetService.Store(ncAsset);
 
-            AssetBase embeddedAsset = AssetHelpers.CreateNotecardAsset(embeddedId, "We'll meet again.");
+            AssetBase embeddedAsset 
+                = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0} We'll meet again.", secondLevelEmbeddedId));
             m_assetService.Store(embeddedAsset);
+
+            AssetBase secondLevelEmbeddedAsset 
+                = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, "Don't know where, don't know when.");
+            m_assetService.Store(secondLevelEmbeddedAsset);
 
             m_uuidGatherer.AddForInspection(ncAssetId);
             m_uuidGatherer.GatherAll();
@@ -112,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(3));
             Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(ncAssetId));
             Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(embeddedId));
-            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(missingEmbeddedId));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(secondLevelEmbeddedId));
         }
     }
 }
