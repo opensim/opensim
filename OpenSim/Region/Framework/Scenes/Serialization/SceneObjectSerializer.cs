@@ -38,6 +38,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes.Serialization
 {

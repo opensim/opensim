@@ -30,7 +30,7 @@ using System.Collections.Generic;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Services.Interfaces
 {
     /// <summary>
     /// This maintains the relationship between a UUID and a user name.

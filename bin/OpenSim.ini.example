@@ -567,6 +567,7 @@
     Cap_GetTexture = "localhost"
     Cap_GetMesh = "localhost"
     Cap_AvatarPickerSearch = "localhost"
+    Cap_GetDisplayNames = "localhost"
 
     ; This is disabled by default. Change if you see fit. Note that
     ; serving this cap from the simulators may lead to poor performace.
