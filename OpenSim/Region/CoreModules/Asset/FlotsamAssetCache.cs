@@ -776,7 +776,6 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
-            Dictionary<UUID, sbyte> assetIdsToCheck = new Dictionary<UUID, sbyte>();
             Dictionary<UUID, bool> assetsFound = new Dictionary<UUID, bool>();
 
             foreach (Scene s in m_Scenes)
@@ -784,10 +783,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 StampRegionStatusFile(s.RegionInfo.RegionID);
 
                 s.ForEachSOG(delegate(SceneObjectGroup e)
-                {                   
-                    gatherer.GatherAssetUuids(e, assetIdsToCheck);
+                {            
+                    gatherer.AddForInspection(e);
+                    gatherer.GatherAll();
 
-                    foreach (UUID assetID in assetIdsToCheck.Keys)
+                    foreach (UUID assetID in gatherer.GatheredUuids.Keys)
                     {
                         if (!assetsFound.ContainsKey(assetID))
                         {
@@ -800,7 +800,7 @@ namespace OpenSim.Region.CoreModules.Asset
                             else if (storeUncached)
                             {
                                 AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
-                                if (cachedAsset == null && assetIdsToCheck[assetID] != (sbyte)AssetType.Unknown)
+                                if (cachedAsset == null && gatherer.GatheredUuids[assetID] != (sbyte)AssetType.Unknown)
                                     assetsFound[assetID] = false;
                                 else
                                     assetsFound[assetID] = true;
@@ -810,11 +810,11 @@ namespace OpenSim.Region.CoreModules.Asset
                         {
                             m_log.DebugFormat(
                                 "[FLOTSAM ASSET CACHE]: Could not find asset {0}, type {1} referenced by object {2} at {3} in scene {4} when pre-caching all scene assets",
-                                    assetID, assetIdsToCheck[assetID], e.Name, e.AbsolutePosition, s.Name);
+                                assetID, gatherer.GatheredUuids[assetID], e.Name, e.AbsolutePosition, s.Name);
                         }
                     }
 
-                    assetIdsToCheck.Clear();
+                    gatherer.GatheredUuids.Clear();
                 });
             }
 

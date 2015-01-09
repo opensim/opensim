@@ -412,12 +412,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // The act of gathering UUIDs downloads some assets from the remote server
             // but not all...
-            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
-            uuidGatherer.GatherAssetUuids(assetID, meta.Type, ids);
-            m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", ids.Count);
+            uuidGatherer.AddForInspection(assetID);
+            uuidGatherer.GatherAll();
+
+            m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", uuidGatherer.GatheredUuids.Count);
             bool success = true;
-            foreach (UUID uuid in ids.Keys)
+            foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
                 if (FetchAsset(userAssetURL, uuid) == null)
                     success = false;
 
@@ -427,7 +428,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
                 m_log.DebugFormat("[HG ASSET MAPPER]: Successfully got item {0} from asset server {1}", assetID, userAssetURL);
         }
-
 
         public void Post(UUID assetID, UUID ownerID, string userAssetURL)
         {
@@ -442,9 +442,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return;
             }
 
-            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
-            uuidGatherer.GatherAssetUuids(asset.FullID, asset.Type, ids);
+            uuidGatherer.AddForInspection(asset.FullID);
 
             // Check which assets already exist in the destination server
 
@@ -452,16 +451,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (!url.EndsWith("/") && !url.EndsWith("="))
                 url = url + "/";
 
-            string[] remoteAssetIDs = new string[ids.Count];
+            string[] remoteAssetIDs = new string[uuidGatherer.GatheredUuids.Count];
             int i = 0;
-            foreach (UUID id in ids.Keys)
+            foreach (UUID id in uuidGatherer.GatheredUuids.Keys)
                 remoteAssetIDs[i++] = url + id.ToString();
 
             bool[] exist = m_scene.AssetService.AssetsExist(remoteAssetIDs);
 
             var existSet = new HashSet<string>();
             i = 0;
-            foreach (UUID id in ids.Keys)
+            foreach (UUID id in uuidGatherer.GatheredUuids.Keys)
             {
                 if (exist[i])
                     existSet.Add(id.ToString());
@@ -472,7 +471,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             bool success = true;
 
-            foreach (UUID uuid in ids.Keys)
+            foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
             {
                 if (!existSet.Contains(uuid.ToString()))
                 {

@@ -119,9 +119,9 @@ namespace OpenSim.Data.PGSQL
                                 }
                                 catch (Exception e)
                                 {
-                                    m_log.ErrorFormat("[PROFILES_DATA]" +
-                                                     ": UserAccount exception {0}", e.Message);
+                                    m_log.Error("[PROFILES_DATA]: UserAccount exception ", e);
                                 }
+
                                 n.Add("classifieduuid", OSD.FromUUID(Id));
                                 n.Add("name", OSD.FromString(Name));
                                 data.Add(n);
@@ -212,15 +212,14 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": ClassifiedesUpdate exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: ClassifiedsUpdate exception ", e);
                 result = e.Message;
                 return false;
             }
+
             return true;
         }
-        
-       
+               
         public bool DeleteClassifiedRecord(UUID recordId)
         {
             string query = string.Empty;
@@ -246,10 +245,10 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": DeleteClassifiedRecord exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: DeleteClassifiedRecord exception ", e);
                 return false;
             }
+
             return true;
         }
         
@@ -295,13 +294,14 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetClassifiedInfo exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetClassifiedInfo exception ", e);
             }
+
             return true;
         }
 
-        public static UUID GetUUID( object uuidValue ) {
+        public static UUID GetUUID(object uuidValue) 
+        {
 
             UUID ret = UUID.Zero;
 
@@ -309,7 +309,6 @@ namespace OpenSim.Data.PGSQL
 
             return ret;
         }
-
 
         #endregion Classifieds Queries
 
@@ -350,9 +349,9 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetAvatarPicks exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetAvatarPicks exception ", e);
             }
+
             return data;
         }
         
@@ -407,9 +406,9 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetPickInfo exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetPickInfo exception ", e);
             }
+
             return pick;
         }
         
@@ -460,10 +459,10 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": UpdateAvatarNotes exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: UpdateAvatarNotes exception ", e);
                 return false;
             }
+
             return true;
         }
         
@@ -490,15 +489,17 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": DeleteUserPickRecord exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: DeleteUserPickRecord exception ", e);
                 return false;
             }
+
             return true;
         }
+
         #endregion Picks Queries
         
         #region Avatar Notes Queries
+
         public bool GetAvatarNotes(ref UserProfileNotes notes)
         {  // WIP
             string query = string.Empty;
@@ -531,9 +532,9 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetAvatarNotes exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetAvatarNotes exception ", e);
             }
+
             return true;
         }
         
@@ -542,7 +543,7 @@ namespace OpenSim.Data.PGSQL
             string query = string.Empty;
             bool remove;
             
-            if(string.IsNullOrEmpty(note.Notes))
+            if (string.IsNullOrEmpty(note.Notes))
             {
                 remove = true;
                 query += "DELETE FROM usernotes WHERE ";
@@ -571,6 +572,7 @@ namespace OpenSim.Data.PGSQL
                     {
                         if(!remove)
                             cmd.Parameters.Add(m_database.CreateParameter("Notes", note.Notes));
+
                         cmd.Parameters.Add(m_database.CreateParameter("TargetId", note.TargetId));
                         cmd.Parameters.Add(m_database.CreateParameter("UserId", note.UserId));
                         
@@ -580,16 +582,17 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": UpdateAvatarNotes exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: UpdateAvatarNotes exception ", e);
                 return false;
             }
-            return true;
-            
+
+            return true;            
         }
+
         #endregion Avatar Notes Queries
         
         #region Avatar Properties
+
         public bool GetAvatarProperties(ref UserProfileProperties props, ref string result)
         {
             string query = string.Empty;
@@ -706,11 +709,11 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": Requst properties exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetAvatarProperties exception ", e);
                 result = e.Message;
                 return false;
             }
+
             return true;
         }
         
@@ -746,16 +749,17 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentPropertiesUpdate exception {0}", e.Message);
-                
+                m_log.Error("[PROFILES_DATA]: AgentPropertiesUpdate exception ", e);                
                 return false;
             }
+
             return true;
         }
+
         #endregion Avatar Properties
         
         #region Avatar Interests
+
         public bool UpdateAvatarInterests(UserProfileProperties up, ref string result)
         {           
             string query = string.Empty;
@@ -788,13 +792,14 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentInterestsUpdate exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: AgentInterestsUpdate exception ", e);
                 result = e.Message;
                 return false;
             }
+
             return true;
         }
+
         #endregion Avatar Interests
 
         public OSDArray GetUserImageAssets(UUID avatarId)
@@ -868,13 +873,14 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetAvatarNotes exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetAvatarNotes exception ", e);
             }
+
             return data;
         }
         
         #region User Preferences
+
         public bool GetUserPreferences(ref UserPreferences pref, ref string result)
         {
             string query = string.Empty;
@@ -922,10 +928,10 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Get preferences exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetUserPreferences exception ", e);
                 result = e.Message;
             }
+
             return true;
         }
 
@@ -960,16 +966,18 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentInterestsUpdate exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: AgentInterestsUpdate exception ", e);
                 result = e.Message;
                 return false;
             }
+
             return true;
         }
+
         #endregion User Preferences
         
         #region Integration
+
         public bool GetUserAppData(ref UserAppData props, ref string result)
         {
             string query = string.Empty;
@@ -1023,11 +1031,11 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Requst application data exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: GetUserAppData exception ", e);
                 result = e.Message;
                 return false;
             }
+
             return true;
         }
 
@@ -1063,13 +1071,13 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": SetUserData exception {0}", e.Message);
+                m_log.Error("[PROFILES_DATA]: SetUserData exception ", e);
                 return false;
             }
+
             return true;
         }
+
         #endregion Integration
     }
 }
-

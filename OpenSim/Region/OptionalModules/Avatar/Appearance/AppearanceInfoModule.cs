@@ -426,10 +426,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                     cdl.AddRow("Assets", "");
                                     sb.Append(cdl.ToString());
 
-                                    Dictionary<UUID, sbyte> assetUuids = new Dictionary<UUID, sbyte>();
-                                    uuidGatherer.GatherAssetUuids(wi.AssetID, assetUuids);
+                                    uuidGatherer.AddForInspection(wi.AssetID);
+                                    uuidGatherer.GatherAll();
                                     string[] assetStrings 
-                                        = Array.ConvertAll<UUID, string>(assetUuids.Keys.ToArray(), u => u.ToString());
+                                        = Array.ConvertAll<UUID, string>(uuidGatherer.GatheredUuids.Keys.ToArray(), u => u.ToString());
 
                                     bool[] existChecks = scene.AssetService.AssetsExist(assetStrings);
 
@@ -440,7 +440,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                     cdt.AddColumn("Found", 5);
                                             
                                     for (int k = 0; k < existChecks.Length; k++)
-                                        cdt.AddRow((AssetType)assetUuids[new UUID(assetStrings[k])], assetStrings[k], existChecks[k] ? "yes" : "no");
+                                        cdt.AddRow(
+                                            (AssetType)uuidGatherer.GatheredUuids[new UUID(assetStrings[k])], 
+                                            assetStrings[k], existChecks[k] ? "yes" : "no");
 
                                     sb.Append(cdt.ToString());
                                     sb.Append("\n");
