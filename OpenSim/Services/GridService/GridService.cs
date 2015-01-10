@@ -170,6 +170,19 @@ namespace OpenSim.Services.GridService
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["destination-guide-url"] = configVal;
 
+            configVal = Util.GetConfigVarFromSections<string>(
+                    config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" }, String.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridURL"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridName", new string[] { "Const", "Hypergrid" }, String.Empty);
+            if (string.IsNullOrEmpty(configVal))
+                configVal = Util.GetConfigVarFromSections<string>(
+                    config, "gridname", new string[] { "GridInfo" }, String.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridName"] = configVal;
+
             m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
         }
 

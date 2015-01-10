@@ -83,7 +83,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (config != null)
             {  
-                // These are normaly set in their respective modules
+                //
+                // All this is obsolete since getting these features from the grid service!!
+                // Will be removed after the next release
+                //
                 m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
 
                 m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
