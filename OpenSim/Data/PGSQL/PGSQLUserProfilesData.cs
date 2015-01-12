@@ -48,11 +48,6 @@ namespace OpenSim.Data.PGSQL
         {
             get; set;
         }
-
-        protected object Lock
-        {
-            get; set;
-        }
         
         protected virtual Assembly Assembly
         {
@@ -235,11 +230,7 @@ namespace OpenSim.Data.PGSQL
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("ClassifiedId", recordId));
-                        
-                        lock(Lock)
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
@@ -915,11 +906,8 @@ namespace OpenSim.Data.PGSQL
                                 {
                                     query = "INSERT INTO usersettings VALUES ";
                                     query += "(:Id,'false','false', '')";
-                                    
-                                    lock(Lock)
-                                    {
-                                        put.ExecuteNonQuery();
-                                    }
+
+                                    put.ExecuteNonQuery();
                                 }
                             }
                         }
@@ -956,11 +944,8 @@ namespace OpenSim.Data.PGSQL
                         cmd.Parameters.Add(m_database.CreateParameter("Visible", pref.Visible.ToString().ToLower ()));
                         cmd.Parameters.Add(m_database.CreateParameter("EMail", pref.EMail.ToString().ToLower ()));
                         cmd.Parameters.Add(m_database.CreateParameter("uuid", pref.UserId.ToString()));
-                        
-                        lock(Lock)
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
+
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
@@ -1018,11 +1003,8 @@ namespace OpenSim.Data.PGSQL
                                     put.Parameters.Add(m_database.CreateParameter("TagId", props.TagId));
                                     put.Parameters.Add(m_database.CreateParameter("DataKey", props.DataKey.ToString()));
                                     put.Parameters.Add(m_database.CreateParameter("DataVal", props.DataVal.ToString()));
-                                    
-                                    lock(Lock)
-                                    {
-                                        put.ExecuteNonQuery();
-                                    }
+
+                                    put.ExecuteNonQuery();
                                 }
                             }
                         }
@@ -1061,11 +1043,8 @@ namespace OpenSim.Data.PGSQL
                         cmd.Parameters.Add(m_database.CreateParameter("TagId", props.TagId.ToString ()));
                         cmd.Parameters.Add(m_database.CreateParameter("DataKey", props.DataKey.ToString ()));
                         cmd.Parameters.Add(m_database.CreateParameter("DataVal", props.DataKey.ToString ()));
-                        
-                        lock(Lock)
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
+
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
