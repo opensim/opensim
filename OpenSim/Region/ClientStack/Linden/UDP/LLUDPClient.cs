@@ -736,7 +736,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        m_udpServer.OqrEngine.QueueRequest(this, categories);
+                        m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => FireQueueEmpty(categories));
                     }
                 }
                 else

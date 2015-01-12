@@ -31,6 +31,7 @@ using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Connectors.Hypergrid;
@@ -113,7 +114,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <summary>
         /// Used for processing analysis of incoming attachments in a controlled fashion.
         /// </summary>
-        private HGIncomingSceneObjectEngine m_incomingSceneObjectEngine;
+        private JobEngine m_incomingSceneObjectEngine;
 
         #region ISharedRegionModule
 
@@ -160,7 +161,24 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 scene.RegisterModuleInterface<IUserAgentVerificationModule>(this);
                 //scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
 
-                m_incomingSceneObjectEngine = new HGIncomingSceneObjectEngine(scene.Name);
+                m_incomingSceneObjectEngine 
+                    = new JobEngine(
+                        string.Format("HG Incoming Scene Object Engine ({0})", scene.Name), 
+                        "HG INCOMING SCENE OBJECT ENGINE");
+
+                StatsManager.RegisterStat(
+                    new Stat(
+                        "HGIncomingAttachmentsWaiting",
+                        "Number of incoming attachments waiting for processing.",
+                        "",
+                        "",
+                        "entitytransfer",
+                        Name,
+                        StatType.Pull,
+                        MeasuresOfInterest.None,
+                        stat => stat.Value = m_incomingSceneObjectEngine.JobsWaiting,
+                        StatVerbosity.Debug));
+
                 m_incomingSceneObjectEngine.Start();
             }
         }
@@ -548,11 +566,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private void RemoveIncomingSceneObjectJobs(string commonIdToRemove)
         {
-            List<Job> jobsToReinsert = new List<Job>();
+            List<JobEngine.Job> jobsToReinsert = new List<JobEngine.Job>();
             int jobsRemoved = 0;
 
-            Job job;
-            while ((job = m_incomingSceneObjectEngine.RemoveNextRequest()) != null)
+            JobEngine.Job job;
+            while ((job = m_incomingSceneObjectEngine.RemoveNextJob()) != null)
             {
                 if (job.CommonId != commonIdToRemove)
                     jobsToReinsert.Add(job);
@@ -566,8 +584,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (jobsToReinsert.Count > 0)
             {                                        
-                foreach (Job jobToReinsert in jobsToReinsert)
-                    m_incomingSceneObjectEngine.QueueRequest(jobToReinsert);
+                foreach (JobEngine.Job jobToReinsert in jobsToReinsert)
+                    m_incomingSceneObjectEngine.QueueJob(jobToReinsert);
             }
         }
 
@@ -594,10 +612,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
                     {
-                        m_incomingSceneObjectEngine.QueueRequest(
+                        m_incomingSceneObjectEngine.QueueJob(
                             string.Format("HG UUID Gather for attachment {0} for {1}", so.Name, aCircuit.Name), 
-                            so.OwnerID.ToString(),
-                            o => 
+                            () => 
                             {
                                 string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
     //                            m_log.DebugFormat(
@@ -663,8 +680,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     //                            m_log.DebugFormat(
     //                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}", 
     //                                so.Name, so.OwnerID, url);
-                            }, 
-                            null);
+                            },                             
+                            so.OwnerID.ToString());
                     }
                 }
             }

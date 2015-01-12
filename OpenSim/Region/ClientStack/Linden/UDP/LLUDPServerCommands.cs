@@ -186,6 +186,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "debug lludp toggle agentupdate",
                 "Toggle whether agentupdate packets are processed or simply discarded.",
                 HandleAgentUpdateCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp oqre",
+                "debug lludp oqre <start|stop|status>",
+                "Start, stop or get status of OutgoingQueueRefillEngine.",
+                "If stopped then refill requests are processed directly via the threadpool.",
+                HandleOqreCommand);
         }
 
         private void HandleShowServerThrottlesCommand(string module, string[] args)
@@ -757,6 +766,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             MainConsole.Instance.OutputFormat(
                 "Packet debug level for new clients is {0}", m_udpServer.DefaultClientPacketDebugLevel);
+        }
+
+        private void HandleOqreCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+                return;
+
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: debug lludp oqre <stop|start|status>");
+                return;
+            }
+
+            string subCommand = args[3];
+
+            if (subCommand == "stop")
+            {
+                m_udpServer.OqrEngine.Stop();
+                MainConsole.Instance.OutputFormat("Stopped OQRE for {0}", m_udpServer.Scene.Name);
+            }
+            else if (subCommand == "start")
+            {
+                m_udpServer.OqrEngine.Start();
+                MainConsole.Instance.OutputFormat("Started OQRE for {0}", m_udpServer.Scene.Name);
+            }
+            else if (subCommand == "status")
+            {
+                MainConsole.Instance.OutputFormat("OQRE in {0}", m_udpServer.Scene.Name);
+                MainConsole.Instance.OutputFormat("Running: {0}", m_udpServer.OqrEngine.IsRunning);
+                MainConsole.Instance.OutputFormat(
+                    "Requests waiting: {0}", 
+                    m_udpServer.OqrEngine.IsRunning ? m_udpServer.OqrEngine.JobsWaiting.ToString() : "n/a");
+            }
+            else 
+            {
+                MainConsole.Instance.OutputFormat("Unrecognized OQRE subcommand {0}", subCommand);
+            }
         }
     }
 }

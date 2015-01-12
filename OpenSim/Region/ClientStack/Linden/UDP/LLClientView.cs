@@ -724,10 +724,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
 
                     if (pprocessor.InEngine)
-                        m_udpServer.IpahEngine.QueueRequest(
-                            packet.Type.ToString(),
-                            ProcessSpecificPacketAsync, 
-                            obj);
+                        m_udpServer.IpahEngine.QueueJob(packet.Type.ToString(), () => ProcessSpecificPacketAsync(obj));
                     else
                         Util.FireAndForget(ProcessSpecificPacketAsync, obj, packet.Type.ToString());
 

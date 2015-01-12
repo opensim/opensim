@@ -57,7 +57,29 @@ namespace OpenSim.Framework.Monitoring
 
         static WorkManager()
         {
-            JobEngine = new JobEngine();
+            JobEngine = new JobEngine("Non-blocking non-critical job engine", "JOB ENGINE");
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "JobsWaiting",
+                    "Number of jobs waiting for processing.",
+                    "",
+                    "",
+                    "server",
+                    "jobengine",
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = JobEngine.JobsWaiting,
+                    StatVerbosity.Debug));
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug jobengine",
+                "debug jobengine <start|stop|status|log>",
+                "Start, stop, get status or set logging level of the job engine.",
+                "If stopped then all outstanding jobs are processed immediately.",
+                HandleControlCommand);
         }
 
         /// <summary>
@@ -200,13 +222,63 @@ namespace OpenSim.Framework.Monitoring
             }
 
             if (JobEngine.IsRunning)
-                JobEngine.QueueRequest(name, callback, obj);
+                JobEngine.QueueJob(name, () => callback(obj));
             else if (canRunInThisThread)
                 callback(obj);
             else if (mustNotTimeout)
                 RunInThread(callback, obj, name, log);
             else
                 Util.FireAndForget(callback, obj, name);
+        }
+
+        private static void HandleControlCommand(string module, string[] args)
+        {
+            //            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+            //                return;
+
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Usage: debug jobengine <stop|start|status|log>");
+                return;
+            }
+
+            string subCommand = args[2];
+
+            if (subCommand == "stop")
+            {
+                JobEngine.Stop();
+                MainConsole.Instance.OutputFormat("Stopped job engine.");
+            }
+            else if (subCommand == "start")
+            {
+                JobEngine.Start();
+                MainConsole.Instance.OutputFormat("Started job engine.");
+            }
+            else if (subCommand == "status")
+            {
+                MainConsole.Instance.OutputFormat("Job engine running: {0}", JobEngine.IsRunning);
+
+                JobEngine.Job job = JobEngine.CurrentJob;
+                MainConsole.Instance.OutputFormat("Current job {0}", job != null ? job.Name : "none");
+
+                MainConsole.Instance.OutputFormat(
+                    "Jobs waiting: {0}", JobEngine.IsRunning ? JobEngine.JobsWaiting.ToString() : "n/a");
+                MainConsole.Instance.OutputFormat("Log Level: {0}", JobEngine.LogLevel);
+            }
+            else if (subCommand == "log")
+            {
+                //                int logLevel;
+                int logLevel = int.Parse(args[3]);
+                //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
+                //                {                 
+                JobEngine.LogLevel = logLevel;
+                MainConsole.Instance.OutputFormat("Set debug log level to {0}", JobEngine.LogLevel);
+                //                }
+            }
+            else 
+            {
+                MainConsole.Instance.OutputFormat("Unrecognized job engine subcommand {0}", subCommand);
+            }
         }
     }
 }

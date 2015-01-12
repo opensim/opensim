@@ -367,14 +367,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Queue some low priority but potentially high volume async requests so that they don't overwhelm available
         /// threadpool threads.
         /// </summary>
-        public IncomingPacketAsyncHandlingEngine IpahEngine { get; private set; }
+        public JobEngine IpahEngine { get; private set; }
 
         /// <summary>
-        /// Experimental facility to run queue empty processing within a controlled number of threads rather than
-        /// requiring massive numbers of short-lived threads from the threadpool when there are a high number of 
-        /// connections.
+        /// Run queue empty processing within a single persistent thread.
         /// </summary>
-        public OutgoingQueueRefillEngine OqrEngine { get; private set; }
+        /// <remarks>
+        /// This is the alternative to having every
+        /// connection schedule its own job in the threadpool which causes performance problems when there are many
+        /// connections.
+        /// </remarks>
+        public JobEngine OqrEngine { get; private set; }
 
         public LLUDPServer(
             IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port,
@@ -459,9 +462,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (usePools)
                 EnablePools();
-
-            IpahEngine = new IncomingPacketAsyncHandlingEngine(this);
-            OqrEngine = new OutgoingQueueRefillEngine(this);
         }
 
         public void Start()
@@ -633,6 +633,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Scene = (Scene)scene;
             m_location = new Location(Scene.RegionInfo.RegionHandle);
+                        
+            IpahEngine 
+                = new JobEngine(
+                    string.Format("Incoming Packet Async Handling Engine ({0})", Scene.Name), 
+                    "INCOMING PACKET ASYNC HANDLING ENGINE");
+
+            OqrEngine 
+                = new JobEngine(
+                    string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name), 
+                    "OUTGOING QUEUE REFILL ENGINE");
 
             StatsManager.RegisterStat(
                 new Stat(
@@ -713,6 +723,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = GetTotalQueuedOutgoingPackets(),
                     StatVerbosity.Info));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketAsyncRequestsWaiting",
+                    "Number of incoming packets waiting for async processing in engine.",
+                    "",
+                    "",
+                    "clientstack",
+                    Scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = IpahEngine.JobsWaiting,
+                    StatVerbosity.Debug));
+                        
+            StatsManager.RegisterStat(
+                new Stat(
+                    "OQRERequestsWaiting",
+                    "Number of outgong queue refill requests waiting for processing.",
+                    "",
+                    "",
+                    "clientstack",
+                    Scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.None,
+                    stat => stat.Value = OqrEngine.JobsWaiting,
+                    StatVerbosity.Debug));
         
             // We delay enabling pool stats to AddScene() instead of Initialize() so that we can distinguish pool stats by
             // scene name
