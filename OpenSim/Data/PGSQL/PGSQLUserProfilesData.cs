@@ -308,7 +308,7 @@ namespace OpenSim.Data.PGSQL
         {
             string query = string.Empty;
             
-            query += "SELECT \"pickuuid\",\"name\" FROM userpicks WHERE ";
+            query += "SELECT pickuuid, name FROM userpicks WHERE ";
             query += "creatoruuid = :Id";
             OSDArray data = new OSDArray();
             
