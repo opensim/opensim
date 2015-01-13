@@ -1026,11 +1026,11 @@ namespace OpenSim.Data.PGSQL
             string query = string.Empty;
             
             query += "UPDATE userdata SET ";
-            query += "\"TagId\" = :TagId, ";
-            query += "\"DataKey\" = :DataKey, ";
-            query += "\"DataVal\" = :DataVal WHERE ";
-            query += "\"UserId\" = :UserId AND ";
-            query += "\"TagId\" = :TagId";
+            query += "TagId = :TagId, ";
+            query += "DataKey = :DataKey, ";
+            query += "DataVal = :DataVal WHERE ";
+            query += "UserId = :UserId AND ";
+            query += "TagId = :TagId";
             
             try
             {
