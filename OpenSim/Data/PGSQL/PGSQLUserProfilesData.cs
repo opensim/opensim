@@ -940,9 +940,9 @@ namespace OpenSim.Data.PGSQL
                     dbcon.Open();
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
-                        cmd.Parameters.Add(m_database.CreateParameter("ImViaEmail", pref.IMViaEmail.ToString().ToLower ()));
-                        cmd.Parameters.Add(m_database.CreateParameter("Visible", pref.Visible.ToString().ToLower ()));
-                        cmd.Parameters.Add(m_database.CreateParameter("EMail", pref.EMail.ToString().ToLower ()));
+                        cmd.Parameters.Add(m_database.CreateParameter("ImViaEmail", pref.IMViaEmail));
+                        cmd.Parameters.Add(m_database.CreateParameter("Visible", pref.Visible));
+                        cmd.Parameters.Add(m_database.CreateParameter("EMail", pref.EMail.ToString().ToLower()));
                         cmd.Parameters.Add(m_database.CreateParameter("uuid", pref.UserId));
 
                         cmd.ExecuteNonQuery();
