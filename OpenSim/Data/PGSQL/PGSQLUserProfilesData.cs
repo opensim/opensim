@@ -756,12 +756,12 @@ namespace OpenSim.Data.PGSQL
             string query = string.Empty;
             
             query += "UPDATE userprofile SET ";
-            query += "\"profileWantToMask\"=:WantMask, ";
-            query += "\"profileWantToText\"=:WantText,";
-            query += "\"profileSkillsMask\"=:SkillsMask,";
-            query += "\"profileSkillsText\"=:SkillsText, ";
-            query += "\"profileLanguages\"=:Languages ";
-            query += "WHERE \"useruuid\"=:uuid";
+            query += "profileWantToMask=:WantMask, ";
+            query += "profileWantToText=:WantText,";
+            query += "profileSkillsMask=:SkillsMask,";
+            query += "profileSkillsText=:SkillsText, ";
+            query += "profileLanguages=:Languages ";
+            query += "WHERE useruuid=:uuid";
             
             try
             {
