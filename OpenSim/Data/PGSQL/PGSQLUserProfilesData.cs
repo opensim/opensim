@@ -796,7 +796,7 @@ namespace OpenSim.Data.PGSQL
         public OSDArray GetUserImageAssets(UUID avatarId)
         {
             OSDArray data = new OSDArray();
-            string query = "SELECT \"snapshotuuid\" FROM {0} WHERE \"creatoruuid\" = :Id";
+            string query = "SELECT snapshotuuid FROM {0} WHERE creatoruuid = :Id";
 
             try
             {
@@ -804,7 +804,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     dbcon.Open();
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format (query,"\"classifieds\""), dbcon))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format (query, "classifieds"), dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("Id", avatarId));
                         
@@ -823,7 +823,7 @@ namespace OpenSim.Data.PGSQL
                     dbcon.Close();
                     dbcon.Open();
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format (query,"\"userpicks\""), dbcon))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format (query, "userpicks"), dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("Id", avatarId));
                         
@@ -842,9 +842,9 @@ namespace OpenSim.Data.PGSQL
                     dbcon.Close();
                     dbcon.Open();
 
-                    query = "SELECT \"profileImage\", \"profileFirstImage\" FROM \"userprofile\" WHERE \"useruuid\" = :Id";
+                    query = "SELECT profileImage, profileFirstImage FROM userprofile WHERE useruuid = :Id";
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format (query,"\"userpicks\""), dbcon))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format (query, "userpicks"), dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("Id", avatarId));
                         
