@@ -943,7 +943,7 @@ namespace OpenSim.Data.PGSQL
                         cmd.Parameters.Add(m_database.CreateParameter("ImViaEmail", pref.IMViaEmail.ToString().ToLower ()));
                         cmd.Parameters.Add(m_database.CreateParameter("Visible", pref.Visible.ToString().ToLower ()));
                         cmd.Parameters.Add(m_database.CreateParameter("EMail", pref.EMail.ToString().ToLower ()));
-                        cmd.Parameters.Add(m_database.CreateParameter("uuid", pref.UserId.ToString()));
+                        cmd.Parameters.Add(m_database.CreateParameter("uuid", pref.UserId));
 
                         cmd.ExecuteNonQuery();
                     }
