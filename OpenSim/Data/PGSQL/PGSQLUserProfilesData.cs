@@ -904,6 +904,7 @@ namespace OpenSim.Data.PGSQL
                             {
                                 using (NpgsqlCommand put = new NpgsqlCommand(query, dbcon))
                                 {
+                                    put.Parameters.Add(m_database.CreateParameter("Id", pref.UserId));
                                     query = "INSERT INTO usersettings VALUES ";
                                     query += "(:Id,'false','false', '')";
 
