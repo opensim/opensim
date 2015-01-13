@@ -783,7 +783,7 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.Error("[PROFILES_DATA]: AgentInterestsUpdate exception ", e);
+                m_log.Error("[PROFILES_DATA]: UpdateAvatarInterests exception ", e);
                 result = e.Message;
                 return false;
             }
@@ -951,7 +951,7 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.Error("[PROFILES_DATA]: AgentInterestsUpdate exception ", e);
+                m_log.Error("[PROFILES_DATA]: UpdateUserPreferences exception ", e);
                 result = e.Message;
                 return false;
             }
