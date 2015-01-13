@@ -495,7 +495,7 @@ namespace OpenSim.Data.PGSQL
         {  // WIP
             string query = string.Empty;
             
-            query += "SELECT \"notes\" FROM usernotes WHERE ";
+            query += "SELECT notes FROM usernotes WHERE ";
             query += "useruuid = :Id AND ";
             query += "targetuuid = :TargetId";
             OSDArray data = new OSDArray();
