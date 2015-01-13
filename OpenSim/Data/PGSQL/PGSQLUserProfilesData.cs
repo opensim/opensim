@@ -979,7 +979,7 @@ namespace OpenSim.Data.PGSQL
                     using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("Id", props.UserId));
-                        cmd.Parameters.Add(m_database.CreateParameter(":TagId", props.TagId));
+                        cmd.Parameters.Add(m_database.CreateParameter("TagId", props.TagId));
                         
                         using (NpgsqlDataReader reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                         {
