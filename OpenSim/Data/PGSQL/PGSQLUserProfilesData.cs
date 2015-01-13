@@ -968,8 +968,8 @@ namespace OpenSim.Data.PGSQL
             string query = string.Empty;
             
             query += "SELECT * FROM userdata WHERE ";
-            query += "UserId = :Id AND ";
-            query += "TagId = :TagId";
+            query += "\"UserId\" = :Id AND ";
+            query += "\"TagId\" = :TagId";
             
             try
             {
