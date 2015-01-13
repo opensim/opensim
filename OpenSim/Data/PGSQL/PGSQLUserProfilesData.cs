@@ -713,12 +713,12 @@ namespace OpenSim.Data.PGSQL
             string query = string.Empty;
             
             query += "UPDATE userprofile SET ";
-            query += "\"profileURL\"=:profileURL, ";
-            query += "\"profileImage\"=:image, ";
-            query += "\"profileAboutText\"=:abouttext,";
-            query += "\"profileFirstImage\"=:firstlifeimage,";
-            query += "\"profileFirstText\"=:firstlifetext ";
-            query += "WHERE \"useruuid\"=:uuid";
+            query += "profileURL=:profileURL, ";
+            query += "profileImage=:image, ";
+            query += "profileAboutText=:abouttext,";
+            query += "profileFirstImage=:firstlifeimage,";
+            query += "profileFirstText=:firstlifetext ";
+            query += "WHERE useruuid=:uuid";
             
             try
             {
