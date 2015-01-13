@@ -770,8 +770,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             foreach (ScenePresence sp in Scene.GetScenePresences())
             {
-                LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
-                total += udpClient.GetTotalPacketsQueuedCount();
+                // XXX: Need a better way to determine which IClientAPIs have UDPClients (NPCs do not, for instance).
+                if (sp.ControllingClient is LLClientView)
+                {
+                    LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+                    total += udpClient.GetTotalPacketsQueuedCount();
+                }
             }
 
             return total;
