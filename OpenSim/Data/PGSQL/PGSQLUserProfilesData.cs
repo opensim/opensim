@@ -999,7 +999,7 @@ namespace OpenSim.Data.PGSQL
                                 
                                 using (NpgsqlCommand put = new NpgsqlCommand(query, dbcon))
                                 {
-                                    put.Parameters.Add(m_database.CreateParameter("Id", props.UserId));
+                                    put.Parameters.Add(m_database.CreateParameter("UserId", props.UserId));
                                     put.Parameters.Add(m_database.CreateParameter("TagId", props.TagId));
                                     put.Parameters.Add(m_database.CreateParameter("DataKey", props.DataKey.ToString()));
                                     put.Parameters.Add(m_database.CreateParameter("DataVal", props.DataVal.ToString()));

@@ -1022,7 +1022,7 @@ namespace OpenSim.Data.MySQL
                                 
                                 using (MySqlCommand put = new MySqlCommand(query, dbcon))
                                 {
-                                    put.Parameters.AddWithValue("?Id", props.UserId.ToString());
+                                    put.Parameters.AddWithValue("?UserId", props.UserId.ToString());
                                     put.Parameters.AddWithValue("?TagId", props.TagId.ToString());
                                     put.Parameters.AddWithValue("?DataKey", props.DataKey.ToString());
                                     put.Parameters.AddWithValue("?DataVal", props.DataVal.ToString());
