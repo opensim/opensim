@@ -814,7 +814,7 @@ namespace OpenSim.Data.PGSQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"]));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString()));
                                 }
                             }
                         }
@@ -833,7 +833,7 @@ namespace OpenSim.Data.PGSQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"]));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString()));
                                 }
                             }
                         }
@@ -854,8 +854,8 @@ namespace OpenSim.Data.PGSQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["profileImage"]));
-                                    data.Add(new OSDString((string)reader["profileFirstImage"]));
+                                    data.Add(new OSDString(reader["profileImage"].ToString()));
+                                    data.Add(new OSDString(reader["profileFirstImage"].ToString()));
                                 }
                             }
                         }
@@ -864,7 +864,7 @@ namespace OpenSim.Data.PGSQL
             }
             catch (Exception e)
             {
-                m_log.Error("[PROFILES_DATA]: GetAvatarNotes exception ", e);
+                m_log.Error("[PROFILES_DATA]: GetUserImageAssets exception ", e);
             }
 
             return data;
