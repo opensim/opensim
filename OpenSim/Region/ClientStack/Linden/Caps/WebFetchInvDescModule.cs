@@ -94,7 +94,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_fetchInventoryDescendents2Url;
         private string m_webFetchInventoryDescendentsUrl;
 
-        private static WebFetchInvDescHandler m_webFetchHandler;
+        private static FetchInvDescHandler m_webFetchHandler;
 
         private static Thread[] m_workerThreads = null;
 
@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_LibraryService = Scene.LibraryService;
 
             // We'll reuse the same handler for all requests.
-            m_webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
+            m_webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService);
 
             Scene.EventManager.OnRegisterCaps += RegisterCaps;
 

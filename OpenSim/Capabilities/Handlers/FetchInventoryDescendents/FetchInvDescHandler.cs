@@ -42,7 +42,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class WebFetchInvDescHandler 
+    public class FetchInvDescHandler 
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -51,7 +51,7 @@ namespace OpenSim.Capabilities.Handlers
         private ILibraryService m_LibraryService;
 //        private object m_fetchLock = new Object();
 
-        public WebFetchInvDescHandler(IInventoryService invService, ILibraryService libService) 
+        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService) 
         {
             m_InventoryService = invService;
             m_LibraryService = libService;
@@ -211,9 +211,9 @@ namespace OpenSim.Capabilities.Handlers
             UUID agentID, UUID folderID, UUID ownerID,
             bool fetchFolders, bool fetchItems, int sortOrder, out int version, out int descendents)
         {
-//            m_log.DebugFormat(
-//                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
-//                fetchFolders, fetchItems, folderID, agentID);
+            //m_log.DebugFormat(
+            //    "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
+            //    fetchFolders, fetchItems, folderID, agentID);
 
             // FIXME MAYBE: We're not handling sortOrder!
 

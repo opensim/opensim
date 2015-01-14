@@ -35,13 +35,13 @@ using OpenMetaverse;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class WebFetchInvDescServerConnector : ServiceConnector
+    public class FetchInvDescServerConnector : ServiceConnector
     {
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
         private string m_ConfigName = "CapsService";
 
-        public WebFetchInvDescServerConnector(IConfigSource config, IHttpServer server, string configName) :
+        public FetchInvDescServerConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
             if (configName != String.Empty)
@@ -67,13 +67,13 @@ namespace OpenSim.Capabilities.Handlers
             m_LibraryService =
                     ServerUtils.LoadPlugin<ILibraryService>(libService, args);
 
-            WebFetchInvDescHandler webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
+            FetchInvDescHandler webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService);
             IRequestHandler reqHandler
                 = new RestStreamHandler(
                     "POST",
                     "/CAPS/WebFetchInvDesc/" /*+ UUID.Random()*/,
                     webFetchHandler.FetchInventoryDescendentsRequest,
-                    "WebFetchInvDesc",
+                    "FetchInvDescendents",
                     null);
             server.AddStreamHandler(reqHandler);
         }
