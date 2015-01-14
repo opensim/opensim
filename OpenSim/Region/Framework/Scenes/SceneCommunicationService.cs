@@ -109,9 +109,34 @@ namespace OpenSim.Region.Framework.Scenes
             List<GridRegion> neighbours
                 = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
 
-            m_log.DebugFormat("{0} Informing {1} neighbours that region {2} is up", LogHeader, neighbours.Count, m_scene.Name);
+            List<GridRegion> onlineNeighbours = new List<GridRegion>();
 
             foreach (GridRegion n in neighbours)
+            {
+                OpenSim.Framework.RegionFlags? regionFlags = n.RegionFlags;
+
+//                m_log.DebugFormat(
+//                    "{0}: Region flags for {1} as seen by {2} are {3}", 
+//                    LogHeader, n.RegionName, m_scene.Name, regionFlags != null ? regionFlags.ToString() : "not present");
+
+                // Robust services before 2015-01-14 do not return the regionFlags information.  In this case, we could
+                // make a separate RegionFlags call but this would involve a network call for each neighbour.
+                if (regionFlags != null)
+                {
+                    if ((regionFlags & OpenSim.Framework.RegionFlags.RegionOnline) != 0)
+                        onlineNeighbours.Add(n);
+                }
+                else
+                {
+                    onlineNeighbours.Add(n);
+                }
+            }
+
+            m_log.DebugFormat(
+                "{0} Informing {1} neighbours that region {2} is up", 
+                LogHeader, onlineNeighbours.Count, m_scene.Name);
+
+            foreach (GridRegion n in onlineNeighbours)
             {
                 InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
                 d.BeginInvoke(neighbourService, region, n.RegionHandle,
