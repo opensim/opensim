@@ -1440,10 +1440,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_Scripts.Remove(itemID);
             }
 
-
-            instance.ClearQueue();
-
-            instance.Stop(m_WaitForEventCompletionOnScriptStop);
+            instance.Stop(m_WaitForEventCompletionOnScriptStop, true);
 
 //                bool objectRemoved = false;
 
