@@ -98,6 +98,12 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         string State { get; set; }
 
         /// <summary>
+        /// If true then the engine is responsible for persisted state.  If false then some other component may 
+        /// persist state (e.g. attachments persisting in assets).
+        /// </summary>
+        bool StatePersistedHere { get; }
+
+        /// <summary>
         /// Time the script was last started
         /// </summary>
         DateTime TimeStarted { get; }

@@ -718,7 +718,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     //
                     try
                     {
-                        instance.SaveState();
+                        if (instance.StatePersistedHere)
+                            instance.SaveState();
                     }
                     catch (Exception e)
                     {
@@ -830,7 +831,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             lock (m_Scripts)
             {
                 foreach (IScriptInstance instance in m_Scripts.Values)
-                    instances.Add(instance);
+                {
+                    if (instance.StatePersistedHere)
+                    {
+//                        m_log.DebugFormat(
+//                            "[XEngine]: Adding script {0}.{1}, item UUID {2}, prim UUID {3} in {4} for state persistence",
+//                            instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, World.Name);
+
+                        instances.Add(instance);
+                    }
+                }
             }
 
             foreach (IScriptInstance i in instances)
@@ -1457,7 +1467,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            instance.RemoveState();
+            if (instance.StatePersistedHere)
+                instance.RemoveState(); 
+
             instance.DestroyScriptInstance();
 
             m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);

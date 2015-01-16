@@ -58,6 +58,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public bool StatePersistedHere { get { return m_AttachedAvatar == UUID.Zero; } }
+
         /// <summary>
         /// The current work item if an event for this script is running or waiting to run,
         /// </summary>
@@ -76,7 +78,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_CurrentEvent = String.Empty;
         private bool m_InSelfDelete;
         private int m_MaxScriptQueue;
-        private bool m_SaveState = true;
+        private bool m_SaveState;
         private int m_ControlEventsInQueue;
         private int m_LastControlLevel;
         private bool m_CollisionInQueue;
@@ -238,6 +240,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = Part.ParentGroup.AttachedAvatar;
             m_RegionID = Part.ParentGroup.Scene.RegionInfo.RegionID;
+
+            m_SaveState = StatePersistedHere;
+
+//            m_log.DebugFormat(
+//                "[SCRIPT INSTANCE]: Instantiated script instance {0} (id {1}) in part {2} (id {3}) in object {4} attached avatar {5} in {6}",
+//                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, m_AttachedAvatar, Engine.World.Name);
         }
 
         /// <summary>
@@ -339,8 +347,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 return false;
             }
 
-            m_SaveState = true;
-
+            // For attachments, XEngine saves the state into a .state file when XEngine.SetXMLState() is called.           
             string savedState = Path.Combine(m_dataPath, ItemID.ToString() + ".state");
 
             if (File.Exists(savedState))
@@ -389,6 +396,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_SaveState = false;
                             m_startedFromSavedState = true;
                         }
+
+                        // If this script is in an attachment then we no longer need the state file.
+                        if (!StatePersistedHere)
+                            RemoveState();
                     }
 //                    else
 //                    {
@@ -984,7 +995,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                  (int)m_Script.GetStateEventFlags(State));
             if (running)
                 Start();
-            m_SaveState = true;
+
+            m_SaveState = StatePersistedHere;
+
             PostEvent(new EventParams("state_entry",
                     new Object[0], new DetectParams[0]));
         }
@@ -1010,7 +1023,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             if (m_CurrentEvent != "state_entry")
             {
-                m_SaveState = true;
+                m_SaveState = StatePersistedHere;
                 PostEvent(new EventParams("state_entry",
                         new Object[0], new DetectParams[0]));
                 throw new EventAbortException();
@@ -1059,6 +1072,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_SaveState = true;
                 return;
             }
+
+//            m_log.DebugFormat(
+//                "[SCRIPT INSTANCE]: Saving state for script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}",
+//                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name);
 
             PluginData = AsyncCommandManager.GetSerializationData(Engine, ItemID);
 
