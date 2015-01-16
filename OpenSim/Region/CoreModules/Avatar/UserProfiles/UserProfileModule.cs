@@ -1059,7 +1059,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (!GetProfileData(ref props, foreign, out result))
             {
-                m_log.DebugFormat("Error getting profile for {0}: {1}", avatarID, result);
+//                m_log.DebugFormat("Error getting profile for {0}: {1}", avatarID, result);
                 return;
             }
 
@@ -1155,7 +1155,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     }
                     catch (Exception e)
                     {
-                        m_log.Debug(string.Format("Request using the OpenProfile API to {0} failed", serverURI), e);
+                        m_log.Debug(
+                            string.Format(
+                                "[PROFILES]: Request using the OpenProfile API for user {0} to {1} failed", 
+                                properties.UserId, serverURI),
+                            e);
+
                         // Allow the return 'message' to say "JsonRpcRequest" and not "OpenProfile", because
                         // the most likely reason that OpenProfile failed is that the remote server
                         // doesn't support OpenProfile, and that's not very interesting.
@@ -1164,7 +1169,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                 if (!secondChanceSuccess)
                 {
-                    message = string.Format("JsonRpcRequest to {0} failed", serverURI);
+                    message = string.Format("JsonRpcRequest for user {0} to {1} failed", properties.UserId, serverURI);
+                    m_log.DebugFormat("[PROFILES]: {0}", message);
+
                     return false;
                 }
                 // else, continue below
