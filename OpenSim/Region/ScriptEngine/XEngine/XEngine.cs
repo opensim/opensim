@@ -732,8 +732,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     // Clear the event queue and abort the instance thread
                     //
-                    instance.ClearQueue();
-                    instance.Stop(0);
+                    instance.Stop(0, true);
 
                     // Release events, timer, etc
                     //
@@ -858,8 +857,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         , e);
                 }
             }
-
-            instances.Clear();
 
             if (saveTime > 0)
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
@@ -1442,6 +1439,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance = m_Scripts[itemID];
                 m_Scripts.Remove(itemID);
             }
+
 
             instance.ClearQueue();
 

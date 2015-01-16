@@ -564,7 +564,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
         }
 
-        public bool Stop(int timeout)
+        public bool Stop(int timeout, bool clearEventQueue = false)
         {
             if (DebugLevel >= 1)
                 m_log.DebugFormat(
@@ -575,6 +575,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             lock (EventQueue)
             {
+                if (clearEventQueue)
+                    ClearQueue();
+
                 if (!Running)
                     return true;
 
@@ -1065,45 +1068,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SaveState()
         {
-            // If we're currently in an event, just tell it to save upon return
-            //
-            if (m_InEvent)
+            // We need to lock here to avoid any race with a thread that is removing this script.
+            lock (EventQueue)
             {
-                m_SaveState = true;
-                return;
-            }
+                if (!Running)
+                    return;
 
-//            m_log.DebugFormat(
-//                "[SCRIPT INSTANCE]: Saving state for script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}",
-//                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name);
-
-            PluginData = AsyncCommandManager.GetSerializationData(Engine, ItemID);
-
-            string xml = ScriptSerializer.Serialize(this);
-
-            // Compare hash of the state we just just created with the state last written to disk
-            // If the state is different, update the disk file.
-            UUID hash = UUID.Parse(Utils.MD5String(xml));
-
-            if (hash != m_CurrentStateHash)
-            {
-                try
+                // If we're currently in an event, just tell it to save upon return
+                //
+                if (m_InEvent)
                 {
-                    using (FileStream fs = File.Create(Path.Combine(m_dataPath, ItemID.ToString() + ".state")))
+                    m_SaveState = true;
+                    return;
+                }
+
+    //            m_log.DebugFormat(
+    //                "[SCRIPT INSTANCE]: Saving state for script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}",
+    //                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name);
+
+                PluginData = AsyncCommandManager.GetSerializationData(Engine, ItemID);
+
+                string xml = ScriptSerializer.Serialize(this);
+
+                // Compare hash of the state we just just created with the state last written to disk
+                // If the state is different, update the disk file.
+                UUID hash = UUID.Parse(Utils.MD5String(xml));
+
+                if (hash != m_CurrentStateHash)
+                {
+                    try
                     {
-                        Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
-                        fs.Write(buf, 0, buf.Length);
+                        using (FileStream fs = File.Create(Path.Combine(m_dataPath, ItemID.ToString() + ".state")))
+                        {
+                            Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
+                            fs.Write(buf, 0, buf.Length);
+                        }
                     }
+                    catch(Exception)
+                    {
+                        // m_log.Error("Unable to save xml\n"+e.ToString());
+                    }
+                    //if (!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state")))
+                    //{
+                    //    throw new Exception("Completed persistence save, but no file was created");
+                    //}
+                    m_CurrentStateHash = hash;
                 }
-                catch(Exception)
-                {
-                    // m_log.Error("Unable to save xml\n"+e.ToString());
-                }
-                //if (!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state")))
-                //{
-                //    throw new Exception("Completed persistence save, but no file was created");
-                //}
-                m_CurrentStateHash = hash;
             }
         }
 
