@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             catch (Exception ex)
             {
-                m_log.Warn(string.Format("[POLL SERVICE WORKER THREAD]: Error ", ex));
+                m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", ex);
             }
             finally
             {
@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn(String.Format("[POLL SERVICE WORKER THREAD]: Error ", e));
+                    m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", e);
                 }
 
                 PollServiceArgs.RequestsHandled++;
