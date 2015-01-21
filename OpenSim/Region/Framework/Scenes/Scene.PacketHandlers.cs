@@ -487,7 +487,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         void SendInventoryAsync(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
         {
-            SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
+            try
+            {
+                SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
+            }
+            catch (Exception e)
+            {
+                m_log.Error(
+                    string.Format(
+                        "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e));
+            }
         }
 
         void SendInventoryComplete(IAsyncResult iar)
