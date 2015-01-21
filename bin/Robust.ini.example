@@ -89,8 +89,8 @@
     ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
     ; UserProfilesServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
-	;; Uncomment if you want to have centralized estate data
-	; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
+    ;; Uncomment if you want to have centralized estate data
+    ; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -394,20 +394,20 @@
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
 
-	;; Regular expressions for controlling which client versions are accepted/denied.
-	;; An empty string means nothing is checked.
-	;;
-	;; Example 1: allow only these 3 types of clients (any version of them)
-	;; AllowedClients = "Imprudence|Hippo|Second Life"
-	;;
-	;; Example 2: allow all clients except these
-	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
-	;;
-	;; Note that these are regular expressions, so every character counts.
-	;; Also note that this is very weak security and should not be trusted as a reliable means
-	;; for keeping bad clients out; modified clients can fake their identifiers.
-	;;
-	;;
+    ;; Regular expressions for controlling which client versions are accepted/denied.
+    ;; An empty string means nothing is checked.
+    ;;
+    ;; Example 1: allow only these 3 types of clients (any version of them)
+    ;; AllowedClients = "Imprudence|Hippo|Second Life"
+    ;;
+    ;; Example 2: allow all clients except these
+    ;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+    ;;
+    ;; Note that these are regular expressions, so every character counts.
+    ;; Also note that this is very weak security and should not be trusted as a reliable means
+    ;; for keeping bad clients out; modified clients can fake their identifiers.
+    ;;
+    ;;
     ;AllowedClients = ""
     ;DeniedClients = ""
 
@@ -453,13 +453,14 @@
 
 [MapImageService]
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"
-	; Set this if you want to change the default
-	; TilesStoragePath = "maptiles"
-	;
-	; If for some reason you have the AddMapTile service outside the firewall (e.g. ${Const|PublicPort}),
-	; you may want to set this. Otherwise, don't set it, because it's already protected.
-	; GridService = "OpenSim.Services.GridService.dll:GridService"
-	;
+
+    ; Set this if you want to change the default
+    ; TilesStoragePath = "maptiles"
+    ;
+    ; If for some reason you have the AddMapTile service outside the firewall (e.g. ${Const|PublicPort}),
+    ; you may want to set this. Otherwise, don't set it, because it's already protected.
+    ; GridService = "OpenSim.Services.GridService.dll:GridService"
+    ;
     ; Additionally, if you run this server behind a proxy, set this to true
     ; HasProxy = false
 
