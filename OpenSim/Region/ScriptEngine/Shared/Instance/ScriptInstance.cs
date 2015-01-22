@@ -1043,6 +1043,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SetVars(Dictionary<string, object> vars)
         {
+//            foreach (KeyValuePair<string, object> kvp in vars)
+//                m_log.DebugFormat("[SCRIPT INSTANCE]: Setting var {0}={1}", kvp.Key, kvp.Value);
+
             m_Script.SetVars(vars);
         }
 

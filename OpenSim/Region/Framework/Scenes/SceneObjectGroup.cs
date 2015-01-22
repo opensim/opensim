@@ -911,28 +911,36 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void LoadScriptState(XmlReader reader)
         {
-//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Looking for script state for {0} in {1}", Name);
+//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Looking for script state for {0}", Name);
 
-            while (reader.ReadToFollowing("SavedScriptState"))
+            while (true)
             {
-//                m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
-
-                if (m_savedScriptState == null)
-                    m_savedScriptState = new Dictionary<UUID, string>();
-
-                string uuid = reader.GetAttribute("UUID");
-
-                if (uuid != null)
+                if (reader.Name == "SavedScriptState" && reader.NodeType == XmlNodeType.Element)
                 {
-//                    m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
+//                    m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
 
-                    UUID itemid = new UUID(uuid);
-                    if (itemid != UUID.Zero)
-                        m_savedScriptState[itemid] = reader.ReadInnerXml();
+                    if (m_savedScriptState == null)
+                        m_savedScriptState = new Dictionary<UUID, string>();
+
+                    string uuid = reader.GetAttribute("UUID");
+
+                    if (uuid != null)
+                    {
+//                        m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
+
+                        UUID itemid = new UUID(uuid);
+                        if (itemid != UUID.Zero)
+                            m_savedScriptState[itemid] = reader.ReadInnerXml();
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[SCENE OBJECT GROUP]: SavedScriptState element had no UUID in object {0}", Name);
+                    }
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENE OBJECT GROUP]: SavedScriptState element had no UUID in object {0}", Name);
+                    if (!reader.Read())
+                        break;
                 }
             }
         }

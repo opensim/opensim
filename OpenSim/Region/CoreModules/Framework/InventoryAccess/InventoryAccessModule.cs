@@ -297,6 +297,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (item != null && item.Owner == ownerID && asset != null)
             {
+//                m_log.DebugFormat(
+//                    "[INVENTORY ACCESS MODULE]: Updating item {0} {1} with new asset {2}", 
+//                    item.Name, item.ID, asset.ID);
+
                 item.AssetID = asset.FullID;
                 item.Description = asset.Description;
                 item.Name = asset.Name;
@@ -314,7 +318,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     (item == null || asset == null? "null item or asset" : "wrong owner"));
                 return false;
             }
-
         }
 
         public virtual List<InventoryItemBase> CopyToInventory(
