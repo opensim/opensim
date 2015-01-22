@@ -235,7 +235,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod, UUID agentID)
         {
-            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+//            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
 
             OSDMap copy = DeepCopy();
 

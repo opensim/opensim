@@ -119,8 +119,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public readonly uint CircuitCode;
         /// <summary>Sequence numbers of packets we've received (for duplicate checking)</summary>
         public readonly IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(200);
+
+        /// <summary>
+        /// If true then we take action in response to unacked reliably sent packets such as resending the packet.
+        /// </summary>
+        public bool ProcessUnackedSends { get; set; }
+
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
         public readonly UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
+
         /// <summary>ACKs that are queued up, waiting to be sent to the client</summary>
         public readonly OpenSim.Framework.LocklessQueue<uint> PendingAcks = new OpenSim.Framework.LocklessQueue<uint>();
 
@@ -224,6 +231,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_defaultRTO = defaultRTO;
             if (maxRTO != 0)
                 m_maxRTO = maxRTO;
+
+            ProcessUnackedSends = true;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
             m_throttleClient 

@@ -1137,7 +1137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Utils.UIntToBytesBig(sequenceNumber, buffer.Data, 1);
                 outgoingPacket.SequenceNumber = sequenceNumber;
 
-                if (isReliable)
+                if (udpClient.ProcessUnackedSends && isReliable)
                 {
                     // Add this packet to the list of ACK responses we are waiting on from the server
                     udpClient.NeedAcks.Add(outgoingPacket);
@@ -1325,30 +1325,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region ACK Receiving
 
-            // Handle appended ACKs
-            if (packet.Header.AppendedAcks && packet.Header.AckList != null)
+            if (udpClient.ProcessUnackedSends)
             {
-//                m_log.DebugFormat(
-//                    "[LLUDPSERVER]: Handling {0} appended acks from {1} in {2}",
-//                    packet.Header.AckList.Length, client.Name, m_scene.Name);
+                // Handle appended ACKs
+                if (packet.Header.AppendedAcks && packet.Header.AckList != null)
+                {
+    //                m_log.DebugFormat(
+    //                    "[LLUDPSERVER]: Handling {0} appended acks from {1} in {2}",
+    //                    packet.Header.AckList.Length, client.Name, m_scene.Name);
 
-                for (int i = 0; i < packet.Header.AckList.Length; i++)
-                    udpClient.NeedAcks.Acknowledge(packet.Header.AckList[i], now, packet.Header.Resent);
+                    for (int i = 0; i < packet.Header.AckList.Length; i++)
+                        udpClient.NeedAcks.Acknowledge(packet.Header.AckList[i], now, packet.Header.Resent);
+                }
+
+                // Handle PacketAck packets
+                if (packet.Type == PacketType.PacketAck)
+                {
+                    PacketAckPacket ackPacket = (PacketAckPacket)packet;
+
+    //                m_log.DebugFormat(
+    //                    "[LLUDPSERVER]: Handling {0} packet acks for {1} in {2}",
+    //                    ackPacket.Packets.Length, client.Name, m_scene.Name);
+
+                    for (int i = 0; i < ackPacket.Packets.Length; i++)
+                        udpClient.NeedAcks.Acknowledge(ackPacket.Packets[i].ID, now, packet.Header.Resent);
+
+                    // We don't need to do anything else with PacketAck packets
+                    return;
+                }
             }
-
-            // Handle PacketAck packets
-            if (packet.Type == PacketType.PacketAck)
+            else if (packet.Type == PacketType.PacketAck)
             {
-                PacketAckPacket ackPacket = (PacketAckPacket)packet;
-
-//                m_log.DebugFormat(
-//                    "[LLUDPSERVER]: Handling {0} packet acks for {1} in {2}",
-//                    ackPacket.Packets.Length, client.Name, m_scene.Name);
-
-                for (int i = 0; i < ackPacket.Packets.Length; i++)
-                    udpClient.NeedAcks.Acknowledge(ackPacket.Packets[i].ID, now, packet.Header.Resent);
-
-                // We don't need to do anything else with PacketAck packets
                 return;
             }
 
@@ -2011,7 +2018,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (udpClient.IsConnected)
                     {
-                        if (m_resendUnacked)
+                        if (udpClient.ProcessUnackedSends && m_resendUnacked)
                             HandleUnacked(llClient);
 
                         if (m_sendAcks)

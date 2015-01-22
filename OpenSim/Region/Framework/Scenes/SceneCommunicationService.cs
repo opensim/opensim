@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes
     public class SceneCommunicationService //one instance per region
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[SCENE COMMUNIATION SERVICE]";
+        private static string LogHeader = "[SCENE COMMUNICATION SERVICE]";
 
         protected RegionInfo m_regionInfo;
         protected Scene m_scene;

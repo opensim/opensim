@@ -195,6 +195,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Start, stop or get status of OutgoingQueueRefillEngine.",
                 "If stopped then refill requests are processed directly via the threadpool.",
                 HandleOqreCommand);
+
+            m_console.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp client get",
+                "debug lludp client get [<avatar-first-name> <avatar-last-name>]",
+                "Get debug parameters for the client.  If no name is given then all client information is returned.",
+                "process-unacked-sends - Do we take action if a sent reliable packet has not been acked.",
+                HandleClientGetCommand);
+
+            m_console.Commands.AddCommand(
+                "Debug", 
+                false, 
+                "debug lludp client set",
+                "debug lludp client set <param> <value> [<avatar-first-name> <avatar-last-name>]",
+                "Set a debug parameter for a particular client.  If no name is given then the value is set on all clients.",
+                "process-unacked-sends - Do we take action if a sent reliable packet has not been acked.",
+                HandleClientSetCommand);
         }
 
         private void HandleShowServerThrottlesCommand(string module, string[] args)
@@ -536,6 +554,81 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             m_console.OutputFormat("{0} set to {1} in {2}", param, rawValue, m_udpServer.Scene.Name);
+        }
+
+        private void HandleClientGetCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+                return;
+
+            if (args.Length != 4 && args.Length != 6)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp client get [<avatar-first-name> <avatar-last-name>]");
+                return;
+            }
+
+            string name = null;
+
+            if (args.Length == 6)
+                name = string.Format("{0} {1}", args[4], args[5]);
+
+            m_udpServer.Scene.ForEachScenePresence(
+                sp =>
+                {
+                    if ((name == null || sp.Name == name) && sp.ControllingClient is LLClientView)
+                    {
+                        LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+
+                        m_console.OutputFormat(
+                            "Client debug parameters for {0} ({1}) in {2}",
+                            sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
+
+                        ConsoleDisplayList cdl = new ConsoleDisplayList();
+                        cdl.AddRow("process-unacked-sends", udpClient.ProcessUnackedSends);
+
+                        m_console.Output(cdl.ToString());
+                    }
+                });
+        }
+
+        private void HandleClientSetCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
+                return;
+
+            if (args.Length != 6 && args.Length != 8)
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug lludp client set <param> <value> [<avatar-first-name> <avatar-last-name>]");
+                return;
+            }        
+
+            string param = args[4];
+            string rawValue = args[5];
+
+            string name = null;
+
+            if (args.Length == 8)
+                name = string.Format("{0} {1}", args[6], args[7]);
+
+            if (param == "process-unacked-sends")
+            {
+                bool newValue;
+
+                if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newValue))
+                    return;
+
+                m_udpServer.Scene.ForEachScenePresence(
+                    sp =>
+                    {
+                        if ((name == null || sp.Name == name) && sp.ControllingClient is LLClientView)
+                        {
+                            LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
+                            udpClient.ProcessUnackedSends = newValue;
+
+                            m_console.OutputFormat("{0} set to {1} for {2} in {3}", param, newValue, sp.Name, m_udpServer.Scene.Name);
+                        }
+                    });
+            }
         }
 
         private void HandlePacketCommand(string module, string[] args)

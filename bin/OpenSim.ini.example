@@ -101,10 +101,10 @@
     ; be stored here. The OpenSim.exe process must have R/W access to the location.
     ; RegistryLocation = "."
 
-	;# {ConfigDirectory} {} {Set path to directory for modular ini files} {}
+    ;# {ConfigDirectory} {} {Set path to directory for modular ini files} {}
     ; Used by region module addins. You can set this to outside bin, so that addin
-	; configurations will survive updates. The OpenSim.exe process must have R/W access 
-	; to the location.
+    ; configurations will survive updates. The OpenSim.exe process must have R/W access 
+    ; to the location.
     ; ConfigDirectory = "."
 
     ;# {region_info_source} {} {Where to load region from?} {filesystem web} filesystem
@@ -164,7 +164,7 @@
     ;; physical prim max, clamp the dimensions to the appropriate maximum
     ;; This can be overridden in the region config file.
     ; ClampPrimSize = false
-	
+
     ;# {LinksetPrims} {} {Max prims an object will hold?} {} 0
     ;; Maximum number of prims allowable in a linkset. Affects creating new
     ;; linksets. Ignored if less than or equal to zero.
@@ -406,9 +406,9 @@
 
 [Estates]
     ; If these values are commented out then the user will be asked for estate details when required (this is the normal case).
-  	; If these values are uncommented then they will be used to create a default estate as necessary.
+    ; If these values are uncommented then they will be used to create a default estate as necessary.
     ; New regions will be automatically assigned to that default estate.
-	
+
     ;# {DefaultEstateName} {} {Default name for estate?} {} My Estate
     ;; Name for the default estate
     ; DefaultEstateName = My Estate
@@ -418,7 +418,7 @@
     ; DefaultEstateOwnerName = FirstName LastName
 
 
-    ; ** Standalone Estate Settings **	
+    ; ** Standalone Estate Settings **
     ; The following parameters will only be used on a standalone system to 
     ; create an estate owner that does not already exist
 
@@ -506,15 +506,15 @@
     ;; web server
     ; user_agent = "OpenSim LSL (Mozilla Compatible)"
 
-	;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
-	;; Use this if your central services in port 8003 need to be accessible on the Internet
-	;; but you want to protect them from unauthorized access. The username and password
-	;; here need to match the ones in the Robust service configuration.
+    ;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
+    ;; Use this if your central services in port 8003 need to be accessible on the Internet
+    ;; but you want to protect them from unauthorized access. The username and password
+    ;; here need to match the ones in the Robust service configuration.
     ; AuthType = "BasicHttpAuthentication"
     ; HttpAuthUsername = "some_username"
     ; HttpAuthPassword = "some_password"
-	;;
-	;; Any of these 3 variables above can be overriden in any of the service sections.
+    ;;
+    ;; Any of these 3 variables above can be overriden in any of the service sections.
 
 
 [XMLRPC]
@@ -794,14 +794,14 @@
     ;; the data snapshots.
     ; snapshot_cache_directory = "DataSnapshot"
 
-	;; [Supported, but obsolete]
+    ;; [Supported, but obsolete]
     ;# {data_services} {index_sims:true} {Data service URLs to register with?} {} http://metaverseink.com/cgi-bin/register.py
     ; This semicolon-separated string serves to notify specific data services
     ; about the existence of this sim. Uncomment if you want to index your
     ; data with this and/or other search providers.
     ; data_services="http://metaverseink.com/cgi-bin/register.py"
 
-	;; New way of specifying data services, one per service
+    ;; New way of specifying data services, one per service
     ;DATA_SRV_MISearch = "http://metaverseink.com/cgi-bin/register.py"
 
 [Economy]

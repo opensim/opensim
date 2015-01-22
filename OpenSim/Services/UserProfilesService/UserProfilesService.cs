@@ -196,6 +196,9 @@ namespace OpenSim.Services.ProfilesService
 
         public bool UserPreferencesRequest(ref UserPreferences pref, ref string result)
         {
+            if (!ProfilesData.GetUserPreferences(ref pref, ref result))
+                return false;
+
             if(string.IsNullOrEmpty(pref.EMail))
             {
                 UserAccount account = new UserAccount();
@@ -228,9 +231,6 @@ namespace OpenSim.Services.ProfilesService
                     return false;
                 }
             }
-            if (!ProfilesData.GetUserPreferences (ref pref, ref result))
-                return false;
-
 
             if(string.IsNullOrEmpty(pref.EMail))
                 pref.EMail = "No Email Address On Record";

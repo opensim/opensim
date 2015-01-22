@@ -43,7 +43,7 @@ namespace pCampBot
     /// </summary>
     public class PhysicsBehaviour2 : AbstractBehaviour
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PhysicsBehaviour2() 
         { 

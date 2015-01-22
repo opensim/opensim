@@ -84,16 +84,16 @@ namespace OpenSim.Services.Connectors
         {
             if (String.IsNullOrEmpty(m_ServerURI))
             {
-                m_log.WarnFormat("[HELO SERVICE]: Unable to invoke HELO due to malformed URL");
+                m_log.WarnFormat("[HELO SERVICE]: Unable to invoke HELO due to empty URL");
                 return String.Empty;
             }
 
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
-            // Eventually we need to switch to HEAD
-            /* req.Method = "HEAD"; */
-
             try
             {
+                HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
+                // Eventually we need to switch to HEAD
+                /* req.Method = "HEAD"; */
+
                 using (WebResponse response = req.GetResponse())
                 {
                     if (response.Headers.Get("X-Handlers-Provided") == null) // just in case this ever returns a null
