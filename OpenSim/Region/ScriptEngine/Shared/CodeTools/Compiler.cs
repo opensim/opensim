@@ -469,7 +469,11 @@ namespace SecondLife
             scriptCompileCounter++;
             try
             {
-                File.Delete(assembly);
+                if (File.Exists(assembly))
+                {
+                    File.SetAttributes(assembly, FileAttributes.Normal);
+                    File.Delete(assembly);
+                }
             }
             catch (Exception e) // NOTLEGIT - Should be just FileIOException
             {
