@@ -782,7 +782,7 @@ public class BSShapeHull : BSShape
 
             if (meshShape.physShapeInfo.HasPhysicalShape)
             {
-                HACDParams parms;
+                HACDParams parms = new HACDParams();
                 parms.maxVerticesPerHull = BSParam.BHullMaxVerticesPerHull;
                 parms.minClusters = BSParam.BHullMinClusters;
                 parms.compacityWeight = BSParam.BHullCompacityWeight;
@@ -792,6 +792,7 @@ public class BSShapeHull : BSShape
                 parms.addNeighboursDistPoints = BSParam.NumericBool(BSParam.BHullAddNeighboursDistPoints);
                 parms.addFacesPoints = BSParam.NumericBool(BSParam.BHullAddFacesPoints);
                 parms.shouldAdjustCollisionMargin = BSParam.NumericBool(BSParam.BHullShouldAdjustCollisionMargin);
+                parms.whichHACD = 0;    // Use the HACD routine that comes with Bullet
 
                 physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
                 newShape = physicsScene.PE.BuildHullShapeFromMesh(physicsScene.World, meshShape.physShapeInfo, parms);

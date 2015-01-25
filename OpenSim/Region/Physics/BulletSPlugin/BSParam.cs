@@ -183,6 +183,7 @@ public static class BSParam
     public static bool VehicleEnableAngularBanking { get; private set; }
 
     // Convex Hulls
+    // Parameters for convex hull routine that ships with Bullet
     public static int CSHullMaxDepthSplit { get; private set; }
     public static int CSHullMaxDepthSplitForSimpleShapes { get; private set; }
     public static float CSHullConcavityThresholdPercent { get; private set; }
@@ -198,6 +199,22 @@ public static class BSParam
 	public static bool BHullAddNeighboursDistPoints { get; private set; }	// false
 	public static bool BHullAddFacesPoints { get; private set; }			// false
 	public static bool BHullShouldAdjustCollisionMargin { get; private set; }	// false
+	public static float WhichHACD { get; private set; }				    // zero if Bullet HACD, non-zero says VHACD
+    // Parameters for VHACD 2.0: http://code.google.com/p/v-hacd
+    // To enable, set both ShouldUseBulletHACD=true and WhichHACD=1
+	// http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
+	public static float VHACDresolution { get; private set; }			// 100,000 max number of voxels generated during voxelization stage
+	public static float VHACDdepth { get; private set; }				// 20 max number of clipping stages
+	public static float VHACDconcavity { get; private set; }			// 0.0025 maximum concavity
+	public static float VHACDplaneDownsampling { get; private set; }	// 4 granularity of search for best clipping plane
+	public static float VHACDconvexHullDownsampling { get; private set; }	// 4 precision of hull gen process
+	public static float VHACDalpha { get; private set; }				// 0.05 bias toward clipping along symmetry planes
+	public static float VHACDbeta { get; private set; }				    // 0.05 bias toward clipping along revolution axis
+	public static float VHACDgamma { get; private set; }				// 0.00125 max concavity when merging
+	public static float VHACDpca { get; private set; }					// 0 on/off normalizing mesh before decomp
+	public static float VHACDmode { get; private set; }				    // 0 0:voxel based, 1: tetrahedron based
+	public static float VHACDmaxNumVerticesPerCH { get; private set; }	// 64 max triangles per convex hull
+	public static float VHACDminVolumePerCH { get; private set; }		// 0.0001 sampling of generated convex hulls
 
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
@@ -748,6 +765,33 @@ public static class BSParam
             true ),
 	    new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
             false ),
+
+	    new ParameterDefn<float>("WhichHACD", "zero if Bullet HACD, non-zero says VHACD",
+            0f ),
+	    new ParameterDefn<float>("VHACDresolution", "max number of voxels generated during voxelization stage",
+            100000f ),
+	    new ParameterDefn<float>("VHACDdepth", "max number of clipping stages",
+            20f ),
+	    new ParameterDefn<float>("VHACDconcavity", "maximum concavity",
+            0.0025f ),
+	    new ParameterDefn<float>("VHACDplaneDownsampling", "granularity of search for best clipping plane",
+            4f ),
+	    new ParameterDefn<float>("VHACDconvexHullDownsampling", "precision of hull gen process",
+            4f ),
+	    new ParameterDefn<float>("VHACDalpha", "bias toward clipping along symmetry planes",
+            0.05f ),
+	    new ParameterDefn<float>("VHACDbeta", "bias toward clipping along revolution axis",
+            0.05f ),
+	    new ParameterDefn<float>("VHACDgamma", "max concavity when merging",
+            0.00125f ),
+	    new ParameterDefn<float>("VHACDpca", "on/off normalizing mesh before decomp",
+            0f ),
+	    new ParameterDefn<float>("VHACDmode", "0:voxel based, 1: tetrahedron based",
+            0f ),
+	    new ParameterDefn<float>("VHACDmaxNumVerticesPerCH", "max triangles per convex hull",
+            64f ),
+	    new ParameterDefn<float>("VHACDminVolumePerCH",	"sampling of generated convex hulls",
+            0.0001f ),
 
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound ),
