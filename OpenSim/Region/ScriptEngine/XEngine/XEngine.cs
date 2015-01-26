@@ -1327,22 +1327,116 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                     m_DomainScripts[appDomain].Add(itemID);
 
-                    Assembly scriptAssembly = m_AppDomains[appDomain].Load(Path.GetFileNameWithoutExtension(assemblyPath));
+                    IScript scriptObj = null;
                     bool recompile = false;
+                    bool abortAfterRecompile = false;
+                    EventWaitHandle coopSleepHandle = null;
+                    bool coopTerminationForThisScript;
+                    string typeName;
+
+                    // Set up assembly name to point to the appropriate scriptEngines directory
+                    AssemblyName assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(assemblyPath));
+                    assemblyName.CodeBase = Path.GetDirectoryName(assemblyPath);
 
                     if (m_coopTermination)
                     {
-                        Type scriptType = scriptAssembly.GetType("SecondLife.XEngineScript");
+                        try
+                        {
+                            coopSleepHandle = new XEngineEventWaitHandle(false, EventResetMode.AutoReset);
 
-                        if (scriptType == null)
+                            scriptObj 
+                                = (IScript)m_AppDomains[appDomain].CreateInstanceAndUnwrap(
+                                    assemblyName.FullName,
+                                    "SecondLife.XEngineScript",
+                                    false,
+                                    BindingFlags.Default,
+                                    null,
+                                    new object[] { coopSleepHandle }, 
+                                    null,
+                                    null);
+
+                            coopTerminationForThisScript = true;
+                        }
+                        catch (TypeLoadException e)
+                        {
+                            coopSleepHandle = null;
+
+                            try
+                            {
+                                scriptObj 
+                                    = (IScript)m_AppDomains[appDomain].CreateInstanceAndUnwrap(
+                                        assemblyName.FullName,
+                                        "SecondLife.Script",
+                                        false,
+                                        BindingFlags.Default,
+                                        null,
+                                        null,
+                                        null,
+                                        null);
+                            }
+                            catch (Exception e2)
+                            {
+                                m_log.Error(
+                                    string.Format(
+                                    "[XENGINE]: Could not load previous SecondLife.Script from assembly {0} in {1}.  Recompiling then aborting.  Exception  ", 
+                                    assemblyName.FullName, World.Name),
+                                    e2);
+
+                                abortAfterRecompile = true;
+                            }
+
+                            coopTerminationForThisScript = false;
                             recompile = true;
+                        }
                     }
                     else
                     {
-                        Type scriptType = scriptAssembly.GetType("SecondLife.Script");
+                        try
+                        {
+                            scriptObj 
+                                = (IScript)m_AppDomains[appDomain].CreateInstanceAndUnwrap(
+                                    assemblyName.FullName,
+                                    "SecondLife.Script",
+                                    false,
+                                    BindingFlags.Default,
+                                    null,
+                                    null,
+                                    null,
+                                    null);
 
-                        if (scriptType == null)
+                            coopTerminationForThisScript = false;
+                        }
+                        catch (TypeLoadException e)
+                        {
+                            coopSleepHandle = new XEngineEventWaitHandle(false, EventResetMode.AutoReset);
+
+                            try
+                            {
+                                scriptObj 
+                                    = (IScript)m_AppDomains[appDomain].CreateInstanceAndUnwrap(
+                                        assemblyName.FullName,
+                                        "SecondLife.XEngineScript",
+                                        false,
+                                        BindingFlags.Default,
+                                        null,
+                                        new object[] { new XEngineEventWaitHandle(false, EventResetMode.AutoReset) },
+                                        null,
+                                        null);
+                            }
+                            catch (Exception e2)
+                            {
+                                m_log.Error(
+                                    string.Format(
+                                        "[XENGINE]: Could not load previous SecondLife.XEngineScript from assembly {0} in {1}.  Recompiling then aborting.  Exception  ", 
+                                        assemblyName.FullName, World.Name),
+                                    e2);
+
+                                abortAfterRecompile = true;
+                            }
+
+                            coopTerminationForThisScript = true;
                             recompile = true;
+                        }
                     }
 
                     // If we are loading all scripts into the same AppDomain, then we can't reload the DLL in this
@@ -1351,12 +1445,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     if (recompile)
                     {
                         m_log.DebugFormat(
-                            "[XEngine]: Recompiling script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5} to switch it to {6} termination.  Will be active on next restart.",
+                            "[XEngine]: Recompiling script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5} to switch it to {6} termination.  New termination will be active on next restart.",
                             part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
                             part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.Name, 
                             m_coopTermination ? "co-op" : "abort");
 
                         m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, true, out assemblyPath, out linemap);
+
+                        if (abortAfterRecompile)
+                            return false;
                     }
 
                     instance = new ScriptInstance(this, part,
@@ -1364,10 +1461,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                   startParam, postOnRez,
                                                   m_MaxScriptQueue);
 
-                    if (!instance.Load(
-                        m_AppDomains[appDomain], scriptAssembly, 
-                        Path.Combine(ScriptEnginePath, World.RegionInfo.RegionID.ToString()), stateSource))
-                        return false;
+                    if (
+                        !instance.Load(
+                            scriptObj, coopSleepHandle, assemblyPath,
+                            Path.Combine(ScriptEnginePath, World.RegionInfo.RegionID.ToString()), stateSource, coopTerminationForThisScript))
+                            return false;
 
 //                    if (DebugLevel >= 1)
 //                    m_log.DebugFormat(

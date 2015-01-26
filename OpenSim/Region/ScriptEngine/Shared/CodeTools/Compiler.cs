@@ -291,7 +291,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             string source, string asset, UUID ownerUUID, bool alwaysRecompile,
             out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
-//            m_log.DebugFormat("[Compiler]: Compiling script\n{0}", Script);
+//            m_log.DebugFormat("[Compiler]: Checking script for asset {0} in {1}\n{2}", asset, m_scriptEngine.World.Name, source);
 
             IScriptModuleComms comms = m_scriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
 
@@ -300,12 +300,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             assembly = GetCompilerOutput(asset);
 
+//            m_log.DebugFormat("[Compiler]: Retrieved assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
+
             CheckOrCreateScriptsDirectory();
 
             // Don't recompile if we're not forced to and we already have it
             // Performing 3 file exists tests for every script can still be slow
             if (!alwaysRecompile && File.Exists(assembly) && File.Exists(assembly + ".text") && File.Exists(assembly + ".map"))
             {
+//                m_log.DebugFormat("[Compiler]: Found existing assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
+
                 // If we have already read this linemap file, then it will be in our dictionary. 
                 // Don't build another copy of the dictionary (saves memory) and certainly
                 // don't keep reading the same file from disk multiple times. 
@@ -314,6 +318,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 linemap = m_lineMaps[assembly];
                 return;
             }
+
+//            m_log.DebugFormat("[Compiler]: Compiling assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
 
             if (source == String.Empty)
                 throw new Exception("Cannot find script assembly and no script text present");

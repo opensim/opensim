@@ -259,65 +259,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// </param>
         /// <param name='stateSource'></param>
         /// <returns>false if load failed, true if suceeded</returns>
-        public bool Load(AppDomain dom, Assembly scriptAssembly, string dataPath, StateSource stateSource)
+        public bool Load(
+            IScript script, EventWaitHandle coopSleepHandle, string assemblyPath, 
+            string dataPath, StateSource stateSource, bool coopTermination)
         {
-            m_assemblyPath = scriptAssembly.Location;
+            m_Script = script;
+            m_coopSleepHandle = coopSleepHandle;
+            m_assemblyPath = assemblyPath;
             m_dataPath = dataPath;
             m_stateSource = stateSource;
-    
-            try
-            {
-                object[] constructorParams;
-                Type scriptType = scriptAssembly.GetType("SecondLife.XEngineScript");
-
-                if (scriptType != null)
-                {
-                    m_coopTermination = true;
-                    m_coopSleepHandle = new XEngineEventWaitHandle(false, EventResetMode.AutoReset);
-                    constructorParams = new object[] { m_coopSleepHandle };
-                }
-                else
-                {
-                    m_coopTermination = false;
-                    scriptType = scriptAssembly.GetType("SecondLife.Script");
-                    constructorParams = null;
-                }
-
-                if (dom != System.AppDomain.CurrentDomain)
-                    m_Script 
-                        = (IScript)dom.CreateInstanceAndUnwrap(
-                            Path.GetFileNameWithoutExtension(m_assemblyPath),
-                            scriptType.FullName,
-                            false,
-                            BindingFlags.Default,
-                            null,
-                            constructorParams,
-                            null,
-                            null,
-                            null);
-                else
-                    m_Script 
-                        = (IScript)scriptAssembly.CreateInstance(
-                            scriptType.FullName, 
-                            false, 
-                            BindingFlags.Default, 
-                            null, 
-                            constructorParams, 
-                            null, 
-                            null);
-
-                //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-                //RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-//                lease.Register(this);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Error loading assembly {6}.  Exception {7}{8}",
-                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, scriptAssembly.Location, e.Message, e.StackTrace);
-
-                return false;
-            }
+            m_coopTermination = coopTermination;
 
             ApiManager am = new ApiManager();
 
@@ -334,7 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     m_Script.InitApi(kv.Key, kv.Value);
                 }
 
-//                // m_log.Debug("[Script] Script instance created");
+                //                // m_log.Debug("[Script] Script instance created");
 
                 Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
             }
@@ -352,9 +303,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             if (File.Exists(savedState))
             {
-//                m_log.DebugFormat(
-//                    "[SCRIPT INSTANCE]: Found state for script {0} for {1} ({2}) at {3} in {4}", 
-//                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
+                //                m_log.DebugFormat(
+                //                    "[SCRIPT INSTANCE]: Found state for script {0} for {1} ({2}) at {3} in {4}", 
+                //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
 
                 string xml = String.Empty;
 
@@ -375,13 +326,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             ScriptSerializer.Deserialize(xml, this);
 
                             AsyncCommandManager.CreateFromData(Engine,
-                                LocalID, ItemID, ObjectID,
-                                PluginData);
+                                                               LocalID, ItemID, ObjectID,
+                                                               PluginData);
 
-//                            m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
+                            //                            m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
 
                             Part.SetScriptEvents(ItemID,
-                                    (int)m_Script.GetStateEventFlags(State));
+                                                 (int)m_Script.GetStateEventFlags(State));
 
                             if (!Running)
                                 m_startOnInit = false;
@@ -401,26 +352,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         if (!StatePersistedHere)
                             RemoveState();
                     }
-//                    else
-//                    {
-//                        m_log.WarnFormat(
-//                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
-//                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
-//                    }
+                    //                    else
+                    //                    {
+                    //                        m_log.WarnFormat(
+                    //                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
+                    //                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
+                    //                    }
                 }
                 catch (Exception e)
                 {
-                     m_log.ErrorFormat(
-                         "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  XML is {7}.  Exception {8}{9}",
-                         ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState, xml, e.Message, e.StackTrace);
+                    m_log.ErrorFormat(
+                        "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  XML is {7}.  Exception {8}{9}",
+                        ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState, xml, e.Message, e.StackTrace);
                 }
             }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}", 
-//                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
-//            }
+            //            else
+            //            {
+            //                m_log.DebugFormat(
+            //                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}", 
+            //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
+            //            }
 
             return true;
         }
