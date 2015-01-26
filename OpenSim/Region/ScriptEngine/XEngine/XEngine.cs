@@ -1051,14 +1051,25 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 while (m_CompileQueue.Dequeue(out o))
                 {
-                    if (DoOnRezScript(o))
+                    try
                     {
-                        scriptsStarted++;
+                        if (DoOnRezScript(o))
+                        {
+                            scriptsStarted++;
 
-                        if (m_InitialStartup)
-                            if (scriptsStarted % 50 == 0)
-                                m_log.InfoFormat(
-                                    "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.Name);
+                            if (m_InitialStartup)
+                                if (scriptsStarted % 50 == 0)
+                                    m_log.InfoFormat(
+                                        "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.Name);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error(
+                            string.Format(
+                                "[XEngine]: Failure in DoOnRezScriptQueue() for item {0} in {1}.  Continuing.  Exception  ", 
+                                o[1], m_Scene.Name), 
+                            e);
                     }
                 }
 
