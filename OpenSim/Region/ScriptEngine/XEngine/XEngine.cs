@@ -74,6 +74,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// </remarks>
         public int DebugLevel { get; set; }
 
+        /// <summary>
+        /// A parameter to allow us to notify the log if at least one script has a compilation that is not compatible
+        /// with ScriptStopStrategy.
+        /// </summary>
+        public bool HaveNotifiedLogOfScriptStopMistmatch { get; private set; }
+
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
         private Scene m_Scene;
@@ -1339,11 +1345,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts[appDomain].Add(itemID);
 
                     IScript scriptObj = null;
-                    bool recompile = false;
-                    bool abortAfterRecompile = false;
-                    EventWaitHandle coopSleepHandle = null;
+                    EventWaitHandle coopSleepHandle;
                     bool coopTerminationForThisScript;
-                    string typeName;
 
                     // Set up assembly name to point to the appropriate scriptEngines directory
                     AssemblyName assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(assemblyPath));
@@ -1368,7 +1371,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                             coopTerminationForThisScript = true;
                         }
-                        catch (TypeLoadException e)
+                        catch (TypeLoadException)
                         {
                             coopSleepHandle = null;
 
@@ -1389,15 +1392,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             {
                                 m_log.Error(
                                     string.Format(
-                                    "[XENGINE]: Could not load previous SecondLife.Script from assembly {0} in {1}.  Recompiling then aborting.  Exception  ", 
-                                    assemblyName.FullName, World.Name),
+                                        "[XENGINE]: Could not load previous SecondLife.Script from assembly {0} in {1}.  Not starting.  Exception  ", 
+                                        assemblyName.FullName, World.Name),
                                     e2);
 
-                                abortAfterRecompile = true;
+                                return false;
                             }
 
                             coopTerminationForThisScript = false;
-                            recompile = true;
                         }
                     }
                     else
@@ -1415,9 +1417,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                     null,
                                     null);
 
+                            coopSleepHandle = null;
                             coopTerminationForThisScript = false;
                         }
-                        catch (TypeLoadException e)
+                        catch (TypeLoadException)
                         {
                             coopSleepHandle = new XEngineEventWaitHandle(false, EventResetMode.AutoReset);
 
@@ -1430,7 +1433,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         false,
                                         BindingFlags.Default,
                                         null,
-                                        new object[] { new XEngineEventWaitHandle(false, EventResetMode.AutoReset) },
+                                        new object[] { coopSleepHandle },
                                         null,
                                         null);
                             }
@@ -1438,33 +1441,28 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             {
                                 m_log.Error(
                                     string.Format(
-                                        "[XENGINE]: Could not load previous SecondLife.XEngineScript from assembly {0} in {1}.  Recompiling then aborting.  Exception  ", 
+                                        "[XENGINE]: Could not load previous SecondLife.XEngineScript from assembly {0} in {1}.  Not starting.  Exception  ", 
                                         assemblyName.FullName, World.Name),
                                     e2);
 
-                                abortAfterRecompile = true;
+                                return false;
                             }
 
                             coopTerminationForThisScript = true;
-                            recompile = true;
                         }
                     }
 
-                    // If we are loading all scripts into the same AppDomain, then we can't reload the DLL in this
-                    // simulator session if the script halt strategy has been changed.  Instead, we'll continue with
-                    // the existing DLL and the new one will be used in the next simulator session.
-                    if (recompile)
+                    if (m_coopTermination != coopTerminationForThisScript && !HaveNotifiedLogOfScriptStopMistmatch)
                     {
-                        m_log.DebugFormat(
-                            "[XEngine]: Recompiling script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5} to switch it to {6} termination.  New termination will be active on next restart.",
-                            part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
-                            part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.Name, 
-                            m_coopTermination ? "co-op" : "abort");
+                        // Notify the log that there is at least one script compile that doesn't match the
+                        // ScriptStopStrategy.  Operator has to manually delete old DLLs - we can't do this on Windows
+                        // once the assembly has been loaded evne if the instantiation of a class was unsuccessful.
+                        m_log.WarnFormat(
+                            "[XEngine]: At least one existing compiled script DLL in {0} has {1} as ScriptStopStrategy whereas config setting is {2}."
+                            + "\nContinuing with script compiled strategy but to remove this message please set [XEngine] DeleteScriptsOnStartup = true for one simulator session to remove old script DLLs (script state will not be lost).",
+                            World.Name, coopTerminationForThisScript ? "co-op" : "abort", m_coopTermination);
 
-                        m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, true, out assemblyPath, out linemap);
-
-                        if (abortAfterRecompile)
-                            return false;
+                        HaveNotifiedLogOfScriptStopMistmatch = true;
                     }
 
                     instance = new ScriptInstance(this, part,
