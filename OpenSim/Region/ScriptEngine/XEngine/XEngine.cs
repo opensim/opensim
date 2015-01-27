@@ -253,7 +253,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_ScriptConfig = configSource.Configs["XEngine"];
             m_ConfigSource = configSource;
 
-            string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "coop");
+            string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "co-op");
 
             m_log.InfoFormat("[XEngine]: Script stop strategy is {0}", rawScriptStopStrategy);
 
