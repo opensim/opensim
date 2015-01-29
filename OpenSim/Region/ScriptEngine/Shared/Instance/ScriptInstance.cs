@@ -1022,9 +1022,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SaveState()
         {
+            if (!Running)
+                return;
+
+            // We cannot call this inside the EventQueue lock since it will currently take AsyncCommandManager.staticLock.
+            // This may already be held by AsyncCommandManager.DoOneCmdHandlerPass() which in turn can take EventQueue
+            // lock via ScriptInstance.PostEvent().
+            PluginData = AsyncCommandManager.GetSerializationData(Engine, ItemID);
+
             // We need to lock here to avoid any race with a thread that is removing this script.
             lock (EventQueue)
             {
+                // Check again to avoid a race with a thread in Stop()
                 if (!Running)
                     return;
 
@@ -1039,8 +1048,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     //            m_log.DebugFormat(
     //                "[SCRIPT INSTANCE]: Saving state for script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}",
     //                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name);
-
-                PluginData = AsyncCommandManager.GetSerializationData(Engine, ItemID);
 
                 string xml = ScriptSerializer.Serialize(this);
 
