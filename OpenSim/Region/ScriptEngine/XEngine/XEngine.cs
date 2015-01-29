@@ -1460,7 +1460,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         m_log.WarnFormat(
                             "[XEngine]: At least one existing compiled script DLL in {0} has {1} as ScriptStopStrategy whereas config setting is {2}."
                             + "\nContinuing with script compiled strategy but to remove this message please set [XEngine] DeleteScriptsOnStartup = true for one simulator session to remove old script DLLs (script state will not be lost).",
-                            World.Name, coopTerminationForThisScript ? "co-op" : "abort", m_coopTermination);
+                            World.Name, coopTerminationForThisScript ? "co-op" : "abort", m_coopTermination ? "co-op" : "abort");
 
                         HaveNotifiedLogOfScriptStopMistmatch = true;
                     }
