@@ -99,7 +99,7 @@ namespace OpenSim.Capabilities.Handlers
                         osdname["legacy_last_name"] = parts[1];
                         osdname["username"] = OSD.FromString(name);
                         osdname["id"] = OSD.FromUUID(uuid);
-                        osdname["is_display_name_default"] = OSD.FromBoolean(false);
+                        osdname["is_display_name_default"] = OSD.FromBoolean(true);
 
                         agents.Add(osdname);
                     }
