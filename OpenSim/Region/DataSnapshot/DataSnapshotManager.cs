@@ -395,7 +395,7 @@ namespace OpenSim.Region.DataSnapshot
             string delimStr = ";";
             char [] delimiter = delimStr.ToCharArray();
 
-            string[] services = servicesStr.Split(delimiter);
+            string[] services = servicesStr.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < services.Length; i++)
             {
