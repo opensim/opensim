@@ -3094,14 +3094,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // normalized direction to target
             LSL_Vector dir = llVecNorm(target - from);
-            // use vertical to help compute left azis
+            // use vertical to help compute left axis
             LSL_Vector up = new LSL_Vector(0.0, 0.0, 1.0);
             // find normalized left axis parallel to horizon
             LSL_Vector left = llVecNorm(LSL_Vector.Cross(up, dir));
             // make up orthogonal to left and dir
             up = LSL_Vector.Cross(dir, left);
 
-            // compute rotation based on orthogonal azes
+            // compute rotation based on orthogonal axes
             LSL_Rotation rot = new LSL_Rotation(0.0, 0.707107, 0.0, 0.707107) * llAxes2Rot(dir, left, up);
 
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
