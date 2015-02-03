@@ -185,7 +185,7 @@ namespace OpenSim.Tests.Common
 
         public void addInventoryItem(InventoryItemBase item) 
         {
-//            InventoryFolderBase folder = m_folders[item.Folder];
+            InventoryFolderBase folder = m_folders[item.Folder];
             
 //            m_log.DebugFormat(
 //                "[MOCK INV DB]: Adding inventory item {0} {1} in {2} {3}", item.Name, item.ID, folder.Name, folder.ID);

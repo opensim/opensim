@@ -614,6 +614,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected InventoryItemBase CreateItemForObject(
             DeRezAction action, IClientAPI remoteClient, SceneObjectGroup so, UUID folderID)
         {
+//            m_log.DebugFormat(
+//                "[BASIC INVENTORY ACCESS MODULE]: Creating item for object {0} {1} for folder {2}, action {3}", 
+//                so.Name, so.UUID, folderID, action);
+//
             // Get the user info of the item destination
             //
             UUID userID = UUID.Zero;

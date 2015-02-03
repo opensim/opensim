@@ -2943,6 +2943,11 @@ namespace OpenSim.Region.Framework.Scenes
             uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
             uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
+
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: RootPart.OwnerMask now {0} for {1} in {2}", 
+//                (OpenMetaverse.PermissionMask)RootPart.OwnerMask, Name, Scene.Name);
+
             RootPart.ScheduleFullUpdate();
         }
 

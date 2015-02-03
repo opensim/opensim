@@ -801,8 +801,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             // Friends with benefits should be able to edit the objects too
             if (IsFriendWithPerms(currentUser, objectOwner))
+            {
                 // Return immediately, so that the administrator can share objects with friends
                 return true;
+            }
         
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
@@ -1522,6 +1524,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             bool permission = GenericObjectPermission(userID, objectID, false);
+
+            SceneObjectGroup so = (SceneObjectGroup)m_scene.Entities[objectID];
+
             if (!permission)
             {
                 if (!m_scene.Entities.ContainsKey(objectID))
@@ -1535,31 +1540,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     return false;
                 }
 
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
                 // UUID taskOwner = null;
                 // Added this because at this point in time it wouldn't be wise for
                 // the administrator object permissions to take effect.
                 // UUID objectOwner = task.OwnerID;
 
-                if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
+                if ((so.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
+            }
 
-                if (task.OwnerID != userID)
-                {
-                    if ((task.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
-                        permission = false;
-                }
-                else
-                {
-                    if ((task.GetEffectivePermissions() & PERM_COPY) != PERM_COPY)
-                        permission = false;
-                }
+            if (so.OwnerID != userID)
+            {
+                if ((so.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
+                    permission = false;
             }
             else
             {
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
-
-                if ((task.GetEffectivePermissions() & (PERM_COPY | PERM_TRANS)) != (PERM_COPY | PERM_TRANS))
+                if ((so.GetEffectivePermissions() & PERM_COPY) != PERM_COPY)
                     permission = false;
             }
             
