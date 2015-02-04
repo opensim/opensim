@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Monitoring
 
         private BlockingCollection<Job> m_jobQueue;
 
-        private CancellationTokenSource m_cancelSource = new CancellationTokenSource();
+        private CancellationTokenSource m_cancelSource;
 
         /// <summary>
         /// Used to signal that we are ready to complete stop.
@@ -105,6 +105,7 @@ namespace OpenSim.Framework.Monitoring
                 m_finishedProcessingAfterStop.Reset();
 
                 m_jobQueue = new BlockingCollection<Job>(new ConcurrentQueue<Job>(), 5000);
+                m_cancelSource = new CancellationTokenSource();
 
                 WorkManager.StartThread(
                     ProcessRequests,
