@@ -4881,8 +4881,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (APIDTarget != Quaternion.Identity)
                 {
+
                     if (m_APIDIterations <= 1)
                     {
+                        AngularVelocity = Vector3.Zero;
                         UpdateRotation(APIDTarget);
                         APIDTarget = Quaternion.Identity;
                         return;
@@ -4890,7 +4892,15 @@ namespace OpenSim.Region.Framework.Scenes
 
                     Quaternion rot = Quaternion.Slerp(RotationOffset,APIDTarget,1.0f/(float)m_APIDIterations);
                     rot.Normalize();
-                    UpdateRotation(rot);
+                    
+                    Quaternion dR = rot / RotationOffset;
+                    Vector3 axis;
+                    float angle;
+                    dR.GetAxisAngle(out axis, out angle);
+                    axis *= RotationOffset;
+                    axis.Normalize();
+                    axis *= angle / 11; // simulator update frequency is 10-11 Hz
+                    AngularVelocity = axis;
 
                     m_APIDIterations--;
 
