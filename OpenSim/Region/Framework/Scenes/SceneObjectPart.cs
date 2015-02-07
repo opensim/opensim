@@ -4881,28 +4881,39 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (APIDTarget != Quaternion.Identity)
                 {
-
-                    if (m_APIDIterations <= 1)
+                    PhysicsActor pa = ParentGroup.RootPart.PhysActor;
+                    if (pa == null || !pa.IsPhysical)
                     {
-                        AngularVelocity = Vector3.Zero;
-                        UpdateRotation(APIDTarget);
-                        APIDTarget = Quaternion.Identity;
+                        StopLookAt();
                         return;
                     }
 
-                    Quaternion rot = Quaternion.Slerp(RotationOffset,APIDTarget,1.0f/(float)m_APIDIterations);
-                    rot.Normalize();
+                    Quaternion currRot = GetWorldRotation();
+                    currRot.Normalize();
                     
-                    Quaternion dR = rot / RotationOffset;
-                    Vector3 axis;
-                    float angle;
-                    dR.GetAxisAngle(out axis, out angle);
-                    axis *= RotationOffset;
-                    axis.Normalize();
-                    axis *= angle / 11; // simulator update frequency is 10-11 Hz
-                    AngularVelocity = axis;
+                    // difference between current orientation and desired orientation
+                    Quaternion dR = new Quaternion(currRot.X, currRot.Y, currRot.Z, -currRot.W) * APIDTarget;
 
-                    m_APIDIterations--;
+                    // find axis of rotation to rotate to desired orientation
+                    Vector3 axis = Vector3.UnitX;
+                    float s = (float)Math.Sqrt(1.0f - dR.W * dR.W);
+                    if (s >= 0.001)
+                    {
+                        float invS = 1.0f / s;
+                        if (dR.W < 0) invS = -invS;
+                        axis = new Vector3(dR.X * invS, dR.Y * invS, dR.Z * invS) * currRot;
+                        axis.Normalize();
+                    }
+                    
+                    // angle between current and desired orientation
+                    float angle = 2.0f * (float)Math.Acos(dR.W);
+                    if (angle > Math.PI)
+                        angle = 2.0f * (float)Math.PI - angle;
+
+                    // set angular velocity to rotate to desired orientation
+                    // with velocity proportional to strength and angle
+                    // the factor of 10 seems to make rotation speed closer to LL implementation
+                    AngularVelocity = axis * angle * APIDStrength * (float)Math.PI * 10.0f;
 
                     // This ensures that we'll check this object on the next iteration
                     ParentGroup.QueueForUpdateCheck();
