@@ -4910,10 +4910,13 @@ namespace OpenSim.Region.Framework.Scenes
                     if (angle > Math.PI)
                         angle = 2.0f * (float)Math.PI - angle;
 
+                    // clamp strength to avoid overshoot
+                    float strength = APIDStrength;
+                    if (strength > 1.0) strength = 1.0f;
+
                     // set angular velocity to rotate to desired orientation
                     // with velocity proportional to strength and angle
-                    // the factor of 10 seems to make rotation speed closer to LL implementation
-                    AngularVelocity = axis * angle * APIDStrength * (float)Math.PI * 10.0f;
+                    AngularVelocity = axis * angle * strength * (float)Math.PI;
 
                     // This ensures that we'll check this object on the next iteration
                     ParentGroup.QueueForUpdateCheck();
