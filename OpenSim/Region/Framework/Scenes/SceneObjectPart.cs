@@ -4882,7 +4882,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (APIDTarget != Quaternion.Identity)
                 {
                     PhysicsActor pa = ParentGroup.RootPart.PhysActor;
-                    if (pa == null || !pa.IsPhysical)
+                    if (pa == null || !pa.IsPhysical || APIDStrength < 0.04)
                     {
                         StopLookAt();
                         return;
@@ -4911,7 +4911,7 @@ namespace OpenSim.Region.Framework.Scenes
                         angle = 2.0f * (float)Math.PI - angle;
 
                     // clamp strength to avoid overshoot
-                    float strength = APIDStrength;
+                    float strength = 1.0f / APIDStrength;
                     if (strength > 1.0) strength = 1.0f;
 
                     // set angular velocity to rotate to desired orientation
