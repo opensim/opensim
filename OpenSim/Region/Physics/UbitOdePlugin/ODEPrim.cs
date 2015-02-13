@@ -1339,8 +1339,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // ODE should do this  with axis relative to body 1 but seems to fail
                 d.JointSetAMotorAxis(Amotor, 0, 0, ax.X, ax.Y, ax.Z);
                 d.JointSetAMotorAngle(Amotor, 0, 0);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.LoStop, -0.000001f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.HiStop, 0.000001f);
+                d.JointSetAMotorParam(Amotor, (int)d.JointParam.LoStop, 0f);
+                d.JointSetAMotorParam(Amotor, (int)d.JointParam.HiStop, 0f);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel, 0);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.FudgeFactor, 0.0001f);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.Bounce, 0f);
@@ -1356,8 +1356,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ax = (new Vector3(0, 1, 0)) * curr;
                 d.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
                 d.JointSetAMotorAngle(Amotor, i, 0);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.LoStop, -0.000001f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.HiStop, 0.000001f);
+                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.LoStop, 0f);
+                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.HiStop, 0f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Vel, 0);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FudgeFactor, 0.0001f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Bounce, 0f);
@@ -1373,8 +1373,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ax = (new Vector3(0, 0, 1)) * curr;
                 d.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
                 d.JointSetAMotorAngle(Amotor, i, 0);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.LoStop, -0.000001f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.HiStop, 0.000001f);
+                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.LoStop, 0f);
+                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.HiStop, 0f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Vel, 0);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FudgeFactor, 0.0001f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Bounce, 0f);
