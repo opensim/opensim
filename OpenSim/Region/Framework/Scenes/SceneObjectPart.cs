@@ -959,7 +959,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                m_angularVelocity = value;
+                if (float.IsNaN(value.X) || float.IsNaN(value.Y) || float.IsNaN(value.Z)
+                    || float.IsInfinity(value.X) || float.IsInfinity(value.Y) || float.IsInfinity(value.Z))
+                    m_angularVelocity = Vector3.Zero;
+                else
+                    m_angularVelocity = value;
+
                 PhysicsActor actor = PhysActor;
                 if ((actor != null) && actor.IsPhysical)
                     actor.RotationalVelocity = m_angularVelocity;
