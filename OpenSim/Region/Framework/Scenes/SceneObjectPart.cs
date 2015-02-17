@@ -929,14 +929,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
-                m_velocity = value;
+                if (Util.IsNanOrInfinity(value))
+                    m_velocity = Vector3.Zero;
+                else
+                    m_velocity = value;
 
                 PhysicsActor actor = PhysActor;
                 if (actor != null)
                 {
                     if (actor.IsPhysical)
                     {
-                        actor.Velocity = value;
+                        actor.Velocity = m_velocity;
                         ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
@@ -965,8 +968,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                if (float.IsNaN(value.X) || float.IsNaN(value.Y) || float.IsNaN(value.Z)
-                    || float.IsInfinity(value.X) || float.IsInfinity(value.Y) || float.IsInfinity(value.Z))
+                if (Util.IsNanOrInfinity(value))
                     m_angularVelocity = Vector3.Zero;
                 else
                     m_angularVelocity = value;
@@ -981,7 +983,13 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 Acceleration
         {
             get { return m_acceleration; }
-            set { m_acceleration = value; }
+            set 
+            {
+                if (Util.IsNanOrInfinity(value))
+                    m_acceleration = Vector3.Zero;
+                else
+                    m_acceleration = value;
+            }
         }
 
         public string Description { get; set; }

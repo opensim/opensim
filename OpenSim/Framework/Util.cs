@@ -420,6 +420,22 @@ namespace OpenSim.Framework
             return x;
         }
 
+        /// <summary>
+        /// Check if any of the values in a Vector3 are NaN or Infinity
+        /// </summary>
+        /// <param name="v">Vector3 to check</param>
+        /// <returns></returns>
+        public static bool IsNanOrInfinity(Vector3 v)
+        {
+            if (float.IsNaN(v.X) || float.IsNaN(v.Y) || float.IsNaN(v.Z))
+                return true;
+
+            if (float.IsInfinity(v.X) || float.IsInfinity(v.Y) || float.IsNaN(v.Z))
+                return true;
+
+            return false;
+        }
+
         // Inclusive, within range test (true if equal to the endpoints)
         public static bool InRange<T>(T x, T min, T max)
             where T : IComparable<T>
