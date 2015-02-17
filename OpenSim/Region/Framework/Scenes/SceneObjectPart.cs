@@ -266,7 +266,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Quaternion SpinOldOrientation = Quaternion.Identity;
 
-        protected int m_APIDIterations = 0;
+        protected bool m_APIDActive = false;
         protected Quaternion m_APIDTarget = Quaternion.Identity;
         protected float m_APIDDamp = 0;
         protected float m_APIDStrength = 0;
@@ -640,6 +640,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_CollisionFilter = value;
             }
+        }
+
+        protected bool APIDActive
+        {
+            get { return m_APIDActive; }
+            set { m_APIDActive = value; }
         }
 
         protected Quaternion APIDTarget
@@ -2621,7 +2627,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
                 
-                m_APIDIterations = 1 + (int)(Math.PI * APIDStrength);
+                APIDActive = true;
             }
 
             // Necessary to get the lookat deltas applied
@@ -2635,7 +2641,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopLookAt()
         {
-            APIDTarget = Quaternion.Identity;
+            APIDActive = false;
         }
 
 
@@ -4884,7 +4890,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                if (APIDTarget != Quaternion.Identity)
+                if (APIDActive)
                 {
                     PhysicsActor pa = ParentGroup.RootPart.PhysActor;
                     if (pa == null || !pa.IsPhysical || APIDStrength < 0.04)
