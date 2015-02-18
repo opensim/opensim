@@ -82,6 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_ControlEventsInQueue;
         private int m_LastControlLevel;
         private bool m_CollisionInQueue;
+        private bool m_StateChangeInProgress;
 
         // The following is for setting a minimum delay between events
         private double m_minEventDelay;
@@ -210,6 +211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public void ClearQueue()
         {
             m_TimerQueued = false;
+            m_StateChangeInProgress = false;
             EventQueue.Clear();
         }
 
@@ -616,13 +618,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             if (state == State)
                 return;
-
+            
+            // Remove all queued events, remembering the last timer event
+            EventParams lastTimerEv = null;
+            while (EventQueue.Count > 0)
+            {
+                EventParams tempv = (EventParams)EventQueue.Dequeue();
+                if (tempv.EventName == "timer") lastTimerEv = tempv;
+            }
+            // Post events
             PostEvent(new EventParams("state_exit", new Object[0],
                                        new DetectParams[0]));
             PostEvent(new EventParams("state", new Object[] { state },
                                        new DetectParams[0]));
             PostEvent(new EventParams("state_entry", new Object[0],
                                        new DetectParams[0]));
+            // Requeue the timer event after the state changing events
+            if (lastTimerEv != null) EventQueue.Enqueue(lastTimerEv);
+            // This will stop events from being queued and processed
+            // until the new state is started
+            m_StateChangeInProgress = true;
 
             throw new EventAbortException();
         }
@@ -697,6 +712,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                     m_CollisionInQueue = true;
                 }
+                
+                // The only events that persist across state changes are timers
+                if (m_StateChangeInProgress && data.EventName != "timer") return;
 
                 EventQueue.Enqueue(data);
 
@@ -785,6 +803,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                     AsyncCommandManager.StateChange(Engine,
                         LocalID, ItemID);
+                    // we are effectively in the new state now, so we can resume queueing
+                    // and processing other non-timer events
+                    m_StateChangeInProgress = false;
 
                     Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
                 }
