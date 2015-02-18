@@ -217,8 +217,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 if (regionInfos.Count == 0)
                     remoteClient.SendAlertMessage("No regions found with that name.");
-                else if (regionInfos.Count == 1)
-                    remoteClient.SendAlertMessage("Region found!");
+                // this seems unnecessary because found regions will show up in the search results
+                //else if (regionInfos.Count == 1)
+                //    remoteClient.SendAlertMessage("Region found!");
             }
         }
 
