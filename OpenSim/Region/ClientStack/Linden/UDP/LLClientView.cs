@@ -772,9 +772,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             catch (Exception e)
             {
                 // Make sure that we see any exception caused by the asynchronous operation.
-                m_log.ErrorFormat(
-                    "[LLCLIENTVIEW]: Caught exception while processing {0} for {1}, {2} {3}", 
-                    packetObject.Pack, Name, e.Message, e.StackTrace);
+                m_log.Error(
+                    string.Format(
+                        "[LLCLIENTVIEW]: Caught exception while processing {0} for {1}  ", packetObject.Pack, Name), 
+                    e);
             }
         }
 
