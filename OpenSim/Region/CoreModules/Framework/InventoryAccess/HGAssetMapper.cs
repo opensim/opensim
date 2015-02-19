@@ -480,12 +480,37 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     asset = m_scene.AssetService.Get(uuid.ToString());
                     if (asset == null)
+                    {
                         m_log.DebugFormat("[HG ASSET MAPPER]: Could not find asset {0}", uuid);
+                    }
                     else
-                        success &= PostAsset(userAssetURL, asset);
+                    {
+                        try
+                        {
+                            success &= PostAsset(userAssetURL, asset);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error(
+                                string.Format(
+                                    "[HG ASSET MAPPER]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ", 
+                                    asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL), 
+                                e);
+
+                            // For debugging purposes for now we will continue to throw the exception up the stack as was already happening.  However, after
+                            // debugging we may want to simply report the failure if we can tell this is due to a failure
+                            // with a particular asset and not a destination network failure where all asset posts will fail (and
+                            // generate large amounts of log spam).
+                            throw e;
+                        }
+                    }
                 }
                 else
-                    m_log.DebugFormat("[HG ASSET MAPPER]: Didn't post asset {0} because it already exists in asset server {1}", uuid, userAssetURL);
+                {
+                    m_log.DebugFormat(
+                        "[HG ASSET MAPPER]: Didn't post asset {0} referenced from {1} because it already exists in asset server {2}", 
+                        uuid, assetID, userAssetURL);
+                }
             }
 
             if (!success)
