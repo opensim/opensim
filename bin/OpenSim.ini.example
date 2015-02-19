@@ -187,12 +187,13 @@
     ;; YOU HAVE BEEN WARNED!!!
     ; TrustBinaries = false
 
-    ;# {CombineContiguousRegions} {} {Create megaregions where possible? (Do not use with existing content!)} {true false} false
+    ;# {CombineContiguousRegions} {} {Create megaregions where possible? (Do not use with existing content or varregions!)} {true false} false
     ;; Combine all contiguous regions into one large megaregion
     ;; Order your regions from South to North, West to East in your regions.ini
     ;; and then set this to true
     ;; Warning!  Don't use this with regions that have existing content!,
     ;; This will likely break them
+    ;; Also, this setting should be set to false for varregions as they are proper larger single regions rather than combined smaller regions.
     ; CombineContiguousRegions = false
 
     ;# {InworldRestartShutsDown} {} {Shutdown instance on region restart?} {true false} false
