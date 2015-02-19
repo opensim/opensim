@@ -319,7 +319,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     break;
 
                     default:
-                    m_log.WarnFormat("[HG ASSET MAPPER]: Unrecognized node in asset XML transform in {0}", m_scene.Name);
+                    m_log.WarnFormat(
+                        "[HG ASSET MAPPER]: Unrecognized node {0} in asset XML transform in {1}", 
+                        reader.NodeType, m_scene.Name);
                     break;
                 }
             }
