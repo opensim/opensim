@@ -338,8 +338,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 TransformXml(reader, writer);
 
-                writer.WriteEndDocument();
-
 //                Console.WriteLine("Output: [{0}]", sw.ToString());
 
                 return sw.ToString();
