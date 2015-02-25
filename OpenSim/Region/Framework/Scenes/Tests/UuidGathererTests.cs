@@ -89,7 +89,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
-
+                      
             UUID ownerId = TestHelpers.ParseTail(0x10);
             UUID embeddedId = TestHelpers.ParseTail(0x20);
             UUID secondLevelEmbeddedId = TestHelpers.ParseTail(0x21);
@@ -114,6 +114,43 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
 //            foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
 //                System.Console.WriteLine("key : {0}", key);
+
+            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(3));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(ncAssetId));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(embeddedId));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(secondLevelEmbeddedId));
+        }
+
+        [Test]
+        public void TestTaskItem()
+        {
+            TestHelpers.InMethod();
+                        TestHelpers.EnableLogging();
+
+            UUID ownerId = TestHelpers.ParseTail(0x10);
+            UUID embeddedId = TestHelpers.ParseTail(0x20);
+            UUID secondLevelEmbeddedId = TestHelpers.ParseTail(0x21);
+            UUID missingEmbeddedId = TestHelpers.ParseTail(0x22);
+            UUID ncAssetId = TestHelpers.ParseTail(0x30);
+
+            AssetBase ncAsset 
+                = AssetHelpers.CreateNotecardAsset(
+                    ncAssetId, string.Format("Hello{0}World{1}", embeddedId, missingEmbeddedId));
+            m_assetService.Store(ncAsset);
+
+            AssetBase embeddedAsset 
+                = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0} We'll meet again.", secondLevelEmbeddedId));
+            m_assetService.Store(embeddedAsset);
+
+            AssetBase secondLevelEmbeddedAsset 
+                = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, "Don't know where, don't know when.");
+            m_assetService.Store(secondLevelEmbeddedAsset);
+
+            m_uuidGatherer.AddForInspection(ncAssetId);
+            m_uuidGatherer.GatherAll();
+
+            //            foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
+            //                System.Console.WriteLine("key : {0}", key);
 
             Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(3));
             Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(ncAssetId));

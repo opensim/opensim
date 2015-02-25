@@ -68,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(m_scene, userId);
 
             SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
-            TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene, part);
+            TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene.AssetService, part);
 
             LSL_Api apiGrp1 = new LSL_Api();
             apiGrp1.Initialize(m_engine, part, scriptItem, null);
