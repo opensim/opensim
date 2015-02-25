@@ -161,7 +161,6 @@ namespace OpenSim.Framework.Monitoring
                 finally
                 {
                     m_cancelSource.Dispose();
-                    m_jobQueue = null;
                 }
             }
         }
@@ -250,7 +249,19 @@ namespace OpenSim.Framework.Monitoring
             {
                 while (IsRunning || m_jobQueue.Count > 0)
                 {
-                    CurrentJob = m_jobQueue.Take(m_cancelSource.Token);
+                    try
+                    {
+                        CurrentJob = m_jobQueue.Take(m_cancelSource.Token);
+                    }
+                    catch (ObjectDisposedException e)
+                    {
+                        // If we see this whilst not running then it may be due to a race where this thread checks
+                        // IsRunning after the stopping thread sets it to false and disposes of the cancellation source.
+                        if (IsRunning)
+                            throw e;
+                        else
+                            break;
+                    }
 
                     if (LogLevel >= 1)
                         m_log.DebugFormat("[{0}]: Processing job {1}", LoggingName, CurrentJob.Name);
