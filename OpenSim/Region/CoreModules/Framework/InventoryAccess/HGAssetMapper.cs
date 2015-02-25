@@ -318,6 +318,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     writer.WriteString(reader.Value);
                     break;
 
+                    case XmlNodeType.XmlDeclaration:
+                    // For various reasons, not all serializations have xml declarations (or consistent ones) 
+                    // and as it's embedded inside a byte stream we don't need it anyway, so ignore.
+                    break;
+
                     default:
                     m_log.WarnFormat(
                         "[HG ASSET MAPPER]: Unrecognized node {0} in asset XML transform in {1}", 
