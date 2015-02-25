@@ -3108,7 +3108,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // set the rotation of the object, copy that behavior
             PhysicsActor pa = m_host.PhysActor;
 
-            if (strength == 0 || pa == null || !pa.IsPhysical)
+            if (m_host.ParentGroup.IsAttachment || strength == 0 || pa == null || !pa.IsPhysical)
             {
                 llSetRot(rot);
             }
