@@ -122,40 +122,37 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestTaskItem()
+        public void TestTaskItems()
         {
             TestHelpers.InMethod();
-                        TestHelpers.EnableLogging();
+//                        TestHelpers.EnableLogging();
 
             UUID ownerId = TestHelpers.ParseTail(0x10);
-            UUID embeddedId = TestHelpers.ParseTail(0x20);
-            UUID secondLevelEmbeddedId = TestHelpers.ParseTail(0x21);
-            UUID missingEmbeddedId = TestHelpers.ParseTail(0x22);
-            UUID ncAssetId = TestHelpers.ParseTail(0x30);
 
-            AssetBase ncAsset 
-                = AssetHelpers.CreateNotecardAsset(
-                    ncAssetId, string.Format("Hello{0}World{1}", embeddedId, missingEmbeddedId));
-            m_assetService.Store(ncAsset);
+            SceneObjectGroup soL0 = SceneHelpers.CreateSceneObject(1, ownerId, "l0", 0x20);
+            SceneObjectGroup soL1 = SceneHelpers.CreateSceneObject(1, ownerId, "l1", 0x21);
+            SceneObjectGroup soL2 = SceneHelpers.CreateSceneObject(1, ownerId, "l2", 0x22);
 
-            AssetBase embeddedAsset 
-                = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0} We'll meet again.", secondLevelEmbeddedId));
-            m_assetService.Store(embeddedAsset);
+            TaskInventoryHelpers.AddScript(
+                m_assetService, soL2.RootPart, TestHelpers.ParseTail(0x33), TestHelpers.ParseTail(0x43), "l3-script", "gibberish");
 
-            AssetBase secondLevelEmbeddedAsset 
-                = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, "Don't know where, don't know when.");
-            m_assetService.Store(secondLevelEmbeddedAsset);
+            TaskInventoryHelpers.AddSceneObject(
+                m_assetService, soL1.RootPart, "l2-item", TestHelpers.ParseTail(0x32), soL2, TestHelpers.ParseTail(0x42));
+            TaskInventoryHelpers.AddSceneObject(
+                m_assetService, soL0.RootPart, "l1-item", TestHelpers.ParseTail(0x31), soL1, TestHelpers.ParseTail(0x41));
 
-            m_uuidGatherer.AddForInspection(ncAssetId);
+            m_uuidGatherer.AddForInspection(soL0);
             m_uuidGatherer.GatherAll();
 
-            //            foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
-            //                System.Console.WriteLine("key : {0}", key);
+//                        foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
+//                            System.Console.WriteLine("key : {0}", key);
 
-            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(3));
-            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(ncAssetId));
-            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(embeddedId));
-            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(secondLevelEmbeddedId));
+            // We expect to see the default prim texture and the assets of the contained task items
+            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(4));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(new UUID(Constants.DefaultTexture)));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(TestHelpers.ParseTail(0x41)));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(TestHelpers.ParseTail(0x42)));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(TestHelpers.ParseTail(0x43)));
         }
     }
 }

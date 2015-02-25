@@ -153,6 +153,37 @@ namespace OpenSim.Tests.Common
             return item;
         }
 
+        /// <summary>
+        /// Add a scene object item to the given part.
+        /// </summary>
+        /// <remarks>
+        /// TODO: Accept input for item and asset IDs to avoid mysterious script failures that try to use any of these
+        /// functions more than once in a test.
+        /// </remarks>
+        ///
+        /// <param name="assetService"></param>
+        /// <param name="sop"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="soToAdd"></param>
+        /// <param name="soAssetId"></param>
+        public static TaskInventoryItem AddSceneObject(
+            IAssetService assetService, SceneObjectPart sop, string itemName, UUID itemId, SceneObjectGroup soToAdd, UUID soAssetId)
+        {
+            AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(soAssetId, soToAdd);
+            assetService.Store(taskSceneObjectAsset);
+            TaskInventoryItem taskSceneObjectItem
+                = new TaskInventoryItem
+            { Name = itemName,
+                AssetID = taskSceneObjectAsset.FullID,
+                ItemID = itemId,
+                OwnerID = soToAdd.OwnerID,
+                Type = (int)AssetType.Object,
+                InvType = (int)InventoryType.Object };
+            sop.Inventory.AddInventoryItem(taskSceneObjectItem, true);
+
+            return taskSceneObjectItem;
+        }
 
         /// <summary>
         /// Add a scene object item to the given part.
@@ -168,22 +199,12 @@ namespace OpenSim.Tests.Common
         /// <param name="id"></param>
         /// <param name="userId"></param>
         public static TaskInventoryItem AddSceneObject(
-            IAssetService assetService, SceneObjectPart sop, string itemName, UUID id, UUID userId)
+            IAssetService assetService, SceneObjectPart sop, string itemName, UUID itemId, UUID userId)
         {
-            SceneObjectGroup taskSceneObject = SceneHelpers.CreateSceneObject(1, UUID.Zero);
-            AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(0x10, taskSceneObject);
-            assetService.Store(taskSceneObjectAsset);
-            TaskInventoryItem taskSceneObjectItem
-                = new TaskInventoryItem
-                    { Name = itemName,
-                      AssetID = taskSceneObjectAsset.FullID,
-                      ItemID = id,
-                      OwnerID = userId,
-                      Type = (int)AssetType.Object,
-                      InvType = (int)InventoryType.Object };
-            sop.Inventory.AddInventoryItem(taskSceneObjectItem, true);
+            SceneObjectGroup taskSceneObject = SceneHelpers.CreateSceneObject(1, userId);
 
-            return taskSceneObjectItem;
+            return TaskInventoryHelpers.AddSceneObject(
+                assetService, sop, itemName, itemId, taskSceneObject, TestHelpers.ParseTail(0x10));
         }
     }
 }
