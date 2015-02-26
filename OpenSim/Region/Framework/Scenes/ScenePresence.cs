@@ -379,6 +379,11 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MovementFlag { get; private set; }
 
         /// <summary>
+        /// Set this if we need to force a movement update on the next received AgentUpdate from the viewer.
+        /// </summary>
+        private const uint ForceUpdateMovementFlagValue = uint.MaxValue;
+
+        /// <summary>
         /// Is the agent stop control flag currently active?
         /// </summary>
         public bool AgentControlStopActive { get; private set; }
@@ -1267,7 +1272,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-            MovementFlag = 0;
+            MovementFlag = ForceUpdateMovementFlagValue;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
@@ -1925,13 +1930,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            //m_log.DebugFormat(
-            //    "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
-            //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+//                Scene.Name, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
             {
-            //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
+//                m_log.DebugFormat("DEBUG: HandleAgentUpdate: child agent in {0}", Scene.Name);
                 return;
             }
 
@@ -2065,6 +2070,14 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 bool update_movementflag = false;
+
+                // If we were just made root agent then we must perform movement updates for the first AgentUpdate that
+                // we get
+                if (MovementFlag == ForceUpdateMovementFlagValue)
+                {
+                    MovementFlag = 0;
+                    update_movementflag = true;
+                }
 
                 if (agentData.UseClientAgentPosition)
                 {
