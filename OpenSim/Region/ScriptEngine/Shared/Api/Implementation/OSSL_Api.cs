@@ -264,9 +264,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //     or a string explaining why this function can't be used.
         private string CheckThreatLevelTest(ThreatLevel level, string function)
         {
-            if(GetDynaPerms(m_item.CreatorID, m_item.OwnerID, m_item.GroupID, function))
-                return string.Empty;
-
             if (!m_FunctionPerms.ContainsKey(function))
             {
                 FunctionPerms perms = new FunctionPerms();
@@ -432,47 +429,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (delay == 0)
                 return;
             System.Threading.Thread.Sleep(delay);
-        }
-
-        private bool GetDynaPerms(UUID owner, UUID creator, UUID group, string function)
-        {
-            if (World.GetOsslPerms(owner, function))
-                return true;
-            if (World.GetOsslPerms(creator, function))
-                return true;
-            if (World.GetOsslPerms(creator, function))
-                return true;
-
-            return false;
-           
-        }
-
-        public void osGrantScriptPermissions(LSL_Key avatar, LSL_List osfunctions)
-        {
-            CheckThreatLevel(ThreatLevel.Severe, "osGrantScriptPermissions");
-            m_host.AddScriptLPS(1);
-            UUID key;
-            UUID.TryParse(avatar.m_string, out key);
-
-            for (int item = 0; item <= osfunctions.Length - 1; item++) 
-            {
-                string function = osfunctions.GetLSLStringItem(item);
-                World.AddOsslPerm(key, function);
-            }
-        }
-
-        public void osRevokeScriptPermissions (LSL_Key avatar, LSL_List osfunctions)
-        {
-            CheckThreatLevel(ThreatLevel.Severe, "osRevokeScriptPermissions");
-            m_host.AddScriptLPS(1);
-            UUID key;
-            UUID.TryParse(avatar.m_string, out key);
-
-            for (int item = 0; item <= osfunctions.Length - 1; item++) 
-            {
-                string function = osfunctions.GetLSLStringItem(item);
-                World.RemoveOsslPerm(key, function);
-            }
         }
 
         public LSL_Integer osSetTerrainHeight(int x, int y, double val)
