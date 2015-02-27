@@ -1010,23 +1010,6 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
         }
 
-        private Vector3[] GetWalkDirectionVectors()
-        {
-            Vector3[] vector = new Vector3[11];
-            vector[0] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD
-            vector[1] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK
-            vector[2] = Vector3.UnitY; //LEFT
-            vector[3] = -Vector3.UnitY; //RIGHT
-            vector[4] = new Vector3(CameraAtAxis.Z, 0f, CameraUpAxis.Z); //UP
-            vector[5] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN
-            vector[6] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD_NUDGE
-            vector[7] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK_NUDGE
-            vector[8] = Vector3.UnitY; //LEFT_NUDGE
-            vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
-            vector[10] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN_NUDGE
-            return vector;
-        }
-
         #endregion
 
         #region Status Methods
@@ -2110,15 +2093,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     bool bAllowUpdateMoveToPosition = false;
 
-                    Vector3[] dirVectors;
-
-                    // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
-                    // this prevents 'jumping' in inappropriate situations.
-                    if (!Flying && (m_mouseLook || m_leftButtonDown))
-                        dirVectors = GetWalkDirectionVectors();
-                    else
-                        dirVectors = Dir_Vectors;
-
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
@@ -2130,7 +2104,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 // Don't slide against ground when crouching if camera is panned around avatar
                                 if (Flying || DCF != Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN)
-                                    agent_control_v3 += dirVectors[i];
+                                    agent_control_v3 += Dir_Vectors[i];
                                 //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
@@ -3164,7 +3138,17 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
 //                vec, Rotation, thisAddSpeedModifier, Name);
 
-            Vector3 direc = vec * Rotation;
+            Quaternion rot = Rotation;
+            if (!(Flying && m_mouseLook))
+            {
+                // The only situation in which we care about X and Y is in mouselook flying.  The rest of the time
+                // these parameters are not relevant for determining avatar movement direction and cause issues such
+                // as wrong walk speed if the camera is rotated.
+                rot.X = 0;
+                rot.Y = 0;
+            }
+
+            Vector3 direc = vec * rot;
             direc.Normalize();
 
             if (Flying != FlyingOld)                // add for fly velocity control
