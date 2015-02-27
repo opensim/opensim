@@ -827,7 +827,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private bool m_mouseLook;
-        private bool m_leftButtonDown;
+//        private bool m_leftButtonDown;
 
         private bool m_inTransit;
 
@@ -1961,7 +1961,12 @@ namespace OpenSim.Region.Framework.Scenes
             // DrawDistance = Scene.DefaultDrawDistance;
 
             m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
-            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+
+            // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
+            // is first pressed, not whilst it is held down.  If this is required in the future then need to look
+            // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not 
+            // received (e.g. on holding LMB down on the avatar in a viewer).
+//            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             #endregion Inputs
 
