@@ -2128,7 +2128,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                             try
                             {
-                                agent_control_v3 += dirVectors[i];
+                                // Don't slide against ground when crouching if camera is panned around avatar
+                                if (Flying || DCF != Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN)
+                                    agent_control_v3 += dirVectors[i];
                                 //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
