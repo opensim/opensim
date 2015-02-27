@@ -170,6 +170,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private bool m_scripts_enabled;
 
+        // Dynamic ossl function permissions
+        private Dictionary<string, List<UUID>> m_DynaPerms = new Dictionary<string, List<UUID>>();
+
         public SynchronizeSceneHandler SynchronizeScene;
 
         /// <summary>
@@ -5892,6 +5895,64 @@ namespace OpenSim.Region.Framework.Scenes
             m_SimulationDataService.RemoveExtra(RegionInfo.RegionID, name);
 
             m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
+        }
+
+        public bool AddOsslPerm (UUID key, string function)
+        {
+            StackTrace calls = new StackTrace ();
+            string caller = calls.GetFrame (1).GetMethod ().Name;
+            if (caller != "osGrantScriptPermissions") 
+            {
+                m_log.ErrorFormat("[SCENE]: {0} cannot adjust script perms!",caller);
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(function))
+                return false;
+
+            if (!m_DynaPerms.ContainsKey(function)) 
+            {
+                List<UUID> keys = new List<UUID> ();
+                keys.Add (key);
+                m_DynaPerms[function] = keys;
+                return true;
+            }
+
+            if (!m_DynaPerms[function].Contains(key))
+                m_DynaPerms[function].Add(key);
+
+            return true;
+        }
+
+        public bool GetOsslPerms(UUID avatar, string function)
+        {
+            if (m_DynaPerms.ContainsKey(function))
+                if(m_DynaPerms[function].Contains(avatar))
+                    return true;
+
+            return false;
+        }
+
+        public bool RemoveOsslPerm(UUID key, string function)
+        {
+            StackTrace calls = new StackTrace ();
+            string caller = calls.GetFrame (1).GetMethod ().Name;
+            if (caller != "osRevokeScriptPermissions") 
+            {
+                m_log.ErrorFormat("[SCENE]: {0} cannot adjust script perms!",caller);
+                return false;
+            }
+
+            if (m_DynaPerms.ContainsKey (function)) 
+            {
+                if (m_DynaPerms [function].Contains (key)) 
+                {
+                    m_DynaPerms [function].Remove (key);
+                    if (m_DynaPerms [function].Count == 0)
+                        m_DynaPerms.Remove (function);
+                }
+            }
+            return true;
         }
     }
 }

@@ -116,6 +116,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     {
         void CheckThreatLevel(ThreatLevel level, string function);
 
+        // Scripted Script Permissions
+        void osGrantScriptPermissions(LSL_Key avatar, LSL_List functions);
+        void osRevokeScriptPermissions(LSL_Key avatar, LSL_List functions);
+
         //OpenSim functions
         string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
         string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,

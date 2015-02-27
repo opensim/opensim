@@ -61,6 +61,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             Prim = new OSSLPrim(this);
         }
 
+        public void osGrantScriptPermissions (LSL_Key avatar, LSL_List osfunctions)
+        {
+            m_OSSL_Functions.osGrantScriptPermissions(avatar, osfunctions); 
+        }
+
+        public void osRevokeScriptPermissions (LSL_Key avatar, LSL_List osfunctions)
+        {
+            m_OSSL_Functions.osRevokeScriptPermissions(avatar, osfunctions); 
+        }
+
         public void osSetRegionWaterHeight(double height)
         {
             m_OSSL_Functions.osSetRegionWaterHeight(height);
