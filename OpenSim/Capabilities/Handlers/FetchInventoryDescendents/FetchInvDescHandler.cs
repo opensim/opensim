@@ -92,6 +92,7 @@ namespace OpenSim.Capabilities.Handlers
                 ArrayList foldersrequested = (ArrayList)hash["folders"];
     
                 string response = "";
+                string bad_folders_response = "";
 
                 for (int i = 0; i < foldersrequested.Count; i++)
                 {
@@ -110,24 +111,42 @@ namespace OpenSim.Capabilities.Handlers
                     }
                     LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
 
-                    inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
-                    inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
-                    inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+                    if (null == reply)
+                    {
+                        bad_folders_response += "<uuid>" + llsdRequest.folder_id.ToString() + "</uuid>";
+                    }
+                    else
+                    {
+                        inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
+                        inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
+                        inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+                    }
 
                     response += inventoryitemstr;
                 }
 
                 if (response.Length == 0)
                 {
-                    // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
-                    // Therefore, I'm concluding that the client only has so many threads available to do requests
-                    // and when a thread stalls..   is stays stalled.
-                    // Therefore we need to return something valid
-                    response = "<llsd><map><key>folders</key><array /></map></llsd>";
+                    /* Viewers expect a bad_folders array when not available */
+                    if (bad_folders_response.Length != 0)
+                    {
+                        response = "<llsd><map><key>bad_folders</key><array>" + bad_folders_response + "</array></map></llsd>";
+                    }
+                    else
+                    {
+                        response = "<llsd><map><key>folders</key><array /></map></llsd>";
+                    }
                 }
                 else
                 {
-                    response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
+                    if (bad_folders_response.Length != 0)
+                    {
+                        response = "<llsd><map><key>folders</key><array>" + response + "</array><key>bad_folders</key><array>" + bad_folders_response + "</array></map></llsd>";
+                    }
+                    else
+                    {
+                        response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
+                    }
                 }
 
 //                m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Replying to CAPS fetch inventory request");
