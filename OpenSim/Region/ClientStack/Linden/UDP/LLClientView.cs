@@ -9904,6 +9904,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     return true;
 
+                case "kickestate":
+                   
+                    if(((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        UUID Prey;
+
+                        UUID.TryParse(Utils.BytesToString(messagePacket.ParamList[0].Parameter), out Prey);
+
+                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
+                    }
+                    return true;
+
                 default:
                     m_log.WarnFormat(
                         "[LLCLIENTVIEW]: EstateOwnerMessage: Unknown method {0} requested for {1} in {2}",
