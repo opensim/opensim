@@ -970,12 +970,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             EventQueue.Clear();
             m_Script.ResetVars();
+            string oldState = State;
             State = "default";
 
             Part.SetScriptEvents(ItemID,
                                  (int)m_Script.GetStateEventFlags(State));
 
-            if (m_CurrentEvent != "state_entry")
+            if (m_CurrentEvent != "state_entry" || oldState != "default")
             {
                 m_SaveState = StatePersistedHere;
                 PostEvent(new EventParams("state_entry",
