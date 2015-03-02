@@ -92,6 +92,7 @@ what it is today.
 * dslake
 * eeyore
 * FredoChaplin
+* FreakyTech
 * Garmin Kawaguichi
 * Gerhard
 * Godfrey
