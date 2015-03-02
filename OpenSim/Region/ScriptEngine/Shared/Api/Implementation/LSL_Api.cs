@@ -12287,8 +12287,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetMemoryLimit()
         {
             m_host.AddScriptLPS(1);
-            // The value returned for LSO scripts in SL
-            return 16384;
+            // The value returned for Mono scripts in SL
+            return 65536;
         }
 
         public LSL_Integer llSetMemoryLimit(LSL_Integer limit)
