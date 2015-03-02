@@ -218,6 +218,17 @@ namespace OpenMetaverse
 
                 try
                 {
+                    if (m_udpSocket.Ttl < 128)
+                    {
+                        m_udpSocket.Ttl = 128;
+                    }
+                }
+                catch (SocketException)
+                {
+                    m_log.Debug("[UDPBASE]: Failed to increase default TTL");
+                }
+                try
+                {
                     // This udp socket flag is not supported under mono, 
                     // so we'll catch the exception and continue
                     m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
