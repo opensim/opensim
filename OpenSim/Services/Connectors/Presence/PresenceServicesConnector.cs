@@ -301,6 +301,7 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.DebugFormat("[PRESENCE CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
+                return null;
             }
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
