@@ -5620,6 +5620,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
         }
 
+        public LSL_String llGetEnv(LSL_String name)
+        {
+            m_host.AddScriptLPS(1);
+            if (name == "dynamic_pathfinding")
+            {
+                return "0";
+            }
+            else if (name == "estate_id")
+            {
+                return World.RegionInfo.EstateSettings.EstateID.ToString();
+            }
+            else if (name == "frame_number")
+            {
+                return World.Frame.ToString();
+            }
+            else if (name == "region_idle")
+            {
+                return "0";
+            }
+            else if (name == "sim_channel")
+            {
+                return "OpenSim";
+            }
+            else if (name == "sim_version")
+            {
+                return "";
+            }
+            else
+            {
+                return "";
+            }
+        }
+
         /// <summary>
         /// Insert the list identified by <paramref name="src"/> into the
         /// list designated by <paramref name="dest"/> such that the first
@@ -12323,12 +12356,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // Listing the unimplemented lsl functions here, please move
         // them from this region as they are completed
         //
-
-        public void llGetEnv(LSL_String name)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetEnv");
-        }
 
         public void llSetSoundQueueing(int queue)
         {
