@@ -3144,7 +3144,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                vec, Rotation, thisAddSpeedModifier, Name);
 
             Quaternion rot = Rotation;
-            if (!(Flying && m_mouseLook))
+            if (!(Flying && m_mouseLook) && (PresenceType != PresenceType.Npc))
             {
                 // The only situation in which we care about X and Y is in mouselook flying.  The rest of the time
                 // these parameters are not relevant for determining avatar movement direction and cause issues such
