@@ -54,7 +54,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_shuttingdown;
-        private AssetBase m_missingImage;
         private IAssetService m_assetCache;
         private IJ2KDecoder m_j2kDecodeModule;
 
@@ -73,18 +72,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public IClientAPI Client { get; private set; }
 
-        public AssetBase MissingImage { get { return m_missingImage; } }
-
         public LLImageManager(IClientAPI client, IAssetService pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
             Client = client;
             m_assetCache = pAssetCache;
-
-            if (pAssetCache != null)
-                m_missingImage = pAssetCache.Get("5748decc-f629-461c-9a36-a35a221fe21f");
-            
-            if (m_missingImage == null)
-                m_log.Error("[ClientView] - Couldn't set missing image asset, falling back to missing image packet. This is known to crash the client");
 
             m_j2kDecodeModule = pJ2kDecodeModule;
         }

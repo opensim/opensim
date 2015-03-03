@@ -247,7 +247,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (m_asset == null)
             {
-                m_log.Warn("[J2KIMAGE]: Sending ImageNotInDatabase for texture " + TextureID);
                 client.SendImageNotFound(TextureID);
                 return true;
             }
@@ -385,15 +384,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (asset == null || asset.Data == null)
             {
-                if (m_imageManager.MissingImage != null)
-                {
-                    m_asset = m_imageManager.MissingImage.Data;
-                }
-                else
-                {
-                    m_asset = null;
-                    IsDecoded = true;
-                }
+                m_asset = null;
+                IsDecoded = true;
             }
             else
             {
