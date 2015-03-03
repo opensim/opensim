@@ -25,20 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Reflection;
-using log4net;
-using Nini.Config;
 using Mono.Addins;
+using Nini.Config;
 using OpenMetaverse;
-using OpenSim.Framework;
+using OpenSim.Capabilities.Handlers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using System;
 using Caps = OpenSim.Framework.Capabilities.Caps;
-using OpenSim.Capabilities.Handlers;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -57,8 +53,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private IInventoryService m_inventoryService;
 
         private string m_fetchInventory2Url;
-
-        private FetchInventory2Handler m_fetchHandler;
 
         #region ISharedRegionModule Members
 
@@ -98,10 +92,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_inventoryService = m_scene.InventoryService;
 
-            // We'll reuse the same handler for all requests.
-            if (m_fetchInventory2Url == "localhost")
-                m_fetchHandler = new FetchInventory2Handler(m_inventoryService);
-
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
@@ -131,9 +121,11 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 capUrl = "/CAPS/" + UUID.Random();
 
+                FetchInventory2Handler fetchHandler = new FetchInventory2Handler(m_inventoryService, agentID);
+
                 IRequestHandler reqHandler
                     = new RestStreamHandler(
-                        "POST", capUrl, m_fetchHandler.FetchInventoryRequest, capName, agentID.ToString());
+                        "POST", capUrl, fetchHandler.FetchInventoryRequest, capName, agentID.ToString());
 
                 caps.RegisterHandler(capName, reqHandler);
             }
