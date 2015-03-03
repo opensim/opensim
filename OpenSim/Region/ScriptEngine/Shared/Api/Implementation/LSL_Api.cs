@@ -5645,7 +5645,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (name == "sim_version")
             {
-                return "";
+                return World.GetSimulatorVersion();
             }
             else
             {
