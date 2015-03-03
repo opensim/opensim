@@ -1926,8 +1926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (a == null)
                     return UUID.Zero;
 
-                string data = Encoding.UTF8.GetString(a.Data);
-                NotecardCache.Cache(assetID, data);
+                NotecardCache.Cache(assetID, a.Data);
             };
 
             return assetID;

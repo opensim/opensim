@@ -11632,9 +11632,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                string data = Encoding.UTF8.GetString(a.Data);
-                //m_log.Debug(data);
-                NotecardCache.Cache(id, data);
+                NotecardCache.Cache(id, a.Data);
                 AsyncCommands.DataserverPlugin.DataserverReply(reqIdentifier, NotecardCache.GetLines(id).ToString());
             });
 
@@ -11688,7 +11686,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                              string data = Encoding.UTF8.GetString(a.Data);
                              //m_log.Debug(data);
-                             NotecardCache.Cache(id, data);
+                             NotecardCache.Cache(id, a.Data);
                              AsyncCommands.DataserverPlugin.DataserverReply(
                                 reqIdentifier, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
                          });
@@ -12461,10 +12459,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             public DateTime lastRef;
         }
 
-        protected static Dictionary<UUID, Notecard> m_Notecards =
+        private static Dictionary<UUID, Notecard> m_Notecards =
             new Dictionary<UUID, Notecard>();
 
-        public static void Cache(UUID assetID, string text)
+        public static void Cache(UUID assetID, byte[] text)
         {
             CheckCache();
 
@@ -12475,7 +12473,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 Notecard nc = new Notecard();
                 nc.lastRef = DateTime.Now;
-                nc.text = SLUtil.ParseNotecardToList(text).ToArray();
+                try
+                {
+                    nc.text = SLUtil.ParseNotecardToArray(text);
+                }
+                catch(SLUtil.NotANotecardFormatException)
+                {
+                    nc.text = new string[0];
+                }
                 m_Notecards[assetID] = nc;
             }
         }

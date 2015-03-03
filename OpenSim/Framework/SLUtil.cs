@@ -25,13 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Xml;
-using log4net;
-using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -251,106 +247,270 @@ namespace OpenSim.Framework
 
         #endregion SL / file extension / content-type conversions
 
+        private class NotecardReader
+        {
+            private string rawInput;
+            private int lineNumber;
+
+            public int LineNumber
+            {
+                get
+                {
+                    return lineNumber;
+                }
+            }
+
+            public NotecardReader(string _rawInput)
+            {
+                rawInput = (string)_rawInput.Clone();
+                lineNumber = 0;
+            }
+
+            public string getLine()
+            {
+                if(rawInput.Length == 0)
+                {
+                    throw new NotANotecardFormatException(lineNumber + 1);
+                }
+
+                int pos = rawInput.IndexOf('\n');
+                if(pos < 0)
+                {
+                    pos = rawInput.Length;
+                }
+
+                /* cut line from rest */
+                ++lineNumber;
+                string line = rawInput.Substring(0, pos);
+                if (pos + 1 >= rawInput.Length)
+                {
+                    rawInput = string.Empty;
+                }
+                else
+                {
+                    rawInput = rawInput.Substring(pos + 1);
+                }
+                /* clean up line from double spaces and tabs */
+                line = line.Replace("\t", " ");
+                while(line.IndexOf("  ") >= 0)
+                {
+                    line = line.Replace("  ", " ");
+                }
+                return line.Replace("\r", "").Trim();
+            }
+
+            public string getBlock(int length)
+            {
+                /* cut line from rest */
+                if(length > rawInput.Length)
+                {
+                    throw new NotANotecardFormatException(lineNumber);
+                }
+                string line = rawInput.Substring(0, length);
+                rawInput = rawInput.Substring(length);
+                return line;
+            }
+        }
+
+        public class NotANotecardFormatException : Exception
+        {
+            public int lineNumber;
+            public NotANotecardFormatException(int _lineNumber)
+                : base()
+            {
+               lineNumber = _lineNumber;
+            }
+        }
+
+        private static void skipSection(NotecardReader reader)
+        {
+            if (reader.getLine() != "{")
+                throw new NotANotecardFormatException(reader.LineNumber);
+
+            string line;
+            while ((line = reader.getLine()) != "}")
+            {
+                if(line.IndexOf('{')>=0)
+                {
+                    throw new NotANotecardFormatException(reader.LineNumber);
+                }
+            }
+        }
+
+        private static void skipInventoryItem(NotecardReader reader)
+        {
+            if (reader.getLine() != "{")
+                throw new NotANotecardFormatException(reader.LineNumber);
+
+            string line;
+            while((line = reader.getLine()) != "}")
+            {
+                string[] data = line.Split(' ');
+                if(data.Length == 0)
+                {
+                    continue;
+                }
+                if(data[0] == "permissions")
+                {
+                    skipSection(reader);
+                }
+                else if(data[0] == "sale_info")
+                {
+                    skipSection(reader);
+                }
+                else if (line.IndexOf('{') >= 0)
+                {
+                    throw new NotANotecardFormatException(reader.LineNumber);
+                }
+            }
+        }
+
+        private static void skipInventoryItems(NotecardReader reader)
+        {
+            if(reader.getLine() != "{")
+            {
+                throw new NotANotecardFormatException(reader.LineNumber);
+            }
+
+            string line;
+            while((line = reader.getLine()) != "}")
+            {
+                string[] data = line.Split(' ');
+                if(data.Length == 0)
+                {
+                    continue;
+                }
+
+                if(data[0] == "inv_item")
+                {
+                    skipInventoryItem(reader);
+                } 
+                else if (line.IndexOf('{') >= 0)
+                {
+                    throw new NotANotecardFormatException(reader.LineNumber);
+                }
+
+            }
+        }
+
+        private static void skipInventory(NotecardReader reader)
+        {
+            if (reader.getLine() != "{")
+                throw new NotANotecardFormatException(reader.LineNumber);
+
+            string line;
+            while((line = reader.getLine()) != "}")
+            {
+                string[] data = line.Split(' ');
+                if(data[0] == "count")
+                {
+                    int count = Int32.Parse(data[1]);
+                    for(int i = 0; i < count; ++i)
+                    {
+                        skipInventoryItems(reader);
+                    }
+                }
+                else if (line.IndexOf('{') >= 0)
+                {
+                    throw new NotANotecardFormatException(reader.LineNumber);
+                }
+            }
+        }
+
+        private static string readNotecardText(NotecardReader reader)
+        {
+            if (reader.getLine() != "{")
+                throw new NotANotecardFormatException(reader.LineNumber);
+
+            string notecardString = string.Empty;
+            string line;
+            while((line = reader.getLine()) != "}")
+            {
+                string[] data = line.Split(' ');
+                if (data.Length == 0)
+                {
+                    continue;
+                }
+
+                if (data[0] == "LLEmbeddedItems")
+                {
+                    skipInventory(reader);
+                }
+                else if(data[0] == "Text" && data.Length == 3)
+                {
+                    int length = Int32.Parse(data[2]);
+                    notecardString = reader.getBlock(length);
+                } 
+                else if (line.IndexOf('{') >= 0)
+                {
+                    throw new NotANotecardFormatException(reader.LineNumber);
+                }
+
+            }
+            return notecardString;
+        }
+
+        private static string readNotecard(byte[] rawInput)
+        {
+            string rawIntermedInput = string.Empty;
+
+            /* make up a Raw Encoding here */
+            foreach(byte c in rawInput)
+            {
+                char d = (char)c;
+                rawIntermedInput += d;
+            }
+
+            NotecardReader reader = new NotecardReader(rawIntermedInput);
+            string line;
+            try
+            {
+                line = reader.getLine();
+            }
+            catch(Exception)
+            {
+                return System.Text.Encoding.UTF8.GetString(rawInput);
+            }
+            string[] versioninfo = line.Split(' ');
+            if(versioninfo.Length < 3)
+            {
+                return System.Text.Encoding.UTF8.GetString(rawInput);
+            }
+            else if(versioninfo[0] != "Linden" || versioninfo[1] != "text")
+            {
+                return System.Text.Encoding.UTF8.GetString(rawInput);
+            }
+            else
+            {
+                /* now we actually decode the Encoding, before we needed it in raw */
+                string o = readNotecardText(reader);
+                byte[] a = new byte[o.Length];
+                for(int i = 0; i < o.Length; ++i)
+                {
+                    a[i] = (byte)o[i];
+                }
+                return System.Text.Encoding.UTF8.GetString(a);
+            }
+        }
+
         /// <summary>
         /// Parse a notecard in Linden format to a string of ordinary text.
         /// </summary>
         /// <param name="rawInput"></param>
         /// <returns></returns>
-        public static string ParseNotecardToString(string rawInput)
+        public static string ParseNotecardToString(byte[] rawInput)
         {
-            string[] output = ParseNotecardToList(rawInput).ToArray();
-
-//            foreach (string line in output)
-//                m_log.DebugFormat("[PARSE NOTECARD]: ParseNotecardToString got line {0}", line);
-            
-            return string.Join("\n", output);
+            return readNotecard(rawInput);
         }
-                
+
         /// <summary>
         /// Parse a notecard in Linden format to a list of ordinary lines.
         /// </summary>
         /// <param name="rawInput"></param>
         /// <returns></returns>
-        public static List<string> ParseNotecardToList(string rawInput)
+        public static string[] ParseNotecardToArray(byte[] rawInput)
         {
-            string[] input;
-            int idx = 0;
-            int level = 0;
-            List<string> output = new List<string>();
-            string[] words;
-
-            //The Linden format always ends with a } after the input data.
-            //Strip off trailing } so there is nothing after the input data.
-            int i = rawInput.LastIndexOf("}");
-            rawInput = rawInput.Remove(i, rawInput.Length-i);
-            input = rawInput.Replace("\r", "").Split('\n');
-
-            while (idx < input.Length)
-            {
-                if (input[idx] == "{")
-                {
-                    level++;
-                    idx++;
-                    continue;
-                }
-
-                if (input[idx]== "}")
-                {
-                    level--;
-                    idx++;
-                    continue;
-                }
-
-                switch (level)
-                {
-                case 0:
-                    words = input[idx].Split(' '); // Linden text ver
-                    // Notecards are created *really* empty. Treat that as "no text" (just like after saving an empty notecard)
-                    if (words.Length < 3)
-                        return output;
-
-                    int version = int.Parse(words[3]);
-                    if (version != 2)
-                        return output;
-                    break;
-                case 1:
-                    words = input[idx].Split(' ');
-                    if (words[0] == "LLEmbeddedItems")
-                        break;
-                    if (words[0] == "Text")
-                    {
-                        idx++;  //Now points to first line of notecard text
-
-                        //Number of lines in notecard.
-                        int lines = input.Length - idx;
-                        int line = 0;
-
-                        while (line < lines)
-                        {
-//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", input[idx]);
-                            output.Add(input[idx]);
-                            idx++;
-                            line++;
-                        }
-
-                        return output;
-                    }
-                    break;
-                case 2:
-                    words = input[idx].Split(' '); // count
-                    if (words[0] == "count")
-                    {
-                        int c = int.Parse(words[1]);
-                        if (c > 0)
-                            return output;
-                        break;
-                    }
-                    break;
-                }
-                idx++;
-            }
-            
-            return output;
+            return readNotecard(rawInput).Replace("\r", "").Split('\n');
         }
     }
 }
