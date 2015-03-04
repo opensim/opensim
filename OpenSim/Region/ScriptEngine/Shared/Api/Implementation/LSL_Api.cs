@@ -11004,8 +11004,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
+            HttpInitialRequestStatus status;
             UUID reqID
-                = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body);
+                = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body, out status);
+
+            if (status == HttpInitialRequestStatus.DISALLOWED_BY_FILTER)
+                Error("llHttpRequest", string.Format("Request to {0} disallowed by filter", url));
 
             if (reqID != UUID.Zero)
                 return reqID.ToString();

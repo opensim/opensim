@@ -486,6 +486,32 @@
     ;; the region ports use UDP.
     ; http_listener_port = 9000
 
+    ; By default, OpenSimulator does not allow scripts to make HTTP calls to addresses on the simulator's LAN.
+    ; See the OutboundDisallowForUserScripts parameter in OpenSimDefaults.ini for more information on this filter.
+    ; If you need to allow scripts to make some LAN calls use the OutboundDisallowForUserScriptsExcept parameter below.
+    ; We recommend that you do not override OutboundDisallowForUserScripts directly unless you are very sure about what you're doing.
+    ;
+    ; You can whitelist individual endpoints by IP or FQDN, e.g.
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.3:8003
+    ; 
+    ; You can specify multiple addresses by separating them with a bar.  For example,
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.3:8003|myinternalserver:8000
+    ; 
+    ; If an address if given without a port number then port 80 is assumed
+    ;
+    ; You can also specify a network range in CIDR notation to whitelist, e.g.
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.0/24
+    ;
+    ; to whitelist all ports on addresses 192.168.1.0 to 192.168.1.255
+    ; To specify an individual IP address use the /32 netmask
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.2/32
+    ;
+    ; See http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation for more information on CIDR notation
+
     ;# {ExternalHostNameForLSL} {} {Hostname to use for HTTP-IN URLs. This should be reachable from the internet.} {}
     ;; Hostname to use in llRequestURL/llRequestSecureURL
     ;; if not defined - default machine name is being used

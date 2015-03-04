@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
@@ -41,10 +42,44 @@ namespace OpenSim.Region.Framework.Interfaces
         HTTP_PRAGMA_NO_CACHE = 6
     }
 
+    /// <summary>
+    /// The initial status of the request before it is placed on the wire.
+    /// </summary>
+    /// <remarks>
+    /// The request may still fail later on, in which case the normal HTTP status is set.
+    /// </remarks>
+    [Flags]
+    public enum HttpInitialRequestStatus
+    {
+        OK = 1,
+        DISALLOWED_BY_FILTER = 2
+    }
+
     public interface IHttpRequestModule
     {
         UUID MakeHttpRequest(string url, string parameters, string body);
-        UUID StartHttpRequest(uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body);
+
+        /// <summary>
+        /// Starts the http request.
+        /// </summary>
+        /// <remarks>
+        /// This is carried out asynchronously unless it fails initial checks.  Results are fetched by the script engine
+        /// HTTP requests module to be distributed back to scripts via a script event.
+        /// </remarks>
+        /// <returns>The ID of the request.  If the requested could not be performed then this is UUID.Zero</returns>
+        /// <param name="localID">Local ID of the object containing the script making the request.</param>
+        /// <param name="itemID">Item ID of the script making the request.</param>
+        /// <param name="url">Url to request.</param>
+        /// <param name="parameters">LSL parameters for the request.</param>
+        /// <param name="headers">Extra headers for the request.</param>
+        /// <param name="body">Body of the request.</param>
+        /// <param name="status">
+        /// Initial status of the request.  If OK then the request is actually made to the URL.  Subsequent status is
+        /// then returned via IServiceRequest when the response is asynchronously fetched.
+        /// </param>
+        UUID StartHttpRequest(
+            uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body, 
+            out HttpInitialRequestStatus status);
 
         /// <summary>
         /// Stop and remove all http requests for the given script.
