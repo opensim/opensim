@@ -153,6 +153,13 @@
     ;; Hypergrid services are not affected by this; they are publicly available 
     ;; by design.
 
+    ;; By default, scripts are not allowed to call private services via llHttpRequest()
+    ;; Such calls are detected by the X-SecondLife-Shared HTTP header
+    ;; If you allow such calls you must be sure that they are restricted to very trusted scripters
+    ;; (remember scripts can also be in visiting avatar attachments).
+    ;; This can be overriden in individual private service sections if necessary
+    AllowllHTTPRequestIn = false
+
     ; * The following are for the remote console
     ; * They have no effect for the local or basic console types
     ; * Leave commented to diable logins to the console

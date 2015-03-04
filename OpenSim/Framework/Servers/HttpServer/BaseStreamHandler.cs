@@ -56,12 +56,17 @@ namespace OpenSim.Framework.Servers.HttpServer
             string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             RequestsReceived++;
-            if (m_Auth != null && !m_Auth.Authenticate(httpRequest.Headers, httpResponse.AddHeader))
+
+            if (m_Auth != null)
             {
-                
-                httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
-                httpResponse.ContentType = "text/plain";
-                return new byte[0];
+                HttpStatusCode statusCode;
+
+                if (!m_Auth.Authenticate(httpRequest.Headers, httpResponse.AddHeader, out statusCode))
+                {                
+                    httpResponse.StatusCode = (int)statusCode;
+                    httpResponse.ContentType = "text/plain";
+                    return new byte[0];
+                }
             }
 
             byte[] result = ProcessRequest(path, request, httpRequest, httpResponse);
