@@ -51,7 +51,7 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static readonly int MAX_ASSET_NAME = 64;
-        public static readonly int MAX_ASSET_DESC = 64;
+        public static readonly int MAX_ASSET_DESC = 128;
 
         /// <summary>
         /// Data of the Asset
