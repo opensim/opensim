@@ -6456,17 +6456,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (SceneObjectPart part in parts)
             {
-                SetParticleSystem(part, rules);
+                SetParticleSystem(part, rules, "llLinkParticleSystem");
             }
         }
 
         public void llParticleSystem(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
-            SetParticleSystem(m_host, rules);
+            SetParticleSystem(m_host, rules, "llParticleSystem");
         }
 
-        private void SetParticleSystem(SceneObjectPart part, LSL_List rules)
+        private void SetParticleSystem(SceneObjectPart part, LSL_List rules, string originFunc)
         {
             if (rules.Length == 0)
             {
@@ -6483,62 +6483,152 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 for (int i = 0; i < rules.Length; i += 2)
                 {
-                    switch (rules.GetLSLIntegerItem(i))
+                    int psystype;
+                    try
+                    {
+                        psystype = rules.GetLSLIntegerItem(i);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        Error(originFunc, string.Format("Error running particle system params index #{0}: particle system parameter type must be integer", i));
+                        return;
+                    }
+                    switch (psystype)
                     {
                         case (int)ScriptBaseClass.PSYS_PART_FLAGS:
-                            prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)(uint)rules.GetLSLIntegerItem(i + 1);
+                            try
+                            {
+                                prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)(uint)rules.GetLSLIntegerItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_FLAGS: arg #{0} - parameter 1 must be integer", i + 1));
+                                return;
+                            }
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_COLOR:
-                            tempv = rules.GetVector3Item(i + 1);
+                            try
+                            {
+                                tempv = rules.GetVector3Item(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_START_COLOR: arg #{0} - parameter 1 must be vector", i + 1));
+                                return;
+                            }
                             prules.PartStartColor.R = (float)tempv.x;
                             prules.PartStartColor.G = (float)tempv.y;
                             prules.PartStartColor.B = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_ALPHA:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_START_ALPHA: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.PartStartColor.A = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_COLOR:
-                            tempv = rules.GetVector3Item(i + 1);
+                            try
+                            {
+                                tempv = rules.GetVector3Item(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_END_COLOR: arg #{0} - parameter 1 must be vector", i + 1));
+                                return;
+                            }
                             prules.PartEndColor.R = (float)tempv.x;
                             prules.PartEndColor.G = (float)tempv.y;
                             prules.PartEndColor.B = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_ALPHA:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_END_ALPHA: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.PartEndColor.A = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_SCALE:
-                            tempv = rules.GetVector3Item(i + 1);
+                            try
+                            {
+                                tempv = rules.GetVector3Item(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_START_SCALE: arg #{0} - parameter 1 must be vector", i + 1));
+                                return;
+                            }
                             prules.PartStartScaleX = validParticleScale((float)tempv.x);
                             prules.PartStartScaleY = validParticleScale((float)tempv.y);
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_SCALE:
-                            tempv = rules.GetVector3Item(i + 1);
+                            try
+                            {
+                                tempv = rules.GetVector3Item(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_END_SCALE: arg #{0} - parameter 1 must be vector", i + 1));
+                                return;
+                            }
                             prules.PartEndScaleX = validParticleScale((float)tempv.x);
                             prules.PartEndScaleY = validParticleScale((float)tempv.y);
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_MAX_AGE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_MAX_AGE: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.PartMaxAge = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ACCEL:
-                            tempv = rules.GetVector3Item(i + 1);
+                            try
+                            {
+                                tempv = rules.GetVector3Item(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_ACCEL: arg #{0} - parameter 1 must be vector", i + 1));
+                                return;
+                            }
                             prules.PartAcceleration.X = (float)tempv.x;
                             prules.PartAcceleration.Y = (float)tempv.y;
                             prules.PartAcceleration.Z = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_PATTERN:
-                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            try
+                            {
+                                tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_PATTERN: arg #{0} - parameter 1 must be integer", i + 1));
+                                return;
+                            }
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
 
@@ -6547,67 +6637,171 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // client tells the difference between the two by looking at the 0x02 bit in
                         // the PartFlags variable.
                         case (int)ScriptBaseClass.PSYS_SRC_INNERANGLE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_INNERANGLE: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.InnerAngle = (float)tempf;
                             prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_OUTERANGLE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_OUTERANGLE: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.OuterAngle = (float)tempf;
                             prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_BLEND_FUNC_SOURCE:
-                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            try
+                            {
+                                tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_BLEND_FUNC_SOURCE: arg #{0} - parameter 1 must be integer", i + 1));
+                                return;
+                            }
                             prules.BlendFuncSource = (byte)tmpi;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_BLEND_FUNC_DEST:
-                            tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            try
+                            {
+                                tmpi = (int)rules.GetLSLIntegerItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_BLEND_FUNC_DEST: arg #{0} - parameter 1 must be integer", i + 1));
+                                return;
+                            }
                             prules.BlendFuncDest = (byte)tmpi;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_GLOW:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_START_GLOW: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.PartStartGlow = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_GLOW:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_PART_END_GLOW: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.PartEndGlow = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
-                            prules.Texture = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, rules.GetLSLStringItem(i + 1));
+                            try
+                            {
+                                prules.Texture = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, rules.GetLSLStringItem(i + 1));
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_TEXTURE: arg #{0} - parameter 1 must be string or key", i + 1));
+                                return;
+                            }
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RATE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_RATE: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.BurstRate = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_PART_COUNT:
-                            prules.BurstPartCount = (byte)(int)rules.GetLSLIntegerItem(i + 1);
+                            try
+                            {
+                                prules.BurstPartCount = (byte)(int)rules.GetLSLIntegerItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_PART_COUNT: arg #{0} - parameter 1 must be integer", i + 1));
+                                return;
+                            }
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RADIUS:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_RADIUS: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.BurstRadius = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_SPEED_MIN: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.BurstSpeedMin = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_SPEED_MAX: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.BurstSpeedMax = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_MAX_AGE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_MAX_AGE: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.MaxAge = (float)tempf;
                             break;
 
@@ -6625,20 +6819,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PSYS_SRC_OMEGA:
                             // AL: This is an assumption, since it is the only thing that would match.
-                            tempv = rules.GetVector3Item(i + 1);
+                            try
+                            {
+                                tempv = rules.GetVector3Item(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_OMEGA: arg #{0} - parameter 1 must be vector", i + 1));
+                                return;
+                            }
                             prules.AngularVelocity.X = (float)tempv.x;
                             prules.AngularVelocity.Y = (float)tempv.y;
                             prules.AngularVelocity.Z = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ANGLE_BEGIN:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_ANGLE_BEGIN: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.InnerAngle = (float)tempf;
                             prules.PartFlags |= 0x02; // Set new angle format.
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ANGLE_END:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            try
+                            {
+                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule PSYS_SRC_ANGLE_END: arg #{0} - parameter 1 must be float", i + 1));
+                                return;
+                            }
                             prules.OuterAngle = (float)tempf;
                             prules.PartFlags |= 0x02; // Set new angle format.
                             break;
@@ -7581,7 +7799,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             while (remaining != null && remaining.Length > 2)
             {
-                int linknumber = remaining.GetLSLIntegerItem(0);
+                int linknumber;
+                try
+                {
+                    linknumber = remaining.GetLSLIntegerItem(0);
+                }
+                catch(InvalidCastException)
+                {
+                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_LINK_TARGET: parameter 2 must be integer", rulesParsed));
+                    return;
+                }
+
                 rules = remaining.GetSublist(1, -1);
                 entities = GetLinkEntities(linknumber);
 
@@ -7755,17 +7983,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     switch (code)
                     {
-                        case (int)ScriptBaseClass.PRIM_POSITION:
-                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        case ScriptBaseClass.PRIM_POSITION:
+                        case ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
                                 return null;
 
-                            v=rules.GetVector3Item(idx++);
+                            try
+                            {
+                                v = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                if(code == ScriptBaseClass.PRIM_POSITION)
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POSITION: arg #{1} - parameter 1 must be vector", rulesParsed, idx - idxStart - 1));
+                                else
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POS_LOCAL: arg #{1} - parameter 1 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
                             positionChanged = true;
                             currentPosition = GetSetPosTarget(part, v, currentPosition);
 
                             break;
-                        case (int)ScriptBaseClass.PRIM_SIZE:
+                        case ScriptBaseClass.PRIM_SIZE:
                             if (remain < 1)
                                 return null;
 
@@ -7773,11 +8012,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             SetScale(part, v);
 
                             break;
-                        case (int)ScriptBaseClass.PRIM_ROTATION:
+                        case ScriptBaseClass.PRIM_ROTATION:
                             if (remain < 1)
                                 return null;
-
-                            LSL_Rotation q = rules.GetQuaternionItem(idx++);
+                            LSL_Rotation q;
+                            try
+                            {
+                                q = rules.GetQuaternionItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROTATION: arg #{1} - parameter 1 must be rotation", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
                             // try to let this work as in SL...
                             if (part.ParentID == 0)
                             {
@@ -7793,11 +8040,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TYPE:
+                        case ScriptBaseClass.PRIM_TYPE:
                             if (remain < 3)
                                 return null;
 
-                            code = (int)rules.GetLSLIntegerItem(idx++);
+                            try
+                            {
+                                code = (int)rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE: arg #{1} - parameter 1 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             remain = rules.Length - idx;
                             float hollow;
@@ -7812,140 +8067,625 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             switch (code)
                             {
-                                case (int)ScriptBaseClass.PRIM_TYPE_BOX:
+                                case ScriptBaseClass.PRIM_TYPE_BOX:
                                     if (remain < 6)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++);
-                                    v = rules.GetVector3Item(idx++); // cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++);
-                                    topshear = rules.GetVector3Item(idx++);
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); // cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 5 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        topshear = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
 
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
                                         (byte)ProfileShape.Square, (byte)Extrusion.Straight);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                                case ScriptBaseClass.PRIM_TYPE_CYLINDER:
                                     if (remain < 6)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
-                                    v = rules.GetVector3Item(idx++); // cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++);
-                                    topshear = rules.GetVector3Item(idx++);
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); // cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        topshear = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
                                         (byte)ProfileShape.Circle, (byte)Extrusion.Straight);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
+                                case ScriptBaseClass.PRIM_TYPE_PRISM:
                                     if (remain < 6)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
-                                    v = rules.GetVector3Item(idx++); //cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++);
-                                    topshear = rules.GetVector3Item(idx++);
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); //cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        topshear = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
                                         (byte)ProfileShape.EquilateralTriangle, (byte)Extrusion.Straight);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
+                                case ScriptBaseClass.PRIM_TYPE_SPHERE:
                                     if (remain < 5)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
-                                    v = rules.GetVector3Item(idx++); // cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++); // dimple
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); // cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++); // dimple
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b,
                                         (byte)ProfileShape.HalfCircle, (byte)Extrusion.Curve1);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
+                                case ScriptBaseClass.PRIM_TYPE_TORUS:
                                     if (remain < 11)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
-                                    v = rules.GetVector3Item(idx++); //cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    holesize = rules.GetVector3Item(idx++);
-                                    topshear = rules.GetVector3Item(idx++);
-                                    profilecut = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++); // taper_a
-                                    revolutions = (float)rules.GetLSLFloatItem(idx++);
-                                    radiusoffset = (float)rules.GetLSLFloatItem(idx++);
-                                    skew = (float)rules.GetLSLFloatItem(idx++);
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); //cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        holesize = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        topshear = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        profilecut = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 9 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++); // taper_a
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 10 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        revolutions = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 11 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        radiusoffset = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 12 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        skew = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 13 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
                                         revolutions, radiusoffset, skew, (byte)ProfileShape.Circle, (byte)Extrusion.Curve1);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
+                                case ScriptBaseClass.PRIM_TYPE_TUBE:
                                     if (remain < 11)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
-                                    v = rules.GetVector3Item(idx++); //cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    holesize = rules.GetVector3Item(idx++);
-                                    topshear = rules.GetVector3Item(idx++);
-                                    profilecut = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++); // taper_a
-                                    revolutions = (float)rules.GetLSLFloatItem(idx++);
-                                    radiusoffset = (float)rules.GetLSLFloatItem(idx++);
-                                    skew = (float)rules.GetLSLFloatItem(idx++);
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); //cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        holesize = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        topshear = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        profilecut = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 9 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++); // taper_a
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 10 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        revolutions = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 11 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        radiusoffset = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 12 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        skew = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 13 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
                                         revolutions, radiusoffset, skew, (byte)ProfileShape.Square, (byte)Extrusion.Curve1);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_RING:
+                                case ScriptBaseClass.PRIM_TYPE_RING:
                                     if (remain < 11)
                                         return null;
 
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
-                                    v = rules.GetVector3Item(idx++); //cut
-                                    hollow = (float)rules.GetLSLFloatItem(idx++);
-                                    twist = rules.GetVector3Item(idx++);
-                                    holesize = rules.GetVector3Item(idx++);
-                                    topshear = rules.GetVector3Item(idx++);
-                                    profilecut = rules.GetVector3Item(idx++);
-                                    taper_b = rules.GetVector3Item(idx++); // taper_a
-                                    revolutions = (float)rules.GetLSLFloatItem(idx++);
-                                    radiusoffset = (float)rules.GetLSLFloatItem(idx++);
-                                    skew = (float)rules.GetLSLFloatItem(idx++);
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        v = rules.GetVector3Item(idx++); //cut
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        twist = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        holesize = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        topshear = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        profilecut = rules.GetVector3Item(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 9 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        taper_b = rules.GetVector3Item(idx++); // taper_a
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 10 must be vector", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        revolutions = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 11 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        radiusoffset = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 12 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
+                                    try
+                                    {
+                                        skew = (float)rules.GetLSLFloatItem(idx++);
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 13 must be float", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
                                         revolutions, radiusoffset, skew, (byte)ProfileShape.EquilateralTriangle, (byte)Extrusion.Curve1);
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
+                                case ScriptBaseClass.PRIM_TYPE_SCULPT:
                                     if (remain < 2)
                                         return null;
 
                                     string map = rules.Data[idx++].ToString();
-                                    face = (int)rules.GetLSLIntegerItem(idx++); // type
+                                    try
+                                    {
+                                        face = (int)rules.GetLSLIntegerItem(idx++); // type
+                                    }
+                                    catch(InvalidCastException)
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SCULPT: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
+                                        return null;
+                                    }
                                     SetPrimitiveShapeParams(part, map, face, (byte)Extrusion.Curve1);
                                     break;
                             }
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TEXTURE:
+                        case ScriptBaseClass.PRIM_TEXTURE:
                             if (remain < 5)
                                 return null;
 
                             face=(int)rules.GetLSLIntegerItem(idx++);
-                            string tex=rules.Data[idx++].ToString();
-                            LSL_Vector repeats=rules.GetVector3Item(idx++);
-                            LSL_Vector offsets=rules.GetVector3Item(idx++);
-                            double rotation=(double)rules.GetLSLFloatItem(idx++);
+                            string tex;
+                            LSL_Vector repeats;
+                            LSL_Vector offsets;
+                            double rotation;
+
+                            tex = rules.Data[idx++].ToString();
+                            try
+                            {
+                                repeats = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXTURE: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                offsets = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXTURE: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                rotation = (double)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXTURE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             SetTexture(part, tex, face);
                             ScaleTexture(part, repeats.x, repeats.y, face);
@@ -7954,114 +8694,328 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_COLOR:
+                        case ScriptBaseClass.PRIM_COLOR:
                             if (remain < 3)
                                 return null;
 
-                            face=(int)rules.GetLSLIntegerItem(idx++);
-                            LSL_Vector color=rules.GetVector3Item(idx++);
-                            double alpha=(double)rules.GetLSLFloatItem(idx++);
+                            LSL_Vector color;
+                            double alpha;
+
+                            try
+                            {
+                                face = (int)rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_COLOR: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                color = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_COLOR: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                alpha = (double)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_COLOR: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             part.SetFaceColorAlpha(face, color, alpha);
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                        case ScriptBaseClass.PRIM_FLEXIBLE:
                             if (remain < 7)
                                 return null;
+                            bool flexi;
+                            int softness;
+                            float gravity;
+                            float friction;
+                            float wind;
+                            float tension;
+                            LSL_Vector force;
 
-                            bool flexi = rules.GetLSLIntegerItem(idx++);
-                            int softness = rules.GetLSLIntegerItem(idx++);
-                            float gravity = (float)rules.GetLSLFloatItem(idx++);
-                            float friction = (float)rules.GetLSLFloatItem(idx++);
-                            float wind = (float)rules.GetLSLFloatItem(idx++);
-                            float tension = (float)rules.GetLSLFloatItem(idx++);
-                            LSL_Vector force = rules.GetVector3Item(idx++);
+                            try
+                            {
+                                flexi = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                softness = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                gravity = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                friction = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                wind = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 6 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                tension = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 7 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                force = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                        case ScriptBaseClass.PRIM_POINT_LIGHT:
                             if (remain < 5)
                                 return null;
-                            bool light = rules.GetLSLIntegerItem(idx++);
-                            LSL_Vector lightcolor = rules.GetVector3Item(idx++);
-                            float intensity = (float)rules.GetLSLFloatItem(idx++);
-                            float radius = (float)rules.GetLSLFloatItem(idx++);
-                            float falloff = (float)rules.GetLSLFloatItem(idx++);
+                            bool light;
+                            LSL_Vector lightcolor;
+                            float intensity;
+                            float radius;
+                            float falloff;
+
+                            try
+                            {
+                                light = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                lightcolor = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                intensity = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                radius = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                falloff = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 6 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             SetPointLight(part, light, lightcolor, intensity, radius, falloff);
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_GLOW:
+                        case ScriptBaseClass.PRIM_GLOW:
                             if (remain < 2)
                                 return null;
-                            face = rules.GetLSLIntegerItem(idx++);
-                            float glow = (float)rules.GetLSLFloatItem(idx++);
+
+                            float glow;
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_GLOW: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                glow = (float)rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_GLOW: arg #{1} - parameter 3 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             SetGlow(part, face, glow);
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                        case ScriptBaseClass.PRIM_BUMP_SHINY:
                             if (remain < 3)
                                 return null;
-                            face = (int)rules.GetLSLIntegerItem(idx++);
-                            int shiny = (int)rules.GetLSLIntegerItem(idx++);
-                            Bumpiness bump = (Bumpiness)(int)rules.GetLSLIntegerItem(idx++);
+
+                            int shiny;
+                            Bumpiness bump;
+
+                            try
+                            {
+                                face = (int)rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_BUMP_SHINY: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                shiny = (int)rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_BUMP_SHINY: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                bump = (Bumpiness)(int)rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_BUMP_SHINY: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             SetShiny(part, face, shiny, bump);
 
                             break;
 
-                         case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
-                             if (remain < 2)
-                                 return null;
-                             face = rules.GetLSLIntegerItem(idx++);
-                             bool st = rules.GetLSLIntegerItem(idx++);
-                             SetFullBright(part, face , st);
-                             break;
+                        case ScriptBaseClass.PRIM_FULLBRIGHT:
+                            if (remain < 2)
+                                return null;
+                            bool st;
 
-                         case (int)ScriptBaseClass.PRIM_MATERIAL:
-                             if (remain < 1)
-                                 return null;
-                             int mat = rules.GetLSLIntegerItem(idx++);
-                             if (mat < 0 || mat > 7)
-                                 return null;
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FULLBRIGHT: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
+                            try
+                            {
+                                st = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FULLBRIGHT: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            SetFullBright(part, face , st);
+                            break;
 
-                             part.Material = Convert.ToByte(mat);
-                             break;
-
-                         case (int)ScriptBaseClass.PRIM_PHANTOM:
-                             if (remain < 1)
-                                 return null;
-
-                             string ph = rules.Data[idx++].ToString();
-                             part.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
-
-                             break;
-
-                         case (int)ScriptBaseClass.PRIM_PHYSICS:
+                        case ScriptBaseClass.PRIM_MATERIAL:
                             if (remain < 1)
-                                 return null;
-                             string phy = rules.Data[idx++].ToString();
-                             bool physics;
+                                return null;
+                            int mat;
 
-                             if (phy.Equals("1"))
-                                 physics = true;
-                             else
-                                 physics = false;
+                            try
+                            {
+                                mat = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_MATERIAL: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
+                            if (mat < 0 || mat > 7)
+                                return null;
 
-                             part.ScriptSetPhysicsStatus(physics);
-                             break;
+                            part.Material = Convert.ToByte(mat);
+                            break;
 
-                        case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                        case ScriptBaseClass.PRIM_PHANTOM:
                             if (remain < 1)
                                 return null;
 
-                            int shape_type = rules.GetLSLIntegerItem(idx++);
+                            string ph = rules.Data[idx++].ToString();
+                            part.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
+
+                            break;
+
+                        case ScriptBaseClass.PRIM_PHYSICS:
+                           if (remain < 1)
+                                return null;
+                            string phy = rules.Data[idx++].ToString();
+                            part.ScriptSetPhysicsStatus(phy.Equals("1"));
+                            break;
+
+                        case ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                            if (remain < 1)
+                                return null;
+
+                            int shape_type;
+
+                            try
+                            {
+                                shape_type = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_PHYSICS_SHAPE_TYPE: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             ExtraPhysicsData physdata = new ExtraPhysicsData();
                             physdata.Density = part.Density;
@@ -8073,7 +9027,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        case ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             if (remain < 1)
                                 return null;
                             string temp = rules.Data[idx++].ToString();
@@ -8082,60 +9036,177 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        case ScriptBaseClass.PRIM_TEXGEN:
                             if (remain < 2)
                                 return null;
                                 //face,type
-                            face = rules.GetLSLIntegerItem(idx++);
-                            int style = rules.GetLSLIntegerItem(idx++);
+                            int style;
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXGEN: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
+                            try
+                            {
+                                style = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXGEN: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
                             SetTexGen(part, face, style);
                             break;
-                        case (int)ScriptBaseClass.PRIM_TEXT:
+                        case ScriptBaseClass.PRIM_TEXT:
                             if (remain < 3)
                                 return null;
-                            string primText = rules.GetLSLStringItem(idx++);
-                            LSL_Vector primTextColor = rules.GetVector3Item(idx++);
-                            LSL_Float primTextAlpha = rules.GetLSLFloatItem(idx++);
+                            string primText;
+                            LSL_Vector primTextColor;
+                            LSL_Float primTextAlpha;
+
+                            try
+                            {
+                                primText = rules.GetLSLStringItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
+                            try
+                            {
+                                primTextColor = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
+                            try
+                            {
+                                primTextAlpha = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
                             Vector3 av3 = Util.Clip(primTextColor, 0.0f, 1.0f);
                             part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
 
                             break;
-                        case (int)ScriptBaseClass.PRIM_NAME:
+
+                        case ScriptBaseClass.PRIM_NAME:
                             if (remain < 1)
                                 return null;
-                            string primName = rules.GetLSLStringItem(idx++);
-                            part.Name = primName;
+                            try
+                            {
+                                string primName = rules.GetLSLStringItem(idx++);
+                                part.Name = primName;
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NAME: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
                             break;
-                        case (int)ScriptBaseClass.PRIM_DESC:
+                        case ScriptBaseClass.PRIM_DESC:
                             if (remain < 1)
                                 return null;
-                            string primDesc = rules.GetLSLStringItem(idx++);
-                            part.Description = primDesc;
+                            try
+                            {
+                                string primDesc = rules.GetLSLStringItem(idx++);
+                                part.Description = primDesc;
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_DESC: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
                             break;
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        case ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;
-                            SetRot(part, rules.GetQuaternionItem(idx++));
+                            LSL_Rotation rot;
+                            try
+                            {
+                                rot = rules.GetQuaternionItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROT_LOCAL: arg #{1} - parameter 2 must be rotation", rulesParsed, idx - idxStart - 1));
+                               return null;
+                            }
+                            SetRot(part, rot);
                             break;
-                        case (int)ScriptBaseClass.PRIM_OMEGA:
+
+                        case ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
                                 return null;
-                            LSL_Vector axis = rules.GetVector3Item(idx++);
-                            LSL_Float spinrate = rules.GetLSLFloatItem(idx++);
-                            LSL_Float gain = rules.GetLSLFloatItem(idx++);
+                            LSL_Vector axis;
+                            LSL_Float spinrate;
+                            LSL_Float gain;
+
+                            try
+                            {
+                                axis = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                spinrate = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 3 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
+                            try
+                            {
+                                gain = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
                             TargetOmega(part, axis, (double)spinrate, (double)gain);
                             break;
-                        case (int)ScriptBaseClass.PRIM_SLICE:
+
+                        case ScriptBaseClass.PRIM_SLICE:
                             if (remain < 1)
                                 return null;
-                            LSL_Vector slice = rules.GetVector3Item(idx++);
+                            LSL_Vector slice;
+                            try
+                            {
+                                slice = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SLICE: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
                             part.UpdateSlice((float)slice.x, (float)slice.y);
                             break;
-                        case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+
+                        case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return null;
 
                             return rules.GetSublist(idx, -1);
+
+                        default:
+                            Error(originFunc, string.Format("Error running rule #{0}: arg #{1} - unsupported parameter", rulesParsed, idx - idxStart));
+                            return null;
                     }
                 }
             }
@@ -8182,19 +9253,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     switch (code)
                     {
-                        case (int)ScriptBaseClass.PRIM_POSITION:
-                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        case ScriptBaseClass.PRIM_POSITION:
+                        case ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
                                 return null;
 
-                            sp.OffsetPosition = rules.GetVector3Item(idx++);
+                            try
+                            {
+                                sp.OffsetPosition = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                if (code == ScriptBaseClass.PRIM_POSITION)
+                                {
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POSITION: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
+                                }
+                                else
+                                {
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POS_LOCAL: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
+                                }
+                                return null;
+                            }
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_ROTATION:                       
+                        case ScriptBaseClass.PRIM_ROTATION:                       
                             if (remain < 1)
                                 return null;
 
-                            Quaternion inRot = rules.GetQuaternionItem(idx++);
+                            Quaternion inRot;
+
+                            try
+                            {
+                                inRot = rules.GetQuaternionItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROTATION: arg #{1} - parameter 2 must be rotation", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             SceneObjectPart parentPart = sp.ParentPart;
 
@@ -8203,13 +9299,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        case ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;
 
-                            sp.Rotation = rules.GetQuaternionItem(idx++);
+                            try
+                            {
+                                sp.Rotation = rules.GetQuaternionItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROT_LOCAL: arg #{1} - parameter 2 must be rotation", rulesParsed, idx - idxStart - 1));
+                                return null;
+                            }
 
                             break;
+
+                        case ScriptBaseClass.PRIM_TYPE:
+                            Error(originFunc, "PRIM_TYPE disallowed on agent");
+                            return null;
+
+                        case ScriptBaseClass.PRIM_OMEGA:
+                            Error(originFunc, "PRIM_OMEGA disallowed on agent");
+                            return null;
+
+                        case ScriptBaseClass.PRIM_LINK_TARGET:
+                            if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                                return null;
+
+                            return rules.GetSublist(idx, -1);
+
+                        default:
+                            Error(originFunc,
+                                string.Format("Error running rule #{0} on agent: arg #{1} - disallowed on agent", rulesParsed, idx - idxStart));
+                            return null;
                     }
                 }
             }
@@ -8742,6 +9865,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
                         res.Add(GetPartRot(part));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                        res.Add(new LSL_Integer((int)part.PhysicsShapeType));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TYPE:
@@ -10797,19 +11924,84 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SortedDictionary<int, float> parameters = new SortedDictionary<int, float>();
             object[] data = rules.Data;
-            for (int i = 0; i < data.Length; ++i) {
-                int type = Convert.ToInt32(data[i++].ToString());
+            for (int i = 0; i < data.Length; ++i)
+            {
+                int type;
+                try
+                {
+                    type = Convert.ToInt32(data[i++].ToString());
+                }
+                catch
+                {
+                    Error("llSetCameraParams", string.Format("Invalid camera param type {0}", data[i - 1]));
+                    return;
+                }
                 if (i >= data.Length) break; // odd number of entries => ignore the last
 
                 // some special cases: Vector parameters are split into 3 float parameters (with type+1, type+2, type+3)
-                switch (type) {
+                switch (type)
+                {
                 case ScriptBaseClass.CAMERA_FOCUS:
                 case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
                 case ScriptBaseClass.CAMERA_POSITION:
                     LSL_Vector v = (LSL_Vector)data[i];
-                    parameters.Add(type + 1, (float)v.x);
-                    parameters.Add(type + 2, (float)v.y);
-                    parameters.Add(type + 3, (float)v.z);
+                    try
+                    {
+                        parameters.Add(type + 1, (float)v.x);
+                    }
+                    catch
+                    {
+                        switch(type)
+                        {
+                            case ScriptBaseClass.CAMERA_FOCUS:
+                                Error("llSetCameraParams", "CAMERA_FOCUS: Parameter x is invalid");
+                                return;
+                            case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
+                                Error("llSetCameraParams", "CAMERA_FOCUS_OFFSET: Parameter x is invalid");
+                                return;
+                            case ScriptBaseClass.CAMERA_POSITION:
+                                Error("llSetCameraParams", "CAMERA_POSITION: Parameter x is invalid");
+                                return;
+                        }
+                    }
+                    try
+                    {
+                        parameters.Add(type + 2, (float)v.y);
+                    }
+                    catch
+                    {
+                        switch(type)
+                        {
+                            case ScriptBaseClass.CAMERA_FOCUS:
+                                Error("llSetCameraParams", "CAMERA_FOCUS: Parameter y is invalid");
+                                return;
+                            case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
+                                Error("llSetCameraParams", "CAMERA_FOCUS_OFFSET: Parameter y is invalid");
+                                return;
+                            case ScriptBaseClass.CAMERA_POSITION:
+                                Error("llSetCameraParams", "CAMERA_POSITION: Parameter y is invalid");
+                                return;
+                        }
+                    }
+                    try
+                    {
+                        parameters.Add(type + 3, (float)v.z);
+                    }
+                    catch
+                    {
+                        switch(type)
+                        {
+                            case ScriptBaseClass.CAMERA_FOCUS:
+                                Error("llSetCameraParams", "CAMERA_FOCUS: Parameter z is invalid");
+                                return;
+                            case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
+                                Error("llSetCameraParams", "CAMERA_FOCUS_OFFSET: Parameter z is invalid");
+                                return;
+                            case ScriptBaseClass.CAMERA_POSITION:
+                                Error("llSetCameraParams", "CAMERA_POSITION: Parameter z is invalid");
+                                return;
+                        }
+                    }
                     break;
                 default:
                     // TODO: clean that up as soon as the implicit casts are in
@@ -10817,7 +12009,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         parameters.Add(type, (float)((LSL_Float)data[i]).value);
                     else if (data[i] is LSL_Integer)
                         parameters.Add(type, (float)((LSL_Integer)data[i]).value);
-                    else parameters.Add(type, Convert.ToSingle(data[i]));
+                    else
+                    {
+                        try
+                        {
+                            parameters.Add(type, Convert.ToSingle(data[i]));
+                        }
+                        catch
+                        {
+                            Error("llSetCameraParams", string.Format("{0}: Parameter is invalid", type));
+                        }
+                    }
                     break;
                 }
             }
