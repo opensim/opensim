@@ -75,3 +75,6 @@ ALTER TABLE assets ADD COLUMN asset_flags INTEGER NOT NULL DEFAULT 0;
 
 ALTER TABLE assets ADD COLUMN CreatorID varchar(128) NOT NULL DEFAULT '';
 
+:VERSION 9
+
+ALTER TABLE assets MODIFY description varchar(128);
