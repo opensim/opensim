@@ -123,6 +123,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
 
+//            m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
+
             m_assetUuidsToInspect.Enqueue(uuid);
 
             return true;
@@ -238,7 +240,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (Complete)
                 return false;
 
-            GetAssetUuids(m_assetUuidsToInspect.Dequeue());
+            UUID nextToInspect = m_assetUuidsToInspect.Dequeue();
+
+//            m_log.DebugFormat("[UUID GATHERER]: Inspecting asset {0}", nextToInspect);
+
+            GetAssetUuids(nextToInspect);
 
             return true;
         }
@@ -322,8 +328,6 @@ namespace OpenSim.Region.Framework.Scenes
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
             try
             {               
-                GatheredUuids[assetUuid] = assetType;
-
                 if ((sbyte)AssetType.Bodypart == assetType 
                     || (sbyte)AssetType.Clothing == assetType
                     || (sbyte)AssetType.Gesture == assetType
@@ -334,11 +338,15 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     AddForInspection(assetUuid);
                 }
+                else
+                {
+                    GatheredUuids[assetUuid] = assetType;
+                }
             }
             catch (Exception)
             {
                 m_log.ErrorFormat(
-                    "[ITERATABLE UUID GATHERER]: Failed to gather uuids for asset id {0}, type {1}", 
+                    "[UUID GATHERER]: Failed to gather uuids for asset id {0}, type {1}", 
                     assetUuid, assetType);
                 throw;
             }

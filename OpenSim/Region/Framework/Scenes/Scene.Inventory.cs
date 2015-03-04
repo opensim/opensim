@@ -807,7 +807,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID recipientId, UUID senderId, UUID folderId, UUID recipientParentFolderId)
         {
             //// Retrieve the folder from the sender
-            InventoryFolderBase folder = InventoryService.GetFolder(new InventoryFolderBase(folderId));
+            InventoryFolderBase folder = InventoryService.GetFolder(new InventoryFolderBase(folderId, senderId));
             if (null == folder)
             {
                 m_log.ErrorFormat(

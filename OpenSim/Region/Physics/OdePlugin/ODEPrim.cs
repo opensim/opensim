@@ -785,6 +785,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        private void setAngularVelocity(float x, float y, float z)
+        {
+            if (Body != (IntPtr)0)
+            {
+                d.BodySetAngularVel(Body, x, y, z);
+            }
+        }
+
         /// <summary>
         /// Stop a prim from being subject to physics.
         /// </summary>
@@ -2645,6 +2653,7 @@ Console.WriteLine(" JointCreateFixed");
                 if (value.IsFinite())
                 {
                     m_rotationalVelocity = value;
+                    setAngularVelocity(value.X, value.Y, value.Z);
                 }
                 else
                 {

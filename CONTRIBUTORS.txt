@@ -92,6 +92,7 @@ what it is today.
 * dslake
 * eeyore
 * FredoChaplin
+* FreakyTech
 * Garmin Kawaguichi
 * Gerhard
 * Godfrey
@@ -128,6 +129,7 @@ what it is today.
 * LuciusSirnah
 * lulurun 
 * M.Igarashi
+* Magnuz Binder
 * maimedleech
 * Mana Janus
 * MarcelEdward

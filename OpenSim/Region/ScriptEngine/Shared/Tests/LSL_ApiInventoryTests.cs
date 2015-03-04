@@ -91,7 +91,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
-            TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, userId);
+            TaskInventoryHelpers.AddSceneObject(m_scene.AssetService, so1.RootPart, inventoryItemName, itemId, userId);
 
             LSL_Api api = new LSL_Api();
             api.Initialize(m_engine, so1.RootPart, null, null);
@@ -131,7 +131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
-            TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, user1Id);
+            TaskInventoryHelpers.AddSceneObject(m_scene.AssetService, so1.RootPart, inventoryItemName, itemId, user1Id);
 
             // Create a second object
             SceneObjectGroup so2 = SceneHelpers.CreateSceneObject(1, user2Id, "so2", 0x100);
@@ -188,7 +188,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
-            TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, user1Id);
+            TaskInventoryHelpers.AddSceneObject(m_scene.AssetService, so1.RootPart, inventoryItemName, itemId, user1Id);
 
             UserAccountHelpers.CreateUserWithInventory(m_scene, user2Id);
 
@@ -223,7 +223,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
             TaskInventoryItem tii 
-                = TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, user1Id);
+                = TaskInventoryHelpers.AddSceneObject(m_scene.AssetService, so1.RootPart, inventoryItemName, itemId, user1Id);
             tii.NextPermissions &= ~((uint)PermissionMask.Modify);
 
             UserAccountHelpers.CreateUserWithInventory(m_scene, user2Id);
@@ -251,7 +251,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(sourceSo);
             LSL_Api api = new LSL_Api();
             api.Initialize(m_engine, sourceSo.RootPart, null, null);
-            TaskInventoryHelpers.AddScript(m_scene, sourceSo.RootPart, "script", "Hello World");
+            TaskInventoryHelpers.AddScript(m_scene.AssetService, sourceSo.RootPart, "script", "Hello World");
 
             SceneObjectGroup targetSo = SceneHelpers.AddSceneObject(m_scene, "targetSo", user1Id);
             SceneObjectGroup otherOwnedTargetSo = SceneHelpers.AddSceneObject(m_scene, "otherOwnedTargetSo", user2Id);

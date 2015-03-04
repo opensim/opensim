@@ -772,9 +772,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             catch (Exception e)
             {
                 // Make sure that we see any exception caused by the asynchronous operation.
-                m_log.ErrorFormat(
-                    "[LLCLIENTVIEW]: Caught exception while processing {0} for {1}, {2} {3}", 
-                    packetObject.Pack, Name, e.Message, e.StackTrace);
+                m_log.Error(
+                    string.Format(
+                        "[LLCLIENTVIEW]: Caught exception while processing {0} for {1}  ", packetObject.Pack, Name), 
+                    e);
             }
         }
 
@@ -9900,6 +9901,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             handlerEstateManageTelehub(this, invoice, SenderID, command, param1);
                         }
+                    }
+                    return true;
+
+                case "kickestate":
+                   
+                    if(((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        UUID Prey;
+
+                        UUID.TryParse(Utils.BytesToString(messagePacket.ParamList[0].Parameter), out Prey);
+
+                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
                     }
                     return true;
 

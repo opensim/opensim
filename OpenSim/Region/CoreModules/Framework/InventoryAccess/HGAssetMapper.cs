@@ -318,8 +318,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     writer.WriteString(reader.Value);
                     break;
 
+                    case XmlNodeType.XmlDeclaration:
+                    // For various reasons, not all serializations have xml declarations (or consistent ones) 
+                    // and as it's embedded inside a byte stream we don't need it anyway, so ignore.
+                    break;
+
                     default:
-                    m_log.WarnFormat("[HG ASSET MAPPER]: Unrecognized node in asset XML transform in {0}", m_scene.Name);
+                    m_log.WarnFormat(
+                        "[HG ASSET MAPPER]: Unrecognized node {0} in asset XML transform in {1}", 
+                        reader.NodeType, m_scene.Name);
                     break;
                 }
             }
@@ -335,8 +342,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
             {
                 TransformXml(reader, writer);
-
-                writer.WriteEndDocument();
 
 //                Console.WriteLine("Output: [{0}]", sw.ToString());
 
@@ -478,12 +483,37 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     asset = m_scene.AssetService.Get(uuid.ToString());
                     if (asset == null)
+                    {
                         m_log.DebugFormat("[HG ASSET MAPPER]: Could not find asset {0}", uuid);
+                    }
                     else
-                        success &= PostAsset(userAssetURL, asset);
+                    {
+                        try
+                        {
+                            success &= PostAsset(userAssetURL, asset);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error(
+                                string.Format(
+                                    "[HG ASSET MAPPER]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ", 
+                                    asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL), 
+                                e);
+
+                            // For debugging purposes for now we will continue to throw the exception up the stack as was already happening.  However, after
+                            // debugging we may want to simply report the failure if we can tell this is due to a failure
+                            // with a particular asset and not a destination network failure where all asset posts will fail (and
+                            // generate large amounts of log spam).
+                            throw e;
+                        }
+                    }
                 }
                 else
-                    m_log.DebugFormat("[HG ASSET MAPPER]: Didn't post asset {0} because it already exists in asset server {1}", uuid, userAssetURL);
+                {
+                    m_log.DebugFormat(
+                        "[HG ASSET MAPPER]: Didn't post asset {0} referenced from {1} because it already exists in asset server {2}", 
+                        uuid, assetID, userAssetURL);
+                }
             }
 
             if (!success)

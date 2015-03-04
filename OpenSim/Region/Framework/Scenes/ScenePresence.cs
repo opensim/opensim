@@ -379,6 +379,11 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MovementFlag { get; private set; }
 
         /// <summary>
+        /// Set this if we need to force a movement update on the next received AgentUpdate from the viewer.
+        /// </summary>
+        private const uint ForceUpdateMovementFlagValue = uint.MaxValue;
+
+        /// <summary>
         /// Is the agent stop control flag currently active?
         /// </summary>
         public bool AgentControlStopActive { get; private set; }
@@ -822,7 +827,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private bool m_mouseLook;
-        private bool m_leftButtonDown;
+//        private bool m_leftButtonDown;
 
         private bool m_inTransit;
 
@@ -1003,23 +1008,6 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[8] = new Vector3(0f, 0.5f, 0f);  //LEFT_NUDGE
             Dir_Vectors[9] = new Vector3(0f, -0.5f, 0f);  //RIGHT_NUDGE
             Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
-        }
-
-        private Vector3[] GetWalkDirectionVectors()
-        {
-            Vector3[] vector = new Vector3[11];
-            vector[0] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD
-            vector[1] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK
-            vector[2] = Vector3.UnitY; //LEFT
-            vector[3] = -Vector3.UnitY; //RIGHT
-            vector[4] = new Vector3(CameraAtAxis.Z, 0f, CameraUpAxis.Z); //UP
-            vector[5] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN
-            vector[6] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD_NUDGE
-            vector[7] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK_NUDGE
-            vector[8] = Vector3.UnitY; //LEFT_NUDGE
-            vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
-            vector[10] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN_NUDGE
-            return vector;
         }
 
         #endregion
@@ -1267,7 +1255,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-            MovementFlag = 0;
+            MovementFlag = ForceUpdateMovementFlagValue;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
@@ -1925,13 +1913,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            //m_log.DebugFormat(
-            //    "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
-            //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+//                Scene.Name, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
             {
-            //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
+//                m_log.DebugFormat("DEBUG: HandleAgentUpdate: child agent in {0}", Scene.Name);
                 return;
             }
 
@@ -1973,7 +1961,12 @@ namespace OpenSim.Region.Framework.Scenes
             // DrawDistance = Scene.DefaultDrawDistance;
 
             m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
-            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+
+            // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
+            // is first pressed, not whilst it is held down.  If this is required in the future then need to look
+            // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not 
+            // received (e.g. on holding LMB down on the avatar in a viewer).
+//            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             #endregion Inputs
 
@@ -2066,6 +2059,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 bool update_movementflag = false;
 
+                // If we were just made root agent then we must perform movement updates for the first AgentUpdate that
+                // we get
+                if (MovementFlag == ForceUpdateMovementFlagValue)
+                {
+                    MovementFlag = 0;
+                    update_movementflag = true;
+                }
+
                 if (agentData.UseClientAgentPosition)
                 {
                     MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
@@ -2097,15 +2098,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     bool bAllowUpdateMoveToPosition = false;
 
-                    Vector3[] dirVectors;
-
-                    // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
-                    // this prevents 'jumping' in inappropriate situations.
-                    if (!Flying && (m_mouseLook || m_leftButtonDown))
-                        dirVectors = GetWalkDirectionVectors();
-                    else
-                        dirVectors = Dir_Vectors;
-
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
@@ -2115,7 +2107,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                             try
                             {
-                                agent_control_v3 += dirVectors[i];
+                                // Don't slide against ground when crouching if camera is panned around avatar
+                                if (Flying || DCF != Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN)
+                                    agent_control_v3 += Dir_Vectors[i];
                                 //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
@@ -3149,7 +3143,17 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
 //                vec, Rotation, thisAddSpeedModifier, Name);
 
-            Vector3 direc = vec * Rotation;
+            Quaternion rot = Rotation;
+            if (!(Flying && m_mouseLook) && (PresenceType != PresenceType.Npc))
+            {
+                // The only situation in which we care about X and Y is in mouselook flying.  The rest of the time
+                // these parameters are not relevant for determining avatar movement direction and cause issues such
+                // as wrong walk speed if the camera is rotated.
+                rot.X = 0;
+                rot.Y = 0;
+            }
+
+            Vector3 direc = vec * rot;
             direc.Normalize();
 
             if (Flying != FlyingOld)                // add for fly velocity control

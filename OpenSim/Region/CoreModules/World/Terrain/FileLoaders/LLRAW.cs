@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -73,12 +74,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         public ITerrainChannel LoadFile(string filename)
         {
             FileInfo file = new FileInfo(filename);
-            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
-            ITerrainChannel retval = LoadStream(s);
 
-            s.Close();
+            ITerrainChannel channel;
 
-            return retval;
+            using (FileStream s = file.Open(FileMode.Open, FileAccess.Read))
+                channel = LoadStream(s);
+
+            return channel;
         }
 
         public ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
@@ -86,82 +88,90 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
 
             FileInfo file = new FileInfo(filename);
-            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
-            BinaryReader bs = new BinaryReader(s);
 
-            int currFileYOffset = fileHeight - 1;
-
-            // if our region isn't on the first Y section of the areas to be landscaped, then
-            // advance to our section of the file
-            while (currFileYOffset > offsetY)
+            using (FileStream s = file.Open(FileMode.Open, FileAccess.Read))
+            using (BinaryReader bs = new BinaryReader(s))
             {
-                // read a whole strip of regions
-                int heightsToRead = sectionHeight * (fileWidth * sectionWidth);
-                bs.ReadBytes(heightsToRead * 13); // because there are 13 fun channels
-                currFileYOffset--;
-            }
+                int currFileYOffset = fileHeight - 1;
 
-            // got to the Y start offset within the file of our region
-            // so read the file bits associated with our region
-            int y;
-            // for each Y within our Y offset
-            for (y = sectionHeight - 1; y >= 0; y--)
-            {
-                int currFileXOffset = 0;
-
-                // if our region isn't the first X section of the areas to be landscaped, then
-                // advance the stream to the X start pos of our section in the file
-                // i.e. eat X upto where we start
-                while (currFileXOffset < offsetX)
+                // if our region isn't on the first Y section of the areas to be landscaped, then
+                // advance to our section of the file
+                while (currFileYOffset > offsetY)
                 {
-                    bs.ReadBytes(sectionWidth * 13);
+                    // read a whole strip of regions
+                    int heightsToRead = sectionHeight * (fileWidth * sectionWidth);
+                    bs.ReadBytes(heightsToRead * 13); // because there are 13 fun channels
+                    currFileYOffset--;
+                }
+
+                // got to the Y start offset within the file of our region
+                // so read the file bits associated with our region
+                int y;
+
+                // for each Y within our Y offset
+                for (y = sectionHeight - 1; y >= 0; y--)
+                {
+                    int currFileXOffset = 0;
+
+                    // if our region isn't the first X section of the areas to be landscaped, then
+                    // advance the stream to the X start pos of our section in the file
+                    // i.e. eat X upto where we start
+                    while (currFileXOffset < offsetX)
+                    {
+                        bs.ReadBytes(sectionWidth * 13);
+                        currFileXOffset++;
+                    }
+
+                    // got to our X offset, so write our regions X line
+                    int x;
+                    for (x = 0; x < sectionWidth; x++)
+                    {
+                        // Read a strip and continue
+                        retval[x, y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
+                        bs.ReadBytes(11);
+                    }
+                    // record that we wrote it
                     currFileXOffset++;
-                }
 
-                // got to our X offset, so write our regions X line
-                int x;
-                for (x = 0; x < sectionWidth; x++)
-                {
-                    // Read a strip and continue
-                    retval[x, y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
-                    bs.ReadBytes(11);
-                }
-                // record that we wrote it
-                currFileXOffset++;
-
-                // if our region isn't the last X section of the areas to be landscaped, then
-                // advance the stream to the end of this Y column
-                while (currFileXOffset < fileWidth)
-                {
-                    // eat the next regions x line
-                    bs.ReadBytes(sectionWidth * 13); //The 13 channels again
-                    currFileXOffset++;
+                    // if our region isn't the last X section of the areas to be landscaped, then
+                    // advance the stream to the end of this Y column
+                    while (currFileXOffset < fileWidth)
+                    {
+                        // eat the next regions x line
+                        bs.ReadBytes(sectionWidth * 13); //The 13 channels again
+                        currFileXOffset++;
+                    }
                 }
             }
-
-            bs.Close();
-            s.Close();
 
             return retval;
         }
 
         public ITerrainChannel LoadStream(Stream s)
         {
-            TerrainChannel retval = new TerrainChannel();
+            // The raw format doesn't contain any dimension information.
+            // Guess the square dimensions by using the length of the raw file.
+            double dimension = Math.Sqrt((double)(s.Length / 13));
+            // Regions are always multiples of 256.
+            int trimmedDimension = (int)dimension - ((int)dimension % (int)Constants.RegionSize);
+            if (trimmedDimension < Constants.RegionSize)
+                trimmedDimension = (int)Constants.RegionSize;
 
-            BinaryReader bs = new BinaryReader(s);
-            int y;
-            for (y = 0; y < retval.Height; y++)
+            TerrainChannel retval = new TerrainChannel(trimmedDimension, trimmedDimension);
+
+            using (BinaryReader bs = new BinaryReader(s))
             {
-                int x;
-                for (x = 0; x < retval.Width; x++)
+                int y;
+                for (y = 0; y < retval.Height; y++)
                 {
-                    retval[x, (retval.Height - 1) - y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
-                    bs.ReadBytes(11); // Advance the stream to next bytes.
+                    int x;
+                    for (x = 0; x < retval.Width; x++)
+                    {
+                        retval[x, (retval.Height - 1) - y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
+                        bs.ReadBytes(11); // Advance the stream to next bytes.
+                    }
                 }
             }
-
-            bs.Close();
 
             return retval;
         }
@@ -169,70 +179,68 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);
-            FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
-            SaveStream(s, map);
 
-            s.Close();
+            using (FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write))
+                SaveStream(s, map);
         }
 
         public void SaveStream(Stream s, ITerrainChannel map)
         {
-            BinaryWriter binStream = new BinaryWriter(s);
-
-            // Output the calculated raw
-            for (int y = 0; y < map.Height; y++)
+            using (BinaryWriter binStream = new BinaryWriter(s))
             {
-                for (int x = 0; x < map.Width; x++)
+                // Output the calculated raw
+                for (int y = 0; y < map.Height; y++)
                 {
-                    double t = map[x, (map.Height - 1) - y];
-                    //if height is less than 0, set it to 0 as
-                    //can't save -ve values in a LLRAW file
-                    if (t < 0d)
+                    for (int x = 0; x < map.Width; x++)
                     {
-                        t = 0d;
+                        double t = map[x, (map.Height - 1) - y];
+                        //if height is less than 0, set it to 0 as
+                        //can't save -ve values in a LLRAW file
+                        if (t < 0d)
+                        {
+                            t = 0d;
+                        }
+
+                        int index = 0;
+
+                        // The lookup table is pre-sorted, so we either find an exact match or
+                        // the next closest (smaller) match with a binary search
+                        index = Array.BinarySearch<HeightmapLookupValue>(LookupHeightTable, new HeightmapLookupValue(0, (float)t));
+                        if (index < 0)
+                            index = ~index - 1;
+
+                        index = LookupHeightTable[index].Index;
+
+                        byte red = (byte) (index & 0xFF);
+                        byte green = (byte) ((index >> 8) & 0xFF);
+                        const byte blue = 20;
+                        const byte alpha1 = 0;
+                        const byte alpha2 = 0;
+                        const byte alpha3 = 0;
+                        const byte alpha4 = 0;
+                        const byte alpha5 = 255;
+                        const byte alpha6 = 255;
+                        const byte alpha7 = 255;
+                        const byte alpha8 = 255;
+                        byte alpha9 = red;
+                        byte alpha10 = green;
+
+                        binStream.Write(red);
+                        binStream.Write(green);
+                        binStream.Write(blue);
+                        binStream.Write(alpha1);
+                        binStream.Write(alpha2);
+                        binStream.Write(alpha3);
+                        binStream.Write(alpha4);
+                        binStream.Write(alpha5);
+                        binStream.Write(alpha6);
+                        binStream.Write(alpha7);
+                        binStream.Write(alpha8);
+                        binStream.Write(alpha9);
+                        binStream.Write(alpha10);
                     }
-
-                    int index = 0;
-
-                    // The lookup table is pre-sorted, so we either find an exact match or
-                    // the next closest (smaller) match with a binary search
-                    index = Array.BinarySearch<HeightmapLookupValue>(LookupHeightTable, new HeightmapLookupValue(0, (float)t));
-                    if (index < 0)
-                        index = ~index - 1;
-
-                    index = LookupHeightTable[index].Index;
-
-                    byte red = (byte) (index & 0xFF);
-                    byte green = (byte) ((index >> 8) & 0xFF);
-                    const byte blue = 20;
-                    const byte alpha1 = 0;
-                    const byte alpha2 = 0;
-                    const byte alpha3 = 0;
-                    const byte alpha4 = 0;
-                    const byte alpha5 = 255;
-                    const byte alpha6 = 255;
-                    const byte alpha7 = 255;
-                    const byte alpha8 = 255;
-                    byte alpha9 = red;
-                    byte alpha10 = green;
-
-                    binStream.Write(red);
-                    binStream.Write(green);
-                    binStream.Write(blue);
-                    binStream.Write(alpha1);
-                    binStream.Write(alpha2);
-                    binStream.Write(alpha3);
-                    binStream.Write(alpha4);
-                    binStream.Write(alpha5);
-                    binStream.Write(alpha6);
-                    binStream.Write(alpha7);
-                    binStream.Write(alpha8);
-                    binStream.Write(alpha9);
-                    binStream.Write(alpha10);
                 }
             }
-
-            binStream.Close();
         }
 
         public string FileExtension
@@ -259,7 +267,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         public bool SupportsTileSave()
         {
             return false;
-        }
-
+        }       
     }
 }

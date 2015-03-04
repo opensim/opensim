@@ -924,13 +924,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                     string uuid = reader.GetAttribute("UUID");
 
+                    // Even if there is no UUID attribute for some strange reason, we must always read the inner XML
+                    // so we don't continually keep checking the same SavedScriptedState element.
+                    string innerXml = reader.ReadInnerXml();
+
                     if (uuid != null)
                     {
 //                        m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
 
                         UUID itemid = new UUID(uuid);
                         if (itemid != UUID.Zero)
-                            m_savedScriptState[itemid] = reader.ReadInnerXml();
+                            m_savedScriptState[itemid] = innerXml;
                     }
                     else
                     {
@@ -2943,6 +2947,11 @@ namespace OpenSim.Region.Framework.Scenes
             uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
             uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
+
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: RootPart.OwnerMask now {0} for {1} in {2}", 
+//                (OpenMetaverse.PermissionMask)RootPart.OwnerMask, Name, Scene.Name);
+
             RootPart.ScheduleFullUpdate();
         }
 

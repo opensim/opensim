@@ -67,18 +67,17 @@ namespace OpenSim.Region.OptionalModules.Materials
         private bool m_enabled = false;
 
         public Dictionary<UUID, OSDMap> m_regionMaterials = new Dictionary<UUID, OSDMap>();
-        
+
         public void Initialise(IConfigSource source)
         {
+            m_enabled = true; // default is enabled
+
             IConfig config = source.Configs["Materials"];
-            if (config == null)
-                return;
+            if (config != null)
+                m_enabled = config.GetBoolean("enable_materials", m_enabled);
 
-            m_enabled = config.GetBoolean("enable_materials", true);
-            if (!m_enabled)
-                return;
-
-            m_log.DebugFormat("[Materials]: Initialized");
+            if (m_enabled)
+                m_log.DebugFormat("[Materials]: Initialized");
         }
         
         public void Close()

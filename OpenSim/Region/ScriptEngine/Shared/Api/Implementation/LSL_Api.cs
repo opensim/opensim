@@ -3092,26 +3092,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Determine where we are looking from
             LSL_Vector from = llGetPos();
 
-            // Work out the normalised vector from the source to the target
-            LSL_Vector delta = llVecNorm(target - from);
-            LSL_Vector angle = new LSL_Vector(0,0,0);
+            // normalized direction to target
+            LSL_Vector dir = llVecNorm(target - from);
+            // use vertical to help compute left axis
+            LSL_Vector up = new LSL_Vector(0.0, 0.0, 1.0);
+            // find normalized left axis parallel to horizon
+            LSL_Vector left = llVecNorm(LSL_Vector.Cross(up, dir));
+            // make up orthogonal to left and dir
+            up = LSL_Vector.Cross(dir, left);
 
-            // Calculate the yaw
-            // subtracting PI_BY_TWO is required to compensate for the odd SL co-ordinate system
-            angle.x = llAtan2(delta.z, delta.y) - ScriptBaseClass.PI_BY_TWO;
-
-            // Calculate pitch
-            angle.y = llAtan2(delta.x, llSqrt((delta.y * delta.y) + (delta.z * delta.z)));
-
-            // we need to convert from a vector describing
-            // the angles of rotation in radians into rotation value
-            LSL_Rotation rot = llEuler2Rot(angle);
+            // compute rotation based on orthogonal axes
+            LSL_Rotation rot = new LSL_Rotation(0.0, 0.707107, 0.0, 0.707107) * llAxes2Rot(dir, left, up);
 
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
             PhysicsActor pa = m_host.PhysActor;
 
-            if (strength == 0 || pa == null || !pa.IsPhysical)
+            if (m_host.ParentGroup.IsAttachment || strength == 0 || pa == null || !pa.IsPhysical)
             {
                 llSetRot(rot);
             }
@@ -9012,7 +9009,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(textColor.R,
                                                textColor.G,
                                                textColor.B));
-                        res.Add(new LSL_Float(textColor.A));
+                        res.Add(new LSL_Float(1.0 - textColor.A));
                         break;
                     case (int)ScriptBaseClass.PRIM_NAME:
                         res.Add(new LSL_String(part.Name));

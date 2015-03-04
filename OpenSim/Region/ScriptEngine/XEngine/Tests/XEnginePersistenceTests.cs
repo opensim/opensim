@@ -114,7 +114,7 @@ namespace OpenSim.Region.ScriptEngine.Tests
 
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, sp.UUID, "att-name", 0x10);
             TaskInventoryHelpers.AddScript(
-                scene,
+                scene.AssetService,
                 so.RootPart,
                 "scriptItem",
                 "default { attach(key id) { if (id != NULL_KEY) { llSay(0, \"Hello World\"); } } }");
