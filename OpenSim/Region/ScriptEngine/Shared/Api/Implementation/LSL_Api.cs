@@ -8228,7 +8228,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             try
             {
-                byte[] encData_byte = new byte[str.Length];
+                byte[] encData_byte;
                 encData_byte = Util.UTF8.GetBytes(str);
                 string encodedData = Convert.ToBase64String(encData_byte);
                 return encodedData;
@@ -8245,7 +8245,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             try
             {
-                return Util.Base64ToString(str);
+                byte[] b = Convert.FromBase64String(str);
+                return Encoding.UTF8.GetString(b);
             }
             catch
             {
