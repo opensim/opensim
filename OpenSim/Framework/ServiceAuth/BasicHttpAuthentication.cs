@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net;
 using System.Reflection;
 
 using Nini.Config;
@@ -82,24 +83,28 @@ namespace OpenSim.Framework.ServiceAuth
             return false;
         }
 
-        public bool Authenticate(NameValueCollection requestHeaders, AddHeaderDelegate d)
+        public bool Authenticate(NameValueCollection requestHeaders, AddHeaderDelegate d, out HttpStatusCode statusCode)
         {
-            //m_log.DebugFormat("[HTTP BASIC AUTH]: Authenticate in {0}", remove_me);
-            if (requestHeaders != null)
+//            m_log.DebugFormat("[HTTP BASIC AUTH]: Authenticate in {0}", "BasicHttpAuthentication");
+
+            string value = requestHeaders.Get("Authorization");
+            if (value != null)
             {
-                string value = requestHeaders.Get("Authorization");
-                if (value != null)
+                value = value.Trim();
+                if (value.StartsWith("Basic "))
                 {
-                    value = value.Trim();
-                    if (value.StartsWith("Basic "))
+                    value = value.Replace("Basic ", string.Empty);
+                    if (Authenticate(value))
                     {
-                        value = value.Replace("Basic ", string.Empty);
-                        if (Authenticate(value))
-                            return true;
+                        statusCode = HttpStatusCode.OK;
+                        return true;
                     }
                 }
             }
+
             d("WWW-Authenticate", "Basic realm = \"Asset Server\"");
+
+            statusCode = HttpStatusCode.Unauthorized;
             return false;
         }
     }

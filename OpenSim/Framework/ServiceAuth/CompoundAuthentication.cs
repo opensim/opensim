@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,36 +27,45 @@
 
 using System;
 using System.Collections.Generic;
-
-using Nini.Config;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Net;
 
 namespace OpenSim.Framework.ServiceAuth
 {
-    public class ServiceAuth
+    public class CompoundAuthentication : IServiceAuth
     {
-        public static IServiceAuth Create(IConfigSource config, string section)
+        private List<IServiceAuth> m_authentications = new List<IServiceAuth>();
+
+        public int Count { get { return m_authentications.Count; } }
+
+        public void AddAuthenticator(IServiceAuth auth)
         {
-            CompoundAuthentication compoundAuth = new CompoundAuthentication();
+            m_authentications.Add(auth);
+        }
 
-            bool allowLlHttpRequestIn
-                = Util.GetConfigVarFromSections<bool>(config, "AllowllHTTPRequestIn", new string[] { "Network", section }, false);
+        public void RemoveAuthenticator(IServiceAuth auth)
+        {
+            m_authentications.Remove(auth);
+        }
 
-            if (!allowLlHttpRequestIn)
-                compoundAuth.AddAuthenticator(new DisallowLlHttpRequest());
+        public void AddAuthorization(NameValueCollection headers) {}
 
-            string authType = Util.GetConfigVarFromSections<string>(config, "AuthType", new string[] { "Network", section }, "None");
+        public bool Authenticate(string data)
+        {
+            return m_authentications.TrueForAll(a => a.Authenticate(data));
+        }
 
-            switch (authType)
+        public bool Authenticate(NameValueCollection requestHeaders, AddHeaderDelegate d, out HttpStatusCode statusCode)
+        {
+            foreach (IServiceAuth auth in m_authentications)
             {
-                case "BasicHttpAuthentication":
-                    compoundAuth.AddAuthenticator(new BasicHttpAuthentication(config, section));
-                    break;
+                if (!auth.Authenticate(requestHeaders, d, out statusCode))
+                    return false;
             }
 
-            if (compoundAuth.Count > 0)
-                return compoundAuth;
-            else
-                return null;
+            statusCode = HttpStatusCode.OK;
+            return true;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,37 +26,32 @@
  */
 
 using System;
-using System.Collections.Generic;
-
-using Nini.Config;
+using System.Collections.Specialized;
+using System.Net;
 
 namespace OpenSim.Framework.ServiceAuth
 {
-    public class ServiceAuth
+    public class DisallowLlHttpRequest : IServiceAuth
     {
-        public static IServiceAuth Create(IConfigSource config, string section)
+        public void AddAuthorization(NameValueCollection headers) {}
+
+        public bool Authenticate(string data)
         {
-            CompoundAuthentication compoundAuth = new CompoundAuthentication();
+            return false;
+        }
 
-            bool allowLlHttpRequestIn
-                = Util.GetConfigVarFromSections<bool>(config, "AllowllHTTPRequestIn", new string[] { "Network", section }, false);
+        public bool Authenticate(NameValueCollection requestHeaders, AddHeaderDelegate d, out HttpStatusCode statusCode)
+        {
+//            Console.WriteLine("DisallowLlHttpRequest");
 
-            if (!allowLlHttpRequestIn)
-                compoundAuth.AddAuthenticator(new DisallowLlHttpRequest());
-
-            string authType = Util.GetConfigVarFromSections<string>(config, "AuthType", new string[] { "Network", section }, "None");
-
-            switch (authType)
+            if (requestHeaders["X-SecondLife-Shard"] != null)
             {
-                case "BasicHttpAuthentication":
-                    compoundAuth.AddAuthenticator(new BasicHttpAuthentication(config, section));
-                    break;
+                statusCode = HttpStatusCode.Forbidden;
+                return false;
             }
 
-            if (compoundAuth.Count > 0)
-                return compoundAuth;
-            else
-                return null;
+            statusCode = HttpStatusCode.OK;
+            return true;
         }
     }
 }
