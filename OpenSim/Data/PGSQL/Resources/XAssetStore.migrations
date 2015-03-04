@@ -78,6 +78,6 @@ COMMIT;
 
 BEGIN;
 
-ALTER TABLE xassetsmeta MODIFY Description varchar(128);
+ALTER TABLE xassetsmeta ALTER COLUMN description TYPE varchar(128);
 
 COMMIT;

@@ -95,4 +95,4 @@ alter table assets add "creatorid" varchar(36) not null default '';
 
 :VERSION 8
 
-ALTER TABLE assets MODIFY description varchar(128);
+ALTER TABLE assets ALTER COLUMN description TYPE varchar(128);
