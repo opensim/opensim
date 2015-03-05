@@ -77,7 +77,4 @@ COMMIT;
 :VERSION 5
 
 BEGIN;
-
-ALTER TABLE xassetsmeta ALTER COLUMN description TYPE varchar(128);
-
 COMMIT;
