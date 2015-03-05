@@ -500,7 +500,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (!userdata.HasGridUserTried)
             {
-                GridUserInfo uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
+                GridUserInfo uInfo = null;
+                if (null != m_Scenes[0].GridUserService)
+                {
+                    uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
+                }
                 if (uInfo != null)
                 {
                     string url, first, last, tmp;
