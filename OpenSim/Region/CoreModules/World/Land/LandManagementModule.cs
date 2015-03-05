@@ -1994,11 +1994,26 @@ namespace OpenSim.Region.CoreModules.World.Land
                  // (d) parcels with telehubs can be the home of anyone
                  (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y))))
             {
-                if (m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
+                string userId;
+                UUID test;
+                if (!m_scene.UserManagementModule.GetUserUUI(remoteClient.AgentId, out userId))
+                {
+                    /* Do not set a home position in this grid for a HG visitor */
+                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed. (User Lookup)");
+                }
+                else if (!UUID.TryParse(userId, out test))
+                {
+                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed. (HG visitor)");
+                }
+                else if (m_scene.GridUserService.SetHome(userId, land.RegionUUID, position, lookAt))
+                {
                     // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
                     m_Dialog.SendAlertToUser(remoteClient, "Home position set.");
+                }
                 else
+                {
                     m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
+                }
             }
             else
                 m_Dialog.SendAlertToUser(remoteClient, "You are not allowed to set your home location in this parcel.");

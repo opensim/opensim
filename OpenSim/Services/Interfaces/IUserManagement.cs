@@ -40,6 +40,7 @@ namespace OpenSim.Services.Interfaces
         string GetUserName(UUID uuid);
         string GetUserHomeURL(UUID uuid);
         string GetUserUUI(UUID uuid);
+        bool GetUserUUI(UUID userID, out string uui);
         string GetUserServerURL(UUID uuid, string serverType);
 
         /// <summary>
