@@ -103,3 +103,5 @@ OpenSim/Tests/test-results/
 test-results/
 doc/html
 doc/doxygen.error.log
+bin/OpenSimStats.log
+bin/OpenSimConsoleHistory.txt
