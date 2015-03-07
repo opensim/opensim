@@ -514,8 +514,8 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                         scene.RegionInfo.RegionID.ToString());
                 asset.Data = assetData;
                 asset.Description = String.Format("URL image : {0}", Url);
-                if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
-                    asset.Description = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
+                if (asset.Description.Length > 128)
+                    asset.Description = asset.Description.Substring(0, 128);
                 asset.Local = true;     // dynamic images aren't saved in the assets server
                 asset.Temporary = ((Disp & DISP_TEMP) != 0);
                 scene.AssetService.Store(asset);    // this will only save the asset in the local asset cache
