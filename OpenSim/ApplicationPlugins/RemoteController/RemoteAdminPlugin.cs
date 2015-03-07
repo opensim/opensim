@@ -2244,7 +2244,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             IMapTileModule mapTileModule = scene.RequestModuleInterface<IMapTileModule>();
             if (mapTileModule != null)
             {
-                mapTileModule.UploadMapTile(scene);
+                Util.FireAndForget((x) =>
+                {
+                    mapTileModule.UploadMapTile(scene);
+                });
                 responseData["success"] = true;
             }
             else
