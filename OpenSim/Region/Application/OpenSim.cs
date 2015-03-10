@@ -108,6 +108,7 @@ namespace OpenSim
                     m_timeInterval = startupConfig.GetInt("timer_Interval", 1200);
                 }
 
+                AvatarWearable.MAX_WEARABLES = startupConfig.GetInt("max_wearables", AvatarWearable.MAX_WEARABLES);
                 string asyncCallMethodStr = startupConfig.GetString("async_call_method", String.Empty);
                 FireAndForgetMethod asyncCallMethod;
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
