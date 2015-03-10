@@ -233,7 +233,7 @@ namespace OpenSim.Server.Handlers.Simulation
             Encoding encoding = Encoding.UTF8;
 
             Stream inputStream = null;
-            if (httpRequest.ContentType == "application/x-gzip")
+            if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
                 inputStream = new GZipStream(request, CompressionMode.Decompress);
             else if (httpRequest.ContentType == "application/json")
                 inputStream = request;
