@@ -18,7 +18,7 @@
 RegionUUID = "11111111-2222-3333-4444-555555555555"
 
 Location = "1000,1000"
-InternalAddress = "127.0.0.1"
+InternalAddress = "0.0.0.0"
 InternalPort = 9000
 AllowAlternatePorts = False
 ExternalHostName = "SYSTEMIP"
