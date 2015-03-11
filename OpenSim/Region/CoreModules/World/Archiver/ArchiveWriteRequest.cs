@@ -44,6 +44,7 @@ using OpenSim.Region.Framework.Scenes;
 using Ionic.Zlib;
 using GZipStream = Ionic.Zlib.GZipStream;
 using CompressionMode = Ionic.Zlib.CompressionMode;
+using CompressionLevel = Ionic.Zlib.CompressionLevel;
 using OpenSim.Framework.Serialization.External;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 

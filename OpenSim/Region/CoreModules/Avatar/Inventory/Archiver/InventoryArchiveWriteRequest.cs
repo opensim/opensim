@@ -43,6 +43,7 @@ using OpenSim.Services.Interfaces;
 using Ionic.Zlib;
 using GZipStream = Ionic.Zlib.GZipStream;
 using CompressionMode = Ionic.Zlib.CompressionMode;
+using CompressionLevel = Ionic.Zlib.CompressionLevel;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
