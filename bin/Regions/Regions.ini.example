@@ -15,13 +15,13 @@
 ; * You MUST change this! It will NOT be done for you!
 ; *
 
-RegionUUID = "11111111-2222-3333-4444-555555555555"
+RegionUUID = 11111111-2222-3333-4444-555555555555
 
-Location = "1000,1000"
-InternalAddress = "0.0.0.0"
+Location = 1000,1000
+InternalAddress = 0.0.0.0
 InternalPort = 9000
 AllowAlternatePorts = False
-ExternalHostName = "SYSTEMIP"
+ExternalHostName = SYSTEMIP
 
 ; *
 ; * Variable-sized regions allows the creation of large, borderless spaces.
@@ -67,13 +67,13 @@ ExternalHostName = "SYSTEMIP"
 ; *
 ; * Now, there is a setting in [Map] in OpenSim.ini called
 ; *
-; *  MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
+; *  MaptileStaticUUID = 00000000-0000-0000-0000-000000000000
 ; *
 ; * where, given the criteria above, lets you specify the UUID of a texture asset to use
 ; * as a maptile *Simulator Wide*. Here, you can override that on a per region basis for
 ; * Simulators that run multiple regions:
 
-; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
+; MaptileStaticUUID = 00000000-0000-0000-0000-000000000000
 
 
 ; * Region Specific Static Maptiles from file:
