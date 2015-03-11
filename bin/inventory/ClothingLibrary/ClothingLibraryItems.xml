@@ -9,6 +9,7 @@
     <Key Name="name" Value="Example Library Item" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
+    <Key Name="flags" Value="0" />
   </Section>
 --> 
 <!--
@@ -20,6 +21,7 @@
     <Key Name="name" Value="Shirt" />
     <Key Name="assetType" Value="5" />
     <Key Name="inventoryType" Value="18" />
+    <Key Name="flags" Value="4" />
   </Section>
 
   <Section Name="Pants">
@@ -30,6 +32,7 @@
     <Key Name="name" Value="Pants" />
     <Key Name="assetType" Value="5" />
     <Key Name="inventoryType" Value="18" />
+    <Key Name="flags" Value="5" />
   </Section>
 -->
 
