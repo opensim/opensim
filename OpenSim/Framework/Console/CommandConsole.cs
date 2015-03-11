@@ -433,6 +433,10 @@ namespace OpenSim.Framework.Console
 
             foreach (string s in cmd)
             {
+                // If a user puts an empty string on the console then this cannot be part of the command.
+                if (s == "")
+                    break;
+
                 index++;
 
                 List<string> found = new List<string>();
@@ -443,9 +447,8 @@ namespace OpenSim.Framework.Console
                     {
                         found.Clear();
                         found.Add(opt);
-                        break;
                     }
-                    if (opt.StartsWith(s))
+                    else if (opt.StartsWith(s))
                     {
                         found.Add(opt);
                     }
