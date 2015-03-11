@@ -73,7 +73,7 @@
       <Reference name="System.Data"/>
       <Reference name="System.Web"/>
       <Files>
-        <Match pattern="*.cs" recurse="false"/>
+        <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
