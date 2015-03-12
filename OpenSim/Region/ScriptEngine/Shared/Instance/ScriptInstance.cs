@@ -676,6 +676,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             lock (EventQueue)
             {
+                // The only events that persist across state changes are timers
+                if (m_StateChangeInProgress && data.EventName != "timer") 
+                    return;
+
                 if (EventQueue.Count >= m_MaxScriptQueue)
                     return;
 
@@ -719,9 +723,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                     m_CollisionInQueue = true;
                 }
-                
-                // The only events that persist across state changes are timers
-                if (m_StateChangeInProgress && data.EventName != "timer") return;
 
                 EventQueue.Enqueue(data);
 
