@@ -618,26 +618,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             if (state == State)
                 return;
-            
-            // Remove all queued events, remembering the last timer event
+
             EventParams lastTimerEv = null;
-            while (EventQueue.Count > 0)
+
+            lock (EventQueue)
             {
-                EventParams tempv = (EventParams)EventQueue.Dequeue();
-                if (tempv.EventName == "timer") lastTimerEv = tempv;
+                // Remove all queued events, remembering the last timer event
+                while (EventQueue.Count > 0)
+                {
+                    EventParams tempv = (EventParams)EventQueue.Dequeue();
+                    if (tempv.EventName == "timer") lastTimerEv = tempv;
+                }
+
+                // Post events
+                PostEvent(new EventParams("state_exit", new Object[0],
+                                           new DetectParams[0]));
+                PostEvent(new EventParams("state", new Object[] { state },
+                                           new DetectParams[0]));
+                PostEvent(new EventParams("state_entry", new Object[0],
+                                           new DetectParams[0]));
+
+                // Requeue the timer event after the state changing events
+                if (lastTimerEv != null) EventQueue.Enqueue(lastTimerEv);
+
+                // This will stop events from being queued and processed
+                // until the new state is started
+                m_StateChangeInProgress = true;
             }
-            // Post events
-            PostEvent(new EventParams("state_exit", new Object[0],
-                                       new DetectParams[0]));
-            PostEvent(new EventParams("state", new Object[] { state },
-                                       new DetectParams[0]));
-            PostEvent(new EventParams("state_entry", new Object[0],
-                                       new DetectParams[0]));
-            // Requeue the timer event after the state changing events
-            if (lastTimerEv != null) EventQueue.Enqueue(lastTimerEv);
-            // This will stop events from being queued and processed
-            // until the new state is started
-            m_StateChangeInProgress = true;
 
             throw new EventAbortException();
         }
