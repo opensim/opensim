@@ -656,6 +656,12 @@
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
 
+    ; HGInventoryService is a public-facing inventory service that allows users to 
+    ; interact with their suitcase folder when on a foreign grid.  This reuses the general inventory service connector.
+    ; Hence, if the user has set up authentication in [Network] to protect their private services
+    ; make sure it is not set here.
+    AuthType = None
+
     ;; Can overwrite the default in [Hypergrid], but probably shouldn't
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
@@ -667,6 +673,12 @@
 [HGAssetService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+
+    ; HGAssetService is a public-facing service that allows users to  
+    ; read and create assets when on another grid.  This reuses the general asset service connector.
+    ; Hence, if the user has set up authentication in [Network] to protect their private services
+    ; make sure it is overriden for this public service.
+    AuthType = None
 
     ;; Can overwrite the default in [Hypergrid], but probably shouldn't
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
