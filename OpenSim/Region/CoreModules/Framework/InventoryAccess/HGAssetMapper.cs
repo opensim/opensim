@@ -199,11 +199,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             while (reader.Read())
             {
-                //Console.WriteLine("Depth: {0}", reader.Depth);
+//                Console.WriteLine("Depth: {0}, name {1}", reader.Depth, reader.Name);
 
                 switch (reader.NodeType)
                 {
                     case XmlNodeType.Attribute:
+//                    Console.WriteLine("FOUND ATTRIBUTE {0}", reader.Name);
                     writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
                     break;
 
@@ -223,6 +224,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    m_log.DebugFormat("Depth {0} at element {1}", reader.Depth, reader.Name);
 
                     writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
+
+                    if (reader.HasAttributes)
+                    {
+                        while (reader.MoveToNextAttribute())
+                            writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
+
+                        reader.MoveToElement();
+                    }
 
                     if (reader.LocalName == "SceneObjectPart")
                     {

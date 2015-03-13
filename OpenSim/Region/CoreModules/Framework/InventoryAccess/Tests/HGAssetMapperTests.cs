@@ -26,12 +26,15 @@
  */
 
 using System;
+using System.Threading;
 using System.Xml;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 
@@ -46,30 +49,54 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
+            XEngine xengine = new OpenSim.Region.ScriptEngine.XEngine.XEngine();
+            xengine.DebugLevel = 1;
+
+            IniConfigSource configSource = new IniConfigSource();
+
+            IConfig startupConfig = configSource.AddConfig("Startup");
+            startupConfig.Set("DefaultScriptEngine", "XEngine");
+
+            IConfig xEngineConfig = configSource.AddConfig("XEngine");
+            xEngineConfig.Set("Enabled", "true");
+            xEngineConfig.Set("StartDelay", "0");
+            xEngineConfig.Set("AppDomainLoading", "false");
+
             string homeUrl = "http://hg.HomeTestPostAssetRewriteGrid.com";
             string foreignUrl = "http://hg.ForeignTestPostAssetRewriteGrid.com";
-            UUID assetId = TestHelpers.ParseTail(0x1);
-            UUID userId = TestHelpers.ParseTail(0x10);
+            int soIdTail = 0x1;
+            UUID assetId = TestHelpers.ParseTail(0x10);
+            UUID userId = TestHelpers.ParseTail(0x100);
+            UUID sceneId = TestHelpers.ParseTail(0x1000);
             string userFirstName = "TestPostAsset";
             string userLastName = "Rewrite";
             int soPartsCount = 3;
 
-            Scene scene = new SceneHelpers().SetupScene();
+            Scene scene = new SceneHelpers().SetupScene("TestPostAssetRewriteScene", sceneId, 1000, 1000, configSource);
+            SceneHelpers.SetupSceneModules(scene, configSource, xengine);
+            scene.StartScripts();
+
             HGAssetMapper hgam = new HGAssetMapper(scene, homeUrl);
             UserAccount ua 
                 = UserAccountHelpers.CreateUserWithInventory(scene, userFirstName, userLastName, userId, "password");
 
-            //AssetBase ncAssetSet = AssetHelpers.CreateNotecardAsset(assetId, "TestPostAssetRewriteNotecard");
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(soPartsCount, ua.PrincipalID);
-            AssetBase ncAssetSet = AssetHelpers.CreateAsset(assetId, so);
-            ncAssetSet.CreatorID = foreignUrl;
-            hgam.PostAsset(foreignUrl, ncAssetSet);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, soPartsCount, ua.PrincipalID, "part", soIdTail);
+            RezScript(
+                scene, so.UUID, "default { state_entry() { llSay(0, \"Hello World\"); } }", "item1", ua.PrincipalID);
 
+            AssetBase asset = AssetHelpers.CreateAsset(assetId, so);
+            asset.CreatorID = foreignUrl;
+            hgam.PostAsset(foreignUrl, asset);
+
+            // Check transformed asset.
             AssetBase ncAssetGet = scene.AssetService.Get(assetId.ToString());
             Assert.AreEqual(foreignUrl, ncAssetGet.CreatorID);
             string xmlData = Utils.BytesToString(ncAssetGet.Data);
             XmlDocument ncAssetGetXmlDoc = new XmlDocument();
             ncAssetGetXmlDoc.LoadXml(xmlData);
+
+//            Console.WriteLine(ncAssetGetXmlDoc.OuterXml);
+
             XmlNodeList creatorDataNodes = ncAssetGetXmlDoc.GetElementsByTagName("CreatorData");
 
             Assert.AreEqual(soPartsCount, creatorDataNodes.Count);
@@ -80,6 +107,40 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
                 Assert.AreEqual(
                     string.Format("{0};{1} {2}", homeUrl, ua.FirstName, ua.LastName), creatorDataNode.InnerText);
             }
+
+            // Check that saved script nodes have attributes
+            XmlNodeList savedScriptStateNodes = ncAssetGetXmlDoc.GetElementsByTagName("SavedScriptState");
+
+            Assert.AreEqual(1, savedScriptStateNodes.Count);
+            Assert.AreEqual(1, savedScriptStateNodes[0].Attributes.Count);
+            XmlNode uuidAttribute = savedScriptStateNodes[0].Attributes.GetNamedItem("UUID");
+            Assert.NotNull(uuidAttribute);
+            // XXX: To check the actual UUID attribute we would have to do some work to retreive the UUID of the task
+            // item created earlier. 
+        }
+
+        private void RezScript(Scene scene, UUID soId, string script, string itemName, UUID userId)
+        {
+            InventoryItemBase itemTemplate = new InventoryItemBase();
+            //            itemTemplate.ID = itemId;
+            itemTemplate.Name = itemName;
+            itemTemplate.Folder = soId;
+            itemTemplate.InvType = (int)InventoryType.LSL;
+
+            // XXX: Ultimately it would be better to be able to directly manipulate the script engine to rez a script
+            // immediately for tests rather than chunter through it's threaded mechanisms.
+            AutoResetEvent chatEvent = new AutoResetEvent(false);
+
+            scene.EventManager.OnChatFromWorld += (s, c) => 
+            {
+//                Console.WriteLine("Got chat [{0}]", c.Message);           
+                chatEvent.Set();
+            };
+
+            scene.RezNewScript(userId, itemTemplate, script);
+
+//            Console.WriteLine("HERE");
+            Assert.IsTrue(chatEvent.WaitOne(60000), "Chat event in HGAssetMapperTests.RezScript not received");
         }
     }
 }
