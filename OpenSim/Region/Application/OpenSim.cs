@@ -732,6 +732,8 @@ namespace OpenSim
 
             if (changed)
 	            m_estateDataService.StoreEstateSettings(regInfo.EstateSettings);
+        
+            scene.Start();
         }
 
         /// <summary>
