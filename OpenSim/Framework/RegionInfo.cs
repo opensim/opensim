@@ -823,12 +823,14 @@ namespace OpenSim.Framework
             string location = String.Format("{0},{1}", RegionLocX, RegionLocY);
             config.Set("Location", location);
 
-            if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
-            {
+            if (RegionSizeX > 0)
                 config.Set("SizeX", RegionSizeX);
+
+            if (RegionSizeY > 0)
                 config.Set("SizeY", RegionSizeY);
+
+//            if (RegionSizeZ > 0)
 //                config.Set("SizeZ", RegionSizeZ);
-            }
 
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
             config.Set("InternalPort", m_internalEndPoint.Port);
@@ -872,7 +874,7 @@ namespace OpenSim.Framework
             if (m_maptileStaticUUID != UUID.Zero)
                 config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString());
 
-            if (MaptileStaticFile != String.Empty)
+            if (MaptileStaticFile != null && MaptileStaticFile != String.Empty)
                 config.Set("MaptileStaticFile", MaptileStaticFile);
         }
 
