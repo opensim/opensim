@@ -73,7 +73,7 @@ namespace OpenSim.Server.Handlers
 
     public class EstateServerGetHandler : BaseStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         IEstateDataService m_EstateService;
 
@@ -94,7 +94,6 @@ namespace OpenSim.Server.Handlers
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
             Dictionary<string, object> data = null;
 
             string[] p = SplitParams(path);
@@ -271,7 +270,6 @@ namespace OpenSim.Server.Handlers
         protected override byte[] ProcessRequest(string path, Stream request,
                                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
             Dictionary<string, object> data = null;
 
             string[] p = SplitParams(path);
