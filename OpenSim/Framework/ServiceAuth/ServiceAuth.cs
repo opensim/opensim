@@ -27,13 +27,16 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Reflection;
+using log4net;
 using Nini.Config;
 
 namespace OpenSim.Framework.ServiceAuth
 {
     public class ServiceAuth
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public static IServiceAuth Create(IConfigSource config, string section)
         {
             CompoundAuthentication compoundAuth = new CompoundAuthentication();
@@ -52,6 +55,9 @@ namespace OpenSim.Framework.ServiceAuth
                     compoundAuth.AddAuthenticator(new BasicHttpAuthentication(config, section));
                     break;
             }
+
+//            foreach (IServiceAuth auth in compoundAuth.GetAuthentors())
+//                m_log.DebugFormat("[SERVICE AUTH]: Configured authenticator {0}", auth.Name);
 
             if (compoundAuth.Count > 0)
                 return compoundAuth;

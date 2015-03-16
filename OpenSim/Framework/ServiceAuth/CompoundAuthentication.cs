@@ -35,9 +35,16 @@ namespace OpenSim.Framework.ServiceAuth
 {
     public class CompoundAuthentication : IServiceAuth
     {
+        public string Name { get { return "Compound"; } }
+
         private List<IServiceAuth> m_authentications = new List<IServiceAuth>();
 
         public int Count { get { return m_authentications.Count; } }
+
+        public List<IServiceAuth> GetAuthentors()
+        {
+            return new List<IServiceAuth>(m_authentications);
+        }
 
         public void AddAuthenticator(IServiceAuth auth)
         {
@@ -49,7 +56,11 @@ namespace OpenSim.Framework.ServiceAuth
             m_authentications.Remove(auth);
         }
 
-        public void AddAuthorization(NameValueCollection headers) {}
+        public void AddAuthorization(NameValueCollection headers) 
+        {
+            foreach (IServiceAuth auth in m_authentications)
+                auth.AddAuthorization(headers);
+        }
 
         public bool Authenticate(string data)
         {

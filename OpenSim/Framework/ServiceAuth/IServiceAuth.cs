@@ -34,8 +34,13 @@ namespace OpenSim.Framework.ServiceAuth
 {
     public delegate void AddHeaderDelegate(string key, string value);
 
-    public interface  IServiceAuth
+    public interface IServiceAuth
     {
+        /// <summary>
+        /// Name of this authenticator.
+        /// </summary>
+        string Name { get; }
+
         bool Authenticate(string data);
         bool Authenticate(NameValueCollection headers, AddHeaderDelegate d, out HttpStatusCode statusCode);
         void AddAuthorization(NameValueCollection headers);

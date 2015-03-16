@@ -40,6 +40,8 @@ namespace OpenSim.Framework.ServiceAuth
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public string Name { get { return "BasicHttp"; } }
+
         private string m_Username, m_Password;
         private string m_CredentialsB64;
 
