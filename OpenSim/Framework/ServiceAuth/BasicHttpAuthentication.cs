@@ -38,7 +38,7 @@ namespace OpenSim.Framework.ServiceAuth
 {
     public class BasicHttpAuthentication : IServiceAuth
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public string Name { get { return "BasicHttp"; } }
 
@@ -61,7 +61,7 @@ namespace OpenSim.Framework.ServiceAuth
             byte[] encData_byte = Util.UTF8.GetBytes(str);
 
             m_CredentialsB64 = Convert.ToBase64String(encData_byte);
-            m_log.DebugFormat("[HTTP BASIC AUTH]: {0} {1} [{2}]", m_Username, m_Password, section);
+//            m_log.DebugFormat("[HTTP BASIC AUTH]: {0} {1} [{2}]", m_Username, m_Password, section);
         }
 
         public void AddAuthorization(NameValueCollection headers)
