@@ -3151,6 +3151,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // as wrong walk speed if the camera is rotated.
                 rot.X = 0;
                 rot.Y = 0;
+                rot.Normalize();
             }
 
             Vector3 direc = vec * rot;
