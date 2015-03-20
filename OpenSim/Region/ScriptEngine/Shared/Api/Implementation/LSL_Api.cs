@@ -7607,17 +7607,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             shapeBlock.PathBegin = shapeBlock.ProfileBegin;
             shapeBlock.PathEnd = shapeBlock.ProfileEnd;
 
-            if (holesize.x < 0.05f)
+            if (holesize.x < 0.01f)
             {
-                holesize.x = 0.05f;
+                holesize.x = 0.01f;
             }
             if (holesize.x > 1f)
             {
                 holesize.x = 1f;
             }
-            if (holesize.y < 0.05f)
+            if (holesize.y < 0.01f)
             {
-                holesize.y = 0.05f;
+                holesize.y = 0.01f;
             }
             if (holesize.y > 0.5f)
             {
