@@ -7450,12 +7450,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     hollow = 0.70f;
                 }
             }
-            // Otherwise, hollow is limited to 95%.
+            // Otherwise, hollow is limited to 99%.
             else
             {
-                if (hollow > 0.95f)
+                if (hollow > 0.99f)
                 {
-                    hollow = 0.95f;
+                    hollow = 0.99f;
                 }
             }
             shapeBlock.ProfileHollow = (ushort)(50000 * hollow);
