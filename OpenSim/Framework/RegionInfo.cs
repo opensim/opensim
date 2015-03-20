@@ -672,7 +672,8 @@ namespace OpenSim.Framework
             }
             else
             {
-                m_allow_alternate_ports = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Allow alternate ports", "False"));
+                //Not Used. Leave it always False.
+                m_allow_alternate_ports = false;
 
                 config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
             }
