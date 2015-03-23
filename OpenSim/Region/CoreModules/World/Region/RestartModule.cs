@@ -131,7 +131,10 @@ namespace OpenSim.Region.CoreModules.World.Region
         public void ScheduleRestart(UUID initiator, string message, int[] alerts, bool notice)
         {
             if (m_CountdownTimer != null)
-                return;
+            {
+                m_CountdownTimer.Stop();
+                m_CountdownTimer = null;
+            }
 
             if (alerts == null)
             {
@@ -276,7 +279,8 @@ namespace OpenSim.Region.CoreModules.World.Region
                 m_CountdownTimer.Stop();
                 m_CountdownTimer = null;
                 if (m_DialogModule != null && message != String.Empty)
-                    m_DialogModule.SendGeneralAlert(message);
+                    m_DialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
+                    //m_DialogModule.SendGeneralAlert(message);
             }
             if (m_MarkerPath != String.Empty)
                 File.Delete(Path.Combine(m_MarkerPath,
