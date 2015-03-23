@@ -203,8 +203,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             m_scene.ForEachRootClient(delegate(IClientAPI client)
             {
-                client.SendBlueBoxMessage(fromAvatarID, fromAvatarName,
-                        message);
+                client.SendAgentAlertMessage(
+                        message, false);
             });
         }
 
