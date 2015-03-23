@@ -271,8 +271,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             try
             {
-                m_log.Info("[RADMIN]: Request to restart Region.");
-
                 Scene rebootedScene = null;
                 bool restartAll = false;
 
@@ -307,6 +305,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string[] alertTimes = requestData["alerts"].ToString().Split( new char[] {','});
                     if (alertTimes.Length == 1 && Convert.ToInt32(alertTimes[0]) == -1)
                     {
+                        m_log.Info("[RADMIN]: Request to cancel restart.");
+
                         if (restartModule != null)
                         {
                             message = "Restart has been cancelled";
@@ -341,6 +341,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             timeout -= 15;
                     }
                 }
+
+                m_log.Info("[RADMIN]: Request to restart Region.");
 
                 message = "Region is restarting in {0}. Please save what you are doing and log out.";
 
