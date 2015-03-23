@@ -1170,18 +1170,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID == 0)
             {
-                if (m_scene.TestBorderCross(pos, Cardinals.E))
-                {
-                    Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
-                    pos.X = crossedBorder.BorderLine.Z - 1;
-                }
-
-                if (m_scene.TestBorderCross(pos, Cardinals.N))
-                {
-                    Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
-                    pos.Y = crossedBorder.BorderLine.Z - 1;
-                }
-
                 CheckAndAdjustLandingPoint(ref pos);
 
                 if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
@@ -3867,32 +3855,28 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
 //                        pos2, Name, Scene.Name);
-            
-            if( Scene.TestBorderCross(pos2, Cardinals.E) ||
-                Scene.TestBorderCross(pos2, Cardinals.W) ||
-                Scene.TestBorderCross(pos2, Cardinals.N) ||
-                Scene.TestBorderCross(pos2, Cardinals.S)
-               )
+
+            if (Scene.PositionIsInCurrentRegion(pos2))
+                return;
+
+            if (!CrossToNewRegion() && m_requestedSitTargetUUID == UUID.Zero)
             {
-                if (!CrossToNewRegion() && m_requestedSitTargetUUID == UUID.Zero)
-                {
-                    // we don't have entity transfer module
-                    Vector3 pos = AbsolutePosition;
-                    float px = pos.X;
-                    if (px < 0)
-                        pos.X += Velocity.X * 2;
-                    else if (px > m_scene.RegionInfo.RegionSizeX)
-                        pos.X -= Velocity.X * 2;
+                // we don't have entity transfer module
+                Vector3 pos = AbsolutePosition;
+                float px = pos.X;
+                if (px < 0)
+                    pos.X += Velocity.X * 2;
+                else if (px > m_scene.RegionInfo.RegionSizeX)
+                    pos.X -= Velocity.X * 2;
 
-                    float py = pos.Y;
-                    if (py < 0)
-                        pos.Y += Velocity.Y * 2;
-                    else if (py > m_scene.RegionInfo.RegionSizeY)
-                        pos.Y -= Velocity.Y * 2;
+                float py = pos.Y;
+                if (py < 0)
+                    pos.Y += Velocity.Y * 2;
+                else if (py > m_scene.RegionInfo.RegionSizeY)
+                    pos.Y -= Velocity.Y * 2;
 
-                    Velocity = Vector3.Zero;
-                    AbsolutePosition = pos;
-                }
+                Velocity = Vector3.Zero;
+                AbsolutePosition = pos;
             }
         }
 

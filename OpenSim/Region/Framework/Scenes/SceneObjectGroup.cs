@@ -529,12 +529,10 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 Vector3 val = value;
-                if (Scene != null && !IsAttachmentCheckFull()
-                    && !Scene.LoadingPrims &&
-                    (Scene.TestBorderCross(val, Cardinals.E) ||
-                      Scene.TestBorderCross(val, Cardinals.W) ||
-                      Scene.TestBorderCross(val, Cardinals.N) ||
-                      Scene.TestBorderCross(val, Cardinals.S))
+                if (Scene != null
+                        && Scene.PositionIsInCurrentRegion(val)
+                        && !IsAttachmentCheckFull()
+                        && !Scene.LoadingPrims
                     )
                 {
                     if (!inTransit)

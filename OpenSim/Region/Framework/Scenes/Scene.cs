@@ -160,11 +160,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SimStatsReporter StatsReporter { get; private set; }
 
-        public List<Border> NorthBorders = new List<Border>();
-        public List<Border> EastBorders = new List<Border>();
-        public List<Border> SouthBorders = new List<Border>();
-        public List<Border> WestBorders = new List<Border>();
-
         /// <summary>
         /// Controls whether physics can be applied to prims.  Even if false, prims still have entries in a
         /// PhysicsScene in order to perform collision detection
@@ -364,7 +359,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
-        private volatile int m_bordersLocked;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private volatile bool m_backingup;
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
@@ -446,18 +440,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_splitRegionID = value; }
         }
 
-        public bool BordersLocked
-        {
-            get { return m_bordersLocked == 1; }
-            set
-            {
-                if (value == true)
-                    m_bordersLocked = 1;
-                else
-                    m_bordersLocked = 0;
-            }
-        }
-        
         public new float TimeDilation
         {
             get { return m_sceneGraph.PhysicsScene.TimeDilation; }
@@ -1074,28 +1056,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             PeriodicBackup = true;
             UseBackup = true;
-
-            BordersLocked = true;
-            Border northBorder = new Border();
-            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, RegionInfo.RegionSizeY);  //<---
-            northBorder.CrossDirection = Cardinals.N;
-            NorthBorders.Add(northBorder);
-
-            Border southBorder = new Border();
-            southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,0);    //--->
-            southBorder.CrossDirection = Cardinals.S;
-            SouthBorders.Add(southBorder);
-
-            Border eastBorder = new Border();
-            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, RegionInfo.RegionSizeX);   //<---
-            eastBorder.CrossDirection = Cardinals.E;
-            EastBorders.Add(eastBorder);
-
-            Border westBorder = new Border();
-            westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,0);     //--->
-            westBorder.CrossDirection = Cardinals.W;
-            WestBorders.Add(westBorder);
-            BordersLocked = false;
 
             m_eventManager = new EventManager();
 
@@ -2611,184 +2571,34 @@ namespace OpenSim.Region.Framework.Scenes
                 EntityTransferModule.Cross(grp, attemptedPosition, silent);
         }
 
-        public Border GetCrossedBorder(Vector3 position, Cardinals gridline)
+        // Simple test to see if a position is in the current region.
+        // This test is mostly used to see if a region crossing is necessary.
+        // Assuming the position is relative to the region so anything outside its bounds.
+        // Return 'true' if position inside region.
+        public bool PositionIsInCurrentRegion(Vector3 pos)
         {
-            if (BordersLocked)
+            bool ret = false;
+            int xx = (int)Math.Floor(pos.X);
+            int yy = (int)Math.Floor(pos.Y);
+            if (xx < 0 || yy < 0)
+                return false;
+
+            IRegionCombinerModule regionCombinerModule = RequestModuleInterface<IRegionCombinerModule>();
+            if (regionCombinerModule == null)
             {
-                switch (gridline)
-                {
-                    case Cardinals.N:
-                        lock (NorthBorders)
-                        {
-                            foreach (Border b in NorthBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return b;
-                            }
-                        }
-                        break;
-                    case Cardinals.S:
-                        lock (SouthBorders)
-                        {
-                            foreach (Border b in SouthBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return b;
-                            }
-                        }
-
-                        break;
-                    case Cardinals.E:
-                        lock (EastBorders)
-                        {
-                            foreach (Border b in EastBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return b;
-                            }
-                        }
-
-                        break;
-                    case Cardinals.W:
-
-                        lock (WestBorders)
-                        {
-                            foreach (Border b in WestBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return b;
-                            }
-                        }
-                        break;
-
-                }
+                // Regular region. Just check for region size
+                if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
+                    ret = true;
             }
             else
             {
-                switch (gridline)
-                {
-                    case Cardinals.N:
-                        foreach (Border b in NorthBorders)
-                        {
-                            if (b.TestCross(position))
-                                return b;
-                        }
-                       
-                        break;
-                    case Cardinals.S:
-                        foreach (Border b in SouthBorders)
-                        {
-                            if (b.TestCross(position))
-                                return b;
-                        }
-                        break;
-                    case Cardinals.E:
-                        foreach (Border b in EastBorders)
-                        {
-                            if (b.TestCross(position))
-                                return b;
-                        }
-
-                        break;
-                    case Cardinals.W:
-                        foreach (Border b in WestBorders)
-                        {
-                            if (b.TestCross(position))
-                                return b;
-                        }
-                        break;
-
-                }
+                // We're in a mega-region so see if we are still in that larger region
+                ret = regionCombinerModule.PositionIsInMegaregion(this.RegionInfo.RegionID, xx, yy);
             }
 
-            return null;
+            return ret;
+
         }
-
-        public bool TestBorderCross(Vector3 position, Cardinals border)
-        {
-            if (BordersLocked)
-            {
-                switch (border)
-                {
-                    case Cardinals.N:
-                        lock (NorthBorders)
-                        {
-                            foreach (Border b in NorthBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return true;
-                            }
-                        }
-                        break;
-                    case Cardinals.E:
-                        lock (EastBorders)
-                        {
-                            foreach (Border b in EastBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return true;
-                            }
-                        }
-                        break;
-                    case Cardinals.S:
-                        lock (SouthBorders)
-                        {
-                            foreach (Border b in SouthBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return true;
-                            }
-                        }
-                        break;
-                    case Cardinals.W:
-                        lock (WestBorders)
-                        {
-                            foreach (Border b in WestBorders)
-                            {
-                                if (b.TestCross(position))
-                                    return true;
-                            }
-                        }
-                        break;
-                }
-            }
-            else
-            {
-                switch (border)
-                {
-                    case Cardinals.N:
-                        foreach (Border b in NorthBorders)
-                        {
-                            if (b.TestCross(position))
-                                return true;
-                        }
-                        break;
-                    case Cardinals.E:
-                        foreach (Border b in EastBorders)
-                        {
-                            if (b.TestCross(position))
-                                return true;
-                        }
-                        break;
-                    case Cardinals.S:
-                        foreach (Border b in SouthBorders)
-                        {
-                            if (b.TestCross(position))
-                                return true;
-                        }
-                        break;
-                    case Cardinals.W:
-                        foreach (Border b in WestBorders)
-                        {
-                            if (b.TestCross(position))
-                                return true;
-                        }
-                        break;
-                }
-            }
-            return false;
-        }
-
 
         /// <summary>
         /// Called when objects or attachments cross the border, or teleport, between regions.
@@ -4116,60 +3926,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
 //                CleanDroppedAttachments();
 
-                if (TestBorderCross(acd.startpos, Cardinals.E))
-                {
-                    Border crossedBorder = GetCrossedBorder(acd.startpos, Cardinals.E);
-                    acd.startpos.X = crossedBorder.BorderLine.Z - 1;
-                }
-
-                if (TestBorderCross(acd.startpos, Cardinals.N))
-                {
-                    Border crossedBorder = GetCrossedBorder(acd.startpos, Cardinals.N);
-                    acd.startpos.Y = crossedBorder.BorderLine.Z - 1;
-                }
-
-                //Mitigate http://opensimulator.org/mantis/view.php?id=3522
-                // Check if start position is outside of region
-                // If it is, check the Z start position also..   if not, leave it alone.
-                if (BordersLocked)
-                {
-                    lock (EastBorders)
-                    {
-                        if (acd.startpos.X > EastBorders[0].BorderLine.Z)
-                        {
-                            m_log.Warn("FIX AGENT POSITION");
-                            acd.startpos.X = EastBorders[0].BorderLine.Z * 0.5f;
-                            if (acd.startpos.Z > 720)
-                                acd.startpos.Z = 720;
-                        }
-                    }
-                    lock (NorthBorders)
-                    {
-                        if (acd.startpos.Y > NorthBorders[0].BorderLine.Z)
-                        {
-                            m_log.Warn("FIX Agent POSITION");
-                            acd.startpos.Y = NorthBorders[0].BorderLine.Z * 0.5f;
-                            if (acd.startpos.Z > 720)
-                                acd.startpos.Z = 720;
-                        }
-                    }
-                } else
-                {
-                    if (acd.startpos.X > EastBorders[0].BorderLine.Z)
-                    {
-                        m_log.Warn("FIX AGENT POSITION");
-                        acd.startpos.X = EastBorders[0].BorderLine.Z * 0.5f;
-                        if (acd.startpos.Z > 720)
-                            acd.startpos.Z = 720;
-                    }
-                    if (acd.startpos.Y > NorthBorders[0].BorderLine.Z)
-                    {
-                        m_log.Warn("FIX Agent POSITION");
-                        acd.startpos.Y = NorthBorders[0].BorderLine.Z * 0.5f;
-                        if (acd.startpos.Z > 720)
-                            acd.startpos.Z = 720;
-                    }
-                }
+                // Make sure avatar position is in the region (why it wouldn't be is a mystery but do sanity checking)
+                if (acd.startpos.X < 0) acd.startpos.X = 1f;
+                if (acd.startpos.X >= RegionInfo.RegionSizeX) acd.startpos.X = RegionInfo.RegionSizeX - 1f;
+                if (acd.startpos.Y < 0) acd.startpos.Y = 1f;
+                if (acd.startpos.Y >= RegionInfo.RegionSizeY) acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
 
 //                m_log.DebugFormat(
 //                    "[SCENE]: Found telehub object {0} for new user connection {1} to {2}", 
@@ -4883,44 +4644,6 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(remoteClient.AgentId);
             if (sp != null)
             {
-                uint regionX = RegionInfo.RegionLocX;
-                uint regionY = RegionInfo.RegionLocY;
-
-                Utils.LongToUInts(regionHandle, out regionX, out regionY);
-
-                int shiftx = (int) regionX - (int) RegionInfo.RegionLocX * (int)Constants.RegionSize;
-                int shifty = (int) regionY - (int) RegionInfo.RegionLocY * (int)Constants.RegionSize;
-
-                position.X += shiftx;
-                position.Y += shifty;
-
-                bool result = false;
-
-                if (TestBorderCross(position,Cardinals.N))
-                    result = true;
-
-                if (TestBorderCross(position, Cardinals.S))
-                    result = true;
-
-                if (TestBorderCross(position, Cardinals.E))
-                    result = true;
-
-                if (TestBorderCross(position, Cardinals.W))
-                    result = true;
-
-                // bordercross if position is outside of region
-
-                if (!result)
-                {
-                    regionHandle = RegionInfo.RegionHandle;
-                }
-                else
-                {
-                    // not in this region, undo the shift!
-                    position.X -= shiftx;
-                    position.Y -= shifty;
-                }
-
                 if (EntityTransferModule != null)
                 {
                     EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
