@@ -123,14 +123,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             if (Timers.Count == 0)
                 return;
 
-            Dictionary<string, TimerInfo>.ValueCollection tvals;
+            Dictionary<string, TimerInfo> tvals;
             lock (TimerListLock)
             {
                 // Go through all timers
-                tvals = Timers.Values;
+                tvals = new Dictionary<string, TimerInfo>(Timers);
             }
 
-            foreach (TimerInfo ts in tvals)
+            foreach (TimerInfo ts in tvals.Values)
             {
                 // Time has passed?
                 if (ts.next < DateTime.Now.Ticks)
