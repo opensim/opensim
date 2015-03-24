@@ -1855,7 +1855,12 @@ namespace OpenSim.Region.Framework.Scenes
                         // Util.FireAndForget(
                         //      o =>
                         //      {
-                            Scene.AttachmentsModule.RezAttachments(this);
+                            if (!isNPC)
+                                Scene.AttachmentsModule.RezAttachments(this);
+                            else
+                                Util.FireAndForget(x => {
+                                    Scene.AttachmentsModule.RezAttachments(this);
+                                });
                         // });
                     }
                     else
