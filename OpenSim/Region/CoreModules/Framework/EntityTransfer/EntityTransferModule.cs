@@ -151,12 +151,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Add this agent in this region as a banned person
             public void Add(ulong pRegionHandle, UUID pAgentID)
             {
+                this.Add(pRegionHandle, pAgentID, 45, 15);
+            }
+            public void Add(ulong pRegionHandle, UUID pAgentID, double newTime, double extendTime)
+            {
                 if (!m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
                 {
                     m_idCache = new ExpiringCache<ulong, DateTime>();
-                    m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(45));
+                    m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(newTime));
                 }
-                m_idCache.Add(pRegionHandle, DateTime.Now + TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+                m_idCache.Add(pRegionHandle, DateTime.Now + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
             }
             // Remove the agent from the region's banned list
             public void Remove(ulong pRegionHandle, UUID pAgentID)
@@ -1446,6 +1450,31 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 
         #region Agent Crossings
+
+        public bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, out string version, out string reason)
+        {
+            reason = String.Empty;
+            version = String.Empty;
+
+            UUID agentID = agent.UUID;
+            ulong destinyHandle = destiny.RegionHandle;
+
+            if (m_bannedRegionCache.IfBanned(destinyHandle, agentID))
+            {
+                reason = "Cannot connect to region";
+                return false;
+            }
+
+            Scene ascene = agent.Scene;
+
+            if (!ascene.SimulationService.QueryAccess(destiny, agentID, position, out version, out reason))
+            {
+                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0, 30.0);
+                return false;
+            }
+
+            return true;
+        }
 
         public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos)
         {
