@@ -25,13 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenSim.Framework;
+using OpenMetaverse;
+
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ITerrainChannel
     {
-        int Height { get; }
+        int Width { get;}       // X dimension
+        int Height { get;}      // Y dimension
+        int Altitude { get;}    // Z dimension
+
         double this[int x, int y] { get; set; }
-        int Width { get; }
+
+        float GetHeightAtXYZ(float x, float y, float z);
+
+        // Return the packaged terrain data for passing into lower levels of communication
+        TerrainData GetTerrainData();
 
         /// <summary>
         /// Squash the entire heightmap into a single dimensioned array
@@ -40,9 +50,14 @@ namespace OpenSim.Region.Framework.Interfaces
         float[] GetFloatsSerialised();
 
         double[,] GetDoubles();
+
+        // Check if a location has been updated. Clears the taint flag as a side effect.
         bool Tainted(int x, int y);
+
         ITerrainChannel MakeCopy();
         string SaveToXmlString();
         void LoadFromXmlString(string data);
+        // Merge some terrain into this channel
+        void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement);
     }
 }

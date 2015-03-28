@@ -1935,7 +1935,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                double[,] map = SimulationDataService.LoadTerrain(RegionInfo.RegionID);
+                TerrainData map = SimulationDataService.LoadTerrain(RegionInfo.RegionID, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
                 if (map == null)
                 {
                     // This should be in the Terrain module, but it isn't because
@@ -1946,7 +1946,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
 
                     m_log.InfoFormat("[TERRAIN]: No default terrain. Generating a new terrain {0}.", m_InitialTerrain);
-                    Heightmap = new TerrainChannel(m_InitialTerrain);
+                    Heightmap = new TerrainChannel(m_InitialTerrain, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
 
                     SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
                 }

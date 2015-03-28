@@ -48,8 +48,18 @@ namespace OpenSim.Data.MySQL
     public class MySQLSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[REGION DB MYSQL]";
 
         private string m_connectionString;
+
+        /// <summary>
+        /// This lock was being used to serialize database operations when the connection was shared, but this has
+        /// been unnecessary for a long time after we switched to using MySQL's underlying connection pooling instead.
+        /// FIXME: However, the locks remain in many places since they are effectively providing a level of 
+        /// transactionality.  This should be replaced by more efficient database transactions which would not require
+        /// unrelated operations to block each other or unrelated operations on the same tables from blocking each
+        /// other.
+        /// </summary>
         private object m_dbLock = new object();
 
         protected virtual Assembly Assembly
@@ -91,7 +101,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.Error("[REGION DB]: MySQL error in ExecuteReader: " + e.Message);
+                m_log.ErrorFormat("{0} MySQL error in ExecuteReader: {1}", LogHeader, e);
                 throw;
             }
 
@@ -574,12 +584,16 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual void StoreTerrain(double[,] ter, UUID regionID)
+        // Legacy entry point for when terrain was always a 256x256 hieghtmap
+        public void StoreTerrain(double[,] ter, UUID regionID)
+        {
+            StoreTerrain(new HeightmapTerrainData(ter), regionID);
+        }
+
+        public void StoreTerrain(TerrainData terrData, UUID regionID)
         {
             Util.FireAndForget(delegate(object x)
             {
-                double[,] oldTerrain = LoadTerrain(regionID);
-
                 m_log.Info("[REGION DB]: Storing terrain");
 
                 lock (m_dbLock)
@@ -601,8 +615,12 @@ namespace OpenSim.Data.MySQL
                                             "Revision, Heightfield) values (?RegionUUID, " +
                                             "1, ?Heightfield)";
 
-                                    cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
-                                    cmd2.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter, oldTerrain));
+                                    int terrainDBRevision;
+                                    Array terrainDBblob;
+                                    terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+                                    cmd2.Parameters.AddWithValue("Revision", terrainDBRevision);
+                                    cmd2.Parameters.AddWithValue("Heightfield", terrainDBblob);
 
                                     ExecuteNonQuery(cmd);
                                     ExecuteNonQuery(cmd2);
@@ -618,9 +636,20 @@ namespace OpenSim.Data.MySQL
             });
         }
 
+        // Legacy region loading
         public virtual double[,] LoadTerrain(UUID regionID)
         {
-            double[,] terrain = null;
+            double[,] ret = null;
+            TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
+            if (terrData != null)
+                ret = terrData.GetDoubles();
+            return ret;
+        }
+
+        // Returns 'null' if region not found
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
 
             lock (m_dbLock)
             {
@@ -640,32 +669,15 @@ namespace OpenSim.Data.MySQL
                             while (reader.Read())
                             {
                                 int rev = Convert.ToInt32(reader["Revision"]);
-
-                                terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-                                terrain.Initialize();
-
-                                using (MemoryStream mstr = new MemoryStream((byte[])reader["Heightfield"]))
-                                {
-                                    using (BinaryReader br = new BinaryReader(mstr))
-                                    {
-                                        for (int x = 0; x < (int)Constants.RegionSize; x++)
-                                        {
-                                            for (int y = 0; y < (int)Constants.RegionSize; y++)
-                                            {
-                                                terrain[x, y] = br.ReadDouble();
-                                            }
-                                        }
-                                    }
-
-                                    m_log.InfoFormat("[REGION DB]: Loaded terrain revision r{0}", rev);
-                                }
+                                byte[] blob = (byte[])reader["Heightfield"];
+                                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
                             }
                         }
                     }
                 }
             }
 
-            return terrain;
+            return terrData;
         }
 
         public virtual void RemoveLandObject(UUID globalID)
