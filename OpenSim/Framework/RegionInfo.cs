@@ -825,6 +825,7 @@ namespace OpenSim.Framework
 
             if (DataStore != String.Empty)
                 config.Set("Datastore", DataStore);
+
             if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
             {
                 config.Set("SizeX", RegionSizeX);
