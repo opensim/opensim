@@ -312,6 +312,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[LLCLIENTVIEW]";
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
         /// <summary>
@@ -690,12 +691,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>true if the handler was added.  This is currently always the case.</returns>
         public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool doAsync)
         {
+            return AddLocalPacketHandler(packetType, handler, doAsync, false);
+        }
+
+        /// <summary>
+        /// Add a handler for the given packet type.
+        /// </summary>
+        /// <param name="packetType"></param>
+        /// <param name="handler"></param>
+        /// <param name="doAsync">
+        /// If true, when the packet is received handle it on a different thread.  Whether this is given direct to 
+        /// a threadpool thread or placed in a queue depends on the inEngine parameter.
+        /// </param>
+        /// <param name="inEngine">
+        /// If async is false then this parameter is ignored.
+        /// If async is true and inEngine is false, then the packet is sent directly to a
+        /// threadpool thread. 
+        /// If async is true and inEngine is true, then the packet is sent to the IncomingPacketAsyncHandlingEngine.
+        /// This may result in slower handling but reduces the risk of overloading the simulator when there are many
+        /// simultaneous async requests.
+        /// </param>
+        /// <returns>true if the handler was added.  This is currently always the case.</returns>
+        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool doAsync, bool inEngine)
+        {
             bool result = false;
             lock (m_packetHandlers)
             {
                 if (!m_packetHandlers.ContainsKey(packetType))
                 {
-                    m_packetHandlers.Add(packetType, new PacketProcessor() { method = handler, Async = doAsync });
+                    m_packetHandlers.Add(
+                        packetType, new PacketProcessor() { method = handler, Async = doAsync });
                     result = true;
                 }
             }
@@ -1174,11 +1199,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>
         ///  Send the region heightmap to the client
+        ///  This method is only called when not doing intellegent terrain patch sending and
+        ///  is only called when the scene presence is initially created and sends all of the
+        ///  region's patches to the client.
         /// </summary>
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
         {
-            Util.FireAndForget(DoSendLayerData, map);
+            Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData());
 
             // Send it sync, and async. It's not that much data
             // and it improves user experience just so much!
@@ -1191,15 +1219,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="o"></param>
         private void DoSendLayerData(object o)
         {
-            float[] map = LLHeightFieldMoronize((float[])o);
+            TerrainData map = (TerrainData)o;
 
             try
             {
+                // Send LayerData in typerwriter pattern
                 for (int y = 0; y < 16; y++)
                 {
-                    for (int x = 0; x < 16; x+=4)
+                    for (int x = 0; x < 16; x++)
                     {
-                        SendLayerPacket(x, y, map);
+                        SendLayerData(x, y, map);
                     }
                 }
             }
@@ -1209,77 +1238,95 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        /// <summary>
-        /// Sends a set of four patches (x, x+1, ..., x+3) to the client
-        /// </summary>
-        /// <param name="map">heightmap</param>
-        /// <param name="px">X coordinate for patches 0..12</param>
-        /// <param name="py">Y coordinate for patches 0..15</param>
-        private void SendLayerPacket(int x, int y, float[] map)
+        // Legacy form of invocation that passes around a bare data array.
+        // Just ignore what was passed and use the real terrain info that is part of the scene.
+        // As a HORRIBLE kludge in an attempt to not change the definition of IClientAPI, 
+        //    there is a special form for specifying multiple terrain patches to send.
+        //    The form is to pass 'px' as negative the number of patches to send and to
+        //    pass the float array as pairs of patch X and Y coordinates. So, passing 'px'
+        //    as -2 and map= [3, 5, 8, 4] would mean to send two terrain heightmap patches
+        //    and the patches to send are <3,5> and <8,4>.
+        public void SendLayerData(int px, int py, float[] map)
         {
-            int[] patches = new int[4];
-            patches[0] = x + 0 + y * 16;
-            patches[1] = x + 1 + y * 16;
-            patches[2] = x + 2 + y * 16;
-            patches[3] = x + 3 + y * 16;
-
-            float[] heightmap = (map.Length == 65536) ?
-                map :
-                LLHeightFieldMoronize(map);
-
-            try
+            if (px >= 0)
             {
-                Packet layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
-                OutPacket(layerpack, ThrottleOutPacketType.Land);
+                SendLayerData(px, py, m_scene.Heightmap.GetTerrainData());
             }
-            catch
+            else
             {
-                for (int px = x ; px < x + 4 ; px++)
-                    SendLayerData(px, y, map);
+                int numPatches = -px;
+                int[] xPatches = new int[numPatches];
+                int[] yPatches = new int[numPatches];
+                for (int pp = 0; pp < numPatches; pp++)
+                {
+                    xPatches[pp] = (int)map[pp * 2];
+                    yPatches[pp] = (int)map[pp * 2 + 1];
+                }
+
+                // DebugSendingPatches("SendLayerData", xPatches, yPatches);
+
+                SendLayerData(xPatches, yPatches, m_scene.Heightmap.GetTerrainData());
+            }
+        }
+
+        private void DebugSendingPatches(string pWho, int[] pX, int[] pY)
+        {
+            if (m_log.IsDebugEnabled)
+            {
+                int numPatches = pX.Length;
+                string Xs = "";
+                string Ys = "";
+                for (int pp = 0; pp < numPatches; pp++)
+                {
+                    Xs += String.Format("{0}", (int)pX[pp]) + ",";
+                    Ys += String.Format("{0}", (int)pY[pp]) + ",";
+                }
+                m_log.DebugFormat("{0} {1}: numPatches={2}, X={3}, Y={4}", LogHeader, pWho, numPatches, Xs, Ys);
             }
         }
 
         /// <summary>
-        /// Sends a specified patch to a client
+        /// Sends a terrain packet for the point specified.
+        /// This is a legacy call that has refarbed the terrain into a flat map of floats.
+        /// We just use the terrain from the region we know about.
         /// </summary>
         /// <param name="px">Patch coordinate (x) 0..15</param>
         /// <param name="py">Patch coordinate (y) 0..15</param>
         /// <param name="map">heightmap</param>
-        public void SendLayerData(int px, int py, float[] map)
+        public void SendLayerData(int px, int py, TerrainData terrData)
+        {
+            int[] xPatches = new[] { px };
+            int[] yPatches = new[] { py };
+            SendLayerData(xPatches, yPatches, terrData);
+        }
+
+        private void SendLayerData(int[] px, int[] py, TerrainData terrData)
         {
             try
             {
-                int[] patches = new int[] { py * 16 + px };
-                float[] heightmap = (map.Length == 65536) ?
-                    map :
-                    LLHeightFieldMoronize(map);
-
-                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
-                
-                // When a user edits the terrain, so much data is sent, the data queues up fast and presents a sub optimal editing experience.  
-                // To alleviate this issue, when the user edits the terrain, we start skipping the queues until they're done editing the terrain.
-                // We also make them unreliable because it's extremely likely that multiple packets will be sent for a terrain patch area 
-                // invalidating previous packets for that area.
-
-                // It's possible for an editing user to flood themselves with edited packets but the majority of use cases are such that only a 
-                // tiny percentage of users will be editing the terrain.     Other, non-editing users will see the edits much slower.
-                
-                // One last note on this topic, by the time users are going to be editing the terrain, it's extremely likely that the sim will 
-                // have rezzed already and therefore this is not likely going to cause any additional issues with lost packets, objects or terrain 
-                // patches.
-
-                // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we only have one cache miss.
-                if (m_justEditedTerrain)
+                /* test code using the terrain compressor in libOpenMetaverse
+                int[] patchInd = new int[1];
+                patchInd[0] = px + (py * Constants.TerrainPatchSize);
+                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(terrData.GetFloatsSerialized(), patchInd);
+                 */
+                // Many, many patches could have been passed to us. Since the patches will be compressed
+                //   into variable sized blocks, we cannot pre-compute how many will fit into one
+                //   packet. While some fancy packing algorithm is possible, 4 seems to always fit.
+                int PatchesAssumedToFit = 4;
+                for (int pcnt = 0; pcnt < px.Length; pcnt += PatchesAssumedToFit)
                 {
-                    layerpack.Header.Reliable = false;
-                    OutPacket(layerpack,
-                               ThrottleOutPacketType.Unknown );
-                }
-                else
-                {
-                    layerpack.Header.Reliable = true;
-                    OutPacket(layerpack,
-                               ThrottleOutPacketType.Task);
+                    int remaining = Math.Min(px.Length - pcnt, PatchesAssumedToFit);
+                    int[] xPatches = new int[remaining];
+                    int[] yPatches = new int[remaining];
+                    for (int ii = 0; ii < remaining; ii++)
+                    {
+                        xPatches[ii] = px[pcnt + ii];
+                        yPatches[ii] = py[pcnt + ii];
+                    }
+                    LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, xPatches, yPatches);
+                    // DebugSendingPatches("SendLayerDataInternal", xPatches, yPatches);
+
+                    SendTheLayerPacket(layerpack);
                 }
             }
             catch (Exception e)
@@ -1288,36 +1335,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        /// <summary>
-        /// Munges heightfield into the LLUDP backed in restricted heightfield.
-        /// </summary>
-        /// <param name="map">float array in the base; Constants.RegionSize</param>
-        /// <returns>float array in the base 256</returns>
-        internal float[] LLHeightFieldMoronize(float[] map)
+        // When a user edits the terrain, so much data is sent, the data queues up fast and presents a
+        // sub optimal editing experience. To alleviate this issue, when the user edits the terrain, we
+        // start skipping the queues until they're done editing the terrain. We also make them
+        // unreliable because it's extremely likely that multiple packets will be sent for a terrain patch
+        // area invalidating previous packets for that area.
+
+        // It's possible for an editing user to flood themselves with edited packets but the majority
+        // of use cases are such that only a tiny percentage of users will be editing the terrain.
+        // Other, non-editing users will see the edits much slower.
+        
+        // One last note on this topic, by the time users are going to be editing the terrain, it's
+        // extremely likely that the sim will have rezzed already and therefore this is not likely going
+        // to cause any additional issues with lost packets, objects or terrain patches.
+
+        // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we
+        //    only have one cache miss.
+        private void SendTheLayerPacket(LayerDataPacket layerpack)
         {
-            if (map.Length == 65536)
-                return map;
+            if (m_justEditedTerrain)
+            {
+                layerpack.Header.Reliable = false;
+                OutPacket(layerpack, ThrottleOutPacketType.Unknown );
+            }
             else
             {
-                float[] returnmap = new float[65536];
-
-                if (map.Length < 65535)
-                {
-                    // rebase the vector stride to 256
-                    for (int i = 0; i < Constants.RegionSize; i++)
-                        Array.Copy(map, i * (int)Constants.RegionSize, returnmap, i * 256, (int)Constants.RegionSize);
-                }
-                else
-                {
-                    for (int i = 0; i < 256; i++)
-                        Array.Copy(map, i * (int)Constants.RegionSize, returnmap, i * 256, 256);
-                }
-
-                //Array.Copy(map,0,returnmap,0,(map.Length < 65536)? map.Length : 65536);
-
-                return returnmap;
+                layerpack.Header.Reliable = true;
+                OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
-
         }
 
         /// <summary>
@@ -1346,21 +1391,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Vector2[] windSpeeds = (Vector2[])o;
             TerrainPatch[] patches = new TerrainPatch[2];
-            patches[0] = new TerrainPatch();
-            patches[0].Data = new float[16 * 16];
-            patches[1] = new TerrainPatch();
-            patches[1].Data = new float[16 * 16];
+            patches[0] = new TerrainPatch { Data = new float[16 * 16] };
+            patches[1] = new TerrainPatch { Data = new float[16 * 16] };
 
-            for (int y = 0; y < 16; y++)
+            for (int x = 0; x < 16 * 16; x++)
             {
-                for (int x = 0; x < 16; x++)
-                {
-                    patches[0].Data[y * 16 + x] = windSpeeds[y * 16 + x].X;
-                    patches[1].Data[y * 16 + x] = windSpeeds[y * 16 + x].Y;
-                }
+                patches[0].Data[x] = windSpeeds[x].X;
+                patches[1].Data[x] = windSpeeds[x].Y;
             }
 
-            LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Wind);
+            byte layerType = (byte)TerrainPatch.LayerType.Wind;
+            if (m_scene.RegionInfo.RegionSizeX > Constants.RegionSize || m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
+                layerType = (byte)TerrainPatch.LayerType.WindExtended;
+
+            // LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, (TerrainPatch.LayerType)layerType);
+            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacket(patches, layerType,
+                                (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY);
             layerpack.Header.Zerocoded = true;
             OutPacket(layerpack, ThrottleOutPacketType.Wind);
         }
@@ -1384,7 +1430,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Cloud);
+            byte layerType = (byte)TerrainPatch.LayerType.Cloud;
+            if (m_scene.RegionInfo.RegionSizeX > Constants.RegionSize || m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
+                layerType = (byte)TerrainPatch.LayerType.CloudExtended;
+
+            // LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, (TerrainPatch.LayerType)layerType);
+            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacket(patches, layerType,
+                                (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY);
             layerpack.Header.Zerocoded = true;
             OutPacket(layerpack, ThrottleOutPacketType.Cloud);
         }
@@ -1489,10 +1541,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 mapReply.Data[i].Access = mapBlocks2[i].Access;
                 mapReply.Data[i].Agents = mapBlocks2[i].Agents;
 
-                // TODO: hookup varregion sim size here
                 mapReply.Size[i] = new MapBlockReplyPacket.SizeBlock();
-                mapReply.Size[i].SizeX = 256;
-                mapReply.Size[i].SizeY = 256;
+                mapReply.Size[i].SizeX = mapBlocks2[i].SizeX;
+                mapReply.Size[i].SizeY = mapBlocks2[i].SizeY;
             }
             OutPacket(mapReply, ThrottleOutPacketType.Land);
         }
@@ -1657,15 +1708,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(List<uint> localIDs)
         {
-//            foreach (uint id in localIDs)
-//                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
-
-            // remove pending entities
-            lock (m_entityProps.SyncRoot)
-                m_entityProps.Remove(localIDs);
-            lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Remove(localIDs);
-
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[localIDs.Count];
@@ -9087,6 +9129,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TeleportLocationRequest handlerTeleportLocationRequest = OnTeleportLocationRequest;
             if (handlerTeleportLocationRequest != null)
             {
+                // Adjust teleport location to base of a larger region if requested to teleport to a sub-region
+                uint locX, locY;
+                Util.RegionHandleToWorldLoc(tpLocReq.Info.RegionHandle, out locX, out locY);
+                if ((locX >= m_scene.RegionInfo.WorldLocX)
+                            && (locX < (m_scene.RegionInfo.WorldLocX + m_scene.RegionInfo.RegionSizeX))
+                            && (locY >= m_scene.RegionInfo.WorldLocY)
+                            && (locY < (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)) )
+                {
+                    tpLocReq.Info.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                    tpLocReq.Info.Position.X += locX - m_scene.RegionInfo.WorldLocX;
+                    tpLocReq.Info.Position.Y += locY - m_scene.RegionInfo.WorldLocY;
+                }
+
                 handlerTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position,
                                                tpLocReq.Info.LookAt, 16);
             }
