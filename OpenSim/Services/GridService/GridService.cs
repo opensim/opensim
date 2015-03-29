@@ -655,7 +655,7 @@ namespace OpenSim.Services.GridService
                 return;
             }
 
-            RegionData region = m_Database.Get(x * (int)Constants.RegionSize, y * (int)Constants.RegionSize, UUID.Zero);
+            RegionData region = m_Database.Get((int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y), UUID.Zero);
             if (region == null)
             {
                 MainConsole.Instance.OutputFormat("No region found at {0},{1}", x, y);
@@ -673,6 +673,7 @@ namespace OpenSim.Services.GridService
             dispList.AddRow("Region Name", r.RegionName);
             dispList.AddRow("Region ID", r.RegionID);
             dispList.AddRow("Location", string.Format("{0},{1}", r.coordX, r.coordY));
+            dispList.AddRow("Size", string.Format("{0}x{1}", r.sizeX, r.sizeY));
             dispList.AddRow("URI", r.Data["serverURI"]);
             dispList.AddRow("Owner ID", r.Data["owner_uuid"]);
             dispList.AddRow("Flags", flags);

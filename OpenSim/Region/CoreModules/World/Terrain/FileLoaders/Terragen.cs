@@ -154,10 +154,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadStream(Stream s)
         {
-
+            // Set to default size
             int w = (int)Constants.RegionSize;
             int h = (int)Constants.RegionSize;
 
+            // create a dummy channel (in case data is bad)
             TerrainChannel retval = new TerrainChannel(w, h);
 
             BinaryReader bs = new BinaryReader(s);
@@ -165,8 +166,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             bool eof = false;
             if (Encoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN ")
             {
-//                int fileWidth = w;
-//                int fileHeight = h;
 
                 // Terragen file
                 while (eof == false)
@@ -175,31 +174,29 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                     switch (tmp)
                     {
                         case "SIZE":
-//                            int sztmp = bs.ReadInt16() + 1;
-//                            fileWidth = sztmp;
-//                            fileHeight = sztmp;
-                            bs.ReadInt16();
+                            w = bs.ReadInt16() + 1;
+                            h = w;
                             bs.ReadInt16();
                             break;
                         case "XPTS":
-//                            fileWidth = bs.ReadInt16();
-                            bs.ReadInt16();
+                            w = bs.ReadInt16();
                             bs.ReadInt16();
                             break;
                         case "YPTS":
-//                            fileHeight = bs.ReadInt16();
-                            bs.ReadInt16();
+                            h = bs.ReadInt16();
                             bs.ReadInt16();
                             break;
                         case "ALTW":
                             eof = true;
-                            Int16 heightScale = bs.ReadInt16();
-                            Int16 baseHeight = bs.ReadInt16();
+                            // create new channel of proper size (now that we know it)
+                            retval = new TerrainChannel(w, h);
+                            double heightScale = (double)bs.ReadInt16() / 65536.0;
+                            double baseHeight = (double)bs.ReadInt16();
                             for (int y = 0; y < h; y++)
                             {
                                 for (int x = 0; x < w; x++)
                                 {
-                                    retval[x, y] = baseHeight + bs.ReadInt16() * (double)heightScale / 65536.0;
+                                    retval[x, y] = baseHeight + (double)bs.ReadInt16() * heightScale;
                                 }
                             }
                             break;
@@ -257,17 +254,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             bs.Write(enc.GetBytes("TERRAGENTERRAIN "));
 
             bs.Write(enc.GetBytes("SIZE"));
-            bs.Write(Convert.ToInt16(Constants.RegionSize));
+            bs.Write(Convert.ToInt16(map.Width));
             bs.Write(Convert.ToInt16(0));  // necessary padding
 
             //The XPTS and YPTS chunks are not needed for square regions
             //but L3DT won't load the terrain file properly without them.
             bs.Write(enc.GetBytes("XPTS"));
-            bs.Write(Convert.ToInt16(Constants.RegionSize));
+            bs.Write(Convert.ToInt16(map.Width));
             bs.Write(Convert.ToInt16(0));  // necessary padding
 
             bs.Write(enc.GetBytes("YPTS"));
-            bs.Write(Convert.ToInt16(Constants.RegionSize));
+            bs.Write(Convert.ToInt16(map.Height));
             bs.Write(Convert.ToInt16(0));  // necessary padding
 
             bs.Write(enc.GetBytes("SCAL"));
@@ -283,11 +280,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             bs.Write(Convert.ToInt16(horizontalScale)); // range between max and min
             bs.Write(Convert.ToInt16(baseHeight)); // base height or mid point
 
+            double factor = 65536.0 / horizontalScale; // avoid computing this on each iteration
+
             for (int y = 0; y < map.Height; y++)
             {
                 for (int x = 0; x < map.Width; x++)
                 {
-                    float elevation = (float)((map[x,y] - baseHeight) * 65536 ) / (float)horizontalScale; // see LoadStream for inverse
+                    float elevation = (float)((map[x,y] - baseHeight) * factor); // see LoadStream for inverse
 
                     // clamp rounding issues
                     if (elevation > Int16.MaxValue)

@@ -587,8 +587,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 Util.RegionHandleToRegionLoc(regionHandle, out regX, out regY);
 
                 MapBlockData block = new MapBlockData();
-                block.X = (ushort)(regX / Constants.RegionSize);
-                block.Y = (ushort)(regY / Constants.RegionSize);
+                block.X = (ushort)(regX);
+                block.Y = (ushort)(regY);
                 block.Access = (byte)SimAccess.Down; // == not there
 
                 List<MapBlockData> blocks = new List<MapBlockData>();

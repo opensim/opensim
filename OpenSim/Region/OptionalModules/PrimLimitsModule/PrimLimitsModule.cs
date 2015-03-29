@@ -122,8 +122,8 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
-            if (newPoint.X < -1f || newPoint.X > (float)(Constants.RegionSize + 1) ||
-                newPoint.Y < -1f || newPoint.Y > (float)(Constants.RegionSize + 1))
+            if (newPoint.X < -1f || newPoint.X > (scene.RegionInfo.RegionSizeX + 1) ||
+                newPoint.Y < -1f || newPoint.Y > (scene.RegionInfo.RegionSizeY) )
                 return true;
 
             SceneObjectPart obj = scene.GetSceneObjectPart(objectID);

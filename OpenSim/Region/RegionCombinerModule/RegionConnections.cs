@@ -64,12 +64,12 @@ namespace OpenSim.Region.RegionCombinerModule
         /// <summary>
         /// The X meters position of this connection.
         /// </summary>
-        public uint PosX { get { return X * Constants.RegionSize; } }
+        public uint PosX { get { return Util.RegionToWorldLoc(X); } }
 
         /// <summary>
         /// The Y meters co-ordinate of this connection.
         /// </summary>
-        public uint PosY { get { return Y * Constants.RegionSize; } }
+        public uint PosY { get { return Util.RegionToWorldLoc(Y); } }
 
         /// <summary>
         /// The size of the megaregion in meters.

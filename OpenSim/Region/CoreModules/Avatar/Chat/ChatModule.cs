@@ -213,8 +213,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             IScene scene = c.Scene;
             UUID destination = c.Destination;
             Vector3 fromPos = c.Position;
-            Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                                            scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+            Vector3 regionPos = new Vector3(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
 
             bool checkParcelHide = false;
             UUID sourceParcelID = UUID.Zero;
@@ -424,8 +423,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             {
                 Vector3 fromRegionPos = fromPos + regionPos;
                 Vector3 toRegionPos = presence.AbsolutePosition +
-                    new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                                presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+                    new Vector3(presence.Scene.RegionInfo.WorldLocX, presence.Scene.RegionInfo.WorldLocY, 0);
 
                 int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
 

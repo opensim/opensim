@@ -125,14 +125,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
         public OpenSim.Services.Interfaces.GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
             uint x, y;
-            Utils.LongToUInts(regionHandle, out x, out y);
+            Util.RegionHandleToRegionLoc(regionHandle, out x, out y);
 
             foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
                     m_log.DebugFormat("[LOCAL NEIGHBOUR SERVICE CONNECTOR]: HelloNeighbour from region {0} to neighbour {1} at {2}-{3}",
-                        thisRegion.RegionName, s.Name, x / Constants.RegionSize, y / Constants.RegionSize);
+                                                thisRegion.RegionName, s.Name, x, y );
 
                     //m_log.Debug("[NEIGHBOUR CONNECTOR]: Found region to SendHelloNeighbour");
                     return s.IncomingHelloNeighbour(thisRegion);

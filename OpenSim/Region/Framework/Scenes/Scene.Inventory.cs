@@ -2221,14 +2221,9 @@ namespace OpenSim.Region.Framework.Scenes
             itemID = UUID.Zero;
             if (grp != null)
             {
-                Vector3 inventoryStoredPosition = new Vector3
-                       (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
-                             ? 250
-                             : grp.AbsolutePosition.X)
-                        ,
-                        (grp.AbsolutePosition.X > (int)Constants.RegionSize)
-                            ? 250
-                            : grp.AbsolutePosition.X,
+                Vector3 inventoryStoredPosition = new Vector3(
+                        Math.Min(grp.AbsolutePosition.X, RegionInfo.RegionSizeX - 6),
+                        Math.Min(grp.AbsolutePosition.Y, RegionInfo.RegionSizeY - 6),
                         grp.AbsolutePosition.Z);
 
                 Vector3 originalPosition = grp.AbsolutePosition;

@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyrightD
+ *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSimulator Project nor the
@@ -103,7 +103,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// If false then physical objects are disabled, though collisions will continue as normal.
         /// </summary>
-        public bool PhysicsEnabled { get; set; }
+        public bool PhysicsEnabled 
+        { 
+            get 
+            {
+                return m_physicsEnabled;
+            }
+
+            set
+            {
+                m_physicsEnabled = value;
+
+                if (PhysicsScene != null)
+                {
+                    IPhysicsParameters physScene = PhysicsScene as IPhysicsParameters;
+
+                    if (physScene != null)
+                        physScene.SetPhysicsParameter(
+                            "Active", m_physicsEnabled.ToString(), PhysParameterEntry.APPLY_TO_NONE);
+                }
+            }
+        }
+
+        private bool m_physicsEnabled;
 
         /// <summary>
         /// If false then scripts are not enabled on the smiulator
@@ -199,15 +221,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public int m_linksetCapacity = 0;
 
+        public bool m_clampPrimSize;
+        public bool m_trustBinaries;
+        public bool m_allowScriptCrossings = true;
+
         /// <summary>
         /// Max prims an Physical object will hold
         /// </summary>
         /// 
         public int m_linksetPhysCapacity = 0;
 
-        public bool m_clampPrimSize;
-        public bool m_trustBinaries;
-        public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
