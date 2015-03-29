@@ -31,6 +31,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.LegacyMap
@@ -39,8 +40,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
     {
         private static readonly Color WATER_COLOR = Color.FromArgb(29, 71, 95);
 
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly string LogHeader = "[SHADED MAPTILE RENDERER]";
 
         private Scene m_scene;
         //private IConfigSource m_config; // not used currently
@@ -53,19 +54,26 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         public void TerrainToBitmap(Bitmap mapbmp)
         {
+            m_log.DebugFormat("{0} Generating Maptile Step 1: Terrain", LogHeader);
             int tc = Environment.TickCount;
-            m_log.Debug("[SHADED MAP TILE RENDERER]: Generating Maptile Step 1: Terrain");
 
-            double[,] hm = m_scene.Heightmap.GetDoubles();
+            ITerrainChannel hm = m_scene.Heightmap;
+
+            if (mapbmp.Width != hm.Width || mapbmp.Height != hm.Height)
+            {
+                m_log.ErrorFormat("{0} TerrainToBitmap. Passed bitmap wrong dimensions. passed=<{1},{2}>, size=<{3},{4}>",
+                    LogHeader, mapbmp.Width, mapbmp.Height, hm.Width, hm.Height);
+            }
+
             bool ShadowDebugContinue = true;
 
             bool terraincorruptedwarningsaid = false;
 
             float low = 255;
             float high = 0;
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
+            for (int x = 0; x < hm.Width; x++)
             {
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
+                for (int y = 0; y < hm.Height; y++)
                 {
                     float hmval = (float)hm[x, y];
                     if (hmval < low)
@@ -77,12 +85,12 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
+            for (int x = 0; x < hm.Width; x++)
             {
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
+                for (int y = 0; y < hm.Height; y++)
                 {
                     // Y flip the cordinates for the bitmap: hf origin is lower left, bm origin is upper left
-                    int yr = ((int)Constants.RegionSize - 1) - y;
+                    int yr = ((int)hm.Height - 1) - y;
 
                     float heightvalue = (float)hm[x, y];
 
@@ -109,12 +117,12 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                             // .
                             //
                             // Shade the terrain for shadows
-                            if (x < ((int)Constants.RegionSize - 1) && yr < ((int)Constants.RegionSize - 1))
+                            if (x < (hm.Width - 1) && yr < (hm.Height - 1))
                             {
                                 float hfvalue = (float)hm[x, y];
                                 float hfvaluecompare = 0f;
 
-                                if ((x + 1 < (int)Constants.RegionSize) && (y + 1 < (int)Constants.RegionSize))
+                                if ((x + 1 < hm.Width) && (y + 1 < hm.Height))
                                 {
                                     hfvaluecompare = (float)hm[x + 1, y + 1]; // light from north-east => look at land height there
                                 }
@@ -179,7 +187,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                                     if (ShadowDebugContinue)
                                     {
-                                        if ((x - 1 > 0) && (yr + 1 < (int)Constants.RegionSize))
+                                        if ((x - 1 > 0) && (yr + 1 < hm.Height))
                                         {
                                             color = mapbmp.GetPixel(x - 1, yr + 1);
                                             int r = color.R;
@@ -233,7 +241,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                 terraincorruptedwarningsaid = true;
                             }
                             Color black = Color.Black;
-                            mapbmp.SetPixel(x, ((int)Constants.RegionSize - y) - 1, black);
+                            mapbmp.SetPixel(x, (hm.Width - y) - 1, black);
                         }
                     }
                 }
