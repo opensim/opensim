@@ -77,7 +77,7 @@ namespace OpenSim.Framework
         public string Desc = string.Empty;
         public UUID ParcelId = UUID.Zero;
         public UUID SnapshotId = UUID.Zero;
-        public string User = string.Empty;
+        public string ParcelName = string.Empty;
         public string SimName = string.Empty;
         public string GlobalPos = "<0,0,0>";
         public string Gatekeeper = string.Empty;

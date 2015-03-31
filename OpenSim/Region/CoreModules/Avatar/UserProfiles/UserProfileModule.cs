@@ -671,7 +671,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             // Pull the rabbit out of the hat
             remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
-                                           pick.Desc,pick.SnapshotId,pick.User,pick.OriginalName,pick.SimName,
+                                           pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
                                            globalPos,pick.SortOrder,pick.Enabled);
         }
 
@@ -721,24 +721,16 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                             remoteClient.Scene.RegionInfo.WorldLocY + avaPos.Y,
                                             avaPos.Z);
 
-            string landOwnerName = string.Empty;
+            string  landParcelName  = "My Parcel";
+            UUID    landParcelID    = p.currentParcelUUID;
+
             ILandObject land = p.Scene.LandChannel.GetLandObject(avaPos.X, avaPos.Y);
 
             if (land != null)
             {
-                if (land.LandData.IsGroupOwned)
-                {
-                    IGroupsModule groupMod = p.Scene.RequestModuleInterface<IGroupsModule>();
-                    UUID groupId = land.LandData.GroupID;
-                    GroupRecord groupRecord = groupMod.GetGroupRecord(groupId);
-                    landOwnerName = groupRecord.GroupName;
-                }
-                else
-                {
-                    IUserAccountService accounts = p.Scene.RequestModuleInterface<IUserAccountService>();
-                    UserAccount user = accounts.GetUserAccount(p.Scene.RegionInfo.ScopeID, land.LandData.OwnerID);
-                    landOwnerName = user.Name;
-                }
+                // If land found, use parcel uuid from here because the value from SP will be blank if the avatar hasnt moved
+                landParcelName  = land.LandData.Name;
+                landParcelID    = land.LandData.GlobalID;
             }
             else
             {
@@ -753,9 +745,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             pick.TopPick = topPick;
             pick.Name = name;
             pick.Desc = desc;
-            pick.ParcelId = p.currentParcelUUID;
+            pick.ParcelId = landParcelID;
             pick.SnapshotId = snapshotID;
-            pick.User = landOwnerName;
+            pick.ParcelName = landParcelName;
             pick.SimName = remoteClient.Scene.RegionInfo.RegionName;
             pick.Gatekeeper = MyGatekeeper;
             pick.GlobalPos = posGlobal.ToString();

@@ -368,7 +368,7 @@ namespace OpenSim.Data.SQLite
                             bool.TryParse((string)reader["enabled"].ToString(), out pick.Enabled);
                             pick.Name = (string)reader["name"];
                             pick.Desc = description;
-                            pick.User = (string)reader["user"];
+                            pick.ParcelName = (string)reader["user"];
                             pick.OriginalName = (string)reader["originalname"];
                             pick.SimName = (string)reader["simname"];
                             pick.SortOrder = (int)reader["sortorder"];
@@ -434,7 +434,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":Name", pick.Name.ToString());
                     cmd.Parameters.AddWithValue(":Desc", pick.Desc.ToString());
                     cmd.Parameters.AddWithValue(":SnapshotId", pick.SnapshotId.ToString());
-                    cmd.Parameters.AddWithValue(":User", pick.User.ToString());
+                    cmd.Parameters.AddWithValue(":User", pick.ParcelName.ToString());
                     cmd.Parameters.AddWithValue(":Original", pick.OriginalName.ToString());
                     cmd.Parameters.AddWithValue(":SimName",pick.SimName.ToString());
                     cmd.Parameters.AddWithValue(":GlobalPos", pick.GlobalPos);

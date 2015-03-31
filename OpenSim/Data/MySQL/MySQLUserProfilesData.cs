@@ -402,7 +402,7 @@ namespace OpenSim.Data.MySQL
                                 bool.TryParse((string)reader["enabled"], out pick.Enabled);
                                 pick.Name = (string)reader["name"];
                                 pick.Desc = description;
-                                pick.User = (string)reader["user"];
+                                pick.ParcelName = (string)reader["user"];
                                 pick.OriginalName = (string)reader["originalname"];
                                 pick.SimName = (string)reader["simname"];
                                 pick.SortOrder = (int)reader["sortorder"];
@@ -443,6 +443,8 @@ namespace OpenSim.Data.MySQL
             query += "parceluuid=?ParcelId,";
             query += "name=?Name,";
             query += "description=?Desc,";
+            query += "user=?User,";
+            query += "simname=?SimName,";
             query += "snapshotuuid=?SnapshotId,";
             query += "pickuuid=?PickId,";
             query += "posglobal=?GlobalPos,";
@@ -462,7 +464,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?Name", pick.Name.ToString());
                         cmd.Parameters.AddWithValue("?Desc", pick.Desc.ToString());
                         cmd.Parameters.AddWithValue("?SnapshotId", pick.SnapshotId.ToString());
-                        cmd.Parameters.AddWithValue("?User", pick.User.ToString());
+                        cmd.Parameters.AddWithValue("?User", pick.ParcelName.ToString());
                         cmd.Parameters.AddWithValue("?Original", pick.OriginalName.ToString());
                         cmd.Parameters.AddWithValue("?SimName",pick.SimName.ToString());
                         cmd.Parameters.AddWithValue("?GlobalPos", pick.GlobalPos);

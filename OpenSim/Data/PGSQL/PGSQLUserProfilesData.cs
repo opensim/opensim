@@ -385,7 +385,7 @@ namespace OpenSim.Data.PGSQL
                                 pick.Enabled = Convert.ToBoolean(reader["enabled"]);
                                 pick.Name = reader["name"].ToString ();
                                 pick.Desc = reader["description"].ToString();
-                                pick.User = reader["user"].ToString();
+                                pick.ParcelName = reader["user"].ToString();
                                 pick.OriginalName = reader["originalname"].ToString();
                                 pick.SimName = reader["simname"].ToString();
                                 pick.SortOrder = (int)reader["sortorder"];
@@ -437,7 +437,7 @@ namespace OpenSim.Data.PGSQL
                         cmd.Parameters.Add(m_database.CreateParameter("Name", pick.Name));
                         cmd.Parameters.Add(m_database.CreateParameter("Desc", pick.Desc));
                         cmd.Parameters.Add(m_database.CreateParameter("SnapshotId", pick.SnapshotId));
-                        cmd.Parameters.Add(m_database.CreateParameter("User", pick.User));
+                        cmd.Parameters.Add(m_database.CreateParameter("User", pick.ParcelName));
                         cmd.Parameters.Add(m_database.CreateParameter("Original", pick.OriginalName));
                         cmd.Parameters.Add(m_database.CreateParameter("SimName",pick.SimName));
                         cmd.Parameters.Add(m_database.CreateParameter("GlobalPos", pick.GlobalPos));
