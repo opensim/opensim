@@ -91,3 +91,8 @@ CREATE TABLE IF NOT EXISTS `usersettings` (
   PRIMARY KEY (`useruuid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 commit;
+
+:VERSION 4         # -------------------------------
+begin;
+ALTER TABLE userpicks ADD COLUMN gatekeeper varchar(255);
+commit;

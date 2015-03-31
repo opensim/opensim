@@ -124,6 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llGetCreator();
         LSL_String llGetDate();
          LSL_Float llGetEnergy();
+        LSL_String llGetEnv(LSL_String name);
         LSL_Vector llGetForce();
        LSL_Integer llGetFreeMemory();
        LSL_Integer llGetFreeURLs();

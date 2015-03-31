@@ -50,7 +50,7 @@ using OpenSim.Services.Interfaces;
 
 
 //[assembly: Addin("FlotsamAssetCache", "1.1")]
-//[assembly: AddinDependency("OpenSim", "0.5")]
+//[assembly: AddinDependency("OpenSim", "0.8.1")]
 
 namespace OpenSim.Region.CoreModules.Asset
 {
@@ -256,20 +256,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 // If the file is already cached, don't cache it, just touch it so access time is updated
                 if (File.Exists(filename))
                 {
-                    // We don't really want to know about sharing
-                    // violations here. If the file is locked, then
-                    // the other thread has updated the time for us.
-                    try
-                    {
-                        lock (m_CurrentlyWriting)
-                        {
-                            if (!m_CurrentlyWriting.Contains(filename))
-                                File.SetLastAccessTime(filename, DateTime.Now);
-                        }
-                    }
-                    catch
-                    {
-                    }
+                    UpdateFileLastAccessTime(filename);
                 } 
                 else 
                 {
@@ -302,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     }
 
                     Util.FireAndForget(
-                        delegate { WriteFileCache(filename, asset); });
+                        delegate { WriteFileCache(filename, asset); }, null, "FlotsamAssetCache.UpdateFileCache");
                 }
             }
             catch (Exception e)
@@ -325,6 +312,24 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (m_FileCacheEnabled)
                     UpdateFileCache(asset.ID, asset);
+            }
+        }
+
+        /// <summary>
+        /// Updates the cached file with the current time.
+        /// </summary>
+        /// <param name="filename">Filename.</param>
+        /// <returns><c>true</c>, if the update was successful, false otherwise.</returns>
+        private bool UpdateFileLastAccessTime(string filename)
+        {
+            try
+            {
+                File.SetLastAccessTime(filename, DateTime.Now);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -771,43 +776,49 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
-            HashSet<UUID> uniqueUuids = new HashSet<UUID>();
-            Dictionary<UUID, sbyte> assets = new Dictionary<UUID, sbyte>();
+            Dictionary<UUID, bool> assetsFound = new Dictionary<UUID, bool>();
 
             foreach (Scene s in m_Scenes)
             {
                 StampRegionStatusFile(s.RegionInfo.RegionID);
 
                 s.ForEachSOG(delegate(SceneObjectGroup e)
-                {                   
-                    gatherer.GatherAssetUuids(e, assets);
+                {            
+                    gatherer.AddForInspection(e);
+                    gatherer.GatherAll();
 
-                    foreach (UUID assetID in assets.Keys)
+                    foreach (UUID assetID in gatherer.GatheredUuids.Keys)
                     {
-                        uniqueUuids.Add(assetID);
-
-                        string filename = GetFileName(assetID.ToString());
-
-                        if (File.Exists(filename))
+                        if (!assetsFound.ContainsKey(assetID))
                         {
-                            File.SetLastAccessTime(filename, DateTime.Now);
+                            string filename = GetFileName(assetID.ToString());
+
+                            if (File.Exists(filename))
+                            {
+                                UpdateFileLastAccessTime(filename);
+                            }
+                            else if (storeUncached)
+                            {
+                                AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
+                                if (cachedAsset == null && gatherer.GatheredUuids[assetID] != (sbyte)AssetType.Unknown)
+                                    assetsFound[assetID] = false;
+                                else
+                                    assetsFound[assetID] = true;
+                            }
                         }
-                        else if (storeUncached)
+                        else if (!assetsFound[assetID])
                         {
-                            AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
-                            if (cachedAsset == null && assets[assetID] != (sbyte)AssetType.Unknown)
-                                m_log.DebugFormat(
+                            m_log.DebugFormat(
                                 "[FLOTSAM ASSET CACHE]: Could not find asset {0}, type {1} referenced by object {2} at {3} in scene {4} when pre-caching all scene assets",
-                                    assetID, assets[assetID], e.Name, e.AbsolutePosition, s.Name);
+                                assetID, gatherer.GatheredUuids[assetID], e.Name, e.AbsolutePosition, s.Name);
                         }
                     }
 
-                    assets.Clear();
+                    gatherer.GatheredUuids.Clear();
                 });
             }
 
-
-            return uniqueUuids.Count;
+            return assetsFound.Count;
         }
 
         /// <summary>
@@ -964,11 +975,11 @@ namespace OpenSim.Region.CoreModules.Asset
                     case "assets":
                         con.Output("Ensuring assets are cached for all scenes.");
 
-                        Watchdog.RunInThread(delegate 
+                        WorkManager.RunInThread(delegate 
                         {
                             int assetReferenceTotal = TouchAllSceneAssets(true);
                             con.OutputFormat("Completed check with {0} assets.", assetReferenceTotal);
-                        }, "TouchAllSceneAssets", null);
+                        }, null, "TouchAllSceneAssets");
 
                         break;
 

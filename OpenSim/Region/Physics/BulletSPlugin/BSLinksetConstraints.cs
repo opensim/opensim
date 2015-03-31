@@ -212,20 +212,28 @@ public sealed class BSLinksetConstraints : BSLinkset
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
-        if (!Rebuilding && HasAnyChildren)
+        lock (this)
         {
-            // Queue to happen after all the other taint processing
-            m_physicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
+            if (!RebuildScheduled)
             {
-                if (HasAnyChildren)
+                if (!Rebuilding && HasAnyChildren)
                 {
-                    // Constraints that have not been changed are not rebuild but make sure
-                    //     the constraint of the requestor is rebuilt.
-                    PhysicallyUnlinkAChildFromRoot(LinksetRoot, requestor);
-                    // Rebuild the linkset and all its constraints.
-                    RecomputeLinksetConstraints();
+                    RebuildScheduled = true;
+                    // Queue to happen after all the other taint processing
+                    m_physicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
+                    {
+                        if (HasAnyChildren)
+                        {
+                            // Constraints that have not been changed are not rebuild but make sure
+                            //     the constraint of the requestor is rebuilt.
+                            PhysicallyUnlinkAChildFromRoot(LinksetRoot, requestor);
+                            // Rebuild the linkset and all its constraints.
+                            RecomputeLinksetConstraints();
+                        }
+                        RebuildScheduled = false;
+                    });
                 }
-            });
+            }
         }
     }
 

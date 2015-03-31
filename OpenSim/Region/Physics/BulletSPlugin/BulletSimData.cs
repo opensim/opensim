@@ -190,6 +190,7 @@ public class BulletHMapInfo
 public enum CollisionType
 {
     Avatar,
+    PhantomToOthersAvatar, // An avatar that it phantom to other avatars but not to anything else
     Groundplane,
     Terrain,
     Static,
@@ -231,7 +232,12 @@ public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeM
     { CollisionType.Avatar,
                 new CollisionTypeFilterGroup(CollisionType.Avatar,
                                 (uint)CollisionFilterGroups.BCharacterGroup,
-                                (uint)CollisionFilterGroups.BAllGroup)
+                                (uint)(CollisionFilterGroups.BAllGroup))
+    },
+    { CollisionType.PhantomToOthersAvatar,
+        new CollisionTypeFilterGroup(CollisionType.PhantomToOthersAvatar,
+                                     (uint)CollisionFilterGroups.BCharacterGroup,
+                                     (uint)(CollisionFilterGroups.BAllGroup & ~CollisionFilterGroups.BCharacterGroup))
     },
     { CollisionType.Groundplane,
                 new CollisionTypeFilterGroup(CollisionType.Groundplane,

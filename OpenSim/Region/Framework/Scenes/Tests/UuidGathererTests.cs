@@ -33,7 +33,6 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -62,11 +61,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 = AssetHelpers.CreateAsset(corruptAssetUuid, AssetType.Notecard, "CORRUPT ASSET", UUID.Zero);
             m_assetService.Store(corruptAsset);
 
-            IDictionary<UUID, sbyte> foundAssetUuids = new Dictionary<UUID, sbyte>();
-            m_uuidGatherer.GatherAssetUuids(corruptAssetUuid, (sbyte)AssetType.Object, foundAssetUuids);
+            m_uuidGatherer.AddForInspection(corruptAssetUuid);
+            m_uuidGatherer.GatherAll();
 
             // We count the uuid as gathered even if the asset itself is corrupt.
-            Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
+            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(1));
         }
         
         /// <summary>
@@ -78,38 +77,82 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
             
             UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            IDictionary<UUID, sbyte> foundAssetUuids = new Dictionary<UUID, sbyte>();
-            
-            m_uuidGatherer.GatherAssetUuids(missingAssetUuid, (sbyte)AssetType.Object, foundAssetUuids);
 
-            // We count the uuid as gathered even if the asset itself is missing.
-            Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
+            m_uuidGatherer.AddForInspection(missingAssetUuid);
+            m_uuidGatherer.GatherAll();
+
+            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(0));
         }
 
         [Test]
         public void TestNotecardAsset()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
-
+//            TestHelpers.EnableLogging();
+                      
             UUID ownerId = TestHelpers.ParseTail(0x10);
-            UUID soAssetId = TestHelpers.ParseTail(0x20);
+            UUID embeddedId = TestHelpers.ParseTail(0x20);
+            UUID secondLevelEmbeddedId = TestHelpers.ParseTail(0x21);
+            UUID missingEmbeddedId = TestHelpers.ParseTail(0x22);
             UUID ncAssetId = TestHelpers.ParseTail(0x30);
 
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, ownerId);
-            AssetBase soAsset = AssetHelpers.CreateAsset(soAssetId, so);
-            m_assetService.Store(soAsset);
-
-            AssetBase ncAsset = AssetHelpers.CreateNotecardAsset(ncAssetId, soAssetId.ToString());
+            AssetBase ncAsset 
+                = AssetHelpers.CreateNotecardAsset(
+                    ncAssetId, string.Format("Hello{0}World{1}", embeddedId, missingEmbeddedId));
             m_assetService.Store(ncAsset);
 
-            IDictionary<UUID, sbyte> foundAssetUuids = new Dictionary<UUID, sbyte>();
-            m_uuidGatherer.GatherAssetUuids(ncAssetId, (sbyte)AssetType.Notecard, foundAssetUuids);
+            AssetBase embeddedAsset 
+                = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0} We'll meet again.", secondLevelEmbeddedId));
+            m_assetService.Store(embeddedAsset);
 
-            // We count the uuid as gathered even if the asset itself is corrupt.
-            Assert.That(foundAssetUuids.Count, Is.EqualTo(2));
-            Assert.That(foundAssetUuids.ContainsKey(ncAssetId));
-            Assert.That(foundAssetUuids.ContainsKey(soAssetId));
+            AssetBase secondLevelEmbeddedAsset 
+                = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, "Don't know where, don't know when.");
+            m_assetService.Store(secondLevelEmbeddedAsset);
+
+            m_uuidGatherer.AddForInspection(ncAssetId);
+            m_uuidGatherer.GatherAll();
+
+//            foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
+//                System.Console.WriteLine("key : {0}", key);
+
+            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(3));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(ncAssetId));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(embeddedId));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(secondLevelEmbeddedId));
+        }
+
+        [Test]
+        public void TestTaskItems()
+        {
+            TestHelpers.InMethod();
+//                        TestHelpers.EnableLogging();
+
+            UUID ownerId = TestHelpers.ParseTail(0x10);
+
+            SceneObjectGroup soL0 = SceneHelpers.CreateSceneObject(1, ownerId, "l0", 0x20);
+            SceneObjectGroup soL1 = SceneHelpers.CreateSceneObject(1, ownerId, "l1", 0x21);
+            SceneObjectGroup soL2 = SceneHelpers.CreateSceneObject(1, ownerId, "l2", 0x22);
+
+            TaskInventoryHelpers.AddScript(
+                m_assetService, soL2.RootPart, TestHelpers.ParseTail(0x33), TestHelpers.ParseTail(0x43), "l3-script", "gibberish");
+
+            TaskInventoryHelpers.AddSceneObject(
+                m_assetService, soL1.RootPart, "l2-item", TestHelpers.ParseTail(0x32), soL2, TestHelpers.ParseTail(0x42));
+            TaskInventoryHelpers.AddSceneObject(
+                m_assetService, soL0.RootPart, "l1-item", TestHelpers.ParseTail(0x31), soL1, TestHelpers.ParseTail(0x41));
+
+            m_uuidGatherer.AddForInspection(soL0);
+            m_uuidGatherer.GatherAll();
+
+//                        foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
+//                            System.Console.WriteLine("key : {0}", key);
+
+            // We expect to see the default prim texture and the assets of the contained task items
+            Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(4));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(new UUID(Constants.DefaultTexture)));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(TestHelpers.ParseTail(0x41)));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(TestHelpers.ParseTail(0x42)));
+            Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(TestHelpers.ParseTail(0x43)));
         }
     }
 }

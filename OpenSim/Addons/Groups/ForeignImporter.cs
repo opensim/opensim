@@ -30,6 +30,7 @@ using System.Collections.Generic;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Groups
 {

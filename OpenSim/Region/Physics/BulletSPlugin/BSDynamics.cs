@@ -76,8 +76,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private Vector3 m_linearMotorOffset = Vector3.Zero;             // the point of force can be offset from the center
         private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;   // velocity requested by LSL
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
-        private float m_linearMotorDecayTimescale = 0;
-        private float m_linearMotorTimescale = 0;
+        private float m_linearMotorDecayTimescale = 1;
+        private float m_linearMotorTimescale = 1;
         private Vector3 m_lastLinearVelocityVector = Vector3.Zero;
         private Vector3 m_lastPositionVector = Vector3.Zero;
         // private bool m_LinearMotorSetLastFrame = false;
@@ -88,8 +88,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
         // private int m_angularMotorApply = 0;                            // application frame counter
         private Vector3 m_angularMotorVelocity = Vector3.Zero;          // current angular motor velocity
-        private float m_angularMotorTimescale = 0;                      // motor angular velocity ramp up rate
-        private float m_angularMotorDecayTimescale = 0;                 // motor angular velocity decay rate
+        private float m_angularMotorTimescale = 1;                      // motor angular velocity ramp up rate
+        private float m_angularMotorDecayTimescale = 1;                 // motor angular velocity decay rate
         private Vector3 m_angularFrictionTimescale = Vector3.Zero;      // body angular velocity  decay rate
         private Vector3 m_lastAngularVelocity = Vector3.Zero;
         private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         //Banking properties
         private float m_bankingEfficiency = 0;
-        private float m_bankingMix = 0;
+        private float m_bankingMix = 1;
         private float m_bankingTimescale = 0;
 
         //Hover and Buoyancy properties
@@ -124,8 +124,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float m_verticalAttractionTimescale = 510f;
 
         // Just some recomputed constants:
-        static readonly float PIOverFour = ((float)Math.PI) / 4f;
 #pragma warning disable 414
+        static readonly float TwoPI = ((float)Math.PI) * 2f; 
+        static readonly float FourPI = ((float)Math.PI) * 4f; 
+        static readonly float PIOverFour = ((float)Math.PI) / 4f;
         static readonly float PIOverTwo = ((float)Math.PI) / 2f;
 #pragma warning restore 414
 
@@ -159,56 +161,58 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             VDetailLog("{0},ProcessFloatVehicleParam,param={1},val={2}", ControllingPrim.LocalID, pParam, pValue);
+            float clampTemp;
+
             switch (pParam)
             {
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
                     m_angularDeflectionEfficiency = ClampInRange(0f, pValue, 1f);
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
-                    m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
+                    m_angularDeflectionTimescale = ClampInRange(0.25f, pValue, 120);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    m_angularMotorDecayTimescale = ClampInRange(0.01f, pValue, 120);
+                    m_angularMotorDecayTimescale = ClampInRange(0.25f, pValue, 120);
                     m_angularMotor.TargetValueDecayTimeScale = m_angularMotorDecayTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
-                    m_angularMotorTimescale = Math.Max(pValue, 0.01f);
+                    m_angularMotorTimescale = ClampInRange(0.25f, pValue, 120);
                     m_angularMotor.TimeScale = m_angularMotorTimescale;
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
                     m_bankingEfficiency = ClampInRange(-1f, pValue, 1f);
                     break;
                 case Vehicle.BANKING_MIX:
-                    m_bankingMix = Math.Max(pValue, 0.01f);
+                    m_bankingMix = ClampInRange(0.01f, pValue, 1);
                     break;
                 case Vehicle.BANKING_TIMESCALE:
-                    m_bankingTimescale = Math.Max(pValue, 0.01f);
+                    m_bankingTimescale = ClampInRange(0.25f, pValue, 120);
                     break;
                 case Vehicle.BUOYANCY:
                     m_VehicleBuoyancy = ClampInRange(-1f, pValue, 1f);
                     m_VehicleGravity = ControllingPrim.ComputeGravity(m_VehicleBuoyancy);
                     break;
                 case Vehicle.HOVER_EFFICIENCY:
-                    m_VhoverEfficiency = ClampInRange(0f, pValue, 1f);
+                    m_VhoverEfficiency = ClampInRange(0.01f, pValue, 1f);
                     break;
                 case Vehicle.HOVER_HEIGHT:
-                    m_VhoverHeight = pValue;
+                    m_VhoverHeight = ClampInRange(0f, pValue, 1000000f);
                     break;
                 case Vehicle.HOVER_TIMESCALE:
-                    m_VhoverTimescale = Math.Max(pValue, 0.01f);
+                    m_VhoverTimescale = ClampInRange(0.01f, pValue, 120);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
                     m_linearDeflectionEfficiency = ClampInRange(0f, pValue, 1f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
-                    m_linearDeflectionTimescale = Math.Max(pValue, 0.01f);
+                    m_linearDeflectionTimescale = ClampInRange(0.01f, pValue, 120);
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
                     m_linearMotorDecayTimescale = ClampInRange(0.01f, pValue, 120);
                     m_linearMotor.TargetValueDecayTimeScale = m_linearMotorDecayTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
-                    m_linearMotorTimescale = Math.Max(pValue, 0.01f);
+                    m_linearMotorTimescale = ClampInRange(0.01f, pValue, 120);
                     m_linearMotor.TimeScale = m_linearMotorTimescale;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
@@ -216,30 +220,35 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_verticalAttractionMotor.Efficiency = m_verticalAttractionEfficiency;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
-                    m_verticalAttractionTimescale = Math.Max(pValue, 0.01f);
+                    m_verticalAttractionTimescale = ClampInRange(0.01f, pValue, 120);
                     m_verticalAttractionMotor.TimeScale = m_verticalAttractionTimescale;
                     break;
 
                 // These are vector properties but the engine lets you use a single float value to
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
-                    m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    clampTemp = ClampInRange(0.01f, pValue, 120);
+                    m_angularFrictionTimescale = new Vector3(clampTemp, clampTemp, clampTemp);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
-                    m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
+                    clampTemp = ClampInRange(-TwoPI, pValue, TwoPI);
+                    m_angularMotorDirection = new Vector3(clampTemp, clampTemp, clampTemp);
                     m_angularMotor.Zero();
                     m_angularMotor.SetTarget(m_angularMotorDirection);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
-                    m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    clampTemp = ClampInRange(0.01f, pValue, 120);
+                    m_linearFrictionTimescale = new Vector3(clampTemp, clampTemp, clampTemp);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
-                    m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
-                    m_linearMotorDirectionLASTSET = new Vector3(pValue, pValue, pValue);
+                    clampTemp = ClampInRange(-BSParam.MaxLinearVelocity, pValue, BSParam.MaxLinearVelocity);
+                    m_linearMotorDirection = new Vector3(clampTemp, clampTemp, clampTemp);
+                    m_linearMotorDirectionLASTSET = new Vector3(clampTemp, clampTemp, clampTemp);
                     m_linearMotor.SetTarget(m_linearMotorDirection);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
-                    m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
+                    clampTemp = ClampInRange(-1000, pValue, 1000);
+                    m_linearMotorOffset = new Vector3(clampTemp, clampTemp, clampTemp);
                     break;
 
             }
@@ -251,29 +260,46 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
+                    pValue.X = ClampInRange(0.25f, pValue.X, 120);
+                    pValue.Y = ClampInRange(0.25f, pValue.Y, 120);
+                    pValue.Z = ClampInRange(0.25f, pValue.Z, 120);
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     // Limit requested angular speed to 2 rps= 4 pi rads/sec
-                    pValue.X = ClampInRange(-12.56f, pValue.X, 12.56f);
-                    pValue.Y = ClampInRange(-12.56f, pValue.Y, 12.56f);
-                    pValue.Z = ClampInRange(-12.56f, pValue.Z, 12.56f);
+                    pValue.X = ClampInRange(-FourPI, pValue.X, FourPI);
+                    pValue.Y = ClampInRange(-FourPI, pValue.Y, FourPI);
+                    pValue.Z = ClampInRange(-FourPI, pValue.Z, FourPI);
                     m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     m_angularMotor.Zero();
                     m_angularMotor.SetTarget(m_angularMotorDirection);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
+                    pValue.X = ClampInRange(0.25f, pValue.X, 120);
+                    pValue.Y = ClampInRange(0.25f, pValue.Y, 120);
+                    pValue.Z = ClampInRange(0.25f, pValue.Z, 120);
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
+                    pValue.X = ClampInRange(-BSParam.MaxLinearVelocity, pValue.X, BSParam.MaxLinearVelocity);
+                    pValue.Y = ClampInRange(-BSParam.MaxLinearVelocity, pValue.Y, BSParam.MaxLinearVelocity);
+                    pValue.Z = ClampInRange(-BSParam.MaxLinearVelocity, pValue.Z, BSParam.MaxLinearVelocity);
                     m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     m_linearMotor.SetTarget(m_linearMotorDirection);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
+                    // Not sure the correct range to limit this variable
+                    pValue.X = ClampInRange(-1000, pValue.X, 1000);
+                    pValue.Y = ClampInRange(-1000, pValue.Y, 1000);
+                    pValue.Z = ClampInRange(-1000, pValue.Z, 1000);
                     m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.BLOCK_EXIT:
+                    // Not sure the correct range to limit this variable
+                    pValue.X = ClampInRange(-10000, pValue.X, 10000);
+                    pValue.Y = ClampInRange(-10000, pValue.Y, 10000);
+                    pValue.Z = ClampInRange(-10000, pValue.Z, 10000);
                     m_BlockingEndPoint = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
             }
@@ -1601,7 +1627,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 deflectContributionV = (-deflectionError) * ClampInRange(0, m_angularDeflectionEfficiency/m_angularDeflectionTimescale,1f);
                 //deflectContributionV /= m_angularDeflectionTimescale;
 
-               // VehicleRotationalVelocity += deflectContributionV * VehicleOrientation;
                 VehicleRotationalVelocity += deflectContributionV;
                 VDetailLog("{0},  MoveAngular,Deflection,movingDir={1},pointingDir={2},deflectError={3},ret={4}",
                     ControllingPrim.LocalID, movingDirection, pointingDirection, deflectionError, deflectContributionV);
@@ -1659,7 +1684,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // TODO: the banking effect should not go to infinity but what to limit it to?
                 //     And what should happen when this is being added to a user defined yaw that is already PI*4?
-                mixedYawAngle = ClampInRange(-12, mixedYawAngle, 12);
+                mixedYawAngle = ClampInRange(-FourPI, mixedYawAngle, FourPI);
 
                 // Build the force vector to change rotation from what it is to what it should be
                 bankingContributionV.Z = -mixedYawAngle;
@@ -1667,7 +1692,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Don't do it all at once. Fudge because 1 second is too fast with most user defined roll as PI*4.
                 bankingContributionV /= m_bankingTimescale * BSParam.VehicleAngularBankingTimescaleFudge;
 
-                //VehicleRotationalVelocity += bankingContributionV * VehicleOrientation;
                 VehicleRotationalVelocity += bankingContributionV;
 
 

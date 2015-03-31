@@ -31,6 +31,7 @@ using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Connectors.Hypergrid;
@@ -110,6 +111,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
+        /// <summary>
+        /// Used for processing analysis of incoming attachments in a controlled fashion.
+        /// </summary>
+        private JobEngine m_incomingSceneObjectEngine;
+
         #region ISharedRegionModule
 
         public override string Name
@@ -153,33 +159,27 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (m_Enabled)
             {
                 scene.RegisterModuleInterface<IUserAgentVerificationModule>(this);
-                scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
-            }
-        }
+                //scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
 
-        void OnIncomingSceneObject(SceneObjectGroup so)
-        {
-            if (!so.IsAttachment)
-                return;
+                m_incomingSceneObjectEngine 
+                    = new JobEngine(
+                        string.Format("HG Incoming Scene Object Engine ({0})", scene.Name), 
+                        "HG INCOMING SCENE OBJECT ENGINE");
 
-            if (so.AttachedAvatar == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(so.AttachedAvatar))
-                return;
+                StatsManager.RegisterStat(
+                    new Stat(
+                        "HGIncomingAttachmentsWaiting",
+                        "Number of incoming attachments waiting for processing.",
+                        "",
+                        "",
+                        "entitytransfer",
+                        Name,
+                        StatType.Pull,
+                        MeasuresOfInterest.None,
+                        stat => stat.Value = m_incomingSceneObjectEngine.JobsWaiting,
+                        StatVerbosity.Debug));
 
-            // foreign user
-            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.AttachedAvatar);
-            if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
-            {
-                if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
-                {
-                    string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset server {2}", so.Name, so.AttachedAvatar, url);
-                    Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
-                    HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url);
-                    uuidGatherer.GatherAssetUuids(so, ids);
-
-                    foreach (KeyValuePair<UUID, sbyte> kvp in ids)
-                        uuidGatherer.FetchAsset(kvp.Key);
-                }
+                m_incomingSceneObjectEngine.Start();
             }
         }
 
@@ -209,12 +209,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.RemoveRegion(scene);
 
             if (m_Enabled)
+            {
                 scene.UnregisterModuleInterface<IUserAgentVerificationModule>(this);
+                m_incomingSceneObjectEngine.Stop();
+            }
         }
 
         #endregion
 
-        #region HG overrides of IEntiryTransferModule
+        #region HG overrides of IEntityTransferModule
 
         protected override GridRegion GetFinalDestination(GridRegion region, UUID agentID, string agentHomeURI, out string message)
         {
@@ -294,7 +297,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)
-                        sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
+                        Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
 
                     return success;
                 }
@@ -516,13 +519,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Local region?
             if (info != null)
             {
-                ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
+                Scene.RequestTeleportLocation(
+                    remoteClient, info.RegionHandle, lm.Position,
                     Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
             }
             else 
             {
                 // Foreign region
-                Scene scene = (Scene)(remoteClient.Scene);
                 GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
                 GridRegion gatekeeper = new GridRegion();
                 gatekeeper.ServerURI = lm.Gatekeeper;
@@ -533,15 +536,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (finalDestination != null)
                 {
-                    ScenePresence sp = scene.GetScenePresence(remoteClient.AgentId);
-                    IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
+                    ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
 
-                    if (transferMod != null && sp != null)
+                    if (sp != null)
                     {
                         if (message != null)
                             sp.ControllingClient.SendAgentAlertMessage(message, true);
 
-                        transferMod.DoTeleport(
+                        // Validate assorted conditions
+                        string reason = string.Empty;
+                        if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out reason))
+                        {
+                            sp.ControllingClient.SendTeleportFailed(reason);
+                            return;
+                        }
+
+                        DoTeleport(
                             sp, gatekeeper, finalDestination, lm.Position, Vector3.UnitX,
                             (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
                     }
@@ -552,6 +562,131 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
             }
+        }
+
+        private void RemoveIncomingSceneObjectJobs(string commonIdToRemove)
+        {
+            List<JobEngine.Job> jobsToReinsert = new List<JobEngine.Job>();
+            int jobsRemoved = 0;
+
+            JobEngine.Job job;
+            while ((job = m_incomingSceneObjectEngine.RemoveNextJob()) != null)
+            {
+                if (job.CommonId != commonIdToRemove)
+                    jobsToReinsert.Add(job);
+                else
+                    jobsRemoved++;
+            }
+
+            m_log.DebugFormat(
+                "[HG ENTITY TRANSFER]: Removing {0} jobs with common ID {1} and reinserting {2} other jobs",
+                jobsRemoved, commonIdToRemove, jobsToReinsert.Count);
+
+            if (jobsToReinsert.Count > 0)
+            {                                        
+                foreach (JobEngine.Job jobToReinsert in jobsToReinsert)
+                    m_incomingSceneObjectEngine.QueueJob(jobToReinsert);
+            }
+        }
+
+        public override bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
+        {
+            // FIXME: We must make it so that we can use SOG.IsAttachment here.  At the moment it is always null!
+            if (!so.IsAttachmentCheckFull())
+                return base.HandleIncomingSceneObject(so, newPosition);
+
+            // Equally, we can't use so.AttachedAvatar here.
+            if (so.OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(so.OwnerID))
+                return base.HandleIncomingSceneObject(so, newPosition);
+
+            // foreign user
+            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.OwnerID);
+            if (aCircuit != null)
+            {
+                if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) == 0)
+                {
+                    // We have already pulled the necessary attachments from the source grid.
+                    base.HandleIncomingSceneObject(so, newPosition);
+                }
+                else
+                {
+                    if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                    {
+                        m_incomingSceneObjectEngine.QueueJob(
+                            string.Format("HG UUID Gather for attachment {0} for {1}", so.Name, aCircuit.Name), 
+                            () => 
+                            {
+                                string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
+    //                            m_log.DebugFormat(
+    //                                "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset service {2}", 
+    //                                so.Name, so.AttachedAvatar, url);
+
+                                IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
+                                HGUuidGatherer uuidGatherer 
+                                    = new HGUuidGatherer(Scene.AssetService, url, ids);
+                                uuidGatherer.AddForInspection(so);
+
+                                while (!uuidGatherer.Complete)
+                                {
+                                    int tickStart = Util.EnvironmentTickCount();
+
+                                    UUID? nextUuid = uuidGatherer.NextUuidToInspect;
+                                    uuidGatherer.GatherNext();
+
+    //                                m_log.DebugFormat(
+    //                                    "[HG ENTITY TRANSFER]: Gathered attachment asset uuid {0} for object {1} for HG user {2} took {3} ms with asset service {4}",
+    //                                    nextUuid, so.Name, so.OwnerID, Util.EnvironmentTickCountSubtract(tickStart), url);
+
+                                    int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
+
+                                    if (ticksElapsed > 30000)
+                                    {
+                                        m_log.WarnFormat(
+                                            "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as gather of {1} from {2} took {3} ms to respond (> {4} ms)",
+                                            so.OwnerID, so.Name, url, ticksElapsed, 30000);
+
+                                        RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
+
+                                        return;
+                                    }                                                           
+                                }
+
+    //                            m_log.DebugFormat(
+    //                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
+    //                                ids.Count, so.Name, so.OwnerID, url);
+
+                                foreach (KeyValuePair<UUID, sbyte> kvp in ids)
+                                {
+                                    int tickStart = Util.EnvironmentTickCount();
+
+                                    uuidGatherer.FetchAsset(kvp.Key);   
+
+                                    int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
+
+                                    if (ticksElapsed > 30000)
+                                    {
+                                        m_log.WarnFormat(
+                                            "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as fetch of {1} from {2} took {3} ms to respond (> {4} ms)",
+                                            so.OwnerID, kvp.Key, url, ticksElapsed, 30000);
+
+                                        RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
+
+                                        return;
+                                    }   
+                                }
+
+                                base.HandleIncomingSceneObject(so, newPosition);
+
+    //                            m_log.DebugFormat(
+    //                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}", 
+    //                                so.Name, so.OwnerID, url);
+                            },                             
+                            so.OwnerID.ToString());
+                    }
+                }
+            }
+
+            return true;
         }
 
         #endregion

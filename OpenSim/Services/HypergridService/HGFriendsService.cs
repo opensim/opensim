@@ -198,7 +198,8 @@ namespace OpenSim.Services.HypergridService
             // So let's send back the call, but start a thread to continue
             // with the verification and the actual action.
 
-            Util.FireAndForget(delegate { ProcessFriendshipOffered(fromID, fromName, toID, message); });
+            Util.FireAndForget(
+                o => ProcessFriendshipOffered(fromID, fromName, toID, message), null, "HGFriendsService.ProcessFriendshipOffered");
 
             return true;
         }

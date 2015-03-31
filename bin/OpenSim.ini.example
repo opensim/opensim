@@ -42,6 +42,17 @@
 ;;    out.
 
 
+[Const]
+    ;# {BaseURL} {} {BaseURL} {"http://example.com","http://127.0.0.1"} "http://127.0.0.1"
+    BaseURL = http://127.0.0.1
+    
+    ;# {PublicPort} {} {PublicPort} {8002} "8002"
+    PublicPort = "8002"
+
+    ;# {PrivatePort} {} {PrivatePort} {8003} "8003"
+    PrivatePort = "8003"
+
+
 [Startup]
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
@@ -83,6 +94,18 @@
     ;# {PIDFile} {} {Path to PID file?} {}
     ;; Place to create a PID file
     ; PIDFile = "/tmp/OpenSim.exe.pid"
+
+    ;# {RegistryLocation} {} {Addins Registry Location} {}
+    ; Set path to directory for addin registry if you want addins outside of bin.  
+    ; Information about the registered repositories and installed plugins will 
+    ; be stored here. The OpenSim.exe process must have R/W access to the location.
+    ; RegistryLocation = "."
+
+    ;# {ConfigDirectory} {} {Set path to directory for modular ini files} {}
+    ; Used by region module addins. You can set this to outside bin, so that addin
+    ; configurations will survive updates. The OpenSim.exe process must have R/W access 
+    ; to the location.
+    ; ConfigDirectory = "."
 
     ;# {region_info_source} {} {Where to load region from?} {filesystem web} filesystem
     ;; Determine where OpenSimulator looks for the files which tell it
@@ -141,7 +164,7 @@
     ;; physical prim max, clamp the dimensions to the appropriate maximum
     ;; This can be overridden in the region config file.
     ; ClampPrimSize = false
-	
+
     ;# {LinksetPrims} {} {Max prims an object will hold?} {} 0
     ;; Maximum number of prims allowable in a linkset. Affects creating new
     ;; linksets. Ignored if less than or equal to zero.
@@ -164,12 +187,13 @@
     ;; YOU HAVE BEEN WARNED!!!
     ; TrustBinaries = false
 
-    ;# {CombineContiguousRegions} {} {Create megaregions where possible? (Do not use with existing content!)} {true false} false
+    ;# {CombineContiguousRegions} {} {Create megaregions where possible? (Do not use with existing content or varregions!)} {true false} false
     ;; Combine all contiguous regions into one large megaregion
     ;; Order your regions from South to North, West to East in your regions.ini
     ;; and then set this to true
     ;; Warning!  Don't use this with regions that have existing content!,
     ;; This will likely break them
+    ;; Also, this setting should be set to false for varregions as they are proper larger single regions rather than combined smaller regions.
     ; CombineContiguousRegions = false
 
     ;# {InworldRestartShutsDown} {} {Shutdown instance on region restart?} {true false} false
@@ -383,9 +407,9 @@
 
 [Estates]
     ; If these values are commented out then the user will be asked for estate details when required (this is the normal case).
-  	; If these values are uncommented then they will be used to create a default estate as necessary.
+    ; If these values are uncommented then they will be used to create a default estate as necessary.
     ; New regions will be automatically assigned to that default estate.
-	
+
     ;# {DefaultEstateName} {} {Default name for estate?} {} My Estate
     ;; Name for the default estate
     ; DefaultEstateName = My Estate
@@ -395,7 +419,7 @@
     ; DefaultEstateOwnerName = FirstName LastName
 
 
-    ; ** Standalone Estate Settings **	
+    ; ** Standalone Estate Settings **
     ; The following parameters will only be used on a standalone system to 
     ; create an estate owner that does not already exist
 
@@ -462,6 +486,32 @@
     ;; the region ports use UDP.
     ; http_listener_port = 9000
 
+    ; By default, OpenSimulator does not allow scripts to make HTTP calls to addresses on the simulator's LAN.
+    ; See the OutboundDisallowForUserScripts parameter in OpenSimDefaults.ini for more information on this filter.
+    ; If you need to allow scripts to make some LAN calls use the OutboundDisallowForUserScriptsExcept parameter below.
+    ; We recommend that you do not override OutboundDisallowForUserScripts directly unless you are very sure about what you're doing.
+    ;
+    ; You can whitelist individual endpoints by IP or FQDN, e.g.
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.3:8003
+    ; 
+    ; You can specify multiple addresses by separating them with a bar.  For example,
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.3:8003|myinternalserver:8000
+    ; 
+    ; If an address if given without a port number then port 80 is assumed
+    ;
+    ; You can also specify a network range in CIDR notation to whitelist, e.g.
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.0/24
+    ;
+    ; to whitelist all ports on addresses 192.168.1.0 to 192.168.1.255
+    ; To specify an individual IP address use the /32 netmask
+    ;
+    ; OutboundDisallowForUserScriptsExcept = 192.168.1.2/32
+    ;
+    ; See http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation for more information on CIDR notation
+
     ;# {ExternalHostNameForLSL} {} {Hostname to use for HTTP-IN URLs. This should be reachable from the internet.} {}
     ;; Hostname to use in llRequestURL/llRequestSecureURL
     ;; if not defined - default machine name is being used
@@ -483,15 +533,15 @@
     ;; web server
     ; user_agent = "OpenSim LSL (Mozilla Compatible)"
 
-	;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
-	;; Use this if your central services in port 8003 need to be accessible on the Internet
-	;; but you want to protect them from unauthorized access. The username and password
-	;; here need to match the ones in the Robust service configuration.
+    ;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
+    ;; Use this if your central services in port 8003 need to be accessible on the Internet
+    ;; but you want to protect them from unauthorized access. The username and password
+    ;; here need to match the ones in the Robust service configuration.
     ; AuthType = "BasicHttpAuthentication"
     ; HttpAuthUsername = "some_username"
     ; HttpAuthPassword = "some_password"
-	;;
-	;; Any of these 3 variables above can be overriden in any of the service sections.
+    ;;
+    ;; Any of these 3 variables above can be overriden in any of the service sections.
 
 
 [XMLRPC]
@@ -544,10 +594,7 @@
     Cap_GetTexture = "localhost"
     Cap_GetMesh = "localhost"
     Cap_AvatarPickerSearch = "localhost"
-
-    ; This is disabled by default. Change if you see fit. Note that
-    ; serving this cap from the simulators may lead to poor performace.
-    Cap_WebFetchInventoryDescendents = ""
+    Cap_GetDisplayNames = "localhost"
 
 
 [SimulatorFeatures]
@@ -597,7 +644,8 @@
 
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
-    ; OfflineMessageURL = http://yourserver/Offline.php or http://yourrobustserver:8003
+    ; OfflineMessageURL = ${Const|BaseURL}/Offline.php
+    ; OfflineMessageURL = ${Const|BaseURL}:${Const|PrivatePort}
 
     ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
     ;; For standalones, this is the storage dll.
@@ -617,6 +665,11 @@
     ;; Default is true.
     ;; This applies to both core groups module.
     ; ForwardOfflineGroupMessages = true
+
+
+[BulletSim]
+    ;# {AvatarToAvatarCollisionsByDefault} {[Startup]physics:BulletSim} {Should avatars collide with each other?} {true false} true
+    AvatarToAvatarCollisionsByDefault = true
 
 
 [ODEPhysicsSettings]
@@ -768,12 +821,15 @@
     ;; the data snapshots.
     ; snapshot_cache_directory = "DataSnapshot"
 
+    ;; [Supported, but obsolete]
     ;# {data_services} {index_sims:true} {Data service URLs to register with?} {} http://metaverseink.com/cgi-bin/register.py
     ; This semicolon-separated string serves to notify specific data services
     ; about the existence of this sim. Uncomment if you want to index your
     ; data with this and/or other search providers.
     ; data_services="http://metaverseink.com/cgi-bin/register.py"
 
+    ;; New way of specifying data services, one per service
+    ;DATA_SRV_MISearch = "http://metaverseink.com/cgi-bin/register.py"
 
 [Economy]
     ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
@@ -1032,7 +1088,7 @@
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
-    ;; or http:://mygridserver.com:8003 for robust, V2
+    ;; or http:://${Const|BaseURL}:${Const|PrivatePort} for robust, V2
     ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
@@ -1100,13 +1156,13 @@
   ;# {ProfileServiceURL} {} {Set url to UserProfilesService} {}
   ;; Set the value of the url to your UserProfilesService
   ;; If un-set / "" the module is disabled
-  ;; ProfileServiceURL = http://127.0.0.1:8002
+  ;; ProfileServiceURL = ${Const|BaseURL}:${Const|PublicPort}
 
 [XBakes]
   ;# {URL} {} {Set URL for Baked texture service} {}
   ;; Sets the URL for the baked texture ROBUST service.
   ;; Disabled when unset.
-  ;; URL = http://127.0.0.1:8003
+  ;; URL = ${Const|BaseURL}:${Const|PrivatePort}
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini

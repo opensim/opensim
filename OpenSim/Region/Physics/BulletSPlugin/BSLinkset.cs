@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -128,6 +128,7 @@ public abstract class BSLinkset
         m_children = new Dictionary<BSPrimLinkable, BSLinkInfo>();
         LinksetMass = parent.RawMass;
         Rebuilding = false;
+        RebuildScheduled = false;
 
         parent.ClearDisplacement();
     }
@@ -297,7 +298,15 @@ public abstract class BSLinkset
 
     // Flag denoting the linkset is in the process of being rebuilt.
     // Used to know not the schedule a rebuild in the middle of a rebuild.
+    // Because of potential update calls that could want to schedule another rebuild.
     protected bool Rebuilding { get; set; }
+
+    // Flag saying a linkset rebuild has been scheduled.
+    // This is turned on when the rebuild is requested and turned off when
+    //     the rebuild is complete. Used to limit modifications to the
+    //     linkset parameters while the linkset is in an intermediate state.
+    // Protected by a "lock(m_linsetActivityLock)" on the BSLinkset object
+    public bool RebuildScheduled { get; protected set; }
 
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.
@@ -306,6 +315,23 @@ public abstract class BSLinkset
     // Return 'true' if any properties updated on the passed object.
     // Called at taint-time!
     public abstract bool MakeDynamic(BSPrimLinkable child);
+
+    public virtual bool AllPartsComplete
+    {
+        get {
+            bool ret = true; 
+            this.ForEachMember((member) =>
+            {
+                if (member.IsIncomplete || member.PrimAssetState == BSPhysObject.PrimAssetCondition.Waiting)
+                {
+                    ret = false;
+                    return true;    // exit loop
+                }
+                return false;       // continue loop
+            });
+            return ret;
+        }
+    }
 
     // The object is going static (non-physical). Do any setup necessary
     //     for a static linkset.

@@ -786,7 +786,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <see cref="Scene.doObjectDuplicateOnRay"/>
         /// </remarks>
         public event Action<SceneObjectGroup> OnObjectAddedToScene;
+        
+        /// <summary>
+        ///  When a client sends a derez request for an object inworld
+        ///  but before the object is deleted
+        /// </summary>
+        public event DeRezRequested OnDeRezRequested;
+        /// <summary>
+        /// Triggered when a client sends a derez request for an object inworld
+        /// </summary>
+        /// <param name="remoteClient">The client question (it can be null)</param>
+        /// <param name="obj">The object in question</param>
+        /// <param name="action">The exact derez action</param>
+        /// <returns>Flag indicating whether the object should be deleted from the scene or not</returns>
+        public delegate bool DeRezRequested(IClientAPI remoteClient, List<SceneObjectGroup> objs, DeRezAction action);
 
+        /// <summary>
+        /// Triggered when an object is removed from the scene.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerObjectBeingRemovedFromScene"/>
+        /// in <see cref="Scene.DeleteSceneObject"/>
+        /// </remarks>
+        public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
         /// <summary>
         /// Delegate for <see cref="OnObjectBeingRemovedFromScene"/>
         /// </summary>
@@ -805,15 +827,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// physics engine so the receiver can do any necessary cleanup before its destruction.
         /// </remarks>
         public event Action<SceneObjectPart> OnObjectRemovedFromPhysicalScene;
-
-        /// <summary>
-        /// Triggered when an object is removed from the scene.
-        /// </summary>
-        /// <remarks>
-        /// Triggered by <see cref="TriggerObjectBeingRemovedFromScene"/>
-        /// in <see cref="Scene.DeleteSceneObject"/>
-        /// </remarks>
-        public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
 
         public delegate void NoticeNoLandDataFromStorage();
         public event NoticeNoLandDataFromStorage OnNoticeNoLandDataFromStorage;
@@ -1521,8 +1534,33 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }        
-        
+        }
+
+        public bool TriggerDeRezRequested(IClientAPI client, List<SceneObjectGroup> objs, DeRezAction action)
+        {
+            bool canDeRez = true;
+
+            DeRezRequested handlerDeRezRequested = OnDeRezRequested;
+            if (handlerDeRezRequested != null)
+            {
+                foreach (DeRezRequested d in handlerDeRezRequested.GetInvocationList())
+                {
+                    try
+                    {
+                        canDeRez &= d(client, objs, action);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerDeRezRequested failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+
+            return canDeRez;
+        }
+
         public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
         {
             ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;

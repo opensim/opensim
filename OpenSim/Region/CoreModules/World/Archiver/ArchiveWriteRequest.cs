@@ -44,6 +44,7 @@ using OpenSim.Region.Framework.Scenes;
 using Ionic.Zlib;
 using GZipStream = Ionic.Zlib.GZipStream;
 using CompressionMode = Ionic.Zlib.CompressionMode;
+using CompressionLevel = Ionic.Zlib.CompressionLevel;
 using OpenSim.Framework.Serialization.External;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
@@ -200,7 +201,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
                             m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
 
-                    Watchdog.RunInThread(o => ar.Execute(), "Archive Assets Request", null);
+                    WorkManager.RunInThread(o => ar.Execute(), null, "Archive Assets Request");
 
                     // CloseArchive() will be called from ReceivedAllAssets()
                 }
@@ -219,7 +220,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids)
         {
-            m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.Name);
 
             EntityBase[] entities = scene.GetEntities();
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
@@ -253,13 +254,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (SaveAssets)
             {
-                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService);
+                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids);
                 int prevAssets = assetUuids.Count;
                     
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
-                {
-                    assetGatherer.GatherAssetUuids(sceneObject, assetUuids);
-                }
+                    assetGatherer.AddForInspection(sceneObject);
+
+                assetGatherer.GatherAll();
 
                 m_log.DebugFormat(
                     "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",

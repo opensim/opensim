@@ -32,6 +32,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    [TypeExtensionPoint(Path = "/OpenSim/RegionModules", NodeName="RegionModule")]
     public interface IRegionModuleBase
     {
         /// <value>

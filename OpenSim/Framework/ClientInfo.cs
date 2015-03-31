@@ -54,6 +54,10 @@ namespace OpenSim.Framework
         public int assetThrottle;
         public int textureThrottle;
         public int totalThrottle;
+
+        // Used by adaptive only
+        public int targetThrottle;
+
         public int maxThrottle;
 
         public Dictionary<string, int> SyncRequests = new Dictionary<string,int>();

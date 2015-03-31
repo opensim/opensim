@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -45,9 +46,15 @@ namespace OpenSim.Services.Base
 
         public T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
-            string[] parts = dllName.Split(new char[] {':'});
+            // The path:type separator : is unfortunate because it collides
+            // with Windows paths like C:\...
+            // When the path provided includes the drive, this fails.
+            // Hence the root/noroot thing going on here.
+            string pathRoot = Path.GetPathRoot(dllName);
+            string noRoot = dllName.Substring(pathRoot.Length);
+            string[] parts = noRoot.Split(new char[] {':'});
 
-            dllName = parts[0];
+            dllName = pathRoot + parts[0];
 
             string className = String.Empty;
 

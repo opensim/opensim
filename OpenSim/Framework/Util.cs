@@ -420,6 +420,22 @@ namespace OpenSim.Framework
             return x;
         }
 
+        /// <summary>
+        /// Check if any of the values in a Vector3 are NaN or Infinity
+        /// </summary>
+        /// <param name="v">Vector3 to check</param>
+        /// <returns></returns>
+        public static bool IsNanOrInfinity(Vector3 v)
+        {
+            if (float.IsNaN(v.X) || float.IsNaN(v.Y) || float.IsNaN(v.Z))
+                return true;
+
+            if (float.IsInfinity(v.X) || float.IsInfinity(v.Y) || float.IsNaN(v.Z))
+                return true;
+
+            return false;
+        }
+
         // Inclusive, within range test (true if equal to the endpoints)
         public static bool InRange<T>(T x, T min, T max)
             where T : IComparable<T>
@@ -538,6 +554,11 @@ namespace OpenSim.Framework
 
         public static bool LoadArchSpecificWindowsDll(string libraryName)
         {
+            return LoadArchSpecificWindowsDll(libraryName, string.Empty);
+        }
+
+        public static bool LoadArchSpecificWindowsDll(string libraryName, string path)
+        {
             // We do this so that OpenSimulator on Windows loads the correct native library depending on whether
             // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
             // will find it already loaded later on.
@@ -547,9 +568,9 @@ namespace OpenSim.Framework
             string nativeLibraryPath;
 
             if (Util.Is64BitProcess())
-                nativeLibraryPath = "lib64/" + libraryName;
+                nativeLibraryPath = Path.Combine(Path.Combine(path, "lib64"), libraryName);
             else
-                nativeLibraryPath = "lib32/" + libraryName;
+                nativeLibraryPath = Path.Combine(Path.Combine(path, "lib32"), libraryName);
 
             m_log.DebugFormat("[UTIL]: Loading native Windows library at {0}", nativeLibraryPath);
 
@@ -1189,6 +1210,63 @@ namespace OpenSim.Framework
             }
 
             return settingsClass;
+        }
+
+        /// <summary>
+        /// Reads a configuration file, configFile, merging it with the main configuration, config.
+        /// If the file doesn't exist, it copies a given exampleConfigFile onto configFile, and then
+        /// merges it.
+        /// </summary>
+        /// <param name="config">The main configuration data</param>
+        /// <param name="configFileName">The name of a configuration file in ConfigDirectory variable, no path</param>
+        /// <param name="exampleConfigFile">Full path to an example configuration file</param>
+        /// <param name="configFilePath">Full path ConfigDirectory/configFileName</param>
+        /// <param name="created">True if the file was created in ConfigDirectory, false if it existed</param>
+        /// <returns>True if success</returns>
+        public static bool MergeConfigurationFile(IConfigSource config, string configFileName, string exampleConfigFile, out string configFilePath, out bool created)
+        {
+            created = false;
+            configFilePath = string.Empty;
+
+            IConfig cnf = config.Configs["Startup"];
+            if (cnf == null)
+            {
+                m_log.WarnFormat("[UTILS]: Startup section doesn't exist");
+                return false;
+            }
+
+            string configDirectory = cnf.GetString("ConfigDirectory", ".");
+            string configFile = Path.Combine(configDirectory, configFileName);
+
+            if (!File.Exists(configFile) && !string.IsNullOrEmpty(exampleConfigFile))
+            {
+                // We need to copy the example onto it
+
+                if (!Directory.Exists(configDirectory))
+                    Directory.CreateDirectory(configDirectory);
+
+                try
+                {
+                    File.Copy(exampleConfigFile, configFile);
+                    created = true;
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[UTILS]: Exception copying configuration file {0} to {1}: {2}", configFile, exampleConfigFile, e.Message);
+                    return false;
+                }
+            }
+
+            if (File.Exists(configFile))
+            {
+                // Merge 
+                config.Merge(new IniConfigSource(configFile));
+                config.ExpandKeyValues();
+                configFilePath = configFile;
+                return true;
+            }
+            else
+                return false;
         }
 
         #endregion
@@ -1928,11 +2006,6 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void FireAndForget(System.Threading.WaitCallback callback)
-        {
-            FireAndForget(callback, null, null);
-        }
-
         public static void InitThreadPool(int minThreads, int maxThreads)
         {
             if (maxThreads < 2)
@@ -1977,8 +2050,7 @@ namespace OpenSim.Framework
                     throw new NotImplementedException();
             }
         }
-
-        
+                
         /// <summary>
         /// Additional information about threads in the main thread pool. Used to time how long the
         /// thread has been running, and abort it if it has timed-out.
@@ -2052,11 +2124,14 @@ namespace OpenSim.Framework
             }
         }
 
-
         private static long nextThreadFuncNum = 0;
         private static long numQueuedThreadFuncs = 0;
         private static long numRunningThreadFuncs = 0;
+        private static long numTotalThreadFuncsCalled = 0;
         private static Int32 threadFuncOverloadMode = 0;
+
+        public static long TotalQueuedFireAndForgetCalls { get { return numQueuedThreadFuncs; } }
+        public static long TotalRunningFireAndForgetCalls { get { return numRunningThreadFuncs; } }
 
         // Maps (ThreadFunc number -> Thread)
         private static ConcurrentDictionary<long, ThreadInfo> activeThreads = new ConcurrentDictionary<long, ThreadInfo>();
@@ -2086,14 +2161,49 @@ namespace OpenSim.Framework
             }
         }
 
+        public static long TotalFireAndForgetCallsMade { get { return numTotalThreadFuncsCalled; } }
+
+        public static Dictionary<string, int> GetFireAndForgetCallsMade()
+        {
+            return new Dictionary<string, int>(m_fireAndForgetCallsMade);
+        }       
+
+        private static Dictionary<string, int> m_fireAndForgetCallsMade = new Dictionary<string, int>();
+
+        public static Dictionary<string, int> GetFireAndForgetCallsInProgress()
+        {
+            return new Dictionary<string, int>(m_fireAndForgetCallsInProgress);
+        }
+
+        private static Dictionary<string, int> m_fireAndForgetCallsInProgress = new Dictionary<string, int>();
+
+        public static void FireAndForget(System.Threading.WaitCallback callback)
+        {
+            FireAndForget(callback, null, null);
+        }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             FireAndForget(callback, obj, null);
         }
-
+     
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
         {
+            Interlocked.Increment(ref numTotalThreadFuncsCalled);
+
+            if (context != null)
+            {
+                if (!m_fireAndForgetCallsMade.ContainsKey(context))
+                    m_fireAndForgetCallsMade[context] = 1;
+                else
+                    m_fireAndForgetCallsMade[context]++;
+
+                if (!m_fireAndForgetCallsInProgress.ContainsKey(context))
+                    m_fireAndForgetCallsInProgress[context] = 1;
+                else
+                    m_fireAndForgetCallsInProgress[context]++;
+            }
+
             WaitCallback realCallback;
 
             bool loggingEnabled = LogThreadPool > 0;
@@ -2104,7 +2214,15 @@ namespace OpenSim.Framework
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
                 // If we're running regression tests, then we want any exceptions to rise up to the test code.
-                realCallback = o => { Culture.SetCurrentCulture(); callback(o); };
+                realCallback = 
+                    o => 
+                    { 
+                        Culture.SetCurrentCulture(); 
+                        callback(o); 
+                        
+                        if (context != null)
+                            m_fireAndForgetCallsInProgress[context]--;
+                    };
             }
             else
             {
@@ -2143,6 +2261,9 @@ namespace OpenSim.Framework
                         activeThreads.TryRemove(threadFuncNum, out dummy);
                         if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
+
+                        if (context != null)
+                            m_fireAndForgetCallsInProgress[context]--;
                     }
                 };
             }

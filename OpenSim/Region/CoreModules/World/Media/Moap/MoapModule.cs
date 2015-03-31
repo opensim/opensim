@@ -595,6 +595,9 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// <returns>true if the url matches an entry on the whitelist, false otherwise</returns>
         protected bool CheckUrlAgainstWhitelist(string rawUrl, string[] whitelist)
         {
+            if (whitelist == null)
+                return false;
+
             Uri url = new Uri(rawUrl);
             
             foreach (string origWlUrl in whitelist)

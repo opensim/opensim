@@ -211,6 +211,21 @@ public struct HACDParams
 	public float addNeighboursDistPoints;	// false
 	public float addFacesPoints;			// false
 	public float shouldAdjustCollisionMargin;	// false
+    // VHACD
+	public float whichHACD;				    // zero if Bullet HACD, non-zero says VHACD
+	// http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
+	public float vHACDresolution;			// 100,000 max number of voxels generated during voxelization stage
+	public float vHACDdepth;				// 20 max number of clipping stages
+	public float vHACDconcavity;			// 0.0025 maximum concavity
+	public float vHACDplaneDownsampling;	// 4 granularity of search for best clipping plane
+	public float vHACDconvexHullDownsampling;	// 4 precision of hull gen process
+	public float vHACDalpha;				// 0.05 bias toward clipping along symmetry planes
+	public float vHACDbeta;				    // 0.05 bias toward clipping along revolution axis
+	public float vHACDgamma;				// 0.00125 max concavity when merging
+	public float vHACDpca;					// 0 on/off normalizing mesh before decomp
+	public float vHACDmode;				    // 0 0:voxel based, 1: tetrahedron based
+	public float vHACDmaxNumVerticesPerCH;	// 64 max triangles per convex hull
+	public float vHACDminVolumePerCH;		// 0.0001 sampling of generated convex hulls
 }
 
 // The states a bullet collision object can have

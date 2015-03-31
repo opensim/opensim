@@ -58,7 +58,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Flag used to enable adaptive throttles</summary>
         public bool AdaptiveThrottlesEnabled;
-        
+ 
+        /// <summary>
+        /// Set the minimum rate that the adaptive throttles can set. The viewer
+        /// can still throttle lower than this, but the adaptive throttles will
+        /// never decrease rates below this no matter how many packets are dropped
+        /// </summary>
+        public Int64 MinimumAdaptiveThrottleRate;
+ 
         /// <summary>Amount of the texture throttle to steal for the task throttle</summary>
         public double CannibalizeTextureRate;
 
@@ -72,6 +79,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 IConfig throttleConfig = config.Configs["ClientStack.LindenUDP"];
 
+                // Current default total is 66750
                 Resend = throttleConfig.GetInt("resend_default", 6625);
                 Land = throttleConfig.GetInt("land_default", 9125);
                 Wind = throttleConfig.GetInt("wind_default", 1750);
@@ -83,7 +91,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
 
                 AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
-                
+                MinimumAdaptiveThrottleRate = throttleConfig.GetInt("adaptive_throttle_min_bps", 32000);
+
                 CannibalizeTextureRate = (double)throttleConfig.GetFloat("CannibalizeTextureRate", 0.0f);
                 CannibalizeTextureRate = Util.Clamp<double>(CannibalizeTextureRate,0.0, 0.9);
             }

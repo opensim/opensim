@@ -268,8 +268,8 @@ namespace OpenSim.Region.ClientStack.Linden
         public string SeedCapRequest(string request, string path, string param,
                                   IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            m_log.DebugFormat(
-                "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, m_HostCapsObj.AgentID);
+//            m_log.DebugFormat(
+//                "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, m_HostCapsObj.AgentID);
 
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {

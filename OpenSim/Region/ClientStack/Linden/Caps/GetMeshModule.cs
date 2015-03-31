@@ -57,6 +57,9 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_AssetService;
         private bool m_Enabled = true;
         private string m_URL;
+        private string m_URL2;
+        private string m_RedirectURL = null;
+        private string m_RedirectURL2 = null;
 
         #region Region Module interfaceBase Members
 
@@ -74,7 +77,18 @@ namespace OpenSim.Region.ClientStack.Linden
             m_URL = config.GetString("Cap_GetMesh", string.Empty);
             // Cap doesn't exist
             if (m_URL != string.Empty)
+            {
                 m_Enabled = true;
+                m_RedirectURL = config.GetString("GetMeshRedirectURL");
+            }
+
+            m_URL2 = config.GetString("Cap_GetMesh2", string.Empty);
+            // Cap doesn't exist
+            if (m_URL2 != string.Empty)
+            {
+                m_Enabled = true;
+                m_RedirectURL2 = config.GetString("GetMesh2RedirectURL");
+            }
         }
 
         public void AddRegion(Scene pScene)
@@ -113,27 +127,41 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-//            UUID capID = UUID.Random();
+            UUID capID = UUID.Random();
+            bool getMeshRegistered = false;
 
-            //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
-            if (m_URL == "localhost")
+            if (m_URL == string.Empty)
             {
-//                m_log.DebugFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
-                IRequestHandler reqHandler
-                    = new RestHTTPHandler(
-                        "GET",
-                        "/CAPS/" + UUID.Random(),
-                        httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
-                        "GetMesh",
-                        agentID.ToString());
 
-                caps.RegisterHandler("GetMesh", reqHandler);
+            }
+            else if (m_URL == "localhost")
+            {
+                getMeshRegistered = true;
+                caps.RegisterHandler(
+                    "GetMesh",
+                    new GetMeshHandler("/CAPS/" + capID + "/", m_AssetService, "GetMesh", agentID.ToString(), m_RedirectURL));
             }
             else
             {
-//                m_log.DebugFormat("[GETMESH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("GetMesh", m_URL);
+            }
+
+            if(m_URL2 == string.Empty)
+            {
+
+            }
+            else if (m_URL2 == "localhost")
+            {
+                if (!getMeshRegistered)
+                {
+                    caps.RegisterHandler(
+                        "GetMesh2",
+                        new GetMeshHandler("/CAPS/" + capID + "/", m_AssetService, "GetMesh2", agentID.ToString(), m_RedirectURL2));
+                }
+            }
+            else
+            {
+                caps.RegisterHandler("GetMesh2", m_URL2);
             }
         }
 

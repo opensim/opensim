@@ -25,92 +25,229 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Collections.Specialized;
-using System.Reflection;
-using System.IO;
-using System.Web;
 using log4net;
-using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
+using OpenMetaverse.Imaging;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
-using Caps = OpenSim.Framework.Capabilities.Caps;
+using System;
+using System.Collections.Specialized;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Reflection;
+using System.Web;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class GetMeshHandler 
+    public class GetMeshHandler : BaseStreamHandler
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IAssetService m_assetService;
 
-        public GetMeshHandler(IAssetService assService)
+        // TODO: Change this to a config option
+        private string m_RedirectURL = null;
+
+        public GetMeshHandler(string path, IAssetService assService, string name, string description, string redirectURL)
+            : base("GET", path, name, description)
         {
             m_assetService = assService;
+            m_RedirectURL = redirectURL;
+            if (m_RedirectURL != null && !m_RedirectURL.EndsWith("/"))
+                m_RedirectURL += "/";
         }
 
-        public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
+        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 400; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = "Request wasn't what was expected";
+            // Try to parse the texture ID from the request URL
+            NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            string textureStr = query.GetOne("mesh_id");
 
-            string meshStr = string.Empty;
-
-            if (request.ContainsKey("mesh_id"))
-                meshStr = request["mesh_id"].ToString();
-
-            UUID meshID = UUID.Zero;
-            if (!String.IsNullOrEmpty(meshStr) && UUID.TryParse(meshStr, out meshID))
+            if (m_assetService == null)
             {
-                if (m_assetService == null)
-                {
-                    responsedata["int_response_code"] = 404; //501; //410; //404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "The asset service is unavailable.  So is your mesh.";
-                    return responsedata;
-                }
+                m_log.Error("[GETMESH]: Cannot fetch mesh " + textureStr + " without an asset service");
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+            }
 
-                AssetBase mesh = m_assetService.Get(meshID.ToString());
+            UUID meshID;
+            if (!String.IsNullOrEmpty(textureStr) && UUID.TryParse(textureStr, out meshID))
+            {
+                // OK, we have an array with preferred formats, possibly with only one entry
 
-                if (mesh != null)
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                AssetBase mesh;
+
+                if (!String.IsNullOrEmpty(m_RedirectURL))
                 {
-                    if (mesh.Type == (SByte)AssetType.Mesh)
+                    // Only try to fetch locally cached meshes. Misses are redirected
+                    mesh = m_assetService.GetCached(meshID.ToString());
+
+                    if (mesh != null)
                     {
-                        responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
-                        responsedata["content_type"] = "application/vnd.ll.mesh";
-                        responsedata["int_response_code"] = 200;
+                        if (mesh.Type != (sbyte)AssetType.Mesh)
+                        {
+                            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                        }
+                        WriteMeshData(httpRequest, httpResponse, mesh);
                     }
-                    // Optionally add additional mesh types here
                     else
                     {
-                        responsedata["int_response_code"] = 404; //501; //410; //404;
-                        responsedata["content_type"] = "text/plain";
-                        responsedata["keepalive"] = false;
-                        responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
-                        return responsedata;
+                        string textureUrl = m_RedirectURL + "?mesh_id="+ meshID.ToString();
+                        m_log.Debug("[GETMESH]: Redirecting mesh request to " + textureUrl);
+                        httpResponse.StatusCode = (int)OSHttpStatusCode.RedirectMovedPermanently;
+                        httpResponse.RedirectLocation = textureUrl;
+                        return null;
+                    }
+                }
+                else // no redirect
+                {
+                    // try the cache
+                    mesh = m_assetService.GetCached(meshID.ToString());
+
+                    if (mesh == null)
+                    {
+                        // Fetch locally or remotely. Misses return a 404
+                        mesh = m_assetService.Get(meshID.ToString());
+
+                        if (mesh != null)
+                        {
+                            if (mesh.Type != (sbyte)AssetType.Mesh)
+                            {
+                                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                                return null;
+                            }
+                            WriteMeshData(httpRequest, httpResponse, mesh);
+                            return null;
+                        }
+                   }
+                   else // it was on the cache
+                   {
+                       if (mesh.Type != (sbyte)AssetType.Mesh)
+                       {
+                           httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                           return null;
+                       }
+                       WriteMeshData(httpRequest, httpResponse, mesh);
+                       return null;
+                   }
+                }
+
+                // not found
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                return null;
+            }
+            else
+            {
+                m_log.Warn("[GETTEXTURE]: Failed to parse a mesh_id from GetMesh request: " + httpRequest.Url);
+            }
+
+            return null;
+        }
+
+        private void WriteMeshData(IOSHttpRequest request, IOSHttpResponse response, AssetBase texture)
+        {
+            string range = request.Headers.GetOne("Range");
+
+            if (!String.IsNullOrEmpty(range))
+            {
+                // Range request
+                int start, end;
+                if (TryParseRange(range, out start, out end))
+                {
+                    // Before clamping start make sure we can satisfy it in order to avoid
+                    // sending back the last byte instead of an error status
+                    if (start >= texture.Data.Length)
+                    {
+                        response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
+                        response.ContentType = texture.Metadata.ContentType;
+                    }
+                    else
+                    {
+                        // Handle the case where no second range value was given.  This is equivalent to requesting
+                        // the rest of the entity.
+                        if (end == -1)
+                            end = int.MaxValue;
+
+                        end = Utils.Clamp(end, 0, texture.Data.Length - 1);
+                        start = Utils.Clamp(start, 0, end);
+                        int len = end - start + 1;
+
+                        if (0 == start && len == texture.Data.Length)
+                        {
+                            response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        }
+                        else
+                        {
+                            response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
+                            response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
+                        }
+                        
+                        response.ContentLength = len;
+                        response.ContentType = "application/vnd.ll.mesh";
+    
+                        response.Body.Write(texture.Data, start, len);
                     }
                 }
                 else
                 {
-                    responsedata["int_response_code"] = 404; //501; //410; //404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
-                    return responsedata;
+                    m_log.Warn("[GETMESH]: Malformed Range header: " + range);
+                    response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+                }
+            }
+            else 
+            {
+                // Full content request
+                response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                response.ContentLength = texture.Data.Length;
+                response.ContentType = "application/vnd.ll.mesh";
+                response.Body.Write(texture.Data, 0, texture.Data.Length);
+            }
+        }
+
+        /// <summary>
+        /// Parse a range header.
+        /// </summary>
+        /// <remarks>
+        /// As per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html,
+        /// this obeys range headers with two values (e.g. 533-4165) and no second value (e.g. 533-).
+        /// Where there is no value, -1 is returned.
+        /// FIXME: Need to cover the case where only a second value is specified (e.g. -4165), probably by returning -1
+        /// for start.</remarks>
+        /// <returns></returns>
+        /// <param name='header'></param>
+        /// <param name='start'>Start of the range.  Undefined if this was not a number.</param>
+        /// <param name='end'>End of the range.  Will be -1 if no end specified.  Undefined if there was a raw string but this was not a number.</param>
+        private bool TryParseRange(string header, out int start, out int end)
+        {
+            start = end = 0;
+
+            if (header.StartsWith("bytes="))
+            {
+                string[] rangeValues = header.Substring(6).Split('-');
+
+                if (rangeValues.Length == 2)
+                {
+                    if (!Int32.TryParse(rangeValues[0], out start))
+                        return false;
+
+                    string rawEnd = rangeValues[1];
+
+                    if (rawEnd == "")
+                    {
+                        end = -1;
+                        return true;
+                    }
+                    else if (Int32.TryParse(rawEnd, out end))
+                    {
+                        return true;
+                    }
                 }
             }
 
-            return responsedata;
+            start = end = 0;
+            return false;
         }
     }
 }

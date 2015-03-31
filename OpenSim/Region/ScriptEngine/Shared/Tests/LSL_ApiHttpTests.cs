@@ -45,7 +45,6 @@ using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
@@ -101,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneHelpers.SetupSceneModules(m_scene, new IniConfigSource(), m_engine, m_urlModule);
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
-            m_scriptItem = TaskInventoryHelpers.AddScript(m_scene, so.RootPart);
+            m_scriptItem = TaskInventoryHelpers.AddScript(m_scene.AssetService, so.RootPart);
 
             // This is disconnected from the actual script - the mock engine does not set up any LSL_Api atm.
             // Possibly this could be done and we could obtain it directly from the MockScriptEngine.

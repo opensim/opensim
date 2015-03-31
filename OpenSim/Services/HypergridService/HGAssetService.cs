@@ -100,7 +100,7 @@ namespace OpenSim.Services.HypergridService
                 return null;
 
             if (asset.Metadata.Type == (sbyte)AssetType.Object)
-                asset.Data = AdjustIdentifiers(asset.Data); ;
+                asset.Data = AdjustIdentifiers(asset.Data);
 
             AdjustIdentifiers(asset.Metadata);
 

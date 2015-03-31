@@ -42,7 +42,7 @@
     ;; runs the UserAgentsService.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
-    ; HomeURI = "http://127.0.0.1:9000"
+    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
     ;; If this is a standalone world, this is the address of this instance.
@@ -50,7 +50,7 @@
     ;; that runs the Gatekeeper service.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
-    ; GatekeeperURI = "http://127.0.0.1:9000"
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
@@ -78,25 +78,25 @@
     ;
     ; Change this to your grid-wide asset server.  Do not add a slash to the end of any of these addresses.
     ;
-    AssetServerURI = "http://mygridserver.com:8003"
+    AssetServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [InventoryService]
     ;
     ; Change this to your grid-wide inventory server
     ;
-    InventoryServerURI = "http://mygridserver.com:8003"
+    InventoryServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [GridInfo]
     ;
     ; Change this to your grid info service
     ;
-    GridInfoURI = "http://mygridserver.com:8002"
+    GridInfoURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [GridService]
     ;
     ; Change this to your grid-wide grid server
     ;
-    GridServerURI = "http://mygridserver.com:8003"
+    GridServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
     ;AllowHypergridMapSearch = true
 
     ;; Directory for map tile images of linked regions
@@ -105,51 +105,61 @@
     ; === HG ONLY ===
     ;; Change this to the address of your Gatekeeper service
     ;; (usually bundled with the rest of the services in one 
-    ;; Robust server in port 8002, but not always)
-    Gatekeeper="http://mygridserver.com:8002"
+    ;; Robust server in port ${Const|PublicPort}, but not always)
+    Gatekeeper="${Const|BaseURL}:${Const|PublicPort}"
+
+[EstateDataStore]
+    ;
+    ; Uncomment if you want centralized estate data at robust server,
+    ; in which case the URL in [EstateService] will be used
+    ;
+    ;LocalServiceModule = "OpenSim.Services.Connectors.dll:EstateDataRemoteConnector"
+
+[EstateService]
+    EstateServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [Messaging]
     ; === HG ONLY ===
     ;; Change this to the address of your Gatekeeper service
     ;; (usually bundled with the rest of the services in one 
-    ;; Robust server in port 8002, but not always)
-    Gatekeeper = "http://mygridserver.com:8002"
+    ;; Robust server in port ${Const|PublicPort}, but not always)
+    Gatekeeper = "${Const|BaseURL}:${Const|PublicPort}"
 
 [AvatarService]
     ;
     ; Change this to your grid-wide grid server
     ;
-    AvatarServerURI = "http://mygridserver.com:8003"
+    AvatarServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [PresenceService]
     ;
     ; Change this to your grid-wide presence server
     ;
-    PresenceServerURI = "http://mygridserver.com:8003"
+    PresenceServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [UserAccountService]
     ;
     ; Change this to your grid-wide user accounts server
     ;
-    UserAccountServerURI = "http://mygridserver.com:8003"
+    UserAccountServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [GridUserService]
     ;
     ; Change this to your grid-wide user accounts server
     ;
-    GridUserServerURI = "http://mygridserver.com:8003"
+    GridUserServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [AuthenticationService]
     ;
     ; Change this to your grid-wide authentication server
     ;
-    AuthenticationServerURI = "http://mygridserver.com:8003"
+    AuthenticationServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [FriendsService]
     ;
     ; Change this to your grid-wide friends server
     ;
-    FriendsServerURI = "http://mygridserver.com:8003"
+    FriendsServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [HGInventoryAccessModule]
     ;
@@ -157,23 +167,23 @@
     ; Change this to your server 
     ; accessible from other grids
     ;
-    HomeURI = "http://mygridserver.com:8002"
-    Gatekeeper = "http://mygridserver.com:8002"
+    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+    Gatekeeper = "${Const|BaseURL}:${Const|PublicPort}"
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; set this to false. You may want to do this on sims that have licensed content.
-	;; Default is true.
+    ;; Default is true.
     ; OutboundPermission = True
 
     ;; Send visual reminder to local users that their inventories are unavailable while they are traveling
     ;; and available when they return. True by default.
     ;RestrictInventoryAccessAbroad = True
 
-	;; Warning: advanced and unusual. Default is false.
-	;; Enables configurations where grids share user services, including inventory,
-	;; while separating regions' assets from users' assets. Asset transfer between 
-	;; the users' asset server and the regions' asset server is done in HG-like manner.
+    ;; Warning: advanced and unusual. Default is false.
+    ;; Enables configurations where grids share user services, including inventory,
+    ;; while separating regions' assets from users' assets. Asset transfer between 
+    ;; the users' asset server and the regions' asset server is done in HG-like manner.
     ; CheckSeparateAssets = false
-    ; RegionHGAssetServerURI = http://mygridserver.com:8002
+    ; RegionHGAssetServerURI = ${Const|BaseURL}:${Const|PublicPort}
 
 
 [HGAssetService]
@@ -182,7 +192,7 @@
     ; Change this to your server 
     ; accessible from other grids
     ;
-    HomeURI = "http://mygridserver.com:8002"
+    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;; The asset types that this grid can export to / import from other grids.
     ;; Comma separated.
@@ -205,10 +215,10 @@
     ; === HG ONLY ===
     ; Change this to your user agent server (HG robust)
     ;
-    UserAgentServerURI = "http://mygridserver.com:8002"
+    UserAgentServerURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [MapImageService]
-   	MapImageServerURI = "http://mygridserver.com:8003"
+    MapImageServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
 [AuthorizationService]
   ; If you have regions with access restrictions

@@ -25,16 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
 using Nini.Config;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Server.Handlers.Base;
-using OpenSim.Framework.Servers;
-
 using OpenMetaverse;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Base;
+using OpenSim.Server.Handlers.Base;
+using OpenSim.Services.Interfaces;
+using System;
 
 namespace OpenSim.Capabilities.Handlers
 {
@@ -65,15 +62,15 @@ namespace OpenSim.Capabilities.Handlers
             if (m_AssetService == null)
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
-            GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
-            IRequestHandler reqHandler
-                = new RestHTTPHandler(
-                    "GET",
-                    "/CAPS/" + UUID.Random(),
-                    httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
-                    "GetMesh",
-                    null);
-            server.AddStreamHandler(reqHandler);
+            string rurl = serverConfig.GetString("GetMeshRedirectURL");
+
+            server.AddStreamHandler(
+                new GetTextureHandler("/CAPS/GetMesh/" /*+ UUID.Random() */, m_AssetService, "GetMesh", null, rurl));
+
+            rurl = serverConfig.GetString("GetMesh2RedirectURL");
+
+            server.AddStreamHandler(
+                new GetTextureHandler("/CAPS/GetMesh2/" /*+ UUID.Random() */, m_AssetService, "GetMesh2", null, rurl));
         }
     }
 }

@@ -37,7 +37,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 {
@@ -77,6 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             //AppDomain.CurrentDomain.SetData("APPBASE", Environment.CurrentDirectory + "/bin");
 //            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
             m_xEngine = new OpenSim.Region.ScriptEngine.XEngine.XEngine();
+            m_xEngine.DebugLevel = 1;
 
             IniConfigSource configSource = new IniConfigSource();
             
@@ -337,7 +337,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         public void TestStopOnInfiniteJumpLoop()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+            TestHelpers.EnableLogging();
 
             string script = 
 @"default

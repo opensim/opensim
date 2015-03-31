@@ -593,7 +593,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     if (sendTime < now)
                     {
-                        Util.FireAndForget(o => SendAppearance(avatarID));
+                        Util.FireAndForget(o => SendAppearance(avatarID), null, "AvatarFactoryModule.SendAppearance");
                         m_sendqueue.Remove(avatarID);
                     }
                 }
@@ -611,7 +611,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     if (sendTime < now)
                     {
-                        Util.FireAndForget(o => SaveAppearance(avatarID));
+                        Util.FireAndForget(o => SaveAppearance(avatarID), null, "AvatarFactoryModule.SaveAppearance");
                         m_savequeue.Remove(avatarID);
                     }
                 }
@@ -1038,7 +1038,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
                 else
                     m_log.WarnFormat("[AVFACTORY]: Client_OnRequestWearables unable to find presence for {0}", client.AgentId);
-            });
+            }, null, "AvatarFactoryModule.OnClientRequestWearables");
         }
         
         /// <summary>

@@ -43,7 +43,7 @@
     ;; runs the UserAgentsService.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
-    ; HomeURI = "http://127.0.0.1:9000"
+    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
     ;; If this is a standalone world, this is the address of this instance.
@@ -51,7 +51,7 @@
     ;; that runs the Gatekeeper service.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
-    ; GatekeeperURI = "http://127.0.0.1:9000"
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
@@ -111,7 +111,7 @@
 
     ; === HG ONLY ===
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI="http://127.0.0.1:9000"
+    ; GatekeeperURI="${Const|BaseURL}:${Const|PublicPort}"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
@@ -120,20 +120,20 @@
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
     ;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI = "http://127.0.0.1:9000"
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    SRV_HomeURI = "http://127.0.0.1:9000"    
-    SRV_InventoryServerURI = "http://127.0.0.1:9000"
-    SRV_AssetServerURI = "http://127.0.0.1:9000"
-    SRV_ProfileServerURI = "http://127.0.0.1:9000"
-    SRV_FriendsServerURI = "http://127.0.0.1:9000"
-    SRV_IMServerURI = "http://127.0.0.1:9000"
+    SRV_HomeURI = "${Const|BaseURL}:${Const|PublicPort}"    
+    SRV_InventoryServerURI = "${Const|BaseURL}:${Const|PublicPort}"
+    SRV_AssetServerURI = "${Const|BaseURL}:${Const|PublicPort}"
+    SRV_ProfileServerURI = "${Const|BaseURL}:${Const|PublicPort}"
+    SRV_FriendsServerURI = "${Const|BaseURL}:${Const|PublicPort}"
+    SRV_IMServerURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;; For Viewer 2
-    MapTileURL = "http://127.0.0.1:9000/"
+    MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/"
 
     ; Url to search service
-    ; SearchURL = "http://127.0.0.1:8002";
+    ; SearchURL = "${Const|BaseURL}:${Const|PublicPort}";
 
     ; The minimum user level required for a user to be able to login.  0 by default
     ; If you disable a particular user's account then you can set their login level below this number.
@@ -227,7 +227,7 @@
     ; See http://opensimulator.org/wiki/GridInfo
 
     ; login uri: for grid this is the login server URI
-    login = http://127.0.0.1:9000/
+    login = ${Const|BaseURL}:${Const|PublicPort}/
 
     ; long grid name: the long name of your grid
     gridname = "the lost continent of hippo"
@@ -238,58 +238,58 @@
     ; login page: optional: if it exists it will be used to tell the client to use
     ;                       this as splash page
     ; currently unused
-    ;welcome = http://127.0.0.1/welcome
+    ;welcome = ${Const|BaseURL}/welcome
 
     ; helper uri: optional: if it exists if will be used to tell the client to use
     ;                       this for all economy related things
     ; currently unused
-    ;economy = http://127.0.0.1:9000/
+    ;economy = ${Const|BaseURL}:${Const|PublicPort}/
 
     ; web page of grid: optional: page providing further information about your grid
     ; currently unused
-    ;about = http://127.0.0.1/about/
+    ;about = ${Const|BaseURL}/about/
 
     ; account creation: optional: page providing further information about obtaining
     ;                             a user account on your grid
     ; currently unused
-    ;register = http://127.0.0.1/register
+    ;register = ${Const|BaseURL}/register
 
     ; help: optional: page providing further assistance for users of your grid
     ; currently unused
-    ;help = http://127.0.0.1/help
+    ;help = ${Const|BaseURL}/help
 
     ; password help: optional: page providing password assistance for users of your grid
     ; currently unused
-    ;password = http://127.0.0.1/password
+    ;password = ${Const|BaseURL}/password
 
     ; HG address of the gatekeeper, if you have one
     ; this is the entry point for all the regions of the world
-    ; gatekeeper = http://127.0.0.1:9000/
+    ; gatekeeper = ${Const|BaseURL}:${Const|PublicPort}/
 
     ; HG user domain, if you have one
     ; this is the entry point for all user-related HG services
-    ; uas = http://127.0.0.1:9000/
+    ; uas = ${Const|BaseURL}:${Const|PublicPort}/
 
 [MapImageService]
-	; Set this if you want to change the default
-	; TilesStoragePath = "maptiles"
+    ; Set this if you want to change the default
+    ; TilesStoragePath = "maptiles"
 
 [AuthorizationService]
-	; If you have regions with access restrictions
-	; specify them here using the convention
-	; Region_<Region_Name> = <flags>
-	; Valid flags are:
-	; DisallowForeigners -- HG visitors not allowed
-	; DisallowResidents -- only Admins and Managers allowed
-	; Example:
-	; Region_Test_1 = "DisallowForeigners"
+    ; If you have regions with access restrictions
+    ; specify them here using the convention
+    ; Region_<Region_Name> = <flags>
+    ; Valid flags are:
+    ; DisallowForeigners -- HG visitors not allowed
+    ; DisallowResidents -- only Admins and Managers allowed
+    ; Example:
+    ; Region_Test_1 = "DisallowForeigners"
 
 ;;
 ;; HG configurations
 ;;
 [GatekeeperService]
-	;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
-    ; ExternalName = "http://127.0.0.1:9000"
+    ;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
+    ; ExternalName = "${Const|BaseURL}:${Const|PublicPort}"
 
     ; Does this grid allow incoming links to any region in it?
     ; If false, HG TPs happen only to the  Default regions specified in [GridService] section
@@ -344,20 +344,20 @@
     ;; Leave blank or commented for no exceptions.
     ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
 
-	;; This variable controls what is exposed to profiles of local users
-	;; as seen from outside of this grid. Leave it uncommented for exposing
-	;; UserTitle, UserFlags and the creation date. Uncomment and change to False
-	;; to block this info from being exposed.
-	; ShowUserDetailsInHGProfile = True
+    ;; This variable controls what is exposed to profiles of local users
+    ;; as seen from outside of this grid. Leave it uncommented for exposing
+    ;; UserTitle, UserFlags and the creation date. Uncomment and change to False
+    ;; to block this info from being exposed.
+    ; ShowUserDetailsInHGProfile = True
 
 
 [HGInventoryService]
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; HomeURI = "http://127.0.0.1:9000"
+    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [HGAssetService]
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; HomeURI = "http://127.0.0.1:9000"
+    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;; The asset types that this grid can export to / import from other grids.
     ;; Comma separated.
@@ -374,8 +374,8 @@
 
 [HGInventoryAccessModule]
     ;; If you have these set under [Hypergrid], no need to set it here, leave it commented
-    ; HomeURI = "http://127.0.0.1:9000"
-    ; GatekeeperURI = "http://127.0.0.1:9000"
+    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
@@ -393,7 +393,7 @@
 [Messaging]
     ; === HG ONLY ===
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI = "http://127.0.0.1:9000"
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 
 [EntityTransfer]

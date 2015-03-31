@@ -43,7 +43,6 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.AvatarService;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 {
@@ -300,7 +299,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         public void TestMove()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             SetUpScene();
 

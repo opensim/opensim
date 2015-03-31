@@ -43,6 +43,7 @@ using OpenSim.Services.Interfaces;
 using Ionic.Zlib;
 using GZipStream = Ionic.Zlib.GZipStream;
 using CompressionMode = Ionic.Zlib.CompressionMode;
+using CompressionLevel = Ionic.Zlib.CompressionLevel;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
@@ -92,11 +93,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// ID of this request
         /// </value>
         protected UUID m_id;
-
-        /// <value>
-        /// Used to collect the uuids of the assets that we need to save into the archive
-        /// </value>
-        protected Dictionary<UUID, sbyte> m_assetUuids = new Dictionary<UUID, sbyte>();
 
         /// <value>
         /// Used to collect the uuids of the users that we need to save into the archive
@@ -225,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
-                m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (sbyte)inventoryItem.AssetType, m_assetUuids);
+                m_assetGatherer.AddForInspection(inventoryItem.AssetID);
         }
 
         /// <summary>
@@ -422,16 +418,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 if (SaveAssets)
                 {
-                    m_log.DebugFormat("[INVENTORY ARCHIVER]: Saving {0} assets for items", m_assetUuids.Count);
+                    m_assetGatherer.GatherAll();
+
+                    m_log.DebugFormat(
+                        "[INVENTORY ARCHIVER]: Saving {0} assets for items", m_assetGatherer.GatheredUuids.Count);
 
                     AssetsRequest ar
                         = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter),
-                            m_assetUuids, m_scene.AssetService,
+                            m_assetGatherer.GatheredUuids, m_scene.AssetService,
                             m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
                             options, ReceivedAllAssets);
 
-                    Watchdog.RunInThread(o => ar.Execute(), string.Format("AssetsRequest ({0})", m_scene.Name), null);
+                    WorkManager.RunInThread(o => ar.Execute(), null, string.Format("AssetsRequest ({0})", m_scene.Name));
                 }
                 else
                 {

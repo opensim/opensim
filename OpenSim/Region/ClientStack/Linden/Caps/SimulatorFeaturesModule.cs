@@ -34,7 +34,7 @@ using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-//using OpenSim.Framework;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -72,6 +72,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_SearchURL = string.Empty;
         private string m_DestinationGuideURL = string.Empty;
         private bool m_ExportSupported = false;
+        private string m_GridName = string.Empty;
+        private string m_GridURL = string.Empty;
 
         #region ISharedRegionModule Members
 
@@ -81,10 +83,26 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (config != null)
             {  
-                // These are normaly set in their respective modules
+                //
+                // All this is obsolete since getting these features from the grid service!!
+                // Will be removed after the next release
+                //
                 m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
+
                 m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
+
+                if (m_DestinationGuideURL == string.Empty) // Make this consistent with the variable in the LoginService config
+                    m_DestinationGuideURL = config.GetString("DestinationGuide", m_DestinationGuideURL);
+
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
+
+                m_GridURL = Util.GetConfigVarFromSections<string>(
+                    source, "GatekeeperURI", new string[] { "Startup", "Hypergrid", "SimulatorFeatures" }, String.Empty);
+
+                m_GridName = config.GetString("GridName", string.Empty);
+                if (m_GridName == string.Empty)
+                    m_GridName = Util.GetConfigVarFromSections<string>(
+                        source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
             }
 
             AddDefaultFeatures();
@@ -138,13 +156,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
                 m_features["PhysicsMaterialsEnabled"] = true;
-    
+
                 OSDMap typesMap = new OSDMap();
                 typesMap["convex"] = true;
                 typesMap["none"] = true;
                 typesMap["prim"] = true;
                 m_features["PhysicsShapeTypes"] = typesMap;
-    
+
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;
@@ -161,6 +179,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     extrasMap["destination-guide-url"] = m_DestinationGuideURL;
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
+                if (m_GridURL != string.Empty)
+                    extrasMap["GridURL"] = m_GridURL;
+                if (m_GridName != string.Empty)
+                    extrasMap["GridName"] = m_GridName;
 
                 if (extrasMap.Count > 0)
                     m_features["OpenSimExtras"] = extrasMap;
@@ -217,6 +239,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             OSDMap copy = DeepCopy();
 
+            // Let's add the agentID to the destination guide, if it is expecting that.
+            if (copy.ContainsKey("OpenSimExtras") && ((OSDMap)(copy["OpenSimExtras"])).ContainsKey("destination-guide-url"))
+                ((OSDMap)copy["OpenSimExtras"])["destination-guide-url"] = Replace(((OSDMap)copy["OpenSimExtras"])["destination-guide-url"], "[USERID]", agentID.ToString());
+
             SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
 
             if (handlerOnSimulatorFeaturesRequest != null)
@@ -242,6 +268,11 @@ namespace OpenSim.Region.ClientStack.Linden
         private void GetGridExtraFeatures(Scene scene)
         {
             Dictionary<string, object> extraFeatures = scene.GridService.GetExtraFeatures();
+            if (extraFeatures.ContainsKey("Result") && extraFeatures["Result"] != null && extraFeatures["Result"].ToString() == "Failure")
+            {
+                m_log.WarnFormat("[SIMULATOR FEATURES MODULE]: Unable to retrieve grid-wide features");
+                return;
+            }
 
             lock (m_features)
             {
@@ -257,7 +288,16 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
                 m_features["OpenSimExtras"] = extrasMap;
+
             }
+        }
+
+        private string Replace(string url, string substring, string replacement)
+        {
+            if (!String.IsNullOrEmpty(url) && url.Contains(substring))
+                return url.Replace(substring, replacement);
+
+            return url;
         }
     }
 }

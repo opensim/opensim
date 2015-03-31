@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Tests.Common
 {
     public class BaseAssetRepository
     {

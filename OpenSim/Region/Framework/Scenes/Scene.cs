@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyrightD
+ *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSimulator Project nor the
@@ -360,19 +360,41 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MaintenanceRun { get; private set; }
 
         /// <summary>
-        /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
+        /// The minimum length of time in milliseconds that will be taken for a scene frame.  If the frame takes less time then we
         /// will sleep for the remaining period.
         /// </summary>
         /// <remarks>
         /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
         /// occur too quickly (viewer 1) or with even more slide (viewer 2).
         /// </remarks>
-        public float MinFrameTime { get; private set; }
+        public int MinFrameTicks 
+        { 
+            get { return m_minFrameTicks; } 
+            private set 
+            { 
+                m_minFrameTicks = value;
+                MinFrameSeconds = (float)m_minFrameTicks / 1000;
+            }
+        } 
+        private int m_minFrameTicks;
 
         /// <summary>
-        /// The minimum length of time in seconds that will be taken for a maintenance run.
+        /// The minimum length of time in seconds that will be taken for a scene frame.
         /// </summary>
-        public float MinMaintenanceTime { get; private set; }
+        /// <remarks>
+        /// Always derived from MinFrameTicks.
+        /// </remarks>
+        public float MinFrameSeconds { get; private set; }
+
+        /// <summary>
+        /// The minimum length of time in milliseconds that will be taken for a scene frame.  If the frame takes less time then we
+        /// will sleep for the remaining period.
+        /// </summary>
+        /// <remarks>
+        /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
+        /// occur too quickly (viewer 1) or with even more slide (viewer 2).
+        /// </remarks>
+        public int MinMaintenanceTicks { get; set; }
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
@@ -412,8 +434,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// asynchronously from the update loop.
         /// </summary>
         private bool m_cleaningTemps = false;
+                
+        /// <summary>
+        /// Used to control main scene thread looping time when not updating via timer.
+        /// </summary>
+        private ManualResetEvent m_updateWaitEvent = new ManualResetEvent(false);
 
-//        private Object m_heartbeatLock = new Object();
+        /// <summary>
+        /// Used to control maintenance thread runs.
+        /// </summary>
+        private ManualResetEvent m_maintenanceWaitEvent = new ManualResetEvent(false);
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
@@ -782,8 +812,8 @@ namespace OpenSim.Region.Framework.Scenes
             : this(regInfo, physicsScene)
         {
             m_config = config;
-            MinFrameTime = 0.089f;
-            MinMaintenanceTime = 1;
+            MinFrameTicks = 89;
+            MinMaintenanceTicks = 1000;
             SeeIntoRegion = true;
 
             Random random = new Random();
@@ -793,7 +823,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService = sceneGridService;
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
-            m_regionHandle = RegionInfo.RegionHandle;
 
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
@@ -1005,7 +1034,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
+                if (startupConfig.Contains("MinFrameTime"))
+                    MinFrameTicks = (int)(startupConfig.GetFloat("MinFrameTime") * 1000);
+
                 m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
                 m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
@@ -1018,7 +1049,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // FIXME: Ultimately this should be in a module.
-            SendPeriodicAppearanceUpdates = true;
+            SendPeriodicAppearanceUpdates = false;
             
             IConfig appearanceConfig = m_config.Configs["Appearance"];
             if (appearanceConfig != null)
@@ -1396,7 +1427,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_heartbeatThread
-                = Watchdog.StartThread(
+                = WorkManager.StartThread(
                     Heartbeat, string.Format("Heartbeat-({0})", RegionInfo.RegionName.Replace(" ", "_")), ThreadPriority.Normal, false, false);
 
             StartScripts();
@@ -1437,7 +1468,7 @@ namespace OpenSim.Region.Framework.Scenes
             // alarms for scenes with many objects.
             Update(1);
 
-            Watchdog.StartThread(
+            WorkManager.StartThread(
                 Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
 
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
@@ -1445,13 +1476,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (UpdateOnTimer)
             {
-                m_sceneUpdateTimer = new Timer(MinFrameTime * 1000);
+                m_sceneUpdateTimer = new Timer(MinFrameTicks);
                 m_sceneUpdateTimer.AutoReset = true;
                 m_sceneUpdateTimer.Elapsed += Update;
                 m_sceneUpdateTimer.Start();
             }
             else
             {
+                Thread.CurrentThread.Priority = ThreadPriority.Highest;
                 Update(-1);
                 Watchdog.RemoveThread();
                 m_isRunning = false;
@@ -1535,10 +1567,10 @@ namespace OpenSim.Region.Framework.Scenes
                     tmpMS = Util.EnvironmentTickCount();
                     m_cleaningTemps = true;
 
-                    Watchdog.RunInThread(
+                    WorkManager.RunInThread(
                         delegate { CleanTempObjects(); m_cleaningTemps = false;  }, 
-                        string.Format("CleanTempObjects ({0})", Name), 
-                        null);
+                        null,
+                        string.Format("CleanTempObjects ({0})", Name));
 
                     tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                 }
@@ -1548,19 +1580,19 @@ namespace OpenSim.Region.Framework.Scenes
                 previousMaintenanceTick = m_lastMaintenanceTick;
                 m_lastMaintenanceTick = Util.EnvironmentTickCount();
                 runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
-                runtc = (int)(MinMaintenanceTime * 1000) - runtc;
+                runtc = MinMaintenanceTicks - runtc;
     
                 if (runtc > 0)
-                    Thread.Sleep(runtc);
+                    m_maintenanceWaitEvent.WaitOne(runtc);
     
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
-                        m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
+                        m_lastMaintenanceTick, previousMaintenanceTick) > MinMaintenanceTicks * 2)
                     m_log.WarnFormat(
                         "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
-                        MinMaintenanceTime * 1000,
+                        MinMaintenanceTicks,
                         RegionInfo.RegionName);
             }
         }
@@ -1612,7 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_physics == 0)
                     {
                         if (PhysicsEnabled)
-                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
+                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameSeconds);
     
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
@@ -1710,18 +1742,16 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Watchdog.UpdateThread();
 
-                    tmpMS = Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), m_lastFrameTick);
-                    tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
+                    spareMS = MinFrameTicks - Util.EnvironmentTickCountSubtract(m_lastFrameTick);
 
-                    if (tmpMS > 0)
-                    {
-                        spareMS = tmpMS;
-                        Thread.Sleep(tmpMS);
-                    }           
+                    if (spareMS > 0)
+                        m_updateWaitEvent.WaitOne(spareMS);
+                    else
+                        spareMS = 0;
                 }
                 else
                 {
-                    spareMS = Math.Max(0, (int)(MinFrameTime * 1000) - physicsMS2 - agentMS - physicsMS -otherMS);
+                    spareMS = Math.Max(0, MinFrameTicks - physicsMS2 - agentMS - physicsMS - otherMS);
                 }
 
                 previousFrameTick = m_lastFrameTick;
@@ -1744,11 +1774,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
-                        m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
+                        m_lastFrameTick, previousFrameTick) > MinFrameTicks * 2)
                     m_log.WarnFormat(
                         "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
-                        MinFrameTime * 1000,
+                        MinFrameTicks,
                         RegionInfo.RegionName);
             }
 
@@ -1812,7 +1842,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                Watchdog.RunInThread(o => Backup(false), string.Format("BackupWaitCallback ({0})", Name), null);
+                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWaitCallback ({0})", Name));
             }
         }
 
@@ -2011,11 +2041,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             GridRegion region = new GridRegion(RegionInfo);
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
-            m_log.DebugFormat("{0} RegisterRegionWithGrid. name={1},id={2},loc=<{3},{4}>,size=<{5},{6}>",
-                                LogHeader, m_regionName, 
-                                RegionInfo.RegionID,
-                                RegionInfo.RegionLocX, RegionInfo.RegionLocY,
-                                RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
+//            m_log.DebugFormat("[SCENE]: RegisterRegionWithGrid. name={0},id={1},loc=<{2},{3}>,size=<{4},{5}>",
+//                                m_regionName, 
+//                                RegionInfo.RegionID,
+//                                RegionInfo.RegionLocX, RegionInfo.RegionLocY,
+//                                RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
 
             if (error != String.Empty)
                 throw new Exception(error);
@@ -2592,48 +2622,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            // If the user is banned, we won't let any of their objects
-            // enter. Period.
-            //
-            if (RegionInfo.EstateSettings.IsBanned(newObject.OwnerID))
-            {
-                m_log.InfoFormat("[INTERREGION]: Denied prim crossing for banned avatar {0}", newObject.OwnerID);
-                return false;
-            }
-
-            if (newPosition != Vector3.Zero)
-                newObject.RootPart.GroupPosition = newPosition;
-
-            if (!AddSceneObject(newObject))
-            {
-                m_log.DebugFormat(
-                    "[INTERREGION]: Problem adding scene object {0} in {1} ", newObject.UUID, RegionInfo.RegionName);
-                return false;
-            }
-
-            if (!newObject.IsAttachment)
-            {
-                // FIXME: It would be better to never add the scene object at all rather than add it and then delete
-                // it
-                if (!Permissions.CanObjectEntry(newObject.UUID, true, newObject.AbsolutePosition))
-                {
-                    // Deny non attachments based on parcel settings
-                    //
-                    m_log.Info("[INTERREGION]: Denied prim crossing because of parcel settings");
-
-                    DeleteSceneObject(newObject, false);
-
-                    return false;
-                }
-
-                // For attachments, we need to wait until the agent is root
-                // before we restart the scripts, or else some functions won't work.
-                newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
-                newObject.ResumeScripts();
-
-                if (newObject.RootPart.KeyframeMotion != null)
-                    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
-            }
+            if (!EntityTransferModule.HandleIncomingSceneObject(newObject, newPosition))
+                return false;           
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
@@ -2702,16 +2692,6 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private int GetStateSource(SceneObjectGroup sog)
-        {
-            ScenePresence sp = GetScenePresence(sog.OwnerID);
-
-            if (sp != null)
-                return sp.GetStateSource();
-
-            return 2; // StateSource.PrimCrossing
-        }
-
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -2758,29 +2738,41 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat(
                         "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}",
                         client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos);
-    
+                           
+                    sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
+
+                    // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
+                    // client is for a root or child agent.
+                    // We must also set this before adding the client to the client manager so that an exception later on
+                    // does not leave a client manager entry without the scene agent set, which will cause other code
+                    // to fail since any entry in the client manager should have a ScenePresence
+                    //
+                    // XXX: This may be better set for a new client before that client is added to the client manager.
+                    // But need to know what happens in the case where a ScenePresence is already present (and if this 
+                    // actually occurs).
+                    client.SceneAgent = sp;
+
                     m_clientManager.Add(client);
                     SubscribeToClientEvents(client);
-    
-                    sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
                     m_eventManager.TriggerOnNewPresence(sp);
     
                     sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
                 }
                 else
                 {
+                    // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
+                    // client is for a root or child agent.
+                    // XXX: This may be better set for a new client before that client is added to the client manager.
+                    // But need to know what happens in the case where a ScenePresence is already present (and if this 
+                    // actually occurs).
+                    client.SceneAgent = sp;
+
                     m_log.WarnFormat(
                         "[SCENE]: Already found {0} scene presence for {1} in {2} when asked to add new scene presence",
                         sp.IsChildAgent ? "child" : "root", sp.Name, RegionInfo.RegionName);
+
                     reallyNew = false;
-                }
-    
-                // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
-                // client is for a root or child agent.
-                // XXX: This may be better set for a new client before that client is added to the client manager.
-                // But need to know what happens in the case where a ScenePresence is already present (and if this 
-                // actually occurs).
-                client.SceneAgent = sp;
+                }   
 
                 // This is currently also being done earlier in NewUserConnection for real users to see if this 
                 // resolves problems where HG agents are occasionally seen by others as "Unknown user" in chat and other
@@ -5224,6 +5216,10 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
+        // Get terrain height at the specified <x,y> location.
+        // Presumes the underlying implementation is a heightmap which is a 1m grid.
+        // Finds heightmap grid points before and after the point and
+        //    does a linear approximation of the height at this intermediate point.
         public float GetGroundHeight(float x, float y)
         {
             if (x < 0)

@@ -45,12 +45,9 @@ namespace OpenSim.Server.Handlers.BakedTextures
 {
     public class BakesServerPostHandler : BaseStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IBakedTextureService m_BakesService;
-
-        private System.Text.UTF8Encoding utf8 =
-                new System.Text.UTF8Encoding();
 
         public BakesServerPostHandler(IBakedTextureService service, IServiceAuth auth) :
                 base("POST", "/bakes", auth)

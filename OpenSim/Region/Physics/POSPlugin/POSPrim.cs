@@ -270,6 +270,7 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override bool PIDActive
         {
+            get { return false; }
             set { return; }
         }
 

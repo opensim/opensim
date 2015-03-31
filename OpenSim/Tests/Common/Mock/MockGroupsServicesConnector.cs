@@ -40,7 +40,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Tests.Common
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class MockGroupsServicesConnector : ISharedRegionModule, IGroupsServicesConnector

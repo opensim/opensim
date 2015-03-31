@@ -39,7 +39,6 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Agent.TextureSender;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {

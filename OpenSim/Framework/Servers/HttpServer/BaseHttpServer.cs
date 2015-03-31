@@ -54,6 +54,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
+        private static Encoding UTF8NoBOM = new System.Text.UTF8Encoding(false);
 
         /// <summary>
         /// This is a pending websocket request before it got an sucessful upgrade response.
@@ -1115,7 +1116,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     response.ContentType = "text/xml";
                     using (MemoryStream outs = new MemoryStream())
-                    using (XmlTextWriter writer = new XmlTextWriter(outs, Encoding.UTF8))
+                    using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
                     {
                         writer.Formatting = Formatting.None;
                         XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);

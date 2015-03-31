@@ -120,7 +120,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 for (uint i = 0; i < m_WorkerThreadCount; i++)
                 {
                     m_workerThreads[i]
-                        = Watchdog.StartThread(
+                        = WorkManager.StartThread(
                             PoolWorkerJob,
                             string.Format("PollServiceWorkerThread{0}:{1}", i, m_server.Port),
                             ThreadPriority.Normal,
@@ -130,7 +130,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             int.MaxValue);
                 }
 
-                Watchdog.StartThread(
+                WorkManager.StartThread(
                     this.CheckLongPollThreads,
                     string.Format("LongPollServiceWatcherThread:{0}", m_server.Port),
                     ThreadPriority.Normal,

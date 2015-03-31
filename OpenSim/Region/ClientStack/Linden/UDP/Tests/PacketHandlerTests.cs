@@ -30,7 +30,6 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests

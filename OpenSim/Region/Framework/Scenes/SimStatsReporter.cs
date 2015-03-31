@@ -224,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SimStatsReporter(Scene scene)
         {
             m_scene = scene;
-            m_reportedFpsCorrectionFactor = scene.MinFrameTime * m_nominalReportedFps;
+            m_reportedFpsCorrectionFactor = scene.MinFrameSeconds * m_nominalReportedFps;
             m_statsUpdateFactor = (float)(m_statsUpdatesEveryMS / 1000);
             ReportingRegion = scene.RegionInfo;
 
@@ -239,7 +239,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             /// At the moment, we'll only report if a frame is over 120% of target, since commonly frames are a bit
             /// longer than ideal (which in itself is a concern).
-            SlowFramesStatReportThreshold = (int)Math.Ceiling(m_scene.MinFrameTime * 1000 * 1.2);
+            SlowFramesStatReportThreshold = (int)Math.Ceiling(scene.MinFrameTicks * 1.2);
 
             SlowFramesStat
                 = new Stat(

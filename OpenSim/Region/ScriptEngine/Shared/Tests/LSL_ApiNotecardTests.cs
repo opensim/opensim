@@ -18,7 +18,6 @@ using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
@@ -62,7 +61,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneHelpers.SetupSceneModules(m_scene, new IniConfigSource(), m_engine);
 
             m_so = SceneHelpers.AddSceneObject(m_scene);
-            m_scriptItem = TaskInventoryHelpers.AddScript(m_scene, m_so.RootPart);
+            m_scriptItem = TaskInventoryHelpers.AddScript(m_scene.AssetService, m_so.RootPart);
 
             // This is disconnected from the actual script - the mock engine does not set up any LSL_Api atm.
             // Possibly this could be done and we could obtain it directly from the MockScriptEngine.
@@ -78,7 +77,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             string[] ncLines = { "One", "Twoè", "Three" };
 
             TaskInventoryItem ncItem 
-                = TaskInventoryHelpers.AddNotecard(m_scene, m_so.RootPart, "nc", "1", "10", string.Join("\n", ncLines));
+                = TaskInventoryHelpers.AddNotecard(m_scene.AssetService, m_so.RootPart, "nc", "1", "10", string.Join("\n", ncLines));
 
             AssertValidNotecardLine(ncItem.Name, 0, ncLines[0]);
             AssertValidNotecardLine(ncItem.Name, 2, ncLines[2]);
@@ -103,7 +102,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         {
             TestHelpers.InMethod();
 
-            TaskInventoryItem ncItem = TaskInventoryHelpers.AddScript(m_scene, m_so.RootPart, "nc1", "Not important");
+            TaskInventoryItem ncItem = TaskInventoryHelpers.AddScript(m_scene.AssetService, m_so.RootPart, "nc1", "Not important");
 
             AssertInValidNotecardLine(ncItem.Name, 0);
         }

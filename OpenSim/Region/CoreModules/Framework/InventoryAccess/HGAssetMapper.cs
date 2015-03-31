@@ -189,50 +189,217 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return Utils.StringToBytes(RewriteSOP(xml));
         }
 
-        protected string RewriteSOP(string xml)
+        protected void TransformXml(XmlReader reader, XmlWriter writer)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
-            XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
+//            m_log.DebugFormat("[HG ASSET MAPPER]: Transforming XML");
 
-            foreach (XmlNode sop in sops)
+            int sopDepth = -1;
+            UserAccount creator = null;
+            bool hasCreatorData = false;
+
+            while (reader.Read())
             {
-                UserAccount creator = null;
-                bool hasCreatorData = false;
-                XmlNodeList nodes = sop.ChildNodes;
-                foreach (XmlNode node in nodes)
+//                Console.WriteLine("Depth: {0}, name {1}", reader.Depth, reader.Name);
+
+                switch (reader.NodeType)
                 {
-                    if (node.Name == "CreatorID")
+                    case XmlNodeType.Attribute:
+//                    Console.WriteLine("FOUND ATTRIBUTE {0}", reader.Name);
+                    writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
+                    break;
+
+                    case XmlNodeType.CDATA:
+                    writer.WriteCData(reader.Value);
+                    break;
+
+                    case XmlNodeType.Comment:
+                    writer.WriteComment(reader.Value);
+                    break;
+
+                    case XmlNodeType.DocumentType:
+                    writer.WriteDocType(reader.Name, reader.Value, null, null);
+                    break;
+
+                    case XmlNodeType.Element: 
+//                    m_log.DebugFormat("Depth {0} at element {1}", reader.Depth, reader.Name);
+
+                    writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
+
+                    if (reader.HasAttributes)
                     {
-                        UUID uuid = UUID.Zero;
-                        UUID.TryParse(node.InnerText, out uuid);
-                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                        while (reader.MoveToNextAttribute())
+                            writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
+
+                        reader.MoveToElement();
                     }
-                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
-                        hasCreatorData = true;
 
-                    //if (node.Name == "OwnerID")
-                    //{
-                    //    UserAccount owner = GetUser(node.InnerText);
-                    //    if (owner != null)
-                    //        node.InnerText = m_ProfileServiceURL + "/" + node.InnerText + "/" + owner.FirstName + " " + owner.LastName;
-                    //}
-                }
+                    if (reader.LocalName == "SceneObjectPart")
+                    {
+                        if (sopDepth < 0)
+                        {
+                            sopDepth = reader.Depth;
+//                            m_log.DebugFormat("[HG ASSET MAPPER]: Set sopDepth to {0}", sopDepth);
+                        }
+                    }
+                    else
+                    {
+                        if (sopDepth >= 0 && reader.Depth == sopDepth + 1)
+                        {
+                            if (reader.Name == "CreatorID")
+                            {
+                                reader.Read();
+                                if (reader.NodeType == XmlNodeType.Element && reader.Name == "Guid" || reader.Name == "UUID")
+                                {
+                                    reader.Read();
 
-                if (!hasCreatorData && creator != null)
-                {
-                    XmlElement creatorData = doc.CreateElement("CreatorData");
-                    creatorData.InnerText = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
-                    sop.AppendChild(creatorData);
+                                    if (reader.NodeType == XmlNodeType.Text)
+                                    {
+                                        UUID uuid = UUID.Zero;
+                                        UUID.TryParse(reader.Value, out uuid);
+                                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                                        writer.WriteElementString("UUID", reader.Value);
+                                        reader.Read();
+                                    }
+                                    else
+                                    {
+                                        // If we unexpected run across mixed content in this node, still carry on
+                                        // transforming the subtree (this replicates earlier behaviour).
+                                        TransformXml(reader, writer);
+                                    }
+                                }
+                                else
+                                {
+                                    // If we unexpected run across mixed content in this node, still carry on
+                                    // transforming the subtree (this replicates earlier behaviour).
+                                    TransformXml(reader, writer);
+                                }
+                            }
+                            else if (reader.Name == "CreatorData")
+                            {
+                                reader.Read();
+                                if (reader.NodeType == XmlNodeType.Text)
+                                {
+                                    hasCreatorData = true;
+                                    writer.WriteString(reader.Value);
+                                }
+                                else
+                                {
+                                    // If we unexpected run across mixed content in this node, still carry on
+                                    // transforming the subtree (this replicates earlier behaviour).
+                                    TransformXml(reader, writer);
+                                }
+                            }
+                        }
+                    }
+                                        
+                    if (reader.IsEmptyElement)
+                    {
+//                        m_log.DebugFormat("[HG ASSET MAPPER]: Writing end for empty element {0}", reader.Name);
+                        writer.WriteEndElement();
+                    }
+
+                    break;
+
+                    case XmlNodeType.EndElement:
+//                    m_log.DebugFormat("Depth {0} at EndElement", reader.Depth);
+                    if (sopDepth == reader.Depth)
+                    {
+                        if (!hasCreatorData && creator != null)
+                            writer.WriteElementString(reader.Prefix, "CreatorData", reader.NamespaceURI, string.Format("{0};{1} {2}", m_HomeURI, creator.FirstName, creator.LastName));
+
+//                        m_log.DebugFormat("[HG ASSET MAPPER]: Reset sopDepth");
+                        sopDepth = -1;
+                        creator = null;
+                        hasCreatorData = false;
+                    }
+                    writer.WriteEndElement();
+                    break;
+
+                    case XmlNodeType.EntityReference:
+                    writer.WriteEntityRef(reader.Name);
+                    break;
+
+                    case XmlNodeType.ProcessingInstruction:
+                    writer.WriteProcessingInstruction(reader.Name, reader.Value);
+                    break;
+
+                    case XmlNodeType.Text:
+                    writer.WriteString(reader.Value);
+                    break;
+
+                    case XmlNodeType.XmlDeclaration:
+                    // For various reasons, not all serializations have xml declarations (or consistent ones) 
+                    // and as it's embedded inside a byte stream we don't need it anyway, so ignore.
+                    break;
+
+                    default:
+                    m_log.WarnFormat(
+                        "[HG ASSET MAPPER]: Unrecognized node {0} in asset XML transform in {1}", 
+                        reader.NodeType, m_scene.Name);
+                    break;
                 }
             }
+        }
 
-            using (StringWriter wr = new StringWriter())
+        protected string RewriteSOP(string xmlData)
+        {
+//            Console.WriteLine("Input XML [{0}]", xmlData);
+
+            using (StringWriter sw = new StringWriter())
+            using (XmlTextWriter writer = new XmlTextWriter(sw))
+            using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
+            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
             {
-                doc.Save(wr);
-                return wr.ToString();
+                TransformXml(reader, writer);
+
+//                Console.WriteLine("Output: [{0}]", sw.ToString());
+
+                return sw.ToString();
             }
 
+            // We are now taking the more complex streaming approach above because some assets can be very large
+            // and can trigger higher CPU use or possibly memory problems.
+//            XmlDocument doc = new XmlDocument();
+//            doc.LoadXml(xml);
+//            XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
+//
+//            foreach (XmlNode sop in sops)
+//            {
+//                UserAccount creator = null;
+//                bool hasCreatorData = false;
+//                XmlNodeList nodes = sop.ChildNodes;
+//                foreach (XmlNode node in nodes)
+//                {
+//                    if (node.Name == "CreatorID")
+//                    {
+//                        UUID uuid = UUID.Zero;
+//                        UUID.TryParse(node.InnerText, out uuid);
+//                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+//                    }
+//                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
+//                        hasCreatorData = true;
+//
+//                    //if (node.Name == "OwnerID")
+//                    //{
+//                    //    UserAccount owner = GetUser(node.InnerText);
+//                    //    if (owner != null)
+//                    //        node.InnerText = m_ProfileServiceURL + "/" + node.InnerText + "/" + owner.FirstName + " " + owner.LastName;
+//                    //}
+//                }
+//
+//                if (!hasCreatorData && creator != null)
+//                {
+//                    XmlElement creatorData = doc.CreateElement("CreatorData");
+//                    creatorData.InnerText = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
+//                    sop.AppendChild(creatorData);
+//                }
+//            }
+//
+//            using (StringWriter wr = new StringWriter())
+//            {
+//                doc.Save(wr);
+//                return wr.ToString();
+//            }
         }
 
         // TODO: unused
@@ -259,12 +426,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // The act of gathering UUIDs downloads some assets from the remote server
             // but not all...
-            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
-            uuidGatherer.GatherAssetUuids(assetID, meta.Type, ids);
-            m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", ids.Count);
+            uuidGatherer.AddForInspection(assetID);
+            uuidGatherer.GatherAll();
+
+            m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", uuidGatherer.GatheredUuids.Count);
             bool success = true;
-            foreach (UUID uuid in ids.Keys)
+            foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
                 if (FetchAsset(userAssetURL, uuid) == null)
                     success = false;
 
@@ -274,7 +442,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
                 m_log.DebugFormat("[HG ASSET MAPPER]: Successfully got item {0} from asset server {1}", assetID, userAssetURL);
         }
-
 
         public void Post(UUID assetID, UUID ownerID, string userAssetURL)
         {
@@ -289,9 +456,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return;
             }
 
-            Dictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
-            uuidGatherer.GatherAssetUuids(asset.FullID, asset.Type, ids);
+            uuidGatherer.AddForInspection(asset.FullID);
+            uuidGatherer.GatherAll();
 
             // Check which assets already exist in the destination server
 
@@ -299,16 +466,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (!url.EndsWith("/") && !url.EndsWith("="))
                 url = url + "/";
 
-            string[] remoteAssetIDs = new string[ids.Count];
+            string[] remoteAssetIDs = new string[uuidGatherer.GatheredUuids.Count];
             int i = 0;
-            foreach (UUID id in ids.Keys)
+            foreach (UUID id in uuidGatherer.GatheredUuids.Keys)
                 remoteAssetIDs[i++] = url + id.ToString();
 
             bool[] exist = m_scene.AssetService.AssetsExist(remoteAssetIDs);
 
             var existSet = new HashSet<string>();
             i = 0;
-            foreach (UUID id in ids.Keys)
+            foreach (UUID id in uuidGatherer.GatheredUuids.Keys)
             {
                 if (exist[i])
                     existSet.Add(id.ToString());
@@ -319,18 +486,43 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             bool success = true;
 
-            foreach (UUID uuid in ids.Keys)
+            foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
             {
                 if (!existSet.Contains(uuid.ToString()))
                 {
                     asset = m_scene.AssetService.Get(uuid.ToString());
                     if (asset == null)
+                    {
                         m_log.DebugFormat("[HG ASSET MAPPER]: Could not find asset {0}", uuid);
+                    }
                     else
-                        success &= PostAsset(userAssetURL, asset);
+                    {
+                        try
+                        {
+                            success &= PostAsset(userAssetURL, asset);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error(
+                                string.Format(
+                                    "[HG ASSET MAPPER]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ", 
+                                    asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL), 
+                                e);
+
+                            // For debugging purposes for now we will continue to throw the exception up the stack as was already happening.  However, after
+                            // debugging we may want to simply report the failure if we can tell this is due to a failure
+                            // with a particular asset and not a destination network failure where all asset posts will fail (and
+                            // generate large amounts of log spam).
+                            throw e;
+                        }
+                    }
                 }
                 else
-                    m_log.DebugFormat("[HG ASSET MAPPER]: Didn't post asset {0} because it already exists in asset server {1}", uuid, userAssetURL);
+                {
+                    m_log.DebugFormat(
+                        "[HG ASSET MAPPER]: Didn't post asset {0} referenced from {1} because it already exists in asset server {2}", 
+                        uuid, assetID, userAssetURL);
+                }
             }
 
             if (!success)

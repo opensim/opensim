@@ -363,6 +363,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Float osGetHealth(string avatar);
         void osCauseHealing(string avatar, double healing);
         void osCauseDamage(string avatar, double damage);
+        void osForceOtherSit(string avatar);
+        void osForceOtherSit(string avatar, string target);
         LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);
         void osSetPrimitiveParams(LSL_Key prim, LSL_List rules);
         void osSetProjectionParams(bool projection, LSL_Key texture, double fov, double focus, double amb);

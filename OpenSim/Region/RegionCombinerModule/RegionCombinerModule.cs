@@ -41,6 +41,7 @@ using Mono.Addins;
 
 namespace OpenSim.Region.RegionCombinerModule
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RegionCombinerModule")]
     public class RegionCombinerModule : ISharedRegionModule, IRegionCombinerModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

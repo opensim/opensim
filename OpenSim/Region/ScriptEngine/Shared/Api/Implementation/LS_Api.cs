@@ -265,169 +265,438 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int idx = 0;
             while (idx < rules.Length)
             {
-                uint rule = (uint)rules.GetLSLIntegerItem(idx);
+                uint rule;
+
+                try
+                {
+                    rule = (uint)rules.GetLSLIntegerItem(idx);
+                }
+                catch (InvalidCastException)
+                {
+                    throw new InvalidCastException(string.Format("Error running rule type: arg #{0} - parameter type must be integer", idx));
+                }
+
                 LSL_Types.Quaternion iQ;
                 LSL_Types.Vector3 iV;
                 switch (rule)
                 {
                     case (int)ScriptBaseClass.WL_SUN_MOON_POSITION:
                         idx++;
-                        wl.sunMoonPosition = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.sunMoonPosition = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_SUN_MOON_POSITION: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_AMBIENT:
                         idx++;
-                        iQ = rules.GetQuaternionItem(idx);
+                        try
+                        {
+                            iQ = rules.GetQuaternionItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_AMBIENT: arg #{0} - parameter 1 must be rotation", idx));
+                        }
                         wl.ambient = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
                         break;
                     case (int)ScriptBaseClass.WL_BIG_WAVE_DIRECTION:
                         idx++;
-                        iV = rules.GetVector3Item(idx);
+                        try
+                        {
+                            iV = rules.GetVector3Item(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_BIG_WAVE_DIRECTION: arg #{0} - parameter 1 must be vector", idx));
+                        }
                         wl.bigWaveDirection = new Vector2((float)iV.x, (float)iV.y);
                         break;
                     case (int)ScriptBaseClass.WL_BLUE_DENSITY:
                         idx++;
-                        iQ = rules.GetQuaternionItem(idx);
+                        try
+                        {
+                            iQ = rules.GetQuaternionItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_BLUE_DENSITY: arg #{0} - parameter 1 must be rotation", idx));
+                        }
                         wl.blueDensity = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
                         break;
                     case (int)ScriptBaseClass.WL_BLUR_MULTIPLIER:
                         idx++;
-                        wl.blurMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.blurMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_BLUR_MULTIPLIER: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_COLOR:
                         idx++;
-                        iQ = rules.GetQuaternionItem(idx);
+                        try
+                        {
+                            iQ = rules.GetQuaternionItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_COLOR: arg #{0} - parameter 1 must be rotation", idx));
+                        }
                         wl.cloudColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_COVERAGE:
                         idx++;
-                        wl.cloudCoverage = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.cloudCoverage = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_COVERAGE: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_DETAIL_XY_DENSITY:
                         idx++;
-                        iV = rules.GetVector3Item(idx);
+                        try
+                        {
+                            iV = rules.GetVector3Item(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_DETAIL_XY_DENSITY: arg #{0} - parameter 1 must be vector", idx));
+                        }
                         wl.cloudDetailXYDensity = iV;
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_SCALE:
                         idx++;
-                        wl.cloudScale = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.cloudScale = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_SCALE: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_SCROLL_X:
                         idx++;
-                        wl.cloudScrollX = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.cloudScrollX = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_SCROLL_X: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_SCROLL_X_LOCK:
                         idx++;
-                        wl.cloudScrollXLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        try
+                        {
+                            wl.cloudScrollXLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_SCROLL_Y_LOCK: arg #{0} - parameter 1 must be integer", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_SCROLL_Y:
                         idx++;
-                        wl.cloudScrollY = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.cloudScrollY = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_SCROLL_Y: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_SCROLL_Y_LOCK:
                         idx++;
-                        wl.cloudScrollYLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        try
+                        {
+                            wl.cloudScrollYLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_SCROLL_Y_LOCK: arg #{0} - parameter 1 must be integer", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_CLOUD_XY_DENSITY:
                         idx++;
-                        iV = rules.GetVector3Item(idx);
+                        try
+                        {
+                            iV = rules.GetVector3Item(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_CLOUD_XY_DENSITY: arg #{0} - parameter 1 must be vector", idx));
+                        }
                         wl.cloudXYDensity = iV;
                         break;
                     case (int)ScriptBaseClass.WL_DENSITY_MULTIPLIER:
                         idx++;
-                        wl.densityMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.densityMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_DENSITY_MULTIPLIER: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_DISTANCE_MULTIPLIER:
                         idx++;
-                        wl.distanceMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.distanceMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_DISTANCE_MULTIPLIER: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_DRAW_CLASSIC_CLOUDS:
                         idx++;
-                        wl.drawClassicClouds = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        try
+                        {
+                            wl.drawClassicClouds = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_DRAW_CLASSIC_CLOUDS: arg #{0} - parameter 1 must be integer", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_EAST_ANGLE:
                         idx++;
-                        wl.eastAngle = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.eastAngle = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_EAST_ANGLE: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_FRESNEL_OFFSET:
                         idx++;
-                        wl.fresnelOffset = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.fresnelOffset = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_FRESNEL_OFFSET: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_FRESNEL_SCALE:
                         idx++;
-                        wl.fresnelScale = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.fresnelScale = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_FRESNEL_SCALE: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_HAZE_DENSITY:
                         idx++;
-                        wl.hazeDensity = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.hazeDensity = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_HAZE_DENSITY: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_HAZE_HORIZON:
                         idx++;
-                        wl.hazeHorizon = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.hazeHorizon = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_HAZE_HORIZON: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_HORIZON:
                         idx++;
-                        iQ = rules.GetQuaternionItem(idx);
+                        try
+                        {
+                            iQ = rules.GetQuaternionItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_HORIZON: arg #{0} - parameter 1 must be rotation", idx));
+                        }
                         wl.horizon = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
                         break;
                     case (int)ScriptBaseClass.WL_LITTLE_WAVE_DIRECTION:
                         idx++;
-                        iV = rules.GetVector3Item(idx);
+                        try
+                        {
+                            iV = rules.GetVector3Item(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_LITTLE_WAVE_DIRECTION: arg #{0} - parameter 1 must be vector", idx));
+                        }
                         wl.littleWaveDirection = new Vector2((float)iV.x, (float)iV.y);
                         break;
                     case (int)ScriptBaseClass.WL_MAX_ALTITUDE:
                         idx++;
-                        wl.maxAltitude = (ushort)rules.GetLSLIntegerItem(idx).value;
+                        try
+                        {
+                            wl.maxAltitude = (ushort)rules.GetLSLIntegerItem(idx).value;
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_MAX_ALTITUDE: arg #{0} - parameter 1 must be integer", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_NORMAL_MAP_TEXTURE:
                         idx++;
-                        wl.normalMapTexture = new UUID(rules.GetLSLStringItem(idx).m_string);
+                        try
+                        {
+                            wl.normalMapTexture = new UUID(rules.GetLSLStringItem(idx).m_string);
+                        }
+                        catch (ArgumentException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_NORMAL_MAP_TEXTURE: arg #{0} - parameter 1 must be key", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_REFLECTION_WAVELET_SCALE:
                         idx++;
-                        iV = rules.GetVector3Item(idx);
+                        try
+                        {
+                            iV = rules.GetVector3Item(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_REFLECTION_WAVELET_SCALE: arg #{0} - parameter 1 must be vector", idx));
+                        }
                         wl.reflectionWaveletScale = iV;
                         break;
                     case (int)ScriptBaseClass.WL_REFRACT_SCALE_ABOVE:
                         idx++;
-                        wl.refractScaleAbove = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.refractScaleAbove = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_REFRACT_SCALE_ABOVE: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_REFRACT_SCALE_BELOW:
                         idx++;
-                        wl.refractScaleBelow = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.refractScaleBelow = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_REFRACT_SCALE_BELOW: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_SCENE_GAMMA:
                         idx++;
-                        wl.sceneGamma = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.sceneGamma = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_SCENE_GAMMA: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_STAR_BRIGHTNESS:
                         idx++;
-                        wl.starBrightness = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.starBrightness = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_STAR_BRIGHTNESS: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_SUN_GLOW_FOCUS:
                         idx++;
-                        wl.sunGlowFocus = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.sunGlowFocus = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_SUN_GLOW_FOCUS: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_SUN_GLOW_SIZE:
                         idx++;
-                        wl.sunGlowSize = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.sunGlowSize = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_SUN_GLOW_SIZE: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_SUN_MOON_COLOR:
                         idx++;
                         iQ = rules.GetQuaternionItem(idx);
-                        wl.sunMoonColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        try
+                        {
+                            wl.sunMoonColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_SUN_MOON_COLOR: arg #{0} - parameter 1 must be rotation", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_UNDERWATER_FOG_MODIFIER:
                         idx++;
-                        wl.underwaterFogModifier = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.underwaterFogModifier = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_UNDERWATER_FOG_MODIFIER: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                     case (int)ScriptBaseClass.WL_WATER_COLOR:
                         idx++;
-                        iV = rules.GetVector3Item(idx);
+                        try
+                        {
+                            iV = rules.GetVector3Item(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_WATER_COLOR: arg #{0} - parameter 1 must be vector", idx));
+                        }
                         wl.waterColor = iV;
                         break;
                     case (int)ScriptBaseClass.WL_WATER_FOG_DENSITY_EXPONENT:
                         idx++;
-                        wl.waterFogDensityExponent = (float)rules.GetLSLFloatItem(idx);
+                        try
+                        {
+                            wl.waterFogDensityExponent = (float)rules.GetLSLFloatItem(idx);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException(string.Format("Error running rule WL_WATER_FOG_DENSITY_EXPONENT: arg #{0} - parameter 1 must be float", idx));
+                        }
                         break;
                 }
                 idx++;
@@ -464,7 +733,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (LightShareModule.EnableWindlight)
             {
-                RegionLightShareData wl = getWindlightProfileFromRules(rules);
+                RegionLightShareData wl;
+                try
+                {
+                    wl = getWindlightProfileFromRules(rules);
+                }
+                catch(InvalidCastException e)
+                {
+                    LSShoutError(e.Message);
+                    return 0;
+                }
                 wl.valid = true;
                 m_host.ParentGroup.Scene.StoreWindlightProfile(wl);
                 success = 1;
@@ -532,8 +810,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (LightShareModule.EnableWindlight)
-            { 
-                RegionLightShareData wl = getWindlightProfileFromRules(rules);
+            {
+                RegionLightShareData wl;
+                try
+                {
+                    wl = getWindlightProfileFromRules(rules);
+                }
+                catch(InvalidCastException e)
+                {
+                    LSShoutError(e.Message);
+                    return 0;
+                }
                 World.EventManager.TriggerOnSendNewWindlightProfileTargeted(wl, new UUID(target.m_string));
                 success = 1;
             }

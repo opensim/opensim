@@ -98,6 +98,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
 
         ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, string version);
+
+        bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition);
     }
 
     public interface IUserAgentVerificationModule

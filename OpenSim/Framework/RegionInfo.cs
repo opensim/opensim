@@ -127,7 +127,6 @@ namespace OpenSim.Framework
         private int m_objectCapacity = 0;
         private int m_maxPrimsPerUser = -1;
         private int m_linksetCapacity = 0;
-        private int m_agentCapacity = 0;
         private string m_regionType = String.Empty;
         private RegionLightShareData m_windlight = new RegionLightShareData();
         protected uint m_httpPort;
@@ -351,10 +350,7 @@ namespace OpenSim.Framework
             get { return m_linksetCapacity; }
         }
 
-        public int AgentCapacity
-        {
-            get { return m_agentCapacity; }
-        }
+        public int AgentCapacity { get; set; }
 
         public byte AccessLevel
         {
@@ -748,7 +744,7 @@ namespace OpenSim.Framework
             
             #endregion
 
-            m_agentCapacity = config.GetInt("MaxAgents", 100);
+            AgentCapacity = config.GetInt("MaxAgents", 100);
             allKeys.Remove("MaxAgents");
 
             // Multi-tenancy
@@ -827,12 +823,14 @@ namespace OpenSim.Framework
             string location = String.Format("{0},{1}", RegionLocX, RegionLocY);
             config.Set("Location", location);
 
-            if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
-            {
+            if (RegionSizeX > 0)
                 config.Set("SizeX", RegionSizeX);
+
+            if (RegionSizeY > 0)
                 config.Set("SizeY", RegionSizeY);
-                config.Set("SizeZ", RegionSizeZ);
-            }
+
+//            if (RegionSizeZ > 0)
+//                config.Set("SizeZ", RegionSizeZ);
 
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
             config.Set("InternalPort", m_internalEndPoint.Port);
@@ -864,8 +862,8 @@ namespace OpenSim.Framework
             if (m_linksetCapacity > 0)
                 config.Set("LinksetPrims", m_linksetCapacity);
 
-            if (m_agentCapacity > 0)
-                config.Set("MaxAgents", m_agentCapacity);
+            if (AgentCapacity > 0)
+                config.Set("MaxAgents", AgentCapacity);
 
             if (ScopeID != UUID.Zero)
                 config.Set("ScopeID", ScopeID.ToString());
@@ -876,7 +874,7 @@ namespace OpenSim.Framework
             if (m_maptileStaticUUID != UUID.Zero)
                 config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString());
 
-            if (MaptileStaticFile != String.Empty)
+            if (MaptileStaticFile != null && MaptileStaticFile != String.Empty)
                 config.Set("MaptileStaticFile", MaptileStaticFile);
         }
 

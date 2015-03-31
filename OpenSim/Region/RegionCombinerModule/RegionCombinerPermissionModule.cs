@@ -34,7 +34,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.RegionCombinerModule
 {
- public class RegionCombinerPermissionModule
+    public class RegionCombinerPermissionModule
     {
         private Scene m_rootScene;
 

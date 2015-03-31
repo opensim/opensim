@@ -266,7 +266,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Quaternion SpinOldOrientation = Quaternion.Identity;
 
-        protected int m_APIDIterations = 0;
+        protected bool m_APIDActive = false;
         protected Quaternion m_APIDTarget = Quaternion.Identity;
         protected float m_APIDDamp = 0;
         protected float m_APIDStrength = 0;
@@ -642,6 +642,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected bool APIDActive
+        {
+            get { return m_APIDActive; }
+            set { m_APIDActive = value; }
+        }
+
         protected Quaternion APIDTarget
         {
             get { return m_APIDTarget; }
@@ -923,14 +929,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
-                m_velocity = value;
+                if (Util.IsNanOrInfinity(value))
+                    m_velocity = Vector3.Zero;
+                else
+                    m_velocity = value;
 
                 PhysicsActor actor = PhysActor;
                 if (actor != null)
                 {
                     if (actor.IsPhysical)
                     {
-                        actor.Velocity = value;
+                        actor.Velocity = m_velocity;
                         ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
@@ -957,14 +966,30 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 return m_angularVelocity;
             }
-            set { m_angularVelocity = value; }
+            set
+            {
+                if (Util.IsNanOrInfinity(value))
+                    m_angularVelocity = Vector3.Zero;
+                else
+                    m_angularVelocity = value;
+
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical)
+                    actor.RotationalVelocity = m_angularVelocity;
+            }
         }
 
         /// <summary></summary>
         public Vector3 Acceleration
         {
             get { return m_acceleration; }
-            set { m_acceleration = value; }
+            set 
+            {
+                if (Util.IsNanOrInfinity(value))
+                    m_acceleration = Vector3.Zero;
+                else
+                    m_acceleration = value;
+            }
         }
 
         public string Description { get; set; }
@@ -2229,7 +2254,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (tau > 0)
             {
-                ParentGroup.moveToTarget(target, tau);
+                ParentGroup.MoveToTarget(target, tau);
             }
             else
             {
@@ -2610,7 +2635,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
                 
-                m_APIDIterations = 1 + (int)(Math.PI * APIDStrength);
+                APIDActive = true;
             }
 
             // Necessary to get the lookat deltas applied
@@ -2624,7 +2649,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopLookAt()
         {
-            APIDTarget = Quaternion.Identity;
+            APIDActive = false;
         }
 
 
@@ -3279,10 +3304,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopMoveToTarget()
         {
-            ParentGroup.stopMoveToTarget();
-
-            ParentGroup.ScheduleGroupForTerseUpdate();
-            //ParentGroup.ScheduleGroupForFullUpdate();
+            ParentGroup.StopMoveToTarget();
         }
 
         public void StoreUndoState()
@@ -4839,7 +4861,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (OwnerID != item.Owner)
             {
                 //LogPermissions("Before ApplyNextOwnerPermissions");
-                ApplyNextOwnerPermissions();
+
+                if (scene.Permissions.PropagatePermissions())
+                    ApplyNextOwnerPermissions();
+
                 //LogPermissions("After ApplyNextOwnerPermissions");
 
                 LastOwnerID = OwnerID;
@@ -4873,20 +4898,44 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                if (APIDTarget != Quaternion.Identity)
+                if (APIDActive)
                 {
-                    if (m_APIDIterations <= 1)
+                    PhysicsActor pa = ParentGroup.RootPart.PhysActor;
+                    if (pa == null || !pa.IsPhysical || APIDStrength < 0.04)
                     {
-                        UpdateRotation(APIDTarget);
-                        APIDTarget = Quaternion.Identity;
+                        StopLookAt();
                         return;
                     }
 
-                    Quaternion rot = Quaternion.Slerp(RotationOffset,APIDTarget,1.0f/(float)m_APIDIterations);
-                    rot.Normalize();
-                    UpdateRotation(rot);
+                    Quaternion currRot = GetWorldRotation();
+                    currRot.Normalize();
+                    
+                    // difference between current orientation and desired orientation
+                    Quaternion dR = new Quaternion(currRot.X, currRot.Y, currRot.Z, -currRot.W) * APIDTarget;
 
-                    m_APIDIterations--;
+                    // find axis of rotation to rotate to desired orientation
+                    Vector3 axis = Vector3.UnitX;
+                    float s = (float)Math.Sqrt(1.0f - dR.W * dR.W);
+                    if (s >= 0.001)
+                    {
+                        float invS = 1.0f / s;
+                        if (dR.W < 0) invS = -invS;
+                        axis = new Vector3(dR.X * invS, dR.Y * invS, dR.Z * invS) * currRot;
+                        axis.Normalize();
+                    }
+                    
+                    // angle between current and desired orientation
+                    float angle = 2.0f * (float)Math.Acos(dR.W);
+                    if (angle > Math.PI)
+                        angle = 2.0f * (float)Math.PI - angle;
+
+                    // clamp strength to avoid overshoot
+                    float strength = 1.0f / APIDStrength;
+                    if (strength > 1.0) strength = 1.0f;
+
+                    // set angular velocity to rotate to desired orientation
+                    // with velocity proportional to strength and angle
+                    AngularVelocity = axis * angle * strength * (float)Math.PI;
 
                     // This ensures that we'll check this object on the next iteration
                     ParentGroup.QueueForUpdateCheck();

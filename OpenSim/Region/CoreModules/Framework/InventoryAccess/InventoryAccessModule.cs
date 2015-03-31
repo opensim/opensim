@@ -297,6 +297,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (item != null && item.Owner == ownerID && asset != null)
             {
+//                m_log.DebugFormat(
+//                    "[INVENTORY ACCESS MODULE]: Updating item {0} {1} with new asset {2}", 
+//                    item.Name, item.ID, asset.ID);
+
                 item.AssetID = asset.FullID;
                 item.Description = asset.Description;
                 item.Name = asset.Name;
@@ -314,7 +318,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     (item == null || asset == null? "null item or asset" : "wrong owner"));
                 return false;
             }
-
         }
 
         public virtual List<InventoryItemBase> CopyToInventory(
@@ -611,6 +614,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected InventoryItemBase CreateItemForObject(
             DeRezAction action, IClientAPI remoteClient, SceneObjectGroup so, UUID folderID)
         {
+//            m_log.DebugFormat(
+//                "[BASIC INVENTORY ACCESS MODULE]: Creating item for object {0} {1} for folder {2}, action {3}", 
+//                so.Name, so.UUID, folderID, action);
+//
             // Get the user info of the item destination
             //
             UUID userID = UUID.Zero;
@@ -912,7 +919,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // one full update during the attachment
                 // process causes some clients to fail to display the
                 // attachment properly.
-                m_Scene.AddNewSceneObject(group, true, false);
+                m_Scene.AddNewSceneObject(group, !attachment, false);
 
                 // if attachment we set it's asset id so object updates
                 // can reflect that, if not, we set it's position in world.

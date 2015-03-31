@@ -111,7 +111,7 @@ namespace OpenSim.Data.MySQL
                                 }
                                 catch (Exception e)
                                 {
-                                    m_log.DebugFormat("[PROFILES_DATA]" +
+                                    m_log.ErrorFormat("[PROFILES_DATA]" +
                                                      ": UserAccount exception {0}", e.Message);
                                 }
                                 n.Add("classifieduuid", OSD.FromUUID(Id));
@@ -232,7 +232,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": ClassifiedesUpdate exception {0}", e.Message);
                 result = e.Message;
                 return false;
@@ -262,7 +262,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": DeleteClassifiedRecord exception {0}", e.Message);
                 return false;
             }
@@ -312,7 +312,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": GetPickInfo exception {0}", e.Message);
             }
             return true;
@@ -356,7 +356,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": GetAvatarPicks exception {0}", e.Message);
             }
             return data;
@@ -397,6 +397,7 @@ namespace OpenSim.Data.MySQL
                                 UUID.TryParse((string)reader["parceluuid"], out pick.ParcelId);
                                 UUID.TryParse((string)reader["snapshotuuid"], out pick.SnapshotId);
                                 pick.GlobalPos = (string)reader["posglobal"];
+                                pick.Gatekeeper = (string)reader["gatekeeper"];
                                 bool.TryParse((string)reader["toppick"], out pick.TopPick);
                                 bool.TryParse((string)reader["enabled"], out pick.Enabled);
                                 pick.Name = (string)reader["name"];
@@ -413,7 +414,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": GetPickInfo exception {0}", e.Message);
             }
             return pick;
@@ -436,14 +437,16 @@ namespace OpenSim.Data.MySQL
             query += "?SimName,";
             query += "?GlobalPos,";
             query += "?SortOrder,";
-            query += "?Enabled) ";
+            query += "?Enabled,";
+            query += "?Gatekeeper)";
             query += "ON DUPLICATE KEY UPDATE ";
             query += "parceluuid=?ParcelId,";
             query += "name=?Name,";
             query += "description=?Desc,";
             query += "snapshotuuid=?SnapshotId,";
             query += "pickuuid=?PickId,";
-            query += "posglobal=?GlobalPos";
+            query += "posglobal=?GlobalPos,";
+            query += "gatekeeper=?Gatekeeper";
             
             try
             {
@@ -463,6 +466,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?Original", pick.OriginalName.ToString());
                         cmd.Parameters.AddWithValue("?SimName",pick.SimName.ToString());
                         cmd.Parameters.AddWithValue("?GlobalPos", pick.GlobalPos);
+                        cmd.Parameters.AddWithValue("?Gatekeeper",pick.Gatekeeper);
                         cmd.Parameters.AddWithValue("?SortOrder", pick.SortOrder.ToString ());
                         cmd.Parameters.AddWithValue("?Enabled", pick.Enabled.ToString());
                         
@@ -472,7 +476,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": UpdateAvatarNotes exception {0}", e.Message);
                 return false;
             }
@@ -502,7 +506,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": DeleteUserPickRecord exception {0}", e.Message);
                 return false;
             }
@@ -547,7 +551,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": GetAvatarNotes exception {0}", e.Message);
             }
             return true;
@@ -595,7 +599,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": UpdateAvatarNotes exception {0}", e.Message);
                 return false;
             }
@@ -713,7 +717,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": Requst properties exception {0}", e.Message);
                 result = e.Message;
                 return false;
@@ -753,7 +757,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": AgentPropertiesUpdate exception {0}", e.Message);
                 
                 return false;
@@ -795,7 +799,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": AgentInterestsUpdate exception {0}", e.Message);
                 result = e.Message;
                 return false;
@@ -878,7 +882,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                   ": GetAvatarNotes exception {0}", e.Message);
             }
             return data;
@@ -936,7 +940,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": Get preferences exception {0}", e.Message);
                 result = e.Message;
                 return false;
@@ -950,7 +954,8 @@ namespace OpenSim.Data.MySQL
 
             query += "UPDATE usersettings SET ";
             query += "imviaemail=?ImViaEmail, ";
-            query += "visible=?Visible ";
+            query += "visible=?Visible, ";
+            query += "email=?EMail ";
             query += "WHERE useruuid=?uuid";
             
             try
@@ -963,6 +968,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?ImViaEmail", pref.IMViaEmail.ToString().ToLower());
                         cmd.Parameters.AddWithValue("?Visible", pref.Visible.ToString().ToLower());
                         cmd.Parameters.AddWithValue("?uuid", pref.UserId.ToString());
+                        cmd.Parameters.AddWithValue("?EMail", pref.EMail.ToString().ToLower());
 
                         cmd.ExecuteNonQuery();
                     }
@@ -970,8 +976,8 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
-                                 ": AgentInterestsUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]" +
+                    ": UserPreferencesUpdate exception {0} {1}", e.Message, e.InnerException);
                 result = e.Message;
                 return false;
             }
@@ -1016,7 +1022,7 @@ namespace OpenSim.Data.MySQL
                                 
                                 using (MySqlCommand put = new MySqlCommand(query, dbcon))
                                 {
-                                    put.Parameters.AddWithValue("?Id", props.UserId.ToString());
+                                    put.Parameters.AddWithValue("?UserId", props.UserId.ToString());
                                     put.Parameters.AddWithValue("?TagId", props.TagId.ToString());
                                     put.Parameters.AddWithValue("?DataKey", props.DataKey.ToString());
                                     put.Parameters.AddWithValue("?DataVal", props.DataVal.ToString());
@@ -1030,7 +1036,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": Requst application data exception {0}", e.Message);
                 result = e.Message;
                 return false;
@@ -1067,7 +1073,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PROFILES_DATA]" +
+                m_log.ErrorFormat("[PROFILES_DATA]" +
                                  ": SetUserData exception {0}", e.Message);
                 return false;
             }

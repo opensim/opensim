@@ -87,7 +87,26 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Regions", false, "show region",
                 "show region",
                 "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                "A synonym for \"region get\"",
                 HandleShowRegion);
+
+            m_console.Commands.AddCommand(
+                "Regions", false, "region get",
+                "region get",
+                "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                "Some parameters can be set with the \"region set\" command.\n"
+                + "Others must be changed via a viewer (usually via the region/estate dialog box).",
+                HandleShowRegion);
+
+            m_console.Commands.AddCommand(
+                "Regions", false, "region set",
+                "region get",
+                "Set control information for the currently selected region.",
+                "Currently, the following parameters can be set:\n"
+                + "agent-limit <int>     - Current root agent limit.  This is persisted over restart.\n"
+                + "max-agent-limit <int> - Maximum root agent limit.  agent-limit cannot exceed this."
+                + "  This is not persisted over restart - to set it every time you must add a MaxAgents entry to your regions file.",
+                HandleRegionSet);
         }
 
         public void RemoveRegion(Scene scene)
@@ -123,8 +142,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             dispList.AddRow("External endpoint", ri.ExternalEndPoint);
             dispList.AddRow("Internal endpoint", ri.InternalEndPoint);
             dispList.AddRow("Access level", ri.AccessLevel);
+            dispList.AddRow("Agent limit", rs.AgentLimit);
             dispList.AddRow("Max agent limit", ri.AgentCapacity);
-            dispList.AddRow("Current agent limit", rs.AgentLimit);
             dispList.AddRow("Linkset capacity", ri.LinksetCapacity <= 0 ? "not set" : ri.LinksetCapacity.ToString());
             dispList.AddRow("Prim capacity", ri.ObjectCapacity);
             dispList.AddRow("Prim bonus", rs.ObjectBonus);
@@ -164,6 +183,73 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             dispList.AddToStringBuilder(sb);
 
             MainConsole.Instance.Output(sb.ToString());
+        }
+
+        private void HandleRegionSet(string module, string[] args)
+        {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: region set <param> <value>");
+                return;
+            }           
+
+            string param = args[2];
+            string rawValue = args[3];
+
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
+            RegionInfo ri = m_scene.RegionInfo;
+            RegionSettings rs = ri.RegionSettings;
+
+            if (param == "agent-limit")
+            {
+                int newValue;
+
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, rawValue, out newValue))
+                    return;
+
+                if (newValue > ri.AgentCapacity)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Cannot set {0} to {1} in {2} as max-agent-limit is {3}", "agent-limit", 
+                        newValue, m_scene.Name, ri.AgentCapacity);
+                }
+                else
+                {
+                    rs.AgentLimit = newValue;
+
+                    MainConsole.Instance.OutputFormat(
+                        "{0} set to {1} in {2}", "agent-limit", newValue, m_scene.Name);
+                }
+
+                rs.Save();
+            }
+            else if (param == "max-agent-limit")
+            {
+                int newValue;
+
+                if (!ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, rawValue, out newValue))
+                    return;
+
+                ri.AgentCapacity = newValue;
+
+                MainConsole.Instance.OutputFormat(
+                    "{0} set to {1} in {2}", "max-agent-limit", newValue, m_scene.Name);
+
+                if (ri.AgentCapacity < rs.AgentLimit)
+                {
+                    rs.AgentLimit = ri.AgentCapacity;
+
+                    MainConsole.Instance.OutputFormat(
+                        "Reducing {0} to {1} in {2}", "agent-limit", rs.AgentLimit, m_scene.Name);
+                }
+
+                rs.Save();
+            }
         }
 
         private void HandleShowScene(string module, string[] cmd)

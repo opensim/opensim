@@ -32,7 +32,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.UserManagement;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement.Tests
 {

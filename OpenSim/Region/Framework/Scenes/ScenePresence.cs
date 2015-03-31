@@ -379,6 +379,11 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MovementFlag { get; private set; }
 
         /// <summary>
+        /// Set this if we need to force a movement update on the next received AgentUpdate from the viewer.
+        /// </summary>
+        private const uint ForceUpdateMovementFlagValue = uint.MaxValue;
+
+        /// <summary>
         /// Is the agent stop control flag currently active?
         /// </summary>
         public bool AgentControlStopActive { get; private set; }
@@ -636,6 +641,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
+//                Util.PrintCallStack();
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, value);  
+
                 if (PhysicsActor != null)
                 {
                     try
@@ -648,11 +658,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_velocity = value;
-
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
-//                    Scene.RegionInfo.RegionName, Name, m_velocity);
+                m_velocity = value;                                            
             }
         }
 /*
@@ -821,7 +827,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private bool m_mouseLook;
-        private bool m_leftButtonDown;
+//        private bool m_leftButtonDown;
 
         private bool m_inTransit;
 
@@ -1004,23 +1010,6 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
         }
 
-        private Vector3[] GetWalkDirectionVectors()
-        {
-            Vector3[] vector = new Vector3[11];
-            vector[0] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD
-            vector[1] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK
-            vector[2] = Vector3.UnitY; //LEFT
-            vector[3] = -Vector3.UnitY; //RIGHT
-            vector[4] = new Vector3(CameraAtAxis.Z, 0f, CameraUpAxis.Z); //UP
-            vector[5] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN
-            vector[6] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD_NUDGE
-            vector[7] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK_NUDGE
-            vector[8] = Vector3.UnitY; //LEFT_NUDGE
-            vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
-            vector[10] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN_NUDGE
-            return vector;
-        }
-
         #endregion
 
         #region Status Methods
@@ -1185,15 +1174,23 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 AbsolutePosition = pos;
 
+//                m_log.DebugFormat(
+//                    "Set pos {0}, vel {1} in {1} to {2} from input position of {3} on MakeRootAgent", 
+//                    Name, Scene.Name, AbsolutePosition, pos);
+//
                 if (m_teleportFlags == TeleportFlags.Default)
                 {
-                    Vector3 vel = Velocity;
                     AddToPhysicalScene(isFlying);
-                    if (PhysicsActor != null)
-                        PhysicsActor.SetMomentum(vel);
+//
+//                        Console.WriteLine(
+//                            "Set velocity of {0} in {1} to {2} from input velocity of {3} on MakeRootAgent", 
+//                            Name, Scene.Name, PhysicsActor.Velocity, vel);
+//                    }
                 }
                 else
+                {
                     AddToPhysicalScene(isFlying);
+                }
 
                 // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
                 // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
@@ -1211,6 +1208,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Flying = false;
                 }
             }
+
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
             // elsewhere anyway
@@ -1218,59 +1216,30 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.SwapRootAgentCount(false);
 
-            // The initial login scene presence is already root when it gets here
-            // and it has already rezzed the attachments and started their scripts.
-            // We do the following only for non-login agents, because their scripts
-            // haven't started yet.
-            if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
+            if (Scene.AttachmentsModule != null)
             {
-                // Viewers which have a current outfit folder will actually rez their own attachments.  However,
-                // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
-                if (Scene.AttachmentsModule != null)
+                // The initial login scene presence is already root when it gets here
+                // and it has already rezzed the attachments and started their scripts.
+                // We do the following only for non-login agents, because their scripts
+                // haven't started yet.
+                if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
                 {
-                    Util.FireAndForget(o =>
-                    {
-                        Scene.AttachmentsModule.RezAttachments(this);
-                    });
+                    // Viewers which have a current outfit folder will actually rez their own attachments.  However,
+                    // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
+                    WorkManager.RunJob(
+                        "RezAttachments", 
+                        o => Scene.AttachmentsModule.RezAttachments(this), 
+                        null,
+                        string.Format("Rez attachments for {0} in {1}", Name, Scene.Name));
                 }
-            }
-            else
-            {
-                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                // not transporting the required data.
-                //
-                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
-                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
-                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
-                // not transporting the required data.
-                //
-                // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of 
-                // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
-                // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
-                //
-                // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
-                // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
-                // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the 
-                // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
-                //
-                // One cannot simply iterate over attachments in a fire and forget thread because this would no longer
-                // be locked, allowing race conditions if other code changes the attachments list.
-                List<SceneObjectGroup> attachments = GetAttachments();
-
-                if (attachments.Count > 0)
+                else
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-
-                    // Resume scripts
-                    foreach (SceneObjectGroup sog in attachments)
-                    {
-                        sog.ScheduleGroupForFullUpdate();
-                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                        sog.ResumeScripts();
-                    }
+                    WorkManager.RunJob(
+                        "StartAttachmentScripts",
+                        o => RestartAttachmentScripts(),
+                        null,
+                        string.Format("Start attachment scripts for {0} in {1}", Name, Scene.Name),
+                        true);
                 }
             }
 
@@ -1286,12 +1255,40 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-
-            MovementFlag = 0;
+            MovementFlag = ForceUpdateMovementFlagValue;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
 
             return true;
+        }
+
+        private void RestartAttachmentScripts()
+        {
+            // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+            // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+            // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+            // not transporting the required data.
+            //
+            // We must take a copy of the attachments list here (rather than locking) to avoid a deadlock where a script in one of
+            // the attachments may start processing an event (which locks ScriptInstance.m_Script) that then calls a method here
+            // which needs to lock m_attachments.  ResumeScripts() needs to take a ScriptInstance.m_Script lock to try to unset the Suspend status.
+            //
+            // FIXME: In theory, this deadlock should not arise since scripts should not be processing events until ResumeScripts().
+            // But XEngine starts all scripts unsuspended.  Starting them suspended will not currently work because script rezzing
+            // is placed in an asynchronous queue in XEngine and so the ResumeScripts() call will almost certainly execute before the
+            // script is rezzed.  This means the ResumeScripts() does absolutely nothing when using XEngine.
+            List<SceneObjectGroup> attachments = GetAttachments();
+
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Restarting scripts in {0} attachments for {1} in {2}", attachments.Count, Name, Scene.Name);
+
+            // Resume scripts
+            foreach (SceneObjectGroup sog in attachments)
+            {
+                sog.ScheduleGroupForFullUpdate();
+                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                sog.ResumeScripts();
+            }
         }
 
         private static bool IsRealLogin(TeleportFlags teleportFlags)
@@ -1326,7 +1323,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 UseFakeGroupTitle = false;
                 SendAvatarDataToAllClients(false);
-            });
+            }, null, "Scenepresence.ForceViewersUpdateName");
         }
 
         public int GetStateSource()
@@ -1809,14 +1806,15 @@ namespace OpenSim.Region.Framework.Scenes
 
                 }
 
-                // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
+                // XXX: If we force an update after activity has completed, then multiple attachments do appear correctly on a destination region
                 // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
                 // This may be due to viewer code or it may be something we're not doing properly simulator side.
-                lock (m_attachments)
-                {
-                    foreach (SceneObjectGroup sog in m_attachments)
-                        sog.ScheduleGroupForFullUpdate();
-                }
+                WorkManager.RunJob(
+                    "ScheduleAttachmentsForFullUpdate", 
+                    o => ScheduleAttachmentsForFullUpdate(),
+                    null,
+                    string.Format("Schedule attachments for full update for {0} in {1}", Name, Scene.Name),
+                    true);
 
     //            m_log.DebugFormat(
     //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
@@ -1825,6 +1823,15 @@ namespace OpenSim.Region.Framework.Scenes
             finally
             {
                 IsInTransit = false;
+            }
+        }
+
+        private void ScheduleAttachmentsForFullUpdate()
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup sog in m_attachments)
+                    sog.ScheduleGroupForFullUpdate();
             }
         }
 
@@ -1906,13 +1913,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            //m_log.DebugFormat(
-            //    "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
-            //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+//                Scene.Name, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
             {
-            //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
+//                m_log.DebugFormat("DEBUG: HandleAgentUpdate: child agent in {0}", Scene.Name);
                 return;
             }
 
@@ -1954,7 +1961,12 @@ namespace OpenSim.Region.Framework.Scenes
             // DrawDistance = Scene.DefaultDrawDistance;
 
             m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
-            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+
+            // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
+            // is first pressed, not whilst it is held down.  If this is required in the future then need to look
+            // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not 
+            // received (e.g. on holding LMB down on the avatar in a viewer).
+//            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             #endregion Inputs
 
@@ -2047,6 +2059,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 bool update_movementflag = false;
 
+                // If we were just made root agent then we must perform movement updates for the first AgentUpdate that
+                // we get
+                if (MovementFlag == ForceUpdateMovementFlagValue)
+                {
+                    MovementFlag = 0;
+                    update_movementflag = true;
+                }
+
                 if (agentData.UseClientAgentPosition)
                 {
                     MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
@@ -2078,15 +2098,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     bool bAllowUpdateMoveToPosition = false;
 
-                    Vector3[] dirVectors;
-
-                    // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
-                    // this prevents 'jumping' in inappropriate situations.
-                    if (!Flying && (m_mouseLook || m_leftButtonDown))
-                        dirVectors = GetWalkDirectionVectors();
-                    else
-                        dirVectors = Dir_Vectors;
-
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
@@ -2096,7 +2107,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                             try
                             {
-                                agent_control_v3 += dirVectors[i];
+                                // Don't slide against ground when crouching if camera is panned around avatar
+                                if (Flying || DCF != Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN)
+                                    agent_control_v3 += Dir_Vectors[i];
                                 //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
@@ -3130,7 +3143,18 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
 //                vec, Rotation, thisAddSpeedModifier, Name);
 
-            Vector3 direc = vec * Rotation;
+            Quaternion rot = Rotation;
+            if (!Flying && PresenceType != PresenceType.Npc)
+            {
+                // The only situation in which we care about X and Y is avatar flying.  The rest of the time
+                // these parameters are not relevant for determining avatar movement direction and cause issues such
+                // as wrong walk speed if the camera is rotated.
+                rot.X = 0;
+                rot.Y = 0;
+                rot.Normalize();
+            }
+
+            Vector3 direc = vec * rot;
             direc.Normalize();
 
             if (Flying != FlyingOld)                // add for fly velocity control
@@ -3362,7 +3386,7 @@ namespace OpenSim.Region.Framework.Scenes
             SentInitialDataToClient = true;
 
             // Send all scene object to the new client
-            Watchdog.RunInThread(delegate
+            WorkManager.RunJob("SendInitialDataToClient", delegate
             {
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
@@ -3380,7 +3404,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (e != null && e is SceneObjectGroup)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
-            }, string.Format("SendInitialDataToClient ({0} in {1})", Name, Scene.Name), null);
+            }, null, string.Format("SendInitialDataToClient ({0} in {1})", Name, Scene.Name), false, true);
         }
 
         /// <summary>
@@ -3617,7 +3641,8 @@ namespace OpenSim.Region.Framework.Scenes
                 agentpos.CopyFrom(cadu, ControllingClient.SessionId);
 
                 // Let's get this out of the update loop
-                Util.FireAndForget(delegate { m_scene.SendOutChildAgentUpdates(agentpos, this); });
+                Util.FireAndForget(
+                    o => m_scene.SendOutChildAgentUpdates(agentpos, this), null, "ScenePresence.SendOutChildAgentUpdates");
             }
         }
 
@@ -3651,13 +3676,10 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 origPosition = pos2;
             Vector3 vel = Velocity;
 
-            // Compute the avatar position in the next physics tick.
+            // Compute the future avatar position.
             // If the avatar will be crossing, we force the crossing to happen now
             //     in the hope that this will make the avatar movement smoother when crossing.
-            float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X * timeStep);
-            pos2.Y = pos2.Y + (vel.Y * timeStep);
-            pos2.Z = pos2.Z + (vel.Z * timeStep);
+            pos2 += vel * 0.05f;
 
             if (m_scene.PositionIsInCurrentRegion(pos2))
                 return;
@@ -3668,9 +3690,11 @@ namespace OpenSim.Region.Framework.Scenes
             // Disconnect from the current region
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
+
             // pos2 is the forcasted position so make that the 'current' position so the crossing
             //    code will move us into the newly addressed region.
             m_pos = pos2;
+
             if (CrossToNewRegion())
             {
                 AddToPhysicalScene(isFlying);
@@ -4035,9 +4059,23 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.Animations.SetImplicitDefaultAnimation(cAgent.AnimState.AnimID, cAgent.AnimState.SequenceNum, UUID.Zero);
 
             if (Scene.AttachmentsModule != null)
-                Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+            {
+                // If the JobEngine is running we can schedule this job now and continue rather than waiting for all
+                // attachments to copy, which might take a long time in the Hypergrid case as the entire inventory
+                // graph is inspected for each attachments and assets possibly fetched.
+                // 
+                // We don't need to worry about a race condition as the job to later start the scripts is also 
+                // JobEngine scheduled and so will always occur after this task.
+                // XXX: This will not be true if JobEngine ever gets more than one thread.
+                WorkManager.RunJob(
+                    "CopyAttachments", 
+                    o => Scene.AttachmentsModule.CopyAttachments(cAgent, this), 
+                    null,
+                    string.Format("Copy attachments for {0} entering {1}", Name, Scene.Name),
+                    true);
+            }
 
-            // This must occur after attachments are copied, as it releases the CompleteMovement() calling thread
+            // This must occur after attachments are copied or scheduled to be copied, as it releases the CompleteMovement() calling thread
             // originating from the client completing a teleport.  Otherwise, CompleteMovement() code to restart
             // script attachments can outrace this thread.
             lock (m_originRegionIDAccessLock)
@@ -4088,19 +4126,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (Appearance.AvatarHeight == 0)
 //                Appearance.SetHeight();
                 Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
-
-            PhysicsScene scene = m_scene.PhysicsScene;
-
-            Vector3 pVec = AbsolutePosition;
-
+                    
 /*
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
                 new Vector3(0.45f, 0.6f, Appearance.AvatarHeight), isFlying);
 */
 
-            PhysicsActor = scene.AddAvatar(
-                LocalId, Firstname + "." + Lastname, pVec,
+            PhysicsActor = m_scene.PhysicsScene.AddAvatar(
+                LocalId, Firstname + "." + Lastname, AbsolutePosition, Velocity,
                 Appearance.AvatarBoxSize, isFlying);
 
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
@@ -4471,7 +4505,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-            });
+            }, null, "ScenePresence.SendScriptEventToAttachments");
         }
 
         /// <summary>

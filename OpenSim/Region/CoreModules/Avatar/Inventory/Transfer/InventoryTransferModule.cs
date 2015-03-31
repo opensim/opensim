@@ -455,6 +455,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         {
             // Check if it's a type of message that we should handle
             if (!((im.dialog == (byte) InstantMessageDialog.InventoryOffered)
+                || (im.dialog == (byte) InstantMessageDialog.TaskInventoryOffered)
                 || (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
                 || (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
                 || (im.dialog == (byte) InstantMessageDialog.TaskInventoryDeclined)))

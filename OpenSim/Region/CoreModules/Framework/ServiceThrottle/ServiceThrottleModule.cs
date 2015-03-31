@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.Framework
             m_timer.Elapsed += ProcessQueue;
             m_timer.Start();
 
-            //Watchdog.StartThread(
+            //WorkManager.StartThread(
             //    ProcessQueue,
             //    "GridServiceRequestThread",
             //    ThreadPriority.BelowNormal,

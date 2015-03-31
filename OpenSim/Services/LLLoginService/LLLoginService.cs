@@ -615,7 +615,7 @@ namespace OpenSim.Services.LLLoginService
                 // e.g. New Moon&135&46  New Moon@osgrid.org:8002&153&34
                 where = "url";
                 GridRegion region = null;
-                Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
+                Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+[.]?\d*)&(?<y>\d+[.]?\d*)&(?<z>\d+[.]?\d*)$");
                 Match uriMatch = reURI.Match(startLocation);
                 if (uriMatch == null)
                 {
@@ -943,6 +943,13 @@ namespace OpenSim.Services.LLLoginService
                     aCircuit.ServiceURLs[keyName] = keyValue;
 
                     m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
+                }
+
+                if (!account.ServiceURLs.ContainsKey("GatekeeperURI") && !string.IsNullOrEmpty(m_GatekeeperURL))
+                {
+                    m_log.DebugFormat("[LLLOGIN SERVICE]: adding gatekeeper uri {0}", m_GatekeeperURL);
+                    account.ServiceURLs["GatekeeperURI"] = m_GatekeeperURL;
+                    newUrls = true;
                 }
 
                 // The grid operator decided to override the defaults in the

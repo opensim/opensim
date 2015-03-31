@@ -1,0 +1,1140 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Mono.Addins.Setup</name>
+    </assembly>
+    <members>
+        <member name="T:Mono.Addins.Setup.ConsoleAddinInstaller">
+            <summary>
+            An IAddinInstaller implementation which interacts with the user through the console
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.ConsoleAddinInstaller.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Mono.Addins.Setup.ConsoleAddinInstaller"/> class.
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.ConsoleAddinInstaller.UserPrompt">
+            <summary>
+            Gets or sets whether the installer can ask questions to the user
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.ConsoleAddinInstaller.LogLevel">
+            <summary>
+            Log level (0:normal, 1+:verbose);
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.Package">
+            <summary>
+            An add-in package
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.Package.FromRepository(Mono.Addins.Setup.AddinRepositoryEntry)">
+            <summary>
+            Creates a package object for an add-in available in an on-line repository
+            </summary>
+            <param name="repAddin">
+            An add-in reference
+            </param>
+            <returns>
+            The package
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.Package.FromFile(System.String)">
+            <summary>
+            Creates a package object for a local package file
+            </summary>
+            <param name="file">
+            Package file path
+            </param>
+            <returns>
+            The package
+            </returns>
+        </member>
+        <member name="P:Mono.Addins.Setup.Package.Name">
+            <summary>
+            Name of the package
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Package.SharedInstall">
+            <summary>
+            Returns true if the package will be installed in the shared directory, 
+            false if it will be installed in the user directory.
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.AddinRepositoryEntry">
+            <summary>
+            A reference to an add-in available in an on-line repository
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.AddinRepositoryEntry.BeginDownloadSupportFile(System.String,System.AsyncCallback,System.Object)">
+            <summary>
+            Begins downloading a support file
+            </summary>
+            <returns>
+            Result of the asynchronous operation, to be used when calling EndDownloadSupportFile to
+            get the download result.
+            </returns>
+            <param name='name'>
+            Name of the file.
+            </param>
+            <param name='cb'>
+            Callback to be called when the download operation ends.
+            </param>
+            <param name='state'>
+            Custom state object provided by the caller.
+            </param>
+            <remarks>
+            This method can be used to get the contents of a support file of an add-in.
+            A support file is a file referenced in the custom properties of an add-in.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.AddinRepositoryEntry.EndDownloadSupportFile(System.IAsyncResult)">
+            <summary>
+            Gets the result of the asynchronous download of a file
+            </summary>
+            <returns>
+            The downloaded file.
+            </returns>
+            <param name='ares'>
+            The async result object returned by BeginDownloadSupportFile.
+            </param>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepositoryEntry.Addin">
+            <summary>
+            Add-in information
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepositoryEntry.Url">
+            <summary>
+            Url to the add-in package
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepositoryEntry.RepositoryUrl">
+            <summary>
+            The URL of the repository
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepositoryEntry.RepositoryName">
+            <summary>
+            Name of the repository
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.InstallException">
+            <summary>
+            An installation exception
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.InstallException.#ctor(System.String)">
+            <summary>
+            Initializes the exception
+            </summary>
+            <param name="msg">
+            Error message
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.InstallException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initializes the exception
+            </summary>
+            <param name="msg">
+            Error message
+            </param>
+            <param name="ex">
+            Inner exception
+            </param>
+        </member>
+        <member name="T:Mono.Addins.Setup.SetupTool">
+            <summary>
+            A command line add-in manager.
+            </summary>
+            <remarks>
+            This class can be used to provide an add-in management command line tool to applications.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupTool.#ctor(Mono.Addins.AddinRegistry)">
+            <summary>
+            Creates a new instance
+            </summary>
+            <param name="registry">
+            Add-in registry to manage.
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupTool.Run(System.String[],System.Int32)">
+            <summary>
+            Runs the command line tool.
+            </summary>
+            <param name="args">
+            Array that contains the command line arguments
+            </param>
+            <param name="firstArgumentIndex">
+            Index of the arguments array that has the first argument for the management tool
+            </param>
+            <returns>
+            0 if it succeeds. != 0 otherwise
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupTool.Run(System.String[])">
+            <summary>
+            Runs the command line tool.
+            </summary>
+            <param name="args">
+            Command line arguments
+            </param>
+            <returns>
+            0 if it succeeds. != 0 otherwise
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupTool.AddCommand(System.String,System.String,System.String,System.String,System.String,System.String,Mono.Addins.Setup.SetupCommandHandler)">
+            <summary>
+            Adds a custom command to the add-in manager
+            </summary>
+            <param name="category">
+            Category under which the command has to be shown in the help text
+            </param>
+            <param name="command">
+            Name of the command
+            </param>
+            <param name="shortName">
+            Short name of the command (it's an alias of the normal name)
+            </param>
+            <param name="arguments">
+            Formal description of the arguments that the command accepts. For example: "[addin-id|addin-file] [--xml] [--all] [--full] [--namespace &lt;namespace&gt;]"
+            </param>
+            <param name="description">
+            Short description of the command
+            </param>
+            <param name="longDescription">
+            Long description of the command
+            </param>
+            <param name="handler">
+            Delegate to be invoked to run the command
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupTool.PrintHelp(System.String[])">
+            <summary>
+            Prints help about the add-in management tool, or about a specific command
+            </summary>
+            <param name="parms">
+            Optional command name and arguments
+            </param>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupTool.ApplicationName">
+            <summary>
+            Display name of the host application
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupTool.ApplicationNamespace">
+            <summary>
+            Default add-in namespace of the application (optional). If set, only add-ins that belong to that namespace
+            will be shown in add-in lists.
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupTool.VerboseOutput">
+            <summary>
+            Enables or disables verbose output
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupTool.VerboseOutputLevel">
+            <summary>
+            Sets or gets the verbose output level (0: normal output, 1:verbose, 2+:extra verbose)
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.SetupCommandHandler">
+            <summary>
+            A command handler
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.PackageCollection">
+            <summary>
+            A collection of packages
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.PackageCollection.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Mono.Addins.Setup.PackageCollection"/> class.
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.PackageCollection.#ctor(System.Collections.ICollection)">
+            <summary>
+            Copy constructor
+            </summary>
+            <param name="col">
+            Collection where to copy from
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.PackageCollection.Add(Mono.Addins.Setup.Package)">
+            <summary>
+            Adds a package
+            </summary>
+            <param name="p">
+            A package
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.PackageCollection.Contains(Mono.Addins.Setup.Package)">
+            <summary>
+            Checks if a package is present in the collection
+            </summary>
+            <param name="p">
+            The package
+            </param>
+            <returns>
+            True if the package is preent
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.PackageCollection.AddRange(System.Collections.ICollection)">
+            <summary>
+            Adds a list of packages to the collection
+            </summary>
+            <param name="col">
+            The list of packages to add
+            </param>
+        </member>
+        <member name="P:Mono.Addins.Setup.PackageCollection.Item(System.Int32)">
+            <summary>
+            Gets a package
+            </summary>
+            <param name="n">
+            Package index
+            </param>
+        </member>
+        <member name="T:Mono.Addins.Setup.AddinHeader">
+            <summary>
+            Basic add-in information
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.AddinHeader.CompareVersionTo(Mono.Addins.Setup.AddinHeader)">
+            <summary>
+            Compares the versions of two add-ins
+            </summary>
+            <param name="other">
+            Another add-in
+            </param>
+            <returns>
+            Result of comparison
+            </returns>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Id">
+            <summary>
+            Full identifier of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Name">
+            <summary>
+            Display name of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Namespace">
+            <summary>
+            Namespace of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Version">
+            <summary>
+            Version of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.BaseVersion">
+            <summary>
+            Version with which this add-in is compatible
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Author">
+            <summary>
+            Add-in author
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Copyright">
+            <summary>
+            Add-in copyright
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Url">
+            <summary>
+            Web page URL with more information about the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Description">
+            <summary>
+            Description of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Category">
+            <summary>
+            Category of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Dependencies">
+            <summary>
+            Dependencies of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.OptionalDependencies">
+            <summary>
+            Optional dependencies of the add-in
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinHeader.Properties">
+            <summary>
+            Custom properties specified in the add-in header
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.RepositoryRegistry">
+            <summary>
+            A registry of on-line repositories
+            </summary>
+            <remarks>
+            This class can be used to manage on-line repository subscriptions.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.RegisterRepository(Mono.Addins.IProgressStatus,System.String)">
+            <summary>
+            Subscribes to an on-line repository
+            </summary>
+            <param name="monitor">
+            Progress monitor where to show progress status and log
+            </param>
+            <param name="url">
+            URL of the repository
+            </param>
+            <returns>
+            A repository reference
+            </returns>
+            <remarks>
+            The repository index is not downloaded by default. It can be downloaded
+            by calling UpdateRepository.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.RegisterRepository(Mono.Addins.IProgressStatus,System.String,System.Boolean)">
+            <summary>
+            Subscribes to an on-line repository
+            </summary>
+            <param name="monitor">
+            Progress monitor where to show progress status and log
+            </param>
+            <param name="url">
+            URL of the repository
+            </param>
+            <param name="updateNow">
+            When set to True, the repository index will be downloaded.
+            </param>
+            <returns>
+            A repository reference
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.RemoveRepository(System.String)">
+            <summary>
+            Removes an on-line repository subscription.
+            </summary>
+            <param name="url">
+            URL of the repository.
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.SetRepositoryEnabled(System.String,System.Boolean)">
+            <summary>
+            Enables or disables a repository
+            </summary>
+            <param name='url'>
+            URL of the repository
+            </param>
+            <param name='enabled'>
+            'true' if the repository has to be enabled.
+            </param>
+            <remarks>
+            Disabled repositories are ignored when calling UpdateAllRepositories.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.ContainsRepository(System.String)">
+            <summary>
+            Checks if a repository is already subscribed.
+            </summary>
+            <param name="url">
+            URL of the repository
+            </param>
+            <returns>
+            True if the repository is already subscribed.
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetRepositories">
+            <summary>
+            Gets a list of subscribed repositories
+            </summary>
+            <returns>
+            A list of repositories.
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.UpdateAllRepositories(Mono.Addins.IProgressStatus)">
+            <summary>
+            Updates the add-in index of all subscribed repositories.
+            </summary>
+            <param name="monitor">
+            Progress monitor where to show progress status and log
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.UpdateRepository(Mono.Addins.IProgressStatus,System.String)">
+            <summary>
+            Updates the add-in index of the provided repository
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status and log
+            </param>
+            <param name="url">
+            URL of the repository
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableUpdates">
+            <summary>
+            Gets a list of available add-in updates.
+            </summary>
+            <returns>
+            A list of add-in references.
+            </returns>
+            <remarks>
+            The list is generated by looking at the add-ins currently installed and checking if there is any
+            add-in with a newer version number in any of the subscribed repositories. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableUpdates(Mono.Addins.Setup.RepositorySearchFlags)">
+            <summary>
+            Gets a list of available add-in updates.
+            </summary>
+            <param name="flags">
+            Search flags
+            </param>
+            <returns>
+            A list of add-in references.
+            </returns>
+            <remarks>
+            The list is generated by looking at the add-ins currently installed and checking if there is any
+            add-in with a newer version number in any of the subscribed repositories. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableUpdates(System.String)">
+            <summary>
+            Gets a list of available add-in updates in a specific repository.
+            </summary>
+            <param name="repositoryUrl">
+            The repository URL
+            </param>
+            <returns>
+            A list of add-in references.
+            </returns>
+            <remarks>
+            The list is generated by looking at the add-ins currently installed and checking if there is any
+            add-in with a newer version number in the provided repository. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddinUpdates(System.String)">
+            <summary>
+            Gets a list of available updates for an add-in.
+            </summary>
+            <param name="id">
+            Identifier of the add-in.
+            </param>
+            <returns>
+            List of updates for the specified add-in.
+            </returns>
+            <remarks>
+            The list is generated by checking if there is any
+            add-in with a newer version number in any of the subscribed repositories. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddinUpdates(System.String,Mono.Addins.Setup.RepositorySearchFlags)">
+            <summary>
+            Gets a list of available updates for an add-in.
+            </summary>
+            <param name="id">
+            Identifier of the add-in.
+            </param>
+            <param name='flags'>
+            Search flags.
+            </param>
+            <returns>
+            List of updates for the specified add-in.
+            </returns>
+            <remarks>
+            The list is generated by checking if there is any
+            add-in with a newer version number in any of the subscribed repositories. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddinUpdates(System.String,System.String)">
+            <summary>
+            Gets a list of available updates for an add-in in a specific repository
+            </summary>
+            <param name="repositoryUrl">
+            Identifier of the add-in.
+            </param>
+            <param name="id">
+            Identifier of the add-in.
+            </param>
+            <returns>
+            List of updates for the specified add-in.
+            </returns>
+            <remarks>
+            The list is generated by checking if there is any
+            add-in with a newer version number in the provided repository. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddinUpdates(System.String,System.String,Mono.Addins.Setup.RepositorySearchFlags)">
+            <summary>
+            Gets a list of available updates for an add-in in a specific repository
+            </summary>
+            <param name="repositoryUrl">
+            Identifier of the add-in.
+            </param>
+            <param name="id">
+            Identifier of the add-in.
+            </param>
+            <param name='flags'>
+            Search flags.
+            </param>
+            <returns>
+            List of updates for the specified add-in.
+            </returns>
+            <remarks>
+            The list is generated by checking if there is any
+            add-in with a newer version number in the provided repository. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddins">
+            <summary>
+            Gets a list of all available add-ins
+            </summary>
+            <returns>
+            A list of add-ins
+            </returns>
+            <remarks>
+            This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddins(Mono.Addins.Setup.RepositorySearchFlags)">
+            <summary>
+            Gets a list of all available add-ins
+            </summary>
+            <returns>
+            The available addins.
+            </returns>
+            <param name='flags'>
+            Search flags.
+            </param>
+            <remarks>
+            This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddins(System.String)">
+            <summary>
+            Gets a list of all available add-ins in a repository
+            </summary>
+            <param name="repositoryUrl">
+            A repository URL
+            </param>
+            <returns>
+            A list of add-ins
+            </returns>
+            <remarks>
+            This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddins(System.String,Mono.Addins.Setup.RepositorySearchFlags)">
+            <summary>
+            Gets a list of all available add-ins in a repository
+            </summary>
+            <param name="repositoryUrl">
+            A repository URL
+            </param>
+            <param name='flags'>
+            Search flags.
+            </param>
+            <returns>
+            A list of add-ins
+            </returns>
+            <remarks>
+            This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddin(System.String,System.String)">
+            <summary>
+            Checks if an add-in is available to be installed
+            </summary>
+            <param name="id">
+            Identifier of the add-in
+            </param>
+            <param name="version">
+            Version of the add-in (optional, it can be null)
+            </param>
+            <returns>
+            A list of add-ins
+            </returns>
+            <remarks>
+            List of references to add-ins available in on-line repositories. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.RepositoryRegistry.GetAvailableAddin(System.String,System.String,System.String)">
+            <summary>
+            Checks if an add-in is available to be installed from a repository
+            </summary>
+            <param name="repositoryUrl">
+            A repository URL
+            </param>
+            <param name="id">
+            Identifier of the add-in
+            </param>
+            <param name="version">
+            Version of the add-in (optional, it can be null)
+            </param>
+            <returns>
+            A list of add-ins
+            </returns>
+            <remarks>
+            List of references to add-ins available in the repository. This method uses cached
+            information from on-line repositories. Make sure you call UpdateRepository or UpdateAllRepositories
+            before using this method to ensure that the latest information is available.
+            </remarks>
+        </member>
+        <member name="T:Mono.Addins.Setup.RepositorySearchFlags">
+            <summary>
+            Repository search flags.
+            </summary>
+        </member>
+        <member name="F:Mono.Addins.Setup.RepositorySearchFlags.None">
+            <summary>
+            No special search options
+            </summary>
+        </member>
+        <member name="F:Mono.Addins.Setup.RepositorySearchFlags.LatestVersionsOnly">
+            <summary>
+            Only the latest version of every add-in is included in the search
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.AddinRepository">
+            <summary>
+            An on-line add-in repository
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepository.File">
+            <summary>
+            Path to the cached add-in repository file
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepository.Url">
+            <summary>
+            Url of the repository
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepository.Name">
+            <summary>
+            Do not use. Use Title instead.
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepository.Title">
+            <summary>
+            Title of the repository
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepository.LastModified">
+            <summary>
+            Last change timestamp
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.AddinRepository.Enabled">
+            <summary>
+            Gets a value indicating whether this <see cref="T:Mono.Addins.Setup.AddinRepository"/> is enabled.
+            </summary>
+            <value>
+            <c>true</c> if enabled; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="T:Mono.Addins.Setup.WebRequestHelper">
+            <summary>
+            Helper for making web requests with support for authenticated proxies.
+            </summary>
+        </member>
+        <member name="M:Mono.Addins.Setup.WebRequestHelper.SetRequestHandler(System.Func{System.Func{System.Net.HttpWebRequest},System.Action{System.Net.HttpWebRequest},System.Threading.CancellationToken,System.Net.HttpWebResponse})">
+            <summary>
+            Sets a custom request handler that can handle requests for authenticated proxy servers.
+            </summary>
+            <param name="handler">The custom request handler.</param>
+        </member>
+        <member name="M:Mono.Addins.Setup.WebRequestHelper.GetResponseAsync(System.Func{System.Net.HttpWebRequest},System.Action{System.Net.HttpWebRequest},System.Threading.CancellationToken)">
+            <summary>
+            Gets the web response, using the request handler to handle proxy authentication
+            if necessary.
+            </summary>
+            <returns>The response.</returns>
+            <param name="createRequest">Callback for creating the request.</param>
+            <param name="prepareRequest">Callback for preparing the request, e.g. writing the request stream.</param>
+            <param name="token">Cancellation token.</param>
+            <remarks>
+            Keeps sending requests until a response code that doesn't require authentication happens or if the request
+            requires authentication and the user has stopped trying to enter them (i.e. they hit cancel when they are prompted).
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.WebRequestHelper.GetResponse(System.Func{System.Net.HttpWebRequest},System.Action{System.Net.HttpWebRequest},System.Threading.CancellationToken)">
+            <summary>
+            Gets the web response, using the request handler to handle proxy authentication
+            if necessary.
+            </summary>
+            <returns>The response.</returns>
+            <param name="createRequest">Callback for creating the request.</param>
+            <param name="prepareRequest">Callback for preparing the request, e.g. writing the request stream.</param>
+            <param name="token">Cancellation token.</param>
+            <remarks>
+            Keeps sending requests until a response code that doesn't require authentication happens or if the request
+            requires authentication and the user has stopped trying to enter them (i.e. they hit cancel when they are prompted).
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.WebRequestHelper.IsCannotReachInternetError(System.Net.WebExceptionStatus)">
+            <summary>
+            Determines whether an error code is likely to have been caused by internet reachability problems.
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.SetupService">
+            <summary>
+            Provides tools for managing add-ins
+            </summary>
+            <remarks>
+            This class can be used to manage the add-ins of an application. It allows installing and uninstalling
+            add-ins, taking into account add-in dependencies. It provides methods for installing add-ins from on-line
+            repositories and tools for generating those repositories.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.#ctor">
+            <summary>
+            Initializes a new instance
+            </summary>
+            <remarks>
+            If the add-in manager is initialized (AddinManager.Initialize has been called), then this instance
+            will manage the add-in registry of the initialized engine.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.#ctor(Mono.Addins.AddinRegistry)">
+            <summary>
+            Initializes a new instance
+            </summary>
+            <param name="registry">
+            Add-in registry to manage
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.ResolveDependencies(Mono.Addins.IProgressStatus,Mono.Addins.Setup.AddinRepositoryEntry[],Mono.Addins.Setup.PackageCollection@,Mono.Addins.Setup.PackageCollection@,Mono.Addins.Description.DependencyCollection@)">
+            <summary>
+            Resolves add-in dependencies.
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="addins">
+            List of add-ins to check
+            </param>
+            <param name="resolved">
+            Packages that need to be installed.
+            </param>
+            <param name="toUninstall">
+            Packages that need to be uninstalled.
+            </param>
+            <param name="unresolved">
+            Add-in dependencies that could not be resolved.
+            </param>
+            <returns>
+            True if all dependencies could be resolved.
+            </returns>
+            <remarks>
+            This method can be used to get a list of all packages that have to be installed in order to install
+            an add-in or set of add-ins. The list of packages to install will include the package that provides the
+            add-in, and all packages that provide the add-in dependencies. In some cases, packages may need to
+            be installed (for example, when an installed add-in needs to be upgraded).
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.ResolveDependencies(Mono.Addins.IProgressStatus,Mono.Addins.Setup.PackageCollection,Mono.Addins.Setup.PackageCollection@,Mono.Addins.Description.DependencyCollection@)">
+            <summary>
+            Resolves add-in dependencies.
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="packages">
+            Packages that need to be installed.
+            </param>
+            <param name="toUninstall">
+            Packages that need to be uninstalled.
+            </param>
+            <param name="unresolved">
+            Add-in dependencies that could not be resolved.
+            </param>
+            <returns>
+            True if all dependencies could be resolved.
+            </returns>
+            <remarks>
+            This method can be used to get a list of all packages that have to be installed in order to satisfy
+            the dependencies of a package or set of packages. The 'packages' argument must have the list of packages
+            to be resolved. When resolving dependencies, if there is any additional package that needs to be installed,
+            it will be added to the same 'packages' collection. In some cases, packages may need to
+            be installed (for example, when an installed add-in needs to be upgraded). Those packages will be added
+            to the 'toUninstall' collection. Packages that could not be resolved are added to the 'unresolved'
+            collection.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.Install(Mono.Addins.IProgressStatus,System.String[])">
+            <summary>
+            Installs add-in packages
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="files">
+            Paths to the packages to install
+            </param>
+            <returns>
+            True if the installation succeeded
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.Install(Mono.Addins.IProgressStatus,Mono.Addins.Setup.AddinRepositoryEntry[])">
+            <summary>
+            Installs add-in packages from on-line repositories
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="addins">
+            References to the add-ins to be installed
+            </param>
+            <returns>
+            True if the installation succeeded
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.Install(Mono.Addins.IProgressStatus,Mono.Addins.Setup.PackageCollection)">
+            <summary>
+            Installs add-in packages
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="packages">
+            Packages to install
+            </param>
+            <returns>
+            True if the installation succeeded
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.Uninstall(Mono.Addins.IProgressStatus,System.String)">
+            <summary>
+            Uninstalls an add-in.
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="id">
+            Full identifier of the add-in to uninstall.
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.Uninstall(Mono.Addins.IProgressStatus,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Uninstalls a set of add-ins
+            </summary>
+            <param name='statusMonitor'>
+            Progress monitor where to show progress status
+            </param>
+            <param name='ids'>
+            Full identifiers of the add-ins to uninstall.
+            </param>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.GetAddinHeader(Mono.Addins.Addin)">
+            <summary>
+            Gets information about an add-in
+            </summary>
+            <param name="addin">
+            The add-in
+            </param>
+            <returns>
+            Add-in header data
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.GetDependentAddins(System.String,System.Boolean)">
+            <summary>
+            Gets a list of add-ins which depend on an add-in
+            </summary>
+            <param name="id">
+            Full identifier of an add-in.
+            </param>
+            <param name="recursive">
+            When set to True, dependencies will be gathered recursivelly
+            </param>
+            <returns>
+            List of dependent add-ins.
+            </returns>
+            <remarks>
+            This methods returns a list of add-ins which have the add-in identified by 'id' as a direct
+            (or indirect if recursive=True) dependency.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.BuildPackage(Mono.Addins.IProgressStatus,System.String,System.String[])">
+            <summary>
+            Packages an add-in
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="targetDirectory">
+            Directory where to generate the package
+            </param>
+            <param name="filePaths">
+            Paths to the add-ins to be packaged. Paths can be either the main assembly of an add-in, or an add-in
+            manifest (.addin or .addin.xml).
+            </param>
+            <remarks>
+            This method can be used to create a package for an add-in, which can then be pushed to an on-line
+            repository. The package will include the main assembly or manifest of the add-in and any external
+            file declared in the add-in metadata.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.BuildRepository(Mono.Addins.IProgressStatus,System.String)">
+            <summary>
+            Generates an on-line repository
+            </summary>
+            <param name="statusMonitor">
+            Progress monitor where to show progress status
+            </param>
+            <param name="path">
+            Path to the directory that contains the add-ins and that is going to be published
+            </param>
+            <remarks>
+            This method generates the index files required to publish a directory as an online repository
+            of add-ins.
+            </remarks>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.GetExtensibleApplication(System.String)">
+            <summary>
+            Gets a reference to an extensible application
+            </summary>
+            <param name="name">
+            Name of the application
+            </param>
+            <returns>
+            The Application object. Null if not found.
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.GetExtensibleApplication(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Gets a reference to an extensible application
+            </summary>
+            <param name="name">
+            Name of the application
+            </param>
+            <param name="searchPaths">
+            Custom paths where to look for the application.
+            </param>
+            <returns>
+            The Application object. Null if not found.
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.GetExtensibleApplications">
+            <summary>
+            Gets a lis of all known extensible applications
+            </summary>
+            <returns>
+            A list of applications.
+            </returns>
+        </member>
+        <member name="M:Mono.Addins.Setup.SetupService.GetExtensibleApplications(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Gets a lis of all known extensible applications
+            </summary>
+            <param name="searchPaths">
+            Custom paths where to look for applications.
+            </param>
+            <returns>
+            A list of applications.
+            </returns>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupService.Registry">
+            <summary>
+            The add-in registry being managed
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupService.ApplicationNamespace">
+            <summary>
+            Default add-in namespace of the application (optional). If set, only add-ins that belong to that namespace
+            will be shown in add-in lists.
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupService.InstallDirectory">
+            <summary>
+            Directory where to install add-ins. If not specified, the 'addins' subdirectory of the
+            registry location is used.
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.SetupService.Repositories">
+            <summary>
+            Returns a RepositoryRegistry which can be used to manage on-line repository references
+            </summary>
+        </member>
+        <member name="T:Mono.Addins.Setup.Application">
+            <summary>
+            A registered extensible application
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.Registry">
+            <summary>
+            Add-in registry of the application
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.Description">
+            <summary>
+            Description of the application
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.Name">
+            <summary>
+            Name of the application
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.RegistryPath">
+            <summary>
+            Path to the add-in registry
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.StartupPath">
+            <summary>
+            Path to the directory that contains the main executable assembly of the application
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.TestCommand">
+            <summary>
+            Command to be used to execute the application in add-in development mode.
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.AddinsPath">
+            <summary>
+            Path to the default add-ins directory for the aplpication
+            </summary>
+        </member>
+        <member name="P:Mono.Addins.Setup.Application.AddinCachePath">
+            <summary>
+            Path to the add-in cache for the application
+            </summary>
+        </member>
+    </members>
+</doc>

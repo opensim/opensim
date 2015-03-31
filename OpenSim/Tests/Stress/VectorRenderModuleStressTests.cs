@@ -41,7 +41,6 @@ using OpenSim.Region.CoreModules.Scripting.VectorRender;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Stress
 {
@@ -79,7 +78,7 @@ namespace OpenSim.Tests.Stress
                 Drawer d = new Drawer(this, i);
                 drawers.Add(d);
                 Console.WriteLine("Starting drawer {0}", i);
-                Util.FireAndForget(o => d.Draw());
+                Util.FireAndForget(o => d.Draw(), null, "VectorRenderModuleStressTests.TestConcurrentRepeatedDraw");
             }
 
             Thread.Sleep(10 * 60 * 1000);

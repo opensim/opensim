@@ -35,7 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Data.Null;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Tests.Common
 {
     public class TestXInventoryDataPlugin : NullGenericDataHandler, IXInventoryData
     {
@@ -46,20 +46,33 @@ namespace OpenSim.Tests.Common.Mock
 
         public XInventoryItem[] GetItems(string[] fields, string[] vals)
         {
+//            Console.WriteLine(
+//                "Requesting items, fields {0}, vals {1}", string.Join(", ", fields), string.Join(", ", vals));
+
             List<XInventoryItem> origItems = Get<XInventoryItem>(fields, vals, m_allItems.Values.ToList());
 
-            return origItems.Select(i => i.Clone()).ToArray();
+            XInventoryItem[] items = origItems.Select(i => i.Clone()).ToArray();
+
+//            Console.WriteLine("Found {0} items", items.Length);
+//            Array.ForEach(items, i => Console.WriteLine("Found item {0} {1}", i.inventoryName, i.inventoryID));
+
+            return items;
         }
 
         public XInventoryFolder[] GetFolders(string[] fields, string[] vals)
         {
 //            Console.WriteLine(
-//                "Requesting folders, fields {0}, vals {1}", string.Join(",", fields), string.Join(",", vals));
+//                "Requesting folders, fields {0}, vals {1}", string.Join(", ", fields), string.Join(", ", vals));
 
             List<XInventoryFolder> origFolders
                 = Get<XInventoryFolder>(fields, vals, m_allFolders.Values.ToList());
 
-            return origFolders.Select(f => f.Clone()).ToArray();
+            XInventoryFolder[] folders = origFolders.Select(f => f.Clone()).ToArray();
+
+//            Console.WriteLine("Found {0} folders", folders.Length);
+//            Array.ForEach(folders, f => Console.WriteLine("Found folder {0} {1}", f.folderName, f.folderID));
+
+            return folders;
         }
 
         public bool StoreFolder(XInventoryFolder folder)
@@ -75,7 +88,9 @@ namespace OpenSim.Tests.Common.Mock
         {
             m_allItems[item.inventoryID] = item.Clone();
 
-//            Console.WriteLine("Added item {0} {1}, creator {2}, owner {3}", item.inventoryName, item.inventoryID, item.creatorID, item.avatarID);
+//            Console.WriteLine(
+//                "Added item {0} {1}, folder {2}, creator {3}, owner {4}", 
+//                item.inventoryName, item.inventoryID, item.parentFolderID, item.creatorID, item.avatarID);
 
             return true;
         }

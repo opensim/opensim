@@ -1,3 +1,15 @@
+<!--
+  In Keys,
+    name is the name of the item.
+    description is the description of the item.
+    assetID is the ID of the asset data that is referenced by the item.
+    folderID is the ID of the folder containing this item.
+    inventoryID is the ID for the item.  It must be unique.
+    assetType is the asset type of the item.  See the OpenMetaverse.AssetType enum in libopenmetaverse
+    inventoryType is the inventory type of the item.  See the OpenMetaverse.InventoryType enum in libopenmetaverse
+    flags are only required for wearables.  See OpenMetaverse.WearableType enum in libopenmetaverse.
+-->
+
 <Nini>
 
 <!--

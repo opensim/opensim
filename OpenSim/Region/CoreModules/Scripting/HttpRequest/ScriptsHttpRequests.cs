@@ -40,6 +40,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
@@ -94,10 +95,13 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HttpRequestModule")]
     public class HttpRequestModule : ISharedRegionModule, IHttpRequestModule
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private object HttpListLock = new object();
         private int httpTimeout = 30000;
         private string m_name = "HttpScriptRequests";
 
+        private OutboundUrlFilter m_outboundUrlFilter;
         private string m_proxyurl = "";
         private string m_proxyexcepts = "";
 
@@ -156,7 +160,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             return UUID.Zero;
         }
 
-        public UUID StartHttpRequest(uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body)
+        public UUID StartHttpRequest(
+            uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body,
+            out HttpInitialRequestStatus status)
         {
             UUID reqID = UUID.Random();
             HttpRequestClass htc = new HttpRequestClass();
@@ -232,7 +238,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     }
                 }
             }
-
+                        
+            htc.RequestModule = this;
             htc.LocalID = localID;
             htc.ItemID = itemID;
             htc.Url = url;
@@ -243,14 +250,43 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             htc.proxyurl = m_proxyurl;
             htc.proxyexcepts = m_proxyexcepts;
 
+            // Same number as default HttpWebRequest.MaximumAutomaticRedirections
+            htc.MaxRedirects = 50;
+
+            if (StartHttpRequest(htc))
+            {
+                status = HttpInitialRequestStatus.OK;
+                return htc.ReqID;
+            }
+            else
+            {
+                status = HttpInitialRequestStatus.DISALLOWED_BY_FILTER;
+                return UUID.Zero;
+            }
+        }
+
+        /// <summary>
+        /// Would a caller to this module be allowed to make a request to the given URL?
+        /// </summary>
+        /// <returns></returns>
+        public bool CheckAllowed(Uri url)
+        {
+            return m_outboundUrlFilter.CheckAllowed(url);
+        }
+
+        public bool StartHttpRequest(HttpRequestClass req)
+        {          
+            if (!CheckAllowed(new Uri(req.Url)))
+                return false;
+
             lock (HttpListLock)
             {
-                m_pendingRequests.Add(reqID, htc);
+                m_pendingRequests.Add(req.ReqID, req);
             }
 
-            htc.Process();
+            req.Process();
 
-            return reqID;
+            return true;
         }
 
         public void StopHttpRequestsForScript(UUID id)
@@ -326,6 +362,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
+            m_outboundUrlFilter = new OutboundUrlFilter("Script HTTP request module", config);
+
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
 
@@ -368,7 +406,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         #endregion
     }
 
-    public class HttpRequestClass: IServiceRequest
+    public class HttpRequestClass : IServiceRequest
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -380,6 +418,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         // public const int HTTP_VERBOSE_THROTTLE = 4;
         // public const int HTTP_CUSTOM_HEADER = 5;
         // public const int HTTP_PRAGMA_NO_CACHE = 6;
+
+        /// <summary>
+        /// Module that made this request.
+        /// </summary>
+        public HttpRequestModule RequestModule { get; set; }
+
         private bool _finished;
         public bool Finished
         {
@@ -412,6 +456,17 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public DateTime Next;
         public string proxyurl;
         public string proxyexcepts;
+
+        /// <summary>
+        /// Number of HTTP redirects that this request has been through.
+        /// </summary>
+        public int Redirects { get; private set; }
+
+        /// <summary>
+        /// Maximum number of HTTP redirects allowed for this request.
+        /// </summary>
+        public int MaxRedirects { get; set; }
+
         public string OutboundBody;
         private UUID _reqID;
         public UUID ReqID
@@ -419,7 +474,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             get { return _reqID; }
             set { _reqID = value; }
         }
-        public WebRequest Request;
+        public HttpWebRequest Request;
         public string ResponseBody;
         public List<string> ResponseMetadata;
         public Dictionary<string, string> ResponseHeaders;
@@ -435,7 +490,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             try
             {
-                Request = WebRequest.Create(Url);
+                Request = (HttpWebRequest)WebRequest.Create(Url);
+                Request.AllowAutoRedirect = false;               
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
@@ -450,16 +506,19 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 //                {
 //                    Request.ConnectionGroupName="Verify";
 //                }
+
                 if (!HttpPragmaNoCache)
                 {
                     Request.Headers.Add("Pragma", "no-cache");
                 }
+
                 if (HttpCustomHeaders != null)
                 {
                     for (int i = 0; i < HttpCustomHeaders.Count; i += 2)
                         Request.Headers.Add(HttpCustomHeaders[i],
                                             HttpCustomHeaders[i+1]);
                 }
+
                 if (!string.IsNullOrEmpty(proxyurl))
                 {
                     if (!string.IsNullOrEmpty(proxyexcepts))
@@ -565,7 +624,52 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 if (response != null)
                     response.Close();
 
-                _finished = true;
+                // We need to resubmit 
+                if (
+                    (Status == (int)HttpStatusCode.MovedPermanently
+                        || Status == (int)HttpStatusCode.Found
+                        || Status == (int)HttpStatusCode.SeeOther
+                        || Status == (int)HttpStatusCode.TemporaryRedirect))
+                {
+                    if (Redirects >= MaxRedirects)
+                    {
+                        Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                        ResponseBody = "Number of redirects exceeded max redirects";
+                        _finished = true;
+                    }
+                    else
+                    {
+                        string location = response.Headers["Location"];
+
+                        if (location == null)
+                        {
+                            Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                            ResponseBody = "HTTP redirect code but no location header";
+                            _finished = true;
+                        }
+                        else if (!RequestModule.CheckAllowed(new Uri(location)))
+                        {
+                            Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                            ResponseBody = "URL from HTTP redirect blocked: " + location;
+                            _finished = true;
+                        }
+                        else
+                        {
+                            Status = 0;
+                            Url = response.Headers["Location"];
+                            Redirects++;
+                            ResponseBody = null;
+
+//                            m_log.DebugFormat("Redirecting to [{0}]", Url);
+
+                            Process();
+                        }
+                    }
+                }
+                else
+                {
+                    _finished = true;
+                }
             }
         }
 

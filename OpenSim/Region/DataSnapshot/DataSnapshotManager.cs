@@ -29,8 +29,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using log4net;
 using Nini.Config;
@@ -42,8 +44,8 @@ using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-[assembly: Addin("DataSnapshot", "0.1")]
-[assembly: AddinDependency("OpenSim", "0.5")]
+[assembly: Addin("DataSnapshot", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -131,8 +133,11 @@ namespace OpenSim.Region.DataSnapshot
                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
                         m_maxStales = config.Configs["DataSnapshot"].GetInt("max_changes_before_update", m_maxStales);
                         m_snapsDir = config.Configs["DataSnapshot"].GetString("snapshot_cache_directory", m_snapsDir);
-                        m_dataServices = config.Configs["DataSnapshot"].GetString("data_services", m_dataServices);
                         m_listener_port = config.Configs["Network"].GetString("http_listener_port", m_listener_port);
+
+                        m_dataServices = config.Configs["DataSnapshot"].GetString("data_services", m_dataServices);
+                        // New way of spec'ing data services, one per line
+                        AddDataServicesVars(config.Configs["DataSnapshot"]);
 
                         String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "").Split(".".ToCharArray());
                         foreach (String bloody_wanker in annoying_string_array)
@@ -289,6 +294,28 @@ namespace OpenSim.Region.DataSnapshot
             return null;
         }
 
+        private void AddDataServicesVars(IConfig config)
+        {
+            // Make sure the services given this way aren't in m_dataServices already
+            List<string> servs = new List<string>(m_dataServices.Split(new char[] { ';' }));
+
+            StringBuilder sb = new StringBuilder();
+            string[] keys = config.GetKeys();
+
+            if (keys.Length > 0)
+            {
+                IEnumerable<string> serviceKeys = keys.Where(value => value.StartsWith("DATA_SRV_"));
+                foreach (string serviceKey in serviceKeys)
+                {
+                    string keyValue = config.GetString(serviceKey, string.Empty).Trim();
+                    if (!servs.Contains(keyValue))
+                        sb.Append(keyValue).Append(";");
+                }
+            }
+
+            m_dataServices = (m_dataServices == "noservices") ? sb.ToString() : sb.Append(m_dataServices).ToString();
+        }
+
         #endregion
 
         #region [Public] Snapshot storage functions
@@ -368,7 +395,7 @@ namespace OpenSim.Region.DataSnapshot
             string delimStr = ";";
             char [] delimiter = delimStr.ToCharArray();
 
-            string[] services = servicesStr.Split(delimiter);
+            string[] services = servicesStr.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < services.Length; i++)
             {

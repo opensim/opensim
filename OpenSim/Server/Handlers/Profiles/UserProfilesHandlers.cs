@@ -263,8 +263,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Notes Request");
                 return false;
             }
-            
-            string result = string.Empty;
+
             UserProfileNotes note = new UserProfileNotes();
             object Note = (object)note;
             OSD.DeserializeMembers(ref Note, (OSDMap)json["params"]);
@@ -403,7 +402,7 @@ namespace OpenSim.Server.Handlers
             
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
-            m_log.InfoFormat("[PROFILES]: User preferences request error - {0}", response.Error.Message);
+//            m_log.InfoFormat("[PROFILES]: User preferences request error - {0}", response.Error.Message);
             return false;
         }
 

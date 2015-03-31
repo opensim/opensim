@@ -167,6 +167,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="avName"></param>
         /// <param name="parent_scene"></param>
         /// <param name="pos"></param>
+        /// <param name="vel"></param>
         /// <param name="size"></param>
         /// <param name="pid_d"></param>
         /// <param name="pid_p"></param>
@@ -178,7 +179,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="walk_divisor"></param>
         /// <param name="rundivisor"></param>
         public OdeCharacter(
-            String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p,
+            String avName, OdeScene parent_scene, Vector3 pos, Vector3 vel, Vector3 size, float pid_d, float pid_p,
             float capsule_radius, float tensor, float density,
             float walk_divisor, float rundivisor)
         {
@@ -209,6 +210,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 m_log.WarnFormat("[ODE CHARACTER]: Got NaN Position on Character Create for {0}", avName);
             }
+
+            _velocity = vel;
+            m_taintTargetVelocity = vel;
 
             _parent_scene = parent_scene;
 
@@ -1245,7 +1249,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public override Vector3 PIDTarget { set { return; } }
-        public override bool PIDActive { set { return; } }
+        public override bool PIDActive 
+        { 
+            get { return false; }
+            set { return; } 
+        }
         public override float PIDTau { set { return; } }
 
         public override float PIDHoverHeight { set { return; } }

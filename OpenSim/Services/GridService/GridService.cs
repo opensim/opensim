@@ -164,11 +164,30 @@ namespace OpenSim.Services.GridService
 
             configVal = loginConfig.GetString("MapTileURL", string.Empty);
             if (!string.IsNullOrEmpty(configVal))
+            {
+                // This URL must end with '/', the viewer doesn't check
+                configVal = configVal.Trim();
+                if (!configVal.EndsWith("/"))
+                    configVal = configVal + "/";
                 m_ExtraFeatures["map-server-url"] = configVal;
-            
+            }
+
             configVal = loginConfig.GetString("DestinationGuide", string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["destination-guide-url"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                    config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" }, String.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridURL"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridName", new string[] { "Const", "Hypergrid" }, String.Empty);
+            if (string.IsNullOrEmpty(configVal))
+                configVal = Util.GetConfigVarFromSections<string>(
+                    config, "gridname", new string[] { "GridInfo" }, String.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridName"] = configVal;
 
             m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
         }
@@ -317,8 +336,10 @@ namespace OpenSim.Services.GridService
                 m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
             }
 
-            m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3} with flags {4}", 
-                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY, 
+            m_log.DebugFormat
+                ("[GRID SERVICE]: Region {0} ({1}, {2}x{3}) registered at {4},{5} with flags {6}", 
+                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionSizeX, regionInfos.RegionSizeY, 
+                regionInfos.RegionCoordX, regionInfos.RegionCoordY, 
                 (OpenSim.Framework.RegionFlags)flags);
 
             return String.Empty;

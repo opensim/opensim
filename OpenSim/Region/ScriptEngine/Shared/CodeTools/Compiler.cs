@@ -291,7 +291,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             string source, string asset, UUID ownerUUID, bool alwaysRecompile,
             out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
-//            m_log.DebugFormat("[Compiler]: Compiling script\n{0}", Script);
+//            m_log.DebugFormat("[Compiler]: Checking script for asset {0} in {1}\n{2}", asset, m_scriptEngine.World.Name, source);
 
             IScriptModuleComms comms = m_scriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
 
@@ -300,12 +300,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             assembly = GetCompilerOutput(asset);
 
+//            m_log.DebugFormat("[Compiler]: Retrieved assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
+
             CheckOrCreateScriptsDirectory();
 
             // Don't recompile if we're not forced to and we already have it
             // Performing 3 file exists tests for every script can still be slow
             if (!alwaysRecompile && File.Exists(assembly) && File.Exists(assembly + ".text") && File.Exists(assembly + ".map"))
             {
+//                m_log.DebugFormat("[Compiler]: Found existing assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
+
                 // If we have already read this linemap file, then it will be in our dictionary. 
                 // Don't build another copy of the dictionary (saves memory) and certainly
                 // don't keep reading the same file from disk multiple times. 
@@ -314,6 +318,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 linemap = m_lineMaps[assembly];
                 return;
             }
+
+//            m_log.DebugFormat("[Compiler]: Compiling assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
 
             if (source == String.Empty)
                 throw new Exception("Cannot find script assembly and no script text present");
@@ -469,7 +475,11 @@ namespace SecondLife
             scriptCompileCounter++;
             try
             {
-                File.Delete(assembly);
+                if (File.Exists(assembly))
+                {
+                    File.SetAttributes(assembly, FileAttributes.Normal);
+                    File.Delete(assembly);
+                }
             }
             catch (Exception e) // NOTLEGIT - Should be just FileIOException
             {
@@ -663,9 +673,8 @@ namespace SecondLife
 
             try
             {
-                FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
-                fs.Read(data, 0, data.Length);
-                fs.Close();
+                using (FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read))
+                    fs.Read(data, 0, data.Length);
             }
             catch (Exception)
             {
@@ -680,9 +689,8 @@ namespace SecondLife
 
             Byte[] buf = Encoding.ASCII.GetBytes(filetext);
 
-            FileStream sfs = File.Create(assembly + ".text");
-            sfs.Write(buf, 0, buf.Length);
-            sfs.Close();
+            using (FileStream sfs = File.Create(assembly + ".text"))
+                sfs.Write(buf, 0, buf.Length);
 
             return assembly;
         }
@@ -775,7 +783,6 @@ namespace SecondLife
             return message;
         }
 
-
         private static void WriteMapFile(string filename, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
             string mapstring = String.Empty;
@@ -787,39 +794,41 @@ namespace SecondLife
             }
 
             Byte[] mapbytes = Encoding.ASCII.GetBytes(mapstring);
-            FileStream mfs = File.Create(filename);
-            mfs.Write(mapbytes, 0, mapbytes.Length);
-            mfs.Close();
-        }
 
+            using (FileStream mfs = File.Create(filename))
+                mfs.Write(mapbytes, 0, mapbytes.Length);
+        }
 
         private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> ReadMapFile(string filename)
         {
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
             try
             {
-                StreamReader r = File.OpenText(filename);
-                linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
-
-                string line;
-                while ((line = r.ReadLine()) != null)
+                using (StreamReader r = File.OpenText(filename))
                 {
-                    String[] parts = line.Split(new Char[] { ',' });
-                    int kk = System.Convert.ToInt32(parts[0]);
-                    int kv = System.Convert.ToInt32(parts[1]);
-                    int vk = System.Convert.ToInt32(parts[2]);
-                    int vv = System.Convert.ToInt32(parts[3]);
+                    linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
 
-                    KeyValuePair<int, int> k = new KeyValuePair<int, int>(kk, kv);
-                    KeyValuePair<int, int> v = new KeyValuePair<int, int>(vk, vv);
+                    string line;
+                    while ((line = r.ReadLine()) != null)
+                    {
+                        String[] parts = line.Split(new Char[] { ',' });
+                        int kk = System.Convert.ToInt32(parts[0]);
+                        int kv = System.Convert.ToInt32(parts[1]);
+                        int vk = System.Convert.ToInt32(parts[2]);
+                        int vv = System.Convert.ToInt32(parts[3]);
 
-                    linemap[k] = v;
+                        KeyValuePair<int, int> k = new KeyValuePair<int, int>(kk, kv);
+                        KeyValuePair<int, int> v = new KeyValuePair<int, int>(vk, vv);
+
+                        linemap[k] = v;
+                    }
                 }
             }
             catch
             {
                 linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
             }
+
             return linemap;
         }
     }

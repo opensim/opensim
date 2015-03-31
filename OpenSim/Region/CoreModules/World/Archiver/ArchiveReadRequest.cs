@@ -372,7 +372,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Start the scripts. We delayed this because we want the OAR to finish loading ASAP, so
             // that users can enter the scene. If we allow the scripts to start in the loop above
             // then they significantly increase the time until the OAR finishes loading.
-            Watchdog.RunInThread(o =>
+            WorkManager.RunInThread(o =>
             {
                 Thread.Sleep(15000);
                 m_log.Info("[ARCHIVER]: Starting scripts in scene objects");
@@ -387,7 +387,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     sceneContext.SceneObjects.Clear();
                 }
-            }, string.Format("ReadArchiveStartScripts (request {0})", m_requestId), null);
+            }, null, string.Format("ReadArchiveStartScripts (request {0})", m_requestId));
 
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
 

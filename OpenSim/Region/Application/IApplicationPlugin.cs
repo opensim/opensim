@@ -26,12 +26,14 @@
  */
 
 using OpenSim.Framework;
+using Mono.Addins;
 
 namespace OpenSim
 {
     /// <summary>
     /// OpenSimulator Application Plugin framework interface
     /// </summary>
+    [TypeExtensionPoint(NodeName="Plugin", NodeType = typeof(PluginExtensionNode), Path="/OpenSim/Startup")]
     public interface IApplicationPlugin : IPlugin
     {
         /// <summary>

@@ -39,7 +39,6 @@ using OpenSim.Server.Handlers.Asset;
 using OpenSim.Services.AssetService;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Server.Handlers.Asset.Test
 {

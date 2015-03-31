@@ -98,7 +98,12 @@ namespace OpenSim.Services.UserAccountService
                 MainConsole.Instance.Commands.AddCommand("Users", false,
                         "reset user password",
                         "reset user password [<first> [<last> [<password>]]]",
-                        "Reset a user password", HandleResetUserPassword);
+                    "Reset a user password", HandleResetUserPassword);
+
+                MainConsole.Instance.Commands.AddCommand("Users", false,
+                    "reset user email",
+                    "reset user email [<first> [<last> [<email>]]]",
+                    "Reset a user email address", HandleResetUserEmail);
 
                 MainConsole.Instance.Commands.AddCommand("Users", false,
                         "set user level",
@@ -419,6 +424,43 @@ namespace OpenSim.Services.UserAccountService
             else
                 MainConsole.Instance.OutputFormat("Password reset for user {0} {1}", firstName, lastName);
         }
+
+        protected void HandleResetUserEmail(string module, string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string newEmail;
+
+            if (cmdparams.Length < 4)
+                firstName = MainConsole.Instance.CmdPrompt("First name");
+            else firstName = cmdparams[3];
+
+            if (cmdparams.Length < 5)
+                lastName = MainConsole.Instance.CmdPrompt("Last name");
+            else lastName = cmdparams[4];
+
+            if (cmdparams.Length < 6)
+                newEmail = MainConsole.Instance.PasswdPrompt("New Email");
+            else newEmail = cmdparams[5];
+
+            UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
+            if (account == null)
+            {
+                MainConsole.Instance.OutputFormat("No such user as {0} {1}", firstName, lastName);
+                return;
+            }
+
+            bool success = false;
+
+            account.Email = newEmail;
+
+            success = StoreUserAccount(account);
+            if (!success)
+                MainConsole.Instance.OutputFormat("Unable to set Email for account {0} {1}.", firstName, lastName);
+            else
+                MainConsole.Instance.OutputFormat("User Email set for user {0} {1} to {2}", firstName, lastName, account.Email);
+        }
+
 
         protected void HandleSetUserLevel(string module, string[] cmdparams)
         {

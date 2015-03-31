@@ -43,7 +43,6 @@ using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ClientStack.Linden.Tests
 {

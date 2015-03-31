@@ -35,7 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Avatar.Friends;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
 {

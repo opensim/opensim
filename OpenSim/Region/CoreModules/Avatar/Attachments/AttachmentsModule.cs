@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 DebugLevel = debugLevel;
                 MainConsole.Instance.OutputFormat(
-                    "Set event queue debug level to {0} in {1}", DebugLevel, m_scene.Name);
+                    "Set attachments debug level to {0} in {1}", DebugLevel, m_scene.Name);
             }
         }
 
@@ -255,6 +255,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void CopyAttachments(AgentData ad, IScenePresence sp)
         {
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Copying attachment data into {0} in {1}", sp.Name, m_scene.Name);
+
             if (ad.AttachmentObjects != null && ad.AttachmentObjects.Count > 0)
             {
                 lock (sp.AttachmentsSyncLock)
@@ -265,6 +267,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     ((SceneObjectGroup)so).LocalId = 0;
                     ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
+
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENTS MODULE]: Copying script state with {0} bytes for object {1} for {2} in {3}", 
+//                        ad.AttachmentObjectStates[i].Length, so.Name, sp.Name, m_scene.Name);
+
                     so.SetState(ad.AttachmentObjectStates[i++], m_scene);
                     m_scene.IncomingCreateObject(Vector3.Zero, so);
                 }
@@ -334,10 +341,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return;
 
-            if (DebugLevel > 0)
-                m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
-
             List<SceneObjectGroup> attachments = sp.GetAttachments();
+
+            if (DebugLevel > 0)
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Saving for {0} attachments for {1} in {2}",
+                    attachments.Count, sp.Name, m_scene.Name);
 
             if (attachments.Count <= 0)
                 return;
@@ -352,6 +361,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
                 // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
                 scriptStates[so] = PrepareScriptInstanceForSave(so, false);
+
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: For object {0} for {1} in {2} got saved state {3}", 
+//                    so.Name, sp.Name, m_scene.Name, scriptStates[so]);
             }
 
             lock (sp.AttachmentsSyncLock)
@@ -387,7 +400,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-            return AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, false, append);
+            group.DetachFromBackup();
+
+            bool success = AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, false, append);
+
+            if (!success)
+                group.AttachToBackup();
+
+            return success;
         }
 
         /// <summary>
@@ -775,9 +795,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         Utils.StringToBytes(sceneObjectXml),
                         sp.UUID);
 
-                    IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
-
-                    invAccess.UpdateInventoryItemAsset(sp.UUID, item, asset);
+                    if (m_invAccessModule != null)
+                        m_invAccessModule.UpdateInventoryItemAsset(sp.UUID, item, asset);
 
                     // If the name of the object has been changed whilst attached then we want to update the inventory
                     // item in the viewer.
@@ -812,10 +831,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             if (DebugLevel > 0)
                 m_log.DebugFormat(
-                    "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
-                    so.Name, sp.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
-
-            so.DetachFromBackup();
+                    "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} at pt {2} pos {3} {4} in {5}",
+                    so.Name, sp.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos, m_scene.Name);
 
             // Remove from database and parcel prim count
             m_scene.DeleteFromStorage(so.UUID);

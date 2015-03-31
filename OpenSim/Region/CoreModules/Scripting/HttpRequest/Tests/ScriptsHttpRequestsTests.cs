@@ -41,7 +41,6 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Scripting.HttpRequest;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
 {
@@ -147,11 +146,11 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
         /// <summary>
         /// Test what happens when we get a 404 response from a call.
         /// </summary>
-        [Test]
+//        [Test]
         public void Test404Response()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+            TestHelpers.EnableLogging();
 
             if (!Util.IsPlatformMono)
                 Assert.Ignore("Ignoring test since can only currently run on Mono");           

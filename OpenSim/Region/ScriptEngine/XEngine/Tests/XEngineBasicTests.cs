@@ -36,15 +36,14 @@ using OpenSim.Region.CoreModules.Scripting.WorldComm;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 {
     /// <summary>
-    /// XEngine tests.
+    /// Basic XEngine tests.
     /// </summary>
     [TestFixture]
-    public class XEngineTest : OpenSimTestCase
+    public class XEngineBasicTests : OpenSimTestCase
     {
         private TestScene m_scene;
         private XEngine m_xEngine;

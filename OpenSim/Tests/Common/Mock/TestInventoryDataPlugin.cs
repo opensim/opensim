@@ -33,7 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Tests.Common
 {
     /// <summary>
     /// In memory inventory data plugin for test purposes.  Could be another dll when properly filled out and when the
@@ -185,7 +185,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void addInventoryItem(InventoryItemBase item) 
         {
-//            InventoryFolderBase folder = m_folders[item.Folder];
+            InventoryFolderBase folder = m_folders[item.Folder];
             
 //            m_log.DebugFormat(
 //                "[MOCK INV DB]: Adding inventory item {0} {1} in {2} {3}", item.Name, item.ID, folder.Name, folder.ID);

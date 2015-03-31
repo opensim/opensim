@@ -77,6 +77,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             touch = 8,
             touch_end = 536870912,
             touch_start = 2097152,
+            transaction_result = 33554432,
             object_rez = 4194304
         }
 
@@ -235,6 +236,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_eventFlagsMap.Add("touch", scriptEvents.touch);
             m_eventFlagsMap.Add("touch_end", scriptEvents.touch_end);
             m_eventFlagsMap.Add("touch_start", scriptEvents.touch_start);
+            m_eventFlagsMap.Add("transaction_result", scriptEvents.transaction_result);
             m_eventFlagsMap.Add("object_rez", scriptEvents.object_rez);
         }
     }

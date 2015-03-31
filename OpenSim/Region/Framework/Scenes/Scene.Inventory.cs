@@ -41,6 +41,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -806,7 +807,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID recipientId, UUID senderId, UUID folderId, UUID recipientParentFolderId)
         {
             //// Retrieve the folder from the sender
-            InventoryFolderBase folder = InventoryService.GetFolder(new InventoryFolderBase(folderId));
+            InventoryFolderBase folder = InventoryService.GetFolder(new InventoryFolderBase(folderId, senderId));
             if (null == folder)
             {
                 m_log.ErrorFormat(
@@ -1227,15 +1228,20 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
                 {
-                    uint perms = taskItem.CurrentPermissions;
+                    // Bake the new base permissions from folded permissions
+                    // The folded perms are in the lowest 3 bits of the current perms
+                    // We use base permissions here to avoid baking the "Locked" status
+                    // into the item as it is passed.
+                    uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms);
+                    // Avoid the "lock trap" - move must always be enabled but the above may remove it
+                    // Add it back here.
                     agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
-                    agentItem.CurrentPermissions = agentItem.BasePermissions;
+                    // Newly given items cannot be "locked" on rez. Make sure by
+                    // setting current equal to base.
                 }
-                else
-                {
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
-                }
+
+                agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.NextPermissions = taskItem.NextPermissions;
@@ -1935,8 +1941,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rez a script into a prim's inventory from another prim
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="itemID"> </param>
-        /// <param name="localID"></param>
+        /// <param name="srcPart"> </param>
+        /// <param name="destId"> </param>
+        /// <param name="pin"></param>
+        /// <param name="running"></param>
+        /// <param name="start_param"></param>
         public void RezScriptFromPrim(UUID srcId, SceneObjectPart srcPart, UUID destId, int pin, int running, int start_param)
         {
             TaskInventoryItem srcTaskItem = srcPart.Inventory.GetInventoryItem(srcId);
@@ -1956,12 +1965,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (destPart == null)
             {
                 m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Could not find script for ID {0}",
-                        destId);
+                    "[PRIM INVENTORY]: Could not find part {0} to insert script item {1} from {2} {3} in {4}",
+                    destId, srcId, srcPart.Name, srcPart.UUID, Name);
                 return;
             }
-        
+
             // Must own the object, and have modify rights
             if (srcPart.OwnerID != destPart.OwnerID)
             {
@@ -1969,12 +1977,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
                     ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
                     return;
-            } else {
+            } 
+            else 
+            {
                 if ((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
             }
 
-            if (destPart.ScriptAccessPin != pin)
+            if (destPart.ScriptAccessPin == 0 || destPart.ScriptAccessPin != pin)
             {
                 m_log.WarnFormat(
                         "[PRIM INVENTORY]: " +
@@ -2173,13 +2183,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            // OK, we're done with permissions. Let's check if any part of the code prevents the objects from being deleted
+            bool canDelete = EventManager.TriggerDeRezRequested(remoteClient, deleteGroups, action);
+
             if (permissionToTake && (action != DeRezAction.Delete || this.m_useTrashOnDelete))
             {
                 m_asyncSceneObjectDeleter.DeleteToInventory(
                         action, destinationID, deleteGroups, remoteClient,
-                        permissionToDelete);
+                        permissionToDelete && canDelete);
             }
-            else if (permissionToDelete)
+            else if (permissionToDelete && canDelete)
             {
                 foreach (SceneObjectGroup g in deleteGroups)
                     DeleteSceneObject(g, false);

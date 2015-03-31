@@ -52,7 +52,7 @@ namespace OpenSim.Services.ProfilesService
         {
             if(string.IsNullOrEmpty(configName))
             {
-                m_log.WarnFormat("[PROFILES]: Configuration section not given!");
+                m_log.WarnFormat("[PROFILES SERVICE]: Configuration section not given!");
                 return;
             }
 

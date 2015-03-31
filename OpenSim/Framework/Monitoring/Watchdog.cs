@@ -38,6 +38,8 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public static class Watchdog
     {
+        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>Timer interval in milliseconds for the watchdog timer</summary>
         public const double WATCHDOG_INTERVAL_MS = 2500.0d;
 
@@ -141,7 +143,7 @@ namespace OpenSim.Framework.Monitoring
             get { return m_enabled; }
             set
             {
-//                m_log.DebugFormat("[MEMORY WATCHDOG]: Setting MemoryWatchdog.Enabled to {0}", value);
+                //                m_log.DebugFormat("[MEMORY WATCHDOG]: Setting MemoryWatchdog.Enabled to {0}", value);
 
                 if (value == m_enabled)
                     return;
@@ -157,9 +159,8 @@ namespace OpenSim.Framework.Monitoring
                 m_watchdogTimer.Enabled = m_enabled;
             }
         }
-        private static bool m_enabled;
 
-        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static bool m_enabled;
         private static Dictionary<int, ThreadWatchdogInfo> m_threads;
         private static System.Timers.Timer m_watchdogTimer;
 
@@ -180,94 +181,19 @@ namespace OpenSim.Framework.Monitoring
         }
 
         /// <summary>
-        /// Start a new thread that is tracked by the watchdog timer.
+        /// Add a thread to the watchdog tracker.
         /// </summary>
-        /// <param name="start">The method that will be executed in a new thread</param>
-        /// <param name="name">A name to give to the new thread</param>
-        /// <param name="priority">Priority to run the thread at</param>
-        /// <param name="isBackground">True to run this thread as a background thread, otherwise false</param>
-        /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
+        /// <param name="info">Information about the thread.</info>
+        /// <param name="info">Name of the thread.</info>
         /// <param name="log">If true then creation of thread is logged.</param>
-        /// <returns>The newly created Thread object</returns>
-        public static Thread StartThread(
-            ThreadStart start, string name, ThreadPriority priority, bool isBackground, bool alarmIfTimeout, bool log = true)
+        public static void AddThread(ThreadWatchdogInfo info, string name, bool log = true)
         {
-            return StartThread(start, name, priority, isBackground, alarmIfTimeout, null, DEFAULT_WATCHDOG_TIMEOUT_MS, log);
-        }
-
-        /// <summary>
-        /// Start a new thread that is tracked by the watchdog
-        /// </summary>
-        /// <param name="start">The method that will be executed in a new thread</param>
-        /// <param name="name">A name to give to the new thread</param>
-        /// <param name="priority">Priority to run the thread at</param>
-        /// <param name="isBackground">True to run this thread as a background
-        /// thread, otherwise false</param>
-        /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
-        /// <param name="alarmMethod">
-        /// Alarm method to call if alarmIfTimeout is true and there is a timeout.
-        /// Normally, this will just return some useful debugging information.
-        /// </param>
-        /// <param name="timeout">Number of milliseconds to wait until we issue a warning about timeout.</param>
-        /// <param name="log">If true then creation of thread is logged.</param>
-        /// <returns>The newly created Thread object</returns>
-        public static Thread StartThread(
-            ThreadStart start, string name, ThreadPriority priority, bool isBackground,
-            bool alarmIfTimeout, Func<string> alarmMethod, int timeout, bool log = true)
-        {
-            Thread thread = new Thread(start);
-            thread.Priority = priority;
-            thread.IsBackground = isBackground;
-            
-            ThreadWatchdogInfo twi
-                = new ThreadWatchdogInfo(thread, timeout, name)
-                    { AlarmIfTimeout = alarmIfTimeout, AlarmMethod = alarmMethod };
-
             if (log)
                 m_log.DebugFormat(
-                    "[WATCHDOG]: Started tracking thread {0}, ID {1}", name, twi.Thread.ManagedThreadId);
+                    "[WATCHDOG]: Started tracking thread {0}, ID {1}", name, info.Thread.ManagedThreadId);
 
             lock (m_threads)
-                m_threads.Add(twi.Thread.ManagedThreadId, twi);
-            
-            thread.Start();
-            thread.Name = name;
-
-
-            return thread;
-        }
-
-        /// <summary>
-        /// Run the callback in a new thread immediately.  If the thread exits with an exception log it but do
-        /// not propogate it.
-        /// </summary>
-        /// <param name="callback">Code for the thread to execute.</param>
-        /// <param name="name">Name of the thread</param>
-        /// <param name="obj">Object to pass to the thread.</param>
-        public static void RunInThread(WaitCallback callback, string name, object obj, bool log = false)
-        {
-            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
-            {
-                Culture.SetCurrentCulture();
-                callback(obj);
-                return;
-            }
-
-            ThreadStart ts = new ThreadStart(delegate()
-            {
-                try
-                {
-                    Culture.SetCurrentCulture();
-                    callback(obj);
-                    Watchdog.RemoveThread(log:false);
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(string.Format("[WATCHDOG]: Exception in thread {0}.", name), e);
-                }
-            });
-
-            StartThread(ts, name, ThreadPriority.Normal, true, false, log:log);
+                m_threads.Add(info.Thread.ManagedThreadId, info);
         }
 
         /// <summary>
@@ -358,7 +284,7 @@ namespace OpenSim.Framework.Monitoring
             }
             catch { }
         }
-        
+
         /// <summary>
         /// Get currently watched threads for diagnostic purposes
         /// </summary>

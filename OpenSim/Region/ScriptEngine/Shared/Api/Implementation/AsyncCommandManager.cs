@@ -182,7 +182,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // Start the thread that will be doing the work
                 cmdHandlerThread
-                    = Watchdog.StartThread(
+                    = WorkManager.StartThread(
                         CmdHandlerThreadLoop, "AsyncLSLCmdHandlerThread", ThreadPriority.Normal, true, true);
             }
         }

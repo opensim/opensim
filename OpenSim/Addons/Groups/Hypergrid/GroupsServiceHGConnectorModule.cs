@@ -561,7 +561,7 @@ namespace OpenSim.Groups
 
                     // so we have the list of urls to send the notice to
                     // this may take a long time...
-                    Watchdog.RunInThread(delegate
+                    WorkManager.RunInThread(delegate
                     {
                         foreach (string u in urls)
                         {
@@ -572,7 +572,7 @@ namespace OpenSim.Groups
                                     hasAttachment, attType, attName, attItemID, AgentUUIForOutside(attOwnerID));
                             }
                         }
-                    }, string.Format("AddGroupNotice (agent {0}, group {1})", RequestingAgentID, groupID) , null);
+                    }, null, string.Format("AddGroupNotice (agent {0}, group {1})", RequestingAgentID, groupID));
 
                     return true;
                 }

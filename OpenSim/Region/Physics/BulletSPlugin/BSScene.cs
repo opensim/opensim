@@ -130,6 +130,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     internal int m_maxUpdatesPerFrame;
     internal EntityProperties[] m_updateArray;
 
+    /// <summary>
+    /// Used to control physics simulation timing if Bullet is running on its own thread.
+    /// </summary>
+    private ManualResetEvent m_updateWaitEvent;
+
     public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
     public const uint CHILDTERRAIN_ID = 2;  // Terrain allocated based on our mega-prim childre start here
@@ -288,7 +293,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             // The physics simulation should happen independently of the heartbeat loop
             m_physicsThread 
-                = Watchdog.StartThread(
+                = WorkManager.StartThread(
                     BulletSPluginPhysicsThread, 
                     string.Format("{0} ({1})", BulletEngineName, RegionName), 
                     ThreadPriority.Normal, 
@@ -456,19 +461,19 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     #region Prim and Avatar addition and removal
 
-    public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
+    public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
     {
         m_log.ErrorFormat("{0}: CALL TO AddAvatar in BSScene. NOT IMPLEMENTED", LogHeader);
         return null;
     }
 
-    public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, bool isFlying)
+    public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
     {
         // m_log.DebugFormat("{0}: AddAvatar: {1}", LogHeader, avName);
 
         if (!m_initialized) return null;
 
-        BSCharacter actor = new BSCharacter(localID, avName, this, position, size, isFlying);
+        BSCharacter actor = new BSCharacter(localID, avName, this, position, velocity, size, isFlying);
         lock (PhysObjects)
             PhysObjects.Add(localID, actor);
 
@@ -838,6 +843,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public void BulletSPluginPhysicsThread()
     {
+        Thread.CurrentThread.Priority = ThreadPriority.Highest;
+        m_updateWaitEvent = new ManualResetEvent(false);
+
         while (m_initialized)
         {
             int beginSimulationRealtimeMS = Util.EnvironmentTickCount();
@@ -851,8 +859,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (simulationTimeVsRealtimeDifferenceMS > 0)
             {
                 // The simulation of the time interval took less than realtime.
-                // Do a sleep for the rest of realtime.
-                Thread.Sleep(simulationTimeVsRealtimeDifferenceMS);
+                // Do a wait for the rest of realtime.
+                 m_updateWaitEvent.WaitOne(simulationTimeVsRealtimeDifferenceMS);
+                //Thread.Sleep(simulationTimeVsRealtimeDifferenceMS);
             }
             else
             {
@@ -937,6 +946,75 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         return base.Extension(pFunct, pParams);
     }
     #endregion // Extensions
+
+    public static string PrimitiveBaseShapeToString(PrimitiveBaseShape pbs)
+    {
+        float pathShearX = pbs.PathShearX < 128 ? (float)pbs.PathShearX * 0.01f : (float)(pbs.PathShearX - 256) * 0.01f;
+        float pathShearY = pbs.PathShearY < 128 ? (float)pbs.PathShearY * 0.01f : (float)(pbs.PathShearY - 256) * 0.01f;
+        float pathBegin = (float)pbs.PathBegin * 2.0e-5f;
+        float pathEnd = 1.0f - (float)pbs.PathEnd * 2.0e-5f;
+        float pathScaleX = (float)(200 - pbs.PathScaleX) * 0.01f;
+        float pathScaleY = (float)(200 - pbs.PathScaleY) * 0.01f;
+        float pathTaperX = pbs.PathTaperX * 0.01f;
+        float pathTaperY = pbs.PathTaperY * 0.01f;
+
+        float profileBegin = (float)pbs.ProfileBegin * 2.0e-5f;
+        float profileEnd = 1.0f - (float)pbs.ProfileEnd * 2.0e-5f;
+        float profileHollow = (float)pbs.ProfileHollow * 2.0e-5f;
+        if (profileHollow > 0.95f)
+            profileHollow = 0.95f;
+
+        StringBuilder buff = new StringBuilder();
+        buff.Append("shape=");
+        buff.Append(((ProfileShape)pbs.ProfileShape).ToString());
+        buff.Append(",");
+        buff.Append("hollow=");
+        buff.Append(((HollowShape)pbs.HollowShape).ToString());
+        buff.Append(",");
+        buff.Append("pathCurve=");
+        buff.Append(((Extrusion)pbs.PathCurve).ToString());
+        buff.Append(",");
+        buff.Append("profCurve=");
+        buff.Append(((Extrusion)pbs.ProfileCurve).ToString());
+        buff.Append(",");
+        buff.Append("profHollow=");
+        buff.Append(profileHollow.ToString());
+        buff.Append(",");
+        buff.Append("pathBegEnd=");
+        buff.Append(pathBegin.ToString());
+        buff.Append("/");
+        buff.Append(pathEnd.ToString());
+        buff.Append(",");
+        buff.Append("profileBegEnd=");
+        buff.Append(profileBegin.ToString());
+        buff.Append("/");
+        buff.Append(profileEnd.ToString());
+        buff.Append(",");
+        buff.Append("scaleXY=");
+        buff.Append(pathScaleX.ToString());
+        buff.Append("/");
+        buff.Append(pathScaleY.ToString());
+        buff.Append(",");
+        buff.Append("shearXY=");
+        buff.Append(pathShearX.ToString());
+        buff.Append("/");
+        buff.Append(pathShearY.ToString());
+        buff.Append(",");
+        buff.Append("taperXY=");
+        buff.Append(pbs.PathTaperX.ToString());
+        buff.Append("/");
+        buff.Append(pbs.PathTaperY.ToString());
+        buff.Append(",");
+        buff.Append("skew=");
+        buff.Append(pbs.PathSkew.ToString());
+        buff.Append(",");
+        buff.Append("twist/Beg=");
+        buff.Append(pbs.PathTwist.ToString());
+        buff.Append("/");
+        buff.Append(pbs.PathTwistBegin.ToString());
+
+        return buff.ToString();
+    }
 
     #region Taints
     // The simulation execution order is:

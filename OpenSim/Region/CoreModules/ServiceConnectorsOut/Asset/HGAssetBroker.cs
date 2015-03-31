@@ -69,6 +69,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             get { return "HGAssetBroker"; }
         }
 
+        public HGAssetBroker() {}
+
+        public HGAssetBroker(IConfigSource config)
+        {
+            Initialise(config);
+        }
+
         public void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
@@ -288,7 +295,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (asset != null)
             {
-                Util.FireAndForget(delegate { handler(id, sender, asset); });
+                Util.FireAndForget(delegate { handler(id, sender, asset); }, null, "HGAssetBroker.GotFromCache");
                 return true;
             }
 

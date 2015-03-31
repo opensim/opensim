@@ -92,3 +92,8 @@ ALTER TABLE assets ADD "asset_flags" INTEGER NOT NULL DEFAULT 0;
 :VERSION 7
 
 alter table assets add "creatorid" varchar(36) not null default '';
+
+:VERSION 8
+
+BEGIN TRANSACTION;
+COMMIT;

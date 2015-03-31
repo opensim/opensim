@@ -75,6 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
         touch = 8,
         touch_end = 536870912,
         touch_start = 2097152,
+        transaction_result = 33554432,
         object_rez = 4194304
     }
 
@@ -910,28 +911,40 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void LoadScriptState(XmlReader reader)
         {
-//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Looking for script state for {0} in {1}", Name);
+//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Looking for script state for {0}", Name);
 
-            while (reader.ReadToFollowing("SavedScriptState"))
+            while (true)
             {
-//                m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
-
-                if (m_savedScriptState == null)
-                    m_savedScriptState = new Dictionary<UUID, string>();
-
-                string uuid = reader.GetAttribute("UUID");
-
-                if (uuid != null)
+                if (reader.Name == "SavedScriptState" && reader.NodeType == XmlNodeType.Element)
                 {
-//                    m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
+//                    m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
 
-                    UUID itemid = new UUID(uuid);
-                    if (itemid != UUID.Zero)
-                        m_savedScriptState[itemid] = reader.ReadInnerXml();
+                    if (m_savedScriptState == null)
+                        m_savedScriptState = new Dictionary<UUID, string>();
+
+                    string uuid = reader.GetAttribute("UUID");
+
+                    // Even if there is no UUID attribute for some strange reason, we must always read the inner XML
+                    // so we don't continually keep checking the same SavedScriptedState element.
+                    string innerXml = reader.ReadInnerXml();
+
+                    if (uuid != null)
+                    {
+//                        m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
+
+                        UUID itemid = new UUID(uuid);
+                        if (itemid != UUID.Zero)
+                            m_savedScriptState[itemid] = innerXml;
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[SCENE OBJECT GROUP]: SavedScriptState element had no UUID in object {0}", Name);
+                    }
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENE OBJECT GROUP]: SavedScriptState element had no UUID in object {0}", Name);
+                    if (!reader.Read())
+                        break;
                 }
             }
         }
@@ -943,8 +956,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (CanBeBackedUp)
             {
-                //m_log.DebugFormat(
-                //    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
 
                 if (!Backup)
                     m_scene.EventManager.OnBackup += ProcessBackup;
@@ -1885,15 +1898,14 @@ namespace OpenSim.Region.Framework.Scenes
             return Vector3.Zero;
         }
 
-        public void moveToTarget(Vector3 target, float tau)
+        public void MoveToTarget(Vector3 target, float tau)
         {
             if (IsAttachment)
             {
                 ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+
                 if (avatar != null)
-                {
                     avatar.MoveToTarget(target, false, false);
-                }
             }
             else
             {
@@ -1908,12 +1920,26 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void stopMoveToTarget()
+        public void StopMoveToTarget()
         {
-            PhysicsActor pa = RootPart.PhysActor;
+            if (IsAttachment)
+            {
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
-            if (pa != null)
-                pa.PIDActive = false;
+                if (avatar != null)
+                    avatar.ResetMoveToTarget();
+            }
+            else
+            {
+                PhysicsActor pa = RootPart.PhysActor;
+
+                if (pa != null && pa.PIDActive)
+                {
+                    pa.PIDActive = false;
+                    
+                    ScheduleGroupForTerseUpdate();
+                }
+            }
         }
         
         /// <summary>
@@ -2921,6 +2947,11 @@ namespace OpenSim.Region.Framework.Scenes
             uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
             uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
+
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: RootPart.OwnerMask now {0} for {1} in {2}", 
+//                (OpenMetaverse.PermissionMask)RootPart.OwnerMask, Name, Scene.Name);
+
             RootPart.ScheduleFullUpdate();
         }
 

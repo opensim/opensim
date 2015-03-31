@@ -132,6 +132,7 @@ public static class BSParam
     public static float PhysicsUnmanLoggingFrames { get; private set; }
 
     // Avatar parameters
+    public static bool AvatarToAvatarCollisionsByDefault { get; private set; }
     public static float AvatarFriction { get; private set; }
     public static float AvatarStandingFriction { get; private set; }
     public static float AvatarAlwaysRunFactor { get; private set; }
@@ -152,6 +153,8 @@ public static class BSParam
 	public static int AvatarJumpFrames { get; private set; }
 	public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
 	public static float AvatarStepHeight { get; private set; }
+	public static float AvatarStepAngle { get; private set; }
+	public static float AvatarStepGroundFudge { get; private set; }
 	public static float AvatarStepApproachFactor { get; private set; }
 	public static float AvatarStepForceFactor { get; private set; }
 	public static float AvatarStepUpCorrectionFactor { get; private set; }
@@ -180,6 +183,7 @@ public static class BSParam
     public static bool VehicleEnableAngularBanking { get; private set; }
 
     // Convex Hulls
+    // Parameters for convex hull routine that ships with Bullet
     public static int CSHullMaxDepthSplit { get; private set; }
     public static int CSHullMaxDepthSplitForSimpleShapes { get; private set; }
     public static float CSHullConcavityThresholdPercent { get; private set; }
@@ -195,6 +199,22 @@ public static class BSParam
 	public static bool BHullAddNeighboursDistPoints { get; private set; }	// false
 	public static bool BHullAddFacesPoints { get; private set; }			// false
 	public static bool BHullShouldAdjustCollisionMargin { get; private set; }	// false
+	public static float WhichHACD { get; private set; }				    // zero if Bullet HACD, non-zero says VHACD
+    // Parameters for VHACD 2.0: http://code.google.com/p/v-hacd
+    // To enable, set both ShouldUseBulletHACD=true and WhichHACD=1
+	// http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
+	public static float VHACDresolution { get; private set; }			// 100,000 max number of voxels generated during voxelization stage
+	public static float VHACDdepth { get; private set; }				// 20 max number of clipping stages
+	public static float VHACDconcavity { get; private set; }			// 0.0025 maximum concavity
+	public static float VHACDplaneDownsampling { get; private set; }	// 4 granularity of search for best clipping plane
+	public static float VHACDconvexHullDownsampling { get; private set; }	// 4 precision of hull gen process
+	public static float VHACDalpha { get; private set; }				// 0.05 bias toward clipping along symmetry planes
+	public static float VHACDbeta { get; private set; }				    // 0.05 bias toward clipping along revolution axis
+	public static float VHACDgamma { get; private set; }				// 0.00125 max concavity when merging
+	public static float VHACDpca { get; private set; }					// 0 on/off normalizing mesh before decomp
+	public static float VHACDmode { get; private set; }				    // 0 0:voxel based, 1: tetrahedron based
+	public static float VHACDmaxNumVerticesPerCH { get; private set; }	// 64 max triangles per convex hull
+	public static float VHACDminVolumePerCH { get; private set; }		// 0.0001 sampling of generated convex hulls
 
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
@@ -571,6 +591,8 @@ public static class BSParam
         new ParameterDefn<float>("TerrainCollisionMargin", "Margin where collision checking starts" ,
             0.04f ),
 
+        new ParameterDefn<bool>("AvatarToAvatarCollisionsByDefault", "Should avatars collide with other avatars by default?",
+            true),
         new ParameterDefn<float>("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
             0.2f ),
         new ParameterDefn<float>("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
@@ -611,13 +633,17 @@ public static class BSParam
 	    new ParameterDefn<int>("AvatarJumpFrames", "Number of frames to allow jump forces. Changes jump height.",
             4 ),
 	    new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
-            0.6f ) ,
+            0.999f ) ,
+	    new ParameterDefn<float>("AvatarStepAngle", "The angle (in radians) for a vertical surface to be considered a step",
+            0.3f ) ,
+	    new ParameterDefn<float>("AvatarStepGroundFudge", "Fudge factor subtracted from avatar base when comparing collision height",
+            0.1f ) ,
 	    new ParameterDefn<float>("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",
-            0.6f ),
+            2f ),
 	    new ParameterDefn<float>("AvatarStepForceFactor", "Controls the amount of force up applied to step up onto a step",
-            1.0f ),
+            0f ),
 	    new ParameterDefn<float>("AvatarStepUpCorrectionFactor", "Multiplied by height of step collision to create up movement at step",
-            2.0f ),
+            0.8f ),
 	    new ParameterDefn<int>("AvatarStepSmoothingSteps", "Number of frames after a step collision that we continue walking up stairs",
             1 ),
 
@@ -739,6 +765,33 @@ public static class BSParam
             true ),
 	    new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
             false ),
+
+	    new ParameterDefn<float>("WhichHACD", "zero if Bullet HACD, non-zero says VHACD",
+            0f ),
+	    new ParameterDefn<float>("VHACDresolution", "max number of voxels generated during voxelization stage",
+            100000f ),
+	    new ParameterDefn<float>("VHACDdepth", "max number of clipping stages",
+            20f ),
+	    new ParameterDefn<float>("VHACDconcavity", "maximum concavity",
+            0.0025f ),
+	    new ParameterDefn<float>("VHACDplaneDownsampling", "granularity of search for best clipping plane",
+            4f ),
+	    new ParameterDefn<float>("VHACDconvexHullDownsampling", "precision of hull gen process",
+            4f ),
+	    new ParameterDefn<float>("VHACDalpha", "bias toward clipping along symmetry planes",
+            0.05f ),
+	    new ParameterDefn<float>("VHACDbeta", "bias toward clipping along revolution axis",
+            0.05f ),
+	    new ParameterDefn<float>("VHACDgamma", "max concavity when merging",
+            0.00125f ),
+	    new ParameterDefn<float>("VHACDpca", "on/off normalizing mesh before decomp",
+            0f ),
+	    new ParameterDefn<float>("VHACDmode", "0:voxel based, 1: tetrahedron based",
+            0f ),
+	    new ParameterDefn<float>("VHACDmaxNumVerticesPerCH", "max triangles per convex hull",
+            64f ),
+	    new ParameterDefn<float>("VHACDminVolumePerCH",	"sampling of generated convex hulls",
+            0.0001f ),
 
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound ),

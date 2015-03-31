@@ -32,6 +32,8 @@ namespace OpenSim.Framework
 {
     public interface ISceneObject
     {
+        string Name { get; }
+
         UUID UUID { get; }
 
         /// <summary>

@@ -122,6 +122,17 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Check if the caller has permission to manipulate the given NPC.
         /// </summary>
+        /// <remarks>
+        /// A caller has permission if
+        ///   * An NPC exists with the given npcID.
+        ///   * The caller UUID given is UUID.Zero.
+        ///   * The avatar is unowned (owner is UUID.Zero).
+        ///   * The avatar is owned and the owner and callerID match.
+        ///   * The avatar is owned and the callerID matches its agentID.
+        /// </remarks>
+        /// <param name="av"></param>
+        /// <param name="callerID"></param>
+        /// <returns>true if they do, false if they don't.</returns>
         /// <param name="npcID"></param>
         /// <param name="callerID"></param>
         /// <returns>

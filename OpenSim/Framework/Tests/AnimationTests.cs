@@ -32,7 +32,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 using Animation = OpenSim.Framework.Animation;
 
 namespace OpenSim.Framework.Tests

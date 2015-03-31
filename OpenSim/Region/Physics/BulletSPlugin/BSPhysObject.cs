@@ -136,6 +136,15 @@ public abstract class BSPhysObject : PhysicsActor
     // This mostly prevents property updates and collisions until the object is completely here.
     public bool IsInitialized { get; protected set; }
 
+    // Set to 'true' if an object (mesh/linkset/sculpty) is not completely constructed.
+    // This test is used to prevent some updates to the object when it only partially exists.
+    // There are several reasons and object might be incomplete:
+    //     Its underlying mesh/sculpty is an asset which must be fetched from the asset store
+    //     It is a linkset who is being added to or removed from
+    //     It is changing state (static to physical, for instance) which requires rebuilding
+    // This is a computed value based on the underlying physical object construction
+    abstract public bool IsIncomplete { get; }
+
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
     // Set the raw mass but also update physical mass properties (inertia, ...)
@@ -228,7 +237,7 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
-    public OMV.Vector3 RawVelocity { get; set; }
+    public virtual OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public OMV.Vector3 RawForce { get; set; }
@@ -246,7 +255,12 @@ public abstract class BSPhysObject : PhysicsActor
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
-    public override bool PIDActive { set { MoveToTargetActive = value; } }
+    public override bool PIDActive 
+    {
+        get { return MoveToTargetActive; }
+        set { MoveToTargetActive = value; } 
+    }
+
     public override OMV.Vector3 PIDTarget { set { MoveToTargetTarget = value; } }
     public override float PIDTau { set { MoveToTargetTau = value; } }
 
@@ -295,10 +309,19 @@ public abstract class BSPhysObject : PhysicsActor
     // Note this is a displacement from the root's coordinates. Zero means use the root prim as center-of-mass.
     public OMV.Vector3? UserSetCenterOfMassDisplacement { get; set; }
 
-    public OMV.Vector3 LockedLinearAxis { get; set; } // zero means locked. one means free.
-    public OMV.Vector3 LockedAngularAxis { get; set; } // zero means locked. one means free.
+    public OMV.Vector3 LockedLinearAxis;   // zero means locked. one means free.
+    public OMV.Vector3 LockedAngularAxis;  // zero means locked. one means free.
     public const float FreeAxis = 1f;
+    public const float LockedAxis = 0f;
     public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(FreeAxis, FreeAxis, FreeAxis);  // All axis are free
+
+    // If an axis is locked (flagged above) then the limits of that axis are specified here.
+    // Linear axis limits are relative to the object's starting coordinates.
+    // Angular limits are limited to -PI to +PI
+    public OMV.Vector3 LockedLinearAxisLow;
+    public OMV.Vector3 LockedLinearAxisHigh;
+    public OMV.Vector3 LockedAngularAxisLow;
+    public OMV.Vector3 LockedAngularAxisHigh;
 
     // Enable physical actions. Bullet will keep sleeping non-moving physical objects so
     //     they need waking up when parameters are changed.
