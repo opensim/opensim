@@ -3681,6 +3681,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
         {
+            PhysicsActor pa = part.PhysActor;
+            if ( ( pa == null || !pa.IsPhysical ) && gain == 0.0d )
+                spinrate = 0.0d;
             part.UpdateAngularVelocity(axis * spinrate);
          }
 
