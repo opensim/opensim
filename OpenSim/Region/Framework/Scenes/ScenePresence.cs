@@ -2659,7 +2659,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                Vector3 standPositionAdjustment 
 //                    = part.SitTargetPosition + new Vector3(0.5f, 0f, m_sitAvatarHeight / 2f);
-                Vector3 adjustmentForSitPosition = (OffsetPosition - SIT_TARGET_ADJUSTMENT) * part.GetWorldRotation();
+                Vector3 adjustmentForSitPosition = OffsetPosition * part.ParentGroup.GroupRotation - SIT_TARGET_ADJUSTMENT * part.GetWorldRotation();
 
                 // XXX: This is based on the physics capsule sizes.  Need to find a better way to read this rather than
                 // hardcoding here.
