@@ -1627,6 +1627,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Integer osCheckODE()
+        {
+            m_host.AddScriptLPS(1);
+            LSL_Integer ret = 0;    // false
+            if (m_ScriptEngine.World.PhysicsScene != null)
+            {
+                string physEngine = m_ScriptEngine.World.PhysicsScene.EngineType;
+                if (physEngine == "OpenDynamicsEngine")
+                {
+                    ret = 1;    // true
+                }
+            }
+            return ret;
+        }
+
         public string osGetPhysicsEngineType()
         {
             // High because it can be used to target attacks to known weaknesses

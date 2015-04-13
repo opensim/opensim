@@ -420,6 +420,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetScriptEngineName();
         }
 
+        public LSL_Integer osCheckODE()
+        {
+            return m_OSSL_Functions.osCheckODE();
+        }
+
         public string osGetPhysicsEngineType()
         {
             return m_OSSL_Functions.osGetPhysicsEngineType();
