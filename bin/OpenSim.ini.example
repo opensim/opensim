@@ -964,7 +964,7 @@
     ;# {Include-osslEnable} {} {Include file for enabling and permissions for OSSL functions} {}
     ;; Optionally include file to enable OSSL functions and set permissions on who can use which.
     ;; If this INI file is not included, the OSSL functions are disabled.
-    ; Include-osslEnable = "config-include/osslEnable.ini"
+    Include-osslEnable = "config-include/osslEnable.ini"
 
 
 [MRM]
