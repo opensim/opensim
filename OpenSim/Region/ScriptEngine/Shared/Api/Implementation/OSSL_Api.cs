@@ -155,7 +155,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
             {
                 m_OSFunctionsEnabled = true;
-                m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
+                // m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
             }
 
             m_ScriptDelayFactor =
