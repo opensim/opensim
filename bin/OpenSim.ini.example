@@ -919,53 +919,7 @@
     ;; Compile debug info (line numbers) into the script assemblies
     ; CompileWithDebugInformation = true
 
-    ;; Allow the user of mod* functions.  This allows a script to pass messages
-    ;; to a region module via the modSendCommand() function
-    ;; Default is false
-    ; AllowMODFunctions = false
-
-    ;# {AllowOSFunctions} {Enabled:true} {Allow OSFunctions? (DANGEROUS!)} {true false} false
-    ;; Allow the use of os* functions (some are dangerous)
-    ; AllowOSFunctions = false
-
-    ;# {AllowLightShareFunctions} {Enabled:false [LightShare]enable_windlight:true} {Allow LightShare functions?} {true false} false
-    ; Allow the use of LightShare functions.
-    ; The setting enable_windlight = true must also be enabled in the [LightShare] section.
-    ; AllowLightShareFunctions = false
-
-    ;# {OSFunctionThreatLevel} {Enabled:true AllowOSFunctions:true} {OSFunction threat level? (DANGEROUS!)} {None VeryLow Low Moderate High VeryHigh Severe} VeryLow
-    ;; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
-    ;; See http://opensimulator.org/wiki/Threat_level for more information on these levels.
-    ;; We do not recommend that use set a general level above Low unless you have a high level of trust
-    ;; in all the users that can run scripts in your simulator.  It is safer to explicitly
-    ;; allow certain types of user to run higher threat level OSSL functions, as detailed later on.
-    OSFunctionThreatLevel = VeryLow
-
-    ; OS Functions enable/disable
-    ; For each function, you can add one line, as shown
-    ; The default for all functions allows them if below threat level
-
-    ; true allows the use of the function unconditionally
-    ; Allow_osSetRegionWaterHeight = true
-    
-    ; false disables the function completely
-    ; Allow_osSetRegionWaterHeight = false
-    
-    ; Comma separated list of UUIDS allows the function for that list of UUIDS
-    ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
-    
-    ; Comma separated list of owner classes that allow the function for a particular class of owners. Choices are
-    ; - PARCEL_GROUP_MEMBER:  allow if the object group is the same group as the parcel
-    ; - PARCEL_OWNER:         allow if the object owner is the parcel owner
-    ; - ESTATE_MANAGER:       allow if the object owner is an estate manager
-    ; - ESTATE_OWNER:         allow if the object owner is the estate owner
-    ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb, PARCEL_OWNER, ESTATE_OWNER>, ...
-
-    ; You can also use script creators as the uuid
-    ; Creators_osSetRegionWaterHeight = <uuid>, ...
-
-    ; If both Allow_ and Creators_ are given, effective permissions
-    ; are the union of the two.
+    ; ==== Settings for MOD and OSSL functions have been moved to the [OSSL] section
 
     ;# {EventLimit} {} {Amount of time a script can spend in an event handler} {} 30
     ;; Time a script can spend in an event handler before it is interrupted
