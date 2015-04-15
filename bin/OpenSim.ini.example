@@ -1048,7 +1048,7 @@
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
-    ;; or http:://${Const|BaseURL}:${Const|PrivatePort} for robust, V2
+    ;; or ${Const|BaseURL}:${Const|PrivatePort} for robust, V2
     ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
