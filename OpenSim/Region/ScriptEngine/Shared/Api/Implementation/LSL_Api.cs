@@ -28,6 +28,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
@@ -35,7 +37,9 @@ using System.Text.RegularExpressions;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 using OpenMetaverse.Packets;
+using OpenMetaverse.Rendering;
 using OpenSim;
 using OpenSim.Framework;
 
@@ -182,6 +186,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_restrictEmail = false;
         protected ISoundModule m_SoundModule = null;
 
+        protected float m_avatarHeightCorrection = 0.2f;
+        protected bool m_useSimpleBoxesInGetBoundingBox = false;
+        protected bool m_addStatsInGetBoundingBox = false;
+
+        //LSL Avatar Bounding Box (lABB), lower (1) and upper (2),
+        //standing (Std), Groundsitting (Grs), Sitting (Sit),
+        //along X, Y and Z axes, constants (0) and coefficients (1)
+        protected float m_lABB1StdX0 = -0.275f;
+        protected float m_lABB2StdX0 = 0.275f;
+        protected float m_lABB1StdY0 = -0.35f;
+        protected float m_lABB2StdY0 = 0.35f;
+        protected float m_lABB1StdZ0 = -0.1f;
+        protected float m_lABB1StdZ1 = -0.5f;
+        protected float m_lABB2StdZ0 = 0.1f;
+        protected float m_lABB2StdZ1 = 0.5f;
+        protected float m_lABB1GrsX0 = -0.3875f;
+        protected float m_lABB2GrsX0 = 0.3875f;
+        protected float m_lABB1GrsY0 = -0.5f;
+        protected float m_lABB2GrsY0 = 0.5f;
+        protected float m_lABB1GrsZ0 = -0.05f;
+        protected float m_lABB1GrsZ1 = -0.375f;
+        protected float m_lABB2GrsZ0 = 0.5f;
+        protected float m_lABB2GrsZ1 = 0.0f;
+        protected float m_lABB1SitX0 = -0.5875f;
+        protected float m_lABB2SitX0 = 0.1875f;
+        protected float m_lABB1SitY0 = -0.35f;
+        protected float m_lABB2SitY0 = 0.35f;
+        protected float m_lABB1SitZ0 = -0.35f;
+        protected float m_lABB1SitZ1 = -0.375f;
+        protected float m_lABB2SitZ0 = -0.25f;
+        protected float m_lABB2SitZ1 = 0.25f;
+
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
         private string[] HttpStandardHeaders =
@@ -257,6 +293,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (lslConfig != null)
                 {
                     m_restrictEmail = lslConfig.GetBoolean("RestrictEmail", m_restrictEmail);
+                    m_avatarHeightCorrection = lslConfig.GetFloat("AvatarHeightCorrection", m_avatarHeightCorrection);
+                    m_useSimpleBoxesInGetBoundingBox = lslConfig.GetBoolean("UseSimpleBoxesInGetBoundingBox", m_useSimpleBoxesInGetBoundingBox);
+                    m_addStatsInGetBoundingBox = lslConfig.GetBoolean("AddStatsInGetBoundingBox", m_addStatsInGetBoundingBox);
+                    m_lABB1StdX0 = lslConfig.GetFloat("LowerAvatarBoundingBoxStandingXconst", m_lABB1StdX0);
+                    m_lABB2StdX0 = lslConfig.GetFloat("UpperAvatarBoundingBoxStandingXconst", m_lABB2StdX0);
+                    m_lABB1StdY0 = lslConfig.GetFloat("LowerAvatarBoundingBoxStandingYconst", m_lABB1StdY0);
+                    m_lABB2StdY0 = lslConfig.GetFloat("UpperAvatarBoundingBoxStandingYconst", m_lABB2StdY0);
+                    m_lABB1StdZ0 = lslConfig.GetFloat("LowerAvatarBoundingBoxStandingZconst", m_lABB1StdZ0);
+                    m_lABB1StdZ1 = lslConfig.GetFloat("LowerAvatarBoundingBoxStandingZcoeff", m_lABB1StdZ1);
+                    m_lABB2StdZ0 = lslConfig.GetFloat("UpperAvatarBoundingBoxStandingZconst", m_lABB2StdZ0);
+                    m_lABB2StdZ1 = lslConfig.GetFloat("UpperAvatarBoundingBoxStandingZcoeff", m_lABB2StdZ1);
+                    m_lABB1GrsX0 = lslConfig.GetFloat("LowerAvatarBoundingBoxGroundsittingXconst", m_lABB1GrsX0);
+                    m_lABB2GrsX0 = lslConfig.GetFloat("UpperAvatarBoundingBoxGroundsittingXconst", m_lABB2GrsX0);
+                    m_lABB1GrsY0 = lslConfig.GetFloat("LowerAvatarBoundingBoxGroundsittingYconst", m_lABB1GrsY0);
+                    m_lABB2GrsY0 = lslConfig.GetFloat("UpperAvatarBoundingBoxGroundsittingYconst", m_lABB2GrsY0);
+                    m_lABB1GrsZ0 = lslConfig.GetFloat("LowerAvatarBoundingBoxGroundsittingZconst", m_lABB1GrsZ0);
+                    m_lABB1GrsZ1 = lslConfig.GetFloat("LowerAvatarBoundingBoxGroundsittingZcoeff", m_lABB1GrsZ1);
+                    m_lABB2GrsZ0 = lslConfig.GetFloat("UpperAvatarBoundingBoxGroundsittingZconst", m_lABB2GrsZ0);
+                    m_lABB2GrsZ1 = lslConfig.GetFloat("UpperAvatarBoundingBoxGroundsittingZcoeff", m_lABB2GrsZ1);
+                    m_lABB1SitX0 = lslConfig.GetFloat("LowerAvatarBoundingBoxSittingXconst", m_lABB1SitX0);
+                    m_lABB2SitX0 = lslConfig.GetFloat("UpperAvatarBoundingBoxSittingXconst", m_lABB2SitX0);
+                    m_lABB1SitY0 = lslConfig.GetFloat("LowerAvatarBoundingBoxSittingYconst", m_lABB1SitY0);
+                    m_lABB2SitY0 = lslConfig.GetFloat("UpperAvatarBoundingBoxSittingYconst", m_lABB2SitY0);
+                    m_lABB1SitZ0 = lslConfig.GetFloat("LowerAvatarBoundingBoxSittingZconst", m_lABB1SitZ0);
+                    m_lABB1SitZ1 = lslConfig.GetFloat("LowerAvatarBoundingBoxSittingZcoeff", m_lABB1SitZ1);
+                    m_lABB2SitZ0 = lslConfig.GetFloat("UpperAvatarBoundingBoxSittingZconst", m_lABB2SitZ0);
+                    m_lABB2SitZ1 = lslConfig.GetFloat("UpperAvatarBoundingBoxSittingZcoeff", m_lABB2SitZ1);
                 }
 
                 IConfig smtpConfig = seConfigSource.Configs["SMTP"];
@@ -9584,75 +9647,417 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// A partial implementation.
+        /// Full implementation of llGetBoundingBox according to SL 2015-04-15.
+        /// http://wiki.secondlife.com/wiki/LlGetBoundingBox
         /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetBoundingBox
-        /// So far only valid for standing/flying/ground sitting avatars and single prim objects.
-        /// If the object has multiple prims and/or a sitting avatar then the bounding
-        /// box is for the root prim only.
+        /// Returns local bounding box of avatar without attachments
+        /// if target is non-seated avatar or prim/mesh in avatar attachment.
+        /// Returns local bounding box of object including seated avatars
+        /// if target is seated avatar or prim/mesh in object.
+        /// Uses meshing of prims for high accuracy
+        /// or less accurate box models for speed.
         /// </summary>
         public LSL_List llGetBoundingBox(string obj)
         {
             m_host.AddScriptLPS(1);
+
+            // Get target avatar if non-seated avatar or attachment, or prim and object
             UUID objID = UUID.Zero;
-            LSL_List result = new LSL_List();
-            if (!UUID.TryParse(obj, out objID))
+            UUID.TryParse(obj, out objID);
+            ScenePresence agent = World.GetScenePresence(objID);
+            if (agent != null)
             {
-                result.Add(new LSL_Vector());
-                result.Add(new LSL_Vector());
-                return result;
-            }
-            ScenePresence presence = World.GetScenePresence(objID);
-            if (presence != null)
-            {
-                if (presence.ParentID == 0) // not sat on an object
+                if (agent.ParentPart != null)
                 {
-                    LSL_Vector lower;
-                    LSL_Vector upper;
-                    if (presence.Animator.Animations.ImplicitDefaultAnimation.AnimID
-                        == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
-                    {
-                        // This is for ground sitting avatars
-                        float height = presence.Appearance.AvatarHeight / 2.66666667f;
-                        lower = new LSL_Vector(-0.3375f, -0.45f, height * -1.0f);
-                        upper = new LSL_Vector(0.3375f, 0.45f, 0.0f);
-                    }
-                    else
-                    {
-                        // This is for standing/flying avatars
-                        float height = presence.Appearance.AvatarHeight / 2.0f;
-                        lower = new LSL_Vector(-0.225f, -0.3f, height * -1.0f);
-                        upper = new LSL_Vector(0.225f, 0.3f, height + 0.05f);
-                    }
-                    result.Add(lower);
-                    result.Add(upper);
-                    return result;
-                }
-                else
-                {
-                    // sitting on an object so we need the bounding box of that
-                    // which should include the avatar so set the UUID to the
-                    // UUID of the object the avatar is sat on and allow it to fall through
-                    // to processing an object
-                    SceneObjectPart p = World.GetSceneObjectPart(presence.ParentID);
-                    objID = p.UUID;
+                    objID = agent.ParentPart.UUID;
+                    agent = null;
                 }
             }
-            SceneObjectPart part = World.GetSceneObjectPart(objID);
-            // Currently only works for single prims without a sitting avatar
-            if (part != null)
+            SceneObjectGroup group = null;
+            SceneObjectPart target = World.GetSceneObjectPart(objID);
+            if (target != null)
             {
-                Vector3 halfSize = part.Scale / 2.0f;
-                LSL_Vector lower = (new LSL_Vector(halfSize)) * -1.0f;
-                LSL_Vector upper = new LSL_Vector(halfSize);
-                result.Add(lower);
-                result.Add(upper);
-                return result;
+                group = target.ParentGroup;
+                if (group.IsAttachment) {
+                    objID = group.AttachedAvatar;
+                    agent = World.GetScenePresence(objID);
+                    group = null;
+                    target = null;
+                }
             }
 
-            // Not found so return empty values
-            result.Add(new LSL_Vector());
-            result.Add(new LSL_Vector());
+            // Initialize but break if no target
+            LSL_List result = new LSL_List();
+            int groupCount = 0;
+            int partCount = 0;
+            int vertexCount = 0;
+            if (target == null && agent == null)
+            {
+                result.Add(new LSL_Vector());
+                result.Add(new LSL_Vector());
+                if (m_addStatsInGetBoundingBox)
+                    result.Add(new LSL_Vector((float)groupCount, (float)partCount, (float)vertexCount));
+                return result;
+            }
+            Vector3 minPosition = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 maxPosition = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+            // Try to get a mesher
+            IRendering primMesher = null;
+            List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
+            if (renderers.Count > 0)
+                primMesher = RenderingLoader.LoadRenderer(renderers[0]);
+
+            // Get bounding box of just avatar, seated or not
+            if (agent != null)
+            {
+                bool hasParent = false;
+                Vector3 lower;
+                Vector3 upper;
+                BoundingBoxOfScenePresence(agent, out lower, out upper);
+                Vector3 offset = Vector3.Zero;
+
+                // Since local bounding box unrotated and untilted, keep it simple
+                AddBoundingBoxOfSimpleBox(lower, upper, offset, agent.Rotation, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                partCount++;
+                groupCount++;
+
+                // Return lower and upper bounding box corners
+                result.Add(new LSL_Vector(minPosition));
+                result.Add(new LSL_Vector(maxPosition));
+                if (m_addStatsInGetBoundingBox)
+                    result.Add(new LSL_Vector((float)groupCount, (float)partCount, (float)vertexCount));
+                return result;
+            }
+            // Get bounding box of object including seated avatars
+            else if (group != null)
+            {
+                // Merge bounding boxes of all parts (prims and mesh)
+                foreach (SceneObjectPart part in group.Parts)
+                {
+                    bool hasParent = (!part.IsRoot);
+                    // When requested or if no mesher, keep it simple
+                    if (m_useSimpleBoxesInGetBoundingBox || primMesher == null)
+                    {
+                        AddBoundingBoxOfSimpleBox(part.Scale * -0.5f, part.Scale * 0.5f, part.OffsetPosition, part.RotationOffset, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                    }
+                    // Do the full mounty
+                    else
+                    {
+                        Primitive omvPrim = part.Shape.ToOmvPrimitive(part.OffsetPosition, part.RotationOffset);
+                        byte[] sculptAsset = null;
+                        if (omvPrim.Sculpt != null)
+                            sculptAsset = World.AssetService.GetData(omvPrim.Sculpt.SculptTexture.ToString());
+
+                        // When part is mesh
+                        // Quirk: Only imports as incompletely populated faceted mesh object, so needs an own handler.
+                        if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type == SculptType.Mesh && sculptAsset != null)
+                        {
+                            AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset);
+                            FacetedMesh mesh = null;
+                            FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, DetailLevel.Highest, out mesh);
+                            meshAsset = null;
+                            if (mesh != null)
+                            {
+                                AddBoundingBoxOfFacetedMesh(mesh, omvPrim, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                                mesh = null;
+                            }
+                        }
+
+                        // When part is sculpt
+                        // Quirk: Generated sculpt mesh is about 2.8% smaller in X and Y than visual sculpt.
+                        else if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type != SculptType.Mesh && sculptAsset != null)
+                        {
+                            IJ2KDecoder imgDecoder = World.RequestModuleInterface<IJ2KDecoder>();
+                            if (imgDecoder != null)
+                            {
+                                Image sculpt = imgDecoder.DecodeToImage(sculptAsset);
+                                if (sculpt != null)
+                                {
+                                    SimpleMesh mesh = primMesher.GenerateSimpleSculptMesh(omvPrim, (Bitmap)sculpt, DetailLevel.Medium);
+                                    sculpt.Dispose();
+                                    if (mesh != null)
+                                    {
+                                        AddBoundingBoxOfSimpleMesh(mesh, omvPrim, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                                        mesh = null;
+                                    }
+                                }
+                            }
+                        }
+
+                        // When part is prim
+                        else if (omvPrim.Sculpt == null)
+                        {
+                            SimpleMesh mesh = primMesher.GenerateSimpleMesh(omvPrim, DetailLevel.Medium);
+                            if (mesh != null)
+                            {
+                                AddBoundingBoxOfSimpleMesh(mesh, omvPrim, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                                mesh = null;
+                            }
+                        }
+
+                        // When all else fails, try fallback to simple box
+                        else
+                        {
+                            AddBoundingBoxOfSimpleBox(part.Scale * -0.5f, part.Scale * 0.5f, part.OffsetPosition, part.RotationOffset, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                        }
+                    }
+                    partCount++;
+                }
+            }
+
+            // Merge bounding boxes of seated avatars
+            foreach (ScenePresence sp in group.GetSittingAvatars())
+            {
+                Vector3 lower;
+                Vector3 upper;
+                BoundingBoxOfScenePresence(sp, out lower, out upper);
+                Vector3 offset = sp.OffsetPosition;
+
+                bool hasParent = true;
+                // When requested or if no mesher, keep it simple
+                if (m_useSimpleBoxesInGetBoundingBox || primMesher == null)
+                {
+                    AddBoundingBoxOfSimpleBox(lower, upper, offset, sp.Rotation, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                }
+                // Do the full mounty
+                else
+                {
+                    // Prim shapes don't do center offsets, so add it here.
+                    offset = offset + (lower + upper) * 0.5f * sp.Rotation;
+                    Primitive omvPrim = MakeOpenMetaversePrim(upper - lower, offset, sp.Rotation, ScriptBaseClass.PRIM_TYPE_SPHERE);
+                    SimpleMesh mesh = primMesher.GenerateSimpleMesh(omvPrim, DetailLevel.Medium);
+                    AddBoundingBoxOfSimpleMesh(mesh, omvPrim, hasParent, ref minPosition, ref maxPosition, ref vertexCount);
+                    mesh = null;
+                }
+                partCount++;
+            }
+
+            groupCount++;
+
+            // Return lower and upper bounding box corners
+            result.Add(new LSL_Vector(minPosition));
+            result.Add(new LSL_Vector(maxPosition));
+            if (m_addStatsInGetBoundingBox)
+                result.Add(new LSL_Vector((float)groupCount, (float)partCount, (float)vertexCount));
+
+            primMesher = null;
             return result;
+        }
+
+        /// <summary>
+        /// Helper to calculate bounding box of an avatar.
+        /// </summary>
+        private void BoundingBoxOfScenePresence(ScenePresence sp, out Vector3 lower, out Vector3 upper)
+        {
+            // Adjust from OS model
+            // avatar height = visual height - 0.2, bounding box height = visual height
+            // to SL model
+            // avatar height = visual height, bounding box height = visual height + 0.2
+            float height = sp.Appearance.AvatarHeight + m_avatarHeightCorrection;
+
+            // According to avatar bounding box in SL 2015-04-18:
+            // standing = <-0.275,-0.35,-0.1-0.5*h> : <0.275,0.35,0.1+0.5*h>
+            // groundsitting = <-0.3875,-0.5,-0.05-0.375*h> : <0.3875,0.5,0.5>
+            // sitting = <-0.5875,-0.35,-0.35-0.375*h> : <0.1875,0.35,-0.25+0.25*h>
+
+            // When avatar is sitting
+            if (sp.ParentPart != null)
+            {
+                lower = new Vector3(m_lABB1SitX0, m_lABB1SitY0, m_lABB1SitZ0 + m_lABB1SitZ1 * height);
+                upper = new Vector3(m_lABB2SitX0, m_lABB2SitY0, m_lABB2SitZ0 + m_lABB2SitZ1 * height);
+            }
+            // When avatar is groundsitting
+            else if (sp.Animator.Animations.ImplicitDefaultAnimation.AnimID == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+            {
+                lower = new Vector3(m_lABB1GrsX0, m_lABB1GrsY0, m_lABB1GrsZ0 + m_lABB1GrsZ1 * height);
+                upper = new Vector3(m_lABB2GrsX0, m_lABB2GrsY0, m_lABB2GrsZ0 + m_lABB2GrsZ1 * height);
+            }
+            // When avatar is standing or flying
+            else
+            {
+                lower = new Vector3(m_lABB1StdX0, m_lABB1StdY0, m_lABB1StdZ0 + m_lABB1StdZ1 * height);
+                upper = new Vector3(m_lABB2StdX0, m_lABB2StdY0, m_lABB2StdZ0 + m_lABB2StdZ1 * height);
+            }
+        }
+
+        /// <summary>
+        /// Helper to approximate a part with a simple box.
+        /// </summary>
+        private void AddBoundingBoxOfSimpleBox(Vector3 corner1, Vector3 corner2, Vector3 offset, Quaternion rotation, bool hasParent, ref Vector3 lower, ref Vector3 upper, ref int count)
+        {
+            // Parse the 8 box corners
+            for (int i = 0; i < 8; i++)
+            {
+                // Calculate each box corner
+                Vector3 position = corner1;
+                if ((i & 1) != 0)
+                    position.X = corner2.X;
+                if ((i & 2) != 0)
+                    position.Y = corner2.Y;
+                if ((i & 4) != 0)
+                    position.Z = corner2.Z;
+                // Rotate part unless part is root
+                if (hasParent)
+                    position = position * rotation;
+                position = position + offset;
+                // Adjust lower and upper bounding box corners if needed
+                lower = Vector3.Min(lower, position);
+                upper = Vector3.Max(upper, position);
+                count++;
+            }
+        }
+
+        /// <summary>
+        /// Helper to parse a meshed prim and needed especially
+        /// for accuracy with tortured prims and sculpts.
+        /// </summary>
+        private void AddBoundingBoxOfSimpleMesh(SimpleMesh mesh, Primitive prim, bool hasParent, ref Vector3 lower, ref Vector3 upper, ref int count)
+        {
+            // Quirk: A meshed box contains 10 instead of the 8 necessary vertices.
+            if (mesh != null)
+            {
+                // Parse each vertex in mesh
+                foreach (Vertex vertex in mesh.Vertices)
+                {
+                    Vector3 position = vertex.Position;
+                    position = position * prim.Scale;
+                    // Rotate part unless part is root
+                    if (hasParent)
+                        position = position * prim.Rotation;
+                    position = position + prim.Position;
+                    // Adjust lower and upper bounding box corners if needed
+                    lower = Vector3.Min(lower, position);
+                    upper = Vector3.Max(upper, position);
+                    count++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper to parse mesh because no method exists
+        /// to parse mesh assets to SimpleMesh.
+        /// </summary>
+        private void AddBoundingBoxOfFacetedMesh(FacetedMesh mesh, Primitive prim, bool hasParent, ref Vector3 lower, ref Vector3 upper, ref int count)
+        {
+            if (mesh != null)
+            {
+                // Parse each face in mesh
+                // since vertex array isn't populated.
+                // This parses each unique vertex 3-6 times.
+                foreach (Face face in mesh.Faces)
+                {
+                    // Parse each vertex in face
+                    foreach (Vertex vertex in face.Vertices)
+                    {
+                        Vector3 position = vertex.Position;
+                        position = position * prim.Scale;
+                        // Rotate part unless part is root
+                        if (hasParent)
+                            position = position * prim.Rotation;
+                        position = position + prim.Position;
+                        // Adjust lower and upper bounding box corners if needed
+                        lower = Vector3.Min(lower, position);
+                        upper = Vector3.Max(upper, position);
+                        count++;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper to make up an OpenMetaverse prim
+        /// needed to create mesh from parts.
+        /// </summary>
+        private Primitive MakeOpenMetaversePrim(Vector3 scale, Vector3 position, Quaternion rotation, int primType)
+        {
+            // Initialize and set common parameters
+            Primitive prim = new OpenMetaverse.Primitive();
+            prim.Scale = scale;
+            prim.Position = position;
+            prim.Rotation = rotation;
+            prim.PrimData.PathShearX = 0.0f;
+            prim.PrimData.PathShearY = 0.0f;
+            prim.PrimData.PathBegin = 0.0f;
+            prim.PrimData.PathEnd = 1.0f;
+            prim.PrimData.PathScaleX = 1.0f;
+            prim.PrimData.PathScaleY = 1.0f;
+            prim.PrimData.PathTaperX = 0.0f;
+            prim.PrimData.PathTaperY = 0.0f;
+            prim.PrimData.PathTwistBegin = 0.0f;
+            prim.PrimData.PathTwist = 0.0f;
+            prim.PrimData.ProfileBegin = 0.0f;
+            prim.PrimData.ProfileEnd = 1.0f;
+            prim.PrimData.ProfileHollow = 0.0f;
+            prim.PrimData.ProfileCurve = (ProfileCurve)1;
+            prim.PrimData.ProfileHole = (HoleType)0;
+            prim.PrimData.PathCurve = (PathCurve)16;
+            prim.PrimData.PathRadiusOffset = 0.0f;
+            prim.PrimData.PathRevolutions = 1.0f;
+            prim.PrimData.PathSkew = 0.0f;
+            prim.PrimData.PCode = OpenMetaverse.PCode.Prim;
+            prim.PrimData.State = (byte)0;
+
+            // Set type specific parameters
+            switch (primType)
+            {
+                // Set specific parameters for box
+                case ScriptBaseClass.PRIM_TYPE_BOX:
+                    prim.PrimData.PathScaleY = 1.0f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)1;
+                    prim.PrimData.PathCurve = (PathCurve)16;
+                    break;
+                // Set specific parameters for cylinder
+                case ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                    prim.PrimData.PathScaleY = 1.0f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)0;
+                    prim.PrimData.PathCurve = (PathCurve)16;
+                    break;
+                // Set specific parameters for prism
+                case ScriptBaseClass.PRIM_TYPE_PRISM:
+                    prim.PrimData.PathScaleY = 1.0f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)3;
+                    prim.PrimData.PathCurve = (PathCurve)16;
+                    break;
+                // Set specific parameters for sphere
+                case ScriptBaseClass.PRIM_TYPE_SPHERE:
+                    prim.PrimData.PathScaleY = 1.0f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)5;
+                    prim.PrimData.PathCurve = (PathCurve)32;
+                    break;
+                // Set specific parameters for torus
+                case ScriptBaseClass.PRIM_TYPE_TORUS:
+                    prim.PrimData.PathScaleY = 0.5f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)0;
+                    prim.PrimData.PathCurve = (PathCurve)32;
+                    break;
+                // Set specific parameters for tube
+                case ScriptBaseClass.PRIM_TYPE_TUBE:
+                    prim.PrimData.PathScaleY = 0.5f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)1;
+                    prim.PrimData.PathCurve = (PathCurve)32;
+                    break;
+                // Set specific parameters for ring
+                case ScriptBaseClass.PRIM_TYPE_RING:
+                    prim.PrimData.PathScaleY = 0.5f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)3;
+                    prim.PrimData.PathCurve = (PathCurve)32;
+                    break;
+                // Set specific parameters for sculpt
+                case ScriptBaseClass.PRIM_TYPE_SCULPT:
+                    prim.PrimData.PathScaleY = 1.0f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)5;
+                    prim.PrimData.PathCurve = (PathCurve)32;
+                    break;
+                // Default to specific parameters for box
+                default:
+                    prim.PrimData.PathScaleY = 1.0f;
+                    prim.PrimData.ProfileCurve = (ProfileCurve)1;
+                    prim.PrimData.PathCurve = (PathCurve)16;
+                    break;
+            }
+
+            return prim;
         }
 
         public LSL_Vector llGetGeometricCenter()
