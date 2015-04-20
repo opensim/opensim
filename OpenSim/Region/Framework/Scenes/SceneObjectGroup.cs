@@ -2672,20 +2672,16 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        NonPhysicalGrabMovement(pos);
+                        //NonPhysicalGrabMovement(pos);
                     }
                 }
                 else
                 {
-                    NonPhysicalGrabMovement(pos);
+                    //NonPhysicalGrabMovement(pos);
                 }
             }
         }
 
-        /// <summary>
-        /// Apply possition for grabbing non-physical linksets (ctrl+drag)
-        /// </summary>
-        /// <param name="pos">New Position</param>
         public void NonPhysicalGrabMovement(Vector3 pos)
         {
             AbsolutePosition = pos;
@@ -2785,24 +2781,14 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        NonPhysicalSpinMovement(newOrientation);
+                        //NonPhysicalSpinMovement(pos);
                     }
                 }
                 else
                 {
-                    NonPhysicalSpinMovement(newOrientation);
+                    //NonPhysicalSpinMovement(pos);
                 }
             }
-        }
-
-        /// <summary>
-        /// Apply rotation for spinning non-physical linksets (ctrl+shift+drag)
-        /// </summary>
-        /// <param name="newOrientation">New Rotation</param>
-        private void NonPhysicalSpinMovement(Quaternion newOrientation)
-        {
-            UpdateGroupRotationR(newOrientation);
-            m_rootPart.SendTerseUpdateToAllClients();
         }
 
         /// <summary>
