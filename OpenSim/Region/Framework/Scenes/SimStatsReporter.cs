@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // Determines the size of the array that is used to collect StatBlocks
         // for sending to the SimStats and SimExtraStatsCollector
-        private const int m_statisticArraySize = 26;
+        private const int m_statisticArraySize = 27;
 
         /// <summary>
         /// These are the IDs of stats sent in the StatsPacket to the viewer.
@@ -109,10 +109,11 @@ namespace OpenSim.Region.Framework.Scenes
             SimSpareMs = 32,
             SimSleepMs = 33,
             SimIoPumpTime = 34,
-            UsersLoggingIn = 35,
-            TotalGeoPrim = 36,
-            TotalMesh = 37,
-            ThreadCount = 38
+            FrameDilation = 35,
+            UsersLoggingIn = 36,
+            TotalGeoPrim = 37,
+            TotalMesh = 38,
+            ThreadCount = 39
         }
 
         /// <summary>
@@ -348,7 +349,7 @@ namespace OpenSim.Region.Framework.Scenes
             double simulationSumFrameTime;
             double physicsSumFrameTime;
             double networkSumFrameTime;
-            float timeDilation;
+            float frameDilation;
             int currentFrame;
 
             if (!m_scene.Active)
@@ -466,16 +467,14 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     currentFrame = m_nextLocation - 1;
 
-                // Calculate the time dilation; which is currently based on the ratio between the sum of the
-                // physics and simulation rate, and the set minimum time to run the scene's update; minFrameTime
-                // is given in seconds so multiply by 1000 to convert it to milliseconds
-                timeDilation = (float)(m_simulationFrameTimeMilliseconds[currentFrame] +
-                   m_physicsFrameTimeMilliseconds[currentFrame]) / (m_scene.MinFrameTime * 1000);
+                // Calculate the frame dilation; which is currently based on the ratio between the sum of the
+                // physics and simulation rate, and the set minimum time to run a scene's frame
+                frameDilation = (float)(m_simulationFrameTimeMilliseconds[currentFrame] +
+                   m_physicsFrameTimeMilliseconds[currentFrame]) / m_scene.MinFrameTicks;
 
                 // ORIGINAL code commented out until we have time to add our own
                 sb[0].StatID = (uint) Stats.TimeDilation;
-                //sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
-                sb[0].StatValue = timeDilation;
+                sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
                 sb[1].StatID = (uint) Stats.SimFPS;
                 sb[1].StatValue = reportedFPS / m_statsUpdateFactor;
@@ -547,23 +546,26 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[21].StatID = (uint)Stats.SimSpareMs;
                 sb[21].StatValue = m_spareMS / framesUpdated;
 
-                // Added to track the number of users currently attempting to
-                // login to the region
-                sb[22].StatID = (uint)Stats.UsersLoggingIn;
-                sb[22].StatValue = m_usersLoggingIn;
+                // Current ratio between the sum of physics and sim rate, and the
+                // minimum time to run a scene's frame
+                sb[22].StatID = (uint)Stats.FrameDilation;
+                sb[22].StatValue = frameDilation;
+
+                // Current number of users currently attemptint to login to region
+                sb[23].StatID = (uint)Stats.UsersLoggingIn;
+                sb[23].StatValue = m_usersLoggingIn;
 
                 // Total number of geometric primitives in the scene
-                sb[23].StatID = (uint)Stats.TotalGeoPrim;
-                sb[23].StatValue = m_numGeoPrim;
+                sb[24].StatID = (uint)Stats.TotalGeoPrim;
+                sb[24].StatValue = m_numGeoPrim;
 
                 // Total number of mesh objects in the scene
-                sb[24].StatID = (uint)Stats.TotalMesh;
-                sb[24].StatValue = m_numMesh;
+                sb[25].StatID = (uint)Stats.TotalMesh;
+                sb[25].StatValue = m_numMesh;
 
-                // Added to track the current number of threads that XEngine is
-                // using
-                sb[25].StatID = (uint)Stats.ThreadCount;
-                sb[25].StatValue = m_inUseThreads;
+                // Current number of threads that XEngine is using
+                sb[26].StatID = (uint)Stats.ThreadCount;
+                sb[26].StatValue = m_inUseThreads;
 
                 for (int i = 0; i < m_statisticArraySize; i++)
                 {

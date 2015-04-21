@@ -72,6 +72,7 @@ namespace OpenSim.Framework.Monitoring
         private volatile float pendingUploads;
         private volatile float activeScripts;
         private volatile float scriptLinesPerSecond;
+        private volatile float m_frameDilation;
         private volatile float m_usersLoggingIn;
         private volatile float m_totalGeoPrims;
         private volatile float m_totalMeshes;
@@ -257,7 +258,7 @@ namespace OpenSim.Framework.Monitoring
 
             // For an unknown reason the original designers decided not to
             // include the spare MS statistic inside of this class, this is
-            // located inside the StatsBlock at location 21 thus it is skipped
+            // located inside the StatsBlock at location 21, thus it is skipped
             timeDilation            = stats.StatsBlock[0].StatValue;
             simFps                  = stats.StatsBlock[1].StatValue;
             physicsFps              = stats.StatsBlock[2].StatValue;
@@ -279,10 +280,11 @@ namespace OpenSim.Framework.Monitoring
             pendingUploads          = stats.StatsBlock[18].StatValue;
             activeScripts           = stats.StatsBlock[19].StatValue;
             scriptLinesPerSecond    = stats.StatsBlock[20].StatValue;
-            m_usersLoggingIn        = stats.StatsBlock[22].StatValue;
-            m_totalGeoPrims         = stats.StatsBlock[23].StatValue;
-            m_totalMeshes           = stats.StatsBlock[24].StatValue;
-            m_inUseThreads          = stats.StatsBlock[25].StatValue;
+            m_frameDilation         = stats.StatsBlock[22].StatValue;
+            m_usersLoggingIn        = stats.StatsBlock[23].StatValue;
+            m_totalGeoPrims         = stats.StatsBlock[24].StatValue;
+            m_totalMeshes           = stats.StatsBlock[25].StatValue;
+            m_inUseThreads          = stats.StatsBlock[26].StatValue;
         }
 
         /// <summary>
@@ -474,14 +476,13 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["Uptime"] = OSD.FromString (uptime);
             args["Version"] = OSD.FromString (version);
 
+            args["FrameDilatn"] = OSD.FromString(String.Format("{0:0.##}", m_frameDilation));
             args["Logging in Users"] = OSD.FromString(String.Format("{0:0.##}",
-               m_usersLoggingIn));
+                m_usersLoggingIn));
             args["GeoPrims"] = OSD.FromString(String.Format("{0:0.##}",
                 m_totalGeoPrims));
             args["Mesh Objects"] = OSD.FromString(String.Format("{0:0.##}",
                 m_totalMeshes));
-            args["Polygon Count"] = OSD.FromString(String.Format("{0:0.##}", 0));
-            args["Texture Count"] = OSD.FromString(String.Format("{0:0.##}", 0));
             args["XEngine Thread Count"] = OSD.FromString(String.Format("{0:0.##}",
                 m_inUseThreads));
             args["Util Thread Count"] = OSD.FromString(String.Format("{0:0.##}",
@@ -489,7 +490,7 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["System Thread Count"] = OSD.FromString(String.Format(
                 "{0:0.##}", numberThreadsRunning));
             args["ProcMem"] = OSD.FromString(String.Format("{0:#,###,###.##}",
-               memUsage));
+                memUsage));
             
             return args;
         }
