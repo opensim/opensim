@@ -1107,7 +1107,27 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Interest Management
 
-            StatsReporter = new SimStatsReporter(this);
+            // Acquire the statistics section of the OpenSim.ini file located
+            // in the bin directory 
+            IConfig statisticsConfig = m_config.Configs["Statistics"];
+
+            // Confirm that the statistics section existed in the configuration
+            // file
+            if (statisticsConfig != null)
+            {
+               // Create the StatsReporter using the number of frames to store
+               // for the frame time statistics, or 10 frames if the config 
+               // file doesn't contain a value
+               StatsReporter = new SimStatsReporter(this, 
+                  statisticsConfig.GetInt("NumberOfFrames", 10));
+            }
+            else
+            {
+               // Create a StatsReporter with the current scene and a default
+               // 10 frames stored for the frame time statistics
+               StatsReporter = new SimStatsReporter(this);
+            }
+            
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
@@ -1607,6 +1627,21 @@ namespace OpenSim.Region.Framework.Scenes
             float physicsFPS = 0f;
             int previousFrameTick, tmpMS;
 
+            // These variables will be used to save the precise frame time using the
+            // Stopwatch class of Microsoft SDK; the times are recorded at the start
+            // and end of a particular section of code, and then used to calculate
+            // the frame times, which are the sums of the sections for each given name
+            double preciseTotalFrameTime = 0.0;
+            double preciseSimFrameTime = 0.0;
+            double precisePhysicsFrameTime = 0.0;
+            Stopwatch totalFrameStopwatch = new Stopwatch();
+            Stopwatch simFrameStopwatch = new Stopwatch();
+            Stopwatch physicsFrameStopwatch = new Stopwatch();
+
+            // Begin the stopwatch to keep track of the time that the frame
+            // started running to determine how long the frame took to complete
+            totalFrameStopwatch.Start();
+            
             while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
             {
                 ++Frame;
@@ -1622,25 +1657,62 @@ namespace OpenSim.Region.Framework.Scenes
                     // Apply taints in terrain module to terrain in physics scene
                     if (Frame % m_update_terrain == 0)
                     {
+                        // At several points inside the code there was a need to
+                        // create a more precise measurement of time elapsed. 
+                        // This led to the addition of variables that have a 
+                        // similar function and thus remain tightly connected to 
+                        // their original counterparts. However, the original 
+                        // code is not receiving comments from our group because 
+                        // we don't feel right modifying the code to that degree 
+                        // at this point in time, the precise values all begin 
+                        // with the keyword precise
                         tmpMS = Util.EnvironmentTickCount();
+                        
+                        simFrameStopwatch.Start();
                         UpdateTerrain();
+                        
+                        // Get the simulation frame time that the avatar force 
+                        // input took 
+                        simFrameStopwatch.Stop();
+                        preciseSimFrameTime = 
+                            simFrameStopwatch.Elapsed.TotalMilliseconds;
                         terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
 
                     tmpMS = Util.EnvironmentTickCount();
+                    
+                    // Begin the stopwatch to track the time to prepare physics
+                    physicsFrameStopwatch.Start();
                     if (PhysicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
+                        
+                    // Get the time it took to prepare the physics, this
+                    // would report the most precise time that physics was
+                    // running on the machine and should the physics not be
+                    // enabled will report the time it took to check if physics
+                    // was enabled
+                    physicsFrameStopwatch.Stop();
+                    precisePhysicsFrameTime = 
+                        physicsFrameStopwatch.Elapsed.TotalMilliseconds;
                     physicsMS2 = Util.EnvironmentTickCountSubtract(tmpMS);
     
                     // Apply any pending avatar force input to the avatar's velocity
                     tmpMS = Util.EnvironmentTickCount();
+                    simFrameStopwatch.Restart();
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
+                    
+                    // Get the simulation frame time that the avatar force input 
+                    // took 
+                    simFrameStopwatch.Stop();
+                    preciseSimFrameTime += 
+                        simFrameStopwatch.Elapsed.TotalMilliseconds;
                     agentMS = Util.EnvironmentTickCountSubtract(tmpMS);
     
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
                     tmpMS = Util.EnvironmentTickCount();
+                    physicsFrameStopwatch.Restart();
                     if (Frame % m_update_physics == 0)
                     {
                         if (PhysicsEnabled)
@@ -1649,8 +1721,16 @@ namespace OpenSim.Region.Framework.Scenes
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
                     }
+                    
+                    // Add the main physics update time to the prepare physics 
+                    // time
+                    physicsFrameStopwatch.Stop();
+                    precisePhysicsFrameTime += 
+                        physicsFrameStopwatch.Elapsed.TotalMilliseconds;
                     physicsMS = Util.EnvironmentTickCountSubtract(tmpMS);
 
+                    // Start the stopwatch for the remainder of the simulation 
+                    simFrameStopwatch.Restart();
                     tmpMS = Util.EnvironmentTickCount();
     
                     // Check if any objects have reached their targets
@@ -1738,6 +1818,11 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerRegionHeartbeatEnd(this);
                 otherMS = eventMS + backupMS + terrainMS + landMS;
 
+                // Get the elapsed time for the simulation frame
+                simFrameStopwatch.Stop();
+                preciseSimFrameTime += 
+                    simFrameStopwatch.Elapsed.TotalMilliseconds;
+                
                 if (!UpdateOnTimer)
                 {
                     Watchdog.UpdateThread();
@@ -1754,6 +1839,14 @@ namespace OpenSim.Region.Framework.Scenes
                     spareMS = Math.Max(0, MinFrameTicks - physicsMS2 - agentMS - physicsMS - otherMS);
                 }
 
+                // Get the total frame time
+                totalFrameStopwatch.Stop();
+                preciseTotalFrameTime = 
+                    totalFrameStopwatch.Elapsed.TotalMilliseconds;
+
+                // Restart the stopwatch for the total time of the next frame
+                totalFrameStopwatch.Restart();
+                
                 previousFrameTick = m_lastFrameTick;
                 frameMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick);
                 m_lastFrameTick = Util.EnvironmentTickCount();                                                      
@@ -1771,6 +1864,15 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.AddSpareMS(spareMS);
                 StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
 
+                // Send the correct time values to the stats reporter for the
+                // frame times
+                StatsReporter.addFrameTimeMilliseconds(preciseTotalFrameTime, 
+                    preciseSimFrameTime, precisePhysicsFrameTime, 0.0);
+
+                // Send the correct number of frames that the physics library
+                // has processed to the stats reporter
+                StatsReporter.addPhysicsFrame(1);
+                
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
