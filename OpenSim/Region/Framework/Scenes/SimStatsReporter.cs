@@ -213,6 +213,27 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_objectCapacity = 45000;
 
+        // This is the number of frames that will be stored and then averaged for
+        // the Total, Simulation, Physics, and Network Frame Time; It is set to 
+        // 10 by default but can be changed by the OpenSim.ini configuration file 
+        // NumberOfFrames parameter
+        private int m_numberFramesStored = 10;
+
+        // The arrays that will hold the time it took to run the past N frames, 
+        // where N is the num_frames_to_average given by the configuration file
+        private double[] m_totalFrameTimeMilliseconds;
+        private double[] m_simulationFrameTimeMilliseconds;
+        private double[] m_physicsFrameTimeMilliseconds;
+        private double[] m_networkFrameTimeMilliseconds;
+
+        // The location of the next time in milliseconds that will be 
+        // (over)written when the next frame completes
+        private int m_nextLocation = 0;
+
+        // The correct number of frames that have completed since the last stats
+        // update for physics
+        private int m_numberPhysicsFrames;
+        
         private Scene m_scene;
 
         private RegionInfo ReportingRegion;
@@ -223,6 +244,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public SimStatsReporter(Scene scene)
         {
+            // Initialize the different frame time arrays to the correct sizes
+            m_totalFrameTimeMilliseconds = new double[m_numberFramesStored];
+            m_simulationFrameTimeMilliseconds = new 
+                double[m_numberFramesStored];
+            m_physicsFrameTimeMilliseconds = new double[m_numberFramesStored];
+            m_networkFrameTimeMilliseconds = new double[m_numberFramesStored];
+        
             m_scene = scene;
             m_reportedFpsCorrectionFactor = scene.MinFrameSeconds * m_nominalReportedFps;
             m_statsUpdateFactor = (float)(m_statsUpdatesEveryMS / 1000);
@@ -256,6 +284,13 @@ namespace OpenSim.Region.Framework.Scenes
             StatsManager.RegisterStat(SlowFramesStat);
         }
 
+        public SimStatsReporter(Scene scene, int numberOfFrames) : this (scene)
+        {
+            // Store the number of frames from the OpenSim.ini configuration 
+            // file
+            m_numberFramesStored = numberOfFrames;           
+        }
+        
         public void Close()
         {
             m_report.Elapsed -= TriggerStatsHeartbeat;
@@ -289,6 +324,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void statsHeartBeat(object sender, EventArgs e)
         {
+            double totalSumFrameTime;
+            double simulationSumFrameTime;
+            double physicsSumFrameTime;
+            double networkSumFrameTime;
+        
             if (!m_scene.Active)
                 return;
 
@@ -314,14 +354,21 @@ namespace OpenSim.Region.Framework.Scenes
 
 #region various statistic googly moogly
 
+                // ORIGINAL code commented out until we have time to add our own
+                // statistics to the statistics window, this will be done as a
+                // new section given the title of our current project
                 // We're going to lie about the FPS because we've been lying since 2008.  The actual FPS is currently
                 // locked at a maximum of 11.  Maybe at some point this can change so that we're not lying.
-                int reportedFPS = (int)(m_fps * m_reportedFpsCorrectionFactor);
-
+                //int reportedFPS = (int)(m_fps * m_reportedFpsCorrectionFactor);
+                int reportedFPS = m_fps;
+                
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS / m_statsUpdateFactor;
 
-                float physfps = ((m_pfps / 1000));
+                // ORIGINAL code commented out until we have time to add our own
+                // statistics to the statistics window
+                //float physfps = ((m_pfps / 1000));
+                float physfps = m_numberPhysicsFrames;
 
                 //if (physfps > 600)
                 //physfps = physfps - (physfps - 600);
@@ -364,6 +411,26 @@ namespace OpenSim.Region.Framework.Scenes
                     sb[i] = new SimStatsPacket.StatBlock();
                 }
                 
+                // Resetting the sums of the frame times to prevent any errors
+                // in calculating the moving average for frame time
+                totalSumFrameTime = 0;
+                simulationSumFrameTime = 0;
+                physicsSumFrameTime = 0;
+                networkSumFrameTime = 0;
+
+                // Loop through all the frames that were stored for the current
+                // heartbeat to process the moving average of frame times
+                for (int i = 0; i < m_numberFramesStored; i++)
+                {
+                    // Sum up each frame time in order to calculate the moving
+                    // average of frame time
+                    totalSumFrameTime += m_totalFrameTimeMilliseconds[i];
+                    simulationSumFrameTime += 
+                        m_simulationFrameTimeMilliseconds[i];
+                    physicsSumFrameTime += m_physicsFrameTimeMilliseconds[i];
+                    networkSumFrameTime += m_networkFrameTimeMilliseconds[i];
+                }
+                
                 sb[0].StatID = (uint) Stats.TimeDilation;
                 sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
@@ -388,21 +455,31 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[7].StatID = (uint) Stats.ActivePrim;
                 sb[7].StatValue = m_activePrim;
 
+                // ORIGINAL code commented out until we have time to add our own
+                // statistics to the statistics window
                 sb[8].StatID = (uint)Stats.FrameMS;
-                sb[8].StatValue = m_frameMS / framesUpdated;
+                //sb[8].StatValue = m_frameMS / framesUpdated;
+                sb[8].StatValue = (float) totalSumFrameTime / 
+                    m_numberFramesStored;
 
                 sb[9].StatID = (uint)Stats.NetMS;
-                sb[9].StatValue = m_netMS / framesUpdated;
+                //sb[9].StatValue = m_netMS / framesUpdated;
+                sb[9].StatValue = (float) networkSumFrameTime / 
+                    m_numberFramesStored;
 
                 sb[10].StatID = (uint)Stats.PhysicsMS;
-                sb[10].StatValue = m_physicsMS / framesUpdated;
+                //sb[10].StatValue = m_physicsMS / framesUpdated;
+                sb[10].StatValue = (float) physicsSumFrameTime / 
+                    m_numberFramesStored;
 
                 sb[11].StatID = (uint)Stats.ImageMS ;
                 sb[11].StatValue = m_imageMS / framesUpdated;
 
                 sb[12].StatID = (uint)Stats.OtherMS;
-                sb[12].StatValue = m_otherMS / framesUpdated;
-
+                //sb[12].StatValue = m_otherMS / framesUpdated;
+                sb[12].StatValue = (float) simulationSumFrameTime / 
+                    m_numberFramesStored;
+                
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
                 sb[13].StatValue = (m_inPacketsPerSecond / m_statsUpdateFactor);
 
@@ -475,6 +552,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void ResetValues()
         {
+            // Reset the number of frames that the physics library has
+            // processed since the last stats report
+            m_numberPhysicsFrames = 0;   
+        
             m_timeDilation = 0;
             m_fps = 0;
             m_pfps = 0;
@@ -605,6 +686,32 @@ namespace OpenSim.Region.Framework.Scenes
             m_otherMS += ms;
         }
 
+        public void addPhysicsFrame(int frames)
+        {
+            // Add the number of physics frames to the correct total physics
+            // frames
+            m_numberPhysicsFrames += frames;
+        }
+
+        public void addFrameTimeMilliseconds(double total, double simulation, 
+            double physics, double network)
+        {
+            // Save the frame times from the current frame into the appropriate 
+            // arrays
+            m_totalFrameTimeMilliseconds[m_nextLocation] = total;
+            m_simulationFrameTimeMilliseconds[m_nextLocation] = simulation;
+            m_physicsFrameTimeMilliseconds[m_nextLocation] = physics;
+            m_networkFrameTimeMilliseconds[m_nextLocation] = network;
+
+            // Update to the next location in the list
+            m_nextLocation++;
+
+            // Since the list will begin to overwrite the oldest frame values
+            // first, the next location needs to loop back to the beginning of the
+            // list whenever it reaches the end
+            m_nextLocation = m_nextLocation % m_numberFramesStored;
+        }
+        
         public void AddPendingDownloads(int count)
         {
             m_pendingDownloads += count;
