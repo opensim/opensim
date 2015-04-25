@@ -4465,7 +4465,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,false));
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,true));
         }
 
         private void ResendPropertyUpdate(ObjectPropertyUpdate update)
