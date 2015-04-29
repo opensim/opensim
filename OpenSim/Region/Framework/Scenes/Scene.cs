@@ -62,7 +62,7 @@ namespace OpenSim.Region.Framework.Scenes
         private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
         private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
         
-        public const int m_DefaultNumberFramesStored = 10;
+        public const int m_defaultNumberFramesStored = 10;
 
         public delegate void SynchronizeSceneHandler(Scene scene);
 
@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // file doesn't contain a value
                 StatsReporter = new SimStatsReporter(this, 
                     statisticsConfig.GetInt("NumberOfFrames", 
-                    m_DefaultNumberFramesStored));
+                    m_defaultNumberFramesStored));
             }
             else
             {
