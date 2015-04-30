@@ -63,7 +63,7 @@ using Mono.Addins;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("0.7.6.*")]
 
-[assembly : AssemblyVersion("0.8.1.*")]
+[assembly : AssemblyVersion("0.8.2.*")]
 
 [assembly: Addin("OpenSim.ApplicationPlugins.LoadRegions", OpenSim.VersionInfo.VersionNumber)]
 [assembly: AddinDependency("OpenSim", OpenSim.VersionInfo.VersionNumber)]
