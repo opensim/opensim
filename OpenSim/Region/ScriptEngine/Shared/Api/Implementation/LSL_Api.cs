@@ -13051,6 +13051,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
                                 ret.Add(new LSL_Integer(0));
                                 break;
+                            case ScriptBaseClass.OBJECT_RENDER_WEIGHT:
+                                ret.Add(new LSL_Integer(-1));
+                                break;
+                            case ScriptBaseClass.OBJECT_HOVER_HEIGHT:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_BODY_SHAPE_TYPE:
+                                LSL_Float shapeType;
+                                if (av.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] != 0)
+                                    shapeType = new LSL_Float(1);
+                                else
+                                    shapeType = new LSL_Float(0);
+                                ret.Add(shapeType);
+                                break;
+                            case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
+                                ret.Add(new LSL_Key(ScriptBaseClass.NULL_KEY));
+                                break;
                             default:
                                 // Invalid or unhandled constant.
                                 ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -13214,6 +13231,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
                                 ret.Add(new LSL_Integer(obj.ParentGroup.IsTemporary ? 1 : 0));
+                                break;
+                            case ScriptBaseClass.OBJECT_RENDER_WEIGHT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_HOVER_HEIGHT:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_BODY_SHAPE_TYPE:
+                                ret.Add(new LSL_Float(-1));
+                                break;
+                            case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
+                                ret.Add(new LSL_Key(obj.ParentGroup.LastOwnerID.ToString()));
                                 break;
                             default:
                                 // Invalid or unhandled constant.
