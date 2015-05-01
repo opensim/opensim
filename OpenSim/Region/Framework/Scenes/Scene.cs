@@ -1679,6 +1679,15 @@ namespace OpenSim.Region.Framework.Scenes
                     // Apply taints in terrain module to terrain in physics scene
                     if (Frame % m_update_terrain == 0)
                     {
+                        // At several points inside the code there was a need to
+                        // create a more precise measurement of time elapsed. 
+                        // This led to the addition of variables that have a 
+                        // similar function and thus remain tightly connected to 
+                        // their original counterparts. However, the original 
+                        // code is not receiving comments from our group because 
+                        // we don't feel right modifying the code to that degree 
+                        // at this point in time, the precise values all begin 
+                        // with the keyword precise
                         tmpMS = Util.EnvironmentTickCount();
                         simFrameStopwatch.Start();
                         UpdateTerrain();
