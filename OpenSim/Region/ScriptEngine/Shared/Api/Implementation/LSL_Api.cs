@@ -10087,9 +10087,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return prim;
         }
 
+        /// <summary>
+        /// Implementation of llGetGeometricCenter according to SL 2015-04-30.
+        /// http://wiki.secondlife.com/wiki/LlGetGeometricCenter
+        /// Returns the average position offset of all linked parts,
+        /// including the root prim and seated avatars,
+        /// relative to the root prim in local coordinates.
+        /// </summary>
         public LSL_Vector llGetGeometricCenter()
         {
-            return new LSL_Vector(m_host.GetGeometricCenter());
+            // Subtract whatever position the root prim has to make it zero
+            Vector3 offset = m_host.ParentGroup.RootPart.OffsetPosition * -1.0f;
+
+            // Add all prim/part position offsets
+            foreach (SceneObjectPart part in m_host.ParentGroup.Parts)
+                offset = offset + part.OffsetPosition;
+            // Add all avatar/scene presence position offsets
+            foreach (ScenePresence sp in m_host.ParentGroup.GetSittingAvatars())
+                offset = offset + sp.OffsetPosition;
+
+            // Calculate and return the average offset
+            offset = offset / (float)(m_host.ParentGroup.PrimCount + m_host.ParentGroup.GetSittingAvatarsCount());
+            return new LSL_Vector(offset);
         }
 
         public LSL_List GetEntityParams(ISceneEntity entity, LSL_List rules)
