@@ -433,7 +433,11 @@ Asset service request failures: {3}" + Environment.NewLine,
             foreach (ProcessThread currentThread in
                 Process.GetCurrentProcess().Threads)
             {
-                if (currentThread.ThreadState == ThreadState.Running)
+                // A known issue with the current process .threads method is 
+                // that it can return null threads, thus don't count those as 
+                // running threads and prevent the program function from failing
+                if (currentThread != null && 
+                    currentThread.ThreadState == ThreadState.Running)
                 {
                     numberThreadsRunning++;
                 }
