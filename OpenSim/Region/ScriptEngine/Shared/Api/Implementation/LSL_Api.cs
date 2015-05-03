@@ -218,6 +218,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_lABB2SitZ0 = -0.25f;
         protected float m_lABB2SitZ1 = 0.25f;
 
+        protected float m_primSafetyCoeffX = 2.414214f;
+        protected float m_primSafetyCoeffY = 2.414214f;
+        protected float m_primSafetyCoeffZ = 1.618034f;
+        protected float m_floatToleranceInCastRay = 0.000001f;
+        protected float m_floatTolerance2InCastRay = 0.0001f;
+        protected int m_maxHitsInCastRay = 16;
+        protected int m_maxHitsPerPrimInCastRay = 16;
+        protected int m_maxHitsPerObjectInCastRay = 16;
+        protected bool m_detectExitsInCastRay = false;
+        protected bool m_filterPartsInCastRay = false;
+        protected bool m_doAttachmentsInCastRay = false;
+        protected bool m_useCastRayV1 = true;
+
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
         private string[] HttpStandardHeaders =
@@ -320,6 +333,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_lABB1SitZ1 = lslConfig.GetFloat("LowerAvatarBoundingBoxSittingZcoeff", m_lABB1SitZ1);
                     m_lABB2SitZ0 = lslConfig.GetFloat("UpperAvatarBoundingBoxSittingZconst", m_lABB2SitZ0);
                     m_lABB2SitZ1 = lslConfig.GetFloat("UpperAvatarBoundingBoxSittingZcoeff", m_lABB2SitZ1);
+                    m_primSafetyCoeffX = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientX", m_primSafetyCoeffX);
+                    m_primSafetyCoeffY = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientY", m_primSafetyCoeffY);
+                    m_primSafetyCoeffZ = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientZ", m_primSafetyCoeffZ);
+                    m_floatToleranceInCastRay = lslConfig.GetFloat("FloatToleranceInLlCastRay", m_floatToleranceInCastRay);
+                    m_floatTolerance2InCastRay = lslConfig.GetFloat("FloatTolerance2InLlCastRay", m_floatTolerance2InCastRay);
+                    m_maxHitsInCastRay = lslConfig.GetInt("MaxHitsInLlCastRay", m_maxHitsInCastRay);
+                    m_maxHitsPerPrimInCastRay = lslConfig.GetInt("MaxHitsPerPrimInLlCastRay", m_maxHitsPerPrimInCastRay);
+                    m_maxHitsPerObjectInCastRay = lslConfig.GetInt("MaxHitsPerObjectInLlCastRay", m_maxHitsPerObjectInCastRay);
+                    m_detectExitsInCastRay = lslConfig.GetBoolean("DetectExitHitsInLlCastRay", m_detectExitsInCastRay);
+                    m_filterPartsInCastRay = lslConfig.GetBoolean("FilterPartsInLlCastRay", m_filterPartsInCastRay);
+                    m_doAttachmentsInCastRay = lslConfig.GetBoolean("DoAttachmentsInLlCastRay", m_doAttachmentsInCastRay);
+                    m_useCastRayV1 = lslConfig.GetBoolean("UseLlCastRayV1", m_useCastRayV1);
                 }
 
                 IConfig smtpConfig = seConfigSource.Configs["SMTP"];
@@ -13738,7 +13763,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return contacts[0];
         }
 
-        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        public LSL_List llCastRayV1(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
             LSL_List list = new LSL_List();
 
@@ -13927,6 +13952,739 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             list.Add(new LSL_Integer(values));
 
             return list;
+        }
+
+        /// <summary>
+        /// Full implementation of llCastRay similar to SL 2015-04-21.
+        /// http://wiki.secondlife.com/wiki/LlCastRay
+        /// Uses pure geometry, bounding shapes, meshing and no physics
+        /// for prims, sculpts, meshes, avatars and terrain.
+        /// Implements all flags, reject types and data flags.
+        /// Can handle both objects/groups and prims/parts, by config.
+        /// May give poor results with multi-part meshes where "root"
+        /// part doesn't dominate, owing to "guessed" bounding boxes.
+        /// May sometimes be inaccurate owing to calculation precision
+        /// and a bug in libopenmetaverse PrimMesher.
+        /// </summary>
+        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            // Use llCastRay v1 if configured
+            if (m_useCastRayV1)
+                return llCastRayV1(start, end, options);
+
+            // Initialize
+            m_host.AddScriptLPS(1);
+            List<RayHit> rayHits = new List<RayHit>();
+            LSL_List result = new LSL_List();
+            float tol = m_floatToleranceInCastRay;
+            float tol2 = m_floatTolerance2InCastRay;
+
+            // Get input options
+            int rejectTypes = 0;
+            int dataFlags = 0;
+            int maxHits = 1;
+            bool detectPhantom = false;
+            for (int i = 0; i < options.Length; i += 2)
+            {
+                if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_REJECT_TYPES)
+                    rejectTypes = options.GetLSLIntegerItem(i + 1);
+                else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_DATA_FLAGS)
+                    dataFlags = options.GetLSLIntegerItem(i + 1);
+                else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_MAX_HITS)
+                    maxHits = options.GetLSLIntegerItem(i + 1);
+                else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_DETECT_PHANTOM)
+                    detectPhantom = (options.GetLSLIntegerItem(i + 1) != 0);
+            }
+            if (maxHits > m_maxHitsInCastRay)
+                maxHits = m_maxHitsInCastRay;
+            bool rejectAgents = ((rejectTypes & ScriptBaseClass.RC_REJECT_AGENTS) != 0);
+            bool rejectPhysical = ((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) != 0);
+            bool rejectNonphysical = ((rejectTypes & ScriptBaseClass.RC_REJECT_NONPHYSICAL) != 0);
+            bool rejectLand = ((rejectTypes & ScriptBaseClass.RC_REJECT_LAND) != 0);
+            bool getNormal = ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) != 0);
+            bool getRootKey = ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) != 0);
+            bool getLinkNum = ((dataFlags & ScriptBaseClass.RC_GET_LINK_NUM) != 0);
+
+            // Calculate some basic parameters
+            Vector3 ray = end - start;
+            float rayLength = ray.Length();
+
+            // Try to get a mesher and return failure if none or degenerate ray
+            IRendering primMesher = null;
+            List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
+            if (renderers.Count < 1 || rayLength < tol)
+            {
+                result.Add(new LSL_Integer(ScriptBaseClass.RCERR_UNKNOWN));
+                return result;
+            }
+            primMesher = RenderingLoader.LoadRenderer(renderers[0]);
+
+            // Used to translate and rotate world so ray is along negative Z axis from origo and
+            // calculations mostly simplified to a 2D projecttion on the X-Y plane
+            Vector3 posProj = new Vector3(-start);
+            Quaternion rotProj = Vector3.RotationBetween(ray, new Vector3(0.0f, 0.0f, -1.0f));
+            Quaternion rotBack = Quaternion.Inverse(rotProj);
+
+            // Iterate over all objects/groups and prims/parts in region
+            World.ForEachSOG(
+                delegate(SceneObjectGroup group)
+                {
+                    // Check group filters unless part filters are configured
+                    bool isPhysical = (group.RootPart != null && group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical);
+                    bool isNonphysical = !isPhysical;
+                    bool isPhantom = group.IsPhantom || group.IsVolumeDetect;
+                    bool isAttachment = group.IsAttachment;
+                    bool doGroup = true;
+                    if (isPhysical && rejectPhysical)
+                        doGroup = false;
+                    if (isNonphysical && rejectNonphysical)
+                        doGroup = false;
+                    if (isPhantom && detectPhantom)
+                        doGroup = true;
+                    if (m_filterPartsInCastRay)
+                        doGroup = true;
+                    if (isAttachment && !m_doAttachmentsInCastRay)
+                        doGroup = false;
+                    // Parse object/group if passed filters
+                    if (doGroup)
+                    {
+                        // Iterate over all prims/parts in object/group
+                        foreach(SceneObjectPart part in group.Parts)
+                        {
+                            // Check part filters if configured
+                            if (m_filterPartsInCastRay)
+                            {
+                                isPhysical = (part.PhysActor != null && part.PhysActor.IsPhysical);
+                                isNonphysical = !isPhysical;
+                                isPhantom = ((part.Flags & PrimFlags.Phantom) != 0) || (part.VolumeDetectActive);
+                                bool doPart = true;
+                                if (isPhysical && rejectPhysical)
+                                    doPart = false;
+                                if (isNonphysical && rejectNonphysical)
+                                    doPart = false;
+                                if (isPhantom && detectPhantom)
+                                    doPart = true;
+                                if (!doPart)
+                                    continue;
+                            }
+                            // Parse prim/part if passed filters
+
+                            // Estimate bounding box from size box
+                            Vector3 scaleSafe = part.Scale;
+                            if (!part.Shape.SculptEntry)
+                                scaleSafe = scaleSafe * (new Vector3(m_primSafetyCoeffX, m_primSafetyCoeffY, m_primSafetyCoeffZ));
+
+                            // Filter parts by bounding shapes
+                            Vector3 posPartRel = part.GetWorldPosition() + posProj;
+                            Vector3 posPartProj = posPartRel * rotProj;
+                            if (InBoundingShapes(ray, rayLength, scaleSafe, posPartRel, posPartProj, rotProj))
+                            {
+                                // Prepare data needed to check for ray hits
+                                RayTrans rayTrans = new RayTrans();
+                                rayTrans.PartId = part.UUID;
+                                rayTrans.GroupId = part.ParentGroup.UUID;
+                                rayTrans.Link = group.PrimCount > 1 ? part.LinkNum : 0;
+                                rayTrans.Scale = part.Scale;
+                                rayTrans.PositionPartProj = posPartProj;
+                                rayTrans.PositionProj = posProj;
+                                rayTrans.RotationPartProj = rotProj * part.GetWorldRotation();
+                                rayTrans.RotationBack = rotBack;
+                                rayTrans.NeedsEnds = true;
+                                rayTrans.RayLength = rayLength;
+                                rayTrans.Tolerance = tol;
+                                rayTrans.Tolerance2 = tol2;
+
+                                // Make an OMV prim to be able to mesh part
+                                Primitive omvPrim = part.Shape.ToOmvPrimitive(posPartProj, rayTrans.RotationPartProj);
+                                byte[] sculptAsset = null;
+                                if (omvPrim.Sculpt != null)
+                                    sculptAsset = World.AssetService.GetData(omvPrim.Sculpt.SculptTexture.ToString());
+
+                                // When part is mesh, get and check mesh
+                                if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type == SculptType.Mesh && sculptAsset != null)
+                                {
+                                    AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset);
+                                    FacetedMesh mesh = null;
+                                    FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, DetailLevel.Highest, out mesh);
+                                    meshAsset = null;
+                                    AddRayInFacetedMesh(mesh, rayTrans, ref rayHits);
+                                    mesh = null;
+                                }
+
+                                // When part is sculpt, create and check mesh
+                                // Quirk: Generated sculpt mesh is about 2.8% smaller in X and Y than visual sculpt.
+                                else if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type != SculptType.Mesh && sculptAsset != null)
+                                {
+                                    IJ2KDecoder imgDecoder = World.RequestModuleInterface<IJ2KDecoder>();
+                                    if (imgDecoder != null)
+                                    {
+                                        Image sculpt = imgDecoder.DecodeToImage(sculptAsset);
+                                        if (sculpt != null)
+                                        {
+                                            SimpleMesh mesh = primMesher.GenerateSimpleSculptMesh(omvPrim, (Bitmap)sculpt, DetailLevel.Medium);
+                                            sculpt.Dispose();
+                                            AddRayInSimpleMesh(mesh, rayTrans, ref rayHits);
+                                            mesh = null;
+                                        }
+                                    }
+                               }
+
+                                // When part is prim, create and check mesh
+                                else if (omvPrim.Sculpt == null)
+                                {
+                                    if (
+                                        omvPrim.PrimData.PathBegin == 0.0 && omvPrim.PrimData.PathEnd == 1.0 &&
+                                        omvPrim.PrimData.PathTaperX == 0.0 && omvPrim.PrimData.PathTaperY == 0.0 &&
+                                        omvPrim.PrimData.PathSkew == 0.0 &&
+                                        omvPrim.PrimData.PathTwist - omvPrim.PrimData.PathTwistBegin == 0.0
+                                    )
+                                        rayTrans.NeedsEnds = false;
+                                    SimpleMesh mesh = primMesher.GenerateSimpleMesh(omvPrim, DetailLevel.Medium);
+                                    AddRayInSimpleMesh(mesh, rayTrans, ref rayHits);
+                                    mesh = null;
+                                }
+
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Check avatar filter
+            if (!rejectAgents)
+            {
+                // Iterate over all avatars in region
+                World.ForEachRootScenePresence(
+                    delegate (ScenePresence sp)
+                    {
+                        // Parse avatar
+
+                        // Get bounding box
+                        Vector3 lower;
+                        Vector3 upper;
+                        BoundingBoxOfScenePresence(sp, out lower, out upper);
+                        Vector3 scale = upper - lower;
+
+                        // Filter avatars by bounding shapes
+                        Vector3 posPartRel = sp.AbsolutePosition + posProj + (lower + upper) * 0.5f * sp.Rotation;
+                        Vector3 posPartProj = posPartRel * rotProj;
+                        if (InBoundingShapes(ray, rayLength, scale, posPartRel, posPartProj, rotProj))
+                        {
+                            // Prepare data needed to check for ray hits
+                            RayTrans rayTrans = new RayTrans();
+                            rayTrans.PartId = sp.UUID;
+                            rayTrans.GroupId = sp.ParentPart != null ? sp.ParentPart.ParentGroup.UUID : sp.UUID;
+                            rayTrans.Link = sp.ParentPart != null ? UUID2LinkNumber(sp.ParentPart, sp.UUID) : 0;
+                            rayTrans.Scale = scale;
+                            rayTrans.PositionPartProj = posPartProj;
+                            rayTrans.PositionProj = posProj;
+                            rayTrans.RotationPartProj = rotProj * sp.Rotation;
+                            rayTrans.RotationBack = rotBack;
+                            rayTrans.NeedsEnds = false;
+                            rayTrans.RayLength = rayLength;
+                            rayTrans.Tolerance = tol;
+                            rayTrans.Tolerance2 = tol2;
+
+                            // Make OMV prim, create and check mesh
+                            Primitive omvPrim = MakeOpenMetaversePrim(scale, posPartProj, rayTrans.RotationPartProj, ScriptBaseClass.PRIM_TYPE_SPHERE);
+                            SimpleMesh mesh = primMesher.GenerateSimpleMesh(omvPrim, DetailLevel.Medium);
+                            AddRayInSimpleMesh(mesh, rayTrans, ref rayHits);
+                            mesh = null;
+                        }
+                    }
+                );
+            }
+
+            // Check terrain filter
+            if (!rejectLand)
+            {
+                // Parse terrain
+
+                // Mesh terrain and check projected bounding box
+                Vector3 posPartProj = posProj * rotProj;
+                Quaternion rotPartProj = rotProj;
+                Vector3 lower;
+                Vector3 upper;
+                List<Tri> triangles = TrisFromHeightmapUnderRay(start, end, out lower, out upper);
+                Vector3 lowerBox = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+                Vector3 upperBox = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+                int dummy = 0;
+                AddBoundingBoxOfSimpleBox(lower, upper, posPartProj, rotPartProj, true, ref lowerBox, ref upperBox, ref dummy);
+                if (lowerBox.X <= tol && lowerBox.Y <= tol && lowerBox.Z <= tol && upperBox.X >= -tol && upperBox.Y >= -tol && upperBox.Z >= -rayLength - tol)
+                {
+                    // Prepare data needed to check for ray hits
+                    RayTrans rayTrans = new RayTrans();
+                    rayTrans.PartId = UUID.Zero;
+                    rayTrans.GroupId = UUID.Zero;
+                    rayTrans.Link = 0;
+                    rayTrans.Scale = new Vector3 (1.0f, 1.0f, 1.0f);
+                    rayTrans.PositionPartProj = posPartProj;
+                    rayTrans.PositionProj = posProj;
+                    rayTrans.RotationPartProj = rotPartProj;
+                    rayTrans.RotationBack = rotBack;
+                    rayTrans.NeedsEnds = true;
+                    rayTrans.RayLength = rayLength;
+                    rayTrans.Tolerance = tol;
+                    rayTrans.Tolerance2 = tol2;
+
+                    // Check mesh
+                    AddRayInTris(triangles, rayTrans, ref rayHits);
+                    triangles = null;
+                }
+            }
+
+            // Sort hits by ascending distance
+            rayHits.Sort((s1, s2) => s1.Distance.CompareTo(s2.Distance));
+
+            // Check excess hits per part and group
+            for (int t = 0; t < 2; t++)
+            {
+                int maxHitsPerType = 0;
+                UUID id = UUID.Zero;
+                if (t == 0)
+                    maxHitsPerType = m_maxHitsPerPrimInCastRay;
+                else
+                    maxHitsPerType = m_maxHitsPerObjectInCastRay;
+
+                // Handle excess hits only when needed
+                if (maxHitsPerType < m_maxHitsInCastRay)
+                {
+                    // Find excess hits
+                    Hashtable hits = new Hashtable();
+                    for (int i = rayHits.Count - 1; i >= 0; i--)
+                    {
+                        if (t == 0)
+                            id = rayHits[i].PartId;
+                        else
+                            id = rayHits[i].GroupId;
+                        if (hits.ContainsKey(id))
+                            hits[id] = (int)hits[id] + 1;
+                        else
+                            hits[id] = 1;
+                    }
+
+                    // Remove excess hits
+                    for (int i = rayHits.Count - 1; i >= 0; i--)
+                    {
+                        if (t == 0)
+                            id = rayHits[i].PartId;
+                        else
+                            id = rayHits[i].GroupId;
+                        int hit = (int)hits[id];
+                        if (hit > m_maxHitsPerPrimInCastRay)
+                        {
+                            rayHits.RemoveAt(i);
+                            hit--;
+                            hits[id] = hit;
+                        }
+                    }
+                }
+            }
+
+            // Parse hits into result list according to data flags
+            int hitCount = rayHits.Count;
+            if (hitCount > maxHits)
+                hitCount = maxHits;
+            for (int i = 0; i < hitCount; i++)
+            {
+                RayHit rayHit = rayHits[i];
+                if (getRootKey)
+                    result.Add(new LSL_Key(rayHit.GroupId.ToString()));
+                else
+                    result.Add(new LSL_Key(rayHit.PartId.ToString()));
+                result.Add(new LSL_Vector(rayHit.Position));
+                if (getLinkNum)
+                    result.Add(new LSL_Integer(rayHit.Link));
+                if (getNormal)
+                    result.Add(new LSL_Vector(rayHit.Normal));
+            }
+            result.Add(new LSL_Integer(hitCount));
+            return result;
+        }
+
+        /// <summary>
+        /// Struct for transmitting parameters required for finding llCastRay ray hits.
+        /// </summary>
+        public struct RayTrans
+        {
+            public UUID PartId;
+            public UUID GroupId;
+            public int Link;
+            public Vector3 Scale;
+            public Vector3 PositionPartProj;
+            public Vector3 PositionProj;
+            public Quaternion RotationPartProj;
+            public Quaternion RotationBack;
+            public bool NeedsEnds;
+            public float RayLength;
+            public float Tolerance;
+            public float Tolerance2;
+        }
+
+        /// <summary>
+        /// Struct for llCastRay ray hits.
+        /// </summary>
+        public struct RayHit
+        {
+            public UUID PartId;
+            public UUID GroupId;
+            public int Link;
+            public Vector3 Position;
+            public Vector3 Normal;
+            public float Distance;
+        }
+
+        /// <summary>
+        /// Helper to parse SimpleMesh for ray hits.
+        /// </summary>
+        private void AddRayInSimpleMesh(SimpleMesh mesh, RayTrans rayTrans, ref List<RayHit> rayHits)
+        {
+            if (mesh != null)
+            {
+                for (int i = 0; i < mesh.Indices.Count; i += 3)
+                {
+                    Tri triangle = new Tri();
+                    triangle.p1 = mesh.Vertices[mesh.Indices[i]].Position;
+                    triangle.p2 = mesh.Vertices[mesh.Indices[i + 1]].Position;
+                    triangle.p3 = mesh.Vertices[mesh.Indices[i + 2]].Position;
+                    AddRayInTri(triangle, rayTrans, ref rayHits);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper to parse FacetedMesh for ray hits.
+        /// </summary>
+        private void AddRayInFacetedMesh(FacetedMesh mesh, RayTrans rayTrans, ref List<RayHit> rayHits)
+        {
+            if (mesh != null)
+            {
+                foreach (Face face in mesh.Faces)
+                {
+                    for (int i = 0; i <face.Indices.Count; i += 3)
+                    {
+                        Tri triangle = new Tri();
+                        triangle.p1 = face.Vertices[face.Indices[i]].Position;
+                        triangle.p2 = face.Vertices[face.Indices[i + 1]].Position;
+                        triangle.p3 = face.Vertices[face.Indices[i + 2]].Position;
+                        AddRayInTri(triangle, rayTrans, ref rayHits);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper to parse Tri (triangle) List for ray hits.
+        /// </summary>
+        private void AddRayInTris(List<Tri> triangles, RayTrans rayTrans, ref List<RayHit> rayHits)
+        {
+            foreach (Tri triangle in triangles)
+            {
+                AddRayInTri(triangle, rayTrans, ref rayHits);
+            }
+        }
+
+        /// <summary>
+        /// Helper to add ray hit in a Tri (triangle).
+        /// </summary>
+        private void AddRayInTri(Tri triangle, RayTrans rayTrans, ref List<RayHit> rayHits)
+        {
+            // Check for hit in triangle
+            float distance;
+            Vector3 posHit;
+            Vector3 normal;
+            if (HitRayInTri(triangle, rayTrans, out distance, out posHit, out normal))
+            {
+                // Project hit part back to normal coordinate system
+                Vector3 posPart = rayTrans.PositionPartProj * rayTrans.RotationBack - rayTrans.PositionProj;
+                // Hack to circumvent ghost face bug in PrimMesher by removing hits in (ghost) faces plane through shape center
+                if (Math.Abs(Vector3.Dot(posPart, normal) - Vector3.Dot(posHit, normal)) < rayTrans.Tolerance && !rayTrans.NeedsEnds)
+                    return;
+                // Remove duplicate hits at triangle edges and intersections
+                for (int i = rayHits.Count - 1; i >= 0; i--)
+                {
+                    if (rayHits[i].PartId == rayTrans.PartId && Math.Abs(rayHits[i].Distance - distance) < rayTrans.Tolerance2)
+                        return;
+                }
+
+                // Build result data set
+                RayHit rayHit = new RayHit();
+                rayHit.PartId = rayTrans.PartId;
+                rayHit.GroupId = rayTrans.GroupId;
+                rayHit.Link = rayTrans.Link;
+                rayHit.Position = posHit;
+                rayHit.Normal = normal;
+                rayHit.Distance = distance;
+                rayHits.Add(rayHit);
+            }
+        }
+
+        /// <summary>
+        /// Helper to find ray hit in a Tri (triangle).
+        /// </summary>
+        private bool HitRayInTri(Tri triangle, RayTrans rayTrans, out float distance, out Vector3 posHit, out Vector3 normal)
+        {
+            // Initialize
+            distance = 0.0f;
+            posHit = Vector3.Zero;
+            normal = Vector3.Zero;
+            float tol = rayTrans.Tolerance;
+
+            // Project triangle on X-Y plane
+            Vector3 pos1 = triangle.p1 * rayTrans.Scale * rayTrans.RotationPartProj + rayTrans.PositionPartProj;
+            Vector3 pos2 = triangle.p2 * rayTrans.Scale * rayTrans.RotationPartProj + rayTrans.PositionPartProj;
+            Vector3 pos3 = triangle.p3 * rayTrans.Scale * rayTrans.RotationPartProj + rayTrans.PositionPartProj;
+
+            // Check if ray/origo inside triangle bounding rectangle
+            Vector3 lower = Vector3.Min(pos1, Vector3.Min(pos2, pos3));
+            Vector3 upper = Vector3.Max(pos1, Vector3.Max(pos2, pos3));
+            if (lower.X > tol || lower.Y > tol || lower.Z > tol || upper.X < -tol || upper.Y < -tol || upper.Z < -rayTrans.RayLength - tol)
+                return false;
+
+            // Check if ray/origo inside every edge or reverse "outside" every edge on exit
+            float dist;
+            bool inside = true;
+            bool outside = true;
+            Vector3 vec1 = pos2 - pos1;
+            dist = pos1.X * vec1.Y - pos1.Y * vec1.X;
+            if (dist < -tol)
+                inside = false;
+            if (dist > tol)
+                outside = false;
+            Vector3 vec2 = pos3 - pos2;
+            dist = pos2.X * vec2.Y - pos2.Y * vec2.X;
+            if (dist < -tol)
+                inside = false;
+            if (dist > tol)
+                outside = false;
+            Vector3 vec3 = pos1 - pos3;
+            dist = pos3.X * vec3.Y - pos3.Y * vec3.X;
+            if (dist < -tol)
+                inside = false;
+            if (dist > tol)
+                outside = false;
+
+            // Skip if ray/origo outside
+            if (!inside && !(outside && m_detectExitsInCastRay))
+                return false;
+
+            // Calculate normal
+            Vector3 normalProj = Vector3.Cross(vec1, vec2);
+            float normalLength = normalProj.Length();
+            // Skip if degenerate triangle
+            if (normalLength < tol)
+                return false;
+            normalProj = normalProj / normalLength;
+            // Skip if ray parallell to triangle plane
+            if (Math.Abs(normalProj.Z) < tol)
+                return false;
+
+            // Calculate distance
+            distance = Vector3.Dot(normalProj, pos2) / normalProj.Z * -1.0f;
+            // Skip if outside ray
+            if (distance < -tol || distance > rayTrans.RayLength + tol)
+                return false;
+
+            // Calculate projected hit position
+            Vector3 posHitProj = new Vector3(0.0f, 0.0f, -distance);
+            // Project hit back to normal coordinate system
+            posHit = posHitProj * rayTrans.RotationBack - rayTrans.PositionProj;
+            normal = normalProj * rayTrans.RotationBack;
+            return true;
+        }
+
+        /// <summary>
+        /// Helper to parse selected parts of HeightMap into a Tri (triangle) List and calculate bounding box.
+        /// </summary>
+        private List<Tri> TrisFromHeightmapUnderRay(Vector3 posStart, Vector3 posEnd, out Vector3 lower, out Vector3 upper)
+        {
+            // Get bounding X-Y rectangle of terrain under ray
+            lower = Vector3.Min(posStart, posEnd);
+            upper = Vector3.Max(posStart, posEnd);
+            lower.X = (float)Math.Floor(lower.X);
+            lower.Y = (float)Math.Floor(lower.Y);
+            float zLower = float.MaxValue;
+            upper.X = (float)Math.Ceiling(upper.X);
+            upper.Y = (float)Math.Ceiling(upper.Y);
+            float zUpper = float.MinValue;
+
+            // Initialize Tri (triangle) List
+            List<Tri> triangles = new List<Tri>();
+
+            // Set parsing lane direction to major ray X-Y axis
+            Vector3 vec = posEnd - posStart;
+            float xAbs = Math.Abs(vec.X);
+            float yAbs = Math.Abs(vec.Y);
+            bool bigX = true;
+            if (yAbs > xAbs)
+            {
+                bigX = false;
+                vec = vec / yAbs;
+            }
+            else if (xAbs > yAbs || xAbs > 0.0f)
+                vec = vec / xAbs;
+            else
+                vec = new Vector3(1.0f, 1.0f, 0.0f);
+
+            // Simplify by start parsing in lower end of lane
+            if ((bigX && vec.X < 0.0f) || (!bigX && vec.Y < 0.0f))
+            {
+                Vector3 posTemp = posStart;
+                posStart = posEnd;
+                posEnd = posTemp;
+                vec = vec * -1.0f;
+            }
+
+            // First 1x1 rectangle under ray
+            float xFloorOld = 0.0f;
+            float yFloorOld = 0.0f;
+            Vector3 pos = posStart;
+            float xFloor = (float)Math.Floor(pos.X);
+            float yFloor = (float)Math.Floor(pos.Y);
+            AddTrisFromHeightmap(xFloor, yFloor, ref triangles, ref zLower, ref zUpper);
+
+            // Parse every remaining 1x1 rectangle under ray
+            while (pos != posEnd)
+            {
+                // Next 1x1 rectangle under ray
+                xFloorOld = xFloor;
+                yFloorOld = yFloor;
+                pos = pos + vec;
+
+                // Clip position to 1x1 rectangle border
+                xFloor = (float)Math.Floor(pos.X);
+                yFloor = (float)Math.Floor(pos.Y);
+                if (bigX && pos.X > xFloor)
+                {
+                    pos.Y -= vec.Y * (pos.X - xFloor);
+                    pos.X = xFloor;
+                }
+                else if (!bigX && pos.Y > yFloor)
+                {
+                    pos.X -= vec.X * (pos.Y - yFloor);
+                    pos.Y = yFloor;
+                }
+
+                // Last 1x1 rectangle under ray
+                if ((bigX && pos.X >= posEnd.X) || (!bigX && pos.Y >= posEnd.Y))
+                {
+                    pos = posEnd;
+                    xFloor = (float)Math.Floor(pos.X);
+                    yFloor = (float)Math.Floor(pos.Y);
+                }
+
+                // Add new 1x1 rectangle in lane
+                if ((bigX && xFloor != xFloorOld) || (!bigX && yFloor != yFloorOld))
+                    AddTrisFromHeightmap(xFloor, yFloor, ref triangles, ref zLower, ref zUpper);
+                // Add last 1x1 rectangle in old lane at lane shift
+                if (bigX && yFloor != yFloorOld)
+                    AddTrisFromHeightmap(xFloor, yFloorOld, ref triangles, ref zLower, ref zUpper);
+                if (!bigX && xFloor != xFloorOld)
+                    AddTrisFromHeightmap(xFloorOld, yFloor, ref triangles, ref zLower, ref zUpper);
+            }
+
+            // Finalize bounding box Z
+            lower.Z = zLower;
+            upper.Z = zUpper;
+
+            // Done and returning Tri (triangle)List
+            return triangles;
+        }
+
+        /// <summary>
+        /// Helper to add HeightMap squares into Tri (triangle) List and adjust bounding box.
+        /// </summary>
+        private void AddTrisFromHeightmap(float xPos, float yPos, ref List<Tri> triangles, ref float zLower, ref float zUpper)
+        {
+            int xInt = (int)xPos;
+            int yInt = (int)yPos;
+
+            // Corner 1 of 1x1 rectangle
+            int x = Util.Clamp<int>(xInt+1, 0, World.Heightmap.Width - 1);
+            int y = Util.Clamp<int>(yInt+1, 0, World.Heightmap.Height - 1);
+            Vector3 pos1 = new Vector3(x, y, (float)World.Heightmap[x, y]);
+            // Adjust bounding box
+            zLower = Math.Min(zLower, pos1.Z);
+            zUpper = Math.Max(zUpper, pos1.Z);
+
+            // Corner 2 of 1x1 rectangle
+            x = Util.Clamp<int>(xInt, 0, World.Heightmap.Width - 1);
+            y = Util.Clamp<int>(yInt+1, 0, World.Heightmap.Height - 1);
+            Vector3 pos2 = new Vector3(x, y, (float)World.Heightmap[x, y]);
+            // Adjust bounding box
+            zLower = Math.Min(zLower, pos1.Z);
+            zUpper = Math.Max(zUpper, pos1.Z);
+
+            // Corner 3 of 1x1 rectangle
+            x = Util.Clamp<int>(xInt, 0, World.Heightmap.Width - 1);
+            y = Util.Clamp<int>(yInt, 0, World.Heightmap.Height - 1);
+            Vector3 pos3 = new Vector3(x, y, (float)World.Heightmap[x, y]);
+            // Adjust bounding box
+            zLower = Math.Min(zLower, pos1.Z);
+            zUpper = Math.Max(zUpper, pos1.Z);
+
+            // Corner 4 of 1x1 rectangle
+            x = Util.Clamp<int>(xInt+1, 0, World.Heightmap.Width - 1);
+            y = Util.Clamp<int>(yInt, 0, World.Heightmap.Height - 1);
+            Vector3 pos4 = new Vector3(x, y, (float)World.Heightmap[x, y]);
+            // Adjust bounding box
+            zLower = Math.Min(zLower, pos1.Z);
+            zUpper = Math.Max(zUpper, pos1.Z);
+
+            // Add triangle 1
+            Tri triangle1 = new Tri();
+            triangle1.p1 = pos1;
+            triangle1.p2 = pos2;
+            triangle1.p3 = pos3;
+            triangles.Add(triangle1);
+
+            // Add triangle 2
+            Tri triangle2 = new Tri();
+            triangle2.p1 = pos3;
+            triangle2.p2 = pos4;
+            triangle2.p3 = pos1;
+            triangles.Add(triangle2);
+        }
+
+        /// <summary>
+        /// Helper to check if a ray intersects bounding shapes.
+        /// </summary>
+        private bool InBoundingShapes(Vector3 ray, float rayLength, Vector3 scale, Vector3 posPartRel, Vector3 posPartProj, Quaternion rotProj)
+        {
+            float tol = m_floatToleranceInCastRay;
+
+            // Check if ray intersects projected bounding box
+            Vector3 lowerBox = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 upperBox = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            int dummy = 0;
+            AddBoundingBoxOfSimpleBox(scale * -0.5f, scale * 0.5f, posPartProj, rotProj, true, ref lowerBox, ref upperBox, ref dummy);
+            if (lowerBox.X > tol || lowerBox.Y > tol || lowerBox.Z > tol || upperBox.X < -tol || upperBox.Y < -tol || upperBox.Z < -rayLength - tol)
+                return false;
+
+            // Passed bounding shape filters, so return true
+            return true;
+        }
+
+        /// <summary>
+        /// Helper to get link number for a UUID.
+        /// </summary>
+        private int UUID2LinkNumber(SceneObjectPart part, UUID id)
+        {
+            SceneObjectGroup group = part.ParentGroup;
+            if (group != null)
+            {
+                // Parse every link for UUID
+                int linkCount = group.PrimCount + group.GetSittingAvatarsCount();
+                for (int link = linkCount; link > 0; link--)
+                {
+                    ISceneEntity entity = GetLinkEntity(part, link);
+                    // Return link number if UUID match
+                    if (entity != null && entity.UUID == id)
+                        return link;
+                }
+            }
+            // Return link number 0 if no links or UUID matches
+            return 0;
         }
 
         public LSL_Integer llManageEstateAccess(int action, string avatar)
