@@ -136,9 +136,6 @@ namespace OpenSim.Framework.Serialization.External
 
             foreach (XmlNode sop in sops)
             {
-                // Due to mono bug, we're removing all xmlns attributes
-                sop.Attributes.RemoveAll();
-
                 UserAccount creator = null;
                 bool hasCreatorData = false;
                 XmlNodeList nodes = sop.ChildNodes;
