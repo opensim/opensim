@@ -205,7 +205,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     case XmlNodeType.Attribute:
 //                    Console.WriteLine("FOUND ATTRIBUTE {0}", reader.Name);
-                    writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
+                    writer.WriteAttributeString(reader.Name, reader.Value);
                     break;
 
                     case XmlNodeType.CDATA:
@@ -228,7 +228,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     if (reader.HasAttributes)
                     {
                         while (reader.MoveToNextAttribute())
-                            writer.WriteAttributeString(reader.Prefix, reader.Name, reader.NamespaceURI, reader.Value);
+                            writer.WriteAttributeString(reader.Name, reader.Value);
 
                         reader.MoveToElement();
                     }
