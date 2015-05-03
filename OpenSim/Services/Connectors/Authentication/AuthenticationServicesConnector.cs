@@ -152,20 +152,41 @@ namespace OpenSim.Services.Connectors
 
         public bool SetPassword(UUID principalID, string passwd)
         {
-            // nope, we don't do this
-            return false;
+             m_log.Debug("[AUTH CONNECTOR]: SetPassword - set the password");
+            // nope, we don't do this setpassword
+            //return false;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["PRINCIPAL"] = principalID.ToString();  
+            sendData["PASSWORD"] = passwd;
+
+            sendData["METHOD"] = "setpassword";
+            
+            string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                    m_ServerURI + "/auth/plain",
+                    ServerUtils.BuildQueryString(sendData), m_Auth);
+
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
+                    reply);
+
+            if (replyData["Result"].ToString() != "Success")
+                return false;
+
+            return true;
         }
 
         public AuthInfo GetAuthInfo(UUID principalID)
         {
+            m_log.Error("[AUTH CONNECTOR]: GetAuthInfo - we do not do this ?");
             // not done from remote simulators
             return null;
         }
 
         public bool SetAuthInfo(AuthInfo info)
         {
+            m_log.Error("[AUTH CONNECTOR]: SetAuthInfo- we do not do this ?");
             // not done from remote simulators
             return false;
         }
+       
     }
 }

@@ -97,8 +97,10 @@ namespace OpenSim.Server.Handlers.UserAccounts
                     case "createuser":
                         if (m_AllowCreateUser)
                             return CreateUser(request);
-                        else
+                        else {
+                            m_log.DebugFormat("[USER SERVICE HANDLER]: not allowed to create a user, cause the AllowCreateUser settings in rubust.ini is set to false.");
                             break;
+                        }
                     case "getaccount":
                         return GetAccount(request);
                     case "getaccounts":
@@ -106,8 +108,10 @@ namespace OpenSim.Server.Handlers.UserAccounts
                     case "setaccount":
                         if (m_AllowSetAccount)
                             return StoreAccount(request);
-                        else
+                        else {
+                            m_log.DebugFormat("[USER SERVICE HANDLER]: not allowed to store a user, cause the AllowSetAccount settings in rubust.ini is set to false.");
                             break;
+                        }
                 }
 
                 m_log.DebugFormat("[USER SERVICE HANDLER]: unknown method request: {0}", method);
@@ -259,8 +263,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
         {
             if (!
                 request.ContainsKey("FirstName")
-                    && request.ContainsKey("LastName")
-                    && request.ContainsKey("Password"))
+                    && request.ContainsKey("LastName"))
+                  //  && request.ContainsKey("Password"))
                 return FailureResult();
 
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -275,7 +279,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             string firstName = request["FirstName"].ToString();
             string lastName = request["LastName"].ToString();
-            string password = request["Password"].ToString();
+            string password = "temporary";  // set to a temporary password if created with a method wich does supply one but sets it later
+            if (request.ContainsKey("Password")) password = request["Password"].ToString();
 
             string email = "";
             if (request.ContainsKey("Email"))

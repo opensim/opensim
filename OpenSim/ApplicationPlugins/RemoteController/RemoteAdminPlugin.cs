@@ -1174,7 +1174,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void XmlRpcUpdateUserAccountMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: UpdateUserAccount: new request");
-            m_log.Warn("[RADMIN]: This method needs update for 0.7");
+            //m_log.Warn("[RADMIN]: This method needs update for 0.7");
 
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
@@ -1195,6 +1195,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string password = String.Empty;
                     uint? regionXLocation = null;
                     uint? regionYLocation = null;
+
             //        uint? ulaX = null;
             //        uint? ulaY = null;
             //        uint? ulaZ = null;
@@ -1204,7 +1205,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             //        string aboutFirstLive = String.Empty;
             //        string aboutAvatar = String.Empty;
 
-                    if (requestData.ContainsKey("user_password")) password = (string) requestData["user_password"];
+                    if (requestData.ContainsKey("user_password"))
+                        password = (string) requestData["user_password"];
                     if (requestData.ContainsKey("start_region_x"))
                         regionXLocation = Convert.ToUInt32(requestData["start_region_x"]);
                     if (requestData.ContainsKey("start_region_y"))
@@ -1230,6 +1232,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     Scene scene = m_application.SceneManager.CurrentOrFirstScene;
                     UUID scopeID = scene.RegionInfo.ScopeID;
+
                     UserAccount account = scene.UserAccountService.GetUserAccount(scopeID, firstName, lastName);
 
                     if (null == account)
@@ -1254,16 +1257,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Set home position
 
-                    if ((null != regionXLocation) && (null != regionYLocation))
+                    if ((null != regionXLocation) && (null != regionYLocation) && (regionXLocation>0) && (regionYLocation>0)) 
                     {
                         GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
                                         (int)Util.RegionToWorldLoc((uint)regionXLocation), (int)Util.RegionToWorldLoc((uint)regionYLocation));
                         if (null == home) {
-                            m_log.WarnFormat("[RADMIN]: Unable to set home region for updated user account {0} {1}", firstName, lastName);
+                            m_log.WarnFormat("[RADMIN]: Unable to set home region for updated user account {0} {1} on region location {2} {3}", firstName, lastName, regionXLocation, regionYLocation);
                         } else {
                             scene.GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                             m_log.DebugFormat("[RADMIN]: Set home region {0} for updated user account {1} {2}", home.RegionID, firstName, lastName);
                         }
+                    } else {
+                         m_log.WarnFormat("[RADMIN]: home region not updated");
                     }
 
                     // User has been created. Now establish gender and appearance.
@@ -2288,7 +2293,19 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             UserAccount account = userAccountService.GetUserAccount(scopeID, firstName, lastName);
             if (null == account)
             {
-                account = new UserAccount(scopeID, UUID.Random(), firstName, lastName, email);
+                account = new UserAccount();
+                account.FirstName = firstName;
+                account.LastName = lastName;
+                account.Email = email;
+                account.PrincipalID = UUID.Random();
+                account.ScopeID = scopeID;
+                account.UserTitle = string.Empty;
+                account.METHOD = "createuser";
+                if (email != null)
+                    account.Email = email;
+                else
+                    account.Email = string.Empty;
+                
                 if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
                 {
                     account.ServiceURLs = new Dictionary<string, object>();

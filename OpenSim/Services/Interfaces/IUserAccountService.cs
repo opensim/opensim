@@ -93,6 +93,8 @@ namespace OpenSim.Services.Interfaces
         public string UserTitle;
         public Boolean LocalToGrid = true;
 
+        public string METHOD;
+        
         public Dictionary<string, object> ServiceURLs;
 
         public int Created;
@@ -104,6 +106,8 @@ namespace OpenSim.Services.Interfaces
 
         public UserAccount(Dictionary<string, object> kvp)
         {
+            if (kvp.ContainsKey("METHOD"))
+                METHOD = kvp["METHOD"].ToString();
             if (kvp.ContainsKey("FirstName"))
                 FirstName = kvp["FirstName"].ToString();
             if (kvp.ContainsKey("LastName"))
@@ -156,7 +160,8 @@ namespace OpenSim.Services.Interfaces
             result["UserFlags"] = UserFlags.ToString();
             result["UserTitle"] = UserTitle;
             result["LocalToGrid"] = LocalToGrid.ToString();
-
+            result["METHOD"] = METHOD;
+            
             string str = string.Empty;
             foreach (KeyValuePair<string, object> kvp in ServiceURLs)
             {

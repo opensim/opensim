@@ -140,8 +140,10 @@ namespace OpenSim.Server.Handlers.Authentication
                     return FailureResult();
     
                 case "setpassword":
-                    if (!m_AllowSetPassword)
+                    if (!m_AllowSetPassword) {
+                        m_log.ErrorFormat("[AUTHENTICATION SERVER POST HANDLER]: not allowed to set password cause of the AllowSetPassword setting.");
                         return FailureResult();
+                    }
 
                     if (!request.ContainsKey("PASSWORD"))
                         return FailureResult();
@@ -170,14 +172,20 @@ namespace OpenSim.Server.Handlers.Authentication
                     return FailureResult();
 
                 case "getauthinfo":
-                    if (m_AllowGetAuthInfo)
+                    if (m_AllowGetAuthInfo) {
                         return GetAuthInfo(principalID);
+                    } else {
+                        m_log.ErrorFormat("[AUTHENTICATION SERVER POST HANDLER]: not allowed to get Authentication Info cause of the AllowGetAuthInfo setting.");
+                    }
 
                     break;
 
                 case "setauthinfo":
-                    if (m_AllowSetAuthInfo)
+                    if (m_AllowSetAuthInfo) {
                         return SetAuthInfo(principalID, request);
+                    } else {
+                        m_log.ErrorFormat("[AUTHENTICATION SERVER POST HANDLER]: not allowed to set Authentication Info cause of the AllowSetAuthInfo setting.");
+                    }
 
                     break;
             }

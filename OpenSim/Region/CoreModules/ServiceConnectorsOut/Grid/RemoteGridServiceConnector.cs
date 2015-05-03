@@ -193,6 +193,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         // The coordinates are world coords (meters), NOT region units.
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+            m_log.Debug("[REMOTE GRID CONNECTOR]: GetRegionByPosition");
             bool inCache = false;
             GridRegion rinfo = m_RegionInfoCache.Get(scopeID, Util.RegionWorldLocToHandle((uint)x, (uint)y), out inCache);
             if (inCache)

@@ -273,10 +273,11 @@ namespace OpenSim.Services.Connectors
 
                     if (replyData.ContainsKey("result"))
                     {
-                        if (replyData["result"].ToString().ToLower() == "success")
-                            return true;
-                        else
+                        // the remote create user method to create a user gives back an object, but will give back failure if it fails
+                        if (replyData["result"].ToString().ToLower() == "failure")
                             return false;
+                        else
+                            return true;
                     }
                     else
                         m_log.DebugFormat("[ACCOUNTS CONNECTOR]: Set or Create UserAccount reply data does not contain result field");
