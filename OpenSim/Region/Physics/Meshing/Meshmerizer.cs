@@ -928,8 +928,11 @@ namespace OpenSim.Region.Physics.Meshing
             if (shouldCache)
             {
                 key = primShape.GetMeshKey(size, lod);
-                if (m_uniqueMeshes.TryGetValue(key, out mesh))
-                    return mesh;
+                lock (m_uniqueMeshes)
+                {
+                    if (m_uniqueMeshes.TryGetValue(key, out mesh))
+                        return mesh;
+                }
             }
 
             if (size.X < 0.01f) size.X = 0.01f;
@@ -955,7 +958,10 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (shouldCache)
                 {
-                    m_uniqueMeshes.Add(key, mesh);
+                    lock (m_uniqueMeshes)
+                    {
+                        m_uniqueMeshes.Add(key, mesh);
+                    }
                 }
             }
 
