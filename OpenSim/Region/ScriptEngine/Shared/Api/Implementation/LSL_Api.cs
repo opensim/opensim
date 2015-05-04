@@ -221,8 +221,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_primSafetyCoeffX = 2.414214f;
         protected float m_primSafetyCoeffY = 2.414214f;
         protected float m_primSafetyCoeffZ = 1.618034f;
-        protected bool m_useCastRayV2 = false;
-        protected int RC_USE_V2 = 512;
         protected float m_floatToleranceInCastRay = 0.000001f;
         protected float m_floatTolerance2InCastRay = 0.0001f;
         protected int m_maxHitsInCastRay = 16;
@@ -231,6 +229,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_detectExitsInCastRay = false;
         protected bool m_filterPartsInCastRay = false;
         protected bool m_doAttachmentsInCastRay = false;
+        protected bool m_useCastRayV1 = true;
 
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
@@ -337,8 +336,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_primSafetyCoeffX = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientX", m_primSafetyCoeffX);
                     m_primSafetyCoeffY = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientY", m_primSafetyCoeffY);
                     m_primSafetyCoeffZ = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientZ", m_primSafetyCoeffZ);
-                    m_useCastRayV2 = lslConfig.GetBoolean("UseLlCastRayV2", m_useCastRayV2);
-                    RC_USE_V2 = lslConfig.GetInt("RC_USE_V2", RC_USE_V2);
                     m_floatToleranceInCastRay = lslConfig.GetFloat("FloatToleranceInLlCastRay", m_floatToleranceInCastRay);
                     m_floatTolerance2InCastRay = lslConfig.GetFloat("FloatTolerance2InLlCastRay", m_floatTolerance2InCastRay);
                     m_maxHitsInCastRay = lslConfig.GetInt("MaxHitsInLlCastRay", m_maxHitsInCastRay);
@@ -347,6 +344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_detectExitsInCastRay = lslConfig.GetBoolean("DetectExitHitsInLlCastRay", m_detectExitsInCastRay);
                     m_filterPartsInCastRay = lslConfig.GetBoolean("FilterPartsInLlCastRay", m_filterPartsInCastRay);
                     m_doAttachmentsInCastRay = lslConfig.GetBoolean("DoAttachmentsInLlCastRay", m_doAttachmentsInCastRay);
+                    m_useCastRayV1 = lslConfig.GetBoolean("UseLlCastRayV1", m_useCastRayV1);
                 }
 
                 IConfig smtpConfig = seConfigSource.Configs["SMTP"];
@@ -13813,7 +13811,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return contacts[0];
         }
 
-        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        public LSL_List llCastRayV1(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
             LSL_List list = new LSL_List();
 
@@ -13841,10 +13839,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_REJECT_TYPES)
                     rejectTypes = options.GetLSLIntegerItem(i + 1);
             }
-
-            // Use llCastRay v2 if configured or requested
-            if (m_useCastRayV2 || (dataFlags & RC_USE_V2) == RC_USE_V2)
-                return llCastRayV2(start, end, options);
 
             if (count > 16)
                 count = 16;
@@ -14009,20 +14003,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Implementation of llCastRay similar to SL 2015-04-21.
+        /// Full implementation of llCastRay similar to SL 2015-04-21.
         /// http://wiki.secondlife.com/wiki/LlCastRay
         /// Uses pure geometry, bounding shapes, meshing and no physics
         /// for prims, sculpts, meshes, avatars and terrain.
         /// Implements all flags, reject types and data flags.
         /// Can handle both objects/groups and prims/parts, by config.
+        /// May give poor results with multi-part meshes where "root"
+        /// part doesn't dominate, owing to "guessed" bounding boxes.
         /// May sometimes be inaccurate owing to calculation precision
         /// and a bug in libopenmetaverse PrimMesher.
         /// </summary>
-        public LSL_List llCastRayV2(LSL_Vector start, LSL_Vector end, LSL_List options)
+        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
+            // Use llCastRay v1 if configured
+            if (m_useCastRayV1)
+                return llCastRayV1(start, end, options);
+
             // Initialize
-            // Keep AddScriptLPS commented while called from llCastRay
-            // m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(1);
             List<RayHit> rayHits = new List<RayHit>();
             LSL_List result = new LSL_List();
             float tol = m_floatToleranceInCastRay;
@@ -14058,10 +14057,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 ray = end - start;
             float rayLength = ray.Length();
 
-            // Try to get a mesher and return failure if none, degenerate ray, or max 0 hits
+            // Try to get a mesher and return failure if none or degenerate ray
             IRendering primMesher = null;
             List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
-            if (renderers.Count < 1 || rayLength < tol || m_maxHitsInCastRay < 1)
+            if (renderers.Count < 1 || rayLength < tol)
             {
                 result.Add(new LSL_Integer(ScriptBaseClass.RCERR_UNKNOWN));
                 return result;
