@@ -290,7 +290,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
         #endregion
 
-
         private void DoBackup (string module, string[] args)
         {
             if (args.Length != 2) {
