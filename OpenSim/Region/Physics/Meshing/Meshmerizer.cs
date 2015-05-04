@@ -84,7 +84,8 @@ namespace OpenSim.Region.Physics.Meshing
         private List<List<Vector3>> mConvexHulls = null;
         private List<Vector3> mBoundingHull = null;
 
-        private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
+        // Mesh cache. Static so it can be shared across instances of this class
+        private static Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
         public Meshmerizer(IConfigSource config)
         {
