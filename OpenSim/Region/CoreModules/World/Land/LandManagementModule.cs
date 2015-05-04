@@ -98,10 +98,16 @@ namespace OpenSim.Region.CoreModules.World.Land
         // caches ExtendedLandData
         private Cache parcelInfoCache;
 
+
         /// <summary>
         /// Record positions that avatar's are currently being forced to move to due to parcel entry restrictions.
         /// </summary>
         private Dictionary<UUID, Vector3> forcedPosition = new Dictionary<UUID, Vector3>();
+
+        // Enables limiting parcel layer info transmission when doing simple updates
+        private bool shouldLimitParcelLayerInfoToViewDistance { get; set; }
+        // "View distance" for sending parcel layer info if asked for from a view point in the region
+        private int parcelLayerViewDistance { get; set; }
 
         #region INonSharedRegionModule Members
 
@@ -112,6 +118,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void Initialise(IConfigSource source)
         {
+            shouldLimitParcelLayerInfoToViewDistance = true;
+            parcelLayerViewDistance = 128;
+            IConfig landManagementConfig = source.Configs["LandManagement"];
+            if (landManagementConfig != null)
+            {
+                shouldLimitParcelLayerInfoToViewDistance = landManagementConfig.GetBoolean("LimitParcelLayerUpdateDistance", shouldLimitParcelLayerInfoToViewDistance);
+                parcelLayerViewDistance = landManagementConfig.GetInt("ParcelLayerViewDistance", parcelLayerViewDistance);
+            }
         }
 
         public void AddRegion(Scene scene)
@@ -1129,11 +1143,26 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Parcel Updating
 
+        // Send parcel layer info for the whole region
+        public void SendParcelOverlay(IClientAPI remote_client)
+        {
+            SendParcelOverlay(remote_client, 0, 0, (int)Constants.MaximumRegionSize);
+        }
+
         /// <summary>
-        /// Where we send the ParcelOverlay packet to the client
+        /// Send the parcel overlay blocks to the client. We send the overlay packets
+        /// around a location and limited by the 'parcelLayerViewDistance'. This number
+        /// is usually 128 and the code is arranged so it sends all the parcel overlay
+        /// information for a whole region if the region is legacy sized (256x256). If
+        /// the region is larger, only the parcel layer information is sent around
+        /// the point specified. This reduces the problem of parcel layer information
+        /// blocks increasing exponentially as region size increases.
         /// </summary>
         /// <param name="remote_client">The object representing the client</param>
-        public void SendParcelOverlay(IClientAPI remote_client)
+        /// <param name="xPlace">X position in the region to send surrounding parcel layer info</param>
+        /// <param name="yPlace">y position in the region to send surrounding parcel layer info</param>
+        /// <param name="layerViewDistance">Distance from x,y position to send parcel layer info</param>
+        private  void SendParcelOverlay(IClientAPI remote_client, int xPlace, int yPlace, int layerViewDistance)
         {
             const int LAND_BLOCKS_PER_PACKET = 1024;
 
@@ -1141,15 +1170,58 @@ namespace OpenSim.Region.CoreModules.World.Land
             int byteArrayCount = 0;
             int sequenceID = 0;
 
-            // Layer data is in landUnit (4m) chunks
-            for (int y = 0; y < m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); y++)
+            int xLow = 0;
+            int xHigh = (int)m_scene.RegionInfo.RegionSizeX;
+            int yLow = 0;
+            int yHigh = (int)m_scene.RegionInfo.RegionSizeY;
+
+            if (shouldLimitParcelLayerInfoToViewDistance)
             {
-                for (int x = 0; x < m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); x++)
+                // Compute view distance around the given point
+                int txLow = xPlace - layerViewDistance;
+                int txHigh = xPlace + layerViewDistance;
+                // If the distance is outside the region area, move the view distance to ba all in the region
+                if (txLow < xLow)
+                {
+                    txLow = xLow;
+                    txHigh = Math.Min(yLow + (layerViewDistance * 2), xHigh);
+                }
+                if (txHigh > xHigh)
+                {
+                    txLow = Math.Max(xLow, xHigh - (layerViewDistance * 2));
+                    txHigh = xHigh;
+                }
+                xLow = txLow;
+                xHigh = txHigh;
+
+                int tyLow = yPlace - layerViewDistance;
+                int tyHigh = yPlace + layerViewDistance;
+                if (tyLow < yLow)
+                {
+                    tyLow = yLow;
+                    tyHigh = Math.Min(yLow + (layerViewDistance * 2), yHigh);
+                }
+                if (tyHigh > yHigh)
+                {
+                    tyLow = Math.Max(yLow, yHigh - (layerViewDistance * 2));
+                    tyHigh = yHigh;
+                }
+                yLow = tyLow;
+                yHigh = tyHigh;
+            }
+            // m_log.DebugFormat("{0} SendParcelOverlay: place=<{1},{2}>, vDist={3}, xLH=<{4},{5}, yLH=<{6},{7}>",
+            //     LogHeader, xPlace, yPlace, layerViewDistance, xLow, xHigh, yLow, yHigh);
+
+            // Layer data is in landUnit (4m) chunks
+            for (int y = yLow; y < yHigh / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); y++)
+            {
+                for (int x = xLow; x < xHigh / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); x++)
                 {
                     byteArray[byteArrayCount] = BuildLayerByte(GetLandObject(x * LandUnit, y * LandUnit), x, y, remote_client);
                     byteArrayCount++;
                     if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                     {
+                        // m_log.DebugFormat("{0} SendParcelOverlay, sending packet, bytes={1}", LogHeader, byteArray.Length);
                         remote_client.SendLandParcelOverlay(byteArray, sequenceID);
                         byteArrayCount = 0;
                         sequenceID++;
@@ -1162,6 +1234,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (byteArrayCount != 0)
             {
                 remote_client.SendLandParcelOverlay(byteArray, sequenceID);
+                // m_log.DebugFormat("{0} SendParcelOverlay, complete sending packet, bytes={1}", LogHeader, byteArray.Length);
             }
         }
 
@@ -1265,7 +1338,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 temp[i].SendLandProperties(sequence_id, snap_selection, requestResult, remote_client);
             }
 
-            SendParcelOverlay(remote_client);
+            // Also send the layer data around the point of interest
+            SendParcelOverlay(remote_client, (start_x + end_x) / 2, (start_y + end_y) / 2, parcelLayerViewDistance);
         }
 
         public void ClientOnParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client)
