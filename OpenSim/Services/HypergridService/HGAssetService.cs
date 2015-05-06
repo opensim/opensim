@@ -163,7 +163,7 @@ namespace OpenSim.Services.HypergridService
         protected byte[] AdjustIdentifiers(byte[] data)
         {
             string xml = Utils.BytesToString(data);
-            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, m_HomeURL, m_Cache, UUID.Zero));
+            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, "HGAssetService", m_HomeURL, m_Cache, UUID.Zero));
         }
 
     }
