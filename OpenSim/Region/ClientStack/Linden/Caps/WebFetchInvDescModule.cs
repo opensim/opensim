@@ -201,11 +201,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
             Scene.EventManager.OnRegisterCaps += RegisterCaps;
 
+            int nworkers = 1; // was 2
             if (ProcessQueuedRequestsAsync && m_workerThreads == null)
             {
-                m_workerThreads = new Thread[2];
+                m_workerThreads = new Thread[nworkers];
 
-                for (uint i = 0; i < 2; i++)
+                for (uint i = 0; i < nworkers; i++)
                 {
                     m_workerThreads[i] = WorkManager.StartThread(DoInventoryRequests,
                             String.Format("InventoryWorkerThread{0}", i),
