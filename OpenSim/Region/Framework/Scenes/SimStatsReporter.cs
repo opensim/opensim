@@ -217,7 +217,7 @@ namespace OpenSim.Region.Framework.Scenes
         // the Total, Simulation, Physics, and Network Frame Time; It is set to 
         // 10 by default but can be changed by the OpenSim.ini configuration file 
         // NumberOfFrames parameter
-        private int m_numberFramesStored = 10;
+        private int m_numberFramesStored = Scene.m_defaultNumberFramesStored;
 
         // The arrays that will hold the time it took to run the past N frames, 
         // where N is the num_frames_to_average given by the configuration file
