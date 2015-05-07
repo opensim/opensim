@@ -41,7 +41,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.CoreModules.World.Terrain.FileLoaders;
-using OpenSim.Region.CoreModules.World.Terrain.Features;
 using OpenSim.Region.CoreModules.World.Terrain.Modifiers;
 using OpenSim.Region.CoreModules.World.Terrain.FloodBrushes;
 using OpenSim.Region.CoreModules.World.Terrain.PaintBrushes;
@@ -75,14 +74,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         #endregion
 
-        /// <summary>
-        /// Terrain Features
-        /// </summary>
-        public enum TerrainFeatures: byte
-        {
-            Rectangle = 1,
-        }
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 #pragma warning disable 414
@@ -96,8 +87,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private readonly Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
         private Dictionary<string, ITerrainEffect> m_plugineffects;
-        private Dictionary<string, ITerrainFeature> m_featureEffects =
-            new Dictionary<string, ITerrainFeature>();
         private Dictionary<string, ITerrainModifier> m_modifyOperations =
             new Dictionary<string, ITerrainModifier>();
         private ITerrainChannel m_channel;
@@ -657,9 +646,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_floodeffects[StandardTerrainEffects.Flatten] = new FlattenArea();
             m_floodeffects[StandardTerrainEffects.Revert] = new RevertArea(m_revert);
 
-            // Terrain Feature effects
-            m_featureEffects["rectangle"] = new RectangleFeature(this);
-
             // Terrain Modifier operations
             m_modifyOperations["min"] = new MinModifier(this);
             m_modifyOperations["max"] = new MaxModifier(this);
@@ -667,6 +653,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_modifyOperations["lower"] = new LowerModifier(this);
             m_modifyOperations["fill"] = new FillModifier(this);
             m_modifyOperations["smooth"] = new SmoothModifier(this);
+            m_modifyOperations["noise"] = new NoiseModifier(this);
 
             // Filesystem load/save loaders
             m_loaders[".r32"] = new RAW32();
@@ -1671,9 +1658,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander(m_commander);
 
-            // Add Feature command to Scene, since Command object requires fixed-length arglists
-            m_scene.AddCommand("Terrain", this, "terrain feature",
-                               "terrain feature <type> <parameters...>", "Constructs a feature of the requested type.", FeatureCommand);
             // Add Modify command to Scene, since Command object requires fixed-length arglists
             m_scene.AddCommand("Terrain", this, "terrain modify",
                                "terrain modify <operation> <value> [<area>] [<taper>]",
@@ -1687,40 +1671,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                ,
                                ModifyCommand);
 
-        }
-
-        public void FeatureCommand(string module, string[] cmd)
-        {
-            string result;
-            if (cmd.Length > 2)
-            {
-                string featureType = cmd[2];
-
-                ITerrainFeature feature;
-                if (!m_featureEffects.TryGetValue(featureType, out feature))
-                {
-                    result = String.Format("Terrain Feature \"{0}\" not found.", featureType);
-                }
-                else if ((cmd.Length > 3) && (cmd[3] == "usage"))
-                {
-                    result = "Usage: " + feature.GetUsage();
-                }
-                else
-                {
-                    result = feature.CreateFeature(m_channel, cmd);
-                }
-
-                if (result == String.Empty)
-                {
-                    result = "Created Feature";
-                    m_log.DebugFormat("Created terrain feature {0}", featureType);
-                }
-            }
-            else
-            {
-                result = "Usage: <feature-name> <arg1> <arg2>...";
-            }
-            MainConsole.Instance.Output(result);
         }
 
         public void ModifyCommand(string module, string[] cmd)
