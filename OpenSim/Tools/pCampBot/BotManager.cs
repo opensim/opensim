@@ -343,6 +343,9 @@ namespace pCampBot
                 if (abName == "ph2")
                     newBehaviour = new PhysicsBehaviour2();
 
+                if (abName == "inv")
+                    newBehaviour = new InventoryDownloadBehaviour();
+
                 if (newBehaviour != null)
                 {
                     behaviours.Add(newBehaviour);
