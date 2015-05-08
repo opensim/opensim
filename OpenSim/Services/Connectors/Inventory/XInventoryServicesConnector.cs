@@ -302,7 +302,7 @@ namespace OpenSim.Services.Connectors
                         {
                             m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: Folder id does not match. Expected {0} got {1}",
                                 folderIDs[i], fid);
-                            m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: ", String.Join(",", folderIDs), String.Join(",", resultSet.Keys));
+                            m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: {0} {1}", String.Join(",", folderIDs), String.Join(",", resultSet.Keys));
                         }
 
                         i += 1;
