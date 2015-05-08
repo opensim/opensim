@@ -109,7 +109,9 @@ namespace OpenSim.Capabilities.Handlers
                     continue;
                 }
 
-                folders.Add(llsdRequest);
+                // Filter duplicate folder ids that bad viewers may send
+                if (folders.Find(f => f.folder_id == llsdRequest.folder_id) == null)
+                    folders.Add(llsdRequest);
             }
 
             if (folders.Count > 0)
@@ -540,6 +542,8 @@ namespace OpenSim.Capabilities.Handlers
                 List<LLSDFetchInventoryDescendents> libfolders = fetchFolders.FindAll(f => f.owner_id == m_LibraryService.LibraryRootFolder.Owner);
                 fetchFolders.RemoveAll(f => libfolders.Contains(f));
 
+                //m_log.DebugFormat("[XXX]: Found {0} library folders in request", libfolders.Count);
+
                 foreach (LLSDFetchInventoryDescendents f in libfolders)
                 {
                     if ((fold = m_LibraryService.LibraryRootFolder.FindFolder(f.folder_id)) != null)
@@ -553,7 +557,7 @@ namespace OpenSim.Capabilities.Handlers
                         ret.Collection.Version = fold.Version;
 
                         ret.Descendents = ret.Collection.Items.Count;
-
+//                        m_log.DebugFormat("[XXX]: Added libfolder {0} ({1})", ret.Collection.FolderID, ret.Collection.OwnerID);
                         result.Add(ret);
                     }
                 }
@@ -577,6 +581,8 @@ namespace OpenSim.Capabilities.Handlers
                 int i = 0;
                 foreach (LLSDFetchInventoryDescendents f in fetchFolders)
                     fids[i++] = f.folder_id;
+
+                //m_log.DebugFormat("[XXX]: {0}", string.Join(",", fids));
 
                 InventoryCollection[] fetchedContents = m_InventoryService.GetMultipleFoldersContent(fetchFolders[0].owner_id, fids);
 
