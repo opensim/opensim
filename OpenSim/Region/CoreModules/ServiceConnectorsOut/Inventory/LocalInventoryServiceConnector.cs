@@ -195,6 +195,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return invCol;
         }
 
+        public virtual InventoryCollection[] GetMultipleFoldersContent(UUID principalID, UUID[] folderIDs)
+        {
+            InventoryCollection[] invColl = new InventoryCollection[folderIDs.Length];
+            int i = 0;
+            foreach (UUID fid in folderIDs)
+            {
+                invColl[i++] = GetFolderContent(principalID, fid);
+            }
+
+            return invColl;
+
+        }
+
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return m_InventoryService.GetFolderItems(userID, folderID);

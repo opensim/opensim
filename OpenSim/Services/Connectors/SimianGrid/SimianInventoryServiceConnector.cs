@@ -340,7 +340,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             InventoryCollection inventory = new InventoryCollection();
-            inventory.UserID = userID;
+            inventory.OwnerID = userID;
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -371,6 +371,18 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return inventory;
         }
 
+        public virtual InventoryCollection[] GetMultipleFoldersContent(UUID principalID, UUID[] folderIDs)
+        {
+            InventoryCollection[] invColl = new InventoryCollection[folderIDs.Length];
+            int i = 0;
+            foreach (UUID fid in folderIDs)
+            {
+                invColl[i++] = GetFolderContent(principalID, fid);
+            }
+
+            return invColl;
+        }
+
         /// <summary>
         /// Gets the items inside a folder
         /// </summary>
@@ -380,7 +392,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             InventoryCollection inventory = new InventoryCollection();
-            inventory.UserID = userID;
+            inventory.OwnerID = userID;
 
             NameValueCollection requestArgs = new NameValueCollection
             {

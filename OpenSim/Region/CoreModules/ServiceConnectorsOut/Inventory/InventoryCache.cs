@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (m_Inventories.TryGetValue(userID, out inv))
             {
                 c = new InventoryCollection();
-                c.UserID = userID;
+                c.OwnerID = userID;
 
                 c.Folders = inv.Folders.FindAll(delegate(InventoryFolderBase f)
                 {

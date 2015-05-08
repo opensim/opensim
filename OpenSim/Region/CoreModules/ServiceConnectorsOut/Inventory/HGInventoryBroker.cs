@@ -389,6 +389,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetFolderContent(userID, folderID);
         }
 
+        public InventoryCollection[] GetMultipleFoldersContent(UUID userID, UUID[] folderIDs)
+        {
+            string invURL = GetInventoryServiceURL(userID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
+                lock (m_Lock)
+                    return m_LocalGridInventoryService.GetMultipleFoldersContent(userID, folderIDs);
+
+            else
+            {
+                InventoryCollection[] coll = new InventoryCollection[folderIDs.Length];
+                int i = 0;
+                foreach (UUID fid in folderIDs)
+                    coll[i++] = GetFolderContent(userID, fid);
+
+                return coll;
+            }
+        }
+
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             //m_log.Debug("[HG INVENTORY CONNECTOR]: GetFolderItems " + folderID);
