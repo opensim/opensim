@@ -590,6 +590,9 @@ namespace OpenSim.Capabilities.Handlers
                 // Do some post-processing. May need to fetch more from inv server for links
                 foreach (InventoryCollection contents in fetchedContents)
                 {
+                    if (contents == null)
+                        continue;
+
                     InventoryCollectionWithDescendents coll = new InventoryCollectionWithDescendents();
                     coll.Collection = contents;
 
