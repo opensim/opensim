@@ -149,6 +149,8 @@ namespace OpenSim.Server.Handlers.Inventory
                         return HandleDeleteItems(request);
                     case "GETITEM":
                         return HandleGetItem(request);
+                    case "GETMULTIPLEITEMS":
+                        return HandleGetMultipleItems(request);
                     case "GETFOLDER":
                         return HandleGetFolder(request);
                     case "GETACTIVEGESTURES":
@@ -571,6 +573,40 @@ namespace OpenSim.Server.Handlers.Inventory
                 result["item"] = EncodeItem(item);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetMultipleItems(Dictionary<string, object> request)
+        {
+            Dictionary<string, object> resultSet = new Dictionary<string, object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+            string itemIDstr = request["ITEMS"].ToString();
+            int count = 0;
+            Int32.TryParse(request["COUNT"].ToString(), out count);
+
+            UUID[] fids = new UUID[count];
+            string[] uuids = itemIDstr.Split(',');
+            int i = 0;
+            foreach (string id in uuids)
+            {
+                UUID fid = UUID.Zero;
+                if (UUID.TryParse(id, out fid))
+                    fids[i] = fid;
+                i += 1;
+            }
+
+            InventoryItemBase[] itemsList = m_InventoryService.GetMultipleItems(principal, fids);
+            if (itemsList != null && itemsList.Length > 0)
+            {
+                count = 0;
+                foreach (InventoryItemBase item in itemsList)
+                    resultSet["item_" + count++] = (item == null) ? (object)"NULL" : EncodeItem(item);
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(resultSet);
 
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);

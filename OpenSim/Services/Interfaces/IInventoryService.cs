@@ -82,7 +82,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="folderIDs"></param>
-        /// <returns>Inventory content.  null if the request failed.</returns>
+        /// <returns>Inventory content.</returns>
         InventoryCollection[] GetMultipleFoldersContent(UUID userID, UUID[] folderIDs);
         
         /// <summary>
@@ -162,6 +162,13 @@ namespace OpenSim.Services.Interfaces
         /// <param name="item"></param>
         /// <returns>null if no item was found, otherwise the found item</returns>
         InventoryItemBase GetItem(InventoryItemBase item);
+
+        /// <summary>
+        /// Get multiple items, given by their UUIDs
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>null if no item was found, otherwise the found item</returns>
+        InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] ids);
 
         /// <summary>
         /// Get a folder, given by its UUID

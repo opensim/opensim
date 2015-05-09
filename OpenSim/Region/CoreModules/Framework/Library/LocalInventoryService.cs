@@ -99,6 +99,22 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             return invColl;
         }
 
+        public virtual InventoryItemBase[] GetMultipleItems(UUID principalID, UUID[] itemIDs)
+        {
+            InventoryItemBase[] itemColl = new InventoryItemBase[itemIDs.Length];
+            int i = 0;
+            InventoryItemBase item = new InventoryItemBase();
+            item.Owner = principalID;
+            foreach (UUID fid in itemIDs)
+            {
+                item.ID = fid;
+                itemColl[i++] = GetItem(item);
+            }
+
+            return itemColl;
+        }
+
+
         /// <summary>
         /// Add a new folder to the user's inventory
         /// </summary>

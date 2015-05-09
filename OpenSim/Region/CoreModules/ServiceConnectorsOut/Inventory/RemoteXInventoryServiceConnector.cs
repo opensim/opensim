@@ -303,6 +303,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetItem(item);
         }
 
+        public InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] itemIDs)
+        {
+            if (itemIDs == null)
+                return new InventoryItemBase[0];
+
+            return m_RemoteConnector.GetMultipleItems(userID, itemIDs);
+        }
+
         public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             //m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolder {0}", folder.ID);

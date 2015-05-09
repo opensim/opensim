@@ -307,6 +307,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return item;
         }
 
+        public InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] itemIDs)
+        {
+            return m_InventoryService.GetMultipleItems(userID, itemIDs);
+        }
+
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             return m_InventoryService.GetFolder(folder);

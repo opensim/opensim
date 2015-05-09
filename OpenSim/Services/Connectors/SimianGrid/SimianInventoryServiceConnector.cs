@@ -301,6 +301,21 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
+        public InventoryItemBase[] GetMultipleItems(UUID principalID, UUID[] itemIDs)
+        {
+            InventoryItemBase[] result = new InventoryItemBase[itemIDs.Length];
+            int i = 0;
+            InventoryItemBase item = new InventoryItemBase();
+            item.Owner = principalID;
+            foreach (UUID id in itemIDs)
+            {
+                item.ID = id;
+                result[i++] = GetItem(item);
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Get a folder, given by its UUID
         /// </summary>

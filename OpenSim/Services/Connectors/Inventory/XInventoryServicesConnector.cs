@@ -316,6 +316,7 @@ namespace OpenSim.Services.Connectors
 
             return inventoryArr;
         }
+
         public List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         {
             Dictionary<string,object> ret = MakeRequest("GETFOLDERITEMS",
@@ -524,6 +525,42 @@ namespace OpenSim.Services.Connectors
             }
 
             return null;
+        }
+
+        public virtual InventoryItemBase[] GetMultipleItems(UUID principalID, UUID[] itemIDs)
+        {
+            InventoryItemBase[] itemArr = new InventoryItemBase[itemIDs.Length];
+            try
+            {
+                Dictionary<string, object> resultSet = MakeRequest("GETMULTIPLEITEMS",
+                        new Dictionary<string, object> {
+                            { "PRINCIPAL", principalID.ToString() },
+                            { "ITEMS", String.Join(",", itemIDs) },
+                            { "COUNT", itemIDs.Length.ToString() }
+                        });
+
+                if (!CheckReturn(resultSet))
+                    return null;
+
+                int i = 0;
+                foreach (KeyValuePair<string, object> kvp in resultSet)
+                {
+                    InventoryCollection inventory = new InventoryCollection();
+                    if (kvp.Key.StartsWith("item_"))
+                    {
+                        if (kvp.Value is Dictionary<string, object>)
+                            itemArr[i++] = BuildItem((Dictionary<string, object>)kvp.Value);
+                        else
+                            itemArr[i++] = null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: Exception in GetMultipleItems: {0}", e.Message);
+            }
+
+            return itemArr;
         }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)

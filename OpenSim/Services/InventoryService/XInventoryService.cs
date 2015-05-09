@@ -610,6 +610,21 @@ namespace OpenSim.Services.InventoryService
             return ConvertToOpenSim(items[0]);
         }
 
+        public virtual InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] ids)
+        {
+            InventoryItemBase[] items = new InventoryItemBase[ids.Length];
+            int i = 0;
+            InventoryItemBase item = new InventoryItemBase();
+            item.Owner = userID;
+            foreach (UUID id in ids)
+            {
+                item.ID = id;
+                items[i++] = GetItem(item);
+            }
+
+            return items;
+        }
+
         public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             XInventoryFolder[] folders = m_Database.GetFolders(
