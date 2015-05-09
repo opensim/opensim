@@ -551,11 +551,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_plugineffects = new Dictionary<string, ITerrainEffect>();
             LoadPlugins(Assembly.GetCallingAssembly());
             string plugineffectsPath = "Terrain";
-            
+
             // Load the files in the Terrain/ dir
             if (!Directory.Exists(plugineffectsPath))
                 return;
-            
+
             string[] files = Directory.GetFiles(plugineffectsPath);
             foreach(string file in files)
             {
@@ -768,7 +768,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             fileStartX, fileStartY, fileStartX + fileWidth - 1, fileStartY + fileHeight - 1,
                             m_scene.RegionInfo.RegionName, filename);
                     }
-                    
+
                     return;
                 }
             }
@@ -865,7 +865,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             client.OnLandUndo += client_OnLandUndo;
             client.OnUnackedTerrain += client_OnUnackedTerrain;
         }
-        
+
         /// <summary>
         /// Installs terrain brush hook to IClientAPI
         /// </summary>
@@ -884,7 +884,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             lock(m_perClientPatchUpdates)
                 m_perClientPatchUpdates.Remove(client);
         }
-        
+
         /// <summary>
         /// Scan over changes in the terrain and limit height changes. This enforces the
         ///     non-estate owner limits on rate of terrain editting.
@@ -1225,7 +1225,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
             }
         }
-        
+
         protected void client_OnUnackedTerrain(IClientAPI client, int patchX, int patchY)
         {
             //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
@@ -1676,9 +1676,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         public void ModifyCommand(string module, string[] cmd)
         {
             string result;
-            if (cmd.Length > 2)
+            Scene scene = SceneManager.Instance.CurrentScene;
+            if ((scene != null) && (scene != m_scene))
+            {
+                result = String.Empty;
+            }
+            else if (cmd.Length > 2)
             {
                 string operationType = cmd[2];
+
 
                 ITerrainModifier operation;
                 if (!m_modifyOperations.TryGetValue(operationType, out operation))
@@ -1704,7 +1710,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 result = "Usage: <operation-name> <arg1> <arg2>...";
             }
-            MainConsole.Instance.Output(result);
+            if (result != String.Empty)
+            {
+                MainConsole.Instance.Output(result);
+            }
         }
 
 #endregion
