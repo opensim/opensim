@@ -116,8 +116,10 @@ namespace OpenSim.Capabilities.Handlers
 
             if (folders.Count > 0)
             {
-                List<InventoryCollectionWithDescendents> invcollSet = Fetch(folders);
+                List<UUID> bad_folders = new List<UUID>();
+                List<InventoryCollectionWithDescendents> invcollSet = Fetch(folders, bad_folders);
                 //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
+
                 if (invcollSet == null)
                 {
                     m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Multiple folder fetch failed. Trying old protocol.");
@@ -135,6 +137,10 @@ namespace OpenSim.Capabilities.Handlers
 
                     response += inventoryitemstr;
                 }
+
+                //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Bad folders {0}", string.Join(", ", bad_folders));
+                foreach (UUID bad in bad_folders)
+                    bad_folders_response += "<uuid>" + bad + "</uuid>";
             }
 
             if (response.Length == 0)
@@ -161,8 +167,8 @@ namespace OpenSim.Capabilities.Handlers
                 }
             }
 
-//            m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Replying to CAPS fetch inventory request");
-//            m_log.Debug("[WEB FETCH INV DESC HANDLER] "+response);
+            //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Replying to CAPS fetch inventory request for {0} folders. Item count {1}", folders.Count, item_count);
+            //m_log.Debug("[WEB FETCH INV DESC HANDLER] " + response);
 
             return response;
 
@@ -557,14 +563,15 @@ namespace OpenSim.Capabilities.Handlers
                         ret.Collection.Version = fold.Version;
 
                         ret.Descendents = ret.Collection.Items.Count;
-//                        m_log.DebugFormat("[XXX]: Added libfolder {0} ({1})", ret.Collection.FolderID, ret.Collection.OwnerID);
                         result.Add(ret);
+
+                        //m_log.DebugFormat("[XXX]: Added libfolder {0} ({1}) {2}", ret.Collection.FolderID, ret.Collection.OwnerID);
                     }
                 }
             }
         }
 
-        private List<InventoryCollectionWithDescendents> Fetch(List<LLSDFetchInventoryDescendents> fetchFolders)
+        private List<InventoryCollectionWithDescendents> Fetch(List<LLSDFetchInventoryDescendents> fetchFolders, List<UUID> bad_folders)
         {
             //m_log.DebugFormat(
             //    "[WEB FETCH INV DESC HANDLER]: Fetching {0} folders for owner {1}", fetchFolders.Count, fetchFolders[0].owner_id);
@@ -596,11 +603,15 @@ namespace OpenSim.Capabilities.Handlers
                 // Do some post-processing. May need to fetch more from inv server for links
                 foreach (InventoryCollection contents in fetchedContents)
                 {
-                    if (contents == null)
-                        continue;
-
                     InventoryCollectionWithDescendents coll = new InventoryCollectionWithDescendents();
                     coll.Collection = contents;
+
+                    if (contents == null)
+                    {
+                        bad_folders.Add(fids[i++]);
+                        continue;
+                    }
+
 
                     // Find the original request
                     LLSDFetchInventoryDescendents freq = fetchFolders[i++];
@@ -622,8 +633,36 @@ namespace OpenSim.Capabilities.Handlers
                         }
                         else
                         {
-                            m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
-                            continue;
+                            // Was it really a request for folder Zero?
+                            // This is an overkill, but Firestorm really asks for folder Zero.
+                            // I'm leaving the code here for the time being, but commented.
+                            if (fetchFolders[i - 1].folder_id == UUID.Zero)
+                            {
+                                //coll.Collection.OwnerID = freq.owner_id;
+                                //coll.Collection.FolderID = contents.FolderID;
+                                //containingFolder = m_InventoryService.GetRootFolder(freq.owner_id);
+                                //if (containingFolder != null)
+                                //{
+                                //    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Request for parent of folder {0}", containingFolder.ID);
+                                //    coll.Collection.Folders.Clear();
+                                //    coll.Collection.Folders.Add(containingFolder);
+                                //    if (m_LibraryService != null && m_LibraryService.LibraryRootFolder != null)
+                                //    {
+                                //        InventoryFolderBase lib = new InventoryFolderBase(m_LibraryService.LibraryRootFolder.ID, m_LibraryService.LibraryRootFolder.Owner);
+                                //        lib.Name = m_LibraryService.LibraryRootFolder.Name;
+                                //        lib.Type = m_LibraryService.LibraryRootFolder.Type;
+                                //        lib.Version = m_LibraryService.LibraryRootFolder.Version;
+                                //        coll.Collection.Folders.Add(lib);
+                                //    }
+                                //    coll.Collection.Items.Clear();
+                                //}
+                            }
+                            else
+                            {
+                                m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
+                                bad_folders.Add(freq.folder_id);
+                                continue;
+                            }
                         }
                     }
 
