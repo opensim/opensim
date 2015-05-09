@@ -676,8 +676,8 @@ namespace OpenSim.Capabilities.Handlers
                     {
                         m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
                         bad_folders.Add(freq.folder_id);
-                        bad = true;
                     }
+                    bad = true;
                 }
             }
 
@@ -755,15 +755,23 @@ namespace OpenSim.Capabilities.Handlers
                         }
                     }
 
-                    foreach (InventoryItemBase linkedItem in linked)
+                    //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Processing folder {0}. Existing items:", freq.folder_id);
+                    //foreach (InventoryItemBase item in itemsToReturn)
+                    //    m_log.DebugFormat("[XXX]: {0} {1} {2}", item.Name, item.AssetType, item.Folder);
+
+                    if (linked != null)
                     {
-                        // Take care of genuinely broken links where the target doesn't exist
-                        // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                        // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                        // rather than having to keep track of every folder requested in the recursion.
-                        if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+                        foreach (InventoryItemBase linkedItem in linked)
                         {
-                            itemsToReturn.Insert(0, linkedItem);
+                            // Take care of genuinely broken links where the target doesn't exist
+                            // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                            // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                            // rather than having to keep track of every folder requested in the recursion.
+                            if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+                            {
+                                itemsToReturn.Insert(0, linkedItem);
+                                //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Added {0} {1} {2}", linkedItem.Name, linkedItem.AssetType, linkedItem.Folder);
+                            }
                         }
                     }
                 }
@@ -824,7 +832,7 @@ namespace OpenSim.Capabilities.Handlers
         }
     }
 
-    struct InventoryCollectionWithDescendents
+    class InventoryCollectionWithDescendents
     {
         public InventoryCollection Collection;
         public int Descendents;
