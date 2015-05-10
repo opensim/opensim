@@ -54,7 +54,18 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
         private void Init()
         {
-            // CreateInventoryFolder an inventory
+            // Create an inventory that looks like this:
+            //
+            // /My Inventory
+            //   <other system folders>
+            //   /Objects
+            //      Some Object
+            //   /Notecards
+            //      Notecard 1
+            //      Notecard 2
+            //   /Test Folder
+            //      Link to notecard  -> /Notecards/Notecard 2
+            //      Link to Objects folder -> /Objects
 
             m_scene = new SceneHelpers().SetupScene();
 
