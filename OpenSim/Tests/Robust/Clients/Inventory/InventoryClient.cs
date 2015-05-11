@@ -147,6 +147,7 @@ namespace Robust.Tests
             coll = m_Connector.GetFolderContent(m_userID, folder.ID);
             Assert.IsNotNull(coll, "Failed to retrieve contents of Test Folder");
             Assert.AreEqual(coll.Items.Count + coll.Folders.Count, 2, "Test Folder is expected to have exactly 2 things inside");
+
         }
     }
 }
