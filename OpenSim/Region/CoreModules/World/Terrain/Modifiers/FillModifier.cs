@@ -40,7 +40,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
 
         public override string ModifyTerrain(ITerrainChannel map, string[] args)
         {
-            string val;
             string result;
             if (args.Length < 3)
             {

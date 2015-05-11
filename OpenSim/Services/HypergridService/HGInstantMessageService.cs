@@ -105,7 +105,7 @@ namespace OpenSim.Services.HypergridService
                 {
                     m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(userAgentService, args);
                 }
-                catch (Exception e)
+                catch
                 {
                     m_log.WarnFormat("[HG IM SERVICE]: Unable to create User Agent Service. Missing config var  in [HGInstantMessageService]?");
                 }
