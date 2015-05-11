@@ -261,7 +261,7 @@ namespace OpenSim.Services.InventoryService
 
         private InventoryFolderBase GetSystemFolderForType(InventoryFolderBase rootFolder, AssetType type)
         {
-//            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0} for user {1}", type, principalID);
+            //m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0}", type);
             
             if (type == AssetType.RootFolder)
                 return rootFolder;
@@ -272,13 +272,13 @@ namespace OpenSim.Services.InventoryService
 
             if (folders.Length == 0)
             {
-//                m_log.WarnFormat("[XINVENTORY SERVICE]: Found no folder for type {0} for user {1}", type, principalID);
+                //m_log.WarnFormat("[XINVENTORY SERVICE]: Found no folder for type {0} ", type);
                 return null;
             }
-            
-//            m_log.DebugFormat(
-//                "[XINVENTORY SERVICE]: Found folder {0} {1} for type {2} for user {3}", 
-//                folders[0].folderName, folders[0].folderID, type, principalID);
+
+            //m_log.DebugFormat(
+            //    "[XINVENTORY SERVICE]: Found folder {0} {1} for type {2}",
+            //    folders[0].folderName, folders[0].folderID, type);
 
             return ConvertToOpenSim(folders[0]);
         }

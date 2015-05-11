@@ -54,6 +54,8 @@ namespace Robust.Tests
             Console.WriteLine("**** Starting demon Robust server ****");
             m_demon = new Thread( () => Main(new string[] {"-inifile=Robust.Tests.ini"}));
             m_demon.Start();
+            // Give some time for the server to instantiate all services
+            Thread.Sleep(3000);
             Console.WriteLine("**** Setup Finished ****");
         }
 

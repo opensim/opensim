@@ -406,9 +406,13 @@ namespace OpenSim.Services.Connectors
 
         public bool AddItem(InventoryItemBase item)
         {
+            if (item.Description == null)
+                item.Description = String.Empty;
             if (item.CreatorData == null)
                 item.CreatorData = String.Empty;
-            Dictionary<string,object> ret = MakeRequest("ADDITEM",
+            if (item.CreatorId == null)
+                item.CreatorId = String.Empty;
+            Dictionary<string, object> ret = MakeRequest("ADDITEM",
                     new Dictionary<string,object> {
                         { "AssetID", item.AssetID.ToString() },
                         { "AssetType", item.AssetType.ToString() },
