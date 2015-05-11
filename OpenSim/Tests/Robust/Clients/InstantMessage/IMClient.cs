@@ -28,47 +28,30 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Reflection;
 
 using OpenMetaverse;
-using log4net;
-using log4net.Appender;
-using log4net.Layout;
+using NUnit.Framework;
 
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.InstantMessage;
 
-namespace OpenSim.Tests.Clients.InstantMessage
+namespace Robust.Tests
 {
+    [TestFixture]
     public class IMClient
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-        
-        public static void Main(string[] args)
+        [Test]
+        public void HGIM_001()
         {
-            ConsoleAppender consoleAppender = new ConsoleAppender();
-            consoleAppender.Layout =
-                new PatternLayout("%date [%thread] %-5level %logger [%property{NDC}] - %message%newline");
-            log4net.Config.BasicConfigurator.Configure(consoleAppender);
-
-            string serverURI = "http://127.0.0.1:8002"; 
             GridInstantMessage im = new GridInstantMessage();
             im.fromAgentID = new Guid();
             im.toAgentID = new Guid();
             im.message = "Hello";
             im.imSessionID = new Guid();
 
-            bool success = InstantMessageServiceConnector.SendInstantMessage(serverURI, im);
-
-            if (success)
-                m_log.InfoFormat("[IM CLIENT]: Successfully IMed {0}", serverURI);
-            else
-                m_log.InfoFormat("[IM CLIENT]: failed to IM {0}", serverURI);
-
-            System.Console.WriteLine("\n");
+            bool success = InstantMessageServiceConnector.SendInstantMessage(DemonServer.Address, im);
+            Assert.IsFalse(success, "Sending of IM succeeded, but it should have failed");
         }
 
     }
