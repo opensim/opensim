@@ -67,7 +67,7 @@ namespace Robust.Tests
 
             account.Email = "user@example.com";
             bool success = m_Connector.StoreUserAccount(account);
-            Assert.IsTrue(success, "Failed to store account");
+            Assert.IsTrue(success, "Failed to store existing account");
 
             account = m_Connector.GetUserAccount(UUID.Zero, user1);
             Assert.NotNull(account, "Failed to retrieve account for user id " + user1);
@@ -75,6 +75,10 @@ namespace Robust.Tests
 
             account = m_Connector.GetUserAccount(UUID.Zero, "DoesNot", "Exist");
             Assert.IsNull(account, "Account DoesNot Exit must not be there");
+
+            account = new UserAccount(UUID.Zero, "DoesNot", "Exist", "xxx@xxx.com");
+            success = m_Connector.StoreUserAccount(account);
+            Assert.IsFalse(success, "Storing a non-existing account must fail");
         }
 
     }
