@@ -257,8 +257,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         byte[] CreateUser(Dictionary<string, object> request)
         {
-            if (!
-                request.ContainsKey("FirstName")
+            if (! request.ContainsKey("FirstName")
                     && request.ContainsKey("LastName")
                     && request.ContainsKey("Password"))
                 return FailureResult();
