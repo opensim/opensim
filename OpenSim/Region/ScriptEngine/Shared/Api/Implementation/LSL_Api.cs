@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.Remoting.Lifetime;
@@ -234,6 +235,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_detectExitsInCastRay = false;
         protected bool m_filterPartsInCastRay = false;
         protected bool m_doAttachmentsInCastRay = false;
+        protected int m_msThrottleInCastRay = 200;
+        protected int m_msPerRegionInCastRay = 40;
+        protected int m_msPerAvatarInCastRay = 10;
+        protected int m_msMinInCastRay = 2;
+        protected int m_msMaxInCastRay = 40;
+        protected static List<CastRayCall> m_castRayCalls = new List<CastRayCall>();
 
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
@@ -353,6 +360,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_detectExitsInCastRay = lslConfig.GetBoolean("DetectExitHitsInLlCastRay", m_detectExitsInCastRay);
                     m_filterPartsInCastRay = lslConfig.GetBoolean("FilterPartsInLlCastRay", m_filterPartsInCastRay);
                     m_doAttachmentsInCastRay = lslConfig.GetBoolean("DoAttachmentsInLlCastRay", m_doAttachmentsInCastRay);
+                    m_msThrottleInCastRay = lslConfig.GetInt("ThrottleTimeInMsInLlCastRay", m_msThrottleInCastRay);
+                    m_msPerRegionInCastRay = lslConfig.GetInt("AvailableTimeInMsPerRegionInLlCastRay", m_msPerRegionInCastRay);
+                    m_msPerAvatarInCastRay = lslConfig.GetInt("AvailableTimeInMsPerAvatarInLlCastRay", m_msPerAvatarInCastRay);
+                    m_msMinInCastRay = lslConfig.GetInt("RequiredAvailableTimeInMsInLlCastRay", m_msMinInCastRay);
+                    m_msMaxInCastRay = lslConfig.GetInt("MaximumAvailableTimeInMsInLlCastRay", m_msMaxInCastRay);
                 }
 
                 IConfig smtpConfig = seConfigSource.Configs["SMTP"];
@@ -14058,10 +14070,61 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public LSL_List llCastRayV3(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
-            // Initialize
             m_host.AddScriptLPS(1);
-            List<RayHit> rayHits = new List<RayHit>();
             LSL_List result = new LSL_List();
+
+            // Prepare throttle data
+            int calledMs = Environment.TickCount;
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+            UUID regionId = World.RegionInfo.RegionID;
+            UUID userId = UUID.Zero;
+            int msAvailable = 0;
+            // Throttle per owner when attachment or "vehicle" (sat upon)
+            if (m_host.ParentGroup.IsAttachment || m_host.ParentGroup.GetSittingAvatars().Count > 0)
+            {
+                userId = m_host.OwnerID;
+                msAvailable = m_msPerAvatarInCastRay;
+            }
+            // Throttle per parcel when not attachment or vehicle
+            else
+            {
+                LandData land = World.GetLandData(m_host.GetWorldPosition());
+                if (land != null)
+                    msAvailable = m_msPerRegionInCastRay * land.Area / 65536;
+            }
+            // Clamp for "oversized" parcels on varregions
+            if (msAvailable > m_msMaxInCastRay)
+                msAvailable = m_msMaxInCastRay;
+
+            // Check throttle data
+            int fromCalledMs = calledMs - m_msThrottleInCastRay;
+            lock (m_castRayCalls)
+            {
+                for (int i = m_castRayCalls.Count - 1; i >= 0; i--)
+                {
+                    // Delete old calls from throttle data
+                    if (m_castRayCalls[i].CalledMs < fromCalledMs)
+                        m_castRayCalls.RemoveAt(i);
+                    // Use current region (in multi-region sims)
+                    else if (m_castRayCalls[i].RegionId == regionId)
+                    {
+                        // Reduce available time with recent calls
+                        if (m_castRayCalls[i].UserId == userId)
+                            msAvailable -= m_castRayCalls[i].UsedMs;
+                    }
+                }
+            }
+
+            // Return failure if not enough available time
+            if (msAvailable < m_msMinInCastRay)
+            {
+                result.Add(new LSL_Integer(ScriptBaseClass.RCERR_CAST_TIME_EXCEEDED));
+                return result;
+            }
+
+            // Initialize
+            List<RayHit> rayHits = new List<RayHit>();
             float tol = m_floatToleranceInCastRay;
             Vector3 pos1Ray = start;
             Vector3 pos2Ray = end;
@@ -14378,6 +14441,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     result.Add(new LSL_Vector(rayHit.Normal));
             }
             result.Add(new LSL_Integer(hitCount));
+
+            // Add to throttle data
+            stopWatch.Stop();
+            CastRayCall castRayCall = new CastRayCall();
+            castRayCall.RegionId = regionId;
+            castRayCall.UserId = userId;
+            castRayCall.CalledMs = calledMs;
+            castRayCall.UsedMs = (int)stopWatch.ElapsedMilliseconds;
+            lock (m_castRayCalls)
+            {
+                m_castRayCalls.Add(castRayCall);
+            }
+
+            // Return hits
             return result;
         }
 
@@ -14409,6 +14486,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             public Vector3 Position;
             public Vector3 Normal;
             public float Distance;
+        }
+
+        /// <summary>
+        /// Struct for llCastRay throttle data.
+        /// </summary>
+        public struct CastRayCall
+        {
+            public UUID RegionId;
+            public UUID UserId;
+            public int CalledMs;
+            public int UsedMs;
         }
 
         /// <summary>
