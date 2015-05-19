@@ -64,8 +64,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         public const int m_defaultNumberFramesStored = 10;
 
-        public const int m_defaultNumberFramesStored = 10;
-        
         public delegate void SynchronizeSceneHandler(Scene scene);
 
         #region Fields
