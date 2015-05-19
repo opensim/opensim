@@ -67,7 +67,9 @@ namespace OpenSim.Region.Framework.Scenes
         protected Scene m_parentScene;
         protected Dictionary<UUID, SceneObjectGroup> m_updateList = new Dictionary<UUID, SceneObjectGroup>();
         protected int m_numRootAgents = 0;
+        protected int m_numTotalPrim = 0;
         protected int m_numPrim = 0;
+        protected int m_numMesh = 0;
         protected int m_numChildAgents = 0;
         protected int m_physicalPrim = 0;
 
@@ -368,7 +370,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart[] parts = sceneObject.Parts;
 
-            // Clamp child prim sizes and add child prims to the m_numPrim count
+            // Clamp the sizes (scales) of the child prims and add the child prims to the count of all primitives
+            // (meshes and geometric primitives) in the scene; add child prims to m_numTotalPrim count
             if (m_parentScene.m_clampPrimSize)
             {
                 foreach (SceneObjectPart part in parts)
@@ -382,7 +385,19 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Shape.Scale = scale;
                 }
             }
-            m_numPrim += parts.Length;
+            m_numTotalPrim += parts.Length;
+
+            // Go through all parts (geometric primitives and meshes) of this Scene Object
+            foreach (SceneObjectPart part in parts)
+            {
+                // Keep track of the total number of meshes or geometric primitives now in the scene;
+                // determine which object this is based on its primitive type: sculpted (sculpt) prim refers to
+                // a mesh and all other prims (i.e. box, sphere, etc) are geometric primitives
+                if (part.GetPrimType() == PrimType.SCULPT)
+                    m_numMesh++;
+                else
+                    m_numPrim++;
+            }
 
             sceneObject.AttachToScene(m_parentScene);
 
@@ -437,7 +452,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!resultOfObjectLinked)
             {
-                m_numPrim -= grp.PrimCount;
+                // Decrement the total number of primitives (meshes and geometric primitives)
+                // that are part of the Scene Object being removed
+                m_numTotalPrim -= grp.PrimCount;
+
+                // Go through all parts (primitives and meshes) of this Scene Object
+                foreach (SceneObjectPart part in grp.Parts)
+                {
+                    // Keep track of the total number of meshes or geometric primitives left in the scene;
+                    // determine which object this is based on its primitive type: sculpted (sculpt) prim refers to
+                    // a mesh and all other prims (i.e. box, sphere, etc) are geometric primitives
+                    if (part.GetPrimType() == PrimType.SCULPT)
+                        m_numMesh--;
+                    else
+                        m_numPrim--;
+                }
 
                 if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
                     RemovePhysicalPrim(grp.PrimCount);
@@ -687,7 +716,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetTotalObjectsCount()
         {
+            return m_numTotalPrim;
+        }
+
+        public int GetTotalPrimObjectsCount()
+        {
             return m_numPrim;
+        }
+
+        public int GetTotalMeshObjectsCount()
+        {
+            return m_numMesh;
         }
 
         public int GetActiveObjectsCount()
@@ -1970,7 +2009,19 @@ namespace OpenSim.Region.Framework.Scenes
                 // think it's selected, so it will never send a deselect...
                 copy.IsSelected = false;
 
-                m_numPrim += copy.Parts.Length;
+                m_numTotalPrim += copy.Parts.Length;
+
+                // Go through all parts (primitives and meshes) of this Scene Object
+                foreach (SceneObjectPart part in copy.Parts)
+                {
+                    // Keep track of the total number of meshes or geometric primitives now in the scene;
+                    // determine which object this is based on its primitive type: sculpted (sculpt) prim refers to
+                    // a mesh and all other prims (i.e. box, sphere, etc) are geometric primitives
+                    if (part.GetPrimType() == PrimType.SCULPT)
+                        m_numMesh++;
+                    else
+                        m_numPrim++;
+                }
 
                 if (rot != Quaternion.Identity)
                 {
