@@ -261,7 +261,7 @@ namespace OpenSim.Services.InventoryService
 
         private InventoryFolderBase GetSystemFolderForType(InventoryFolderBase rootFolder, AssetType type)
         {
-//            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0} for user {1}", type, principalID);
+            //m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0}", type);
             
             if (type == AssetType.RootFolder)
                 return rootFolder;
@@ -272,13 +272,13 @@ namespace OpenSim.Services.InventoryService
 
             if (folders.Length == 0)
             {
-//                m_log.WarnFormat("[XINVENTORY SERVICE]: Found no folder for type {0} for user {1}", type, principalID);
+                //m_log.WarnFormat("[XINVENTORY SERVICE]: Found no folder for type {0} ", type);
                 return null;
             }
-            
-//            m_log.DebugFormat(
-//                "[XINVENTORY SERVICE]: Found folder {0} {1} for type {2} for user {3}", 
-//                folders[0].folderName, folders[0].folderID, type, principalID);
+
+            //m_log.DebugFormat(
+            //    "[XINVENTORY SERVICE]: Found folder {0} {1} for type {2}",
+            //    folders[0].folderName, folders[0].folderID, type);
 
             return ConvertToOpenSim(folders[0]);
         }
@@ -291,7 +291,7 @@ namespace OpenSim.Services.InventoryService
             //
             //m_log.DebugFormat("[XINVENTORY SERVICE]: Fetch contents for folder {0}", folderID.ToString());
             InventoryCollection inventory = new InventoryCollection();
-            inventory.UserID = principalID;
+            inventory.OwnerID = principalID;
             inventory.Folders = new List<InventoryFolderBase>();
             inventory.Items = new List<InventoryItemBase>();
 
@@ -315,7 +315,26 @@ namespace OpenSim.Services.InventoryService
                 inventory.Items.Add(ConvertToOpenSim(i));
             }
 
+            InventoryFolderBase f = new InventoryFolderBase(folderID, principalID);
+            f = GetFolder(f);
+            if (f != null)
+            {
+                inventory.Version = f.Version;
+                inventory.OwnerID = f.Owner;
+            }
+            inventory.FolderID = folderID;
+
             return inventory;
+        }
+
+        public virtual InventoryCollection[] GetMultipleFoldersContent(UUID principalID, UUID[] folderIDs)
+        {
+            InventoryCollection[] multiple = new InventoryCollection[folderIDs.Length];
+            int i = 0;
+            foreach (UUID fid in folderIDs)
+                multiple[i++] = GetFolderContent(principalID, fid);
+
+            return multiple;
         }
         
         public virtual List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
@@ -589,6 +608,21 @@ namespace OpenSim.Services.InventoryService
                 return null;
 
             return ConvertToOpenSim(items[0]);
+        }
+
+        public virtual InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] ids)
+        {
+            InventoryItemBase[] items = new InventoryItemBase[ids.Length];
+            int i = 0;
+            InventoryItemBase item = new InventoryItemBase();
+            item.Owner = userID;
+            foreach (UUID id in ids)
+            {
+                item.ID = id;
+                items[i++] = GetItem(item);
+            }
+
+            return items;
         }
 
         public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)

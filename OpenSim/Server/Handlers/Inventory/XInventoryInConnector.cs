@@ -41,7 +41,9 @@ using OpenSim.Server.Handlers.Base;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Server.Handlers.Asset
+using System.Threading;
+
+namespace OpenSim.Server.Handlers.Inventory
 {
     public class XInventoryInConnector : ServiceConnector
     {
@@ -123,6 +125,8 @@ namespace OpenSim.Server.Handlers.Asset
                         return HandleGetFolderForType(request);
                     case "GETFOLDERCONTENT":
                         return HandleGetFolderContent(request);
+                    case "GETMULTIPLEFOLDERSCONTENT":
+                        return HandleGetMultipleFoldersContent(request);
                     case "GETFOLDERITEMS":
                         return HandleGetFolderItems(request);
                     case "ADDFOLDER":
@@ -145,6 +149,8 @@ namespace OpenSim.Server.Handlers.Asset
                         return HandleDeleteItems(request);
                     case "GETITEM":
                         return HandleGetItem(request);
+                    case "GETMULTIPLEITEMS":
+                        return HandleGetMultipleItems(request);
                     case "GETFOLDER":
                         return HandleGetFolder(request);
                     case "GETACTIVEGESTURES":
@@ -284,6 +290,8 @@ namespace OpenSim.Server.Handlers.Asset
             InventoryCollection icoll = m_InventoryService.GetFolderContent(principal, folderID);
             if (icoll != null)
             {
+                result["FID"] = icoll.FolderID.ToString();
+                result["VERSION"] = icoll.Version.ToString();
                 Dictionary<string, object> folders = new Dictionary<string, object>();
                 int i = 0; 
                 if (icoll.Folders != null)
@@ -314,7 +322,71 @@ namespace OpenSim.Server.Handlers.Asset
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
-        byte[] HandleGetFolderItems(Dictionary<string,object> request)
+        byte[] HandleGetMultipleFoldersContent(Dictionary<string, object> request)
+        {
+            Dictionary<string, object> resultSet = new Dictionary<string, object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+            string folderIDstr = request["FOLDERS"].ToString();
+            int count = 0;
+            Int32.TryParse(request["COUNT"].ToString(), out count);
+
+            UUID[] fids = new UUID[count];
+            string[] uuids = folderIDstr.Split(',');
+            int i = 0;
+            foreach (string id in uuids)
+            {
+                UUID fid = UUID.Zero;
+                if (UUID.TryParse(id, out fid))
+                    fids[i] = fid;
+                i += 1;
+            }
+
+            count = 0;
+            InventoryCollection[] icollList = m_InventoryService.GetMultipleFoldersContent(principal, fids);
+            if (icollList != null && icollList.Length > 0)
+            {
+                foreach (InventoryCollection icoll in icollList)
+                {
+                    Dictionary<string, object> result = new Dictionary<string, object>();
+                    result["FID"] = icoll.FolderID.ToString();
+                    result["VERSION"] = icoll.Version.ToString();
+                    result["OWNER"] = icoll.OwnerID.ToString();
+                    Dictionary<string, object> folders = new Dictionary<string, object>();
+                    i = 0;
+                    if (icoll.Folders != null)
+                    {
+                        foreach (InventoryFolderBase f in icoll.Folders)
+                        {
+                            folders["folder_" + i.ToString()] = EncodeFolder(f);
+                            i++;
+                        }
+                        result["FOLDERS"] = folders;
+                    }
+                    i = 0;
+                    if (icoll.Items != null)
+                    {
+                        Dictionary<string, object> items = new Dictionary<string, object>();
+                        foreach (InventoryItemBase it in icoll.Items)
+                        {
+                            items["item_" + i.ToString()] = EncodeItem(it);
+                            i++;
+                        }
+                        result["ITEMS"] = items;
+                    }
+
+                    resultSet["F_" + fids[count++]] = result;
+                    //m_log.DebugFormat("[XXX]: Sending {0} {1}", fids[count-1], icoll.FolderID);
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(resultSet);
+
+            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetFolderItems(Dictionary<string, object> request)
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
             UUID principal = UUID.Zero;
@@ -501,6 +573,40 @@ namespace OpenSim.Server.Handlers.Asset
                 result["item"] = EncodeItem(item);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetMultipleItems(Dictionary<string, object> request)
+        {
+            Dictionary<string, object> resultSet = new Dictionary<string, object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+            string itemIDstr = request["ITEMS"].ToString();
+            int count = 0;
+            Int32.TryParse(request["COUNT"].ToString(), out count);
+
+            UUID[] fids = new UUID[count];
+            string[] uuids = itemIDstr.Split(',');
+            int i = 0;
+            foreach (string id in uuids)
+            {
+                UUID fid = UUID.Zero;
+                if (UUID.TryParse(id, out fid))
+                    fids[i] = fid;
+                i += 1;
+            }
+
+            InventoryItemBase[] itemsList = m_InventoryService.GetMultipleItems(principal, fids);
+            if (itemsList != null && itemsList.Length > 0)
+            {
+                count = 0;
+                foreach (InventoryItemBase item in itemsList)
+                    resultSet["item_" + count++] = (item == null) ? (object)"NULL" : EncodeItem(item);
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(resultSet);
 
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);

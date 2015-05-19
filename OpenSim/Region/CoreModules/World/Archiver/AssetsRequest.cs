@@ -335,7 +335,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (asset.Type == (sbyte)AssetType.Object && asset.Data != null && m_options.ContainsKey("home"))
             {
                 //m_log.DebugFormat("[ARCHIVER]: Rewriting object data for {0}", asset.ID);
-                string xml = ExternalRepresentationUtils.RewriteSOP(Utils.BytesToString(asset.Data), m_options["home"].ToString(), m_userAccountService, m_scopeID);
+                string xml = ExternalRepresentationUtils.RewriteSOP(Utils.BytesToString(asset.Data), string.Empty, m_options["home"].ToString(), m_userAccountService, m_scopeID);
                 asset.Data = Utils.StringToBytes(xml);
             }
             return asset;

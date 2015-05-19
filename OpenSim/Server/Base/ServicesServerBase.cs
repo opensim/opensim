@@ -82,7 +82,9 @@ namespace OpenSim.Server.Base
             argvConfig.AddSwitch("Startup", "logconfig", "g");
 
             // Automagically create the ini file name
-            string fileName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
+            string fileName = "";
+            if (Assembly.GetEntryAssembly() != null)
+                fileName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
             string iniFile = fileName + ".ini";
             string logConfig = null;
 
@@ -158,7 +160,11 @@ namespace OpenSim.Server.Base
                 MainConsole.Instance = new RemoteConsole(prompt);
                 ((RemoteConsole)MainConsole.Instance).ReadConfig(Config);
             }
-            else
+            else if (consoleType == "mock")
+            {
+                MainConsole.Instance = new MockConsole();
+            }
+            else if (consoleType == "local")
             {
                 MainConsole.Instance = new LocalConsole(prompt, startupConfig);
             }

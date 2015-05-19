@@ -40,7 +40,7 @@ using OpenSim.Services.Connectors;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 
-namespace OpenSim.Service.Connectors
+namespace OpenSim.Services.Connectors
 {
     public class EstateDataRemoteConnector : BaseServiceConnector, IEstateDataService
     {

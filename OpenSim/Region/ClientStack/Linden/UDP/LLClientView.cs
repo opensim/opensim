@@ -3747,6 +3747,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
             avp.AppearanceData = new AvatarAppearancePacket.AppearanceDataBlock[0];
+            avp.AppearanceHover = new AvatarAppearancePacket.AppearanceHoverBlock[0];
             //m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
             OutPacket(avp, ThrottleOutPacketType.Task);
         }
@@ -4465,7 +4466,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,false));
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,true));
         }
 
         private void ResendPropertyUpdate(ObjectPropertyUpdate update)

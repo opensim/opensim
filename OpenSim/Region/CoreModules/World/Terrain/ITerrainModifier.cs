@@ -26,50 +26,52 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
+using OpenSim.Region.Framework.Interfaces;
 
-using OpenMetaverse;
-using log4net;
-using log4net.Appender;
-using log4net.Layout;
-
-using OpenSim.Framework;
-using OpenSim.Services.Interfaces;
-using OpenSim.Services.Connectors.InstantMessage;
-
-namespace OpenSim.Tests.Clients.InstantMessage
+namespace OpenSim.Region.CoreModules.World.Terrain
 {
-    public class IMClient
+    public interface ITerrainModifier
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-        
-        public static void Main(string[] args)
-        {
-            ConsoleAppender consoleAppender = new ConsoleAppender();
-            consoleAppender.Layout =
-                new PatternLayout("%date [%thread] %-5level %logger [%property{NDC}] - %message%newline");
-            log4net.Config.BasicConfigurator.Configure(consoleAppender);
+        /// <summary>
+        /// Creates the feature.
+        /// </summary>
+        /// <returns>
+        /// Empty string if successful, otherwise error message.
+        /// </returns>
+        /// <param name='map'>
+        /// ITerrainChannel holding terrain data.
+        /// </param>
+        /// <param name='args'>
+        /// command-line arguments from console.
+        /// </param>
+        string ModifyTerrain(ITerrainChannel map, string[] args);
 
-            string serverURI = "http://127.0.0.1:8002"; 
-            GridInstantMessage im = new GridInstantMessage();
-            im.fromAgentID = new Guid();
-            im.toAgentID = new Guid();
-            im.message = "Hello";
-            im.imSessionID = new Guid();
+        /// <summary>
+        /// Gets a string describing the usage.
+        /// </summary>
+        /// <returns>
+        /// A string describing parameters for creating the feature.
+        /// Format is "feature-name <arg1> <arg2> ..."
+        /// </returns>
+        string GetUsage();
 
-            bool success = InstantMessageServiceConnector.SendInstantMessage(serverURI, im);
-
-            if (success)
-                m_log.InfoFormat("[IM CLIENT]: Successfully IMed {0}", serverURI);
-            else
-                m_log.InfoFormat("[IM CLIENT]: failed to IM {0}", serverURI);
-
-            System.Console.WriteLine("\n");
-        }
-
+        /// <summary>
+        /// Apply the appropriate operation on the specified map, at (x, y).
+        /// </summary>
+        /// <param name='map'>
+        /// Map.
+        /// </param>
+        /// <param name='data'>
+        /// Data.
+        /// </param>
+        /// <param name='x'>
+        /// X.
+        /// </param>
+        /// <param name='y'>
+        /// Y.
+        /// </param>
+        double operate(double[,] map, TerrainModifierData data, int x, int y);
     }
+
 }
+

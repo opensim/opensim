@@ -115,6 +115,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
         private delegate T DefaultGetter<T>(string settingName, T defaultValue);
         private bool m_enabled;
+        private ICommandConsole m_console;
+        private List<Scene> m_Scenes = new List<Scene> ();
+
 
         /// <summary>
         /// Whether the shared module should be enabled at all. NOT the same as m_Enabled in AutoBackupModuleState!
@@ -206,8 +209,20 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// Currently a no-op for AutoBackup because we have to wait for region to be fully loaded.
         /// </summary>
         /// <param name="scene"></param>
-        void IRegionModuleBase.AddRegion(Scene scene)
+        void IRegionModuleBase.AddRegion (Scene scene)
         {
+            if (!this.m_enabled) {
+                return;
+            }
+            lock (m_Scenes) {
+                m_Scenes.Add (scene);
+            }
+            m_console = MainConsole.Instance;
+
+            m_console.Commands.AddCommand (
+                "AutoBackup", false, "dobackup",
+                "dobackup",
+                "do backup.", DoBackup);
         }
 
         /// <summary>
@@ -220,7 +235,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             {
                 return;
             }
-
+            m_Scenes.Remove (scene);
             if (this.m_states.ContainsKey(scene))
             {
                 AutoBackupModuleState abms = this.m_states[scene];
@@ -274,6 +289,28 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         }
 
         #endregion
+
+        private void DoBackup (string module, string[] args)
+        {
+            if (args.Length != 2) {
+                MainConsole.Instance.OutputFormat ("Usage: dobackup <regionname>");
+                return;
+            }  
+            bool found = false;
+            string name = args [1];
+            lock (m_Scenes) {
+                foreach (Scene s in m_Scenes) {
+                    string test = s.Name.ToString ();
+                    if (test == name) {
+                        found = true;
+                        DoRegionBackup (s);
+                    }
+                }
+                if (!found) {
+                    MainConsole.Instance.OutputFormat ("No such region {0}. Nothing to backup", name);
+                }
+            }
+        }
 
         /// <summary>
         /// Set up internal state for a given scene. Fairly complex code.

@@ -101,7 +101,14 @@ namespace OpenSim.Services.HypergridService
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
-                m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(userAgentService, args);
+                try
+                {
+                    m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(userAgentService, args);
+                }
+                catch
+                {
+                    m_log.WarnFormat("[HG IM SERVICE]: Unable to create User Agent Service. Missing config var  in [HGInstantMessageService]?");
+                }
 
                 m_RegionCache = new ExpiringCache<UUID, GridRegion>();
 

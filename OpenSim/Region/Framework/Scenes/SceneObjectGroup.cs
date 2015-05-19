@@ -2672,20 +2672,27 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        //NonPhysicalGrabMovement(pos);
+                        NonPhysicalGrabMovement(pos);
                     }
                 }
                 else
                 {
-                    //NonPhysicalGrabMovement(pos);
+                    NonPhysicalGrabMovement(pos);
                 }
             }
         }
 
+        /// <summary>
+        /// Apply possition for grabbing non-physical linksets (Ctrl+Drag)
+        /// This MUST be blocked for linksets that contain touch scripts because the viewer triggers grab on the touch
+        /// event (Viewer Bug?) This would allow anyone to drag a linkset with a touch script. SL behaviour is also to
+        /// block grab on prims with touch events.
+        /// </summary>
+        /// <param name="pos">New Position</param>
         public void NonPhysicalGrabMovement(Vector3 pos)
         {
-            AbsolutePosition = pos;
-            m_rootPart.SendTerseUpdateToAllClients();
+            if(!IsAttachment && ScriptCount() == 0)
+                UpdateGroupPosition(pos);
         }
 
         /// <summary>
@@ -2781,14 +2788,25 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        //NonPhysicalSpinMovement(pos);
+                        NonPhysicalSpinMovement(newOrientation);
                     }
                 }
                 else
                 {
-                    //NonPhysicalSpinMovement(pos);
+                    NonPhysicalSpinMovement(newOrientation);
                 }
             }
+        }
+
+        /// <summary>
+        /// Apply rotation for spinning non-physical linksets (Ctrl+Shift+Drag)
+        /// As with dragging, scripted objects must be blocked from spinning
+        /// </summary>
+        /// <param name="newOrientation">New Rotation</param>
+        private void NonPhysicalSpinMovement(Quaternion newOrientation)
+        {
+            if(!IsAttachment && ScriptCount() == 0)
+                UpdateGroupRotationR(newOrientation);
         }
 
         /// <summary>

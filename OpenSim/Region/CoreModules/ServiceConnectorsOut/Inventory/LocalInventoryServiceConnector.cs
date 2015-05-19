@@ -195,6 +195,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return invCol;
         }
 
+        public virtual InventoryCollection[] GetMultipleFoldersContent(UUID principalID, UUID[] folderIDs)
+        {
+            InventoryCollection[] invColl = new InventoryCollection[folderIDs.Length];
+            int i = 0;
+            foreach (UUID fid in folderIDs)
+            {
+                invColl[i++] = GetFolderContent(principalID, fid);
+            }
+
+            return invColl;
+
+        }
+
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return m_InventoryService.GetFolderItems(userID, folderID);
@@ -292,6 +305,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 //                    "[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find item with id {0}", requestedItemId);
 
             return item;
+        }
+
+        public InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] itemIDs)
+        {
+            return m_InventoryService.GetMultipleItems(userID, itemIDs);
         }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)

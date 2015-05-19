@@ -25,61 +25,64 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Reflection;
-
+using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Region.CoreModules.World.Terrain
+namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
 {
-    public abstract class TerrainFeature : ITerrainFeature
+    public class MaxModifier : TerrainModifier
     {
-        protected ITerrainModule m_module;
-
-        protected TerrainFeature(ITerrainModule module)
+        public MaxModifier(ITerrainModule module) : base(module)
         {
-            m_module = module;
         }
 
-        public abstract string CreateFeature(ITerrainChannel map, string[] args);
-
-        public abstract string GetUsage();
-
-        protected string parseFloat(String s, out float f)
+        public override string ModifyTerrain(ITerrainChannel map, string[] args)
         {
             string result;
-            double d;
-            if (Double.TryParse(s, out d))
+            if (args.Length < 3)
             {
-                try
-                {
-                    f = (float)d;
-                    result = String.Empty;
-                }
-                catch(InvalidCastException)
-                {
-                    result = String.Format("{0} is invalid", s);
-                    f = -1.0f;
-                }
+                result = "Usage: " + GetUsage();
             }
             else
             {
-                f = -1.0f;
-                result = String.Format("{0} is invalid", s);
+                TerrainModifierData data;
+                result = this.parseParameters(args, out data);
+
+                // Context-specific validation
+                if (result == String.Empty)
+                {
+                    if (data.shape == String.Empty)
+                    {
+                        data.shape = "rectangle";
+                        data.x0 = 0;
+                        data.y0 = 0;
+                        data.dx = map.Width;
+                        data.dy = map.Height;
+                    }
+                }
+
+                // if it's all good, then do the work
+                if (result == String.Empty)
+                {
+                    this.applyModification(map, data);
+                }
             }
+
             return result;
         }
 
-        protected string parseInt(String s, out int i)
+        public override string GetUsage()
         {
-            string result;
-            if (Int32.TryParse(s, out i))
-            {
-                result = String.Empty;
-            }
-            else
-            {
-                result = String.Format("{0} is invalid", s);
-            }
+            string val = "max <height> [ -rec=x1,y1,dx[,dy] | -ell=x0,y0,rx[,ry] ] [-taper=<height2>]"
+                            + "\nEnsures that all points within the specified range are no higher than the specified value.";
+            return val;
+
+        }
+
+        public override double operate(double[,] map, TerrainModifierData data, int x, int y)
+        {
+            double factor = this.computeBevel(data, x, y);
+            double result = Math.Min(data.elevation - (data.elevation - data.bevelevation) * factor, map[x, y]);
             return result;
         }
 

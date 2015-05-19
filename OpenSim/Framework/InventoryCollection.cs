@@ -37,6 +37,8 @@ namespace OpenSim.Framework
     {
         public List<InventoryFolderBase> Folders;
         public List<InventoryItemBase> Items;
-        public UUID UserID;
+        public UUID OwnerID;
+        public UUID FolderID;
+        public int Version;
     }
 }

@@ -84,7 +84,8 @@ namespace OpenSim.Region.Physics.Meshing
         private List<List<Vector3>> mConvexHulls = null;
         private List<Vector3> mBoundingHull = null;
 
-        private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
+        // Mesh cache. Static so it can be shared across instances of this class
+        private static Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
         public Meshmerizer(IConfigSource config)
         {
@@ -927,8 +928,11 @@ namespace OpenSim.Region.Physics.Meshing
             if (shouldCache)
             {
                 key = primShape.GetMeshKey(size, lod);
-                if (m_uniqueMeshes.TryGetValue(key, out mesh))
-                    return mesh;
+                lock (m_uniqueMeshes)
+                {
+                    if (m_uniqueMeshes.TryGetValue(key, out mesh))
+                        return mesh;
+                }
             }
 
             if (size.X < 0.01f) size.X = 0.01f;
@@ -954,7 +958,10 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (shouldCache)
                 {
-                    m_uniqueMeshes.Add(key, mesh);
+                    lock (m_uniqueMeshes)
+                    {
+                        m_uniqueMeshes.Add(key, mesh);
+                    }
                 }
             }
 
