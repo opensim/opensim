@@ -61,6 +61,8 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
         private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
+        
+        public const int m_defaultNumberFramesStored = 10;
 
         public const int m_defaultNumberFramesStored = 10;
         
