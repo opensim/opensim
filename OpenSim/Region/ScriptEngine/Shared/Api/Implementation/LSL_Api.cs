@@ -5785,7 +5785,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetEnv(LSL_String name)
         {
             m_host.AddScriptLPS(1);
-            if (name == "dynamic_pathfinding")
+            if (name == "agent_limit")
+            {
+                return World.RegionInfo.RegionSettings.AgentLimit.ToString();
+            }
+            else if (name == "dynamic_pathfinding")
             {
                 return "0";
             }
@@ -5793,13 +5797,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return World.RegionInfo.EstateSettings.EstateID.ToString();
             }
+            else if (name == "estate_name")
+            {
+                return World.RegionInfo.EstateSettings.EstateName;
+            }
             else if (name == "frame_number")
             {
                 return World.Frame.ToString();
             }
+            else if (name == "region_cpu_ratio")
+            {
+                return "1";
+            }
             else if (name == "region_idle")
             {
                 return "0";
+            }
+            else if (name == "region_product_name")
+            {
+                if (World.RegionInfo.RegionType != String.Empty)
+                    return World.RegionInfo.RegionType;
+                else
+                    return "";
+            }
+            else if (name == "region_product_sku")
+            {
+                return "OpenSim";
+            }
+            else if (name == "region_start_time")
+            {
+                return World.UnixStartTime.ToString();
             }
             else if (name == "sim_channel")
             {
@@ -5808,6 +5835,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else if (name == "sim_version")
             {
                 return World.GetSimulatorVersion();
+            }
+            else if (name == "simulator_hostname")
+            {
+                IUrlModule UrlModule = World.RequestModuleInterface<IUrlModule>();
+                return UrlModule.ExternalHostNameForLSL;
             }
             else
             {

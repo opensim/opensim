@@ -457,6 +457,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private string m_defaultScriptEngine;
 
+        private int m_unixStartTime;
+        public int UnixStartTime
+        {
+            get { return m_unixStartTime; }
+        }
+
         /// <summary>
         /// Tick at which the last login occurred.
         /// </summary>
@@ -1461,7 +1467,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_isRunning = true;
             m_active = true;
 
-            //            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
+            m_unixStartTime = Util.UnixTimeSinceEpoch();
+//            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
             if (m_heartbeatThread != null)
             {
                 m_heartbeatThread.Abort();
