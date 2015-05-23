@@ -14318,7 +14318,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     {
                                         lock(m_cachedMeshes)
                                         {
-                                            m_cachedMeshes.Add(meshKey, mesh);
+                                            if (!m_cachedMeshes.ContainsKey(meshKey))
+                                                m_cachedMeshes.Add(meshKey, mesh);
                                         }
                                     }
                                 }
@@ -14395,7 +14396,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 {
                                     lock(m_cachedMeshes)
                                     {
-                                        m_cachedMeshes.Add(meshKey, mesh);
+                                        if (!m_cachedMeshes.ContainsKey(meshKey))
+                                            m_cachedMeshes.Add(meshKey, mesh);
                                     }
                                 }
                             }
