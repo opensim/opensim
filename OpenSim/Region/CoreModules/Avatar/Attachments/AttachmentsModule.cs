@@ -929,7 +929,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         private string PrepareScriptInstanceForSave(SceneObjectGroup grp, bool fireDetachEvent)
         {
             if (fireDetachEvent)
+            {
                 m_scene.EventManager.TriggerOnAttach(grp.LocalId, grp.FromItemID, UUID.Zero);
+
+                // Allow detach event time to do some work before stopping the script
+                Thread.Sleep(2);
+            }
 
             using (StringWriter sw = new StringWriter())
             {
