@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         #endregion ISharedRegionModule
 
- 
+
         #region Event Handlers
 
         void EventManager_OnPrimsLoaded(Scene s)
@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         void HandleUUIDNameRequest(UUID uuid, IClientAPI client)
         {
 //            m_log.DebugFormat(
-//                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}", 
+//                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}",
 //                uuid, remote_client.Name);
 
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     // appear to clear this when the user asks it to clear the cache, but others may not.
                     //
                     // So to avoid clients
-                    // (particularly Hypergrid clients) permanently binding "Unknown User" to a given UUID, we will 
+                    // (particularly Hypergrid clients) permanently binding "Unknown User" to a given UUID, we will
                     // instead drop the request entirely.
                     if (GetUser(uuid, out user))
                     {
@@ -220,7 +220,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
 //                    else
 //                        m_log.DebugFormat(
-//                            "[USER MANAGEMENT MODULE]: No bound name for {0} found, ignoring request from {1}", 
+//                            "[USER MANAGEMENT MODULE]: No bound name for {0} found, ignoring request from {1}",
 //                            uuid, client.Name);
                 });
             }
@@ -416,7 +416,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
                     userdata.ServerURLs = new Dictionary<string, object>();
                 }
-                    
+
                 if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
                     return userdata.ServerURLs[serverType].ToString();
             }
@@ -620,7 +620,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 AddUser(id, string.Empty, string.Empty, string.Empty);
             }
             else
-            { 
+            {
                 string homeURL;
                 string firstname = string.Empty;
                 string lastname = string.Empty;
@@ -676,7 +676,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 else
                 {
                     lock(m_UserCache)
-                    { 
+                    {
                         if(!m_UserCache.ContainsKey(id))
                         {
                             UserData newUser = new UserData();
@@ -726,6 +726,21 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 "Show the bindings between user UUIDs and user names",
                 String.Empty,
                 HandleShowUsers);
+
+            MainConsole.Instance.Commands.AddCommand("Users", true,
+                "reset user cache",
+                "reset user cache",
+                "reset user cache to allow changed settings to be applied",
+                String.Empty,
+                HandleResetUserCache);
+        }
+
+        private void HandleResetUserCache(string module, string[] cmd)
+        {
+            lock(m_UserCache)
+            {
+                m_UserCache.Clear();
+            }
         }
 
         private void HandleShowUser(string module, string[] cmd)
