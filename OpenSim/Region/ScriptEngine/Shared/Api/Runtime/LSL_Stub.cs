@@ -2029,5 +2029,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llGetAnimationOverride(anim_state);
         }
+
+        public LSL_String llJsonGetValue(LSL_String json, LSL_List specifiers)
+        {
+            return m_LSL_Functions.llJsonGetValue(json, specifiers);
+        }
+
+        public LSL_List llJson2List(LSL_String json)
+        {
+            return m_LSL_Functions.llJson2List(json);
+        }
+
+        public LSL_String llList2Json(LSL_String type, LSL_List values)
+        {
+            return m_LSL_Functions.llList2Json(type, values);
+        }
+
+        public LSL_String llJsonSetValue(LSL_String json, LSL_List specifiers, LSL_String value)
+        {
+            return m_LSL_Functions.llJsonSetValue(json, specifiers, value);
+        }
+
+        public LSL_String llJsonValueType(LSL_String json, LSL_List specifiers)
+        {
+            return m_LSL_Functions.llJsonValueType(json, specifiers);
+        }
     }
 }

@@ -788,6 +788,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int KFM_CMD_STOP = 1;
         public const int KFM_CMD_PAUSE = 2;
 
+        public const string JSON_ARRAY = "JSON_ARRAY";
+        public const string JSON_OBJECT = "JSON_OBJECT";
+        public const string JSON_INVALID = "JSON_INVALID";
+        public const string JSON_NUMBER = "JSON_NUMBER";
+        public const string JSON_STRING = "JSON_STRING";
+        public const string JSON_TRUE = "JSON_TRUE";
+        public const string JSON_FALSE = "JSON_FALSE";
+        public const string JSON_NULL = "JSON_NULL";
+        public const string JSON_APPEND = "JSON_APPEND";
+
         /// <summary>
         /// process name parameter as regex
         /// </summary>

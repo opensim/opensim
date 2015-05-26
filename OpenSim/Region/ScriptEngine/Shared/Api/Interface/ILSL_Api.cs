@@ -437,5 +437,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
           void     llSetAnimationOverride(LSL_String animState, LSL_String anim);
               void llResetAnimationOverride(LSL_String anim_state);
         LSL_String llGetAnimationOverride(LSL_String anim_state);
+        LSL_String llJsonGetValue(LSL_String json, LSL_List specifiers);
+          LSL_List llJson2List(LSL_String json);
+        LSL_String llList2Json(LSL_String type, LSL_List values);
+        LSL_String llJsonSetValue(LSL_String json, LSL_List specifiers, LSL_String value);
+        LSL_String llJsonValueType(LSL_String json, LSL_List specifiers);
     }
 }

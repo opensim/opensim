@@ -37,6 +37,7 @@ using System.Timers;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenMetaverse.Packets;
 using OpenSim;
 using OpenSim.Framework;
@@ -13660,6 +13661,244 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return String.Empty;
+        }
+
+        public LSL_String llJsonGetValue(LSL_String json, LSL_List specifiers)
+        {
+            OSD o = OSDParser.DeserializeJson(json);
+            OSD specVal = JsonGetSpecific(o, specifiers, 0);
+
+            return specVal.AsString();
+        }
+
+        public LSL_List llJson2List(LSL_String json)
+        {
+            try
+            {
+                OSD o = OSDParser.DeserializeJson(json);
+                return (LSL_List)ParseJsonNode(o);
+            }
+            catch (Exception)
+            {
+                return new LSL_List(ScriptBaseClass.JSON_INVALID);
+            }
+        }
+
+        private object ParseJsonNode(OSD node)
+        {
+            if (node.Type == OSDType.Integer)
+                return new LSL_Integer(node.AsInteger());
+            if (node.Type == OSDType.Boolean)
+                return new LSL_Integer(node.AsBoolean() ? 1 : 0);
+            if (node.Type == OSDType.Real)
+                return new LSL_Float(node.AsReal());
+            if (node.Type == OSDType.UUID || node.Type == OSDType.String)
+                return new LSL_String(node.AsString());
+            if (node.Type == OSDType.Array)
+            {
+                LSL_List resp = new LSL_List();
+                OSDArray ar = node as OSDArray;
+                foreach (OSD o in ar)
+                    resp.Add(ParseJsonNode(o));
+                return resp;
+            }
+            if (node.Type == OSDType.Map)
+            {
+                LSL_List resp = new LSL_List();
+                OSDMap ar = node as OSDMap;
+                foreach (KeyValuePair<string, OSD> o in ar)
+                {
+                    resp.Add(new LSL_String(o.Key));
+                    resp.Add(ParseJsonNode(o.Value));
+                }
+                return resp;
+            }
+            throw new Exception(ScriptBaseClass.JSON_INVALID);
+        }
+
+        public LSL_String llList2Json(LSL_String type, LSL_List values)
+        {
+            try
+            {
+                if (type == ScriptBaseClass.JSON_ARRAY)
+                {
+                    OSDArray array = new OSDArray();
+                    foreach (object o in values.Data)
+                    {
+                        array.Add(ListToJson(o));
+                    }
+                    return OSDParser.SerializeJsonString(array);
+                }
+                else if (type == ScriptBaseClass.JSON_OBJECT)
+                {
+                    OSDMap map = new OSDMap();
+                    for (int i = 0; i < values.Data.Length; i += 2)
+                    {
+                        if (!(values.Data[i] is LSL_String))
+                            return ScriptBaseClass.JSON_INVALID;
+                        map.Add(((LSL_String)values.Data[i]).m_string, ListToJson(values.Data[i + 1]));
+                    }
+                    return OSDParser.SerializeJsonString(map);
+                }
+                return ScriptBaseClass.JSON_INVALID;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        private OSD ListToJson(object o)
+        {
+            if (o is LSL_Float)
+                return OSD.FromReal(((LSL_Float)o).value);
+            if (o is LSL_Integer)
+            {
+                int i = ((LSL_Integer)o).value;
+                if (i == 0)
+                    return OSD.FromBoolean(false);
+                else if (i == 1)
+                    return OSD.FromBoolean(true);
+                return OSD.FromInteger(i);
+            }
+            if (o is LSL_Rotation)
+                return OSD.FromString(((LSL_Rotation)o).ToString());
+            if (o is LSL_Vector)
+                return OSD.FromString(((LSL_Vector)o).ToString());
+            if (o is LSL_String)
+            {
+                string str = ((LSL_String)o).m_string;
+                if (str == ScriptBaseClass.JSON_NULL)
+                    return new OSD();
+                return OSD.FromString(str);
+            }
+            throw new Exception(ScriptBaseClass.JSON_INVALID);
+        }
+
+        private OSD JsonGetSpecific(OSD o, LSL_List specifiers, int i)
+        {
+            object spec = specifiers.Data[i];
+            OSD nextVal = null;
+            if (o is OSDArray)
+            {
+                if (spec is LSL_Integer)
+                    nextVal = ((OSDArray)o)[((LSL_Integer)spec).value];
+            }
+            if (o is OSDMap)
+            {
+                if (spec is LSL_String)
+                    nextVal = ((OSDMap)o)[((LSL_String)spec).m_string];
+            }
+            if (nextVal != null)
+            {
+                if (specifiers.Data.Length - 1 > i)
+                    return JsonGetSpecific(nextVal, specifiers, i + 1);
+            }
+            return nextVal;
+        }
+
+        public LSL_String llJsonSetValue(LSL_String json, LSL_List specifiers, LSL_String value)
+        {
+            try
+            {
+                OSD o = OSDParser.DeserializeJson(json);
+                JsonSetSpecific(o, specifiers, 0, value);
+                return OSDParser.SerializeJsonString(o);
+            }
+            catch (Exception)
+            {
+            }
+            return ScriptBaseClass.JSON_INVALID;
+        }
+
+        private void JsonSetSpecific(OSD o, LSL_List specifiers, int i, LSL_String val)
+        {
+            object spec = specifiers.Data[i];
+            // 20131224 not used            object specNext = i+1 == specifiers.Data.Length ? null : specifiers.Data[i+1];
+            OSD nextVal = null;
+            if (o is OSDArray)
+            {
+                OSDArray array = ((OSDArray)o);
+                if (spec is LSL_Integer)
+                {
+                    int v = ((LSL_Integer)spec).value;
+                    if (v >= array.Count)
+                        array.Add(JsonBuildRestOfSpec(specifiers, i + 1, val));
+                    else
+                        nextVal = ((OSDArray)o)[v];
+                }
+                else if (spec is LSL_String && ((LSL_String)spec) == ScriptBaseClass.JSON_APPEND)
+                    array.Add(JsonBuildRestOfSpec(specifiers, i + 1, val));
+            }
+            if (o is OSDMap)
+            {
+                if (spec is LSL_String)
+                {
+                    OSDMap map = ((OSDMap)o);
+                    if (map.ContainsKey(((LSL_String)spec).m_string))
+                        nextVal = map[((LSL_String)spec).m_string];
+                    else
+                        map.Add(((LSL_String)spec).m_string, JsonBuildRestOfSpec(specifiers, i + 1, val));
+                }
+            }
+            if (nextVal != null)
+            {
+                if (specifiers.Data.Length - 1 > i)
+                {
+                    JsonSetSpecific(nextVal, specifiers, i + 1, val);
+                    return;
+                }
+            }
+        }
+
+        private OSD JsonBuildRestOfSpec(LSL_List specifiers, int i, LSL_String val)
+        {
+            object spec = i >= specifiers.Data.Length ? null : specifiers.Data[i];
+            // 20131224 not used            object specNext = i+1 >= specifiers.Data.Length ? null : specifiers.Data[i+1];
+
+            if (spec == null)
+                return OSD.FromString(val);
+
+            if (spec is LSL_Integer ||
+                (spec is LSL_String && ((LSL_String)spec) == ScriptBaseClass.JSON_APPEND))
+            {
+                OSDArray array = new OSDArray();
+                array.Add(JsonBuildRestOfSpec(specifiers, i + 1, val));
+                return array;
+            }
+            else if (spec is LSL_String)
+            {
+                OSDMap map = new OSDMap();
+                map.Add((LSL_String)spec, JsonBuildRestOfSpec(specifiers, i + 1, val));
+                return map;
+            }
+            return new OSD();
+        }
+
+        public LSL_String llJsonValueType(LSL_String json, LSL_List specifiers)
+        {
+            OSD o = OSDParser.DeserializeJson(json);
+            OSD specVal = JsonGetSpecific(o, specifiers, 0);
+            if (specVal == null)
+                return ScriptBaseClass.JSON_INVALID;
+            switch (specVal.Type)
+            {
+                case OSDType.Array:
+                    return ScriptBaseClass.JSON_ARRAY;
+                case OSDType.Boolean:
+                    return specVal.AsBoolean() ? ScriptBaseClass.JSON_TRUE : ScriptBaseClass.JSON_FALSE;
+                case OSDType.Integer:
+                case OSDType.Real:
+                    return ScriptBaseClass.JSON_NUMBER;
+                case OSDType.Map:
+                    return ScriptBaseClass.JSON_OBJECT;
+                case OSDType.String:
+                case OSDType.UUID:
+                    return ScriptBaseClass.JSON_STRING;
+                case OSDType.Unknown:
+                    return ScriptBaseClass.JSON_NULL;
+            }
+            return ScriptBaseClass.JSON_INVALID;
         }
     }
 
