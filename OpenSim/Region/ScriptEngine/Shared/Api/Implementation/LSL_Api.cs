@@ -5631,7 +5631,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llListRandomize(LSL_List src, int stride)
         {
             LSL_List result;
-            Random rand           = new Random();
+            BetterRandom rand = new BetterRandom();
 
             int   chunkk;
             int[] chunks;
@@ -5647,24 +5647,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // If not, then return the src list. This also
             // traps those cases where stride > length.
 
-            if (src.Length != stride && src.Length%stride == 0)
+            if (src.Length != stride && src.Length % stride == 0)
             {
                 chunkk = src.Length/stride;
 
                 chunks = new int[chunkk];
 
                 for (int i = 0; i < chunkk; i++)
+                {
                     chunks[i] = i;
+                }
 
                 // Knuth shuffle the chunkk index
-                for (int i = chunkk - 1; i >= 1; i--)
+                for (int i = chunkk - 1; i > 0; i--)
                 {
                     // Elect an unrandomized chunk to swap
                     int index = rand.Next(i + 1);
-                    int tmp;
 
                     // and swap position with first unrandomized chunk
-                    tmp = chunks[i];
+                    int tmp = chunks[i];
                     chunks[i] = chunks[index];
                     chunks[index] = tmp;
                 }
@@ -5677,7 +5678,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     for (int j = 0; j < stride; j++)
                     {
-                        result.Add(src.Data[chunks[i]*stride+j]);
+                        result.Add(src.Data[chunks[i] * stride + j]);
                     }
                 }
             }
