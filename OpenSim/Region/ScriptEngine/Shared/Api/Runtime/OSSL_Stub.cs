@@ -870,6 +870,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             }
         }
 
+        public string osGetGender(LSL_Key rawAvatarId)
+        {
+            return m_OSSL_Functions.osGetGender(rawAvatarId);
+        }
+
         public key osGetMapTexture()
         {
             return m_OSSL_Functions.osGetMapTexture();

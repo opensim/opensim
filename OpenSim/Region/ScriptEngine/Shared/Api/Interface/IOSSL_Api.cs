@@ -353,6 +353,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Key     osOwnerSaveAppearance(string notecard);
         LSL_Key     osAgentSaveAppearance(key agentId, string notecard);
 
+        key osGetGender(LSL_Key rawAvatarId);
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
         LSL_List osGetRegionStats();

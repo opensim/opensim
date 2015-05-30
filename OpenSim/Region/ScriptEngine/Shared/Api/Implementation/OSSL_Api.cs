@@ -2978,6 +2978,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return SaveAppearanceToNotecard(avatarId, notecard);
         }
+
+        /// <summary>
+        /// Get the gender as specified in avatar appearance for a given avatar key
+        /// </summary>
+        /// <param name="rawAvatarId"></param>
+        /// <returns>"male" or "female" or "unknown"</returns>
+        public LSL_String osGetGender(LSL_Key rawAvatarId)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetGender");
+            m_host.AddScriptLPS(1);
+
+            UUID avatarId;
+            if (!UUID.TryParse(rawAvatarId, out avatarId))
+                return new LSL_String("unknown");
+
+            ScenePresence sp = World.GetScenePresence(avatarId);
+
+            if (sp == null || sp.IsChildAgent || sp.Appearance == null || sp.Appearance.VisualParams == null)
+                return new LSL_String("unknown");
+
+            // find the index of "shape" parameter "male"
+            int vpShapeMaleIndex = 0;
+            bool indexFound = false;
+            VisualParam param = new VisualParam();
+            foreach(var vpEntry in VisualParams.Params)
+            {
+                param = vpEntry.Value;
+                if (param.Name == "male" && param.Wearable == "shape")
+                {
+                    indexFound = true;
+                    break;
+                }
+
+                if (param.Group == 0)
+                    vpShapeMaleIndex++;
+            }
+
+            if (!indexFound)
+                return new LSL_String("unknown");
+
+            float vpShapeMale = Utils.ByteToFloat(sp.Appearance.VisualParams[vpShapeMaleIndex], param.MinValue, param.MaxValue);
+
+            bool isMale = vpShapeMale > 0.5f;
+            return new LSL_String(isMale ? "male" : "female");
+        }
         
         /// <summary>
         /// Get current region's map texture UUID
