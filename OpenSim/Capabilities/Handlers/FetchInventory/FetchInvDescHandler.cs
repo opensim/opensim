@@ -716,6 +716,9 @@ namespace OpenSim.Capabilities.Handlers
                     InventoryCollection[] linkedFolders = m_InventoryService.GetMultipleFoldersContent(coll.Collection.OwnerID, folderIDs.ToArray());
                     foreach (InventoryCollection linkedFolderContents in linkedFolders)
                     {
+                        if (linkedFolderContents == null)
+                            continue;
+
                         List<InventoryItemBase> links = linkedFolderContents.Items;
 
                         itemsToReturn.InsertRange(0, links);
