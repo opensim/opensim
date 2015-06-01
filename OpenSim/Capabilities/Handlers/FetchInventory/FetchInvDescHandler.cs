@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -110,8 +111,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
 
                 // Filter duplicate folder ids that bad viewers may send
-                if (folders.Find(f => f.folder_id == llsdRequest.folder_id) == null)
-                    folders.Add(llsdRequest);
+                folders = (List<LLSDFetchInventoryDescendents>)folders.GroupBy(f => f.folder_id).Select(n => n.First());
             }
 
             if (folders.Count > 0)
