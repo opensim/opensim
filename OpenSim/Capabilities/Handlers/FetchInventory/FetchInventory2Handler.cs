@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Reflection;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
@@ -34,11 +35,13 @@ using OpenSim.Services.Interfaces;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
+using log4net;
+
 namespace OpenSim.Capabilities.Handlers
 {
     public class FetchInventory2Handler
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IInventoryService m_inventoryService;
         private UUID m_agentID;
@@ -59,12 +62,32 @@ namespace OpenSim.Capabilities.Handlers
             string reply;
             LLSDFetchInventory llsdReply = new LLSDFetchInventory();
 
+            UUID[] itemIDs = new UUID[itemsRequested.Count];
+            int i = 0;
             foreach (OSDMap osdItemId in itemsRequested)
             {
-                UUID itemId = osdItemId["item_id"].AsUUID();
+                itemIDs[i++] = osdItemId["item_id"].AsUUID();
+            }
 
-                InventoryItemBase item = m_inventoryService.GetItem(new InventoryItemBase(itemId, m_agentID));
+            InventoryItemBase[] items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
 
+            if (items == null)
+            {
+                // OMG!!! One by one!!! This is fallback code, in case the backend isn't updated
+                m_log.WarnFormat("[FETCH INVENTORY HANDLER]: GetMultipleItems failed. Falling back to fetching inventory items one by one.");
+                items = new InventoryItemBase[itemsRequested.Count];
+                i = 0;
+                InventoryItemBase item = new InventoryItemBase();
+                item.Owner = m_agentID;
+                foreach (UUID id in itemIDs)
+                {
+                    item.ID = id;
+                    items[i++] = m_inventoryService.GetItem(item);
+                }
+            }
+
+            foreach (InventoryItemBase item in items)
+            {
                 if (item != null)
                 {
                     // We don't know the agent that this request belongs to so we'll use the agent id of the item
