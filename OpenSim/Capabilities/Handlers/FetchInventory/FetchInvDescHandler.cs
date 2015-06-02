@@ -111,10 +111,9 @@ namespace OpenSim.Capabilities.Handlers
                 }
 
                 // Filter duplicate folder ids that bad viewers may send
-                var unique = folders.GroupBy(f => f.folder_id).Select(n => n.First());
-                folders.Clear();
-                foreach (var f in unique)
-                    folders.Add(f);
+                if (folders.Find(f => f.folder_id == llsdRequest.folder_id) == null)
+                    folders.Add(llsdRequest);
+
             }
 
             if (folders.Count > 0)

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using log4net;
 using log4net.Config;
 using NUnit.Framework;
@@ -222,6 +223,44 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             pos1 = llsdresponse.IndexOf("Some Object");
             pos2 = llsdresponse.IndexOf("Link to Objects folder");
             Assert.Less(pos1, pos2, "Contents of source of folder link is after folder link");
+        }
+
+        [Test]
+        public void Test_004_DuplicateFolders()
+        {
+            TestHelpers.InMethod();
+
+            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null);
+            TestOSHttpRequest req = new TestOSHttpRequest();
+            TestOSHttpResponse resp = new TestOSHttpResponse();
+
+            string request = "<llsd><map><key>folders</key><array>";
+            request += "<map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
+            request += m_rootFolderID;
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map>";
+            request += "<map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
+            request += m_notecardsFolder;
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map>";
+            request += "<map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
+            request += m_rootFolderID;
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map>";
+            request += "<map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
+            request += m_notecardsFolder;
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map>";
+            request += "</array></map></llsd>";
+
+            string llsdresponse = handler.FetchInventoryDescendentsRequest(request, "/FETCH", string.Empty, req, resp);
+            Console.WriteLine(llsdresponse);
+
+            string root_folder = "<key>folder_id</key><uuid>" + m_rootFolderID + "</uuid>";
+            string notecards_folder = "<key>folder_id</key><uuid>" + m_notecardsFolder + "</uuid>";
+
+            Assert.That(llsdresponse.Contains(root_folder), "Missing root folder");
+            Assert.That(llsdresponse.Contains(notecards_folder), "Missing notecards folder");
+            int count = Regex.Matches(llsdresponse, root_folder).Count;
+            Assert.AreEqual(1, count, "More than 1 root folder in response");
+            count = Regex.Matches(llsdresponse, notecards_folder).Count;
+            Assert.AreEqual(2, count, "More than 1 notecards folder in response"); // Notecards will also be under root, so 2
         }
     }
 
