@@ -221,15 +221,17 @@ namespace OpenSim.Services.Connectors
                 if (!CheckReturn(ret))
                     return null;
 
-                Dictionary<string,object> folders =
-                        (Dictionary<string,object>)ret["FOLDERS"];
-                Dictionary<string,object> items =
-                        (Dictionary<string,object>)ret["ITEMS"];
+                Dictionary<string,object> folders = ret.ContainsKey("FOLDERS") ?
+                    (Dictionary<string,object>)ret["FOLDERS"] : null;
+                Dictionary<string,object> items = ret.ContainsKey("ITEMS") ?
+                    (Dictionary<string, object>)ret["ITEMS"] : null;
 
-                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
-                    inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
-                foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
-                    inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
+                if (folders != null)
+                    foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
+                        inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
+                if (items != null)
+                    foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
+                        inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
             }
             catch (Exception e)
             {
