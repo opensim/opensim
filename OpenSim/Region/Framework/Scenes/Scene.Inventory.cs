@@ -2222,6 +2222,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             objlist = new List<SceneObjectGroup>();
             veclist = new List<Vector3>();
+            bbox = Vector3.Zero;
+            offsetHeight = 0;
 
             string xmlData = Utils.BytesToString(assetData);
 
@@ -2237,9 +2239,12 @@ namespace OpenSim.Region.Framework.Scenes
                         if (isSingleObject || isAttachment)
                         {
                             SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
-                            objlist.Add(g);
-                            veclist.Add(Vector3.Zero);
-                            bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
+                            if (g != null)
+                            {
+                                objlist.Add(g);
+                                veclist.Add(Vector3.Zero);
+                                bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
+                            }
                             return true;
                         }
                         else
@@ -2258,17 +2263,20 @@ namespace OpenSim.Region.Framework.Scenes
                             foreach (XmlNode n in groups)
                             {
                                 SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-                                objlist.Add(g);
+                                if (g != null)
+                                {
+                                    objlist.Add(g);
 
-                                XmlElement el = (XmlElement)n;
-                                string rawX = el.GetAttribute("offsetx");
-                                string rawY = el.GetAttribute("offsety");
-                                string rawZ = el.GetAttribute("offsetz");
+                                    XmlElement el = (XmlElement)n;
+                                    string rawX = el.GetAttribute("offsetx");
+                                    string rawY = el.GetAttribute("offsety");
+                                    string rawZ = el.GetAttribute("offsetz");
 
-                                float x = Convert.ToSingle(rawX);
-                                float y = Convert.ToSingle(rawY);
-                                float z = Convert.ToSingle(rawZ);
-                                veclist.Add(new Vector3(x, y, z));
+                                    float x = Convert.ToSingle(rawX);
+                                    float y = Convert.ToSingle(rawY);
+                                    float z = Convert.ToSingle(rawZ);
+                                    veclist.Add(new Vector3(x, y, z));
+                                }
                             }
 
                             return false;
@@ -2281,9 +2289,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Error(
                     "[AGENT INVENTORY]: Deserialization of xml failed when looking for CoalescedObject tag.  Exception ", 
                     e);
-
-                bbox = Vector3.Zero;
-                offsetHeight = 0;
             }
 
             return true;
