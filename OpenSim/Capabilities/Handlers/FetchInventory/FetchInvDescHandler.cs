@@ -50,18 +50,21 @@ namespace OpenSim.Capabilities.Handlers
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
+        private IScene m_Scene;
 //        private object m_fetchLock = new Object();
 
-        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService) 
+        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService, IScene s) 
         {
             m_InventoryService = invService;
             m_LibraryService = libService;
+            m_Scene = s;
         }
 
         
         public string FetchInventoryDescendentsRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-    
+            //m_log.DebugFormat("[XXX]: FetchInventoryDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
+
             // nasty temporary hack here, the linden client falsely
             // identifies the uuid 00000000-0000-0000-0000-000000000000
             // as a string which breaks us
@@ -725,20 +728,20 @@ namespace OpenSim.Capabilities.Handlers
 
                         itemsToReturn.InsertRange(0, links);
 
-                        //foreach (InventoryItemBase link in linkedFolderContents.Items)
-                        //{
-                        //    // Take care of genuinely broken links where the target doesn't exist
-                        //    // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                        //    // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                        //    // rather than having to keep track of every folder requested in the recursion.
-                        //    if (link != null && link.AssetType == (int)AssetType.Link)
-                        //    {
-                        //        //m_log.DebugFormat(
-                        //        //    "[WEB FETCH INV DESC HANDLER]: Adding item {0} {1} from folder {2} linked from {3} ({4} {5})",
-                        //        //    link.Name, (AssetType)link.AssetType, linkedFolderContents.FolderID, contents.FolderID, link.ID, link.AssetID);
-                        //        itemIDs.Add(link.AssetID);
-                        //    }
-                        //}
+                        foreach (InventoryItemBase link in linkedFolderContents.Items)
+                        {
+                            // Take care of genuinely broken links where the target doesn't exist
+                            // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                            // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                            // rather than having to keep track of every folder requested in the recursion.
+                            if (link != null && link.AssetType == (int)AssetType.Link)
+                            {
+                                //m_log.DebugFormat(
+                                //    "[WEB FETCH INV DESC HANDLER]: Adding item {0} {1} from folder {2} linked from {3} ({4} {5})",
+                                //    link.Name, (AssetType)link.AssetType, linkedFolderContents.FolderID, contents.FolderID, link.ID, link.AssetID);
+                                itemIDs.Add(link.AssetID);
+                            }
+                        }
                     }
                 }
 

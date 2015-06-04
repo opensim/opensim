@@ -133,7 +133,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             Init();
 
-            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null);
+            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null, m_scene);
             TestOSHttpRequest req = new TestOSHttpRequest();
             TestOSHttpResponse resp = new TestOSHttpResponse();
 
@@ -157,7 +157,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
         {
             TestHelpers.InMethod();
 
-            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null);
+            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null, m_scene);
             TestOSHttpRequest req = new TestOSHttpRequest();
             TestOSHttpResponse resp = new TestOSHttpResponse();
 
@@ -187,7 +187,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
         {
             TestHelpers.InMethod();
 
-            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null);
+            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null, m_scene);
             TestOSHttpRequest req = new TestOSHttpRequest();
             TestOSHttpResponse resp = new TestOSHttpResponse();
 
@@ -230,7 +230,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
         {
             TestHelpers.InMethod();
 
-            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null);
+            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null, m_scene);
             TestOSHttpRequest req = new TestOSHttpRequest();
             TestOSHttpResponse resp = new TestOSHttpResponse();
 

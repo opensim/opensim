@@ -62,6 +62,9 @@ namespace OpenSim.Services.Connectors
         /// </remarks>
         private int m_requestTimeoutSecs = -1;
 
+        private const double CACHE_EXPIRATION_SECONDS = 8.0;
+        private ExpiringCache<UUID, InventoryItemBase> m_ItemCache = new ExpiringCache<UUID,InventoryItemBase>();
+
         public XInventoryServicesConnector()
         {
         }
@@ -511,6 +514,10 @@ namespace OpenSim.Services.Connectors
 
         public InventoryItemBase GetItem(InventoryItemBase item)
         {
+            InventoryItemBase retrieved = null;
+            if (m_ItemCache.TryGetValue(item.ID, out retrieved))
+                return retrieved;
+
             try
             {
                 Dictionary<string, object> ret = MakeRequest("GETITEM",
@@ -521,39 +528,57 @@ namespace OpenSim.Services.Connectors
                 if (!CheckReturn(ret))
                     return null;
 
-                return BuildItem((Dictionary<string, object>)ret["item"]);
+                retrieved = BuildItem((Dictionary<string, object>)ret["item"]);
             }
             catch (Exception e)
             {
                 m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetItem: ", e);
             }
 
-            return null;
+            m_ItemCache.AddOrUpdate(item.ID, retrieved, CACHE_EXPIRATION_SECONDS);
+
+            return retrieved;
         }
 
         public virtual InventoryItemBase[] GetMultipleItems(UUID principalID, UUID[] itemIDs)
         {
             InventoryItemBase[] itemArr = new InventoryItemBase[itemIDs.Length];
+            // Try to get them from the cache
+            List<UUID> pending = new List<UUID>();
+            InventoryItemBase item = null;
+            int i = 0;
+            foreach (UUID id in itemIDs)
+            {
+                if (m_ItemCache.TryGetValue(id, out item))
+                    itemArr[i++] = item;
+                else
+                    pending.Add(id);
+            }
+
             try
             {
                 Dictionary<string, object> resultSet = MakeRequest("GETMULTIPLEITEMS",
                         new Dictionary<string, object> {
                             { "PRINCIPAL", principalID.ToString() },
-                            { "ITEMS", String.Join(",", itemIDs) },
-                            { "COUNT", itemIDs.Length.ToString() }
+                            { "ITEMS", String.Join(",", pending.ToArray()) },
+                            { "COUNT", pending.Count.ToString() }
                         });
 
                 if (!CheckReturn(resultSet))
                     return null;
 
-                int i = 0;
+                // carry over index i where we left above
                 foreach (KeyValuePair<string, object> kvp in resultSet)
                 {
                     InventoryCollection inventory = new InventoryCollection();
                     if (kvp.Key.StartsWith("item_"))
                     {
                         if (kvp.Value is Dictionary<string, object>)
-                            itemArr[i++] = BuildItem((Dictionary<string, object>)kvp.Value);
+                        {
+                            item = BuildItem((Dictionary<string, object>)kvp.Value);
+                            m_ItemCache.AddOrUpdate(item.ID, item, CACHE_EXPIRATION_SECONDS);
+                            itemArr[i++] = item;
+                        }
                         else
                             itemArr[i++] = null;
                     }

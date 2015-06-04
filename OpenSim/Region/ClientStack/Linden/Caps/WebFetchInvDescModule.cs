@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_LibraryService = Scene.LibraryService;
 
             // We'll reuse the same handler for all requests.
-            m_webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService);
+            m_webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, Scene);
 
             Scene.EventManager.OnRegisterCaps += RegisterCaps;
 
