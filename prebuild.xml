@@ -2685,6 +2685,7 @@
       <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Robust"/>
       <Reference name="Nini" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
