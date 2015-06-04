@@ -190,7 +190,7 @@ namespace Robust.Tests
             uuids[0] = new UUID("aa000000-0000-0000-0000-0000000000aa");
             items = m_Connector.GetMultipleItems(m_userID, uuids);
             Assert.Null(items[0], "Request to multiple non-existent items is supposed to return null [0]");
-            Assert.Null(items[1], "Request to multiple non-existent items is supposed to return null [0]");
+            Assert.Null(items[1], "Request to multiple non-existent items is supposed to return null [1]");
 
             // This item exists, and it's not cached
             uuids[1] = new UUID("b0000000-0000-0000-0000-00000000000b");
