@@ -555,6 +555,9 @@ namespace OpenSim.Services.Connectors
                     pending.Add(id);
             }
 
+            if (pending.Count == 0) // we're done, everything was in the cache
+                return itemArr;
+
             try
             {
                 Dictionary<string, object> resultSet = MakeRequest("GETMULTIPLEITEMS",
@@ -565,7 +568,12 @@ namespace OpenSim.Services.Connectors
                         });
 
                 if (!CheckReturn(resultSet))
-                    return null;
+                {
+                    if (i == 0)
+                        return null;
+                    else
+                        return itemArr;
+                }
 
                 // carry over index i where we left above
                 foreach (KeyValuePair<string, object> kvp in resultSet)

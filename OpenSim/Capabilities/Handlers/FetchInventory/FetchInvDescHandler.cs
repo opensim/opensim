@@ -728,20 +728,6 @@ namespace OpenSim.Capabilities.Handlers
 
                         itemsToReturn.InsertRange(0, links);
 
-                        foreach (InventoryItemBase link in linkedFolderContents.Items)
-                        {
-                            // Take care of genuinely broken links where the target doesn't exist
-                            // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                            // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                            // rather than having to keep track of every folder requested in the recursion.
-                            if (link != null && link.AssetType == (int)AssetType.Link)
-                            {
-                                //m_log.DebugFormat(
-                                //    "[WEB FETCH INV DESC HANDLER]: Adding item {0} {1} from folder {2} linked from {3} ({4} {5})",
-                                //    link.Name, (AssetType)link.AssetType, linkedFolderContents.FolderID, contents.FolderID, link.ID, link.AssetID);
-                                itemIDs.Add(link.AssetID);
-                            }
-                        }
                     }
                 }
 
