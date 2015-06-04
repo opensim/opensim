@@ -153,7 +153,7 @@ namespace Robust.Tests
         }
 
         [Test]
-        public void Inventory_002_DoubleItemsRequest()
+        public void Inventory_002_MultipleItemsRequest()
         {
             TestHelpers.InMethod();
             XInventoryServicesConnector m_Connector = new XInventoryServicesConnector(DemonServer.Address);
@@ -176,6 +176,31 @@ namespace Robust.Tests
             items = m_Connector.GetMultipleItems(m_userID, uuids);
             Assert.NotNull(items, "(Repeat) Failed to get multiple items");
             Assert.IsTrue(items.Length == 2, "(Repeat) Requested 2 items, but didn't receive 2 items");
+
+            // This item doesn't exist, but [0] does, and it's cached. 
+            uuids[1] = new UUID("bb000000-0000-0000-0000-0000000000bb");
+            // Fetching should return 2 items, but [1] should be null
+            items = m_Connector.GetMultipleItems(m_userID, uuids);
+            Assert.NotNull(items, "(Three times) Failed to get multiple items");
+            Assert.IsTrue(items.Length == 2, "(Three times) Requested 2 items, but didn't receive 2 items");
+            Assert.AreEqual("Test Notecard 1", items[0].Name, "(Three times) Wrong name for Notecard 1");
+            Assert.IsNull(items[1], "(Three times) Expecting 2nd item to be null");
+
+            // Now both don't exist 
+            uuids[0] = new UUID("aa000000-0000-0000-0000-0000000000aa");
+            items = m_Connector.GetMultipleItems(m_userID, uuids);
+            Assert.Null(items[0], "Request to multiple non-existent items is supposed to return null [0]");
+            Assert.Null(items[1], "Request to multiple non-existent items is supposed to return null [0]");
+
+            // This item exists, and it's not cached
+            uuids[1] = new UUID("b0000000-0000-0000-0000-00000000000b");
+            // Fetching should return 2 items, but [0] should be null
+            items = m_Connector.GetMultipleItems(m_userID, uuids);
+            Assert.NotNull(items, "(Four times) Failed to get multiple items");
+            Assert.IsTrue(items.Length == 2, "(Four times) Requested 2 items, but didn't receive 2 items");
+            Assert.AreEqual("Some Object", items[1].Name, "(Four times) Wrong name for Some Object");
+            Assert.IsNull(items[0], "(Four times) Expecting 1st item to be null");
+
         }
     }
 }
