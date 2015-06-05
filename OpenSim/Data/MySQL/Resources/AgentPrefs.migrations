@@ -1,0 +1,18 @@
+﻿:VERSION 1		# -------------------------
+
+BEGIN;
+
+CREATE TABLE `AgentPrefs` (
+    `PrincipalID` CHAR(36) NOT NULL,
+    `AccessPrefs` CHAR(2) NOT NULL DEFAULT 'M',
+    `HoverHeight` DOUBLE(30, 27) NOT NULL DEFAULT 0,
+    `Language` CHAR(5) NOT NULL DEFAULT 'en-us',
+    `LanguageIsPublic` BOOLEAN NOT NULL DEFAULT 1,
+    `PermEveryone` INT(6) NOT NULL DEFAULT 0,
+    `PermGroup` INT(6) NOT NULL DEFAULT 0,
+    `PermNextOwner` INT(6) NOT NULL DEFAULT 532480,
+    UNIQUE KEY `PrincipalID` (`PrincipalID`),
+    PRIMARY KEY(`PrincipalID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;

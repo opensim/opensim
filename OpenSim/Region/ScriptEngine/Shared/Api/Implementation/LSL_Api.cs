@@ -6147,12 +6147,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetAgentLanguage(string id)
         {
-            // This should only return a value if the avatar is in the same region
-            //ckrinke 1-30-09 : This needs to parse the XMLRPC language field supplied
-            //by the client at login. Currently returning only en-us until our I18N
-            //effort gains momentum
+            // This should only return a value if the avatar is in the same region, but eh. idc.
             m_host.AddScriptLPS(1);
-            return "en-us";
+            IAgentPreferencesModule ap = World.RequestModuleInterface<IAgentPreferencesModule>();
+            if (ap != null)
+            {
+                UUID key = new UUID();
+                if (UUID.TryParse(id, out key))
+                {
+                    return ap.GetLang(key);
+                }
+            }
+            return new LSL_String("en-us");
         }
         /// <summary>
         /// http://wiki.secondlife.com/wiki/LlGetAgentList
