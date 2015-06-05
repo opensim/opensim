@@ -74,6 +74,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
 //        private object m_gestureSyncRoot = new object();
         private bool m_Enabled = false;
 
+        private const double CACHE_EXPIRATION_SECONDS = 20.0;
+        private static ExpiringCache<UUID, InventoryItemBase> m_ItemCache;
+
         #region ISharedRegionModule
 
         public Type ReplaceableInterface { get { return null; } }
@@ -98,6 +101,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (!url.EndsWith("/") && !url.EndsWith("="))
                 url = url + '/';
             m_serverUrl = url;
+
+            if (m_ItemCache == null)
+                m_ItemCache = new ExpiringCache<UUID, InventoryItemBase>();
 
         }
 
@@ -132,6 +138,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         {
                             m_userServerUrl = serviceUrl;
                             m_Enabled = true;
+                            if (m_ItemCache == null)
+                                m_ItemCache = new ExpiringCache<UUID, InventoryItemBase>();
                         }
                     }
                 }
@@ -271,6 +279,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public InventoryItemBase GetItem(InventoryItemBase item)
         {
+            InventoryItemBase retrieved = null;
+            if (m_ItemCache.TryGetValue(item.ID, out retrieved))
+                return retrieved;
+
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "GetInventoryNode" },
@@ -292,7 +304,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     for (int i = 0; i < items.Count; i++)
                     {
                         if (items[i].ID == item.ID)
-                            return items[i];
+                        {
+                            retrieved = items[i];
+                            m_ItemCache.AddOrUpdate(item.ID, retrieved, CACHE_EXPIRATION_SECONDS);
+                            return retrieved;
+                        }
                     }
                 }
             }
