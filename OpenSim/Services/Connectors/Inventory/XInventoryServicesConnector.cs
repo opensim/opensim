@@ -62,7 +62,7 @@ namespace OpenSim.Services.Connectors
         /// </remarks>
         private int m_requestTimeoutSecs = -1;
 
-        private const double CACHE_EXPIRATION_SECONDS = 8.0;
+        private const double CACHE_EXPIRATION_SECONDS = 20.0;
         private static ExpiringCache<UUID, InventoryItemBase> m_ItemCache = new ExpiringCache<UUID,InventoryItemBase>();
 
         public XInventoryServicesConnector()
@@ -244,7 +244,7 @@ namespace OpenSim.Services.Connectors
         public virtual InventoryCollection[] GetMultipleFoldersContent(UUID principalID, UUID[] folderIDs)
         {
             InventoryCollection[] inventoryArr = new InventoryCollection[folderIDs.Length];
-            //m_log.DebugFormat("[XXX]: In GetMultipleFoldersContent {0}", folderIDs.Length);
+            // m_log.DebugFormat("[XXX]: In GetMultipleFoldersContent {0}", String.Join(",", folderIDs));
             try
             {
                 Dictionary<string, object> resultSet = MakeRequest("GETMULTIPLEFOLDERSCONTENT",
@@ -544,6 +544,8 @@ namespace OpenSim.Services.Connectors
 
         public virtual InventoryItemBase[] GetMultipleItems(UUID principalID, UUID[] itemIDs)
         {
+            //m_log.DebugFormat("[XXX]: In GetMultipleItems {0}", String.Join(",", itemIDs));
+
             InventoryItemBase[] itemArr = new InventoryItemBase[itemIDs.Length];
             // Try to get them from the cache
             List<UUID> pending = new List<UUID>();
