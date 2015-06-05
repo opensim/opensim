@@ -638,7 +638,7 @@ namespace OpenSim.Capabilities.Handlers
 
             // The inventory server isn't sending FolderID in the collection...
             // Must fetch it individually
-            if (contents.FolderID == UUID.Zero)
+            else if (contents.FolderID == UUID.Zero)
             {
                 InventoryFolderBase containingFolder = new InventoryFolderBase();
                 containingFolder.ID = freq.folder_id;
