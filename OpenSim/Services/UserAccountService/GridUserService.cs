@@ -43,27 +43,33 @@ namespace OpenSim.Services.UserAccountService
     public class GridUserService : GridUserServiceBase, IGridUserService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static bool m_Initialized;
 
         public GridUserService(IConfigSource config) : base(config) 
         {
             m_log.Debug("[GRID USER SERVICE]: Starting user grid service");
 
-            MainConsole.Instance.Commands.AddCommand(
-                "Users", false,
-                "show grid user",
-                "show grid user <ID>",
-                "Show grid user entry or entries that match or start with the given ID.  This will normally be a UUID.",
-                "This is for debug purposes to see what data is found for a particular user id.",
-                HandleShowGridUser);
+            if (!m_Initialized)
+            {
+                m_Initialized = true;
 
-            MainConsole.Instance.Commands.AddCommand(
-                "Users", false,
-                "show grid users online",
-                "show grid users online",
-                "Show number of grid users registered as online.", 
-                "This number may not be accurate as a region may crash or not be cleanly shutdown and leave grid users shown as online\n."
-                + "For this reason, users online for more than 5 days are not currently counted",
-                HandleShowGridUsersOnline);
+                MainConsole.Instance.Commands.AddCommand(
+                    "Users", false,
+                    "show grid user",
+                    "show grid user <ID>",
+                    "Show grid user entry or entries that match or start with the given ID.  This will normally be a UUID.",
+                    "This is for debug purposes to see what data is found for a particular user id.",
+                    HandleShowGridUser);
+
+                MainConsole.Instance.Commands.AddCommand(
+                    "Users", false,
+                    "show grid users online",
+                    "show grid users online",
+                    "Show number of grid users registered as online.",
+                    "This number may not be accurate as a region may crash or not be cleanly shutdown and leave grid users shown as online\n."
+                    + "For this reason, users online for more than 5 days are not currently counted",
+                    HandleShowGridUsersOnline);
+            }
         }
 
         protected void HandleShowGridUser(string module, string[] cmdparams)
