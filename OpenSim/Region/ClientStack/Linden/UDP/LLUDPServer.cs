@@ -1757,6 +1757,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AuthenticateResponse sessionInfo;
                 if (IsClientAuthorized(uccp, out sessionInfo))
                 {
+                    AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
+
                     // Begin the process of adding the client to the simulator
                     client
                         = AddClient(
@@ -1765,6 +1767,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             uccp.CircuitCode.SessionID,
                             endPoint,
                             sessionInfo);
+
+                    // This will be true if the client is new, e.g. not
+                    // an existing child agent, and there is no circuit data
+                    if (client != null && aCircuit == null)
+                    {
+                        m_scene.CloseAgent(client.AgentId, true);
+                        return;
+                    }
 
                     // Now we know we can handle more data
                     Thread.Sleep(200);
@@ -1802,7 +1812,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
                     {
-                        AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
                         bool tp = (aCircuit.teleportFlags > 0);
                         // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
                         if (!tp)
