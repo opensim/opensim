@@ -153,12 +153,12 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             m_scenes[0].AgentPreferencesService.StoreAgentPreferences(data);
             OSDMap resp = new OSDMap();
             OSDMap respAccessPrefs = new OSDMap();
-                respAccessPrefs["max"] = data.AccessPrefs;
+            respAccessPrefs["max"] = data.AccessPrefs;
             resp["access_prefs"] = respAccessPrefs;
             OSDMap respDefaultPerms = new OSDMap();
-                respDefaultPerms["Everyone"] = data.PermEveryone;
-                respDefaultPerms["Group"] = data.PermGroup;
-                respDefaultPerms["NextOwner"] = data.PermNextOwner;
+            respDefaultPerms["Everyone"] = data.PermEveryone;
+            respDefaultPerms["Group"] = data.PermGroup;
+            respDefaultPerms["NextOwner"] = data.PermNextOwner;
             resp["default_object_perm_masks"] = respDefaultPerms;
             resp["god_level"] = 0; // *TODO: Add this
             resp["hover_height"] = data.HoverHeight;
