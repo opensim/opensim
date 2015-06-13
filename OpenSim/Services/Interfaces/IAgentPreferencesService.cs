@@ -35,7 +35,7 @@ namespace OpenSim.Services.Interfaces
     {
         public AgentPrefs(UUID principalID) 
         {
-            principalID = PrincipalID;
+            PrincipalID = principalID;
         }
 
         public AgentPrefs(Dictionary<string, string> kvp)

@@ -118,7 +118,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public string UpdateAgentPreferences(string request, string path, string param, UUID agent)
         {
-            m_log.DebugFormat("[AgentPrefs] UpdateAgentPreferences for {0}", agent.ToString());
+            m_log.DebugFormat("[AgentPrefs]: UpdateAgentPreferences for {0}", agent.ToString());
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             AgentPrefs data = m_scenes[0].AgentPreferencesService.GetAgentPreferences(agent);
             if (data == null)

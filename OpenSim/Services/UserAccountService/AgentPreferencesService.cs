@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -55,11 +56,12 @@ namespace OpenSim.Services.UserAccountService
         public bool StoreAgentPreferences(AgentPrefs data)
         {
             AgentPreferencesData d = new AgentPreferencesData();
+            d.Data = new Dictionary<string, string>();
             d.Data["PrincipalID"] = data.PrincipalID.ToString();
             d.Data["AccessPrefs"] = data.AccessPrefs;
             d.Data["HoverHeight"] = data.HoverHeight.ToString();
             d.Data["Language"] = data.Language;
-            d.Data["LanguageIsPublic"] = data.LanguageIsPublic.ToString();
+            d.Data["LanguageIsPublic"] = (data.LanguageIsPublic ? "1" : "0");
             d.Data["PermEveryone"] = data.PermEveryone.ToString();
             d.Data["PermGroup"] = data.PermGroup.ToString();
             d.Data["PermNextOwner"] = data.PermNextOwner.ToString();
