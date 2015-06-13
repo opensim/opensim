@@ -103,7 +103,9 @@ what it is today.
 * Fernando Oliveira
 * Fly-Man
 * Flyte Xevious
+* Freaky Tech
 * Garmin Kawaguichi
+* Glenn Martin (MOSES)
 * Gryc Ueusp
 * H-H-H (ginge264)
 * Hiro Lecker
@@ -137,6 +139,7 @@ what it is today.
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
+* Michael Heilmann (MOSES)
 * Micheil Merlin
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
@@ -159,6 +162,7 @@ what it is today.
 * Richard Alimi (IBM)
 * Rick Alther (IBM)
 * Rob Smart (IBM)
+* Robert Louden (MOSES)
 * Roger Kirkman (zadark)
 * rtomita
 * Ruud Lathorp
@@ -170,6 +174,7 @@ what it is today.
 * SignpostMarv
 * SpotOn3D
 * Stefan_Boom / stoehr
+* Steven Zielinski (MOSES)
 * Strawberry Fride
 * Talun
 * TechplexEngineer (Blake Bourque)
