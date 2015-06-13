@@ -5,17 +5,13 @@ These folks represent the current core team for OpenSim, and are the
 people that make the day to day of OpenSim happen.
 
 * justincc (OSVW Consulting, justincc.org)
-* chi11ken (Genkii)
 * dahlia 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
-* Dan Lake 
-* Marck
-* Mic Bowman
 * BlueWall (James Hughes)
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Snoopy Pfeffer
-* Robert Adams
+* Robert Adams (MisterBlue)
 * Oren Hurvitz (Kitely)
 * Kevin Cozens
 
@@ -24,17 +20,11 @@ Core developers who have temporarily (we hope) gone chasing the white rabbit.
 They are in all similar to the active core developers, except that they haven't
 been that active lately, so their voting rights are awaiting their come back. 
 
-* MW (Tribal Media AB)
-* Adam Frisby 	(DeepThink Pty Ltd)
-* lbsa71 (Tribal Media AB)
 * Teravus (w3z)
-* Ckrinke (Charles Krinke)
-* Dr Scofield aka Dirk Husemann (IBM Research - Zurich)
-* mikem (3Di)
-* Homer_Horwitz
-* nlin (3Di)
 * Arthur Rodrigo S Valadares (IBM)
-* John Hurliman
+* Dan Lake 
+* Marck
+* Mic Bowman
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
@@ -56,6 +46,16 @@ where we are today.
 * adjohn (Genkii)
 * idb (Ian Brown)
 * Johan Berntsson (3Di)
+* MW (Tribal Media AB)
+* Adam Frisby 	(DeepThink Pty Ltd)
+* lbsa71 (Tribal Media AB)
+* Ckrinke (Charles Krinke)
+* Dr Scofield aka Dirk Husemann (IBM Research - Zurich)
+* mikem (3Di)
+* Homer_Horwitz
+* nlin (3Di)
+* John Hurliman
+* chi11ken (Genkii)
 
 
 = Additional OpenSim Contributors =
