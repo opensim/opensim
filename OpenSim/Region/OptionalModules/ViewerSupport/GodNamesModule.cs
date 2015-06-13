@@ -59,23 +59,23 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             }
 
             if (!moduleConfig.GetBoolean("Enabled", false)) {
-                m_log.Info("[GODNAMES] Addon is disabled");
+                m_log.Info("[GODNAMES]: Addon is disabled");
                 return;
             }
 
-            m_log.Info("[GODNAMES] Enabled");
+            m_log.Info("[GODNAMES]: Enabled");
             m_enabled = true;
             string conf_str = moduleConfig.GetString("FullNames", String.Empty);
             foreach (string strl in conf_str.Split(',')) {
                 string strlan = strl.Trim(" \t".ToCharArray());
-                m_log.DebugFormat("[GODNAMES] Adding {0} as a God name", strlan);
+                m_log.DebugFormat("[GODNAMES]: Adding {0} as a God name", strlan);
                 m_fullNames.Add(strlan);
             }
 
             conf_str = moduleConfig.GetString("Surnames", String.Empty);
             foreach (string strl in conf_str.Split(',')) {
                 string strlan = strl.Trim(" \t".ToCharArray());
-                m_log.DebugFormat("[GODNAMES] Adding {0} as a God last name", strlan);
+                m_log.DebugFormat("[GODNAMES]: Adding {0} as a God last name", strlan);
                 m_lastNames.Add(strlan);
             }
         }
