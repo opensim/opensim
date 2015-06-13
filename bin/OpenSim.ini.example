@@ -1124,6 +1124,15 @@
   ;; Disabled when unset.
   ;; URL = ${Const|BaseURL}:${Const|PrivatePort}
 
+;;
+;; Optional module to highlight God names in the viewer.
+;; Uncomment and costumize appropriately if you want this behavior.
+;;
+;[GodNames]
+;	Enabled = false
+;	FullNames = "Test User, Foo Bar"
+;	Surnames = "Kryztlsk"
+
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
     ;; Uncomment one of the following includes as required.  For instance, to create a standalone OpenSim,
