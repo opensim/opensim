@@ -6149,14 +6149,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // This should only return a value if the avatar is in the same region, but eh. idc.
             m_host.AddScriptLPS(1);
-            IAgentPreferencesModule ap = World.RequestModuleInterface<IAgentPreferencesModule>();
-            if (ap != null)
+            UUID key = new UUID();
+            if (UUID.TryParse(id, out key))
             {
-                UUID key = new UUID();
-                if (UUID.TryParse(id, out key))
-                {
-                    return ap.GetLang(key);
-                }
+                return new LSL_String(World.AgentPreferencesService.GetLang(key));
             }
             return new LSL_String("en-us");
         }

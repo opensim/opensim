@@ -26,12 +26,48 @@
  */
 
 using System;
-using OpenMetaverse;
+using System.Reflection;
+using Nini.Config;
+using OpenSim.Data;
+using OpenSim.Services.Interfaces;
+using OpenSim.Services.Base;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Services.UserAccountService
 {
-    public interface IAgentPreferencesModule
+    public class AgentPreferencesServiceBase: ServiceBase
     {
-        string GetLang(UUID agentID);
+        protected IAgentPreferencesData m_Database = null;
+
+        public AgentPreferencesServiceBase(IConfigSource config) : base(config)
+        {
+            string dllName = String.Empty;
+            string connString = String.Empty;
+            string realm = "AgentPrefs";
+
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+
+            IConfig userConfig = config.Configs["AgentPreferencesService"];
+            if (userConfig == null)
+                throw new Exception("No AgentPreferencesService configuration");
+
+            dllName = userConfig.GetString("StorageProvider", dllName);
+
+            if (dllName == String.Empty)
+                throw new Exception("No StorageProvider configured");
+
+            connString = userConfig.GetString("ConnectionString", connString);
+
+            realm = userConfig.GetString("Realm", realm);
+
+            m_Database = LoadPlugin<IAgentPreferencesData>(dllName, new Object[] {connString, realm});
+
+            if (m_Database == null)
+                throw new Exception("Could not find a storage interface in the given module");
+        }
     }
 }

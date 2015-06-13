@@ -52,22 +52,9 @@ namespace OpenSim.Data.MySQL
             return ret[0];
         }
 
-        public void StorePrefs(AgentPreferencesData data)
+        public void Store(AgentPreferencesData data)
         {
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                cmd.CommandText = String.Format("replace into `{0}` (`PrincipalID`, `AccessPrefs`, `HoverHeight`, `Language`, `LanguageIsPublic`, `PermEveryone`, `PermGroup`, `PermNextOwner`) VALUES (?Principal, ?AP, ?HH, ?Lang, ?LIP, ?PE, ?PG, ?PNO)", m_Realm);
-                cmd.Parameters.AddWithValue("?Principal", data.PrincipalID.ToString());
-                cmd.Parameters.AddWithValue("?AP", data.AccessPrefs);
-                cmd.Parameters.AddWithValue("?HH", data.HoverHeight);
-                cmd.Parameters.AddWithValue("?Lang", data.Language);
-                cmd.Parameters.AddWithValue("?LIP", data.LanguageIsPublic);
-                cmd.Parameters.AddWithValue("?PE", data.PermEveryone);
-                cmd.Parameters.AddWithValue("?PG", data.PermGroup);
-                cmd.Parameters.AddWithValue("?PNO", data.PermNextOwner);
-
-                ExecuteNonQuery(cmd);
-            }
+            base.Store(data);
         }
     }
 }

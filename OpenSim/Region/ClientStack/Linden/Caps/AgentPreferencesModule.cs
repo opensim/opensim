@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.IO;
 using log4net;
@@ -33,8 +34,6 @@ using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using OpenSim.Data;
-using OpenSim.Data.MySQL;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -47,68 +46,34 @@ using OpenSim.Capabilities.Handlers;
 namespace OpenSim.Region.ClientStack.LindenCaps
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AgentPreferencesModule")]
-    public class AgentPreferencesModule : ISharedRegionModule, IAgentPreferencesModule
+    public class AgentPreferencesModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool m_enabled { get; private set; }
-        private Scene m_Scene;
-        protected IAgentPreferencesData m_Database;
+        private List<Scene> m_scenes = new List<Scene>();
 
         public void Initialise(IConfigSource source)
         {
-            IConfig dbConfig = source.Configs["DatabaseService"];
-            if (dbConfig != null) 
-            {
-                string dllName = String.Empty;
-                string connString = String.Empty;
 
-                dllName = dbConfig.GetString("StorageProvider", dllName);
-                connString = dbConfig.GetString("ConnectionString", connString);
-
-                // We tried, but this doesn't exist. We can't proceed
-                if (dllName == String.Empty)
-                    throw new Exception("No StorageProvider configured");
-
-                // *FIXME: This is a janky as hell, works for now.
-                if (dllName == "OpenSim.Data.MySQL.dll")
-                    m_Database = new MySQLAgentPreferencesData(connString, "AgentPrefs");
-                else
-                    throw new Exception("Storage provider not supported!");
-
-                if (m_Database == null) 
-                {
-                    m_enabled = false;
-                    throw new Exception("Could not find a storage interface in the given module");
-                }
-                m_log.Debug("[AgentPrefs] AgentPrefs is enabled");
-                m_enabled = true;
-            }
         }
 
         #region Region module
-        public void AddRegion(Scene s)
-        {
-            if (!m_enabled) return;
 
-            s.RegisterModuleInterface<IAgentPreferencesModule>(this);
-            m_Scene = s;
+        public void AddRegion(Scene scene)
+        {
+            lock (m_scenes) m_scenes.Add(scene);
         }
 
-        public void RemoveRegion(Scene s)
+        public void RemoveRegion(Scene scene)
         {
-            if (!m_enabled) return;
-
-            m_Scene.UnregisterModuleInterface<IAgentPreferencesModule>(this);
-            m_Scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_Scene = null;
+            lock (m_scenes) m_scenes.Remove(scene);
+            scene.EventManager.OnRegisterCaps -= RegisterCaps;
+            scene = null;
         }
 
-        public void RegionLoaded(Scene s)
+        public void RegionLoaded(Scene scene)
         {
-            if (!m_enabled) return;
-
-            m_Scene.EventManager.OnRegisterCaps += delegate(UUID agentID, OpenSim.Framework.Capabilities.Caps caps)
+            scene.EventManager.OnRegisterCaps += delegate(UUID agentID, OpenSim.Framework.Capabilities.Caps caps)
             {
                 RegisterCaps(agentID, caps);
             };
@@ -155,11 +120,10 @@ namespace OpenSim.Region.ClientStack.LindenCaps
         {
             m_log.DebugFormat("[AgentPrefs] UpdateAgentPreferences for {0}", agent.ToString());
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
-            AgentPreferencesData data = m_Database.GetPrefs(agent);
+            AgentPrefs data = m_scenes[0].AgentPreferencesService.GetAgentPreferences(agent);
             if (data == null)
             {
-                data = new AgentPreferencesData();
-                data.PrincipalID = agent;
+                data = new AgentPrefs(agent);
             }
                 
             if (req.ContainsKey("access_prefs"))
@@ -186,7 +150,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             {
                 data.LanguageIsPublic = req["language_is_public"].AsBoolean();
             }
-            m_Database.StorePrefs(data);
+            m_scenes[0].AgentPreferencesService.StoreAgentPreferences(data);
             OSDMap resp = new OSDMap();
             OSDMap respAccessPrefs = new OSDMap();
                 respAccessPrefs["max"] = data.AccessPrefs;
@@ -204,21 +168,8 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             string response = OSDParser.SerializeLLSDXmlString(resp);
             return response;
         }
+
         #endregion Region module
-
-        #region IAgentPreferences
-        public string GetLang(UUID agentID)
-        {
-            AgentPreferencesData data = m_Database.GetPrefs(agentID);
-            if (data != null)
-            {
-                if (data.LanguageIsPublic)
-                    return data.Language;
-            }
-            return "en-us";
-
-        }
-        #endregion
     }
 }
 

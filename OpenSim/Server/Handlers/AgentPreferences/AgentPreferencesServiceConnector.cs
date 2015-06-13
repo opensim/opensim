@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,22 +25,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 using System;
-using System.Collections.Generic;
-using OpenMetaverse;
-using OpenSim.Framework;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.ServiceAuth;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Data
+namespace OpenSim.Server.Handlers.AgentPreferences
 {
-    public class AgentPreferencesData
+    public class AgentPreferencesServiceConnector : ServiceConnector
     {
-        public Dictionary<string, string> Data;
-    }
+        private IAgentPreferencesService m_AgentPreferencesService;
+        private string m_ConfigName = "AgentPreferencesService";
 
-    public interface IAgentPreferencesData
-    {
-        bool Store(AgentPreferencesData data);
-        AgentPreferencesData GetPrefs(UUID agentID);
+        public AgentPreferencesServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
+        {
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+
+            string service = serverConfig.GetString("LocalServiceModule", String.Empty);
+
+            if (String.IsNullOrWhiteSpace(service))
+                throw new Exception("No LocalServiceModule in config file");
+
+            Object[] args = new Object[] { config };
+            m_AgentPreferencesService = ServerUtils.LoadPlugin<IAgentPreferencesService>(service, args);
+
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName); ;
+
+            server.AddStreamHandler(new AgentPreferencesServerPostHandler(m_AgentPreferencesService, auth));
+        }
     }
 }
-

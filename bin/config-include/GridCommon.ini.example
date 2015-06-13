@@ -131,6 +131,12 @@
     ;
     AvatarServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
 
+[AgentPreferencesService]
+    ;
+    ; Change this to your grid-wide avatar prefs server
+    ;
+    AgentPreferencesServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
 [PresenceService]
     ;
     ; Change this to your grid-wide presence server
