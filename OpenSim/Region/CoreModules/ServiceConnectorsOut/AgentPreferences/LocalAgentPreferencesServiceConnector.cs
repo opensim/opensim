@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.AgentPreferences
 
                     if (m_AgentPreferencesService == null)
                     {
-                        m_log.Error("[AGENT PREFERENCES CONNECTOR]: Can't load user account service");
+                        m_log.Error("[AGENT PREFERENCES CONNECTOR]: Can't load agent preferences service");
                         return;
                     }
                     m_Enabled = true;

@@ -118,6 +118,13 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public string UpdateAgentPreferences(string request, string path, string param, UUID agent)
         {
+            // The viewer doesn't do much with the return value, so for now, if there is no preference service,
+            // we'll return a null llsd block for debugging purposes. This may change if someone knows what the
+            // correct server response would be here.
+            if (m_scenes[0].AgentPreferencesService == null)
+            {
+                return "<llsd><undef /></llsd>";
+            }
             m_log.DebugFormat("[AgentPrefs]: UpdateAgentPreferences for {0}", agent.ToString());
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             AgentPrefs data = m_scenes[0].AgentPreferencesService.GetAgentPreferences(agent);
