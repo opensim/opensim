@@ -56,9 +56,9 @@ namespace OpenSim.Data.SQLite
             return ret[0];
         }
 
-        public void Store(AgentPreferencesData data)
+        public override bool Store(AgentPreferencesData data)
         {
-            base.Store(data);
+            return base.Store(data);
         }
     }
 }
