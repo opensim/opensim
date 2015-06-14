@@ -52,9 +52,5 @@ namespace OpenSim.Data.PGSQL
             return ret[0];
         }
 
-        public override bool Store(AgentPreferencesData data)
-        {
-            return base.Store(data);
-        }
     }
 }
