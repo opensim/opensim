@@ -267,11 +267,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 Request = (x, y) =>
                 {
                     ScenePresence sp = m_module.Scene.GetScenePresence(Id);
-                    if (sp == null)
-                    {
-                        m_log.ErrorFormat("[INVENTORY]: Unable to find ScenePresence for {0}", Id);
-                        return;
-                    }
 
                     aPollRequest reqinfo = new aPollRequest();
                     reqinfo.thepoll = this;
