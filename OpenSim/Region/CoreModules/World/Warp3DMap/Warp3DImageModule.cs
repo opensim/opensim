@@ -405,7 +405,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             m_scene.ForEachSOG(
                 delegate(SceneObjectGroup group)
                 {
-                    CreatePrim(renderer, group.RootPart, useTextures);
                     foreach (SceneObjectPart child in group.Parts)
                         CreatePrim(renderer, child, useTextures);
                 }
