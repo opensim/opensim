@@ -377,7 +377,7 @@
 
 [AgentPreferencesService]
     ; for the server connector
-    LocalServiceModule = "Opensim.Services.UserAccountService.dll:AgentPreferencesService"
+    LocalServiceModule = "OpenSim.Services.UserAccountService.dll:AgentPreferencesService"
 
 
 [PresenceService]
