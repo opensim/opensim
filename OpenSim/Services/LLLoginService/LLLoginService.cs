@@ -82,10 +82,10 @@ namespace OpenSim.Services.LLLoginService
         protected string m_ClassifiedFee;
         protected string m_DestinationGuide;
         protected string m_AvatarPicker;
-
+        protected string m_NewMessage;
         protected string m_AllowedClients;
         protected string m_DeniedClients;
-
+        protected string m_MessageUrl;
         protected string m_DSTZone;
 
         IConfig m_LoginServerConfig;
@@ -125,7 +125,7 @@ namespace OpenSim.Services.LLLoginService
 
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
-
+            m_MessageUrl = m_LoginServerConfig.GetString("MessageUrl", string.Empty);
             m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
 
             // Clean up some of these vars
@@ -490,17 +490,27 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Finally, fill out the response and return it
                 //
+                if (m_MessageUrl != String.Empty)
+                {
+                    WebClient client = new WebClient();
+                    string WebMessage = client.DownloadString(m_MessageUrl);
+                    m_NewMessage = WebMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
+                }
+                else
+                {
+                    m_NewMessage = m_WelcomeMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
+                }
                 LLLoginResponse response
-                    = new LLLoginResponse(
-                        account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                        where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
-                        m_MapTileURL, m_SearchURL, m_Currency, m_DSTZone,
-                        m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee);
+                        = new LLLoginResponse(
+                            account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
+                            where, startLocation, position, lookAt, gestures, m_NewMessage, home, clientIP,
+                            m_MapTileURL, m_SearchURL, m_Currency, m_DSTZone,
+                            m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee);
 
-                m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
+                    m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
 
-                return response;
-            }
+                    return response;
+               }
             catch (Exception e)
             {
                 m_log.WarnFormat("[LLOGIN SERVICE]: Exception processing login for {0} {1}: {2} {3}", firstName, lastName, e.ToString(), e.StackTrace);
