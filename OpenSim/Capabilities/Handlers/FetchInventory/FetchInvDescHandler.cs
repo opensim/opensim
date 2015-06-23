@@ -587,6 +587,15 @@ namespace OpenSim.Capabilities.Handlers
 
             AddLibraryFolders(fetchFolders, result);
 
+            // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
+            // and can kill the sim (all root folders have parent_id Zero)
+            LLSDFetchInventoryDescendents zero = fetchFolders.Find(f => f.folder_id == UUID.Zero);
+            if (zero != null)
+            {
+                fetchFolders.Remove(zero);
+                BadFolder(zero, null, bad_folders);
+            }
+
             if (fetchFolders.Count > 0)
             {
                 UUID[] fids = new UUID[fetchFolders.Count];
@@ -600,7 +609,9 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (fetchedContents == null || (fetchedContents != null && fetchedContents.Length == 0))
                 {
-                    //m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Could not get contents of multiple folders for user {0}", fetchFolders[0].owner_id);
+                    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Could not get contents of multiple folders for user {0}", fetchFolders[0].owner_id);
+                    foreach (LLSDFetchInventoryDescendents freq in fetchFolders)
+                        BadFolder(freq, null, bad_folders);
                     return null;
                 }
 

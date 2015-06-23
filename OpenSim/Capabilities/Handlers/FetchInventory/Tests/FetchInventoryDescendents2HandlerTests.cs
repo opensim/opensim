@@ -262,6 +262,31 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             count = Regex.Matches(llsdresponse, notecards_folder).Count;
             Assert.AreEqual(2, count, "More than 1 notecards folder in response"); // Notecards will also be under root, so 2
         }
+
+        [Test]
+        public void Test_005_FolderZero()
+        {
+            TestHelpers.InMethod();
+
+            Init();
+
+            FetchInvDescHandler handler = new FetchInvDescHandler(m_scene.InventoryService, null, m_scene);
+            TestOSHttpRequest req = new TestOSHttpRequest();
+            TestOSHttpResponse resp = new TestOSHttpResponse();
+
+            string request = "<llsd><map><key>folders</key><array><map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
+            request += UUID.Zero;
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map></array></map></llsd>";
+
+            string llsdresponse = handler.FetchInventoryDescendentsRequest(request, "/FETCH", string.Empty, req, resp);
+
+            Assert.That(llsdresponse != null, Is.True, "Incorrect null response");
+            Assert.That(llsdresponse != string.Empty, Is.True, "Incorrect empty response");
+            Assert.That(llsdresponse.Contains("bad_folders</key><array><uuid>00000000-0000-0000-0000-000000000000"), Is.True, "Folder Zero should be a bad folder");
+
+            Console.WriteLine(llsdresponse);
+        }
+
     }
 
 }
