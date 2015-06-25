@@ -82,7 +82,6 @@ namespace OpenSim.Services.LLLoginService
         protected string m_ClassifiedFee;
         protected string m_DestinationGuide;
         protected string m_AvatarPicker;
-        protected string m_NewMessage;
         protected string m_AllowedClients;
         protected string m_DeniedClients;
         protected string m_MessageUrl;
@@ -256,6 +255,7 @@ namespace OpenSim.Services.LLLoginService
         {
             bool success = false;
             UUID session = UUID.Random();
+            string processedMessage;
 
             m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}",
                 firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
@@ -493,17 +493,18 @@ namespace OpenSim.Services.LLLoginService
                 if (m_MessageUrl != String.Empty)
                 {
                     WebClient client = new WebClient();
-                    string WebMessage = client.DownloadString(m_MessageUrl);
-                    m_NewMessage = WebMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
+                    processedMessage = client.DownloadString(m_MessageUrl);
                 }
                 else
                 {
-                    m_NewMessage = m_WelcomeMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
+                    processedMessage = m_WelcomeMessage;
                 }
+                processedMessage = processedMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
+
                 LLLoginResponse response
                         = new LLLoginResponse(
                             account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                            where, startLocation, position, lookAt, gestures, m_NewMessage, home, clientIP,
+                            where, startLocation, position, lookAt, gestures, processedMessage, home, clientIP,
                             m_MapTileURL, m_SearchURL, m_Currency, m_DSTZone,
                             m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee);
 
