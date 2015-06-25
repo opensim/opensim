@@ -107,8 +107,8 @@ namespace OpenSim.Data.PGSQL
         {
             EstateSettings es = new EstateSettings();
 
-            string sql = "select estate_settings.\"" + String.Join("\",estate_settings.\"", FieldList) + 
-                         "\" from estate_map left join estate_settings on estate_map.\"EstateID\" = estate_settings.\"EstateID\" " + 
+            string sql = "select estate_settings.\"" + String.Join("\",estate_settings.\"", FieldList) +
+                         "\" from estate_map left join estate_settings on estate_map.\"EstateID\" = estate_settings.\"EstateID\" " +
                          " where estate_settings.\"EstateID\" is not null and \"RegionID\" = :RegionID";
 
             bool insertEstate = false;
@@ -500,7 +500,7 @@ namespace OpenSim.Data.PGSQL
         public List<int> GetEstatesByOwner(UUID ownerID)
         {
             List<int> result = new List<int>();
-            string sql = "select \"estateID\" from estate_settings where \"EstateOwner\" = :EstateOwner";
+            string sql = "select \"EstateID\" from estate_settings where \"EstateOwner\" = :EstateOwner";
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             {
                 conn.Open();
