@@ -199,3 +199,13 @@ CREATE TABLE os_groups_principals (
 );
 
 COMMIT;
+
+:VERSION 4
+
+BEGIN;
+
+ALTER TABLE IF EXISTS os_groups_notices  
+  ALTER COLUMN "AttachmentItemID" SET DEFAULT '00000000-0000-0000-0000-000000000000'
+;
+
+COMMIT;
