@@ -44,7 +44,8 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 namespace OpenSim.Region.ClientStack.Linden
 {
     /// <summary>
-    /// SimulatorFeatures capability.
+    /// 
+    /// capability.
     /// </summary>
     /// <remarks>
     /// This is required for uploading Mesh.
@@ -70,15 +71,24 @@ namespace OpenSim.Region.ClientStack.Linden
         private OSDMap m_features = new OSDMap();
 
         private string m_SearchURL = string.Empty;
+        private string m_ServerReleaseNotesURL = string.Empty;
         private string m_DestinationGuideURL = string.Empty;
         private bool m_ExportSupported = false;
         private string m_GridName = string.Empty;
         private string m_GridURL = string.Empty;
 
         #region ISharedRegionModule Members
+        
 
         public void Initialise(IConfigSource source)
         {
+            IConfig ServerReleaseNote = source.Configs["ServerReleaseNotesURL"];
+
+            if (ServerReleaseNote != null)
+            {
+                m_ServerReleaseNotesURL = ServerReleaseNote.GetString("ServerReleaseNotesURL", m_ServerReleaseNotesURL);
+            }
+
             IConfig config = source.Configs["SimulatorFeatures"];
 
             if (config != null)
@@ -87,7 +97,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 // All this is obsolete since getting these features from the grid service!!
                 // Will be removed after the next release
                 //
+                
                 m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
+                
 
                 m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
 
@@ -188,6 +200,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_features["OpenSimExtras"] = extrasMap;
             }
         }
+       
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
@@ -197,7 +210,44 @@ namespace OpenSim.Region.ClientStack.Linden
                     x => { return HandleSimulatorFeaturesRequest(x, agentID); }, "SimulatorFeatures", agentID.ToString());
 
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
+
+            UUID capuuid = UUID.Random();
+
+
+            IRequestHandler ServerReleaseNote 
+                = new RestHTTPHandler(
+                    "GET", "/CAPS/ServerReleaseNotes/" + capuuid + "/",
+                       delegate(Hashtable m_dhttpMethod)
+                          { return ProcessServerReleaseNotes(m_dhttpMethod, agentID, capuuid);});
+
+            caps.RegisterHandler("ServerReleaseNotes", ServerReleaseNote);
+               
         }
+       
+
+        private Hashtable ProcessServerReleaseNotes(Hashtable m_dhttpMethod, UUID agentID, UUID capuuid)
+        {
+           Hashtable responsedata = new Hashtable();
+                   responsedata["int_response_code"] = 301;
+                   responsedata["str_redirect_location"] = m_ServerReleaseNotesURL;
+                   responsedata["content_type"] = "text/plain";
+                   responsedata["keepalive"] = false;
+
+           OSDMap osd = new OSDMap();
+                osd.Add("ServerReleaseNotes", new OSDString(GetServerReleaseNotesURL()));
+
+           string response = OSDParser.SerializeLLSDXmlString(osd);
+                responsedata["str_response_string"] = response;
+
+           return responsedata;
+        }
+
+
+        public static string GetServerReleaseNotesURL()
+        {
+             return "Set Realeas Notes Url in OpenSim.ini under [ServerReleaseNotesURL] section";
+        }
+        
 
         public void AddFeature(string name, OSD value)
         {
