@@ -233,7 +233,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 GetStoredMaterialInFace(part, te.DefaultTexture);
             else
                 m_log.WarnFormat(
-                    "[Materials]: Default texture for part {0} (part of object {1)) in {2} unexpectedly null.  Ignoring.", 
+                    "[Materials]: Default texture for part {0} (part of object {1}) in {2} unexpectedly null.  Ignoring.", 
                     part.Name, part.ParentGroup.Name, m_scene.Name);
 
             foreach (Primitive.TextureEntryFace face in te.FaceTextures)
