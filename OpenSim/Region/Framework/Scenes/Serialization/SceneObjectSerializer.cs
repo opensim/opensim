@@ -62,8 +62,20 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         {
             String fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
+            {
                 using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
-                    return FromOriginalXmlFormat(reader);
+                {
+                    try {
+                        return FromOriginalXmlFormat(reader);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SERIALIZER]: Deserialization of xml failed ", e);
+                        Util.LogFailedXML("[SERIALIZER]:", fixedData);
+                        return null;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -76,42 +88,32 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
 
-            SceneObjectGroup sceneObject = null;
+            int linkNum;
 
-            try
+            reader.ReadToFollowing("RootPart");
+            reader.ReadToFollowing("SceneObjectPart");
+            SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+            reader.ReadToFollowing("OtherParts");
+
+            if (reader.ReadToDescendant("Part"))
             {
-                int           linkNum;
-
-                reader.ReadToFollowing("RootPart");
-                reader.ReadToFollowing("SceneObjectPart");
-                sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
-                reader.ReadToFollowing("OtherParts");
-
-                if (reader.ReadToDescendant("Part"))
+                do
                 {
-                    do
+                    if (reader.ReadToDescendant("SceneObjectPart"))
                     {
-                        if (reader.ReadToDescendant("SceneObjectPart"))
-                        {
-                            SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                            linkNum = part.LinkNum;
-                            sceneObject.AddPart(part);
-                            part.LinkNum = linkNum;
-                            part.TrimPermissions();
-                        }
-                    }                    
-                    while (reader.ReadToNextSibling("Part"));
-                }
+                        SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                        linkNum = part.LinkNum;
+                        sceneObject.AddPart(part);
+                        part.LinkNum = linkNum;
+                        part.TrimPermissions();
+                    }
+                }                    
+                while (reader.ReadToNextSibling("Part"));
+            }
 
-                // Script state may, or may not, exist. Not having any, is NOT
-                // ever a problem.
-                sceneObject.LoadScriptState(reader);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed.  Exception {0}", e);
-                return null;
-            }
+            // Script state may, or may not, exist. Not having any, is NOT
+            // ever a problem.
+            sceneObject.LoadScriptState(reader);
 
             return sceneObject;
         }
@@ -236,7 +238,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 if (parts.Count == 0)
                 {
-                    m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed: No SceneObjectPart nodes. xml was " + xmlData);
+                    m_log.Error("[SERIALIZER]: Deserialization of xml failed: No SceneObjectPart nodes");
+                    Util.LogFailedXML("[SERIALIZER]:", xmlData);
                     return null;
                 }
 
@@ -280,7 +283,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
+                m_log.Error("[SERIALIZER]: Deserialization of xml failed ", e);
+                Util.LogFailedXML("[SERIALIZER]:", xmlData);
                 return null;
             }
         }
@@ -708,7 +712,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessShape(SceneObjectPart obj, XmlReader reader)
         {
             List<string> errorNodeNames;
-            obj.Shape = ReadShape(reader, "Shape", out errorNodeNames);
+            obj.Shape = ReadShape(reader, "Shape", out errorNodeNames, obj);
 
             if (errorNodeNames != null)
             {
@@ -1599,18 +1603,21 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             reader.ReadStartElement("SceneObjectPart");
 
-            ExternalRepresentationUtils.ExecuteReadProcessors(
+            bool errors = ExternalRepresentationUtils.ExecuteReadProcessors(
                 obj,
                 m_SOPXmlProcessors,
                 reader,
-                (o, nodeName, e)
-                    => m_log.DebugFormat(
-                        "[SceneObjectSerializer]: Exception while parsing {0} in object {1} {2}: {3}{4}",
-                        ((SceneObjectPart)o).Name, ((SceneObjectPart)o).UUID, nodeName, e.Message, e.StackTrace));
+                (o, nodeName, e) => {
+                    m_log.Debug(string.Format("[SceneObjectSerializer]: Error while parsing element {0} in object {1} {2} ",
+                        nodeName, ((SceneObjectPart)o).Name, ((SceneObjectPart)o).UUID), e);
+                });
+
+            if (errors)
+                throw new XmlException(string.Format("Error parsing object {0} {1}", obj.Name, obj.UUID));
 
             reader.ReadEndElement(); // SceneObjectPart
 
-            //m_log.DebugFormat("[XXX]: parsed SOP {0} - {1}", obj.Name, obj.UUID);
+            // m_log.DebugFormat("[SceneObjectSerializer]: parsed SOP {0} {1}", obj.Name, obj.UUID);
             return obj;
         }
 
@@ -1655,7 +1662,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="name">The name of the xml element containing the shape</param>
         /// <param name="errors">a list containing the failing node names.  If no failures then null.</param>
         /// <returns>The shape parsed</returns>
-        public static PrimitiveBaseShape ReadShape(XmlReader reader, string name, out List<string> errorNodeNames)
+        public static PrimitiveBaseShape ReadShape(XmlReader reader, string name, out List<string> errorNodeNames, SceneObjectPart obj)
         {
             List<string> internalErrorNodeNames = null;
 
@@ -1674,18 +1681,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 shape,
                 m_ShapeXmlProcessors,
                 reader,
-                (o, nodeName, e)
-                    =>
-                    {
-//                        m_log.DebugFormat(
-//                            "[SceneObjectSerializer]: Exception while parsing Shape property {0}: {1}{2}",
-//                            nodeName, e.Message, e.StackTrace);
-                        if (internalErrorNodeNames == null)
-                            internalErrorNodeNames = new List<string>();
+                (o, nodeName, e) => {
+                    m_log.Debug(string.Format("[SceneObjectSerializer]: Error while parsing element {0} in Shape property of object {1} {2} ",
+                        nodeName, obj.Name, obj.UUID), e);
 
-                        internalErrorNodeNames.Add(nodeName);
-                    }
-            );
+                    if (internalErrorNodeNames == null)
+                            internalErrorNodeNames = new List<string>();
+                    internalErrorNodeNames.Add(nodeName);
+                });
 
             reader.ReadEndElement(); // Shape
 

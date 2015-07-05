@@ -2243,13 +2243,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (isSingleObject || isAttachment)
                         {
-                            SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
+                            SceneObjectGroup g;
+                            try
+                            {
+                                g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Error("[AGENT INVENTORY]: Deserialization of xml failed ", e);
+                                Util.LogFailedXML("[AGENT INVENTORY]:", xmlData);
+                                g = null;
+                            }
+                            
                             if (g != null)
                             {
                                 objlist.Add(g);
                                 veclist.Add(Vector3.Zero);
                                 bbox = g.GetAxisAlignedBoundingBox(out offsetHeight);
                             }
+
                             return true;
                         }
                         else
@@ -2291,9 +2303,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error(
-                    "[AGENT INVENTORY]: Deserialization of xml failed when looking for CoalescedObject tag.  Exception ", 
-                    e);
+                m_log.Error("[AGENT INVENTORY]: Deserialization of xml failed when looking for CoalescedObject tag ", e);
+                Util.LogFailedXML("[AGENT INVENTORY]:", xmlData);
             }
 
             return true;

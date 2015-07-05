@@ -2910,6 +2910,16 @@ namespace OpenSim.Framework
 
             return name;
         }
+
+        public static void LogFailedXML(string message, string xml)
+        {
+            int length = xml.Length;
+            if (length > 2000)
+                xml = xml.Substring(0, 2000) + "...";
+
+            m_log.ErrorFormat("{0} Failed XML ({1} bytes) = {2}", message, length, xml);
+        }
+
     }
 
     public class DoubleQueue<T> where T:class

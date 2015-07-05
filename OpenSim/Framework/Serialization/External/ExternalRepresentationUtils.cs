@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -47,7 +48,7 @@ namespace OpenSim.Framework.Serialization.External
         /// Populate a node with data read from xml using a dictinoary of processors
         /// </summary>
         /// <param name="nodeToFill"></param>
-        /// <param name="processors">/param>
+        /// <param name="processors"></param>
         /// <param name="xtr"></param>
         /// <returns>true on successful, false if there were any processing failures</returns>
         public static bool ExecuteReadProcessors<NodeType>(
@@ -57,10 +58,10 @@ namespace OpenSim.Framework.Serialization.External
                 nodeToFill,
                 processors,
                 xtr,
-                (o, name, e)
-                    => m_log.DebugFormat(
-                        "[ExternalRepresentationUtils]: Exception while parsing element {0}, continuing.  Exception {1}{2}",
-                        name, e.Message, e.StackTrace));
+                (o, nodeName, e) => {
+                    m_log.Debug(string.Format("[ExternalRepresentationUtils]: Error while parsing element {0} ",
+                        nodeName), e);
+                });
         }
 
         /// <summary>
@@ -80,18 +81,22 @@ namespace OpenSim.Framework.Serialization.External
             Action<NodeType, string, Exception> parseExceptionAction)
         {
             bool errors = false;
+            int numErrors = 0;
+
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
 
             string nodeName = string.Empty;
             while (xtr.NodeType != XmlNodeType.EndElement)
             {
                 nodeName = xtr.Name;
 
-//                        m_log.DebugFormat("[ExternalRepresentationUtils]: Processing: {0}", nodeName);
+                // m_log.DebugFormat("[ExternalRepresentationUtils]: Processing node: {0}", nodeName);
 
                 Action<NodeType, XmlReader> p = null;
                 if (processors.TryGetValue(xtr.Name, out p))
                 {
-//                            m_log.DebugFormat("[ExternalRepresentationUtils]: Found {0} processor, nodeName);
+                    // m_log.DebugFormat("[ExternalRepresentationUtils]: Found processor for {0}", nodeName);
 
                     try
                     {
@@ -101,6 +106,18 @@ namespace OpenSim.Framework.Serialization.External
                     {
                         errors = true;
                         parseExceptionAction(nodeToFill, nodeName, e);
+                        
+                        if (xtr.EOF)
+                        {
+                            m_log.Debug("[ExternalRepresentationUtils]: Aborting ExecuteReadProcessors due to unexpected end of XML");
+                            break;
+                        }
+                        
+                        if (++numErrors == 10)
+                        {
+                            m_log.Debug("[ExternalRepresentationUtils]: Aborting ExecuteReadProcessors due to too many parsing errors");
+                            break;
+                        }
 
                         if (xtr.NodeType == XmlNodeType.EndElement)
                             xtr.Read();
@@ -108,8 +125,15 @@ namespace OpenSim.Framework.Serialization.External
                 }
                 else
                 {
-                    // m_log.DebugFormat("[LandDataSerializer]: caught unknown element {0}", nodeName);
+                    // m_log.DebugFormat("[ExternalRepresentationUtils]: found unknown element \"{0}\"", nodeName);
                     xtr.ReadOuterXml(); // ignore
+                }
+
+                if (timer.Elapsed.TotalSeconds >= 60)
+                {
+                    m_log.Debug("[ExternalRepresentationUtils]: Aborting ExecuteReadProcessors due to timeout");
+                    errors = true;
+                    break;
                 }
             }
 
