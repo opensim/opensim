@@ -46,7 +46,7 @@ using Careminster;
 using OpenMetaverse;
 using System.Security.Cryptography;
 
-namespace OpenSim.Services.FSAssetsService
+namespace OpenSim.Services.FSAssetService
 {
     public class FSAssetConnector : ServiceBase, IAssetService
     {
