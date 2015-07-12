@@ -29,36 +29,76 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
-using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using log4net;
 using MySql.Data.MySqlClient;
-using System.Data;
 using OpenMetaverse;
 
 namespace OpenSim.Data.MySQL
 {
-    public delegate string StoreDelegate(AssetBase asset, bool force);
-
-    public class FSAssetConnectorData
+    public class MySQLFSAssetData : IFSAssetDataPlugin
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected MySqlConnection m_Connection = null;
         protected string m_ConnectionString;
         protected string m_Table;
         protected Object m_connLock = new Object();
 
-        public FSAssetConnectorData(string connectionString, string table)
-        {
-            m_ConnectionString = connectionString;
-            m_Table = table;
+        /// <summary>
+        /// Number of days that must pass before we update the access time on an asset when it has been fetched
+        /// Config option to change this is "DaysBetweenAccessTimeUpdates"
+        /// </summary>
+        private int DaysBetweenAccessTimeUpdates = 0;
 
-            OpenDatabase();
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
         }
+        
+        public MySQLFSAssetData()
+        {
+        }
+
+        #region IPlugin Members
+
+        public string Version { get { return "1.0.0.0"; } }
+
+        // Loads and initialises the MySQL storage plugin and checks for migrations
+        public void Initialise(string connect, string realm, int UpdateAccessTime)
+        {
+            m_ConnectionString = connect;
+            m_Table = realm;
+
+            DaysBetweenAccessTimeUpdates = UpdateAccessTime;
+
+            try
+            {
+                OpenDatabase();
+
+                Migration m = new Migration(m_Connection, Assembly, "FSAssetStore");
+                m.Update();
+            }
+            catch (MySqlException e)
+            {
+                m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}", e.Message.ToString());
+            }
+        }
+
+        public void Initialise()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose() { }
+
+        public string Name
+        {
+            get { return "MySQL FSAsset storage engine"; }
+        }
+
+        #endregion
 
         private bool OpenDatabase()
         {
@@ -126,13 +166,15 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        #region IFSAssetDataPlugin Members
+
         public AssetMetadata Get(string id, out string hash)
         {
             hash = String.Empty;
 
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags from {0} where id = ?id", m_Table);
+            cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, access_time, asset_flags from {0} where id = ?id", m_Table);
             cmd.Parameters.AddWithValue("?id", id);
 
             IDataReader reader = ExecuteReader(cmd);
@@ -158,15 +200,27 @@ namespace OpenSim.Data.MySQL
             meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
             meta.Flags = (AssetFlags)Convert.ToInt32(reader["asset_flags"]);
 
+            int AccessTime = Convert.ToInt32(reader["access_time"]);
+
             reader.Close();
 
-            cmd.CommandText = String.Format("update {0} set access_time = UNIX_TIMESTAMP() where id = ?id", m_Table);
-
-            cmd.ExecuteNonQuery();
+            UpdateAccessTime(AccessTime, cmd);
 
             FreeCommand(cmd);
 
             return meta;
+        }
+
+        private void UpdateAccessTime(int AccessTime, MySqlCommand cmd)
+        {
+            // Reduce DB work by only updating access time if asset hasn't recently been accessed
+            // 0 By Default, Config option is "DaysBetweenAccessTimeUpdates"
+            if (DaysBetweenAccessTimeUpdates > 0 && (DateTime.UtcNow - Utils.UnixTimeToDateTime(AccessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
+                return;
+
+            cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
+
+            cmd.ExecuteNonQuery();
         }
 
         protected void FreeCommand(MySqlCommand cmd)
@@ -214,7 +268,7 @@ namespace OpenSim.Data.MySQL
             catch(Exception e)
             {
                 m_log.Error("[FSAssets] Failed to store asset with ID " + meta.ID);
-		m_log.Error(e.ToString());
+		        m_log.Error(e.ToString());
                 return false;
             }
         }
@@ -272,20 +326,21 @@ namespace OpenSim.Data.MySQL
             return count;
         }
 
-        public void Delete(string id)
+        public bool Delete(string id)
         {
-            MySqlCommand cmd = m_Connection.CreateCommand();
+            using (MySqlCommand cmd = m_Connection.CreateCommand())
+            {
+                cmd.CommandText = String.Format("delete from {0} where id = ?id", m_Table);
 
-            cmd.CommandText = String.Format("delete from {0} where id = ?id", m_Table);
+                cmd.Parameters.AddWithValue("?id", id);
 
-            cmd.Parameters.AddWithValue("?id", id);
+                ExecuteNonQuery(cmd);
+            }
 
-            ExecuteNonQuery(cmd);
-
-            cmd.Dispose();
+            return true;
         }
 
-        public void Import(string conn, string table, int start, int count, bool force, StoreDelegate store)
+        public void Import(string conn, string table, int start, int count, bool force, FSStoreDelegate store)
         {
             MySqlConnection importConn;
 
@@ -353,5 +408,7 @@ namespace OpenSim.Data.MySQL
 
             MainConsole.Instance.Output(String.Format("Import done, {0} assets imported", imported));
         }
+
+        #endregion
     }
 }

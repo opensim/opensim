@@ -33,6 +33,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Reflection;
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
@@ -47,9 +48,7 @@ namespace OpenSim.Services.FSAssetService
 {
     public class FSAssetConnector : ServiceBase, IAssetService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
         static SHA256CryptoServiceProvider SHA256 = new SHA256CryptoServiceProvider();
@@ -64,9 +63,7 @@ namespace OpenSim.Services.FSAssetService
         }
 
         protected IAssetLoader m_AssetLoader = null;
-        protected string m_ConnectionString;
-        protected FSAssetConnectorData m_DataConnector = null;
-        protected string m_FsckProgram;
+        protected IFSAssetDataPlugin m_DataConnector = null;
         protected IAssetService m_FallbackService;
         protected Thread m_WriterThread;
         protected Thread m_StatsThread;
@@ -78,7 +75,6 @@ namespace OpenSim.Services.FSAssetService
         protected int m_missingAssets = 0;
         protected int m_missingAssetsFS = 0;
         protected string m_FSBase;
-        protected string m_Realm;
 
         public FSAssetConnector(IConfigSource config)
             : this(config, "AssetService")
@@ -87,8 +83,6 @@ namespace OpenSim.Services.FSAssetService
 
         public FSAssetConnector(IConfigSource config, string configName) : base(config)
         {
-            m_FsckProgram = string.Empty;
-
             MainConsole.Instance.Commands.AddCommand("fs", false,
                     "show assets", "show assets", "Show asset stats",
                     HandleShowAssets);
@@ -109,35 +103,63 @@ namespace OpenSim.Services.FSAssetService
                     HandleImportAssets);
 
             IConfig assetConfig = config.Configs[configName];
+            
             if (assetConfig == null)
-            {
                 throw new Exception("No AssetService configuration");
-            }
 
-            m_ConnectionString = assetConfig.GetString("ConnectionString", string.Empty);
-            if (m_ConnectionString == string.Empty)
+            // Get Database Connector from Asset Config (If present)
+            string dllName = assetConfig.GetString("StorageProvider", string.Empty);
+            string m_ConnectionString = assetConfig.GetString("ConnectionString", string.Empty);
+            string m_Realm = assetConfig.GetString("Realm", "fsassets");
+
+            int SkipAccessTimeDays = assetConfig.GetInt("DaysBetweenAccessTimeUpdates", 0);
+
+            // If not found above, fallback to Database defaults
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            
+            if (dbConfig != null)
             {
-                throw new Exception("Missing database connection string");
+                if (dllName == String.Empty)
+                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                
+                if (m_ConnectionString == String.Empty)
+                    m_ConnectionString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
-            m_Realm = assetConfig.GetString("Realm", "fsassets");
+            // No databse connection found in either config
+            if (dllName.Equals(String.Empty))
+                throw new Exception("No StorageProvider configured");
 
-            m_DataConnector = new FSAssetConnectorData(m_ConnectionString, m_Realm);
+            if (m_ConnectionString.Equals(String.Empty))
+                throw new Exception("Missing database connection string");
+
+            // Create Storage Provider
+            m_DataConnector = LoadPlugin<IFSAssetDataPlugin>(dllName);
+
+            if (m_DataConnector == null)
+                throw new Exception(string.Format("Could not find a storage interface in the module {0}", dllName));
+
+            // Initialize DB And perform any migrations required
+            m_DataConnector.Initialise(m_ConnectionString, m_Realm, SkipAccessTimeDays);
+
+            // Setup Fallback Service
             string str = assetConfig.GetString("FallbackService", string.Empty);
+            
             if (str != string.Empty)
             {
                 object[] args = new object[] { config };
                 m_FallbackService = LoadPlugin<IAssetService>(str, args);
                 if (m_FallbackService != null)
                 {
-                    m_log.Info("[FALLBACK]: Fallback service loaded");
+                    m_log.Info("[FSASSETS]: Fallback service loaded");
                 }
                 else
                 {
-                    m_log.Error("[FALLBACK]: Failed to load fallback service");
+                    m_log.Error("[FSASSETS]: Failed to load fallback service");
                 }
             }
 
+            // Setup directory structure including temp directory
             m_SpoolDirectory = assetConfig.GetString("SpoolDirectory", "/tmp");
 
             string spoolTmp = Path.Combine(m_SpoolDirectory, "spool");
@@ -147,7 +169,7 @@ namespace OpenSim.Services.FSAssetService
             m_FSBase = assetConfig.GetString("BaseDirectory", String.Empty);
             if (m_FSBase == String.Empty)
             {
-                m_log.ErrorFormat("[ASSET]: BaseDirectory not specified");
+                m_log.ErrorFormat("[FSASSETS]: BaseDirectory not specified");
                 throw new Exception("Configuration error");
             }
 
@@ -156,14 +178,14 @@ namespace OpenSim.Services.FSAssetService
             {
                 m_AssetLoader = LoadPlugin<IAssetLoader>(loader);
                 string loaderArgs = assetConfig.GetString("AssetLoaderArgs", string.Empty);
-                m_log.InfoFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
+                m_log.InfoFormat("[FSASSETS]: Loading default asset set from {0}", loaderArgs);
                 m_AssetLoader.ForEachDefaultXmlAsset(loaderArgs,
                         delegate(AssetBase a)
                         {
                             Store(a, false);
                         });
             }
-            m_log.Info("[ASSET]: FS asset service enabled");
+            m_log.Info("[FSASSETS]: FS asset service enabled");
 
             m_WriterThread = new Thread(Writer);
             m_WriterThread.Start();
@@ -184,7 +206,7 @@ namespace OpenSim.Services.FSAssetService
                         double avg = (double)m_readTicks / (double)m_readCount;
 //                        if (avg > 10000)
 //                            Environment.Exit(0);
-                        m_log.InfoFormat("[ASSET]: Read stats: {0} files, {1} ticks, avg {2:F2}, missing {3}, FS {4}", m_readCount, m_readTicks, (double)m_readTicks / (double)m_readCount, m_missingAssets, m_missingAssetsFS);
+                        m_log.InfoFormat("[FSASSETS]: Read stats: {0} files, {1} ticks, avg {2:F2}, missing {3}, FS {4}", m_readCount, m_readTicks, (double)m_readTicks / (double)m_readCount, m_missingAssets, m_missingAssetsFS);
                     }
                     m_readCount = 0;
                     m_readTicks = 0;
@@ -196,7 +218,7 @@ namespace OpenSim.Services.FSAssetService
 
         private void Writer()
         {
-            m_log.Info("[ASSET]: Writer started");
+            m_log.Info("[FSASSETS]: Writer started");
 
             while (true)
             {
@@ -236,7 +258,7 @@ namespace OpenSim.Services.FSAssetService
                     int totalTicks = System.Environment.TickCount - tickCount;
                     if (totalTicks > 0) // Wrap?
                     {
-                        m_log.InfoFormat("[ASSET]: Write cycle complete, {0} files, {1} ticks, avg {2:F2}", files.Length, totalTicks, (double)totalTicks / (double)files.Length);
+                        m_log.InfoFormat("[FSASSETS]: Write cycle complete, {0} files, {1} ticks, avg {2:F2}", files.Length, totalTicks, (double)totalTicks / (double)files.Length);
                     }
                 }
 
@@ -326,13 +348,13 @@ namespace OpenSim.Services.FSAssetService
                         asset.Metadata.ContentType =
                                 SLUtil.SLAssetTypeToContentType((int)asset.Type);
                         sha = GetSHA256Hash(asset.Data);
-                        m_log.InfoFormat("[FALLBACK]: Added asset {0} from fallback to local store", id);
+                        m_log.InfoFormat("[FSASSETS]: Added asset {0} from fallback to local store", id);
                         Store(asset);
                     }
                 }
                 if (asset == null)
                 {
-//                    m_log.InfoFormat("[ASSET]: Asset {0} not found", id);
+                    // m_log.InfoFormat("[FSASSETS]: Asset {0} not found", id);
                     m_missingAssets++;
                 }
                 return asset;
@@ -353,13 +375,13 @@ namespace OpenSim.Services.FSAssetService
                             asset.Metadata.ContentType =
                                     SLUtil.SLAssetTypeToContentType((int)asset.Type);
                             sha = GetSHA256Hash(asset.Data);
-                            m_log.InfoFormat("[FALLBACK]: Added asset {0} from fallback to local store", id);
+                            m_log.InfoFormat("[FSASSETS]: Added asset {0} from fallback to local store", id);
                             Store(asset);
                         }
                     }
                     if (asset == null)
                         m_missingAssetsFS++;
-//                        m_log.InfoFormat("[ASSET]: Asset {0}, hash {1} not found in FS", id, hash);
+                        // m_log.InfoFormat("[FSASSETS]: Asset {0}, hash {1} not found in FS", id, hash);
                     else
                         return asset;
                 }
@@ -649,7 +671,7 @@ namespace OpenSim.Services.FSAssetService
                 {
                     count = Convert.ToInt32(args[4]);
                 }
-                m_DataConnector.Import(conn, table, start, count, force, new StoreDelegate(Store));
+                m_DataConnector.Import(conn, table, start, count, force, new FSStoreDelegate(Store));
             }
         }
 
