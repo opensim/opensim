@@ -166,7 +166,11 @@
 ; * in turn, reads the asset loader and database connection information
 ; *
 [AssetService]
-    LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
+
+    ;; Choose an asset service (Only one option should be enabled)
+    Include-AssetConfig = "config-include/GridAssets_Default.ini"
+    ;Include-AssetConfig = "config-include/GridAssets_FSAssets.ini"
+    
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
 
