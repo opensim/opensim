@@ -76,6 +76,9 @@ namespace OpenSim.Services.FSAssetService
         protected int m_missingAssetsFS = 0;
         protected string m_FSBase;
 
+        private static bool m_Initialized;
+        private bool m_MainInstance;
+
         public FSAssetConnector(IConfigSource config)
             : this(config, "AssetService")
         {
@@ -83,24 +86,30 @@ namespace OpenSim.Services.FSAssetService
 
         public FSAssetConnector(IConfigSource config, string configName) : base(config)
         {
-            MainConsole.Instance.Commands.AddCommand("fs", false,
-                    "show assets", "show assets", "Show asset stats",
-                    HandleShowAssets);
-            MainConsole.Instance.Commands.AddCommand("fs", false,
-                    "show digest", "show digest <ID>", "Show asset digest",
-                    HandleShowDigest);
-            MainConsole.Instance.Commands.AddCommand("fs", false,
-                    "delete asset", "delete asset <ID>",
-                    "Delete asset from database",
-                    HandleDeleteAsset);
-            MainConsole.Instance.Commands.AddCommand("fs", false,
-                    "import", "import <conn> <table> [<start> <count>]",
-                    "Import legacy assets",
-                    HandleImportAssets);
-            MainConsole.Instance.Commands.AddCommand("fs", false,
-                    "force import", "force import <conn> <table> [<start> <count>]",
-                    "Import legacy assets, overwriting current content",
-                    HandleImportAssets);
+            if (!m_Initialized)
+            {
+                m_Initialized = true;
+                m_MainInstance = true;
+
+                MainConsole.Instance.Commands.AddCommand("fs", false,
+                        "show assets", "show assets", "Show asset stats",
+                        HandleShowAssets);
+                MainConsole.Instance.Commands.AddCommand("fs", false,
+                        "show digest", "show digest <ID>", "Show asset digest",
+                        HandleShowDigest);
+                MainConsole.Instance.Commands.AddCommand("fs", false,
+                        "delete asset", "delete asset <ID>",
+                        "Delete asset from database",
+                        HandleDeleteAsset);
+                MainConsole.Instance.Commands.AddCommand("fs", false,
+                        "import", "import <conn> <table> [<start> <count>]",
+                        "Import legacy assets",
+                        HandleImportAssets);
+                MainConsole.Instance.Commands.AddCommand("fs", false,
+                        "force import", "force import <conn> <table> [<start> <count>]",
+                        "Import legacy assets, overwriting current content",
+                        HandleImportAssets);
+            }
 
             IConfig assetConfig = config.Configs[configName];
             
@@ -173,24 +182,28 @@ namespace OpenSim.Services.FSAssetService
                 throw new Exception("Configuration error");
             }
 
-            string loader = assetConfig.GetString("DefaultAssetLoader", string.Empty);
-            if (loader != string.Empty)
+            if (m_MainInstance)
             {
-                m_AssetLoader = LoadPlugin<IAssetLoader>(loader);
-                string loaderArgs = assetConfig.GetString("AssetLoaderArgs", string.Empty);
-                m_log.InfoFormat("[FSASSETS]: Loading default asset set from {0}", loaderArgs);
-                m_AssetLoader.ForEachDefaultXmlAsset(loaderArgs,
-                        delegate(AssetBase a)
-                        {
-                            Store(a, false);
-                        });
+                string loader = assetConfig.GetString("DefaultAssetLoader", string.Empty);
+                if (loader != string.Empty)
+                {
+                    m_AssetLoader = LoadPlugin<IAssetLoader>(loader);
+                    string loaderArgs = assetConfig.GetString("AssetLoaderArgs", string.Empty);
+                    m_log.InfoFormat("[FSASSETS]: Loading default asset set from {0}", loaderArgs);
+                    m_AssetLoader.ForEachDefaultXmlAsset(loaderArgs,
+                            delegate(AssetBase a)
+                            {
+                                Store(a, false);
+                            });
+                }
+            
+                m_WriterThread = new Thread(Writer);
+                m_WriterThread.Start();
+                m_StatsThread = new Thread(Stats);
+                m_StatsThread.Start();
             }
+            
             m_log.Info("[FSASSETS]: FS asset service enabled");
-
-            m_WriterThread = new Thread(Writer);
-            m_WriterThread.Start();
-            m_StatsThread = new Thread(Stats);
-            m_StatsThread.Start();
         }
 
         private void Stats()
