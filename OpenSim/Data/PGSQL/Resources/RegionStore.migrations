@@ -1153,10 +1153,10 @@ ALTER TABLE regionwindlight ALTER COLUMN draw_classic_clouds SET DEFAULT FALSE;
 
 COMMIT;
 
-VERSION 41       #-- Change Landlags to unsigned
+VERSION 41       #-- Change Landlags to bigint
 
 BEGIN TRANSACTION;
 
-ALTER TABLE land ALTER LandFlags TYPE unsigned;
+ALTER TABLE land ALTER LandFlags TYPE bigint;
 
 COMMIT;

@@ -944,7 +944,7 @@ COMMIT;
 
 BEGIN;
 
-ALTER TABLE land CHANGE COLUMN LandFlags LandFlags unsigned default null;
+ALTER TABLE land CHANGE COLUMN LandFlags LandFlags int unsigned default null;
 
 COMMIT;
 
