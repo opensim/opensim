@@ -932,6 +932,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 {
                     EventsProcessed++;
 
+                    if ((EventsProcessed == 1000) || (EventsProcessed == 10000) || ((EventsProcessed % 100000) == 0))
+                    {
+                        m_log.DebugFormat("[SCRIPT INSTANCE]: Script \"{0}\" (Object \"{1}\" {2} @ {3}.{4}, Item ID {5}, Asset {6}) in event {7}: processed {8:n0} script events",
+                                        ScriptTask.Name,
+                                        Part.ParentGroup.Name, Part.ParentGroup.UUID, Part.ParentGroup.AbsolutePosition, Part.ParentGroup.Scene.Name,
+                                        ScriptTask.ItemID, ScriptTask.AssetID, data.EventName, EventsProcessed);
+                    }
+
                     if (EventQueue.Count > 0 && Running && !ShuttingDown)
                     {
                         m_CurrentWorkItem = Engine.QueueEventHandler(this);
