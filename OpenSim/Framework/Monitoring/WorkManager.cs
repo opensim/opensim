@@ -267,6 +267,12 @@ namespace OpenSim.Framework.Monitoring
             }
             else if (subCommand == "log")
             {
+                if (args.Length < 4)
+                {
+                    MainConsole.Instance.Output("Usage: debug jobengine log <level>");
+                    return;
+                }
+                
                 //                int logLevel;
                 int logLevel = int.Parse(args[3]);
                 //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
