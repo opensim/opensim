@@ -2196,7 +2196,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID,
                             double px, double py, uint pSizeHint)
         {
-            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
+            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: query, loc=<{1},{2}>", LogHeader, px, py);
             GridRegion ret = null;
             const double fudge = 2.0;
 
