@@ -1157,6 +1157,6 @@ VERSION 41       #-- Change Landlags to bigint
 
 BEGIN TRANSACTION;
 
-ALTER TABLE land ALTER LandFlags TYPE bigint;
+ALTER TABLE land ALTER "LandFlags" TYPE bigint;
 
 COMMIT;
