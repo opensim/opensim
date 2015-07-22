@@ -186,12 +186,12 @@ namespace OpenSim.Services.GridService
         private static Random random = new Random();
 
         // From the command line link-region (obsolete) and the map
-        public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, out string reason)
+        private GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, out string reason)
         {
             return TryLinkRegionToCoords(scopeID, mapName, xloc, yloc, UUID.Zero, out reason);
         }
 
-        public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
+        private GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
         {
             reason = string.Empty;
             GridRegion regInfo = null;
@@ -274,13 +274,21 @@ namespace OpenSim.Services.GridService
 
             return null;
         }
-                
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, UUID ownerID, out GridRegion regInfo, out string reason)
+
+        private bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, UUID ownerID, out GridRegion regInfo, out string reason)
         {
             return TryCreateLink(scopeID, xloc, yloc, remoteRegionName, externalPort, externalHostName, null, ownerID, out regInfo, out reason);
         }
-        
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
+
+        private bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
+        {
+            lock (this)
+            {
+                return TryCreateLinkImpl(scopeID, xloc, yloc, remoteRegionName, externalPort, externalHostName, serverURI, ownerID, out regInfo, out reason);
+            }
+        }
+
+        private bool TryCreateLinkImpl(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
         {
             m_log.InfoFormat("[HYPERGRID LINKER]: Link to {0} {1}, in <{2},{3}>", 
                 ((serverURI == null) ? (externalHostName + ":" + externalPort) : serverURI),
