@@ -805,16 +805,6 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Converts a URL to a IPAddress
-        /// </summary>
-        /// <param name="url">URL Standard Format</param>
-        /// <returns>A resolved IP Address</returns>
-        public static IPAddress GetHostFromURL(string url)
-        {
-            return GetHostFromDNS(url.Split(new char[] {'/', ':'})[3]);
-        }
-
-        /// <summary>
         /// Returns a IP address from a specified DNS, favouring IPv4 addresses.
         /// </summary>
         /// <param name="dnsAddress">DNS Hostname</param>
@@ -1800,32 +1790,6 @@ namespace OpenSim.Framework
             }
 
             return found.ToArray();
-        }
-
-        public static string ServerURI(string uri)
-        {
-            if (uri == string.Empty)
-                return string.Empty;
-
-            // Get rid of eventual slashes at the end
-            uri = uri.TrimEnd('/');
-
-            IPAddress ipaddr1 = null;
-            string port1 = "";
-            try
-            {
-                ipaddr1 = Util.GetHostFromURL(uri);
-            }
-            catch { }
-
-            try
-            {
-                port1 = uri.Split(new char[] { ':' })[2];
-            }
-            catch { }
-
-            // We tried our best to convert the domain names to IP addresses
-            return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
         }
 
         /// <summary>
