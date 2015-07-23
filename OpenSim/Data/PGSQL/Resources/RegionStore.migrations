@@ -1152,3 +1152,11 @@ ALTER TABLE regionwindlight ALTER draw_classic_clouds TYPE bool USING CASE WHEN 
 ALTER TABLE regionwindlight ALTER COLUMN draw_classic_clouds SET DEFAULT FALSE;
 
 COMMIT;
+
+VERSION 41       #-- Change Landlags to bigint
+
+BEGIN TRANSACTION;
+
+ALTER TABLE land ALTER "LandFlags" TYPE bigint;
+
+COMMIT;

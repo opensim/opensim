@@ -940,3 +940,11 @@ ALTER TABLE prims ADD COLUMN AttachedPosZ double default 0;
 ALTER TABLE primshapes ADD COLUMN LastAttachPoint int(4) not null default '0';
 COMMIT;
 
+:VERSION 50        #---- Change LandFlags to unsigned
+
+BEGIN;
+
+ALTER TABLE land CHANGE COLUMN LandFlags LandFlags int unsigned default null;
+
+COMMIT;
+
