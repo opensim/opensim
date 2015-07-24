@@ -202,7 +202,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public long MeasurementPeriodExecutionTime { get; private set; }
 
-        public static readonly long MaxMeasurementPeriod = 30 * TimeSpan.TicksPerMinute;
+        public static readonly long MaxMeasurementPeriod = 30 * (TimeSpan.TicksPerMinute / TimeSpan.TicksPerMillisecond);
 
         private bool m_coopTermination;
  

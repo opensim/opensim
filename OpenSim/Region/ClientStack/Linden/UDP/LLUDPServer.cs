@@ -180,9 +180,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     scene.Name,
                     StatType.Pull,
                     MeasuresOfInterest.None,
-                    stat => stat.Value = m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond,
+                    stat => stat.Value = m_udpServer.AverageReceiveTicksForLastSamplePeriod,
 //                    stat => 
-//                        stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod / TimeSpan.TicksPerMillisecond, 7),
+//                        stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod, 7),
                     StatVerbosity.Debug));
         }
 
