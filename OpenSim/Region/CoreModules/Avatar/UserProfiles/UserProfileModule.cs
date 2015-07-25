@@ -451,14 +451,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// Queryclassified price.
         /// </param>
         /// <param name='remoteClient'>
-        /// Remote client.
+        /// Remote client. 
         /// </param>
         public void ClassifiedInfoUpdate(UUID queryclassifiedID, uint queryCategory, string queryName, string queryDescription, UUID queryParcelID,
                                          uint queryParentEstate, UUID querySnapshotID, Vector3 queryGlobalPos, byte queryclassifiedFlags,
                                          int queryclassifiedPrice, IClientAPI remoteClient)
         {
-            UserClassifiedAdd ad = new UserClassifiedAdd();
-
             Scene s = (Scene) remoteClient.Scene;
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
@@ -466,6 +464,25 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+
+            IMoneyModule money = p.Scene.RequestModuleInterface<IMoneyModule>();
+
+            if (money != null)
+            {
+                if (!money.AmountCovered(remoteClient.AgentId, queryclassifiedPrice))
+                {
+                    remoteClient.SendAgentAlertMessage("You do not have enough money to create requested classified.", false);
+                    return;
+                }
+            }
+
+            if (money != null)
+            {
+                money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
+            }
+
+
+            UserClassifiedAdd ad = new UserClassifiedAdd();
 
             if (land == null)
             {

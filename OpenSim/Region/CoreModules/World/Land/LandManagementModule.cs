@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected IUserManagement m_userManager;
         protected IPrimCountModule m_primCountModule;
         protected IDialogModule m_Dialog;
-
+	private bool UseDwell = true;
         /// <value>
         /// Local land ids at specified region co-ordinates (region size / 4)
         /// </value>
@@ -406,6 +406,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 if (parcelAvatarIsEntering != null)
                 {
+                    if (UseDwell)
+                        parcelAvatarIsEntering.LandData.Dwell += 1;
+
                     if (avatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT)
                     {
                         if (parcelAvatarIsEntering.IsBannedFromLand(avatar.UUID))
