@@ -28,3 +28,11 @@ BEGIN TRANSACTION;
 ALTER TABLE Presence ADD "LastSeen" Timestamp;
 
 COMMIT;
+
+:VERSION 3         # -------------------------- 
+
+BEGIN; 
+
+CREATE INDEX RegionID ON Presence("RegionID");
+
+COMMIT;

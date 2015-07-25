@@ -31,12 +31,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenMetaverse;
+using log4net;
 using Npgsql;
 
 namespace OpenSim.Data.PGSQL
 {
     public class PGSQLGroupsData : IGroupsData
-    {
+    {        
         private PGSqlGroupsGroupsHandler m_Groups;
         private PGSqlGroupsMembershipHandler m_Membership;
         private PGSqlGroupsRolesHandler m_Roles;
@@ -82,14 +83,17 @@ namespace OpenSim.Data.PGSQL
 
         public GroupData[] RetrieveGroups(string pattern)
         {
+                       
             if (string.IsNullOrEmpty(pattern)) // True for where clause
             {
-                pattern = " true ORDER BY lower(\"Name\") LIMIT 100";
+                pattern = " 1 ORDER BY lower(\"Name\") LIMIT 100";
+                
                 return m_Groups.Get(pattern);
             }
-            else
-            {
-                pattern = " lower(\"Name\") LIKE lower('%:pattern%') ORDER BY lower(\"Name\") LIMIT 100";
+            else   
+            {             
+                pattern = " \"ShowInList\" = 1 AND lower(\"Name\") LIKE lower('%" + pattern + "%') ORDER BY lower(\"Name\") LIMIT 100";
+        
                 return m_Groups.Get(pattern, new NpgsqlParameter("pattern", pattern));
             }
         }
@@ -428,13 +432,11 @@ namespace OpenSim.Data.PGSQL
 
         public void DeleteOld()
         {
-            uint now = (uint)Util.UnixTimeSinceEpoch();
 
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < :tstamp", m_Realm);
-                cmd.Parameters.AddWithValue("tstamp", now - 14 * 24 * 60 * 60); // > 2 weeks old
-
+                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < CURRENT_DATE - INTERVAL '2 week'", m_Realm);
+                
                 ExecuteNonQuery(cmd);
             }
 
@@ -456,13 +458,11 @@ namespace OpenSim.Data.PGSQL
 
         public void DeleteOld()
         {
-            uint now = (uint)Util.UnixTimeSinceEpoch();
 
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < :tstamp", m_Realm);
-                cmd.Parameters.AddWithValue("tstamp", now - 14 * 24 * 60 * 60); // > 2 weeks old
-
+                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < CURRENT_DATE - INTERVAL '2 week'", m_Realm);
+                
                 ExecuteNonQuery(cmd);
             }
 
