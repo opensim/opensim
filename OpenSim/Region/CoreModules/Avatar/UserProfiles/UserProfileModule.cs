@@ -457,12 +457,24 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                          uint queryParentEstate, UUID querySnapshotID, Vector3 queryGlobalPos, byte queryclassifiedFlags,
                                          int queryclassifiedPrice, IClientAPI remoteClient)
         {
+            Scene s = (Scene)remoteClient.Scene;
+            IMoneyModule money = s.RequestModuleInterface<IMoneyModule>();
+
+            if (money != null)
+            {
+                if (!money.AmountCovered(remoteClient.AgentId, queryclassifiedPrice))
+                {
+                    remoteClient.SendAgentAlertMessage("You do not have enough money to create requested classified.", false);
+                    return;
+                }
+                money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
+            }
+
             UserClassifiedAdd ad = new UserClassifiedAdd();
 
-            Scene s = (Scene) remoteClient.Scene;
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
-            ScenePresence p = FindPresence(remoteClient.AgentId);
+            
             
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
