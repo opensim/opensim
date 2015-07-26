@@ -474,7 +474,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
-            
+            ScenePresence p = FindPresence(remoteClient.AgentId);
             
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
