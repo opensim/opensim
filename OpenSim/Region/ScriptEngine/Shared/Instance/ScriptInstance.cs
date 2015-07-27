@@ -753,194 +753,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (Suspended)
                     return 0;
 
-                EventParams data = null;
-
-                lock (EventQueue)
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+                
+                try
                 {
-                    data = (EventParams)EventQueue.Dequeue();
-                    if (data == null) // Shouldn't happen
-                    {
-                        if (EventQueue.Count > 0 && Running && !ShuttingDown)
-                        {
-                            m_CurrentWorkItem = Engine.QueueEventHandler(this);
-                        }
-                        else
-                        {
-                            m_CurrentWorkItem = null;
-                        }
-                        return 0;
-                    }
-
-                    if (data.EventName == "timer")
-                        m_TimerQueued = false;
-                    if (data.EventName == "control")
-                    {
-                        if (m_ControlEventsInQueue > 0)
-                            m_ControlEventsInQueue--;
-                    }
-                    if (data.EventName == "collision")
-                        m_CollisionInQueue = false;
+                    return EventProcessorInt();
                 }
-
-                if (DebugLevel >= 2)
-                    m_log.DebugFormat(
-                        "[SCRIPT INSTANCE]: Processing event {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}", 
-                        data.EventName, 
-                        ScriptName, 
-                        Part.Name, 
-                        Part.LocalId, 
-                        Part.ParentGroup.Name, 
-                        Part.ParentGroup.UUID, 
-                        Part.AbsolutePosition, 
-                        Part.ParentGroup.Scene.Name);
-
-                m_DetectParams = data.DetectParams;
-
-                if (data.EventName == "state") // Hardcoded state change
+                finally
                 {
-                    State = data.Params[0].ToString();
-
-                    if (DebugLevel >= 1)
-                        m_log.DebugFormat(
-                            "[SCRIPT INSTANCE]: Changing state to {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}", 
-                            State, 
-                            ScriptName, 
-                            Part.Name, 
-                            Part.LocalId, 
-                            Part.ParentGroup.Name, 
-                            Part.ParentGroup.UUID, 
-                            Part.AbsolutePosition, 
-                            Part.ParentGroup.Scene.Name);
-
-                    AsyncCommandManager.StateChange(Engine,
-                        LocalID, ItemID);
-                    // we are effectively in the new state now, so we can resume queueing
-                    // and processing other non-timer events
-                    m_StateChangeInProgress = false;
-
-                    Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
+                    timer.Stop();
+                    ExecutionTime.AddSample(timer);
                 }
-                else
+            }
+        }
+
+        private object EventProcessorInt()
+        {
+            EventParams data = null;
+
+            lock (EventQueue)
+            {
+                data = (EventParams)EventQueue.Dequeue();
+                if (data == null) // Shouldn't happen
                 {
-                    if (Engine.World.PipeEventsForScript(LocalID) ||
-                        data.EventName == "control") // Don't freeze avies!
-                    {
-//                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
-//                                PrimName, ScriptName, data.EventName, State);
-
-                        try
-                        {
-                            m_CurrentEvent = data.EventName;
-                            m_EventStart = DateTime.Now;
-                            m_InEvent = true;
-
-                            Stopwatch timer = new Stopwatch();
-                            timer.Start();
-
-                            m_Script.ExecuteEvent(State, data.EventName, data.Params);
-
-                            timer.Stop();
-                            ExecutionTime.AddSample(timer);
-
-                            m_InEvent = false;
-                            m_CurrentEvent = String.Empty;
-
-                            if (m_SaveState)
-                            {
-                                // This will be the very first event we deliver
-                                // (state_entry) in default state
-                                //
-                                SaveState();
-
-                                m_SaveState = false;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-//                            m_log.DebugFormat(
-//                                "[SCRIPT] Exception in script {0} {1}: {2}{3}",
-//                                ScriptName, ItemID, e.Message, e.StackTrace);
-
-                            m_InEvent = false;
-                            m_CurrentEvent = String.Empty;
-
-                            if ((!(e is TargetInvocationException) 
-                                || (!(e.InnerException is SelfDeleteException) 
-                                    && !(e.InnerException is ScriptDeleteException)
-                                    && !(e.InnerException is ScriptCoopStopException))) 
-                                && !(e is ThreadAbortException))
-                            {
-                                try
-                                {
-                                    // DISPLAY ERROR INWORLD
-                                    string text = FormatException(e);
-
-                                    if (text.Length > 1000)
-                                        text = text.Substring(0, 1000);
-                                    Engine.World.SimChat(Utils.StringToBytes(text),
-                                                           ChatTypeEnum.DebugChannel, 2147483647,
-                                                           Part.AbsolutePosition,
-                                                           Part.Name, Part.UUID, false);
-
-
-                                    m_log.Debug(string.Format(
-                                        "[SCRIPT INSTANCE]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ", 
-                                        ScriptName, 
-                                        data.EventName,
-                                        PrimName, 
-                                        Part.UUID,
-                                        Part.AbsolutePosition,
-                                        Part.ParentGroup.Scene.Name), 
-                                        e);
-                                }
-                                catch (Exception)
-                                {
-                                }
-                                // catch (Exception e2) // LEGIT: User Scripting
-                                // {
-                                    // m_log.Error("[SCRIPT]: "+
-                                      //           "Error displaying error in-world: " +
-                                        //         e2.ToString());
-                                 //    m_log.Error("[SCRIPT]: " +
-                                   //              "Errormessage: Error compiling script:\r\n" +
-                                     //            e.ToString());
-                                // }
-                            }
-                            else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
-                            {
-                                m_InSelfDelete = true;
-                                Engine.World.DeleteSceneObject(Part.ParentGroup, false);
-                            }
-                            else if ((e is TargetInvocationException) && (e.InnerException is ScriptDeleteException))
-                            {
-                                m_InSelfDelete = true;
-                                Part.Inventory.RemoveInventoryItem(ItemID);
-                            }
-                            else if ((e is TargetInvocationException) && (e.InnerException is ScriptCoopStopException))
-                            {
-                                if (DebugLevel >= 1)
-                                    m_log.DebugFormat(
-                                        "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
-                                        PrimName, ScriptName, data.EventName, State);
-                            }
-                        }
-                    }
-                }
-
-                // If there are more events and we are currently running and not shutting down, then ask the
-                // script engine to run the next event.
-                lock (EventQueue)
-                {
-                    EventsProcessed++;
-
-                    if ((EventsProcessed == 1000) || (EventsProcessed == 10000) || ((EventsProcessed % 100000) == 0))
-                    {
-                        m_log.DebugFormat("[SCRIPT INSTANCE]: Script \"{0}\" (Object \"{1}\" {2} @ {3}.{4}, Item ID {5}, Asset {6}) in event {7}: processed {8:n0} script events",
-                                        ScriptTask.Name,
-                                        Part.ParentGroup.Name, Part.ParentGroup.UUID, Part.ParentGroup.AbsolutePosition, Part.ParentGroup.Scene.Name,
-                                        ScriptTask.ItemID, ScriptTask.AssetID, data.EventName, EventsProcessed);
-                    }
-
                     if (EventQueue.Count > 0 && Running && !ShuttingDown)
                     {
                         m_CurrentWorkItem = Engine.QueueEventHandler(this);
@@ -949,12 +785,188 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     {
                         m_CurrentWorkItem = null;
                     }
+                    return 0;
                 }
 
-                m_DetectParams = null;
-
-                return 0;
+                if (data.EventName == "timer")
+                    m_TimerQueued = false;
+                if (data.EventName == "control")
+                {
+                    if (m_ControlEventsInQueue > 0)
+                        m_ControlEventsInQueue--;
+                }
+                if (data.EventName == "collision")
+                    m_CollisionInQueue = false;
             }
+
+            if (DebugLevel >= 2)
+                m_log.DebugFormat(
+                    "[SCRIPT INSTANCE]: Processing event {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}",
+                    data.EventName,
+                    ScriptName,
+                    Part.Name,
+                    Part.LocalId,
+                    Part.ParentGroup.Name,
+                    Part.ParentGroup.UUID,
+                    Part.AbsolutePosition,
+                    Part.ParentGroup.Scene.Name);
+
+            m_DetectParams = data.DetectParams;
+
+            if (data.EventName == "state") // Hardcoded state change
+            {
+                State = data.Params[0].ToString();
+
+                if (DebugLevel >= 1)
+                    m_log.DebugFormat(
+                        "[SCRIPT INSTANCE]: Changing state to {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}",
+                        State,
+                        ScriptName,
+                        Part.Name,
+                        Part.LocalId,
+                        Part.ParentGroup.Name,
+                        Part.ParentGroup.UUID,
+                        Part.AbsolutePosition,
+                        Part.ParentGroup.Scene.Name);
+
+                AsyncCommandManager.StateChange(Engine,
+                    LocalID, ItemID);
+                // we are effectively in the new state now, so we can resume queueing
+                // and processing other non-timer events
+                m_StateChangeInProgress = false;
+
+                Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
+            }
+            else
+            {
+                if (Engine.World.PipeEventsForScript(LocalID) ||
+                    data.EventName == "control") // Don't freeze avies!
+                {
+                    //                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
+                    //                                PrimName, ScriptName, data.EventName, State);
+
+                    try
+                    {
+                        m_CurrentEvent = data.EventName;
+                        m_EventStart = DateTime.Now;
+                        m_InEvent = true;
+
+                        try
+                        {
+                            m_Script.ExecuteEvent(State, data.EventName, data.Params);
+                        }
+                        finally
+                        {
+                            m_InEvent = false;
+                            m_CurrentEvent = String.Empty;
+                        }
+
+                        if (m_SaveState)
+                        {
+                            // This will be the very first event we deliver
+                            // (state_entry) in default state
+                            //
+                            SaveState();
+
+                            m_SaveState = false;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        //                            m_log.DebugFormat(
+                        //                                "[SCRIPT] Exception in script {0} {1}: {2}{3}",
+                        //                                ScriptName, ItemID, e.Message, e.StackTrace);
+
+                        if ((!(e is TargetInvocationException)
+                            || (!(e.InnerException is SelfDeleteException)
+                                && !(e.InnerException is ScriptDeleteException)
+                                && !(e.InnerException is ScriptCoopStopException)))
+                            && !(e is ThreadAbortException))
+                        {
+                            try
+                            {
+                                // DISPLAY ERROR INWORLD
+                                string text = FormatException(e);
+
+                                if (text.Length > 1000)
+                                    text = text.Substring(0, 1000);
+                                Engine.World.SimChat(Utils.StringToBytes(text),
+                                                       ChatTypeEnum.DebugChannel, 2147483647,
+                                                       Part.AbsolutePosition,
+                                                       Part.Name, Part.UUID, false);
+
+
+                                m_log.Debug(string.Format(
+                                    "[SCRIPT INSTANCE]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ",
+                                    ScriptName,
+                                    data.EventName,
+                                    PrimName,
+                                    Part.UUID,
+                                    Part.AbsolutePosition,
+                                    Part.ParentGroup.Scene.Name),
+                                    e);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                            // catch (Exception e2) // LEGIT: User Scripting
+                            // {
+                            // m_log.Error("[SCRIPT]: "+
+                            //           "Error displaying error in-world: " +
+                            //         e2.ToString());
+                            //    m_log.Error("[SCRIPT]: " +
+                            //              "Errormessage: Error compiling script:\r\n" +
+                            //            e.ToString());
+                            // }
+                        }
+                        else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
+                        {
+                            m_InSelfDelete = true;
+                            Engine.World.DeleteSceneObject(Part.ParentGroup, false);
+                        }
+                        else if ((e is TargetInvocationException) && (e.InnerException is ScriptDeleteException))
+                        {
+                            m_InSelfDelete = true;
+                            Part.Inventory.RemoveInventoryItem(ItemID);
+                        }
+                        else if ((e is TargetInvocationException) && (e.InnerException is ScriptCoopStopException))
+                        {
+                            if (DebugLevel >= 1)
+                                m_log.DebugFormat(
+                                    "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
+                                    PrimName, ScriptName, data.EventName, State);
+                        }
+                    }
+                }
+            }
+
+            // If there are more events and we are currently running and not shutting down, then ask the
+            // script engine to run the next event.
+            lock (EventQueue)
+            {
+                EventsProcessed++;
+
+                if ((EventsProcessed == 1000) || (EventsProcessed == 10000) || ((EventsProcessed % 100000) == 0))
+                {
+                    m_log.DebugFormat("[SCRIPT INSTANCE]: Script \"{0}\" (Object \"{1}\" {2} @ {3}.{4}, Item ID {5}, Asset {6}) in event {7}: processed {8:n0} script events",
+                                    ScriptTask.Name,
+                                    Part.ParentGroup.Name, Part.ParentGroup.UUID, Part.ParentGroup.AbsolutePosition, Part.ParentGroup.Scene.Name,
+                                    ScriptTask.ItemID, ScriptTask.AssetID, data.EventName, EventsProcessed);
+                }
+
+                if (EventQueue.Count > 0 && Running && !ShuttingDown)
+                {
+                    m_CurrentWorkItem = Engine.QueueEventHandler(this);
+                }
+                else
+                {
+                    m_CurrentWorkItem = null;
+                }
+            }
+
+            m_DetectParams = null;
+
+            return 0;
         }
 
         public int EventTime()
