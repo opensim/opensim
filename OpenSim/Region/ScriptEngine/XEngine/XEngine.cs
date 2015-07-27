@@ -460,7 +460,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <param name="args"></param>
         private void HandleDebugLevelCommand(string module, string[] args)
         {
-            if (args.Length <= 4)
+            if (args.Length >= 4)
             {
                 int newDebug;
                 if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, args[3], out newDebug))
