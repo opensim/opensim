@@ -2343,7 +2343,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public Dictionary<uint, float> GetObjectScriptsExecutionTimes()
         {
-            long tickNow = Util.EnvironmentTickCount();
             Dictionary<uint, float> topScripts = new Dictionary<uint, float>();
 
             lock (m_Scripts)
@@ -2353,7 +2352,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     if (!topScripts.ContainsKey(si.LocalID))
                         topScripts[si.RootLocalID] = 0;
 
-                    topScripts[si.RootLocalID] += CalculateAdjustedExectionTime(si, tickNow);
+                    topScripts[si.RootLocalID] += GetExectionTime(si);
                 }
             }
 
@@ -2367,7 +2366,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return 0.0f;
             }
             float time = 0.0f;
-            long tickNow = Util.EnvironmentTickCount();
             IScriptInstance si;
             // Calculate the time for all scripts that this engine is executing
             // Ignore any others
@@ -2376,36 +2374,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 si = GetInstance(id);
                 if (si != null && si.Running)
                 {
-                    time += CalculateAdjustedExectionTime(si, tickNow);
+                    time += GetExectionTime(si);
                 }
             }
             return time;
         }
 
-        private float CalculateAdjustedExectionTime(IScriptInstance si, long tickNow)
+        private float GetExectionTime(IScriptInstance si)
         {
-            long ticksElapsed = Util.EnvironmentTickCountSubtract((int)tickNow, (int)si.MeasurementPeriodTickStart);
-
-            // Avoid divide by zero
-            if (ticksElapsed == 0)
-                ticksElapsed = 1;
-
-            // Scale execution time to the ideal 55 fps frame time for these reasons.
-            //
-            // 1) XEngine does not execute scripts per frame, unlike other script engines.  Hence, there is no
-            // 'script execution time per frame', which is the original purpose of this value.
-            //
-            // 2) Giving the raw execution times is misleading since scripts start at different times, making
-            // it impossible to compare scripts.
-            //
-            // 3) Scaling the raw execution time to the time that the script has been running is better but
-            // is still misleading since a script that has just been rezzed may appear to have been running
-            // for much longer.
-            //
-            // 4) Hence, we scale execution time to an idealised frame time (55 fps).  This is also not perfect
-            // since the figure does not represent actual execution time and very hard running scripts will
-            // never exceed 18ms (though this is a very high number for script execution so is a warning sign).
-            return ((float)si.MeasurementPeriodExecutionTime / ticksElapsed) * 18.1818f;
+            return (float)si.ExecutionTime.GetSumTime().TotalMilliseconds;
         }
 
         public void SuspendScript(UUID itemID)

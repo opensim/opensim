@@ -199,11 +199,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public DateTime TimeStarted { get; private set; }
 
-        public long MeasurementPeriodTickStart { get; private set; }
+        public MetricsCollectorTime ExecutionTime { get; private set; }
 
-        public long MeasurementPeriodExecutionTime { get; private set; }
-
-        public static readonly int MaxMeasurementPeriod = 30 * 1000;   // show the *recent* time used by the script, to find currently active scripts
+        private static readonly int MeasurementWindow = 30 * 1000;   // show the *recent* time used by the script, to find currently active scripts
 
         private bool m_coopTermination;
  
@@ -245,6 +243,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_RegionID = Part.ParentGroup.Scene.RegionInfo.RegionID;
 
             m_SaveState = StatePersistedHere;
+
+            ExecutionTime = new MetricsCollectorTime(MeasurementWindow, 10);
 
 //            m_log.DebugFormat(
 //                "[SCRIPT INSTANCE]: Instantiated script instance {0} (id {1}) in part {2} (id {3}) in object {4} attached avatar {5} in {6}",
@@ -505,8 +505,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 Running = true;
 
                 TimeStarted = DateTime.Now;
-                MeasurementPeriodTickStart = Util.EnvironmentTickCount();
-                MeasurementPeriodExecutionTime = 0;
+
+                // Note: we don't reset ExecutionTime. The reason is that runaway scripts are stopped and restarted
+                // automatically, and we *do* want to show that they had high CPU in that case. If we had reset
+                // ExecutionTime here then runaway scripts, paradoxically, would never show up in the "Top Scripts" dialog.
 
                 if (EventQueue.Count > 0)
                 {
@@ -832,20 +834,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_EventStart = DateTime.Now;
                             m_InEvent = true;
 
-                            // Reset the measurement period when we reach the end of the current one.
-                            if (Util.EnvironmentTickCountSubtract((int)MeasurementPeriodTickStart) > MaxMeasurementPeriod)
-                            {
-                                MeasurementPeriodTickStart = Util.EnvironmentTickCount();
-                                MeasurementPeriodExecutionTime = 0;
-                            }
+                            Stopwatch timer = new Stopwatch();
+                            timer.Start();
 
-                            Stopwatch executionTime = new Stopwatch();
-                            executionTime.Start();
-                            
                             m_Script.ExecuteEvent(State, data.EventName, data.Params);
 
-                            executionTime.Stop();
-                            MeasurementPeriodExecutionTime += executionTime.ElapsedMilliseconds;
+                            timer.Stop();
+                            ExecutionTime.AddSample(timer);
 
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
