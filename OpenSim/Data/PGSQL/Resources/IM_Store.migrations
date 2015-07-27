@@ -24,3 +24,22 @@ DELETE FROM `migrations` WHERE name='diva_im_Store';
 */
 
 COMMIT;
+
+:VERSION 3         # -------------------------- 
+
+BEGIN;
+
+-- dropping the table here as there most likely is only one record in the table at the time of migration
+
+DROP TABLE IF EXISTS "public"."im_offline";
+CREATE TABLE "public"."im_offline" (
+	"ID" serial,
+	"PrincipalID" uuid NOT NULL,
+	"Message" text NOT NULL COLLATE "default",
+	"TMStamp" timestamp(6) NOT NULL DEFAULT clock_timestamp(),
+	"FromID" uuid NOT NULL
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "public"."im_offline" ADD PRIMARY KEY ("ID","PrincipalID","FromID") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+COMMIT;

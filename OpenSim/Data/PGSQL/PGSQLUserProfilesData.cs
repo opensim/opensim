@@ -877,7 +877,7 @@ namespace OpenSim.Data.PGSQL
         {
             string query = string.Empty;
 
-            query += "SELECT imviaemail,visible,email FROM ";
+            query += "SELECT imviaemail::VARCHAR,visible::VARCHAR,email FROM ";
             query += "usersettings WHERE ";
             query += "useruuid = :Id";
 
