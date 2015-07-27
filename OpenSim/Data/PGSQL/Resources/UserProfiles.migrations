@@ -144,3 +144,12 @@ ALTER TABLE usersettings ADD COLUMN email varchar(254) NOT NULL;
 ALTER TABLE usersettings ADD PRIMARY KEY (useruuid);
 
 COMMIT;
+
+
+:VERSION 5         # -------------------------------
+
+BEGIN;
+
+ALTER TABLE usersettings ALTER COLUMN imviaemail SET DATA TYPE boolean USING CASE WHEN false THEN false ELSE true END;
+
+COMMIT;

@@ -249,6 +249,10 @@ namespace OpenSim.Data.PGSQL
             {
                 return (DateTime)value;
             }
+            if (PGFieldType == "double precision")
+            {
+                return (Double)value;
+            }
             return CreateParameterValue(value);
         }
 
