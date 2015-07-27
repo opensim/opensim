@@ -2384,7 +2384,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private float CalculateAdjustedExectionTime(IScriptInstance si, long tickNow)
         {
-            long ticksElapsed = tickNow - si.MeasurementPeriodTickStart;
+            long ticksElapsed = Util.EnvironmentTickCountSubtract((int)tickNow, (int)si.MeasurementPeriodTickStart);
 
             // Avoid divide by zero
             if (ticksElapsed == 0)

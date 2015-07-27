@@ -51,6 +51,7 @@ using OpenSim.Region.ScriptEngine.Shared.Api.Runtime;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Interfaces;
+using System.Diagnostics;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
@@ -202,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public long MeasurementPeriodExecutionTime { get; private set; }
 
-        public static readonly long MaxMeasurementPeriod = 30 * (TimeSpan.TicksPerMinute / TimeSpan.TicksPerMillisecond);
+        public static readonly int MaxMeasurementPeriod = 30 * 1000;   // show the *recent* time used by the script, to find currently active scripts
 
         private bool m_coopTermination;
  
@@ -831,15 +832,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_EventStart = DateTime.Now;
                             m_InEvent = true;
 
-                            int start = Util.EnvironmentTickCount();
-
                             // Reset the measurement period when we reach the end of the current one.
-                            if (start - MeasurementPeriodTickStart > MaxMeasurementPeriod)
-                                MeasurementPeriodTickStart = start;
+                            if (Util.EnvironmentTickCountSubtract((int)MeasurementPeriodTickStart) > MaxMeasurementPeriod)
+                            {
+                                MeasurementPeriodTickStart = Util.EnvironmentTickCount();
+                                MeasurementPeriodExecutionTime = 0;
+                            }
 
+                            Stopwatch executionTime = new Stopwatch();
+                            executionTime.Start();
+                            
                             m_Script.ExecuteEvent(State, data.EventName, data.Params);
 
-                            MeasurementPeriodExecutionTime += Util.EnvironmentTickCount() - start;
+                            executionTime.Stop();
+                            MeasurementPeriodExecutionTime += executionTime.ElapsedMilliseconds;
 
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
