@@ -62,9 +62,6 @@ namespace OpenSim.Services.Connectors
         /// </remarks>
         private int m_requestTimeoutSecs = -1;
 
-        private const double CACHE_EXPIRATION_SECONDS = 20.0;
-        private static ExpiringCache<UUID, InventoryItemBase> m_ItemCache = new ExpiringCache<UUID,InventoryItemBase>();
-
         public XInventoryServicesConnector()
         {
         }
@@ -221,17 +218,15 @@ namespace OpenSim.Services.Connectors
                 if (!CheckReturn(ret))
                     return null;
 
-                Dictionary<string,object> folders = ret.ContainsKey("FOLDERS") ?
-                    (Dictionary<string,object>)ret["FOLDERS"] : null;
-                Dictionary<string,object> items = ret.ContainsKey("ITEMS") ?
-                    (Dictionary<string, object>)ret["ITEMS"] : null;
+                Dictionary<string,object> folders =
+                        (Dictionary<string,object>)ret["FOLDERS"];
+                Dictionary<string,object> items =
+                        (Dictionary<string,object>)ret["ITEMS"];
 
-                if (folders != null)
-                    foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
-                        inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
-                if (items != null)
-                    foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
-                        inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
+                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
+                    inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
+                foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
+                    inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
             }
             catch (Exception e)
             {
@@ -244,7 +239,7 @@ namespace OpenSim.Services.Connectors
         public virtual InventoryCollection[] GetMultipleFoldersContent(UUID principalID, UUID[] folderIDs)
         {
             InventoryCollection[] inventoryArr = new InventoryCollection[folderIDs.Length];
-            // m_log.DebugFormat("[XXX]: In GetMultipleFoldersContent {0}", String.Join(",", folderIDs));
+            //m_log.DebugFormat("[XXX]: In GetMultipleFoldersContent {0}", folderIDs.Length);
             try
             {
                 Dictionary<string, object> resultSet = MakeRequest("GETMULTIPLEFOLDERSCONTENT",
@@ -516,10 +511,6 @@ namespace OpenSim.Services.Connectors
 
         public InventoryItemBase GetItem(InventoryItemBase item)
         {
-            InventoryItemBase retrieved = null;
-            if (m_ItemCache.TryGetValue(item.ID, out retrieved))
-                return retrieved;
-
             try
             {
                 Dictionary<string, object> ret = MakeRequest("GETITEM",
@@ -530,67 +521,39 @@ namespace OpenSim.Services.Connectors
                 if (!CheckReturn(ret))
                     return null;
 
-                retrieved = BuildItem((Dictionary<string, object>)ret["item"]);
+                return BuildItem((Dictionary<string, object>)ret["item"]);
             }
             catch (Exception e)
             {
                 m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetItem: ", e);
             }
 
-            m_ItemCache.AddOrUpdate(item.ID, retrieved, CACHE_EXPIRATION_SECONDS);
-
-            return retrieved;
+            return null;
         }
 
         public virtual InventoryItemBase[] GetMultipleItems(UUID principalID, UUID[] itemIDs)
         {
-            //m_log.DebugFormat("[XXX]: In GetMultipleItems {0}", String.Join(",", itemIDs));
-
             InventoryItemBase[] itemArr = new InventoryItemBase[itemIDs.Length];
-            // Try to get them from the cache
-            List<UUID> pending = new List<UUID>();
-            InventoryItemBase item = null;
-            int i = 0;
-            foreach (UUID id in itemIDs)
-            {
-                if (m_ItemCache.TryGetValue(id, out item))
-                    itemArr[i++] = item;
-                else
-                    pending.Add(id);
-            }
-
-            if (pending.Count == 0) // we're done, everything was in the cache
-                return itemArr;
-
             try
             {
                 Dictionary<string, object> resultSet = MakeRequest("GETMULTIPLEITEMS",
                         new Dictionary<string, object> {
                             { "PRINCIPAL", principalID.ToString() },
-                            { "ITEMS", String.Join(",", pending.ToArray()) },
-                            { "COUNT", pending.Count.ToString() }
+                            { "ITEMS", String.Join(",", itemIDs) },
+                            { "COUNT", itemIDs.Length.ToString() }
                         });
 
                 if (!CheckReturn(resultSet))
-                {
-                    if (i == 0)
-                        return null;
-                    else
-                        return itemArr;
-                }
+                    return null;
 
-                // carry over index i where we left above
+                int i = 0;
                 foreach (KeyValuePair<string, object> kvp in resultSet)
                 {
                     InventoryCollection inventory = new InventoryCollection();
                     if (kvp.Key.StartsWith("item_"))
                     {
                         if (kvp.Value is Dictionary<string, object>)
-                        {
-                            item = BuildItem((Dictionary<string, object>)kvp.Value);
-                            m_ItemCache.AddOrUpdate(item.ID, item, CACHE_EXPIRATION_SECONDS);
-                            itemArr[i++] = item;
-                        }
+                            itemArr[i++] = BuildItem((Dictionary<string, object>)kvp.Value);
                         else
                             itemArr[i++] = null;
                     }

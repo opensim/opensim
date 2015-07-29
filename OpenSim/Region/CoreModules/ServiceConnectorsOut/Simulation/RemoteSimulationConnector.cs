@@ -60,6 +60,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         protected SimulationServiceConnector m_remoteConnector;
 
         protected bool m_safemode;
+        protected IPAddress m_thisIP;
 
         #region Region Module interface
 
@@ -140,6 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         {            
             m_aScene = scene;
             //m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
+            m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);
         }
 
         #endregion

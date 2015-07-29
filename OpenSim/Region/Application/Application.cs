@@ -129,7 +129,7 @@ namespace OpenSim
             if (workerThreads < workerThreadsMin)
             {
                 workerThreads = workerThreadsMin;
-                m_log.InfoFormat("[OPENSIM MAIN]: Bumping up max worker threads to {0}",workerThreads);
+                m_log.InfoFormat("[OPENSIM MAIN]: Bumping up to max worker threads to {0}",workerThreads);
             }
             if (workerThreads > workerThreadsMax)
             {

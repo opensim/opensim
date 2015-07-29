@@ -789,7 +789,7 @@
     ;# {enable_materials} {} {Enable Materials support?} {true false} true
     ;; This enables the use of Materials.
     ; enable_materials = true
-    ; MaxMaterialsPerTransaction = 50
+
 
 [DataSnapshot]
     ;# {index_sims} {} {Enable data snapshotting (search)?} {true false} false
@@ -1123,15 +1123,6 @@
   ;; Sets the URL for the baked texture ROBUST service.
   ;; Disabled when unset.
   ;; URL = ${Const|BaseURL}:${Const|PrivatePort}
-
-;;
-;; Optional module to highlight God names in the viewer.
-;; Uncomment and costumize appropriately if you want this behavior.
-;;
-;[GodNames]
-;	Enabled = false
-;	FullNames = "Test User, Foo Bar"
-;	Surnames = "Kryztlsk"
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini

@@ -140,6 +140,7 @@ namespace OpenSim.Services.HypergridService
                 if (finfo.Friend.StartsWith(friendID.ToString()))
                     return false;
             }
+            /*
             // Verified user session. But the user needs to confirm friendship when he gets home
             if (verified)
                 return m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, 0);
@@ -166,7 +167,14 @@ namespace OpenSim.Services.HypergridService
                 ForwardToSim("ApproveFriendshipRequest", friendID, Util.UniversalName(first, last, url), "", friend.PrincipalID, "");
                 return true;
             }
-            return false;
+             * */
+
+            //*** CHANGE Kubwa
+            m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, 1);
+            m_FriendsService.StoreFriend(friend.Friend, friend.PrincipalID.ToString(), 1);
+            return true;
+
+            //return false;
         }
 
         public bool DeleteFriendship(FriendInfo friend, string secret)

@@ -304,14 +304,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0} from simulator-side", sp.Name);
 
             List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
-
-            // Let's get all items at once, so they get cached
-            UUID[] items = new UUID[attachments.Count];
-            int i = 0;
-            foreach (AvatarAttachment attach in attachments)
-                items[i++] = attach.ItemID;
-            m_scene.InventoryService.GetMultipleItems(sp.UUID, items);
-
             foreach (AvatarAttachment attach in attachments)
             {
                 uint attachmentPt = (uint)attach.AttachPoint;
@@ -937,12 +929,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         private string PrepareScriptInstanceForSave(SceneObjectGroup grp, bool fireDetachEvent)
         {
             if (fireDetachEvent)
-            {
                 m_scene.EventManager.TriggerOnAttach(grp.LocalId, grp.FromItemID, UUID.Zero);
-
-                // Allow detach event time to do some work before stopping the script
-                Thread.Sleep(2);
-            }
 
             using (StringWriter sw = new StringWriter())
             {

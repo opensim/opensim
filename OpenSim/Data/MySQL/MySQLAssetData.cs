@@ -135,6 +135,10 @@ namespace OpenSim.Data.MySQL
 
                                 asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                                 asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
+
+                                //*** CHANGE Kubwa
+                                UpdateAccessTime(asset);
+
                             }
                         }
                     }
@@ -144,6 +148,7 @@ namespace OpenSim.Data.MySQL
                             string.Format("[ASSETS DB]: MySql failure fetching asset {0}.  Exception  ", assetID), e);
                     }
                 }
+
             }
 
             return asset;

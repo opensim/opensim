@@ -539,24 +539,13 @@ namespace OpenSim.Services.GridService
         //     multiples of the legacy region size (256).
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
-            uint regionX = Util.WorldToRegionLoc((uint)x);
-            uint regionY = Util.WorldToRegionLoc((uint)y);
-            int snapX = (int)Util.RegionToWorldLoc(regionX);
-            int snapY = (int)Util.RegionToWorldLoc(regionY);
-
+            int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;
+            int snapY = (int)(y / Constants.RegionSize) * (int)Constants.RegionSize;
             RegionData rdata = m_Database.Get(snapX, snapY, scopeID);
             if (rdata != null)
-            {
-                m_log.DebugFormat("{0} GetRegionByPosition. Found region {1} in database. Pos=<{2},{3}>",
-                                 LogHeader, rdata.RegionName, regionX, regionY);
                 return RegionData2RegionInfo(rdata);
-            }
-            else
-            {
-                m_log.DebugFormat("{0} GetRegionByPosition. Did not find region in database. Pos=<{1},{2}>",
-                                 LogHeader, regionX, regionY);
-                return null;
-            }
+
+            return null;
         }
 
         public GridRegion GetRegionByName(UUID scopeID, string name)

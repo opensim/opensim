@@ -112,7 +112,7 @@ namespace OpenMetaverse
         /// For debugging purposes only... random number generator for dropping
         /// outbound packets.
         /// </summary>
-        private Random m_dropRandomGenerator = new Random();
+        private Random m_dropRandomGenerator;
         
         /// <summary>
         /// For debugging purposes only... parameters for a simplified

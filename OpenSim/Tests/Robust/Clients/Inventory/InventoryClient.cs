@@ -37,8 +37,6 @@ using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors;
 
-using OpenSim.Tests.Common;
-
 namespace Robust.Tests
 {
     [TestFixture]
@@ -56,7 +54,6 @@ namespace Robust.Tests
         [Test]
         public void Inventory_001_CreateInventory()
         {
-            TestHelpers.InMethod();
             XInventoryServicesConnector m_Connector = new XInventoryServicesConnector(DemonServer.Address);
 
             // Create an inventory that looks like this:
@@ -72,6 +69,7 @@ namespace Robust.Tests
             //      Link to notecard  -> /Notecards/Notecard 2
             //      Link to Objects folder -> /Objects
 
+            Console.WriteLine("Starting inventory test");
             bool success = m_Connector.CreateUserInventory(m_userID);
             Assert.IsTrue(success, "Failed to create user inventory");
 
@@ -149,57 +147,6 @@ namespace Robust.Tests
             coll = m_Connector.GetFolderContent(m_userID, folder.ID);
             Assert.IsNotNull(coll, "Failed to retrieve contents of Test Folder");
             Assert.AreEqual(coll.Items.Count + coll.Folders.Count, 2, "Test Folder is expected to have exactly 2 things inside");
-
-        }
-
-        [Test]
-        public void Inventory_002_MultipleItemsRequest()
-        {
-            TestHelpers.InMethod();
-            XInventoryServicesConnector m_Connector = new XInventoryServicesConnector(DemonServer.Address);
-
-            // Prefetch Notecard 1, will be cached from here on
-            InventoryItemBase item = new InventoryItemBase(new UUID("10000000-0000-0000-0000-000000000001"), m_userID);
-            item = m_Connector.GetItem(item);
-            Assert.NotNull(item, "Failed to get Notecard 1");
-            Assert.AreEqual("Test Notecard 1", item.Name, "Wrong name for Notecard 1");
-
-            UUID[] uuids = new UUID[2];
-            uuids[0] = item.ID;
-            uuids[1] = new UUID("20000000-0000-0000-0000-000000000002");
-
-            InventoryItemBase[] items = m_Connector.GetMultipleItems(m_userID, uuids);
-            Assert.NotNull(items, "Failed to get multiple items");
-            Assert.IsTrue(items.Length == 2, "Requested 2 items, but didn't receive 2 items");
-
-            // Now they should both be cached
-            items = m_Connector.GetMultipleItems(m_userID, uuids);
-            Assert.NotNull(items, "(Repeat) Failed to get multiple items");
-            Assert.IsTrue(items.Length == 2, "(Repeat) Requested 2 items, but didn't receive 2 items");
-
-            // This item doesn't exist, but [0] does, and it's cached. 
-            uuids[1] = new UUID("bb000000-0000-0000-0000-0000000000bb");
-            // Fetching should return 2 items, but [1] should be null
-            items = m_Connector.GetMultipleItems(m_userID, uuids);
-            Assert.NotNull(items, "(Three times) Failed to get multiple items");
-            Assert.IsTrue(items.Length == 2, "(Three times) Requested 2 items, but didn't receive 2 items");
-            Assert.AreEqual("Test Notecard 1", items[0].Name, "(Three times) Wrong name for Notecard 1");
-            Assert.IsNull(items[1], "(Three times) Expecting 2nd item to be null");
-
-            // Now both don't exist 
-            uuids[0] = new UUID("aa000000-0000-0000-0000-0000000000aa");
-            items = m_Connector.GetMultipleItems(m_userID, uuids);
-            Assert.Null(items[0], "Request to multiple non-existent items is supposed to return null [0]");
-            Assert.Null(items[1], "Request to multiple non-existent items is supposed to return null [1]");
-
-            // This item exists, and it's not cached
-            uuids[1] = new UUID("b0000000-0000-0000-0000-00000000000b");
-            // Fetching should return 2 items, but [0] should be null
-            items = m_Connector.GetMultipleItems(m_userID, uuids);
-            Assert.NotNull(items, "(Four times) Failed to get multiple items");
-            Assert.IsTrue(items.Length == 2, "(Four times) Requested 2 items, but didn't receive 2 items");
-            Assert.AreEqual("Some Object", items[1].Name, "(Four times) Wrong name for Some Object");
-            Assert.IsNull(items[0], "(Four times) Expecting 1st item to be null");
 
         }
     }

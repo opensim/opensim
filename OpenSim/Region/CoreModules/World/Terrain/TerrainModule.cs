@@ -107,13 +107,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             private bool[,] updated;    // for each patch, whether it needs to be sent to this client
             private int updateCount;    // number of patches that need to be sent
             public ScenePresence Presence;   // a reference to the client to send to
-            public TerrainData Terrain; // reference to the underlying terrain
             public PatchUpdates(TerrainData terrData, ScenePresence pPresence)
             {
                 updated = new bool[terrData.SizeX / Constants.TerrainPatchSize, terrData.SizeY / Constants.TerrainPatchSize];
                 updateCount = 0;
                 Presence = pPresence;
-                Terrain = terrData;
                 // Initially, send all patches to the client
                 SetAll(true);
             }
@@ -521,7 +519,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         // ITerrainModule.PushTerrain()
         public void PushTerrain(IClientAPI pClient)
         {
-            // If view distance based, set the modified patch bits and the frame event will send the updates
             if (m_sendTerrainUpdatesByViewDistance)
             {
                 ScenePresence presence = m_scene.GetScenePresence(pClient.AgentId);
@@ -536,7 +533,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             pups = new PatchUpdates(m_scene.Heightmap.GetTerrainData(), presence);
                             m_perClientPatchUpdates.Add(presence.UUID, pups);
                         }
-                        // By setting all to modified, the next update tick will send the patches
                         pups.SetAll(true);
                     }
                 }
@@ -547,6 +543,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 pClient.SendLayerData(new float[10]);
             }
         }
+
         #region Plugin Loading Methods
 
         private void LoadPlugins()
@@ -994,16 +991,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             else
             {
                 // Legacy update sending where the update is sent out as soon as noticed
-                // We know the actual terrain data that is passed is ignored so this passes a dummy heightmap.
+                // We know the actual terrain data passed is ignored. This kludge saves changing IClientAPI.
                 //float[] heightMap = terrData.GetFloatsSerialized();
                 float[] heightMap = new float[10];
                 m_scene.ForEachClient(
                     delegate(IClientAPI controller)
-                    {
-                        controller.SendLayerData(x / Constants.TerrainPatchSize,
+                {
+                    controller.SendLayerData(x / Constants.TerrainPatchSize,
                                                  y / Constants.TerrainPatchSize,
                                                  heightMap);
-                    }
+                }
                 );
             }
         }
@@ -1029,8 +1026,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         // Called each frame time to see if there are any patches to send to any of the
         //    ScenePresences.
-        // We know this is only called if we are doing view distance patch sending so some
-        //    tests are not made.
         // Loop through all the per-client info and send any patches necessary.
         private void CheckSendingPatchesToClients()
         {
@@ -1048,7 +1043,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
                             // Sort the patches to send by the distance from the presence
                             toSend.Sort();
-                            /* old way that sent individual patches
+                            /*
                             foreach (PatchesToSend pts in toSend)
                             {
                                 pups.Presence.ControllingClient.SendLayerData(pts.PatchX, pts.PatchY, null);
@@ -1056,7 +1051,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             }
                             */
 
-                            // new way that sends all patches to the protocol so they can be sent in one block
                             int[] xPieces = new int[toSend.Count];
                             int[] yPieces = new int[toSend.Count];
                             float[] patchPieces = new float[toSend.Count * 2];
@@ -1073,7 +1067,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
         }
 
-        // Compute a list of modified patches that are within our view distance.
         private List<PatchesToSend> GetModifiedPatchesInViewDistance(PatchUpdates pups)
         {
             List<PatchesToSend> ret = new List<PatchesToSend>();
@@ -1082,60 +1075,43 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (presence == null)
                 return ret;
 
-            Vector3 presencePos = presence.AbsolutePosition;
-
-            // Before this distance check, the whole region just showed up. Adding the distance
-            //   check causes different things to happen for the current and adjacent regions.
-            //   So, to keep legacy views, if the region is legacy sized, don't do distance check.
-            bool isLegacySizedRegion = pups.Terrain.SizeX == Constants.RegionSize && pups.Terrain.SizeY == Constants.RegionSize;
-            bool shouldCheckViewDistance = m_sendTerrainUpdatesByViewDistance && !isLegacySizedRegion;
-
-            int startX = 0;
-            int endX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
-            int startY = 0;
-            int endY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
-
-            // The following only reduces the size of area scanned for updates. Only significant for very large varregions.
-            if (shouldCheckViewDistance)
-            {
-                // Compute the area of patches within our draw distance
-                startX = (((int)(presencePos.X - presence.DrawDistance)) / Constants.TerrainPatchSize) - 2;
-                startX = Math.Max(startX, 0);
-                startX = Math.Min(startX, (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize);
-                startY = (((int)(presencePos.Y - presence.DrawDistance)) / Constants.TerrainPatchSize) - 2;
-                startY = Math.Max(startY, 0);
-                startY = Math.Min(startY, (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize);
-                endX = (((int)(presencePos.X + presence.DrawDistance)) / Constants.TerrainPatchSize) + 2;
-                endX = Math.Max(endX, 0);
-                endX = Math.Min(endX, (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize);
-                endY = (((int)(presencePos.Y + presence.DrawDistance)) / Constants.TerrainPatchSize) + 2;
-                endY = Math.Max(endY, 0);
-                endY = Math.Min(endY, (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize);
-            }
-
-            // m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. rName={1}, ddist={2}, apos={3}, cpos={4}, isChild={5}, start=<{6},{7}>, end=<{8},{9}>",
+            // Compute the area of patches within our draw distance
+            int startX = (((int)(presence.AbsolutePosition.X - presence.DrawDistance)) / Constants.TerrainPatchSize) - 2;
+            startX = Math.Max(startX, 0);
+            startX = Math.Min(startX, (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize);
+            int startY = (((int)(presence.AbsolutePosition.Y - presence.DrawDistance)) / Constants.TerrainPatchSize) - 2;
+            startY = Math.Max(startY, 0);
+            startY = Math.Min(startY, (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize);
+            int endX = (((int)(presence.AbsolutePosition.X + presence.DrawDistance)) / Constants.TerrainPatchSize) + 2;
+            endX = Math.Max(endX, 0);
+            endX = Math.Min(endX, (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize);
+            int endY = (((int)(presence.AbsolutePosition.Y + presence.DrawDistance)) / Constants.TerrainPatchSize) + 2;
+            endY = Math.Max(endY, 0);
+            endY = Math.Min(endY, (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize);
+            // m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. rName={1}, ddist={2}, apos={3}, start=<{4},{5}>, end=<{6},{7}>",
             //                                     LogHeader, m_scene.RegionInfo.RegionName,
-            //                                     presence.DrawDistance, presencePos, presence.CameraPosition,
-            //                                     isLegacySizeChildRegion,
+            //                                     presence.DrawDistance, presence.AbsolutePosition,
             //                                     startX, startY, endX, endY);
             for(int x = startX; x < endX; x++)
             {
                 for(int y = startY; y < endY; y++)
                 {
                     //Need to make sure we don't send the same ones over and over
+                    Vector3 presencePos = presence.AbsolutePosition;
                     Vector3 patchPos = new Vector3(x * Constants.TerrainPatchSize, y * Constants.TerrainPatchSize, presencePos.Z);
                     if (pups.GetByPatch(x, y))
                     {
                         //Check which has less distance, camera or avatar position, both have to be done.
                         //Its not a radius, its a diameter and we add 50 so that it doesn't look like it cuts off
-                        if (!shouldCheckViewDistance
-                            || Util.DistanceLessThan(presencePos, patchPos, presence.DrawDistance + 50)
+                        if (Util.DistanceLessThan(presencePos, patchPos, presence.DrawDistance + 50)
                             || Util.DistanceLessThan(presence.CameraPosition, patchPos, presence.DrawDistance + 50))
                         {
                             //They can see it, send it to them
                             pups.SetByPatch(x, y, false);
                             float dist = Vector3.DistanceSquared(presencePos, patchPos);
                             ret.Add(new PatchesToSend(x, y, dist));
+                            //Wait and send them all at once
+                            // pups.client.SendLayerData(x, y, null);
                         }
                     }
                 }
