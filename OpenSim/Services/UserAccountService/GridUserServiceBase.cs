@@ -60,12 +60,12 @@ namespace OpenSim.Services.UserAccountService
             //
             // [GridUsetService] section overrides [DatabaseService], if it exists
             //
-            IConfig presenceConfig = config.Configs["GridUserService"];
-            if (presenceConfig != null)
+            IConfig usersConfig = config.Configs["GridUserService"];
+            if (usersConfig != null)
             {
-                dllName = presenceConfig.GetString("StorageProvider", dllName);
-                connString = presenceConfig.GetString("ConnectionString", connString);
-                realm = presenceConfig.GetString("Realm", realm);
+                dllName = usersConfig.GetString("StorageProvider", dllName);
+                connString = usersConfig.GetString("ConnectionString", connString);
+                realm = usersConfig.GetString("Realm", realm);
             }
             
             //

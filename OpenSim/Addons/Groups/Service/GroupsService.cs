@@ -307,6 +307,21 @@ namespace OpenSim.Groups
                 m.Contribution = Int32.Parse(d.Data["Contribution"]);
                 m.ListInProfile = d.Data["ListInProfile"] == "1" ? true : false;
 
+				GridUserData gud = m_GridUserService.Get(d.PrincipalID);
+				if (gud != null)
+				{
+					if (bool.Parse(gud.Data["Online"])) 
+					{
+						m.OnlineStatus = @"Online";
+					}
+					else 
+					{
+						int unixtime = int.Parse(gud.Data["Login"]);
+						// The viewer is very picky about how these strings are formed. Eg. it will crash on malformed dates!
+						m.OnlineStatus = (unixtime == 0) ? @"unknown" : Util.ToDateTime(unixtime).ToString("MM/dd/yyyy");
+					}
+				}
+
                 // Is this person an owner of the group?
                 m.IsOwner = (rolemembershipsList.Find(r => r.RoleID == ownerRoleID) != null) ? true : false;
 
