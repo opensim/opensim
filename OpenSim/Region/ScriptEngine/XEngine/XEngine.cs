@@ -1872,12 +1872,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.ApiResetScript();
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
         }
 
         public void ResetScript(UUID itemID)
@@ -1885,12 +1879,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.ResetScript(m_WaitForEventCompletionOnScriptStop);
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
         }
 
         public void StartScript(UUID itemID)
@@ -1900,12 +1888,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Start();
             else
                 m_runFlags.AddOrUpdate(itemID, true, 240);
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
         }
 
         public void StopScript(UUID itemID)
@@ -1921,12 +1903,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //                m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
                 m_runFlags.AddOrUpdate(itemID, false, 240);
             }
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
         }
 
         public DetectParams GetDetectParams(UUID itemID, int idx)
@@ -2417,12 +2393,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Suspend();
 //            else
 //                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
         }
 
         public void ResumeScript(UUID itemID)
@@ -2434,12 +2404,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Resume();
 //            else
 //                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
         }
 
         public bool HasScript(UUID itemID, out bool running)

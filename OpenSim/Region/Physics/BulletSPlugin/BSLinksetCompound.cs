@@ -329,6 +329,10 @@ public sealed class BSLinksetCompound : BSLinkset
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
     private bool UseBulletSimRootOffsetHack = false;    // Attempt to have Bullet track the coords of root compound shape
+    // Number of times to perform rebuilds on broken linkset children. This should only happen when
+    //    a linkset is initially being created and should happen only one or two times at the most.
+    //    This exists to cause a looping problem to be reported while not rebuilding a linkset forever.
+    private static int LinksetRebuildFailureLoopPrevention = 10;
     private void RecomputeLinksetCompound()
     {
         try

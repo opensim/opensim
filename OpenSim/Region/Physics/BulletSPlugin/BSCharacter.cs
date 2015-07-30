@@ -61,6 +61,7 @@ public sealed class BSCharacter : BSPhysObject
     private const string AvatarMoveActorName = "BSCharacter.AvatarMove";
 
     private OMV.Vector3 _PIDTarget;
+    private bool _usePID;
     private float _PIDTau;
 
 //        public override OMV.Vector3 RawVelocity 

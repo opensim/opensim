@@ -73,13 +73,12 @@ namespace Robust.Tests
             Assert.NotNull(account, "Failed to retrieve account for user id " + user1);
             Assert.AreEqual(account.Email, "user@example.com", "Incorrect email");
 
+            account = m_Connector.GetUserAccount(UUID.Zero, "DoesNot", "Exist");
+            Assert.IsNull(account, "Account DoesNot Exit must not be there");
+
             account = new UserAccount(UUID.Zero, "DoesNot", "Exist", "xxx@xxx.com");
             success = m_Connector.StoreUserAccount(account);
             Assert.IsFalse(success, "Storing a non-existing account must fail");
-
-            account = m_Connector.GetUserAccount(UUID.Zero, "DoesNot", "Exist");
-            Assert.IsNull(account, "Account DoesNot Exist must not be there");
-
         }
 
     }

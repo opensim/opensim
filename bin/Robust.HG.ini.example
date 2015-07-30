@@ -85,7 +85,6 @@
     PresenceServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:PresenceServiceConnector"
     UserAccountServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
     GridUserServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:GridUserServiceConnector"
-    AgentPreferencesServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:AgentPreferencesServiceConnector"
     FriendsServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
     MapAddServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
     MapGetServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
@@ -205,31 +204,7 @@
 ; * in turn, reads the asset loader and database connection information
 ; *
 [AssetService]
-
-    ;; Choose an asset service (Only one option should be enabled)
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
-    ;LocalServiceModule = "OpenSim.Services.FSAssetService.dll:FSAssetConnector"
-    
-    ;; FSAsset Directories. Base directory, where final asset files are stored and Spool directory for temp files
-    ;; These directories must be on the same physical filesystem
-    ;BaseDirectory = "./fsassets/data"
-    ;SpoolDirectory = "./fsassets/tmp"
-    
-    ;; Original service can be checked if FSAssets can not find an asset
-    ;FallbackService = "OpenSim.Services.AssetService.dll:AssetService";
-    
-    ;; How many days since last updating the access time before its updated again by FSAssets when accessing an asset
-    ;; Reduces DB calls if asset is requested oftern. Default value 0
-    ;DaysBetweenAccessTimeUpdates = 30
-    
-    ;; FSAssets Custom Database Config (Leave blank to use grids default database configuration)
-    ;StorageProvider = ""
-    ;ConnectionString = ""
-    ;Realm = "fsassets"
-    
-    ;; The Following Are Common to both the default asset service and FSAsset service
-
-    ;; Common asset service options
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
 
@@ -397,11 +372,6 @@
 [GridUserService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:GridUserService"
-
-
-[AgentPreferencesService]
-    ; for the server connector
-    LocalServiceModule = "OpenSim.Services.UserAccountService.dll:AgentPreferencesService"
 
 
 [PresenceService]

@@ -1224,9 +1224,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // haven't started yet.
                 if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
                 {
+                    // Viewers which have a current outfit folder will actually rez their own attachments.  However,
+                    // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
                     WorkManager.RunJob(
-                        "RezAttachments",
-                        o => Scene.AttachmentsModule.RezAttachments(this),
+                        "RezAttachments", 
+                        o => Scene.AttachmentsModule.RezAttachments(this), 
                         null,
                         string.Format("Rez attachments for {0} in {1}", Name, Scene.Name));
                 }

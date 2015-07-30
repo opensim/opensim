@@ -1462,13 +1462,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.Name);
 
             using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
-            {
-                // V1 (This Module)
                 GenerateMaptile(mapbmp);
-
-                // v2/3 (MapImageServiceModule)
-                m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
-            }
         }
 
         private void GenerateMaptile(Bitmap mapbmp)

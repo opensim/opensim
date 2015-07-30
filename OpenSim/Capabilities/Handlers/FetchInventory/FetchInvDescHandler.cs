@@ -28,7 +28,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -50,21 +49,18 @@ namespace OpenSim.Capabilities.Handlers
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
-        private IScene m_Scene;
 //        private object m_fetchLock = new Object();
 
-        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService, IScene s) 
+        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService) 
         {
             m_InventoryService = invService;
             m_LibraryService = libService;
-            m_Scene = s;
         }
 
         
         public string FetchInventoryDescendentsRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            //m_log.DebugFormat("[XXX]: FetchInventoryDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
-
+    
             // nasty temporary hack here, the linden client falsely
             // identifies the uuid 00000000-0000-0000-0000-000000000000
             // as a string which breaks us
@@ -116,7 +112,6 @@ namespace OpenSim.Capabilities.Handlers
                 // Filter duplicate folder ids that bad viewers may send
                 if (folders.Find(f => f.folder_id == llsdRequest.folder_id) == null)
                     folders.Add(llsdRequest);
-
             }
 
             if (folders.Count > 0)
@@ -587,15 +582,6 @@ namespace OpenSim.Capabilities.Handlers
 
             AddLibraryFolders(fetchFolders, result);
 
-            // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
-            // and can kill the sim (all root folders have parent_id Zero)
-            LLSDFetchInventoryDescendents zero = fetchFolders.Find(f => f.folder_id == UUID.Zero);
-            if (zero != null)
-            {
-                fetchFolders.Remove(zero);
-                BadFolder(zero, null, bad_folders);
-            }
-
             if (fetchFolders.Count > 0)
             {
                 UUID[] fids = new UUID[fetchFolders.Count];
@@ -609,9 +595,7 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (fetchedContents == null || (fetchedContents != null && fetchedContents.Length == 0))
                 {
-                    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Could not get contents of multiple folders for user {0}", fetchFolders[0].owner_id);
-                    foreach (LLSDFetchInventoryDescendents freq in fetchFolders)
-                        BadFolder(freq, null, bad_folders);
+                    //m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Could not get contents of multiple folders for user {0}", fetchFolders[0].owner_id);
                     return null;
                 }
 
@@ -649,7 +633,7 @@ namespace OpenSim.Capabilities.Handlers
 
             // The inventory server isn't sending FolderID in the collection...
             // Must fetch it individually
-            else if (contents.FolderID == UUID.Zero)
+            if (contents.FolderID == UUID.Zero)
             {
                 InventoryFolderBase containingFolder = new InventoryFolderBase();
                 containingFolder.ID = freq.folder_id;
@@ -732,13 +716,24 @@ namespace OpenSim.Capabilities.Handlers
                     InventoryCollection[] linkedFolders = m_InventoryService.GetMultipleFoldersContent(coll.Collection.OwnerID, folderIDs.ToArray());
                     foreach (InventoryCollection linkedFolderContents in linkedFolders)
                     {
-                        if (linkedFolderContents == null)
-                            continue;
-
                         List<InventoryItemBase> links = linkedFolderContents.Items;
 
                         itemsToReturn.InsertRange(0, links);
 
+                        foreach (InventoryItemBase link in linkedFolderContents.Items)
+                        {
+                            // Take care of genuinely broken links where the target doesn't exist
+                            // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                            // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                            // rather than having to keep track of every folder requested in the recursion.
+                            if (link != null)
+                            {
+                                //m_log.DebugFormat(
+                                //    "[WEB FETCH INV DESC HANDLER]: Adding item {0} {1} from folder {2} linked from {3} ({4} {5})",
+                                //    link.Name, (AssetType)link.AssetType, linkedFolderContents.FolderID, contents.FolderID, link.ID, link.AssetID);
+                                itemIDs.Add(link.ID);
+                            }
+                        }
                     }
                 }
 

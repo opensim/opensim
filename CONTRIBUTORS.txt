@@ -5,13 +5,17 @@ These folks represent the current core team for OpenSim, and are the
 people that make the day to day of OpenSim happen.
 
 * justincc (OSVW Consulting, justincc.org)
+* chi11ken (Genkii)
 * dahlia 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
+* Dan Lake 
+* Marck
+* Mic Bowman
 * BlueWall (James Hughes)
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Snoopy Pfeffer
-* Robert Adams (MisterBlue)
+* Robert Adams
 * Oren Hurvitz (Kitely)
 * Kevin Cozens
 
@@ -20,11 +24,17 @@ Core developers who have temporarily (we hope) gone chasing the white rabbit.
 They are in all similar to the active core developers, except that they haven't
 been that active lately, so their voting rights are awaiting their come back. 
 
+* MW (Tribal Media AB)
+* Adam Frisby 	(DeepThink Pty Ltd)
+* lbsa71 (Tribal Media AB)
 * Teravus (w3z)
+* Ckrinke (Charles Krinke)
+* Dr Scofield aka Dirk Husemann (IBM Research - Zurich)
+* mikem (3Di)
+* Homer_Horwitz
+* nlin (3Di)
 * Arthur Rodrigo S Valadares (IBM)
-* Dan Lake 
-* Marck
-* Mic Bowman
+* John Hurliman
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
@@ -46,16 +56,6 @@ where we are today.
 * adjohn (Genkii)
 * idb (Ian Brown)
 * Johan Berntsson (3Di)
-* MW (Tribal Media AB)
-* Adam Frisby 	(DeepThink Pty Ltd)
-* lbsa71 (Tribal Media AB)
-* Ckrinke (Charles Krinke)
-* Dr Scofield aka Dirk Husemann (IBM Research - Zurich)
-* mikem (3Di)
-* Homer_Horwitz
-* nlin (3Di)
-* John Hurliman
-* chi11ken (Genkii)
 
 
 = Additional OpenSim Contributors =
@@ -94,7 +94,6 @@ what it is today.
 * FredoChaplin
 * FreakyTech
 * Garmin Kawaguichi
-* Gavin Hird
 * Gerhard
 * Godfrey
 * Greg C.
@@ -104,9 +103,7 @@ what it is today.
 * Fernando Oliveira
 * Fly-Man
 * Flyte Xevious
-* Freaky Tech
 * Garmin Kawaguichi
-* Glenn Martin (MOSES)
 * Gryc Ueusp
 * H-H-H (ginge264)
 * Hiro Lecker
@@ -140,7 +137,6 @@ what it is today.
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
-* Michael Heilmann (MOSES)
 * Micheil Merlin
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
@@ -163,7 +159,6 @@ what it is today.
 * Richard Alimi (IBM)
 * Rick Alther (IBM)
 * Rob Smart (IBM)
-* Robert Louden (MOSES)
 * Roger Kirkman (zadark)
 * rtomita
 * Ruud Lathorp
@@ -175,7 +170,6 @@ what it is today.
 * SignpostMarv
 * SpotOn3D
 * Stefan_Boom / stoehr
-* Steven Zielinski (MOSES)
 * Strawberry Fride
 * Talun
 * TechplexEngineer (Blake Bourque)

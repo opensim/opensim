@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_LibraryService = Scene.LibraryService;
 
             // We'll reuse the same handler for all requests.
-            m_webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, Scene);
+            m_webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService);
 
             Scene.EventManager.OnRegisterCaps += RegisterCaps;
 
@@ -267,6 +267,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 Request = (x, y) =>
                 {
                     ScenePresence sp = m_module.Scene.GetScenePresence(Id);
+                    if (sp == null)
+                    {
+                        m_log.ErrorFormat("[INVENTORY]: Unable to find ScenePresence for {0}", Id);
+                        return;
+                    }
 
                     aPollRequest reqinfo = new aPollRequest();
                     reqinfo.thepoll = this;
