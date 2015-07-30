@@ -219,7 +219,7 @@
     ;FallbackService = "OpenSim.Services.AssetService.dll:AssetService";
     
     ;; How many days since last updating the access time before its updated again by FSAssets when accessing an asset
-    ;; Reduces DB calls if asset is requested oftern. Default value 0
+    ;; Reduces DB calls if asset is requested often. Default value 0 will always update access time
     ;DaysBetweenAccessTimeUpdates = 30
     
     ;; FSAssets Custom Database Config (Leave blank to use grids default database configuration)
@@ -227,7 +227,7 @@
     ;ConnectionString = ""
     ;Realm = "fsassets"
     
-    ;; The Following Are Common to both the default asset service and FSAsset service
+    ;; The following are common to both the default asset service and FSAsset service
 
     ;; Common asset service options
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
