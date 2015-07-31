@@ -96,8 +96,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
     {
         public string Response { get; set; }
 
+#pragma warning disable 0618
         public TestHttpWebResponse(SerializationInfo serializationInfo, StreamingContext streamingContext) 
             : base(serializationInfo, streamingContext) {}
+#pragma warning restore 0618
 
         public override Stream GetResponseStream()
         {

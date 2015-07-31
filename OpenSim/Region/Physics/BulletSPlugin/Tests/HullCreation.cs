@@ -50,7 +50,6 @@ public class HullCreation : OpenSimTestCase
 
     BSScene PhysicsScene { get; set; }
     Vector3 ObjectInitPosition;
-    float simulationTimeStep = 0.089f;
 
     [TestFixtureSetUp]
     public void Init()

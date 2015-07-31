@@ -128,7 +128,9 @@ namespace OpenSim.Capabilities.Handlers
                 if (invcollSet == null)
                 {
                     m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Multiple folder fetch failed. Trying old protocol.");
+#pragma warning disable 0612
                     return FetchInventoryDescendentsRequest(foldersrequested, httpRequest, httpResponse);
+#pragma warning restore 0612
                 }
 
                 string inventoryitemstr = string.Empty;
@@ -199,10 +201,11 @@ namespace OpenSim.Capabilities.Handlers
             int version = 0;
             int descendents = 0;
 
-            inv
-                = Fetch(
+#pragma warning disable 0612
+            inv = Fetch(
                     invFetch.owner_id, invFetch.folder_id, invFetch.owner_id,
                     invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version, out descendents);
+#pragma warning restore 0612
 
             if (inv != null && inv.Folders != null)
             {

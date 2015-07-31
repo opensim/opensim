@@ -99,8 +99,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("verify_client", VerifyClient, false);
             server.AddXmlRPCHandler("logout_agent", LogoutAgent, false);
 
+#pragma warning disable 0612
             server.AddXmlRPCHandler("status_notification", StatusNotification, false);
             server.AddXmlRPCHandler("get_online_friends", GetOnlineFriends, false);
+#pragma warning restore 0612
             server.AddXmlRPCHandler("get_user_info", GetUserInfo, false);
             server.AddXmlRPCHandler("get_server_urls", GetServerURLs, false);
 

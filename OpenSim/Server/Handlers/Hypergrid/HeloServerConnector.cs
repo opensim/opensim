@@ -44,7 +44,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
         public HeloServiceInConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
+#pragma warning disable 0612
             server.AddStreamHandler(new HeloServerGetHandler("opensim-robust"));
+#pragma warning restore 0612
             server.AddStreamHandler(new HeloServerHeadHandler("opensim-robust"));
         }
     }

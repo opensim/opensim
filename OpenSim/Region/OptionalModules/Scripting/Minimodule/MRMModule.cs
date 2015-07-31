@@ -180,6 +180,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// * Internet
         /// * Everything
         /// </remarks>
+#pragma warning disable 0618
         public static AppDomain CreateRestrictedDomain(string permissionSetName, string appDomainName)
         {
             if (permissionSetName == null)
@@ -240,6 +241,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
             return restrictedDomain;
         }
+#pragma warning restore 0618
 
 
         void EventManager_OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
