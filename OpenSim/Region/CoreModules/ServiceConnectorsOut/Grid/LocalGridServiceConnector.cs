@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     if (region != null)
                     {
                         m_log.DebugFormat("{0} GetRegionByPosition. Found region {1} in cache (of region {2}). Pos=<{3},{4}>",
-                                         LogHeader, region.RegionName,
+                                         LogHeader, region.RegionName, rcache.RegionName,
                                          Util.WorldToRegionLoc((uint)region.RegionLocX), Util.WorldToRegionLoc((uint)region.RegionLocY));
                         break;
                     }
