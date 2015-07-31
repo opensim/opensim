@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         public void Process()
         {
             _finished = false;
-            WorkManager.StartThread(SendRequest, "HttpRequestThread", ThreadPriority.BelowNormal, true, false);
+            httpThread = WorkManager.StartThread(SendRequest, "HttpRequestThread", ThreadPriority.BelowNormal, true, false);
         }
 
         /*
@@ -738,7 +738,11 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         {
             try
             {
-                httpThread.Abort();
+                if (httpThread != null)
+                {
+                    Watchdog.AbortThread(httpThread.ManagedThreadId);
+                    httpThread = null;
+                }
             }
             catch (Exception)
             {
