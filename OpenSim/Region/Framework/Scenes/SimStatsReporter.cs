@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // Determines the size of the array that is used to collect StatBlocks
         // for sending to the SimStats and SimExtraStatsCollector
-        private const int m_statisticArraySize = 27;
+        private const int m_statisticArraySize = 28;
 
         /// <summary>
         /// These are the IDs of stats sent in the StatsPacket to the viewer.
@@ -204,9 +204,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_physicsMS;
         private int m_imageMS;
         private int m_otherMS;
-
-//Ckrinke: (3-21-08) Comment out to remove a compiler warning. Bring back into play when needed.
-//Ckrinke        private int m_scriptMS = 0;
+        private int m_scriptMS;
 
         private int m_rootAgents;
         private int m_childAgents;
@@ -428,7 +426,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // values to X-per-second values.
 
                 uint thisFrame = m_scene.Frame;
-                float framesUpdated = (float)(thisFrame - m_lastUpdateFrame) * m_reportedFpsCorrectionFactor;
+                uint numFrames = thisFrame - m_lastUpdateFrame;
+                float framesUpdated = (float)numFrames * m_reportedFpsCorrectionFactor;
                 m_lastUpdateFrame = thisFrame;
 
                 // Avoid div-by-zero if somehow we've not updated any frames.
@@ -501,23 +500,22 @@ namespace OpenSim.Region.Framework.Scenes
                // statistics to the statistics window
                 sb[8].StatID = (uint)Stats.FrameMS;
                 //sb[8].StatValue = m_frameMS / framesUpdated;
-               sb[8].StatValue = (float) totalSumFrameTime / m_numberFramesStored;
+                sb[8].StatValue = (float) totalSumFrameTime / m_numberFramesStored;
 
                 sb[9].StatID = (uint)Stats.NetMS;
                 //sb[9].StatValue = m_netMS / framesUpdated;
-               sb[9].StatValue = (float) networkSumFrameTime / m_numberFramesStored;
+                sb[9].StatValue = (float) networkSumFrameTime / m_numberFramesStored;
 
                 sb[10].StatID = (uint)Stats.PhysicsMS;
                 //sb[10].StatValue = m_physicsMS / framesUpdated;
-               sb[10].StatValue = (float) physicsSumFrameTime / m_numberFramesStored;
+                sb[10].StatValue = (float) physicsSumFrameTime / m_numberFramesStored;
 
                 sb[11].StatID = (uint)Stats.ImageMS ;
                 sb[11].StatValue = m_imageMS / framesUpdated;
 
                 sb[12].StatID = (uint)Stats.OtherMS;
                 //sb[12].StatValue = m_otherMS / framesUpdated;
-               sb[12].StatValue = (float) simulationSumFrameTime /
-                  m_numberFramesStored;
+                sb[12].StatValue = (float) simulationSumFrameTime / m_numberFramesStored;
 
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
                 sb[13].StatValue = (m_inPacketsPerSecond / m_statsUpdateFactor);
@@ -566,6 +564,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // Current number of threads that XEngine is using
                 sb[26].StatID = (uint)Stats.ThreadCount;
                 sb[26].StatValue = m_inUseThreads;
+
+                sb[27].StatID = (uint)Stats.ScriptMS;
+                sb[27].StatValue = (numFrames <= 0) ? 0 : ((float)m_scriptMS / numFrames);
 
                 for (int i = 0; i < m_statisticArraySize; i++)
                 {
@@ -632,10 +633,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsMS = 0;
             m_imageMS = 0;
             m_otherMS = 0;
+            m_scriptMS = 0;
             m_spareMS = 0;
-
-//Ckrinke This variable is not used, so comment to remove compiler warning until it is used.
-//Ckrinke            m_scriptMS = 0;
         }
 
         # region methods called from Scene
@@ -746,31 +745,36 @@ namespace OpenSim.Region.Framework.Scenes
             m_otherMS += ms;
         }
 
-      public void addPhysicsFrame(int frames)
-      {
-         // Add the number of physics frames to the correct total physics
-         // frames
-         m_numberPhysicsFrames += frames;
-      }
+        public void AddScriptMS(int ms)
+        {
+            m_scriptMS += ms;
+        }
 
-      public void addFrameTimeMilliseconds(double total, double simulation,
-         double physics, double network)
-      {
-         // Save the frame times from the current frame into the appropriate
-         // arrays
-         m_totalFrameTimeMilliseconds[m_nextLocation] = total;
-         m_simulationFrameTimeMilliseconds[m_nextLocation] = simulation;
-         m_physicsFrameTimeMilliseconds[m_nextLocation] = physics;
-         m_networkFrameTimeMilliseconds[m_nextLocation] = network;
+        public void addPhysicsFrame(int frames)
+        {
+            // Add the number of physics frames to the correct total physics
+            // frames
+            m_numberPhysicsFrames += frames;
+        }
 
-         // Update to the next location in the list
-         m_nextLocation++;
+        public void addFrameTimeMilliseconds(double total, double simulation,
+            double physics, double network)
+        {
+            // Save the frame times from the current frame into the appropriate
+            // arrays
+            m_totalFrameTimeMilliseconds[m_nextLocation] = total;
+            m_simulationFrameTimeMilliseconds[m_nextLocation] = simulation;
+            m_physicsFrameTimeMilliseconds[m_nextLocation] = physics;
+            m_networkFrameTimeMilliseconds[m_nextLocation] = network;
 
-         // Since the list will begin to overwrite the oldest frame values
-         // first, the next location needs to loop back to the beginning of the
-         // list whenever it reaches the end
-         m_nextLocation = m_nextLocation % m_numberFramesStored;
-      }
+            // Update to the next location in the list
+            m_nextLocation++;
+
+            // Since the list will begin to overwrite the oldest frame values
+            // first, the next location needs to loop back to the beginning of the
+            // list whenever it reaches the end
+            m_nextLocation = m_nextLocation % m_numberFramesStored;
+        }
 
         public void AddPendingDownloads(int count)
         {

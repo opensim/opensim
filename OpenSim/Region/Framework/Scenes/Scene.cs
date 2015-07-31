@@ -445,6 +445,11 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastMaintenanceTick;
 
         /// <summary>
+        /// Total script execution time (in Stopwatch Ticks) since the last frame
+        /// </summary>
+        private long m_scriptExecutionTime = 0;
+
+        /// <summary>
         /// Signals whether temporary objects are currently being cleaned up.  Needed because this is launched
         /// asynchronously from the update loop.
         /// </summary>
@@ -1926,6 +1931,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.addOtherMS(otherMS);
                 StatsReporter.AddSpareMS(spareMS);
                 StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
+                StatsReporter.AddScriptMS((int) GetAndResetScriptExecutionTime());
 
                 // Send the correct time values to the stats reporter for the
                 // frame times
@@ -1951,6 +1957,26 @@ namespace OpenSim.Region.Framework.Scenes
             totalFrameStopwatch.Stop();
 
             return spareMS >= 0;
+        }
+
+        /// <summary>
+        /// Adds the execution time of one script to the total scripts execution time for this region.
+        /// </summary>
+        /// <param name="ticks">Elapsed Stopwatch ticks</param>
+        public void AddScriptExecutionTime(long ticks)
+        {
+            Interlocked.Add(ref m_scriptExecutionTime, ticks);
+        }
+
+        /// <summary>
+        /// Returns the total execution time of all the scripts in the region since the last frame
+        /// (in milliseconds), and clears the value in preparation for the next frame.
+        /// </summary>
+        /// <returns>Time in milliseconds</returns>
+        private long GetAndResetScriptExecutionTime()
+        {
+            long ticks = Interlocked.Exchange(ref m_scriptExecutionTime, 0);
+            return (ticks * 1000) / Stopwatch.Frequency;
         }
 
         public void AddGroupTarget(SceneObjectGroup grp)

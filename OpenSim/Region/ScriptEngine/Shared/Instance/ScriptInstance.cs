@@ -764,6 +764,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 {
                     timer.Stop();
                     ExecutionTime.AddSample(timer);
+                    Part.ParentGroup.Scene.AddScriptExecutionTime(timer.ElapsedTicks);
                 }
             }
         }
