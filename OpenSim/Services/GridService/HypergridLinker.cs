@@ -47,7 +47,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.GridService
 {
-    public class HypergridLinker 
+    public class HypergridLinker : IHypergridLinker
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -191,7 +191,7 @@ namespace OpenSim.Services.GridService
             return TryLinkRegionToCoords(scopeID, mapName, xloc, yloc, UUID.Zero, out reason);
         }
 
-        private GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
+        public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
         {
             reason = string.Empty;
             GridRegion regInfo = null;

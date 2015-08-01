@@ -124,6 +124,12 @@ namespace OpenSim.Services.Interfaces
         Dictionary<string,object> GetExtraFeatures();
     }
 
+    public interface IHypergridLinker
+    {
+        GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason);
+        bool TryUnlinkRegion(string mapName);
+    }
+
     public class GridRegion
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
