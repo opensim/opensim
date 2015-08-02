@@ -330,7 +330,7 @@ namespace OpenSim.Services.FSAssetService
             return Path.Combine(HashToPath(hash), hash);
         }
 
-        public AssetBase Get(string id)
+        public virtual AssetBase Get(string id)
         {
             string hash;
 
@@ -434,13 +434,13 @@ namespace OpenSim.Services.FSAssetService
             }
         }
 
-        public AssetMetadata GetMetadata(string id)
+        public virtual AssetMetadata GetMetadata(string id)
         {
             string hash;
             return m_DataConnector.Get(id, out hash);
         }
 
-        public byte[] GetData(string id)
+        public virtual byte[] GetData(string id)
         {
             string hash;
             if (m_DataConnector.Get(id, out hash) == null)
@@ -521,7 +521,7 @@ namespace OpenSim.Services.FSAssetService
 
         }
 
-        public string Store(AssetBase asset)
+        public virtual string Store(AssetBase asset)
         {
             return Store(asset, false);
         }
@@ -606,7 +606,7 @@ namespace OpenSim.Services.FSAssetService
 //            return true;
         }
 
-        public bool Delete(string id)
+        public virtual bool Delete(string id)
         {
             m_DataConnector.Delete(id);
 
