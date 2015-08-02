@@ -190,6 +190,9 @@ namespace OpenSim.Framework.Serialization.External
             if (xmlData == string.Empty || homeURL == string.Empty || userService == null)
                 return xmlData;
 
+            // Deal with bug
+            xmlData = ExternalRepresentationUtils.SanitizeXml(xmlData);
+
             using (StringWriter sw = new StringWriter())
             using (XmlTextWriter writer = new XmlTextWriter(sw))
             using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
@@ -364,5 +367,21 @@ namespace OpenSim.Framework.Serialization.External
         {
             return homeURL + "/" + uuid + ";" + name;
         }
+
+        /// <summary>
+        /// Sanitation for bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
+        /// </summary>
+        /// <param name="xmlData"></param>
+        /// <returns></returns>
+        public static string SanitizeXml(string xmlData)
+        {
+            string fixedData = xmlData;
+            if (fixedData != null)
+                // Loop, because it may contain multiple
+                while (fixedData.Contains("xmlns:xmlns:"))
+                    fixedData = fixedData.Replace("xmlns:xmlns:", "xmlns:");
+            return fixedData;
+        }
+
     }
 }

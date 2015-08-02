@@ -37,6 +37,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
@@ -2225,7 +2226,7 @@ namespace OpenSim.Region.Framework.Scenes
             bbox = Vector3.Zero;
             offsetHeight = 0;
 
-            string xmlData = Utils.BytesToString(assetData);
+            string xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(assetData));
 
             try
             {

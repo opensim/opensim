@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static IUserManagement m_UserManagement;
-        
+
         /// <summary>
         /// Deserialize a scene object from the original xml format
         /// </summary>
@@ -60,7 +60,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns>The scene object deserialized.  Null on failure.</returns>
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
-            using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
+            String fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
+            using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
                 using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
                     return FromOriginalXmlFormat(reader);
         }
@@ -322,7 +323,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
             CoalescedSceneObjects coa = null;
 
-            string xmlData = Utils.BytesToString(data);
+            string xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(data));
             
             if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
             {
