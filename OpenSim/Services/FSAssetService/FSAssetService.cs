@@ -35,6 +35,7 @@ using System.Threading;
 using System.Reflection;
 using OpenSim.Data;
 using OpenSim.Framework;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Services.Base;
@@ -394,9 +395,18 @@ namespace OpenSim.Services.FSAssetService
                     }
                     if (asset == null)
                         m_missingAssetsFS++;
-                        // m_log.InfoFormat("[FSASSETS]: Asset {0}, hash {1} not found in FS", id, hash);
+                    // m_log.InfoFormat("[FSASSETS]: Asset {0}, hash {1} not found in FS", id, hash);
                     else
+                    {
+                        // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
+                        // Fix bad assets before sending them elsewhere
+                        if (asset.Type == (int)AssetType.Object && asset.Data != null)
+                        {
+                            string xml = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(asset.Data));
+                            asset.Data = Utils.StringToBytes(xml);
+                        }
                         return asset;
+                    }
                 }
 
                 lock (m_statsLock)
@@ -404,6 +414,15 @@ namespace OpenSim.Services.FSAssetService
                     m_readTicks += Environment.TickCount - startTime;
                     m_readCount++;
                 }
+
+                // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
+                // Fix bad assets before sending them elsewhere
+                if (newAsset.Type == (int)AssetType.Object && newAsset.Data != null)
+                {
+                    string xml = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(newAsset.Data));
+                    newAsset.Data = Utils.StringToBytes(xml);
+                }
+
                 return newAsset;
             }
             catch (Exception exception)
@@ -519,6 +538,14 @@ namespace OpenSim.Services.FSAssetService
 
                 if (!File.Exists(finalFile))
                 {
+                    // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
+                    // Fix bad assets before storing on this server
+                    if (asset.Type == (int)AssetType.Object && asset.Data != null)
+                    {
+                        string xml = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(asset.Data));
+                        asset.Data = Utils.StringToBytes(xml);
+                    }
+
                     FileStream fs = File.Create(tempFile);
 
                     fs.Write(asset.Data, 0, asset.Data.Length);
