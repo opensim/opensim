@@ -430,7 +430,7 @@ namespace OpenSim.Services.HypergridService
                 try
                 {
                     Uri uri = new Uri(aCircuit.ServiceURLs["HomeURI"].ToString());
-                    aCircuit.lastname = "@" + uri.Host; // + ":" + uri.Port;
+                    aCircuit.lastname = "@" + uri.Authority;
                 }
                 catch
                 {
