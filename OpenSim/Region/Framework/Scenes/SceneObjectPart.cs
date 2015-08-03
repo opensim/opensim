@@ -126,6 +126,8 @@ namespace OpenSim.Region.Framework.Scenes
         
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool shouldUseFireAndForgetForCollisions = true;
+
         /// <summary>
         /// Dynamic attributes can be created and deleted as required.
         /// </summary>
@@ -2392,7 +2394,7 @@ namespace OpenSim.Region.Framework.Scenes
                     CollidingMessage = CreateColliderArgs(this, colliders);
 
                     if (CollidingMessage.Colliders.Count > 0)
-                        notify(LocalId, CollidingMessage);
+                        DoNotify(notify, LocalId, CollidingMessage);
 
                     if (PassCollisions)
                         sendToRoot = true;
@@ -2406,7 +2408,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     CollidingMessage = CreateColliderArgs(ParentGroup.RootPart, colliders);
                     if (CollidingMessage.Colliders.Count > 0)
-                        notify(ParentGroup.RootPart.LocalId, CollidingMessage);
+                        DoNotify(notify, ParentGroup.RootPart.LocalId, CollidingMessage);
                 }
             }
         }
@@ -2421,7 +2423,33 @@ namespace OpenSim.Region.Framework.Scenes
                 colliding.Add(CreateDetObjectForGround());
                 LandCollidingMessage.Colliders = colliding;
 
-                notify(LocalId, LandCollidingMessage);
+                DoNotify(notify, LocalId, LandCollidingMessage);
+            }
+        }
+
+        private void DoNotify(ScriptCollidingNotification notify, uint id, ColliderArgs collargs)
+        {
+            if (m_parentGroup != null && ParentGroup.Scene != null && ParentGroup.Scene.ShouldUseFireAndForgetForCollisions)
+            {
+                // For those learning C#, FireAndForget takes a function, an object to pass
+                //    to that function and an ID string. The "oo => {}" construct is a lambda expression
+                //    for a function with one arguement ('oo'). The 'new Object[] {}" construct creates an Object
+                //    that is an object array and initializes it with three items (the parameters
+                //    being passed). The parameters passed are the function to call ('notify') and
+                //    its two arguements. Finally, once in the function (called later by the FireAndForget
+                //    thread scheduler), the passed object is cast to an object array and then each
+                //    of its items (aoo[0] to aoo[2]) are individually cast to what they are and
+                //    then used in a call of the passed ScriptCollidingNotification function.
+                Util.FireAndForget(oo =>
+                {
+                    Object[] aoo = (Object[])oo;
+                    ((ScriptCollidingNotification)aoo[0])((uint)aoo[1], (ColliderArgs)aoo[2]);
+
+                }, new Object[] { notify, id, collargs }, "SOP.Collision");
+            }
+            else
+            {
+                notify(id, collargs);
             }
         }
 
