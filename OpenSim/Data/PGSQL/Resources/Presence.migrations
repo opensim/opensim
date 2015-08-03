@@ -36,3 +36,13 @@ BEGIN;
 CREATE INDEX RegionID ON Presence("RegionID");
 
 COMMIT;
+
+:VERSION 4         # Making sure LastSeen is actually defined in the table as it most likely erred in the double version 2 migration above 
+
+BEGIN;
+
+ALTER TABLE Presence 
+DROP COLUMN IF EXISTS "LastSeen",
+ADD COLUMN "LastSeen" Timestamp;
+
+COMMIT;
