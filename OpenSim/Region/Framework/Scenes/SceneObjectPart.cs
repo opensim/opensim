@@ -126,8 +126,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool shouldUseFireAndForgetForCollisions = true;
-
         /// <summary>
         /// Dynamic attributes can be created and deleted as required.
         /// </summary>
