@@ -2318,6 +2318,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retval;
         }
 
+        public string osGetAvatarHomeURI(string uuid)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osGetAvatarHomeURI");
+            m_host.AddScriptLPS(1);
+
+            IUserManagement userManager = m_ScriptEngine.World.RequestModuleInterface<IUserManagement>();
+            string returnValue = "";
+
+            if (userManager != null)
+            {
+                returnValue = userManager.GetUserServerURL(new UUID(uuid), "HomeURI");
+            }
+
+            if (returnValue == "")
+            {
+                IConfigSource config = m_ScriptEngine.ConfigSource;
+                returnValue = Util.GetConfigVarFromSections<string>(config, "HomeURI",
+                    new string[] { "Startup", "Hypergrid" }, String.Empty);
+
+                if (!string.IsNullOrEmpty(returnValue))
+                    return returnValue;
+
+                // Legacy. Remove soon!
+                if (config.Configs["LoginService"] != null)
+                    returnValue = config.Configs["LoginService"].GetString("SRV_HomeURI", returnValue);
+
+                if (String.IsNullOrEmpty(returnValue))
+                    returnValue = GridUserInfo(InfoType.Home);
+            }
+
+            return returnValue;
+        }
+
         public LSL_String osFormatString(string str, LSL_List strings)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osFormatString");

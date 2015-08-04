@@ -510,6 +510,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetGridCustom(key);
         }
 
+        public string osGetAvatarHomeURI(string uuid)
+        {
+            return m_OSSL_Functions.osGetAvatarHomeURI(uuid);
+        }
+
         public LSL_String osFormatString(string str, LSL_List strings)
         {
             return m_OSSL_Functions.osFormatString(str, strings);
