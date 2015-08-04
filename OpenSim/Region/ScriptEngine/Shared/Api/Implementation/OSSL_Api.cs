@@ -63,6 +63,7 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using OpenSim.Services.Connectors.Hypergrid;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -2052,15 +2053,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
             m_host.AddScriptLPS(1);
 
-            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, firstname, lastname);
-            if (null == account)
+            if (lastname.Contains("@"))
             {
-                return UUID.Zero.ToString();
+                String realFirstName; String realLastName; String serverURI;
+
+                realFirstName = firstname.Split('.')[0];
+                realLastName = firstname.Split('.')[1];
+                serverURI = new Uri("http://" + lastname.Replace("@", "")).ToString();
+
+                try
+                {
+                    UserAgentServiceConnector userConnection = new UserAgentServiceConnector(serverURI, true);
+
+                    if (userConnection != null)
+                    {
+                        UUID ruserid = userConnection.GetUUID(realFirstName, realLastName);
+
+                        if (ruserid != null)
+                        {
+                            IUserManagement userManager = m_ScriptEngine.World.RequestModuleInterface<IUserManagement>();
+
+                            if (userManager != null)
+                            {
+                                //Use the HomeURI from the script to get user infos and then ask the remote gridserver for the real HomeURI.
+                                userManager.AddUser(ruserid, realFirstName, realLastName, serverURI);
+                                serverURI = userManager.GetUserServerURL(ruserid, "HomeURI");
+                                userManager.AddUser(ruserid, realFirstName, realLastName, serverURI);
+
+                                return ruserid.ToString();
+                            }
+                        }
+                    }
+                }
+                catch (Exception osAvatarException)
+                {
+                    //m_log.Warn("[osAvatarName2Key] UserAgentServiceConnector - Unable to connect to destination grid\n" + osAvatarException.Message);
+                }
             }
             else
             {
-                return account.PrincipalID.ToString();
+                UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, firstname, lastname);
+                if (account != null) return account.PrincipalID.ToString();
             }
+
+            return UUID.Zero.ToString();
         }
 
         public string osKey2Name(string id)
