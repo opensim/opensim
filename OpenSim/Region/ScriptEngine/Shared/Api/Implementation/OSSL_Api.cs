@@ -41,6 +41,7 @@ using OpenMetaverse.StructuredData;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
+using System.Diagnostics;
 
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
@@ -142,14 +143,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal float m_ScriptDistanceFactor = 1.0f;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
+        /// <summary>
+        /// The timer used by the ScriptInstance to measure how long the script has executed.
+        /// </summary>
+        private Stopwatch m_executionTimer;
+
         protected IUrlModule m_UrlModule = null;
 
         public void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle)
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle,
+            Stopwatch executionTimer)
         {
             m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
+            m_executionTimer = executionTimer;
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
 
@@ -432,7 +440,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             delay = (int)((float)delay * m_ScriptDelayFactor);
             if (delay == 0)
                 return;
-            System.Threading.Thread.Sleep(delay);
+
+            if (m_executionTimer != null)
+                m_executionTimer.Stop();    // sleep time doesn't count as execution time, since it doesn't use the CPU
+            
+            try
+            {
+                System.Threading.Thread.Sleep(delay);
+            }
+            finally
+            {
+                if (m_executionTimer != null)
+                    m_executionTimer.Start();
+            }
         }
 
         public LSL_Integer osSetTerrainHeight(int x, int y, double val)

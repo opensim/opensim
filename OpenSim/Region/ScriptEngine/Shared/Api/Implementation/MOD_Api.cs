@@ -51,6 +51,7 @@ using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+using System.Diagnostics;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -66,7 +67,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal IScriptModuleComms m_comms = null;
 
         public void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle)
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle,
+            Stopwatch executionTimer)
         {
             m_ScriptEngine = scriptEngine;
             m_host = host;

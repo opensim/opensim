@@ -105,7 +105,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             // This is disconnected from the actual script - the mock engine does not set up any LSL_Api atm.
             // Possibly this could be done and we could obtain it directly from the MockScriptEngine.
             m_lslApi = new LSL_Api();
-            m_lslApi.Initialize(m_engine, so.RootPart, m_scriptItem, null);
+            m_lslApi.Initialize(m_engine, so.RootPart, m_scriptItem, null, null);
         }
 
         [TearDown]

@@ -104,6 +104,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         WaitHandle m_coopSleepHandle;
 
         /// <summary>
+        /// The timer used by the ScriptInstance to measure how long the script has executed.
+        /// </summary>
+        private Stopwatch m_executionTimer;
+
+        /// <summary>
         /// The item that hosts this script
         /// </summary>
         protected TaskInventoryItem m_item;
@@ -262,12 +267,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         };
 
         public void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle)
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle,
+            Stopwatch executionTimer)
         {
             m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
             m_coopSleepHandle = coopSleepHandle;
+            m_executionTimer = executionTimer;
 
             LoadConfig();
 
@@ -406,10 +413,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected virtual void Sleep(int delay)
         {
-            if (m_coopSleepHandle == null)
-                System.Threading.Thread.Sleep(delay);
-            else
-                CheckForCoopTermination(delay);
+            if (m_executionTimer != null)
+                m_executionTimer.Stop();    // sleep time doesn't count as execution time, since it doesn't use the CPU
+            
+            try
+            {
+                if (m_coopSleepHandle == null)
+                    System.Threading.Thread.Sleep(delay);
+                else
+                    CheckForCoopTermination(delay);
+            }
+            finally
+            {
+                if (m_executionTimer != null)
+                    m_executionTimer.Start();
+            }
         }
 
         /// <summary>
