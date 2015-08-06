@@ -191,6 +191,7 @@ namespace OpenSim.Services.LLLoginService
 
         private string currency;
         private string classifiedFee;
+        private int    maxAgentGroups;
 
         static LLLoginResponse()
         {
@@ -228,7 +229,7 @@ namespace OpenSim.Services.LLLoginService
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
             GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency,
-            string DSTZone, string destinationsURL, string avatarsURL, string classifiedFee)
+            string DSTZone, string destinationsURL, string avatarsURL, string classifiedFee, int maxAgentGroups)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -253,6 +254,7 @@ namespace OpenSim.Services.LLLoginService
             SearchURL = searchURL;
             Currency = currency;
             ClassifiedFee = classifiedFee;
+            MaxAgentGroups = maxAgentGroups;
 
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
@@ -483,6 +485,7 @@ namespace OpenSim.Services.LLLoginService
 
             currency = String.Empty;
             ClassifiedFee = "0";
+            MaxAgentGroups = 42;
         }
 
 
@@ -542,6 +545,7 @@ namespace OpenSim.Services.LLLoginService
                 responseData["seed_capability"] = seedCapability;
                 responseData["home"] = home;
                 responseData["look_at"] = lookAt;
+                responseData["max-agent-groups"] = MaxAgentGroups;
                 responseData["message"] = welcomeMessage;
                 responseData["region_x"] = (Int32)(RegionX);
                 responseData["region_y"] = (Int32)(RegionY);
@@ -669,6 +673,7 @@ namespace OpenSim.Services.LLLoginService
                 map["seed_capability"] = OSD.FromString(seedCapability);
                 map["home"] = OSD.FromString(home);
                 map["look_at"] = OSD.FromString(lookAt);
+                map["max-agent-groups"] = OSD.FromInteger(MaxAgentGroups);
                 map["message"] = OSD.FromString(welcomeMessage);
                 map["region_x"] = OSD.FromInteger(RegionX);
                 map["region_y"] = OSD.FromInteger(RegionY);
@@ -1100,6 +1105,12 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return classifiedFee; }
             set { classifiedFee = value; }
+        }
+
+        public int MaxAgentGroups
+        {
+            get { return maxAgentGroups; }
+            set { maxAgentGroups = value; }
         }
 
         public string DestinationsURL

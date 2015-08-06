@@ -507,6 +507,11 @@
     OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 
 
+[Groups]
+    ;; Sets the maximum number of groups an agent may join
+    ; MaxAgentGroups = 42
+
+
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
     ; Client launcher scripts and third-party clients make use of this to

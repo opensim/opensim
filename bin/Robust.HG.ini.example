@@ -758,6 +758,9 @@
     ;; Can overwrite the default in [Hypergrid], but probably shouldn't
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
+    ;; Sets the maximum number of groups an agent may join
+    ; MaxAgentGroups = 42
+
 
 [UserProfilesService]
     LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"

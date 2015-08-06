@@ -80,6 +80,7 @@ namespace OpenSim.Services.LLLoginService
         protected string m_SearchURL;
         protected string m_Currency;
         protected string m_ClassifiedFee;
+        protected int m_MaxAgentGroups;
         protected string m_DestinationGuide;
         protected string m_AvatarPicker;
         protected string m_AllowedClients;
@@ -126,6 +127,11 @@ namespace OpenSim.Services.LLLoginService
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
             m_MessageUrl = m_LoginServerConfig.GetString("MessageUrl", string.Empty);
             m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
+
+            IConfig groupConfig = config.Configs["Groups"];
+            if (groupConfig != null)
+                m_MaxAgentGroups = groupConfig.GetInt("MaxAgentGroups", 42);
+
 
             // Clean up some of these vars
             if (m_MapTileURL != String.Empty)
@@ -506,7 +512,7 @@ namespace OpenSim.Services.LLLoginService
                             account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
                             where, startLocation, position, lookAt, gestures, processedMessage, home, clientIP,
                             m_MapTileURL, m_SearchURL, m_Currency, m_DSTZone,
-                            m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee);
+                            m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee, m_MaxAgentGroups);
 
                     m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
 
