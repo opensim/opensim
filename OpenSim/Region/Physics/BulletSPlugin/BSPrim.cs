@@ -1668,97 +1668,36 @@ public class BSPrim : BSPhysObject
                     {
                         switch ((int)funct)
                         {
+                            // Those that take no parameters
                             case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_X:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_X, 0f, 0f);
-                                index += 1;
-                                break;
-                            case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_X:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_X, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                index += 3;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Y:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Y, 0f, 0f);
-                                index += 1;
-                                break;
-                            case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Y:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Y, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                index += 3;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Z:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Z, 0f, 0f);
-                                index += 1;
-                                break;
-                            case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Z:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Z, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                index += 3;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_X:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_X, 0f, 0f);
-                                index += 1;
-                                break;
-                            case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_X:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_X, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                index += 3;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Y:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Y, 0f, 0f);
-                                index += 1;
-                                break;
-                            case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Y:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Y, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                index += 3;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Z:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Z, 0f, 0f);
-                                index += 1;
-                                break;
-                            case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Z:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Z, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                index += 3;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_X:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_X, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Y:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Y, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Z:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Z, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_X:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_X, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Y:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Y, 0f, 0f);
-                                index += 1;
-                                break;
                             case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Z:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Z, 0f, 0f);
+                            case ExtendedPhysics.PHYS_AXIS_UNLOCK:
+                                ApplyAxisLimits((int)funct, 0f, 0f);
                                 index += 1;
                                 break;
-                            case ExtendedPhysics.PHYS_AXIS_UNLOCK:
-                                ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK, 0f, 0f);
-                                index += 1;
+                            // Those that take two parameters (the limits)
+                            case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_X:
+                            case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Y:
+                            case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Z:
+                            case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_X:
+                            case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Y:
+                            case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Z:
+                                ApplyAxisLimits((int)funct, (float)pParams[index + 1], (float)pParams[index + 2]);
+                                index += 3;
                                 break;
                             default:
                                 m_log.WarnFormat("{0} SetSxisLockLimitsExtension. Unknown op={1}", LogHeader, funct);
@@ -1789,7 +1728,7 @@ public class BSPrim : BSPhysObject
         float linearMax = 23000f;
         float angularMax = (float)Math.PI;
 
-        switch ((int)funct)
+        switch (funct)
         {
             case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR:
                 this.LockedLinearAxis = new OMV.Vector3(LockedAxis, LockedAxis, LockedAxis);
