@@ -126,7 +126,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
         }
 
-        public bool Running { get; set; }
+        public bool Running
+        {
+            get { return m_running; }
+
+            set
+            {
+                m_running = value;
+                if (m_running)
+                    StayStopped = false;
+            }
+        }
+        private bool m_running;
 
         public bool Suspended
         {
@@ -157,6 +168,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public bool ShuttingDown { get; set; }
 
         public string State { get; set; }
+
+        public bool StayStopped { get; set; }
 
         public IScriptEngine Engine { get; private set; }
 
@@ -1077,7 +1090,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SaveState()
         {
-            if (!Running)
+            if (!Running && !StayStopped)
                 return;
 
             // We cannot call this inside the EventQueue lock since it will currently take AsyncCommandManager.staticLock.
@@ -1089,7 +1102,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             lock (EventQueue)
             {
                 // Check again to avoid a race with a thread in Stop()
-                if (!Running)
+                if (!Running && !StayStopped)
                     return;
 
                 // If we're currently in an event, just tell it to save upon return
@@ -1130,6 +1143,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     //}
                     m_CurrentStateHash = hash;
                 }
+
+                StayStopped = false;
             }
         }
 

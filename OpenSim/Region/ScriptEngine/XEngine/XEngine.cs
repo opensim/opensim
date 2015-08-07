@@ -699,6 +699,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             if (instance.Running)
             {
+                instance.StayStopped = true;    // the script was stopped explicitly
+
                 instance.Stop(0);
 
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
@@ -1914,6 +1916,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (instance != null)
             {
+                lock (instance.EventQueue)
+                    instance.StayStopped = true;    // the script was stopped explicitly
+
                 instance.Stop(m_WaitForEventCompletionOnScriptStop);
             }
             else

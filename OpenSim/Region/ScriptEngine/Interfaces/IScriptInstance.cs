@@ -93,6 +93,11 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         bool ShuttingDown { get; set; }
 
         /// <summary>
+        /// When stopping the script: should it remain stopped permanently (i.e., save !Running in its state)?
+        /// </summary>
+        bool StayStopped { get; set; }
+
+        /// <summary>
         /// Script state
         /// </summary>
         string State { get; set; }
