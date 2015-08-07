@@ -2744,7 +2744,9 @@ namespace OpenSim.Framework
         #endregion
 
         #region Universal User Identifiers
-       /// <summary>
+
+        /// <summary>
+        /// Attempts to parse a UUI into its components: UUID, name and URL.
         /// </summary>
         /// <param name="value">uuid[;endpoint[;first last[;secret]]]</param>
         /// <param name="uuid">the uuid part</param>
@@ -2775,6 +2777,27 @@ namespace OpenSim.Framework
             }
             if (parts.Length >= 4)
                 secret = parts[3];
+
+            return true;
+        }
+
+        /// <summary>
+        /// For foreign avatars, extracts their original name and Server URL from their First Name and Last Name.
+        /// </summary>
+        public static bool ParseForeignAvatarName(string firstname, string lastname,
+            out string realFirstName, out string realLastName, out string serverURI)
+        {
+            realFirstName = realLastName = serverURI = string.Empty;
+
+            if (!lastname.Contains("@"))
+                return false;
+
+            if (!firstname.Contains("."))
+                return false;
+
+            realFirstName = firstname.Split('.')[0];
+            realLastName = firstname.Split('.')[1];
+            serverURI = new Uri("http://" + lastname.Replace("@", "")).ToString();
 
             return true;
         }

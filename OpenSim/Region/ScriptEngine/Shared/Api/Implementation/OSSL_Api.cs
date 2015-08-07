@@ -2053,47 +2053,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
             m_host.AddScriptLPS(1);
 
-            if (lastname.Contains("@"))
+            IUserManagement userManager = World.RequestModuleInterface<IUserManagement>();
+            if (userManager == null)
             {
-                String realFirstName; String realLastName; String serverURI;
+                OSSLShoutError("osAvatarName2Key: UserManagement module not available");
+                return string.Empty;
+            }
 
-                realFirstName = firstname.Split('.')[0];
-                realLastName = firstname.Split('.')[1];
-                serverURI = new Uri("http://" + lastname.Replace("@", "")).ToString();
+            // Check if the user is already cached
 
+            UUID userID = userManager.GetUserIdByName(firstname, lastname);
+            if (userID != UUID.Zero)
+                return userID.ToString();
+
+            // Query for the user
+
+            String realFirstName; String realLastName; String serverURI;
+            if (Util.ParseForeignAvatarName(firstname, lastname, out realFirstName, out realLastName, out serverURI))
+            {
                 try
                 {
                     UserAgentServiceConnector userConnection = new UserAgentServiceConnector(serverURI, true);
 
                     if (userConnection != null)
                     {
-                        UUID ruserid = userConnection.GetUUID(realFirstName, realLastName);
-
-                        if (ruserid != null)
+                        userID = userConnection.GetUUID(realFirstName, realLastName);
+                        if (userID != UUID.Zero)
                         {
-                            IUserManagement userManager = m_ScriptEngine.World.RequestModuleInterface<IUserManagement>();
-
-                            if (userManager != null)
-                            {
-                                //Use the HomeURI from the script to get user infos and then ask the remote gridserver for the real HomeURI.
-                                userManager.AddUser(ruserid, realFirstName, realLastName, serverURI);
-                                serverURI = userManager.GetUserServerURL(ruserid, "HomeURI");
-                                userManager.AddUser(ruserid, realFirstName, realLastName, serverURI);
-
-                                return ruserid.ToString();
-                            }
+                            userManager.AddUser(userID, realFirstName, realLastName, serverURI);
+                            return userID.ToString();
                         }
                     }
                 }
-                catch (Exception osAvatarException)
+                catch (Exception /*e*/)
                 {
-                    //m_log.Warn("[osAvatarName2Key] UserAgentServiceConnector - Unable to connect to destination grid\n" + osAvatarException.Message);
+                    // m_log.Warn("[osAvatarName2Key] UserAgentServiceConnector - Unable to connect to destination grid ", e);
                 }
             }
             else
             {
                 UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, firstname, lastname);
-                if (account != null) return account.PrincipalID.ToString();
+                if (account != null)
+                    return account.PrincipalID.ToString();
             }
 
             return UUID.Zero.ToString();
