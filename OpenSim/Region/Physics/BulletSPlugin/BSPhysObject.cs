@@ -83,11 +83,6 @@ public abstract class BSPhysObject : PhysicsActor
         // The collection of things that push me around
         PhysicalActors = new BSActorCollection(PhysScene);
 
-        // Initialize variables kept in base.
-        GravModifier = 1.0f;
-        Gravity = new OMV.Vector3(0f, 0f, BSParam.Gravity);
-        HoverActive = false;
-
         // We don't have any physical representation yet.
         PhysBody = new BulletBody(localID);
         PhysShape = new BSShapeNull();
@@ -95,6 +90,12 @@ public abstract class BSPhysObject : PhysicsActor
         UserSetCenterOfMassDisplacement = null;
 
         PrimAssetState = PrimAssetCondition.Unknown;
+
+        // Initialize variables kept in base.
+        // Beware that these cause taints to be queued whch can cause race conditions on startup.
+        GravModifier = 1.0f;
+        Gravity = new OMV.Vector3(0f, 0f, BSParam.Gravity);
+        HoverActive = false;
 
         // Default material type. Also sets Friction, Restitution and Density.
         SetMaterial((int)MaterialAttributes.Material.Wood);

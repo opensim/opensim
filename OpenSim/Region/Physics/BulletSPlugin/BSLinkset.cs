@@ -322,7 +322,7 @@ public abstract class BSLinkset
             bool ret = true; 
             this.ForEachMember((member) =>
             {
-                if (member.IsIncomplete || member.PrimAssetState == BSPhysObject.PrimAssetCondition.Waiting)
+                if ((!member.IsInitialized) || member.IsIncomplete || member.PrimAssetState == BSPhysObject.PrimAssetCondition.Waiting)
                 {
                     ret = false;
                     return true;    // exit loop
