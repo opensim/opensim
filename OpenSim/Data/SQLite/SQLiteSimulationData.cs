@@ -51,7 +51,7 @@ namespace OpenSim.Data.SQLite
     public class SQLiteSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly string LogHeader = "[REGION DB SQLLITE]";
+        private static readonly string LogHeader = "[REGION DB SQLITE]";
 
         private const string primSelect = "select * from prims";
         private const string shapeSelect = "select * from primshapes";
