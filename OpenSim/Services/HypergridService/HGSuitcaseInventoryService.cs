@@ -505,7 +505,7 @@ namespace OpenSim.Services.HypergridService
             // Warp! Root folder for travelers
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "type" },
-                    new string[] { principalID.ToString(), FolderType.Suitcase.ToString() }); 
+                    new string[] { principalID.ToString(), ((int)FolderType.Suitcase).ToString() }); 
 
             if (folders != null && folders.Length > 0)
                 return folders[0];
