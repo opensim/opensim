@@ -64,7 +64,7 @@ namespace OpenSim.Framework
         private class TypeMapping
         {
             private sbyte assetType;
-            private InventoryType inventoryType;
+            private sbyte inventoryType;
             private string contentType;
             private string contentType2;
             private string extension;
@@ -79,7 +79,7 @@ namespace OpenSim.Framework
                 get { return AssetTypeFromCode(assetType); }
             }
 
-            public InventoryType InventoryType
+            public sbyte InventoryType
             {
                 get { return inventoryType; }
             }
@@ -99,7 +99,7 @@ namespace OpenSim.Framework
                 get { return extension; }
             }
 
-            private TypeMapping(sbyte assetType, InventoryType inventoryType, string contentType, string contentType2, string extension)
+            private TypeMapping(sbyte assetType, sbyte inventoryType, string contentType, string contentType2, string extension)
             {
                 this.assetType = assetType;
                 this.inventoryType = inventoryType;
@@ -108,18 +108,28 @@ namespace OpenSim.Framework
                 this.extension = extension;
             }
 
-            public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string contentType2, string extension)
+            public TypeMapping(AssetType assetType, sbyte inventoryType, string contentType, string contentType2, string extension)
                 : this((sbyte)assetType, inventoryType, contentType, contentType2, extension)
             {
             }
 
+            public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string contentType2, string extension)
+                : this((sbyte)assetType, (sbyte)inventoryType, contentType, contentType2, extension)
+            {
+            }
+
             public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string extension)
-                : this((sbyte)assetType, inventoryType, contentType, null, extension)
+                : this((sbyte)assetType, (sbyte)inventoryType, contentType, null, extension)
+            {
+            }
+
+            public TypeMapping(AssetType assetType, FolderType inventoryType, string contentType, string extension)
+                : this((sbyte)assetType, (sbyte)inventoryType, contentType, null, extension)
             {
             }
 
             public TypeMapping(OpenSimAssetType assetType, InventoryType inventoryType, string contentType, string extension)
-                : this((sbyte)assetType, inventoryType, contentType, null, extension)
+                : this((sbyte)assetType, (sbyte)inventoryType, contentType, null, extension)
             {
             }
         }
@@ -145,53 +155,65 @@ namespace OpenSim.Framework
             new TypeMapping(AssetType.Object, InventoryType.Object, "application/vnd.ll.primitive", "application/x-metaverse-primitive", "primitive"),
             new TypeMapping(AssetType.Object, InventoryType.Attachment, "application/vnd.ll.primitive", "application/x-metaverse-primitive", "primitive"),
             new TypeMapping(AssetType.Notecard, InventoryType.Notecard, "application/vnd.ll.notecard", "application/x-metaverse-notecard", "notecard"),
-            new TypeMapping(AssetType.Folder, InventoryType.Folder, "application/vnd.ll.folder", "folder"),
-            new TypeMapping(AssetType.RootFolder, InventoryType.RootCategory, "application/vnd.ll.rootfolder", "rootfolder"),
             new TypeMapping(AssetType.LSLText, InventoryType.LSL, "application/vnd.ll.lsltext", "application/x-metaverse-lsl", "lsl"),
             new TypeMapping(AssetType.LSLBytecode, InventoryType.LSL, "application/vnd.ll.lslbyte", "application/x-metaverse-lso", "lso"),
             new TypeMapping(AssetType.Bodypart, InventoryType.Wearable, "application/vnd.ll.bodypart", "application/x-metaverse-bodypart", "bodypart"),
-            new TypeMapping(AssetType.TrashFolder, InventoryType.Folder, "application/vnd.ll.trashfolder", "trashfolder"),
-            new TypeMapping(AssetType.SnapshotFolder, InventoryType.Folder, "application/vnd.ll.snapshotfolder", "snapshotfolder"),
-            new TypeMapping(AssetType.LostAndFoundFolder, InventoryType.Folder, "application/vnd.ll.lostandfoundfolder", "lostandfoundfolder"),
             new TypeMapping(AssetType.Animation, InventoryType.Animation, "application/vnd.ll.animation", "application/x-metaverse-animation", "animation"),
             new TypeMapping(AssetType.Gesture, InventoryType.Gesture, "application/vnd.ll.gesture", "application/x-metaverse-gesture", "gesture"),
             new TypeMapping(AssetType.Simstate, InventoryType.Snapshot, "application/x-metaverse-simstate", "simstate"),
-            new TypeMapping(AssetType.FavoriteFolder, InventoryType.Unknown, "application/vnd.ll.favoritefolder", "favoritefolder"),
             new TypeMapping(AssetType.Link, InventoryType.Unknown, "application/vnd.ll.link", "link"),
             new TypeMapping(AssetType.LinkFolder, InventoryType.Unknown, "application/vnd.ll.linkfolder", "linkfolder"),
-            new TypeMapping(AssetType.CurrentOutfitFolder, InventoryType.Unknown, "application/vnd.ll.currentoutfitfolder", "currentoutfitfolder"),
-            new TypeMapping(AssetType.OutfitFolder, InventoryType.Unknown, "application/vnd.ll.outfitfolder", "outfitfolder"),
-            new TypeMapping(AssetType.MyOutfitsFolder, InventoryType.Unknown, "application/vnd.ll.myoutfitsfolder", "myoutfitsfolder"),
             new TypeMapping(AssetType.Mesh, InventoryType.Mesh, "application/vnd.ll.mesh", "llm"),
+
+            // The next few items are about inventory folders
+            new TypeMapping(AssetType.Folder, FolderType.None, "application/vnd.ll.folder", "folder"),
+            new TypeMapping(AssetType.Folder, FolderType.Root, "application/vnd.ll.rootfolder", "rootfolder"),
+            new TypeMapping(AssetType.Folder, FolderType.Trash, "application/vnd.ll.trashfolder", "trashfolder"),
+            new TypeMapping(AssetType.Folder, FolderType.Snapshot, "application/vnd.ll.snapshotfolder", "snapshotfolder"),
+            new TypeMapping(AssetType.Folder, FolderType.LostAndFound, "application/vnd.ll.lostandfoundfolder", "lostandfoundfolder"),
+            new TypeMapping(AssetType.Folder, FolderType.Favorites, "application/vnd.ll.favoritefolder", "favoritefolder"),
+            new TypeMapping(AssetType.Folder, FolderType.CurrentOutfit, "application/vnd.ll.currentoutfitfolder", "currentoutfitfolder"),
+            new TypeMapping(AssetType.Folder, FolderType.Outfit, "application/vnd.ll.outfitfolder", "outfitfolder"),
+            new TypeMapping(AssetType.Folder, FolderType.MyOutfits, "application/vnd.ll.myoutfitsfolder", "myoutfitsfolder"),
             
+            // This next mappping is an asset to inventory item mapping.
+            // Note: LL stores folders as assets of type Folder = 8, and it has a corresponding InventoryType = 8
+            // OpenSim doesn't store folders as assets, so this mapping should only be used when parsing things from the viewer to the server 
+            new TypeMapping(AssetType.Folder, InventoryType.Folder, "application/vnd.ll.folder", "folder"),
+
+            // OpenSim specific
             new TypeMapping(OpenSimAssetType.Material, InventoryType.Unknown, "application/llsd+xml", "material")
         };
 
         private static Dictionary<sbyte, string> asset2Content;
         private static Dictionary<sbyte, string> asset2Extension;
-        private static Dictionary<InventoryType, string> inventory2Content;
+        private static Dictionary<sbyte, string> inventory2Content;
         private static Dictionary<string, sbyte> content2Asset;
-        private static Dictionary<string, InventoryType> content2Inventory;
+        private static Dictionary<string, sbyte> content2Inventory;
 
         static SLUtil()
         {
             asset2Content = new Dictionary<sbyte, string>();
             asset2Extension = new Dictionary<sbyte, string>();
-            inventory2Content = new Dictionary<InventoryType, string>();
+            inventory2Content = new Dictionary<sbyte, string>();
             content2Asset = new Dictionary<string, sbyte>();
-            content2Inventory = new Dictionary<string, InventoryType>();
+            content2Inventory = new Dictionary<string, sbyte>();
             
             foreach (TypeMapping mapping in MAPPINGS)
             {
                 sbyte assetType = mapping.AssetTypeCode;
                 if (!asset2Content.ContainsKey(assetType))
                     asset2Content.Add(assetType, mapping.ContentType);
+
                 if (!asset2Extension.ContainsKey(assetType))
                     asset2Extension.Add(assetType, mapping.Extension);
+
                 if (!inventory2Content.ContainsKey(mapping.InventoryType))
                     inventory2Content.Add(mapping.InventoryType, mapping.ContentType);
+
                 if (!content2Asset.ContainsKey(mapping.ContentType))
                     content2Asset.Add(mapping.ContentType, assetType);
+
                 if (!content2Inventory.ContainsKey(mapping.ContentType))
                     content2Inventory.Add(mapping.ContentType, mapping.InventoryType);
 
@@ -216,8 +238,8 @@ namespace OpenSim.Framework
         public static string SLInvTypeToContentType(int invType)
         {
             string contentType;
-            if (!inventory2Content.TryGetValue((InventoryType)invType, out contentType))
-                contentType = inventory2Content[InventoryType.Unknown];
+            if (!inventory2Content.TryGetValue((sbyte)invType, out contentType))
+                contentType = inventory2Content[(sbyte)InventoryType.Unknown];
             return contentType;
         }
 
@@ -231,9 +253,9 @@ namespace OpenSim.Framework
 
         public static sbyte ContentTypeToSLInvType(string contentType)
         {
-            InventoryType invType;
+            sbyte invType;
             if (!content2Inventory.TryGetValue(contentType, out invType))
-                invType = InventoryType.Unknown;
+                invType = (sbyte)InventoryType.Unknown;
             return (sbyte)invType;
         }
 

@@ -156,7 +156,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // OK so either the viewer didn't send a folderID or AddItem failed
             UUID originalFolder = item.Folder;
-            InventoryFolderBase f = InventoryService.GetFolderForType(item.Owner, (AssetType)item.AssetType);
+            InventoryFolderBase f = null;
+            if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
+                f = InventoryService.GetFolderForType(item.Owner, (FolderType)item.AssetType);
             if (f != null)
             {
                 m_log.DebugFormat(
@@ -743,7 +745,9 @@ namespace OpenSim.Region.Framework.Scenes
             
             if (itemCopy.Folder == UUID.Zero)
             {
-                InventoryFolderBase folder = InventoryService.GetFolderForType(recipient, (AssetType)itemCopy.AssetType);
+                InventoryFolderBase folder = null;
+                if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
+                    folder = InventoryService.GetFolderForType(recipient, (FolderType)itemCopy.AssetType);
 
                 if (folder != null)
                 {
@@ -1155,7 +1159,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item == null)
                     return;
 
-                InventoryFolderBase destFolder = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.TrashFolder);
+                InventoryFolderBase destFolder = InventoryService.GetFolderForType(remoteClient.AgentId, FolderType.Trash);
 
                 // Move the item to trash. If this is a copyable item, only
                 // a copy will be moved and we will still need to delete

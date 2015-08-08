@@ -170,7 +170,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.GetRootFolder(userID);
         }
 
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        public InventoryFolderBase GetFolderForType(UUID userID, FolderType type)
         {
             return m_InventoryService.GetFolderForType(userID, type);
         }

@@ -34,6 +34,9 @@ namespace OpenSim.Framework
     /// </summary>
     public class InventoryFolderBase : InventoryNodeBase
     {
+        public static readonly string ROOT_FOLDER_NAME = "My Inventory";
+        public static readonly string SUITCASE_FOLDER_NAME = "My Suitcase";
+
         /// <summary>
         /// The folder this folder is contained in
         /// </summary>

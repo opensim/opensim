@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         /// <param name="userID"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type) { return null; }
+        public InventoryFolderBase GetFolderForType(UUID userID, FolderType type) { return null; }
 
 
         /// <summary>

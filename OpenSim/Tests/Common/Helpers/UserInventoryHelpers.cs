@@ -102,7 +102,7 @@ namespace OpenSim.Tests.Common
         {
             return AddInventoryItem(
                 scene, itemName, itemId, itemType, asset, userId, 
-                scene.InventoryService.GetFolderForType(userId, (AssetType)asset.Type).Name);
+                scene.InventoryService.GetFolderForType(userId, (FolderType)asset.Type).Name);
         }
 
         /// <summary>

@@ -908,7 +908,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             InventoryItemBase newItem
                 = m_invAccessModule.CopyToInventory(
                     DeRezAction.TakeCopy,
-                    m_scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object).ID,
+                    m_scene.InventoryService.GetFolderForType(sp.UUID, FolderType.Object).ID,
                     new List<SceneObjectGroup> { grp },
                     sp.ControllingClient, true)[0];
 

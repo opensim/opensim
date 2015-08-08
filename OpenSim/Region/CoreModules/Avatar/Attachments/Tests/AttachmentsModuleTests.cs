@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attachmentItem, Is.Not.Null);
             Assert.That(attachmentItem.Name, Is.EqualTo(attName));
 
-            InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object);
+            InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, FolderType.Object);
             Assert.That(attachmentItem.Folder, Is.EqualTo(targetFolder.ID));
 
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
@@ -271,7 +271,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attachmentItem, Is.Not.Null);
                 Assert.That(attachmentItem.Name, Is.EqualTo(so.Name));
 
-                InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object);
+                InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, FolderType.Object);
                 Assert.That(attachmentItem.Folder, Is.EqualTo(targetFolder.ID));
 
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(2));
@@ -304,7 +304,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attachmentItem, Is.Not.Null);
                 Assert.That(attachmentItem.Name, Is.EqualTo(so2.Name));
 
-                InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object);
+                InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, FolderType.Object);
                 Assert.That(attachmentItem.Folder, Is.EqualTo(targetFolder.ID));
 
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
@@ -337,7 +337,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attachmentItem, Is.Not.Null);
                 Assert.That(attachmentItem.Name, Is.EqualTo(so2.Name));
 
-                InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object);
+                InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, FolderType.Object);
                 Assert.That(attachmentItem.Folder, Is.EqualTo(targetFolder.ID));
 
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));

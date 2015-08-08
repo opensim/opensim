@@ -372,7 +372,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 IInventoryService invService = scene.InventoryService;
 
                 InventoryFolderBase trashFolder =
-                    invService.GetFolderForType(client.AgentId, AssetType.TrashFolder);
+                    invService.GetFolderForType(client.AgentId, FolderType.Trash);
 
                 UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
 

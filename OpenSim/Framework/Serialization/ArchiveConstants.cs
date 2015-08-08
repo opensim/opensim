@@ -115,20 +115,16 @@ namespace OpenSim.Framework.Serialization
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageJPEG]           = ASSET_EXTENSION_SEPARATOR + "image.jpg";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageTGA]            = ASSET_EXTENSION_SEPARATOR + "image.tga";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Landmark]            = ASSET_EXTENSION_SEPARATOR + "landmark.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = ASSET_EXTENSION_SEPARATOR + "lostandfoundfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLBytecode]         = ASSET_EXTENSION_SEPARATOR + "bytecode.lso";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLText]             = ASSET_EXTENSION_SEPARATOR + "script.lsl";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Mesh]                = ASSET_EXTENSION_SEPARATOR + "mesh.llmesh";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = ASSET_EXTENSION_SEPARATOR + "notecard.txt";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = ASSET_EXTENSION_SEPARATOR + "object.xml";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = ASSET_EXTENSION_SEPARATOR + "rootfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Simstate]            = ASSET_EXTENSION_SEPARATOR + "simstate.bin";   // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = ASSET_EXTENSION_SEPARATOR + "snapshotfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Sound]               = ASSET_EXTENSION_SEPARATOR + "sound.ogg";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = ASSET_EXTENSION_SEPARATOR + "sound.wav";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = ASSET_EXTENSION_SEPARATOR + "texture.jp2";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = ASSET_EXTENSION_SEPARATOR + "texture.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = ASSET_EXTENSION_SEPARATOR + "trashfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)OpenSimAssetType.Material]     = ASSET_EXTENSION_SEPARATOR + "material.xml";   // Not sure if we'll ever see this
 
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "animation.bvh"]            = (sbyte)AssetType.Animation;
@@ -140,21 +136,17 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "image.jpg"]                = (sbyte)AssetType.ImageJPEG;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "image.tga"]                = (sbyte)AssetType.ImageTGA;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "landmark.txt"]             = (sbyte)AssetType.Landmark;
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "lostandfoundfolder.txt"]   = (sbyte)AssetType.LostAndFoundFolder;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "bytecode.lso"]             = (sbyte)AssetType.LSLBytecode;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "script.lsl"]               = (sbyte)AssetType.LSLText;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "mesh.llmesh"]              = (sbyte)AssetType.Mesh;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "notecard.txt"]             = (sbyte)AssetType.Notecard;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "object.xml"]               = (sbyte)AssetType.Object;
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "rootfolder.txt"]           = (sbyte)AssetType.RootFolder;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "simstate.bin"]             = (sbyte)AssetType.Simstate;
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "snapshotfolder.txt"]       = (sbyte)AssetType.SnapshotFolder;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "sound.ogg"]                = (sbyte)AssetType.Sound;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "sound.wav"]                = (sbyte)AssetType.SoundWAV;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.jp2"]              = (sbyte)AssetType.Texture;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "trashfolder.txt"]          = (sbyte)AssetType.TrashFolder;
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "material.xml"]        = (sbyte)OpenSimAssetType.Material;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "material.xml"]             = (sbyte)OpenSimAssetType.Material;
         }
 
         public static string CreateOarLandDataPath(LandData ld)

@@ -75,7 +75,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             m_rootFolderID = m_scene.InventoryService.GetRootFolder(m_userID).ID;
 
-            InventoryFolderBase of = m_scene.InventoryService.GetFolderForType(m_userID, AssetType.Object);
+            InventoryFolderBase of = m_scene.InventoryService.GetFolderForType(m_userID, FolderType.Object);
             m_objectsFolder = of.ID;
 
             // Add 3 objects
@@ -90,7 +90,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
                 m_scene.InventoryService.AddItem(item);
             }
 
-            InventoryFolderBase ncf = m_scene.InventoryService.GetFolderForType(m_userID, AssetType.Notecard);
+            InventoryFolderBase ncf = m_scene.InventoryService.GetFolderForType(m_userID, FolderType.Notecard);
             m_notecardsFolder = ncf.ID;
 
             // Add 5 notecards

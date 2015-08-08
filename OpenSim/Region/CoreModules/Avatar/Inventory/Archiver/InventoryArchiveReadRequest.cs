@@ -412,14 +412,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 newFolderName = InventoryArchiveUtils.UnescapeArchivePath(newFolderName);
                 UUID newFolderId = UUID.Random();
 
-                // Asset type has to be Unknown here rather than Folder, otherwise the created folder can't be
-                // deleted once the client has relogged.
-                // The root folder appears to be labelled AssetType.Folder (shows up as "Category" in the client)
-                // even though there is a AssetType.RootCategory
                 destFolder 
                     = new InventoryFolderBase(
-                        newFolderId, newFolderName, m_userInfo.PrincipalID, 
-                        (short)AssetType.Unknown, destFolder.ID, 1);
+                        newFolderId, newFolderName, m_userInfo.PrincipalID,
+                        (short)FolderType.None, destFolder.ID, 1);
                 m_InventoryService.AddFolder(destFolder);
 
                 // Record that we have now created this folder

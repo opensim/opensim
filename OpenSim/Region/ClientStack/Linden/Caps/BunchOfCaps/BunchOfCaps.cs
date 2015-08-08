@@ -554,8 +554,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         if (core.TryGet<IClientInventory>(out clientInv))
                         {
-                            var systemTextureFolder = m_Scene.InventoryService.GetFolderForType(m_HostCapsObj.AgentID, AssetType.Texture);
-                            textureUploadFolder = new InventoryFolderBase(UUID.Random(), assetName, m_HostCapsObj.AgentID, (short)AssetType.Unknown, systemTextureFolder.ID, 1);
+                            var systemTextureFolder = m_Scene.InventoryService.GetFolderForType(m_HostCapsObj.AgentID, FolderType.Texture);
+                            textureUploadFolder = new InventoryFolderBase(UUID.Random(), assetName, m_HostCapsObj.AgentID, (short)FolderType.None, systemTextureFolder.ID, 1);
                             if (m_Scene.InventoryService.AddFolder(textureUploadFolder))
                             {
                                 foldersToUpdate.Add(textureUploadFolder);

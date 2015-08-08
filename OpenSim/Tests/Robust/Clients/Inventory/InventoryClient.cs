@@ -78,7 +78,7 @@ namespace Robust.Tests
             m_rootFolderID = m_Connector.GetRootFolder(m_userID).ID;
             Assert.AreNotEqual(m_rootFolderID, UUID.Zero, "Root folder ID must not be UUID.Zero");
 
-            InventoryFolderBase of = m_Connector.GetFolderForType(m_userID, AssetType.Object);
+            InventoryFolderBase of = m_Connector.GetFolderForType(m_userID, FolderType.Object);
             Assert.IsNotNull(of, "Failed to retrieve Objects folder");
             m_objectsFolder = of.ID;
             Assert.AreNotEqual(m_objectsFolder, UUID.Zero, "Objects folder ID must not be UUID.Zero");
@@ -93,7 +93,7 @@ namespace Robust.Tests
             success = m_Connector.AddItem(item);
             Assert.IsTrue(success, "Failed to add object to inventory");
 
-            InventoryFolderBase ncf = m_Connector.GetFolderForType(m_userID, AssetType.Notecard);
+            InventoryFolderBase ncf = m_Connector.GetFolderForType(m_userID, FolderType.Notecard);
             Assert.IsNotNull(of, "Failed to retrieve Notecards folder");
             m_notecardsFolder = ncf.ID;
             Assert.AreNotEqual(m_notecardsFolder, UUID.Zero, "Notecards folder ID must not be UUID.Zero");
@@ -118,7 +118,7 @@ namespace Robust.Tests
 
             // Add a folder
             InventoryFolderBase folder = new InventoryFolderBase(new UUID("f0000000-0000-0000-0000-00000000000f"), "Test Folder", m_userID, m_rootFolderID);
-            folder.Type = (int)AssetType.Folder;
+            folder.Type = (int)FolderType.None;
             success = m_Connector.AddFolder(folder);
             Assert.IsTrue(success, "Failed to add Test Folder to inventory");
 
@@ -133,7 +133,7 @@ namespace Robust.Tests
             Assert.IsTrue(success, "Failed to add link to notecard to inventory");
 
             // Add a link to the Objects folder in Test Folder
-            item.AssetID = m_Connector.GetFolderForType(m_userID, AssetType.Object).ID; // use item ID of Objects folder
+            item.AssetID = m_Connector.GetFolderForType(m_userID, FolderType.Object).ID; // use item ID of Objects folder
             item.ID = new UUID("50000000-0000-0000-0000-000000000005");
             item.AssetType = (int)AssetType.LinkFolder;
             item.Folder = folder.ID;

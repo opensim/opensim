@@ -50,19 +50,15 @@ namespace OpenSim.Framework.Tests
             CheckContainsReferences(AssetType.ImageJPEG  , false);
             CheckContainsReferences(AssetType.ImageTGA   , false);
             CheckContainsReferences(AssetType.Landmark   , false);
-            CheckContainsReferences(AssetType.LostAndFoundFolder, false);
             CheckContainsReferences(AssetType.LSLBytecode, false);
             CheckContainsReferences(AssetType.LSLText, false);
             CheckContainsReferences(AssetType.Notecard, false);
             CheckContainsReferences(AssetType.Object, false);
-            CheckContainsReferences(AssetType.RootFolder, false);
             CheckContainsReferences(AssetType.Simstate, false);
-            CheckContainsReferences(AssetType.SnapshotFolder, false);
             CheckContainsReferences(AssetType.Sound, false);
             CheckContainsReferences(AssetType.SoundWAV, false);
             CheckContainsReferences(AssetType.Texture, false);
             CheckContainsReferences(AssetType.TextureTGA, false);
-            CheckContainsReferences(AssetType.TrashFolder, false);
             CheckContainsReferences(AssetType.Unknown, false);
         }
 

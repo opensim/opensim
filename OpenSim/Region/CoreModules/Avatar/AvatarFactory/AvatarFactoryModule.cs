@@ -908,8 +908,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                                      AssetType
                                                          =
                                                          (int)
-                                                         AssetType
-                                                             .Bodypart,
+                                                         FolderType
+                                                             .BodyPart,
                                                      CreatorId
                                                          =
                                                          userID
@@ -924,8 +924,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                                          invService
                                                          .GetFolderForType
                                                          (userID,
-                                                          AssetType
-                                                              .Bodypart)
+                                                          FolderType
+                                                              .BodyPart)
                                                          .ID,
                                                      Flags = (uint) type,
                                                      Name = Enum.GetName(typeof (WearableType), type),
@@ -960,8 +960,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                        invService
                                        .GetFolderForType
                                        (userID,
-                                        AssetType
-                                            .CurrentOutfitFolder)
+                                        FolderType
+                                            .CurrentOutfit)
                                        .ID,
                                    Flags = (uint) type,
                                    Name = Enum.GetName(typeof (WearableType), type),
@@ -978,8 +978,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_scene.SendInventoryUpdate(presence.ControllingClient,
                                                 invService.GetFolderForType(userID,
-                                                                            AssetType
-                                                                                .CurrentOutfitFolder),
+                                                                            FolderType
+                                                                                .CurrentOutfit),
                                                 false, true);
                 }
             }

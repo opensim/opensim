@@ -34,11 +34,7 @@ namespace OpenSim.Framework
     /// Inventory Item - contains all the properties associated with an individual inventory piece.
     /// </summary>
     public class InventoryItemBase : InventoryNodeBase, ICloneable
-    {
-        public static readonly string SUITCASE_FOLDER_NAME = "My Suitcase";
-        public static readonly sbyte SUITCASE_FOLDER_TYPE = 100;
-        public static readonly sbyte SUITCASE_FOLDER_FAKE_TYPE = 8;
-        
+    {        
         /// <value>
         /// The inventory type of the item.  This is slightly different from the asset type in some situations.
         /// </value>

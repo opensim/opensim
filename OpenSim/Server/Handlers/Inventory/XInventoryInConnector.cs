@@ -269,7 +269,7 @@ namespace OpenSim.Server.Handlers.Inventory
             UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
             int type = 0;
             Int32.TryParse(request["TYPE"].ToString(), out type);
-            InventoryFolderBase folder = m_InventoryService.GetFolderForType(principal, (AssetType)type);
+            InventoryFolderBase folder = m_InventoryService.GetFolderForType(principal, (FolderType)type);
             if (folder != null)
                 result["folder"] = EncodeFolder(folder);
 

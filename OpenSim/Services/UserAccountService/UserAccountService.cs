@@ -595,7 +595,7 @@ namespace OpenSim.Services.UserAccountService
         {
             m_log.DebugFormat("[USER ACCOUNT SERVICE]: Creating default appearance items for {0}", principalID);
 
-            InventoryFolderBase bodyPartsFolder = m_InventoryService.GetFolderForType(principalID, AssetType.Bodypart);
+            InventoryFolderBase bodyPartsFolder = m_InventoryService.GetFolderForType(principalID, FolderType.BodyPart);
 
             InventoryItemBase eyes = new InventoryItemBase(UUID.Random(), principalID);
             eyes.AssetID = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
@@ -657,7 +657,7 @@ namespace OpenSim.Services.UserAccountService
             hair.Flags = (uint)WearableType.Hair;
             m_InventoryService.AddItem(hair);
 
-            InventoryFolderBase clothingFolder = m_InventoryService.GetFolderForType(principalID, AssetType.Clothing);
+            InventoryFolderBase clothingFolder = m_InventoryService.GetFolderForType(principalID, FolderType.Clothing);
 
             InventoryItemBase shirt = new InventoryItemBase(UUID.Random(), principalID);
             shirt.AssetID = AvatarWearable.DEFAULT_SHIRT_ASSET;

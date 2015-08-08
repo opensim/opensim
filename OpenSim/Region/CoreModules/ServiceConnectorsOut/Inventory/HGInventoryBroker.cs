@@ -345,7 +345,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return root;
         }
 
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        public InventoryFolderBase GetFolderForType(UUID userID, FolderType type)
         {
             //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetFolderForType {0} type {1}", userID, type);
             InventoryFolderBase f = m_Cache.GetFolderForType(userID, type);

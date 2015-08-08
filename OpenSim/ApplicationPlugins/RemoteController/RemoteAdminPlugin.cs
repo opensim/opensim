@@ -2539,8 +2539,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             try
             {
                 Dictionary<UUID,UUID> inventoryMap = new Dictionary<UUID,UUID>();
-                CopyInventoryFolders(destination, source, AssetType.Clothing, inventoryMap, avatarAppearance);
-                CopyInventoryFolders(destination, source, AssetType.Bodypart, inventoryMap, avatarAppearance);
+                CopyInventoryFolders(destination, source, FolderType.Clothing, inventoryMap, avatarAppearance);
+                CopyInventoryFolders(destination, source, FolderType.BodyPart, inventoryMap, avatarAppearance);
 
                 AvatarWearable[] wearables = avatarAppearance.Wearables;
 
@@ -2576,20 +2576,20 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             IInventoryService inventoryService = m_application.SceneManager.CurrentOrFirstScene.InventoryService;
 
             // Get Clothing folder of receiver
-            InventoryFolderBase destinationFolder = inventoryService.GetFolderForType(destination, AssetType.Clothing);
+            InventoryFolderBase destinationFolder = inventoryService.GetFolderForType(destination, FolderType.Clothing);
 
             if (destinationFolder == null)
                 throw new Exception("Cannot locate folder(s)");
 
             // Missing destination folder? This should *never* be the case
-            if (destinationFolder.Type != (short)AssetType.Clothing)
+            if (destinationFolder.Type != (short)FolderType.Clothing)
             {
                 destinationFolder = new InventoryFolderBase();
                 
                 destinationFolder.ID       = UUID.Random();
                 destinationFolder.Name     = "Clothing";
                 destinationFolder.Owner    = destination;
-                destinationFolder.Type     = (short)AssetType.Clothing;
+                destinationFolder.Type = (short)FolderType.Clothing;
                 destinationFolder.ParentID = inventoryService.GetRootFolder(destination).ID;
                 destinationFolder.Version  = 1;
                 inventoryService.AddFolder(destinationFolder);     // store base record
@@ -2707,7 +2707,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// This method is called by establishAppearance to copy inventory folders to make
         /// copies of Clothing and Bodyparts inventory folders and attaches worn attachments
         /// </summary>
-        private void CopyInventoryFolders(UUID destination, UUID source, AssetType assetType, Dictionary<UUID,UUID> inventoryMap,
+        private void CopyInventoryFolders(UUID destination, UUID source, FolderType assetType, Dictionary<UUID, UUID> inventoryMap,
                                           AvatarAppearance avatarAppearance)
         {
             IInventoryService inventoryService = m_application.SceneManager.CurrentOrFirstScene.InventoryService;
@@ -2723,9 +2723,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 sourceFolder = new InventoryFolderBase();
                 sourceFolder.ID       = UUID.Random();
-                if (assetType == AssetType.Clothing) {
+                if (assetType == FolderType.Clothing) 
+                {
                     sourceFolder.Name     = "Clothing";
-                } else {
+                } 
+                else 
+                {
                     sourceFolder.Name     = "Body Parts";
                 }
                 sourceFolder.Owner    = source;
@@ -2741,7 +2744,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 destinationFolder = new InventoryFolderBase();
                 destinationFolder.ID       = UUID.Random();
-                if (assetType == AssetType.Clothing)
+                if (assetType == FolderType.Clothing)
                 {
                     destinationFolder.Name  = "Clothing";
                 }
@@ -2980,16 +2983,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                 // m_log.DebugFormat("[RADMIN] {0} folders, {1} items in inventory",
                                 //   uic.folders.Count, uic.items.Count);
 
-                                InventoryFolderBase clothingFolder = inventoryService.GetFolderForType(ID, AssetType.Clothing);
+                                InventoryFolderBase clothingFolder = inventoryService.GetFolderForType(ID, FolderType.Clothing);
 
                                 // This should *never* be the case
-                                if (clothingFolder == null || clothingFolder.Type != (short)AssetType.Clothing)
+                                if (clothingFolder == null || clothingFolder.Type != (short)FolderType.Clothing)
                                 {
                                     clothingFolder = new InventoryFolderBase();
                                     clothingFolder.ID       = UUID.Random();
                                     clothingFolder.Name     = "Clothing";
                                     clothingFolder.Owner    = ID;
-                                    clothingFolder.Type     = (short)AssetType.Clothing;
+                                    clothingFolder.Type     = (short)FolderType.Clothing;
                                     clothingFolder.ParentID = inventoryService.GetRootFolder(ID).ID;
                                     clothingFolder.Version  = 1;
                                     inventoryService.AddFolder(clothingFolder);     // store base record
@@ -3035,7 +3038,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                         extraFolder.ID       = UUID.Random();
                                         extraFolder.Name     = outfitName;
                                         extraFolder.Owner    = ID;
-                                        extraFolder.Type     = (short)AssetType.Clothing;
+                                        extraFolder.Type     = (short)FolderType.Clothing;
                                         extraFolder.Version  = 1;
                                         extraFolder.ParentID = clothingFolder.ID;
                                         inventoryService.AddFolder(extraFolder);

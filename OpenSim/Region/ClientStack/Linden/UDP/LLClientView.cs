@@ -1866,8 +1866,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newBlock.Name = Util.StringToBytes256(folder.Name);
             newBlock.ParentID = folder.ParentID;
             newBlock.Type = (sbyte)folder.Type;
-            if (newBlock.Type == InventoryItemBase.SUITCASE_FOLDER_TYPE)
-                newBlock.Type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
+            //if (newBlock.Type == InventoryItemBase.SUITCASE_FOLDER_TYPE)
+            //    newBlock.Type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
 
             return newBlock;
         }
@@ -2118,8 +2118,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             folderBlock.FolderID = folder.ID;
             folderBlock.ParentID = folder.ParentID;
             folderBlock.Type = (sbyte)folder.Type;
-            if (folderBlock.Type == InventoryItemBase.SUITCASE_FOLDER_TYPE)
-                folderBlock.Type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
+            // Leaving this here for now, just in case we need to do this for a while
+            //if (folderBlock.Type == InventoryItemBase.SUITCASE_FOLDER_TYPE)
+            //    folderBlock.Type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
             folderBlock.Name = Util.StringToBytes256(folder.Name);
 
             return folderBlock;

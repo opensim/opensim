@@ -74,7 +74,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             m_rootFolderID = m_scene.InventoryService.GetRootFolder(m_userID).ID;
 
-            InventoryFolderBase of = m_scene.InventoryService.GetFolderForType(m_userID, AssetType.Object);
+            InventoryFolderBase of = m_scene.InventoryService.GetFolderForType(m_userID, FolderType.Object);
             m_objectsFolder = of.ID;
 
             // Add an object
@@ -85,7 +85,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             item.Name = "Some Object";
             m_scene.InventoryService.AddItem(item);
 
-            InventoryFolderBase ncf = m_scene.InventoryService.GetFolderForType(m_userID, AssetType.Notecard);
+            InventoryFolderBase ncf = m_scene.InventoryService.GetFolderForType(m_userID, FolderType.Notecard);
             m_notecardsFolder = ncf.ID;
 
             // Add a notecard
@@ -114,7 +114,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             m_scene.InventoryService.AddItem(item);
 
             // Add a link to the Objects folder in Test Folder
-            item.AssetID = m_scene.InventoryService.GetFolderForType(m_userID, AssetType.Object).ID; // use item ID of Objects folder
+            item.AssetID = m_scene.InventoryService.GetFolderForType(m_userID, FolderType.Object).ID; // use item ID of Objects folder
             item.ID = new UUID("50000000-0000-0000-0000-000000000005");
             item.AssetType = (int)AssetType.LinkFolder;
             item.Folder = folder.ID;

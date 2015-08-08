@@ -240,7 +240,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <param name="userID"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        public InventoryFolderBase GetFolderForType(UUID userID, FolderType type)
         {
             string contentType = SLUtil.SLAssetTypeToContentType((int)type);
 
@@ -580,7 +580,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
             // A folder of UUID.Zero means we need to find the most appropriate home for this item
             if (item.Folder == UUID.Zero)
             {
-                InventoryFolderBase folder = GetFolderForType(item.Owner, (AssetType)item.AssetType);
+                InventoryFolderBase folder = null;
+                if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
+                    folder = GetFolderForType(item.Owner, (FolderType)item.AssetType);
                 if (folder != null && folder.ID != UUID.Zero)
                     item.Folder = folder.ID;
                 else
