@@ -58,6 +58,7 @@ public class BSActorSetTorque : BSActor
     public override void Dispose()
     {
         Enabled = false;
+        DeactivateSetTorque();
     }
 
     // Called when physical parameters (properties set in Bullet) need to be re-applied.

@@ -71,8 +71,7 @@ public class BSActorAvatarMove : BSActor
     public override void Dispose()
     {
         base.SetEnabled(false);
-        // Now that turned off, remove any state we have in the scene.
-        Refresh();
+        DeactivateAvatarMove();
     }
 
     // Called when physical parameters (properties set in Bullet) need to be re-applied.

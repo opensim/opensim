@@ -32,12 +32,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSActorCollection
 {
-    private BSScene m_physicsScene { get; set; }
     private Dictionary<string, BSActor> m_actors;
 
-    public BSActorCollection(BSScene physicsScene)
+    public BSActorCollection()
     {
-        m_physicsScene = physicsScene;
         m_actors = new Dictionary<string, BSActor>();
     }
     public void Add(string name, BSActor actor)

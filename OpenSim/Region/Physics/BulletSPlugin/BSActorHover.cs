@@ -58,6 +58,7 @@ public class BSActorHover : BSActor
     public override void Dispose()
     {
         Enabled = false;
+        DeactivateHover();
     }
 
     // Called when physical parameters (properties set in Bullet) need to be re-applied.
