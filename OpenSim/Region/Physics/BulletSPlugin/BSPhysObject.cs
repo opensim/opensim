@@ -80,12 +80,13 @@ public abstract class BSPhysObject : PhysicsActor
         Name = name;    // PhysicsActor also has the name of the object. Someday consolidate.
         TypeName = typeName;
 
-        // The collection of things that push me around
-        PhysicalActors = new BSActorCollection(PhysScene);
+        // Oddity if object is destroyed and recreated very quickly it could still have the old body.
+        if (!PhysBody.HasPhysicalBody)
+            PhysBody = new BulletBody(localID);
 
-        // We don't have any physical representation yet.
-        PhysBody = new BulletBody(localID);
-        PhysShape = new BSShapeNull();
+        // Clean out anything that might be in the physical actor list.
+        // Again, a workaround for destroying and recreating an object very quickly.
+        PhysicalActors.Dispose();
 
         UserSetCenterOfMassDisplacement = null;
 
@@ -100,9 +101,6 @@ public abstract class BSPhysObject : PhysicsActor
         // Default material type. Also sets Friction, Restitution and Density.
         SetMaterial((int)MaterialAttributes.Material.Wood);
 
-        CollisionCollection = new CollisionEventUpdate();
-        CollisionsLastReported = CollisionCollection;
-        CollisionsLastTick = new CollisionEventUpdate();
         CollisionsLastTickStep = -1;
 
         SubscribedEventsMs = 0;
@@ -158,9 +156,9 @@ public abstract class BSPhysObject : PhysicsActor
     public OMV.Vector3 Inertia { get; set; }
 
     // Reference to the physical body (btCollisionObject) of this object
-    public BulletBody PhysBody;
+    public BulletBody PhysBody = new BulletBody(0);
     // Reference to the physical shape (btCollisionShape) of this object
-    public BSShape PhysShape;
+    public BSShape PhysShape = new BSShapeNull();
 
     // The physical representation of the prim might require an asset fetch.
     // The asset state is first 'Unknown' then 'Waiting' then either 'Failed' or 'Fetched'.
@@ -445,12 +443,12 @@ public abstract class BSPhysObject : PhysicsActor
     }
 
     // The collisions that have been collected for the next collision reporting (throttled by subscription)
-    protected CollisionEventUpdate CollisionCollection;
+    protected CollisionEventUpdate CollisionCollection = new CollisionEventUpdate();
     // This is the collision collection last reported to the Simulator.
-    public CollisionEventUpdate CollisionsLastReported;
+    public CollisionEventUpdate CollisionsLastReported = new CollisionEventUpdate();
     // Remember the collisions recorded in the last tick for fancy collision checking
     //     (like a BSCharacter walking up stairs).
-    public CollisionEventUpdate CollisionsLastTick;
+    public CollisionEventUpdate CollisionsLastTick = new CollisionEventUpdate();
     private long CollisionsLastTickStep = -1;
 
     // The simulation step is telling this object about a collision.
@@ -495,7 +493,7 @@ public abstract class BSPhysObject : PhysicsActor
             {
                 CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
             }
-            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
+            DetailLog("{0},{1}.Collision.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
                             LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
 
             ret = true;
@@ -596,7 +594,7 @@ public abstract class BSPhysObject : PhysicsActor
 
     #region Per Simulation Step actions
 
-    public BSActorCollection PhysicalActors;
+    public BSActorCollection PhysicalActors = new BSActorCollection();
 
     // When an update to the physical properties happens, this event is fired to let
     //    different actors to modify the update before it is passed around

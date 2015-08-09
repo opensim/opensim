@@ -459,7 +459,7 @@ public sealed class BSCharacter : BSPhysObject
             RawVelocity = value;
                 OMV.Vector3 vel = RawVelocity;
 
-            DetailLog("{0}: set Velocity = {1}", LogHeader, value);
+            DetailLog("{0}: set Velocity = {1}", LocalID, value);
 
             PhysScene.TaintedObject(LocalID, "BSCharacter.setVelocity", delegate()
             {
@@ -477,7 +477,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
 //                Util.PrintCallStack();
-            DetailLog("{0}: set ForceVelocity = {1}", LogHeader, value);
+            DetailLog("{0}: set ForceVelocity = {1}", LocalID, value);
 
             RawVelocity = value;
             PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);

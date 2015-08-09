@@ -76,7 +76,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     // Keep track of all the avatars so we can send them a collision event
     //    every tick so OpenSim will update its animation.
-    private HashSet<BSPhysObject> m_avatars = new HashSet<BSPhysObject>();
+    private HashSet<BSPhysObject> AvatarsInScene = new HashSet<BSPhysObject>();
+    private Object AvatarsInSceneLock = new Object();
 
     // let my minuions use my logger
     public ILog Logger { get { return m_log; } }
@@ -425,11 +426,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
-        foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
+        lock (PhysObjects)
         {
-            kvp.Value.Destroy();
+            foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
+            {
+                kvp.Value.Destroy();
+            }
+            PhysObjects.Clear();
         }
-        PhysObjects.Clear();
 
         // Now that the prims are all cleaned up, there should be no constraints left
         if (Constraints != null)
@@ -480,15 +484,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // TODO: Remove kludge someday.
         // We must generate a collision for avatars whether they collide or not.
         // This is required by OpenSim to update avatar animations, etc.
-        lock (m_avatars)
-        {
-            // The funky copy is because this list has few and infrequent changes but is
-            //    read zillions of times. This allows the reader/iterator to use the
-            //    list and this creates a new list with any updates.
-            HashSet<BSPhysObject> avatarTemp = new HashSet<BSPhysObject>(m_avatars);
-            avatarTemp.Add(actor);
-            m_avatars = avatarTemp;
-        }
+        lock (AvatarsInSceneLock)
+            AvatarsInScene.Add(actor);
 
         return actor;
     }
@@ -507,12 +504,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 lock (PhysObjects)
                     PhysObjects.Remove(bsactor.LocalID);
                 // Remove kludge someday
-                lock (m_avatars)
-                {
-                    HashSet<BSPhysObject> avatarTemp = new HashSet<BSPhysObject>(m_avatars);
-                    avatarTemp.Remove(bsactor);
-                    m_avatars = avatarTemp;
-                }
+                lock (AvatarsInSceneLock)
+                    AvatarsInScene.Remove(bsactor);
             }
             catch (Exception e)
             {
@@ -757,13 +750,18 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             // The simulator expects collisions for avatars even if there are have been no collisions.
             //    The event updates avatar animations and stuff.
             // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-            // Note that we copy the root of the list to search. Any updates will create a new list
-            //    thus freeing this code from having to do an extra lock for every collision.
-            HashSet<BSPhysObject> avatarTemp = m_avatars;
-            foreach (BSPhysObject bsp in avatarTemp)
-                if (!ObjectsWithCollisions.Contains(bsp))   // don't call avatars twice
-                    bsp.SendCollisions();
-            avatarTemp = null;
+            // Note that we get a copy of the list to search because SendCollision() can take a while.
+            HashSet<BSPhysObject> tempAvatarsInScene;
+            lock (AvatarsInSceneLock)
+            {
+                tempAvatarsInScene = new HashSet<BSPhysObject>(AvatarsInScene);
+            }
+            foreach (BSPhysObject actor in tempAvatarsInScene)
+            {
+                if (!ObjectsWithCollisions.Contains(actor))   // don't call avatars twice
+                    actor.SendCollisions();
+            }
+            tempAvatarsInScene = null;
 
             // Objects that are done colliding are removed from the ObjectsWithCollisions list.
             // Not done above because it is inside an iteration of ObjectWithCollisions.
@@ -813,6 +811,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         BSPhysObject collider;
+        // NOTE that PhysObjects was locked before the call to SendCollision().
         if (!PhysObjects.TryGetValue(localID, out collider))
         {
             // If the object that is colliding cannot be found, just ignore the collision.
