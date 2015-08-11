@@ -72,6 +72,7 @@ bin/Robust.log
 bin/RobustStats.log
 bin/OpenSimConsoleHistory.txt
 bin/RobustConsoleHistory.txt
+bin/*.Tests.log
 bin/*.manifest
 bin/crashes/
 Examples/*.dll
