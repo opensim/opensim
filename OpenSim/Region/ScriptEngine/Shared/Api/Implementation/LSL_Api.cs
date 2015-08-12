@@ -3528,14 +3528,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // TODO: figure out values for client, fromSession, and imSessionID
             // client.SendInstantMessage(m_host.UUID, fromSession, message, user, imSessionID, m_host.Name, AgentManager.InstantMessageDialog.MessageFromAgent, (uint)Util.UnixTimeSinceEpoch());
-            UUID friendTransactionID = UUID.Random();
-
-            //m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
 
             GridInstantMessage msg = new GridInstantMessage();
-            msg.fromAgentID = new Guid(m_host.UUID.ToString()); // fromAgentID.Guid;
+            msg.fromAgentID = new Guid(m_host.OwnerID.ToString()); // fromAgentID.Guid;
             msg.toAgentID = new Guid(user); // toAgentID.Guid;
-            msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
+            msg.imSessionID = new Guid(m_host.UUID.ToString()); // This is the item we're mucking with here
 //            m_log.Debug("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
 //            m_log.Debug("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
