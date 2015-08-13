@@ -454,6 +454,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 StartTimer();
                 m_running = true;
+                m_group.Scene.EventManager.TriggerMovingStartEvent(m_group.RootPart.LocalId);
             }
             else
             {
@@ -634,21 +635,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_frames.Count == 0)
             {
+                if (!m_running) return;
+
                 GetNextList();
 
                 if (m_frames.Count == 0)
                 {
                     Stop();
-                    Scene scene = m_group.Scene;
+//                    Scene scene = m_group.Scene;
+//
+//                    IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
+//                    foreach (IScriptModule m in scriptModules)
+//                    {
+//                        if (m == null)
+//                            continue;
+//                        m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
+//                    }
 
-                    IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
-                    foreach (IScriptModule m in scriptModules)
-                    {
-                        if (m == null)
-                            continue;
-                        m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
-                    }
-
+                    m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
+			
                     return;
                 }
 
