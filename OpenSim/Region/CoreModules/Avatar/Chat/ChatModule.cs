@@ -274,17 +274,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             string fromName = c.From;
             
             UUID fromID = UUID.Zero;
+            UUID ownerID = UUID.Zero;
             ChatSourceType sourceType = ChatSourceType.Object;
             if (null != c.Sender)
             {
                 ScenePresence avatar = (c.Scene as Scene).GetScenePresence(c.Sender.AgentId);
                 fromID = c.Sender.AgentId;
                 fromName = avatar.Name;
+                ownerID = c.Sender.AgentId;
                 sourceType = ChatSourceType.Agent;
             }
             else if (c.SenderUUID != UUID.Zero) 
             {
-                fromID = c.SenderUUID; 
+                fromID = c.SenderUUID;
+                ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
             }
             
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
@@ -302,7 +305,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         return;
 
                     client.SendChatMessage(
-                        c.Message, (byte)cType, CenterOfRegion, fromName, fromID, fromID,
+                        c.Message, (byte)cType, CenterOfRegion, fromName, fromID, ownerID,
                         (byte)sourceType, (byte)ChatAudibleLevel.Fully);
 
                     receiverIDs.Add(client.AgentId);
