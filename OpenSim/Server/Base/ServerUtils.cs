@@ -268,7 +268,7 @@ namespace OpenSim.Server.Base
                             && pluginType.ToString() != pluginType.Namespace + "." + className)
                             continue;
                         
-                        Type typeInterface = pluginType.GetInterface(interfaceName, true);
+                        Type typeInterface = pluginType.GetInterface(interfaceName);
 
                         if (typeInterface != null)
                         {

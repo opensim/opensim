@@ -172,7 +172,7 @@ namespace OpenSim.Region.Physics.Manager
                         {
                             if (!pluginType.IsAbstract)
                             {
-                                Type physTypeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
+                                Type physTypeInterface = pluginType.GetInterface("IPhysicsPlugin");
 
                                 if (physTypeInterface != null)
                                 {
@@ -186,7 +186,7 @@ namespace OpenSim.Region.Physics.Manager
                                     }
                                 }
 
-                                Type meshTypeInterface = pluginType.GetInterface("IMeshingPlugin", true);
+                                Type meshTypeInterface = pluginType.GetInterface("IMeshingPlugin");
 
                                 if (meshTypeInterface != null)
                                 {

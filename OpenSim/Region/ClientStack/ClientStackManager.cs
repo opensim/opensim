@@ -67,7 +67,7 @@ namespace OpenSim.Region.ClientStack
                     {
                         if (pluginType.IsPublic)
                         {
-                            Type typeInterface = pluginType.GetInterface("IClientNetworkServer", true);
+                            Type typeInterface = pluginType.GetInterface("IClientNetworkServer");
 
                             if (typeInterface != null)
                             {
