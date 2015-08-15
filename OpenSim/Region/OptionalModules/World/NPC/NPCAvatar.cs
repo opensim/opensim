@@ -65,6 +65,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
 
+        public List<uint> SelectedObjects {get; private set;}
+
         public NPCAvatar(
             string firstname, string lastname, Vector3 position, UUID ownerID, bool senseAsAgent, Scene scene)
         {

@@ -742,6 +742,8 @@ namespace OpenSim.Framework
 
         IScene Scene { get; }
 
+        List<uint> SelectedObjects { get; }
+
         // [Obsolete("LLClientView Specific - Replace with ???")]
         int NextAnimationSequenceNumber { get; }
 

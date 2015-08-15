@@ -68,6 +68,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private bool m_connected = true;
 
+        public List<uint> SelectedObjects {get; private set;}
+
         public IRCClientView(TcpClient client, Scene scene)
         {
             m_client = client;

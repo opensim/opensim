@@ -442,6 +442,8 @@ namespace OpenSim.Tests.Common.Mock
             get { return new IPEndPoint(IPAddress.Loopback, (ushort)m_circuitCode); }
         }
 
+        public List<uint> SelectedObjects {get; private set;}
+
         /// <summary>
         /// Constructor
         /// </summary>

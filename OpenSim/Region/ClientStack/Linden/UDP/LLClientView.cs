@@ -474,6 +474,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_disableFacelights = value; }
         }
 
+        public List<uint> SelectedObjects {get; private set;}
 
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
        
@@ -494,6 +495,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            DebugPacketLevel = 1;
 
             CloseSyncLock = new Object();
+            SelectedObjects = new List<uint>();
 
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientInventory>(this);
@@ -7347,6 +7349,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             for (int i = 0; i < incomingselect.ObjectData.Length; i++)
             {
+                if (!SelectedObjects.Contains(incomingselect.ObjectData[i].ObjectLocalID))
+                    SelectedObjects.Add(incomingselect.ObjectData[i].ObjectLocalID);
                 handlerObjectSelect = OnObjectSelect;
                 if (handlerObjectSelect != null)
                 {
@@ -7373,6 +7377,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
             {
+                if (!SelectedObjects.Contains(incomingdeselect.ObjectData[i].ObjectLocalID))
+                    SelectedObjects.Add(incomingdeselect.ObjectData[i].ObjectLocalID);
                 handlerObjectDeselect = OnObjectDeselect;
                 if (handlerObjectDeselect != null)
                 {
