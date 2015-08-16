@@ -131,6 +131,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 // Read the config again
                 string moduleString =
                         modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+                // Test to see if we want this module
+                if (moduleString == "disabled")
+                    continue;
 
                 // Get the port number, if there is one
                 if (moduleString != String.Empty)
@@ -364,6 +367,10 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 // Read the config
                 string moduleString =
                         modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+
+                // We may not want to load this at all
+                if (moduleString == "disabled")
+                    continue;
 
                 // Get the port number, if there is one
                 if (moduleString != String.Empty)
