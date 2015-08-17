@@ -133,13 +133,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 UUID objectID, UUID ownerID, string message, UUID textureID,
                 int ch, string[] buttonlabels)
         {
-            UserAccount account = m_scene.UserAccountService.GetUserAccount(
-                    m_scene.RegionInfo.ScopeID, ownerID);
-            string ownerFirstName, ownerLastName;
-            if (account != null)
+            string username = m_scene.UserManagementModule.GetUserName(ownerID);
+            string ownerFirstName, ownerLastName = String.Empty;
+            if (!String.IsNullOrEmpty(username))
             {
-                ownerFirstName = account.FirstName;
-                ownerLastName = account.LastName;
+                string[] parts = username.Split(' ');
+                ownerFirstName = parts[0];
+                if (parts.Length > 1)
+                    ownerLastName = username.Split(' ')[1];
             }
             else
             {
@@ -170,17 +171,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         }
 
         public void SendTextBoxToUser(UUID avatarid, string message,
-                int chatChannel, string name, UUID objectid, UUID ownerid)
+                int chatChannel, string name, UUID objectid, UUID ownerID)
         {
-            UserAccount account = m_scene.UserAccountService.GetUserAccount(
-                    m_scene.RegionInfo.ScopeID, ownerid);
-            string ownerFirstName, ownerLastName;
-            UUID ownerID = UUID.Zero;
-            if (account != null)
+            string username = m_scene.UserManagementModule.GetUserName(ownerID);
+            string ownerFirstName, ownerLastName = String.Empty;
+            if (!String.IsNullOrEmpty(username))
             {
-                ownerFirstName = account.FirstName;
-                ownerLastName = account.LastName;
-                ownerID = account.PrincipalID;
+                string[] parts = username.Split(' ');
+                ownerFirstName = parts[0];
+                if (parts.Length > 1)
+                    ownerLastName = username.Split(' ')[1];
             }
             else
             {
