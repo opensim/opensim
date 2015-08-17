@@ -220,8 +220,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
  
         private EventWaitHandle m_coopSleepHandle;
 
-        private Stopwatch executionTimer = new Stopwatch();
-
         public void ClearQueue()
         {
             m_TimerQueued = false;
@@ -293,7 +291,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             foreach (string api in am.GetApis())
             {
                 m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(Engine, Part, ScriptTask, m_coopSleepHandle, executionTimer);
+                m_Apis[api].Initialize(Engine, Part, ScriptTask, m_coopSleepHandle);
             }
 
             try
@@ -768,7 +766,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (Suspended)
                     return 0;
 
-                executionTimer.Restart();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
                 
                 try
                 {
@@ -776,9 +775,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
                 finally
                 {
-                    executionTimer.Stop();
-                    ExecutionTime.AddSample(executionTimer);
-                    Part.ParentGroup.Scene.AddScriptExecutionTime(executionTimer.ElapsedTicks);
+                    timer.Stop();
+                    ExecutionTime.AddSample(timer);
+                    Part.ParentGroup.Scene.AddScriptExecutionTime(timer.ElapsedTicks);
                 }
             }
         }

@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -46,9 +45,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// <param name='host'>/param>
         /// <param name='item'>/param>
         /// <param name='coopSleepHandle'>/param>
-        /// <param name="executionTimer">The timer used to measure how long the script has executed</param>
         void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle,
-            Stopwatch executionTimer);
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle);
     }
 }
