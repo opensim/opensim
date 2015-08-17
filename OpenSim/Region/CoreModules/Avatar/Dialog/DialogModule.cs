@@ -134,11 +134,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 int ch, string[] buttonlabels)
         {
             string username = m_scene.UserManagementModule.GetUserName(ownerID);
-            string ownerFirstName, ownerLastName;
+            string ownerFirstName, ownerLastName = String.Empty;
             if (!String.IsNullOrEmpty(username))
             {
-                ownerFirstName = username.Split(' ')[0];
-                ownerLastName = username.Split(' ')[1];
+                string[] parts = username.Split(' ');
+                ownerFirstName = parts[0];
+                if (parts.Length > 1)
+                    ownerLastName = username.Split(' ')[1];
             }
             else
             {
@@ -172,11 +174,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 int chatChannel, string name, UUID objectid, UUID ownerID)
         {
             string username = m_scene.UserManagementModule.GetUserName(ownerID);
-            string ownerFirstName, ownerLastName;
+            string ownerFirstName, ownerLastName = String.Empty;
             if (!String.IsNullOrEmpty(username))
             {
-                ownerFirstName = username.Split(' ')[0];
-                ownerLastName = username.Split(' ')[1];
+                string[] parts = username.Split(' ');
+                ownerFirstName = parts[0];
+                if (parts.Length > 1)
+                    ownerLastName = username.Split(' ')[1];
             }
             else
             {
