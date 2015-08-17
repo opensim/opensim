@@ -46,6 +46,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// <param name='item'>/param>
         /// <param name='coopSleepHandle'>/param>
         void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle);
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item);
     }
 }

@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Diagnostics;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -162,6 +163,9 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void ClearQueue();
         int StartParam { get; set; }
+
+        WaitHandle CoopWaitHandle { get; }
+        Stopwatch ExecutionTimer { get; }
 
         void RemoveState();
 

@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TaskInventoryHelpers.AddSceneObject(m_scene.AssetService, so1.RootPart, inventoryItemName, itemId, userId);
 
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, so1.RootPart, null, null);
+            api.Initialize(m_engine, so1.RootPart, null);
 
             // Create a second object
             SceneObjectGroup so2 = SceneHelpers.CreateSceneObject(1, userId, "so2", 0x100);
@@ -127,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
             m_scene.AddSceneObject(so1);
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, so1.RootPart, null, null);
+            api.Initialize(m_engine, so1.RootPart, null);
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
@@ -137,7 +137,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup so2 = SceneHelpers.CreateSceneObject(1, user2Id, "so2", 0x100);
             m_scene.AddSceneObject(so2);
             LSL_Api api2 = new LSL_Api();
-            api2.Initialize(m_engine, so2.RootPart, null, null);
+            api2.Initialize(m_engine, so2.RootPart, null);
 
             // *** Firstly, we test where llAllowInventoryDrop() has not been called. ***
             api.llGiveInventory(so2.UUID.ToString(), inventoryItemName);
@@ -184,7 +184,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
             m_scene.AddSceneObject(so1);
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, so1.RootPart, null, null);
+            api.Initialize(m_engine, so1.RootPart, null);
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
             m_scene.AddSceneObject(so1);
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, so1.RootPart, null, null);
+            api.Initialize(m_engine, so1.RootPart, null);
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup sourceSo = SceneHelpers.AddSceneObject(m_scene, "sourceSo", user1Id);
             m_scene.AddSceneObject(sourceSo);
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, sourceSo.RootPart, null, null);
+            api.Initialize(m_engine, sourceSo.RootPart, null);
             TaskInventoryHelpers.AddScript(m_scene.AssetService, sourceSo.RootPart, "script", "Hello World");
 
             SceneObjectGroup targetSo = SceneHelpers.AddSceneObject(m_scene, "targetSo", user1Id);

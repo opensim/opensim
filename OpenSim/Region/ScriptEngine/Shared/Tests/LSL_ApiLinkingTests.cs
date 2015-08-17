@@ -104,7 +104,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(grp2);
 
             LSL_Api apiGrp1 = new LSL_Api();
-            apiGrp1.Initialize(m_engine, grp1.RootPart, grp1Item, null);
+            apiGrp1.Initialize(m_engine, grp1.RootPart, grp1Item);
 
             apiGrp1.llCreateLink(grp2.UUID.ToString(), ScriptBaseClass.TRUE);
 
@@ -131,7 +131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
             LSL_Api apiGrp1 = new LSL_Api();
-            apiGrp1.Initialize(m_engine, grp1.RootPart, grp1Item, null);
+            apiGrp1.Initialize(m_engine, grp1.RootPart, grp1Item);
 
             apiGrp1.llBreakLink(2);
 
@@ -160,7 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
             LSL_Api apiGrp1 = new LSL_Api();
-            apiGrp1.Initialize(m_engine, grp1.RootPart, grp1Item, null);
+            apiGrp1.Initialize(m_engine, grp1.RootPart, grp1Item);
 
             apiGrp1.llBreakAllLinks();
 

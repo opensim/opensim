@@ -100,6 +100,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public int DebugLevel { get; set; }
 
+        public WaitHandle CoopWaitHandle { get; private set; }
+        public Stopwatch ExecutionTimer { get; private set; }
+
         public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> LineMap { get; set; }
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
@@ -234,6 +237,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             State = "default";
             EventQueue = new Queue(32);
+            ExecutionTimer = new Stopwatch();
 
             Engine = engine;
             Part = part;
@@ -286,12 +290,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_stateSource = stateSource;
             m_coopTermination = coopTermination;
 
+            if (m_coopTermination)
+                CoopWaitHandle = coopSleepHandle;
+            else
+                CoopWaitHandle = null;
+
             ApiManager am = new ApiManager();
 
             foreach (string api in am.GetApis())
             {
                 m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(Engine, Part, ScriptTask, m_coopSleepHandle);
+                m_Apis[api].Initialize(Engine, Part, ScriptTask);
             }
 
             try
@@ -766,8 +775,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (Suspended)
                     return 0;
 
-                Stopwatch timer = new Stopwatch();
-                timer.Start();
+                ExecutionTimer.Restart();
                 
                 try
                 {
@@ -775,9 +783,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
                 finally
                 {
-                    timer.Stop();
-                    ExecutionTime.AddSample(timer);
-                    Part.ParentGroup.Scene.AddScriptExecutionTime(timer.ElapsedTicks);
+                    ExecutionTimer.Stop();
+                    ExecutionTime.AddSample(ExecutionTimer);
+                    Part.ParentGroup.Scene.AddScriptExecutionTime(ExecutionTimer.ElapsedTicks);
                 }
             }
         }

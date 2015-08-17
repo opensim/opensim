@@ -264,5 +264,9 @@ namespace OpenSim.Tests.Common
         {
             PostedEvents.Clear();
         }
+
+        public void SleepScript(UUID itemID, int delay)
+        {
+        }
     }
 }

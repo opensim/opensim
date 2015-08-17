@@ -110,5 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         ParameterInfo[] ScriptBaseClassParameters { get; }
 
         IScriptApi GetApi(UUID itemID, string name);
+
+        void SleepScript(UUID itemID, int delay);
     }
 }

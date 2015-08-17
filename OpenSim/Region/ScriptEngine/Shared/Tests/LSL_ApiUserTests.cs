@@ -71,7 +71,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene.AssetService, part);
 
             LSL_Api apiGrp1 = new LSL_Api();
-            apiGrp1.Initialize(m_engine, part, scriptItem, null);
+            apiGrp1.Initialize(m_engine, part, scriptItem);
 
             // Initially long timeout to test cache
             apiGrp1.LlRequestAgentDataCacheTimeoutMs = 20000;

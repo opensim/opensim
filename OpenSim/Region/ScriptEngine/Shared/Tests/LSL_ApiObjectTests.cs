@@ -89,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(grp1);
 
             LSL_Api apiGrp1 = new LSL_Api();
-            apiGrp1.Initialize(m_engine, grp1.RootPart, null, null);
+            apiGrp1.Initialize(m_engine, grp1.RootPart, null);
 
             // Check simple 1 prim case
             {
@@ -167,7 +167,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.That(scene.AddNewSceneObject(new SceneObjectGroup(part1), false), Is.True);
 
             LSL_Api apiGrp1 = new LSL_Api();
-            apiGrp1.Initialize(m_engine, part1, null, null);
+            apiGrp1.Initialize(m_engine, part1, null);
 
             // Note that prim hollow check is passed with the other prim params in order to allow the
             // specification of a different check value from the prim param. A cylinder, prism, sphere,

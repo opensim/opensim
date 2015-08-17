@@ -2435,5 +2435,30 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             running = instance.Running;
             return true;
         }
+
+        public void SleepScript(UUID itemID, int delay)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return;
+
+            instance.ExecutionTimer.Stop();
+            try
+            {
+                if (instance.CoopWaitHandle != null)
+                {
+                    if (instance.CoopWaitHandle.WaitOne(delay))
+                        throw new ScriptCoopStopException();
+                }
+                else
+                {
+                    Thread.Sleep(delay);
+                }
+            }
+            finally
+            {
+                instance.ExecutionTimer.Start();
+            }
+        }
     }
 }
