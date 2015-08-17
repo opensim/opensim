@@ -959,9 +959,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // script engine to run the next event.
             lock (EventQueue)
             {
-                EventsProcessed++;
+                // Increase processed events counter and prevent wrap;
+                if (++EventsProcessed == 1000000)
+                    EventsProcessed = 100000;
 
-                if ((EventsProcessed == 1000) || (EventsProcessed == 10000) || ((EventsProcessed % 100000) == 0))
+                if ((EventsProcessed % 100000) == 0 && DebugLevel > 0)
                 {
                     m_log.DebugFormat("[SCRIPT INSTANCE]: Script \"{0}\" (Object \"{1}\" {2} @ {3}.{4}, Item ID {5}, Asset {6}) in event {7}: processed {8:n0} script events",
                                     ScriptTask.Name,
