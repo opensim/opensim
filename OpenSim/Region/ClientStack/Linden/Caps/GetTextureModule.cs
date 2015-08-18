@@ -300,11 +300,16 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     response = new Hashtable();
 
+
                     response["int_response_code"] = 503;
                     response["str_response_string"] = "Throttled";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = true;
                     response["reusecontext"] = false;
+
+                    Hashtable headers = new Hashtable();
+                    headers["Retry-After"] = 30;
+                    response["headers"] = headers;
                     
                     lock (responses)
                         responses[requestID] = new aPollResponse() {bytes = 0, response = response};
