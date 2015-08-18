@@ -114,7 +114,29 @@ namespace OpenSim.Framework.Servers.HttpServer
                 PollServiceArgs.RequestsHandled++;
             }
         }
- 
+
+        internal void DoHTTPstop(BaseHttpServer server)
+        {
+            OSHttpResponse response
+                = new OSHttpResponse(new HttpResponse(HttpContext, Request), HttpContext);
+
+            response.SendChunked = false;
+            response.ContentLength64 = 0;
+            response.ContentEncoding = Encoding.UTF8;
+            response.ReuseContext = false;
+            response.KeepAlive = false;
+            response.SendChunked = false;
+            response.StatusCode = 503;
+
+            try
+            {
+                response.OutputStream.Flush();
+                response.Send();
+            }
+            catch (Exception e)
+            {
+            }
+        }
     }
 
     class PollServiceHttpRequestComparer : IEqualityComparer<PollServiceHttpRequest>
