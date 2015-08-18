@@ -283,7 +283,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["int_response_code"] = 500;
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
+                    response["keepalive"] = true;
                     response["reusecontext"] = false;
 
                     return response;
@@ -303,7 +303,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["int_response_code"] = 503;
                     response["str_response_string"] = "Throttled";
                     response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
+                    response["keepalive"] = true;
                     response["reusecontext"] = false;
                     
                     lock (responses)
@@ -320,7 +320,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["int_response_code"] = 500;
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
+                    response["keepalive"] = true;
                     response["reusecontext"] = false;
                     
                     lock (responses)
