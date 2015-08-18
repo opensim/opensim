@@ -46,6 +46,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private readonly BaseHttpServer m_server;
 
+        private Dictionary<PollServiceHttpRequest, Queue<PollServiceHttpRequest>> m_bycontext;
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
         private static Queue<PollServiceHttpRequest> m_slowRequests = new Queue<PollServiceHttpRequest>();
         private static Queue<PollServiceHttpRequest> m_retryRequests = new Queue<PollServiceHttpRequest>();
@@ -64,6 +65,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_server = pSrv;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
+
+            PollServiceHttpRequestComparer preqCp = new PollServiceHttpRequestComparer();
+            m_bycontext = new Dictionary<PollServiceHttpRequest, Queue<PollServiceHttpRequest>>(preqCp);
 
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.IdleTimeout = 30000;
@@ -113,6 +117,45 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void Enqueue(PollServiceHttpRequest req)
+        {
+            lock (m_bycontext)
+            {
+                Queue<PollServiceHttpRequest> ctxQeueue;
+                if (m_bycontext.TryGetValue(req, out ctxQeueue))
+                {
+                    ctxQeueue.Enqueue(req);
+                }
+                else
+                {
+                    ctxQeueue = new Queue<PollServiceHttpRequest>();
+                    m_bycontext[req] = ctxQeueue;
+                    EnqueueInt(req);
+                }
+            }
+        }
+
+        public void byContextDequeue(PollServiceHttpRequest req)
+        {
+            Queue<PollServiceHttpRequest> ctxQeueue;
+            lock (m_bycontext)
+            {
+                if (m_bycontext.TryGetValue(req, out ctxQeueue))
+                {
+                    if (ctxQeueue.Count > 0)
+                    {
+                        PollServiceHttpRequest newreq = ctxQeueue.Dequeue();
+                        EnqueueInt(newreq);
+                    }
+                    else
+                    {
+                        m_bycontext.Remove(req);
+                    }
+                }
+            }
+        }
+
+
+        public void EnqueueInt(PollServiceHttpRequest req)
         {
             if (m_running)
             {
@@ -220,6 +263,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 try
                                 {
                                     req.DoHTTPGruntWork(m_server, responsedata);
+                                    byContextDequeue(req);
                                 }
                                 catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                 {
@@ -233,6 +277,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     try
                                     {
                                         req.DoHTTPGruntWork(m_server, responsedata);
+                                        byContextDequeue(req);
                                     }
                                     catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                     {
@@ -249,6 +294,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             {
                                 req.DoHTTPGruntWork(m_server, 
                                     req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                                byContextDequeue(req);
                             }
                             else
                             {
