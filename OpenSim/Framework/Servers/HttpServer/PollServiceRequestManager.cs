@@ -204,12 +204,17 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (Thread t in m_workerThreads)
                 Watchdog.AbortThread(t.ManagedThreadId);
 
+            // any entry in m_bycontext should have a active request on the other queues
+            // so just delete contents to easy GC
+            foreach (Queue<PollServiceHttpRequest> qu in m_bycontext.Values)
+                qu.Clear();
+            m_bycontext.Clear();
+
             try
             {
                 foreach (PollServiceHttpRequest req in m_retryRequests)
                 {
-                   req.DoHTTPGruntWork(m_server,
-                        req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                    req.DoHTTPstop(m_server);
                 }
             }
             catch
@@ -221,7 +226,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             lock (m_slowRequests)
             {
-                while (m_slowRequests.Count > 0 && m_running)
+                while (m_slowRequests.Count > 0)
                     m_requests.Enqueue(m_slowRequests.Dequeue());
             }
 
@@ -230,8 +235,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     wreq = m_requests.Dequeue(0);
-                    wreq.DoHTTPGruntWork(m_server,
-                        wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id));
+                    wreq.DoHTTPstop(m_server);
                 }
                 catch
                 {
