@@ -33,16 +33,17 @@ using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Tests.Common.Mock
 {
     public class TestScene : Scene
     {
         public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen,
+            RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
             SceneCommunicationService sceneGridService, ISimulationDataService simDataService, IEstateDataService estateDataService,
             IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, sceneGridService, simDataService, estateDataService,
+            : base(regInfo, authen, physicsScene, sceneGridService, simDataService, estateDataService,
                    config, simulatorVersion)
         {
         }

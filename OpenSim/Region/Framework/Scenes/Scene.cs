@@ -760,7 +760,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructors
 
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen,
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
                      SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      IConfigSource config, string simulatorVersion)
@@ -840,6 +840,7 @@ namespace OpenSim.Region.Framework.Scenes
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
             m_sceneGraph = new SceneGraph(this);
+            m_sceneGraph.PhysicsScene = physicsScene;
 
             // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific
@@ -1075,7 +1076,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             PhysicalPrims = true;
             CollidablePrims = true;
-            PhysicsEnabled = true;
+            // this is done above acording to config
+ //           PhysicsEnabled = true;
 
             PeriodicBackup = true;
             UseBackup = true;
