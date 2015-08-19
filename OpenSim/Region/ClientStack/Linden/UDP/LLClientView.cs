@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Send it sync, and async. It's not that much data
             // and it improves user experience just so much!
-            DoSendLayerData(map);
+//            DoSendLayerData(map);
         }
 
         /// <summary>
@@ -1710,6 +1710,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(List<uint> localIDs)
         {
+            // think we do need this
+            //            foreach (uint id in localIDs)
+            //                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
+
+            // remove pending entities
+            lock (m_entityProps.SyncRoot)
+                m_entityProps.Remove(localIDs);
+            lock (m_entityUpdates.SyncRoot)
+                m_entityUpdates.Remove(localIDs);
+
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[localIDs.Count];
