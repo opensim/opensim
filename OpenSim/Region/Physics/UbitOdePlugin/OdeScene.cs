@@ -170,6 +170,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         public bool OdeUbitLib = false;
+        public bool m_suportCombine = false; // mega suport not tested
+
 //        private int threadid = 0;
 //        private Random fluidRandomizer = new Random(Environment.TickCount);
 
@@ -187,8 +189,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float AvatarFriction = 0;// 0.9f * 0.5f;
 
-        private const uint m_regionWidth = Constants.RegionSize;
-        private const uint m_regionHeight = Constants.RegionSize;
+        private uint m_regionWidth = Constants.RegionSize;
+        private uint m_regionHeight = Constants.RegionSize;
 
         public float ODE_STEPSIZE = 0.020f;
         public float HalfOdeStep = 0.01f;
@@ -418,8 +420,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        // Initialize the mesh plugin
-//        public override void Initialise(IMesher meshmerizer, IConfigSource config, RegionInfo region )
+        public override void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
+        {
+            WorldExtents.X =  regionExtent.X;
+            WorldExtents.Y =  regionExtent.Y;
+            m_suportCombine = false;
+            Initialise(meshmerizer, config);
+        }
+
+
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
 //            checkThread();
@@ -556,6 +565,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             spacesPerMeter = 1 / metersInSpace;
             spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeter);
             spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeter);
+
+            if (spaceGridMaxX > 40)
+                spaceGridMaxX = 40;
+            if (spaceGridMaxY > 40)
+                spaceGridMaxY = 40;
 
             staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY];
 
@@ -1882,17 +1896,25 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float GetTerrainHeightAtXY(float x, float y)
         {
-
-
-            int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-            int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-
-
             IntPtr heightFieldGeom = IntPtr.Zero;
 
-            // get region map
-            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
-                return 0f;
+            int offsetX = 0;
+            int offsetY = 0;
+
+            if (m_suportCombine)
+            {
+                offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+                offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+                // get region map
+                if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+                    return 0f;
+            }
+            else
+            {
+                if (!RegionTerrain.TryGetValue(Vector3.Zero , out heightFieldGeom))
+                    return 0f;
+            }
+
 
             if (heightFieldGeom == IntPtr.Zero)
                 return 0f;
@@ -1917,28 +1939,30 @@ namespace OpenSim.Region.Physics.OdePlugin
             float dx;
             float dy;
 
-            int regsize = (int)Constants.RegionSize + 3; // map size see setterrain number of samples
+            int regsizeX = (int)WorldExtents.X + 3; // map size see setterrain number of samples
+            int regsizeY = (int)WorldExtents.Y + 3; // map size see setterrain number of samples
+            int regsize = regsizeX;
 
             if (OdeUbitLib)
             {
-                if (x < regsize - 1)
+                if (x < regsizeX - 1)
                 {
                     ix = (int)x;
                     dx = x - (float)ix;
                 }
                 else // out world use external height
                 {
-                    ix = regsize - 2;
+                    ix = regsizeX - 2;
                     dx = 0;
                 }
-                if (y < regsize - 1)
+                if (y < regsizeY - 1)
                 {
                     iy = (int)y;
                     dy = y - (float)iy;
                 }
                 else
                 {
-                    iy = regsize - 2;
+                    iy = regsizeY - 2;
                     dy = 0;
                 }
             }
@@ -1948,24 +1972,26 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // also flip x and y because of how map is done for ODE fliped axis
                 // so ix,iy,dx and dy are inter exchanged
 
-                if (x < regsize - 1)
+                regsize = regsizeY;
+
+                if (x < regsizeX - 1)
                 {
                     iy = (int)x;
                     dy = x - (float)iy;
                 }
                 else // out world use external height
                 {
-                    iy = regsize - 2;
+                    iy = regsizeX - 2;
                     dy = 0;
                 }
-                if (y < regsize - 1)
+                if (y < regsizeY - 1)
                 {
                     ix = (int)y;
                     dx = y - (float)ix;
                 }
                 else
                 {
-                    ix = regsize - 2;
+                    ix = regsizeY - 2;
                     dx = 0;
                 }
             }
@@ -2014,15 +2040,25 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public Vector3 GetTerrainNormalAtXY(float x, float y)
         {
-            int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-            int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-
             IntPtr heightFieldGeom = IntPtr.Zero;
             Vector3 norm = new Vector3(0, 0, 1);
 
-            // get region map
-            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
-                return norm;
+            int offsetX = 0;
+            int offsetY = 0;
+
+            if (m_suportCombine)
+            {
+                offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+                offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+                // get region map
+                if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+                    return norm; ;
+            }
+            else
+            {
+                if (!RegionTerrain.TryGetValue(Vector3.Zero, out heightFieldGeom))
+                    return norm; ;
+            }
 
             if (heightFieldGeom == IntPtr.Zero)
                 return norm;
@@ -2047,32 +2083,34 @@ namespace OpenSim.Region.Physics.OdePlugin
             float dx;
             float dy;
 
+            int regsizeX = (int)WorldExtents.X + 3; // map size see setterrain number of samples
+            int regsizeY = (int)WorldExtents.Y + 3; // map size see setterrain number of samples
+            int regsize = regsizeX;
 
-            int regsize = (int)Constants.RegionSize + 3; // map size see setterrain number of samples
             int xstep = 1;
-            int ystep = regsize;
+            int ystep = regsizeX;
             bool firstTri = false;
 
             if (OdeUbitLib)
             {
-                if (x < regsize - 1)
+                if (x < regsizeX - 1)
                 {
                     ix = (int)x;
                     dx = x - (float)ix;
                 }
                 else // out world use external height
                 {
-                    ix = regsize - 2;
+                    ix = regsizeX - 2;
                     dx = 0;
                 }
-                if (y < regsize - 1)
+                if (y < regsizeY - 1)
                 {
                     iy = (int)y;
                     dy = y - (float)iy;
                 }
                 else
                 {
-                    iy = regsize - 2;
+                    iy = regsizeY - 2;
                     dy = 0;
                 }
                 firstTri = dy > dx;
@@ -2080,29 +2118,31 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             else
             {
-                xstep = regsize;
+                xstep = regsizeY;
                 ystep = 1;
+                regsize = regsizeY;
+
                 // we  still have square fixed size regions
                 // also flip x and y because of how map is done for ODE fliped axis
                 // so ix,iy,dx and dy are inter exchanged
-                if (x < regsize - 1)
+                if (x < regsizeX - 1)
                 {
                     iy = (int)x;
                     dy = x - (float)iy;
                 }
                 else // out world use external height
                 {
-                    iy = regsize - 2;
+                    iy = regsizeX - 2;
                     dy = 0;
                 }
-                if (y < regsize - 1)
+                if (y < regsizeY - 1)
                 {
                     ix = (int)y;
                     dx = y - (float)ix;
                 }
                 else
                 {
-                    ix = regsize - 2;
+                    ix = regsizeY - 2;
                     dx = 0;
                 }
                 firstTri = dx > dy;
@@ -2175,8 +2215,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float[] _heightmap;
 
-            uint heightmapWidth = Constants.RegionSize + 2;
-            uint heightmapHeight = Constants.RegionSize + 2;
+            uint regionsizeX = (uint)WorldExtents.X;
+            uint regionsizeY = (uint)WorldExtents.Y;
+
+            // map is rotated
+            uint heightmapWidth = regionsizeY + 2;
+            uint heightmapHeight = regionsizeX + 2;
 
             uint heightmapWidthSamples = heightmapWidth + 1;
             uint heightmapHeightSamples = heightmapHeight + 1;
@@ -2188,7 +2232,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             const float thickness = 10f;
             const int wrap = 0;
 
-            uint regionsize = Constants.RegionSize;
  
             float hfmin = float.MaxValue;
             float hfmax = float.MinValue;
@@ -2196,7 +2239,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             uint xx;
             uint yy;
 
-            uint maxXXYY = regionsize - 1;
+            uint maxXX = regionsizeX - 1;
+            uint maxYY = regionsizeY - 1;
             // flipping map adding one margin all around so things don't fall in edges
 
             uint xt = 0;
@@ -2204,13 +2248,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             for (uint x = 0; x < heightmapWidthSamples; x++)
             {
-                if (x > 1 && xx < maxXXYY)
+                if (x > 1 && xx < maxXX)
                     xx++;
                 yy = 0;
                 for (uint y = 0; y < heightmapHeightSamples; y++)
                 {
-                    if (y > 1 && y < maxXXYY)
-                        yy += regionsize;
+                    if (y > 1 && y < maxYY)
+                        yy += regionsizeX;
 
                     val = heightMap[yy + xx];
                     if (val < 0.0f)
@@ -2224,6 +2268,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 xt += heightmapHeightSamples;
             }
+
             lock (OdeLock)
             {
                 IntPtr GroundGeom = IntPtr.Zero;
@@ -2296,8 +2341,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float[] _heightmap;
 
-            uint heightmapWidth = Constants.RegionSize + 2;
-            uint heightmapHeight = Constants.RegionSize + 2;
+            uint regionsizeX = (uint)WorldExtents.X;
+            uint regionsizeY = (uint)WorldExtents.Y;
+
+            uint heightmapWidth = regionsizeX + 2;
+            uint heightmapHeight = regionsizeY + 2;
 
             uint heightmapWidthSamples = heightmapWidth + 1;
             uint heightmapHeightSamples = heightmapHeight + 1;
@@ -2305,14 +2353,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             _heightmap = new float[heightmapWidthSamples * heightmapHeightSamples];
 
 
-            uint regionsize = Constants.RegionSize;
-
             float hfmin = float.MaxValue;
 //            float hfmax = float.MinValue;
             float val;
 
 
-            uint maxXXYY = regionsize - 1;
+            uint maxXX = regionsizeX - 1;
+            uint maxYY = regionsizeY - 1;
             // adding one margin all around so things don't fall in edges
 
             uint xx;
@@ -2321,12 +2368,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             for (uint y = 0; y < heightmapHeightSamples; y++)
             {
-                if (y > 1 && y < maxXXYY)
-                    yy += regionsize;
+                if (y > 1 && y < maxYY)
+                    yy += regionsizeX;
                 xx = 0;
                 for (uint x = 0; x < heightmapWidthSamples; x++)
                 {
-                    if (x > 1 && x < maxXXYY)
+                    if (x > 1 && x < maxXX)
                         xx++;
 
                     val = heightMap[yy + xx];
@@ -2409,7 +2456,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool SupportsCombining()
         {
-            return true;
+            return m_suportCombine;
         }
 /*
         public override void UnCombine(PhysicsScene pScene)
