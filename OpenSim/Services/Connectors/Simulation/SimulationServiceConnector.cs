@@ -356,6 +356,17 @@ namespace OpenSim.Services.Connectors.Simulation
                     return false;
                 }
 
+
+                featuresAvailable.Clear();
+
+                if (result.ContainsKey("features"))
+                {
+                    OSDArray array = (OSDArray)result["features"];
+
+                    foreach (OSD o in array)
+                        featuresAvailable.Add(new UUID(o.AsString()));
+                }
+
                 return success;
             }
             catch (Exception e)

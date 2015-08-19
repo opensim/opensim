@@ -174,6 +174,12 @@ namespace OpenSim.Server.Handlers.Simulation
             resp["reason"] = OSD.FromString(reason);
             resp["version"] = OSD.FromString(version);
 
+            OSDArray featuresWanted = new OSDArray();
+            foreach (UUID feature in features)
+                featuresWanted.Add(OSD.FromString(feature.ToString()));
+            
+            resp["features"] = featuresWanted;
+
             // We must preserve defaults here, otherwise a false "success" will not be put into the JSON map!
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
 
