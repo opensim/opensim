@@ -395,17 +395,21 @@ namespace OpenSim.Region.Framework.Scenes
         // Fill the heightmap with the center bump terrain
         private void PinHeadIsland()
         {
+            float cx = m_terrainData.SizeX * 0.5f;
+            float cy = m_terrainData.SizeY * 0.5f;
+            float h;
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
                 {
-                    m_terrainData[x, y] = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
-                    float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, m_terrainData.SizeX / 2.0, m_terrainData.SizeY / 2.0, 50) * 0.01d);
-                    float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, m_terrainData.SizeX / 2.0, m_terrainData.SizeY / 2.0, 100) * 0.001d);
-                    if (m_terrainData[x, y]< spherFacA)
-                        m_terrainData[x, y]= spherFacA;
-                    if (m_terrainData[x, y]< spherFacB)
-                        m_terrainData[x, y] = spherFacB;
+                    h = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
+                    float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 50) * 0.01d);
+                    float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 100) * 0.001d);
+                    if (h < spherFacA)
+                        h = spherFacA;
+                    if (h < spherFacB)
+                        h = spherFacB;
+                    m_terrainData[x, y] = h;
                 }
             }
         }
