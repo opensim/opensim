@@ -530,7 +530,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 val = value;
                 if (Scene != null
-                        && Scene.PositionIsInCurrentRegion(val)
+                        && !Scene.PositionIsInCurrentRegion(val)
                         && !IsAttachmentCheckFull()
                         && !Scene.LoadingPrims
                     )
