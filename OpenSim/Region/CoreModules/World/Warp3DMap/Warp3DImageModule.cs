@@ -136,8 +136,15 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
             }
 
-            Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
-            Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f, (int)Constants.RegionSize, (int)Constants.RegionSize, (float)Constants.RegionSize, (float)Constants.RegionSize);
+            Vector3 camPos = new Vector3(
+                            m_scene.RegionInfo.RegionSizeX / 2 - 0.5f,
+                            m_scene.RegionInfo.RegionSizeY / 2 - 0.5f,
+                            221.7025033688163f);
+            // Viewport viewing down onto the region
+            Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f,
+                        (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY,
+                        (float)m_scene.RegionInfo.RegionSizeX, (float)m_scene.RegionInfo.RegionSizeY);
+
             Bitmap tile = CreateMapTile(viewport, false);
             m_primMesher = null;
 
@@ -254,8 +261,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            renderer.AddPlane("Water", 256f * 0.5f);
-            renderer.Scene.sceneobject("Water").setPos(127.5f, waterHeight, 127.5f);
+            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f);
+            renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX / 2 - 0.5f,
+                                                       waterHeight,
+                                                       m_scene.RegionInfo.RegionSizeY / 2 - 0.5f);
 
             renderer.AddMaterial("WaterColor", ConvertColor(WATER_COLOR));
 			renderer.Scene.material("WaterColor").setReflectivity(0);  // match water color with standard map module thanks lkalif
@@ -266,45 +275,51 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private void CreateTerrain(WarpRenderer renderer, bool textureTerrain)
         {
             ITerrainChannel terrain = m_scene.Heightmap;
-            float[] heightmap = terrain.GetFloatsSerialised();
+
+            // 'diff' is the difference in scale between the real region size and the size of terrain we're buiding
+            float diff = (float)m_scene.RegionInfo.RegionSizeX / 256f;
 
             warp_Object obj = new warp_Object(256 * 256, 255 * 255 * 2);
 
-            for (int y = 0; y < 256; y++)
+            // Create all the vertices for the terrain
+            for (float y = 0; y < m_scene.RegionInfo.RegionSizeY; y += diff)
             {
-                for (int x = 0; x < 256; x++)
+                for (float x = 0; x < m_scene.RegionInfo.RegionSizeX; x += diff)
                 {
-                    int v = y * 256 + x;
-                    float height = heightmap[v];
-
-                    warp_Vector pos = ConvertVector(new Vector3(x, y, height));
-                    obj.addVertex(new warp_Vertex(pos, (float)x / 255f, (float)(255 - y) / 255f));
+                    warp_Vector pos = ConvertVector(x, y, (float)terrain[(int)x, (int)y]);
+                    obj.addVertex(new warp_Vertex(pos,
+                        x / (float)m_scene.RegionInfo.RegionSizeX,
+                        (((float)m_scene.RegionInfo.RegionSizeY) - y) / m_scene.RegionInfo.RegionSizeY));
                 }
             }
 
-            for (int y = 0; y < 256; y++)
+            // Now that we have all the vertices, make another pass and create
+            //     the normals for each of the surface triangles and
+            //     create the list of triangle indices.
+            for (float y = 0; y < m_scene.RegionInfo.RegionSizeY; y += diff)
             {
-                for (int x = 0; x < 256; x++)
+                for (float x = 0; x < m_scene.RegionInfo.RegionSizeX; x += diff)
                 {
-                    if (x < 255 && y < 255)
+                    float newX = x / diff;
+                    float newY = y / diff;
+                    if (newX < 255 && newY < 255)
                     {
-                        int v = y * 256 + x;
+                        int v = (int)newY * 256 + (int)newX;
 
-                        // Normal
-                        Vector3 v1 = new Vector3(x, y, heightmap[y * 256 + x]);
-                        Vector3 v2 = new Vector3(x + 1, y, heightmap[y * 256 + x + 1]);
-                        Vector3 v3 = new Vector3(x, y + 1, heightmap[(y + 1) * 256 + x]);
+                        // Normal for a triangle made up of three adjacent vertices
+                        Vector3 v1 = new Vector3(newX, newY, (float)terrain[(int)x, (int)y]);
+                        Vector3 v2 = new Vector3(newX + 1, newY, (float)terrain[(int)(x + 1), (int)y]);
+                        Vector3 v3 = new Vector3(newX, newY + 1, (float)terrain[(int)x, ((int)(y + 1))]);
                         warp_Vector norm = ConvertVector(SurfaceNormal(v1, v2, v3));
                         norm = norm.reverse();
                         obj.vertex(v).n = norm;
 
-                        // Triangle 1
+                        // Make two triangles for each of the squares in the grid of vertices
                         obj.addTriangle(
                             v,
                             v + 1,
                             v + 256);
 
-                        // Triangle 2
                         obj.addTriangle(
                             v + 256 + 1,
                             v + 256,
@@ -337,14 +352,14 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             heightRanges[3] = (float)regionInfo.Elevation2NE;
 
             uint globalX, globalY;
-            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
+            Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
 
             warp_Texture texture;
 
             using (
                 Bitmap image
                     = TerrainSplat.Splat(
-                        heightmap, textureIDs, startHeights, heightRanges,
+                        terrain, textureIDs, startHeights, heightRanges,
                         new Vector3d(globalX, globalY, 0.0), m_scene.AssetService, textureTerrain))
             {
                 texture = new warp_Texture(image);
@@ -534,6 +549,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         #endregion Rendering Methods
 
         #region Static Helpers
+        // Note: axis change.
+        private static warp_Vector ConvertVector(float x, float y, float z)
+        {
+            return new warp_Vector(x, z, y);
+        }
 
         private static warp_Vector ConvertVector(Vector3 vector)
         {

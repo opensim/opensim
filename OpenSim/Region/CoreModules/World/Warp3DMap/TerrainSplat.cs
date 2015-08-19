@@ -32,6 +32,7 @@ using System.Drawing.Imaging;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Warp3DMap
@@ -66,6 +67,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         #endregion Constants
 
         private static readonly ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.Name);
+        private static string LogHeader = "[WARP3D TERRAIN SPLAT]";
 
         /// <summary>
         /// Builds a composited terrain texture given the region texture
@@ -76,9 +78,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         /// <returns>A composited 256x256 RGB texture ready for rendering</returns>
         /// <remarks>Based on the algorithm described at http://opensimulator.org/wiki/Terrain_Splatting
         /// </remarks>
-        public static Bitmap Splat(float[] heightmap, UUID[] textureIDs, float[] startHeights, float[] heightRanges, Vector3d regionPosition, IAssetService assetService, bool textureTerrain)
+        public static Bitmap Splat(ITerrainChannel terrain, UUID[] textureIDs, float[] startHeights, float[] heightRanges, Vector3d regionPosition, IAssetService assetService, bool textureTerrain)
         {
-            Debug.Assert(heightmap.Length == 256 * 256);
             Debug.Assert(textureIDs.Length == 4);
             Debug.Assert(startHeights.Length == 4);
             Debug.Assert(heightRanges.Length == 4);
@@ -200,17 +201,27 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 gfx.FillRectangle(brush, 0, 0, 256, 256);
                         }
                     }
+                    else
+                    {
+                        if (detailTexture[i].Width != 256 || detailTexture[i].Height != 256)
+                        {
+                            detailTexture[i] = ResizeBitmap(detailTexture[i], 256, 256);
+                        }
+                    }
                 }
     
                 #region Layer Map
     
-                float[] layermap = new float[256 * 256];
+                float[,] layermap = new float[256 , 256];
+
+                int xFactor = terrain.Width / 256;
+                int yFactor = terrain.Height / 256;
     
                 for (int y = 0; y < 256; y++)
                 {
                     for (int x = 0; x < 256; x++)
                     {
-                        float height = heightmap[y * 256 + x];
+                        float height = (float)terrain[x * xFactor, y * yFactor];
     
                         float pctX = (float)x / 255f;
                         float pctY = (float)y / 255f;
@@ -237,8 +248,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         // The magic values were taken from http://opensimulator.org/wiki/Terrain_Splatting
                         Vector3 vec = new Vector3
                         (
-                            ((float)regionPosition.X + x) * 0.20319f,
-                            ((float)regionPosition.Y + y) * 0.20319f,
+                            ((float)regionPosition.X + (x * xFactor)) * 0.20319f,
+                            ((float)regionPosition.Y + (y * yFactor)) * 0.20319f,
                             height * 0.25f
                         );
     
@@ -249,7 +260,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         // Combine the current height, generated noise, start height, and height range parameters, then scale all of it 
                         float layer = ((height + noise - startHeight) / heightRange) * 4f;
                         if (Single.IsNaN(layer)) layer = 0f;
-                        layermap[y * 256 + x] = Utils.Clamp(layer, 0f, 3f);
+                        layermap[x,y] = Utils.Clamp(layer, 0f, 3f);
                     }
                 }
     
@@ -283,7 +294,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     {
                         for (int x = 0; x < 256; x++)
                         {
-                            float layer = layermap[y * 256 + x];
+                            float layer = layermap[x, y];
     
                             // Select two textures
                             int l0 = (int)Math.Floor(layer);
@@ -331,6 +342,16 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             return output;
         }
 
+        public static Bitmap ResizeBitmap(Bitmap b, int nWidth, int nHeight)
+        {
+            m_log.DebugFormat("{0} ResizeBitmap. From <{1},{2}> to <{3},{4}>",
+                                LogHeader, b.Width, b.Height, nWidth, nHeight);
+            Bitmap result = new Bitmap(nWidth, nHeight);
+            using (Graphics g = Graphics.FromImage(result))
+                g.DrawImage(b, 0, 0, nWidth, nHeight);
+            b.Dispose();
+            return result;
+        }
         public static Bitmap SplatSimple(float[] heightmap)
         {
             const float BASE_HSV_H = 93f / 360f;
