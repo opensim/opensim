@@ -2473,7 +2473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // on the ILSL_Api interface.
             LSL_Api LSL_Api = (LSL_Api)m_LSL_Api;
             LSL_List retVal = new LSL_List();
-            LSL_List remaining;
+            LSL_List remaining = new LSL_List();
             List<SceneObjectPart> parts = LSL_Api.GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
