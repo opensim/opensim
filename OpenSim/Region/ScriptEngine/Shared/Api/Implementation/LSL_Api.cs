@@ -8002,7 +8002,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetEntityParams(List<ISceneEntity> entities, LSL_List rules, string originFunc)
         {
-            LSL_List remaining;
+            LSL_List remaining = new LSL_List();
             uint rulesParsed = 0;
 
             foreach (ISceneEntity entity in entities)
