@@ -453,7 +453,7 @@ namespace OpenSim.Services.HypergridService
 
             if (!m_SimulationService.QueryAccess(
                 destination, aCircuit.AgentID, aCircuit.ServiceURLs["HomeURI"].ToString(), 
-                true, aCircuit.startpos, "SIMULATION/0.3", out version, out reason))
+                true, aCircuit.startpos, "SIMULATION/0.3", new List<UUID>(), out version, out reason))
                 return false;
 
             return m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, out reason);

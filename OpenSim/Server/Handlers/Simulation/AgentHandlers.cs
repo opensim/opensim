@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
@@ -148,12 +149,22 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("my_version"))
                 theirVersion = args["my_version"].AsString();
 
+            List<UUID> features = new List<UUID>();
+
+            if (args.ContainsKey("features"))
+            {
+                OSDArray array = (OSDArray)args["features"];
+
+                foreach (OSD o in array)
+                    features.Add(new UUID(o.AsString()));
+            }
+
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
             string reason;
             string version;
-            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, out version, out reason);
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, features, out version, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 

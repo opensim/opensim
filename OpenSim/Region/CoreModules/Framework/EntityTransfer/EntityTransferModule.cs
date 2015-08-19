@@ -762,7 +762,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string version;
             string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, out version, out reason))
+                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, sp.Scene.GetFormatsOffered(), out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -1517,7 +1517,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Check to see if we have access to the target region.
                 string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, myversion, out version, out failureReason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, myversion, scene.GetFormatsOffered(), out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);

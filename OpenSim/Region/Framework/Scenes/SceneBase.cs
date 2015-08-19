@@ -374,6 +374,13 @@ namespace OpenSim.Region.Framework.Scenes
             return m_moduleCommanders;
         }
 
+        public List<UUID> GetFormatsOffered()
+        {
+            List<UUID> ret = new List<UUID>(FormatsOffered);
+
+            return ret;
+        }
+
         protected void CheckAndAddAgentDataFormats(object mod)
         {
             if (!(mod is IAgentStatefulModule))

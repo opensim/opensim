@@ -983,7 +983,7 @@ namespace OpenSim.Services.LLLoginService
 
             if (
                 !simConnector.QueryAccess(
-                    region, aCircuit.AgentID, null, true, aCircuit.startpos, "SIMULATION/0.3", out version, out reason))
+                    region, aCircuit.AgentID, null, true, aCircuit.startpos, "SIMULATION/0.3", new List<UUID>(), out version, out reason))
                 return false;
 
             return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, out reason);

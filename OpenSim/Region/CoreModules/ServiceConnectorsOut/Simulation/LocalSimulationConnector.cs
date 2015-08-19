@@ -269,7 +269,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return true;
         }
 
-        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string theirversion, out string version, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string theirversion, List<UUID> features, out string version, out string reason)
         {
             reason = "Communications failure";
             version = ServiceVersion;
@@ -298,7 +298,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 
                 }
 
-                return m_scenes[destination.RegionID].QueryAccess(agentID, agentHomeURI, viaTeleport, position, out reason);
+                return m_scenes[destination.RegionID].QueryAccess(agentID, agentHomeURI, viaTeleport, position, features, out reason);
             }
 
             //m_log.Debug("[LOCAL COMMS]: region not found for QueryAccess");
