@@ -714,8 +714,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             private void ExtendAndAdd(object o)
             {
-                Array.Resize(ref m_data, Length + 1);
-                m_data.SetValue(o, Length - 1);
+                object[] tmp;
+                tmp = new object[m_data.Length + 1];
+                m_data.CopyTo(tmp, 0);
+                tmp.SetValue(o, tmp.Length - 1);
+                m_data = tmp;
             }
 
             public static list operator +(list a, LSLString s)
