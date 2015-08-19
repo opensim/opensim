@@ -32,6 +32,7 @@ using System.Reflection;
 using Nini.Config;
 using log4net;
 using OpenSim.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -59,6 +60,14 @@ namespace OpenSim.Region.Physics.Manager
             m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());
         }
 
+        // Legacy method for simulators before extent was passed
+        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName,
+                                    IConfigSource config, string regionName)
+        {
+            Vector3 extent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+            return GetPhysicsScene(physEngineName, meshEngineName, config, regionName, extent);
+        }
+
         /// <summary>
         /// Get a physics scene for the given physics engine and mesher.
         /// </summary>
@@ -66,7 +75,8 @@ namespace OpenSim.Region.Physics.Manager
         /// <param name="meshEngineName"></param>
         /// <param name="config"></param>
         /// <returns></returns>
-        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName, IConfigSource config, string regionName)
+        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName,
+                                    IConfigSource config, string regionName, Vector3 regionExtent)
         {
             if (String.IsNullOrEmpty(physEngineName))
             {
@@ -94,7 +104,7 @@ namespace OpenSim.Region.Physics.Manager
             {
                 m_log.Info("[PHYSICS]: creating " + physEngineName);
                 PhysicsScene result = _PhysPlugins[physEngineName].GetScene(regionName);
-                result.Initialise(meshEngine, config);
+                result.Initialise(meshEngine, config, regionExtent);
                 return result;
             }
             else

@@ -69,9 +69,19 @@ namespace OpenSim.Data.Null
             m_store.StoreTerrain(terrain, regionID);
         }
 
+        public void StoreTerrain(TerrainData terrain, UUID regionID)
+        {
+            m_store.StoreTerrain(terrain, regionID);
+        }
+
         public double[,] LoadTerrain(UUID regionID)
         {
             return m_store.LoadTerrain(regionID);
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            return m_store.LoadTerrain(regionID, pSizeX, pSizeY, pSizeZ);
         }
 
         public void StoreLandObject(ILandObject Parcel)
@@ -159,7 +169,7 @@ namespace OpenSim.Data.Null
         protected Dictionary<UUID, SceneObjectPart> m_sceneObjectParts = new Dictionary<UUID, SceneObjectPart>();
         protected Dictionary<UUID, ICollection<TaskInventoryItem>> m_primItems 
             = new Dictionary<UUID, ICollection<TaskInventoryItem>>();
-        protected Dictionary<UUID, double[,]> m_terrains = new Dictionary<UUID, double[,]>();
+        protected Dictionary<UUID, TerrainData> m_terrains = new Dictionary<UUID, TerrainData>();
         protected Dictionary<UUID, LandData> m_landData = new Dictionary<UUID, LandData>();
         
         public void Initialise(string dbfile)
@@ -304,15 +314,28 @@ namespace OpenSim.Data.Null
             return new List<SceneObjectGroup>(objects.Values);
         }
 
-        public void StoreTerrain(double[,] ter, UUID regionID)
+        public void StoreTerrain(TerrainData ter, UUID regionID)
         {
             m_terrains[regionID] = ter;
+        }
+
+        public void StoreTerrain(double[,] ter, UUID regionID)
+        {
+            m_terrains[regionID] = new HeightmapTerrainData(ter);
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            if (m_terrains.ContainsKey(regionID))
+                return m_terrains[regionID];
+            else
+                return null;
         }
 
         public double[,] LoadTerrain(UUID regionID)
         {
             if (m_terrains.ContainsKey(regionID))
-                return m_terrains[regionID];
+                return m_terrains[regionID].GetDoubles();
             else
                 return null;
         }

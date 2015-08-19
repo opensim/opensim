@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             Assert.IsNotNull(result, "Retrieved GetRegionByUUID is null");
             Assert.That(result.RegionID, Is.EqualTo(new UUID(1)), "Retrieved region's UUID does not match");
 
-            result = m_LocalConnector.GetRegionByPosition(UUID.Zero, 1000 * (int)Constants.RegionSize, 1000 * (int)Constants.RegionSize);
+            result = m_LocalConnector.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000));
             Assert.IsNotNull(result, "Retrieved GetRegionByPosition is null");
             Assert.That(result.RegionLocX, Is.EqualTo(1000 * (int)Constants.RegionSize), "Retrieved region's position does not match");
 

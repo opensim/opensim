@@ -133,7 +133,7 @@ namespace OpenSim.Server.Handlers.MapImage
                 if (m_GridService != null)
                 {
                     System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
-                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, x * (int)Constants.RegionSize, y * (int)Constants.RegionSize);
+                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y));
                     if (r != null)
                     {
                         if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())

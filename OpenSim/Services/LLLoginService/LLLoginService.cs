@@ -695,7 +695,7 @@ namespace OpenSim.Services.LLLoginService
         private GridRegion FindAlternativeRegion(UUID scopeID)
         {
             List<GridRegion> hyperlinks = null;
-            List<GridRegion> regions = m_GridService.GetFallbackRegions(scopeID, 1000 * (int)Constants.RegionSize, 1000 * (int)Constants.RegionSize);
+            List<GridRegion> regions = m_GridService.GetFallbackRegions(scopeID, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000));
             if (regions != null && regions.Count > 0)
             {
                 hyperlinks = m_GridService.GetHyperlinks(scopeID);

@@ -533,7 +533,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (isMegaregion)
                 size = rcMod.GetSizeOfMegaregion(scene.RegionInfo.RegionID);
             else
-                size = new Vector2((float)Constants.RegionSize, (float)Constants.RegionSize);
+                size = new Vector2((float)scene.RegionInfo.RegionSizeX, (float)scene.RegionInfo.RegionSizeY);
     
             xtw.WriteElementString("is_megaregion", isMegaregion.ToString());
             xtw.WriteElementString("size_in_meters", string.Format("{0},{1}", size.X, size.Y));

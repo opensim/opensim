@@ -412,7 +412,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                Vector3 minScale = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionSize);
+                Vector3 minScale = new Vector3(Constants.MaximumRegionSize, Constants.MaximumRegionSize, Constants.MaximumRegionSize);
                 Vector3 maxScale = Vector3.Zero;
                 Vector3 finalScale = new Vector3(0.5f, 0.5f, 0.5f);
     
@@ -529,12 +529,10 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 Vector3 val = value;
-                if (Scene != null && !IsAttachmentCheckFull()
-                    && !Scene.LoadingPrims &&
-                    (Scene.TestBorderCross(val, Cardinals.E) ||
-                      Scene.TestBorderCross(val, Cardinals.W) ||
-                      Scene.TestBorderCross(val, Cardinals.N) ||
-                      Scene.TestBorderCross(val, Cardinals.S))
+                if (Scene != null
+                        && Scene.PositionIsInCurrentRegion(val)
+                        && !IsAttachmentCheckFull()
+                        && !Scene.LoadingPrims
                     )
                 {
                     if (!inTransit)

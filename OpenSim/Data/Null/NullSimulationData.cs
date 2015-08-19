@@ -132,15 +132,33 @@ namespace OpenSim.Data.Null
             return new List<SceneObjectGroup>();
         }
 
-        Dictionary<UUID, double[,]> m_terrains = new Dictionary<UUID, double[,]>();
-        public void StoreTerrain(double[,] ter, UUID regionID)
+        Dictionary<UUID, TerrainData> m_terrains = new Dictionary<UUID, TerrainData>();
+        public void StoreTerrain(TerrainData ter, UUID regionID)
         {
             if (m_terrains.ContainsKey(regionID))
                 m_terrains.Remove(regionID);
             m_terrains.Add(regionID, ter);
         }
 
+        // Legacy. Just don't do this.
+        public void StoreTerrain(double[,] ter, UUID regionID)
+        {
+            TerrainData terrData = new HeightmapTerrainData(ter);
+            StoreTerrain(terrData, regionID);
+        }
+
+        // Legacy. Just don't do this.
+        // Returns 'null' if region not found
         public double[,] LoadTerrain(UUID regionID)
+        {
+            if (m_terrains.ContainsKey(regionID))
+            {
+                return m_terrains[regionID].GetDoubles();
+            }
+            return null;
+        }
+
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
         {
             if (m_terrains.ContainsKey(regionID))
             {

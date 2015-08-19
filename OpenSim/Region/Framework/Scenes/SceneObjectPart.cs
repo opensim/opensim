@@ -2979,10 +2979,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 newpos = new Vector3(pa.Position.GetBytes(), 0);
                 
-                if (ParentGroup.Scene.TestBorderCross(newpos, Cardinals.N)
-                    || ParentGroup.Scene.TestBorderCross(newpos, Cardinals.S)
-                    || ParentGroup.Scene.TestBorderCross(newpos, Cardinals.E)
-                    || ParentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
+                if (!ParentGroup.Scene.PositionIsInCurrentRegion(newpos))
                 {
                     ParentGroup.AbsolutePosition = newpos;
                     return;

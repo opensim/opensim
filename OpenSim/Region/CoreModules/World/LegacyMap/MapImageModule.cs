@@ -102,7 +102,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                 terrainRenderer.Initialise(m_scene, m_config);
 
-                mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height,
+                                        System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                 //long t = System.Environment.TickCount;
                 //for (int i = 0; i < 10; ++i) {
                 terrainRenderer.TerrainToBitmap(mapbmp);
@@ -277,7 +278,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         private Bitmap DrawObjectVolume(Scene whichScene, Bitmap mapbmp)
         {
             int tc = 0;
-            double[,] hm = whichScene.Heightmap.GetDoubles();
+            ITerrainChannel hm = whichScene.Heightmap;
             tc = Environment.TickCount;
             m_log.Debug("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
             EntityBase[] objs = whichScene.GetEntities();
@@ -363,7 +364,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                     Vector3 pos = part.GetWorldPosition();
 
                                     // skip prim outside of retion
-                                    if (pos.X < 0f || pos.X > 256f || pos.Y < 0f || pos.Y > 256f)
+                                    if (!m_scene.PositionIsInCurrentRegion(pos))
                                         continue;
 
                                     // skip prim in non-finite position
@@ -388,7 +389,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         Vector3 lscale = new Vector3(part.Shape.Scale.X, part.Shape.Scale.Y, part.Shape.Scale.Z);
                                         Vector3 scale = new Vector3();
                                         Vector3 tScale = new Vector3();
-                                        Vector3 axPos = new Vector3(pos.X,pos.Y,pos.Z);
+                                        Vector3 axPos = new Vector3(pos.X, pos.Y, pos.Z);
 
                                         Quaternion llrot = part.GetWorldRotation();
                                         Quaternion rot = new Quaternion(llrot.W, llrot.X, llrot.Y, llrot.Z);
@@ -406,9 +407,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         int mapdrawendY = (int)(pos.Y + scale.Y);
 
                                         // If object is beyond the edge of the map, don't draw it to avoid errors
-                                        if (mapdrawstartX < 0 || mapdrawstartX > ((int)Constants.RegionSize - 1) || mapdrawendX < 0 || mapdrawendX > ((int)Constants.RegionSize - 1)
-                                                              || mapdrawstartY < 0 || mapdrawstartY > ((int)Constants.RegionSize - 1) || mapdrawendY < 0
-                                                              || mapdrawendY > ((int)Constants.RegionSize - 1))
+                                        if (mapdrawstartX < 0
+                                                    || mapdrawstartX > (hm.Width - 1)
+                                                    || mapdrawendX < 0
+                                                    || mapdrawendX > (hm.Width - 1)
+                                                    || mapdrawstartY < 0
+                                                    || mapdrawstartY > (hm.Height - 1)
+                                                    || mapdrawendY < 0
+                                                    || mapdrawendY > (hm.Height - 1))
                                             continue;
 
     #region obb face reconstruction part duex
@@ -530,11 +536,11 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         for (int i = 0; i < FaceA.Length; i++)
                                         {
                                             Point[] working = new Point[5];
-                                            working[0] = project(FaceA[i], axPos);
-                                            working[1] = project(FaceB[i], axPos);
-                                            working[2] = project(FaceD[i], axPos);
-                                            working[3] = project(FaceC[i], axPos);
-                                            working[4] = project(FaceA[i], axPos);
+                                            working[0] = project(hm, FaceA[i], axPos);
+                                            working[1] = project(hm, FaceB[i], axPos);
+                                            working[2] = project(hm, FaceD[i], axPos);
+                                            working[3] = project(hm, FaceC[i], axPos);
+                                            working[4] = project(hm, FaceA[i], axPos);
 
                                             face workingface = new face();
                                             workingface.pts = working;
@@ -609,17 +615,17 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             return mapbmp;
         }
 
-        private Point project(Vector3 point3d, Vector3 originpos)
+        private Point project(ITerrainChannel hm, Vector3 point3d, Vector3 originpos)
         {
             Point returnpt = new Point();
             //originpos = point3d;
             //int d = (int)(256f / 1.5f);
 
             //Vector3 topos = new Vector3(0, 0, 0);
-           // float z = -point3d.z - topos.z;
+            // float z = -point3d.z - topos.z;
 
             returnpt.X = (int)point3d.X;//(int)((topos.x - point3d.x) / z * d);
-            returnpt.Y = (int)(((int)Constants.RegionSize - 1) - point3d.Y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
+            returnpt.Y = (int)((hm.Width - 1) - point3d.Y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
 
             return returnpt;
         }

@@ -708,18 +708,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             }
             private void Save()
             {
+                /* Remove temporarily until we have a handle to the region size
                 if (Position.x > ((int)Constants.RegionSize - 1))
                     Position.x = ((int)Constants.RegionSize - 1);
-                if (Position.x < 0)
-                    Position.x = 0;
                 if (Position.y > ((int)Constants.RegionSize - 1))
                     Position.y = ((int)Constants.RegionSize - 1);
+                 */
+                if (Position.x < 0)
+                    Position.x = 0;
                 if (Position.y < 0)
                     Position.y = 0;
-                if (Position.z > 768)
-                    Position.z = 768;
                 if (Position.z < 0)
                     Position.z = 0;
+                if (Position.z > Constants.RegionHeight)
+                    Position.z = Constants.RegionHeight;
                 prim.OSSL.llSetPos(Position);
             }
 

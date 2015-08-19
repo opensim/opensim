@@ -149,11 +149,32 @@ namespace OpenSim.Framework
         public uint WorldLocX = 0;
         public uint WorldLocY = 0;
         public uint WorldLocZ = 0;
+
+        /// <summary>
+        /// X dimension of the region.
+        /// </summary>
+        /// <remarks>
+        /// If this is a varregion then the default size set here will be replaced when we load the region config.
+        /// </remarks>
         public uint RegionSizeX = Constants.RegionSize;
+
+        /// <summary>
+        /// X dimension of the region.
+        /// </summary>
+        /// <remarks>
+        /// If this is a varregion then the default size set here will be replaced when we load the region config.
+        /// </remarks>
         public uint RegionSizeY = Constants.RegionSize;
+
+        /// <summary>
+        /// Z dimension of the region.
+        /// </summary>
+        /// <remarks>
+        /// XXX: Unknown if this accounts for regions with negative Z.
+        /// </remarks>
         public uint RegionSizeZ = Constants.RegionHeight;
 
-        private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
+        private Dictionary<String, String> m_extraSettings = new Dictionary<string, string>();
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -506,16 +527,16 @@ namespace OpenSim.Framework
         {
             string val;
             string keylower = key.ToLower();
-            if (m_otherSettings.TryGetValue(keylower, out val))
+            if (m_extraSettings.TryGetValue(keylower, out val))
                 return val;
             m_log.DebugFormat("[RegionInfo] Could not locate value for parameter {0}", key);
             return null;
         }
 
-        public void SetOtherSetting(string key, string value)
+        public void SetExtraSetting(string key, string value)
         {
             string keylower = key.ToLower();
-            m_otherSettings[keylower] = value;
+            m_extraSettings[keylower] = value;
         }
 
         private void ReadNiniConfig(IConfigSource source, string name)
@@ -733,7 +754,7 @@ namespace OpenSim.Framework
 
             foreach (String s in allKeys)
             {
-                SetOtherSetting(s, config.GetString(s));
+                SetExtraSetting(s, config.GetString(s));
             }
         }
 
@@ -804,6 +825,7 @@ namespace OpenSim.Framework
 
             if (DataStore != String.Empty)
                 config.Set("Datastore", DataStore);
+
             if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
             {
                 config.Set("SizeX", RegionSizeX);

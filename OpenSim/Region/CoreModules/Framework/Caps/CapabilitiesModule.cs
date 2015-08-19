@@ -317,9 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 foreach (KeyValuePair<ulong, string> kvp in m_childrenSeeds[agentID])
                 {
                     uint x, y;
-                    Utils.LongToUInts(kvp.Key, out x, out y);
-                    x = x / Constants.RegionSize;
-                    y = y / Constants.RegionSize;
+                    Util.RegionHandleToRegionLoc(kvp.Key, out x, out y);
                     m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
                 }
             }

@@ -459,7 +459,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
+            if (x > (World.RegionInfo.RegionSizeX - 1) || x < 0 || y > (World.RegionInfo.RegionSizeY - 1) || y < 0)
                 OSSLError("osSetTerrainHeight: Coordinate out of bounds");
 
             if (World.Permissions.CanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
@@ -489,7 +489,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private LSL_Float GetTerrainHeight(int x, int y)
         {
             m_host.AddScriptLPS(1);
-            if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
+            if (x > (World.RegionInfo.RegionSizeX - 1) || x < 0 || y > (World.RegionInfo.RegionSizeY - 1) || y < 0)
                 OSSLError("osGetTerrainHeight: Coordinate out of bounds");
 
             return World.Heightmap[x, y];
@@ -823,7 +823,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void TeleportAgent(string agent, int regionX, int regionY,
             LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool relaxRestrictions)
         {
-            ulong regionHandle = Util.UIntsToLong(((uint)regionX * (uint)Constants.RegionSize), ((uint)regionY * (uint)Constants.RegionSize));
+            ulong regionHandle = Util.RegionLocToHandle((uint)regionX, (uint)regionY);
 
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
@@ -3024,7 +3024,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                return new LSL_Vector((float)Constants.RegionSize, (float)Constants.RegionSize, Constants.RegionHeight);
+                return new LSL_Vector((float)World.RegionInfo.RegionSizeX,
+                            (float)World.RegionInfo.RegionSizeY,
+                            (float)World.RegionInfo.RegionSizeZ );
             }
         }
 

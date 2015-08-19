@@ -2352,7 +2352,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             // This workaround is to prevent silent failure of this function.
             // According to the specification on the SL Wiki, providing a position outside of the
-            if (pos.x < 0 || pos.x > Constants.RegionSize || pos.y < 0 || pos.y > Constants.RegionSize)
+            if (pos.x < 0 || pos.x > World.RegionInfo.RegionSizeX || pos.y < 0 || pos.y > World.RegionInfo.RegionSizeY)
             {
                 return 0;
             }
@@ -2362,9 +2362,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.ParentGroup.IsAttachment || // return FALSE if attachment
                 (
                     pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
-                    pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
+                    pos.x > (World.RegionInfo.RegionSizeX + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
                     pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
-                    pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
+                    pos.y > (World.RegionInfo.RegionSizeY + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
                     pos.z > Constants.RegionHeight // return FALSE if altitude than 4096m
                 )
             )
@@ -4655,10 +4655,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                      m_item.ItemID, item.AssetID.ToString());
 
-                    Vector3 region = new Vector3(
-                        World.RegionInfo.RegionLocX * Constants.RegionSize,
-                        World.RegionInfo.RegionLocY * Constants.RegionSize,
-                        0);
+                    Vector3 region = new Vector3(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
 
                     World.AssetService.Get(item.AssetID.ToString(), this,
                         delegate(string i, object sender, AssetBase a)
@@ -5949,7 +5946,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetRegionCorner()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(World.RegionInfo.RegionLocX * Constants.RegionSize, World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+            return new LSL_Vector(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
         }
 
         /// <summary>
@@ -6104,7 +6101,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSL_Float mag;
                 if (dir.x > 0)
                 {
-                    mag = (Constants.RegionSize - pos.x) / dir.x;
+                    mag = (World.RegionInfo.RegionSizeX - pos.x) / dir.x;
                 }
                 else
                 {
@@ -6115,7 +6112,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 edge.y = pos.y + (dir.y * mag);
 
-                if (edge.y > Constants.RegionSize || edge.y < 0)
+                if (edge.y > World.RegionInfo.RegionSizeY || edge.y < 0)
                 {
                     // Y goes out of bounds first
                     edge.y = dir.y / Math.Abs(dir.y);

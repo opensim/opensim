@@ -213,8 +213,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     if (part != null)
                     {
                         ObjectRegionName = s.RegionInfo.RegionName;
-                        uint localX = (s.RegionInfo.RegionLocX * (int)Constants.RegionSize);
-                        uint localY = (s.RegionInfo.RegionLocY * (int)Constants.RegionSize);
+                        uint localX = s.RegionInfo.WorldLocX;
+                        uint localY = s.RegionInfo.WorldLocY;
                         ObjectRegionName = ObjectRegionName + " (" + localX + ", " + localY + ")";
                         return part;
                     }

@@ -520,7 +520,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public Vector3 StartPos
         {
-            get { return new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 50); }
+            get { return new Vector3(m_scene.RegionInfo.RegionSizeX * 0.5f, m_scene.RegionInfo.RegionSizeY * 0.5f, 50f); }
             set { }
         }
 

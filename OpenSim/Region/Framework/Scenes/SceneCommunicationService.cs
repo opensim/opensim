@@ -52,6 +52,7 @@ namespace OpenSim.Region.Framework.Scenes
     public class SceneCommunicationService //one instance per region
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[SCENE COMMUNICATION SERVICE]";
 
         protected RegionInfo m_regionInfo;
         protected Scene m_scene;
@@ -100,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat(
                     "[SCENE COMMUNICATION SERVICE]: Region {0} failed to inform neighbour at {1}-{2} that it is up.",
-                    m_scene.Name, x / Constants.RegionSize, y / Constants.RegionSize);
+                    m_scene.Name, Util.WorldToRegionLoc(x), Util.WorldToRegionLoc(y));
             }
         }
 
@@ -166,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // we only want to send one update to each simulator; the simulator will
                         // hand it off to the regions where a child agent exists, this does assume
                         // that the region position is cached or performance will degrade
-                        Utils.LongToUInts(regionHandle, out x, out y);
+                        Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
                         GridRegion dest = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                         if (dest == null)
                             continue;
@@ -206,7 +207,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
             uint x = 0, y = 0;
-            Utils.LongToUInts(regionHandle, out x, out y);
+            Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
 
             GridRegion destination = m_scene.GridService.GetRegionByPosition(m_regionInfo.ScopeID, (int)x, (int)y);
 
@@ -226,6 +227,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (ulong handle in regionslst)
             {
+                // We must take a copy here since handle acts like a reference when used in an iterator.
+                // This leads to race conditions if directly passed to SendCloseChildAgent with more than one neighbour region.
                 ulong handleCopy = handle;
                 Util.FireAndForget((o) => { SendCloseChildAgent(agentID, handleCopy, auth_code); });
             }

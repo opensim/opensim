@@ -55,5 +55,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Currently, will throw an exception if this does not match a root region.
         /// </param>
         Vector2 GetSizeOfMegaregion(UUID regionId);
+
+        /// <summary>
+        /// Tests to see of position (relative to the region) is within the megaregion
+        /// </summary>
+        bool PositionIsInMegaregion(UUID currentRegion, int xx, int yy);
     }
 }

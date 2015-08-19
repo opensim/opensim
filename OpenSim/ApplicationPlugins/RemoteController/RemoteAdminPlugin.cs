@@ -1157,7 +1157,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // Set home position
 
                     GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
-                        (int)(regionXLocation * Constants.RegionSize), (int)(regionYLocation * Constants.RegionSize));
+                                        (int)Util.RegionToWorldLoc(regionXLocation), (int)Util.RegionToWorldLoc(regionYLocation));
                     if (null == home)
                     {
                         m_log.WarnFormat("[RADMIN]: Unable to set home region for newly created user account {0} {1}", firstName, lastName);
@@ -1387,7 +1387,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if ((null != regionXLocation) && (null != regionYLocation))
                     {
                         GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
-                            (int)(regionXLocation * Constants.RegionSize), (int)(regionYLocation * Constants.RegionSize));
+                                        (int)Util.RegionToWorldLoc((uint)regionXLocation), (int)Util.RegionToWorldLoc((uint)regionYLocation));
                         if (null == home) {
                             m_log.WarnFormat("[RADMIN]: Unable to set home region for updated user account {0} {1}", firstName, lastName);
                         } else {
@@ -3118,7 +3118,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             // Set home position
 
                             GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
-                                (int)(regionXLocation * Constants.RegionSize), (int)(regionYLocation * Constants.RegionSize));
+                                        (int)Util.RegionToWorldLoc(regionXLocation), (int)Util.RegionToWorldLoc(regionYLocation));
                             if (null == home) {
                                 m_log.WarnFormat("[RADMIN]: Unable to set home region for newly created user account {0} {1}", names[0], names[1]);
                             } else {

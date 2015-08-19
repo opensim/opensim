@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             m_log.DebugFormat("[REGION CACHE]: (on region {0}) Region {1} is up @ {2}-{3}",
-                m_scene.RegionInfo.RegionName, otherRegion.RegionName, otherRegion.RegionLocX / Constants.RegionSize, otherRegion.RegionLocY / Constants.RegionSize);
+                m_scene.RegionInfo.RegionName, otherRegion.RegionName, Util.WorldToRegionLoc((uint)otherRegion.RegionLocX), Util.WorldToRegionLoc((uint)otherRegion.RegionLocY));
 
             m_neighbours[otherRegion.RegionHandle] = otherRegion;
         }
@@ -82,11 +82,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return new List<GridRegion>(m_neighbours.Values);
         }
 
+        // Get a region given its base coordinates (in meters).
+        // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
+        //     be the base coordinate of the region.
+        // The snapping is technically unnecessary but is harmless because regions are always
+        //     multiples of the legacy region size (256).
         public GridRegion GetRegionByPosition(int x, int y)
         {
             uint xsnap = (uint)(x / Constants.RegionSize) * Constants.RegionSize;
             uint ysnap = (uint)(y / Constants.RegionSize) * Constants.RegionSize;
-            ulong handle = Utils.UIntsToLong(xsnap, ysnap);
+            ulong handle = Util.RegionWorldLocToHandle(xsnap, ysnap);
             
             if (m_neighbours.ContainsKey(handle))
                 return m_neighbours[handle];

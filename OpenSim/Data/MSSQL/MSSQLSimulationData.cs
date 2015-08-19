@@ -530,43 +530,52 @@ ELSE
         /// <returns></returns>
         public double[,] LoadTerrain(UUID regionID)
         {
-            double[,] terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-            terrain.Initialize();
+            double[,] ret = null;
+            TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
+            if (terrData != null)
+                ret = terrData.GetDoubles();
+            return ret;
+        }
+
+        // Returns 'null' if region not found
+        public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
 
             string sql = "select top 1 RegionUUID, Revision, Heightfield from terrain where RegionUUID = @RegionUUID order by Revision desc";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                // MySqlParameter param = new MySqlParameter();
-                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
-                conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    int rev;
-                    if (reader.Read())
+                    // MySqlParameter param = new MySqlParameter();
+                    cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        MemoryStream str = new MemoryStream((byte[])reader["Heightfield"]);
-                        BinaryReader br = new BinaryReader(str);
-                        for (int x = 0; x < (int)Constants.RegionSize; x++)
+                        if (reader.Read())
                         {
-                            for (int y = 0; y < (int)Constants.RegionSize; y++)
-                            {
-                                terrain[x, y] = br.ReadDouble();
-                            }
+                            int rev = (int)reader["Revision"];
+                            byte[] blob = (byte[])reader["Heightfield"];
+                            terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
                         }
-                        rev = (int)reader["Revision"];
+                        else
+                        {
+                            _Log.Info("[REGION DB]: No terrain found for region");
+                            return null;
+                        }
+                        _Log.Info("[REGION DB]: Loaded terrain");
                     }
-                    else
-                    {
-                        _Log.Info("[REGION DB]: No terrain found for region");
-                        return null;
-                    }
-                    _Log.Info("[REGION DB]: Loaded terrain revision r" + rev);
                 }
             }
 
-            return terrain;
+            return terrData;
+        }
+
+        // Legacy entry point for when terrain was always a 256x256 hieghtmap
+        public void StoreTerrain(double[,] ter, UUID regionID)
+        {
+            StoreTerrain(new HeightmapTerrainData(ter), regionID);
         }
 
         /// <summary>
@@ -574,10 +583,8 @@ ELSE
         /// </summary>
         /// <param name="terrain">terrain map data.</param>
         /// <param name="regionID">regionID.</param>
-        public void StoreTerrain(double[,] terrain, UUID regionID)
+        public void StoreTerrain(TerrainData terrData, UUID regionID)
         {
-            int revision = Util.UnixTimeSinceEpoch();
-
             //Delete old terrain map
             string sql = "delete from terrain where RegionUUID=@RegionUUID";
             using (SqlConnection conn = new SqlConnection(m_connectionString))
@@ -590,17 +597,23 @@ ELSE
 
             sql = "insert into terrain(RegionUUID, Revision, Heightfield) values(@RegionUUID, @Revision, @Heightfield)";
 
+            int terrainDBRevision;
+            Array terrainDBblob;
+            terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
             using (SqlConnection conn = new SqlConnection(m_connectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
-                cmd.Parameters.Add(_Database.CreateParameter("@Revision", revision));
-                cmd.Parameters.Add(_Database.CreateParameter("@Heightfield", serializeTerrain(terrain)));
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Revision", terrainDBRevision));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Heightfield", terrainDBblob));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
             }
 
-            _Log.Info("[REGION DB]: Stored terrain revision r " + revision);
+            _Log.Info("[REGION DB]: Stored terrain");
         }
 
         /// <summary>
@@ -1344,6 +1357,7 @@ VALUES
 
         #region Private Methods
 
+        /*
         /// <summary>
         /// Serializes the terrain data for storage in DB.
         /// </summary>
@@ -1367,6 +1381,7 @@ VALUES
 
             return str.ToArray();
         }
+        */
 
         /// <summary>
         /// Stores new regionsettings.
