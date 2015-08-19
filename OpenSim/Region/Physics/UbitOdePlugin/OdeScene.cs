@@ -2326,7 +2326,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                     d.GeomSetRotation(GroundGeom, ref R);
-                    d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + WorldExtents.X * 0.5f, pOffset.Y + WorldExtents.Y * 0.5f, 0);
                     RegionTerrain.Add(pOffset, GroundGeom);
                     TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                     TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
@@ -2436,7 +2436,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + WorldExtents.X * 0.5f, pOffset.Y + WorldExtents.Y * 0.5f, 0);
                     RegionTerrain.Add(pOffset, GroundGeom);
                     TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                     TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
