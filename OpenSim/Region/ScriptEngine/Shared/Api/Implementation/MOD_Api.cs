@@ -416,7 +416,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (type == typeof(object[]))
                 {
-                    object[] plist = (lslparm as LSL_List).Data;
+                    object[] plist = ((LSL_List)lslparm).Data;
                     object[] result = new object[plist.Length];
                     for (int i = 0; i < plist.Length; i++)
                     {

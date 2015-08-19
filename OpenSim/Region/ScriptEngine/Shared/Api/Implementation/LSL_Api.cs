@@ -5864,8 +5864,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llListInsertList(LSL_List dest, LSL_List src, int index)
         {
 
-            LSL_List pref = null;
-            LSL_List suff = null;
+            LSL_List pref;
+            LSL_List suff;
 
             m_host.AddScriptLPS(1);
 
@@ -8002,7 +8002,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetEntityParams(List<ISceneEntity> entities, LSL_List rules, string originFunc)
         {
-            LSL_List remaining = null;
+            LSL_List remaining;
             uint rulesParsed = 0;
 
             foreach (ISceneEntity entity in entities)
@@ -8013,7 +8013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     remaining = SetAgentParams((ScenePresence)entity, rules, originFunc, ref rulesParsed);
             }
 
-            while (remaining != null && remaining.Length > 2)
+            while (remaining.Length > 2)
             {
                 int linknumber;
                 try
@@ -8202,7 +8202,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PRIM_POSITION:
                         case ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             try
                             {
@@ -8214,7 +8214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POSITION: arg #{1} - parameter 1 must be vector", rulesParsed, idx - idxStart - 1));
                                 else
                                     Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POS_LOCAL: arg #{1} - parameter 1 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             positionChanged = true;
                             currentPosition = GetSetPosTarget(part, v, currentPosition);
@@ -8222,7 +8222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.PRIM_SIZE:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             v=rules.GetVector3Item(idx++);
                             SetScale(part, v);
@@ -8230,7 +8230,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.PRIM_ROTATION:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             LSL_Rotation q;
                             try
                             {
@@ -8239,7 +8239,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROTATION: arg #{1} - parameter 1 must be rotation", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             // try to let this work as in SL...
                             if (part.ParentID == 0)
@@ -8258,7 +8258,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_TYPE:
                             if (remain < 3)
-                                return null;
+                                return new LSL_List();
 
                             try
                             {
@@ -8267,7 +8267,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE: arg #{1} - parameter 1 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             remain = rules.Length - idx;
@@ -8285,7 +8285,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 case ScriptBaseClass.PRIM_TYPE_BOX:
                                     if (remain < 6)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8294,7 +8294,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8303,7 +8303,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8312,7 +8312,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8321,7 +8321,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 5 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8330,7 +8330,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8339,7 +8339,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_BOX: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
 
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
@@ -8348,7 +8348,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_CYLINDER:
                                     if (remain < 6)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8357,7 +8357,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8366,7 +8366,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8375,7 +8375,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8384,7 +8384,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8393,7 +8393,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8402,7 +8402,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_CYLINDER: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
                                         (byte)ProfileShape.Circle, (byte)Extrusion.Straight);
@@ -8410,7 +8410,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_PRISM:
                                     if (remain < 6)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8419,7 +8419,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8428,7 +8428,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8437,7 +8437,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8446,7 +8446,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8455,7 +8455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8464,7 +8464,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_PRISM: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
                                         (byte)ProfileShape.EquilateralTriangle, (byte)Extrusion.Straight);
@@ -8472,7 +8472,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_SPHERE:
                                     if (remain < 5)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8481,7 +8481,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8490,7 +8490,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8499,7 +8499,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8508,7 +8508,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8517,7 +8517,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SPHERE: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b,
                                         (byte)ProfileShape.HalfCircle, (byte)Extrusion.Curve1);
@@ -8525,7 +8525,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_TORUS:
                                     if (remain < 11)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8534,7 +8534,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8543,7 +8543,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8552,7 +8552,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8561,7 +8561,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8570,7 +8570,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8579,7 +8579,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8588,7 +8588,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 9 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8597,7 +8597,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 10 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8606,7 +8606,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 11 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8615,7 +8615,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 12 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8624,7 +8624,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TORUS: arg #{1} - parameter 13 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
                                         revolutions, radiusoffset, skew, (byte)ProfileShape.Circle, (byte)Extrusion.Curve1);
@@ -8632,7 +8632,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_TUBE:
                                     if (remain < 11)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8641,7 +8641,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8650,7 +8650,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8659,7 +8659,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8668,7 +8668,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8677,7 +8677,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8686,7 +8686,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8695,7 +8695,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 9 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8704,7 +8704,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 10 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8713,7 +8713,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 11 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8722,7 +8722,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 12 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8731,7 +8731,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_TUBE: arg #{1} - parameter 13 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
                                         revolutions, radiusoffset, skew, (byte)ProfileShape.Square, (byte)Extrusion.Curve1);
@@ -8739,7 +8739,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_RING:
                                     if (remain < 11)
-                                        return null;
+                                        return new LSL_List();
 
                                     try
                                     {
@@ -8748,7 +8748,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8757,7 +8757,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8766,7 +8766,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8775,7 +8775,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 6 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8784,7 +8784,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 7 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8793,7 +8793,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8802,7 +8802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 9 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8811,7 +8811,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 10 must be vector", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8820,7 +8820,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 11 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8829,7 +8829,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 12 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     try
                                     {
@@ -8838,7 +8838,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_RING: arg #{1} - parameter 13 must be float", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
                                         revolutions, radiusoffset, skew, (byte)ProfileShape.EquilateralTriangle, (byte)Extrusion.Curve1);
@@ -8846,7 +8846,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case ScriptBaseClass.PRIM_TYPE_SCULPT:
                                     if (remain < 2)
-                                        return null;
+                                        return new LSL_List();
 
                                     string map = rules.Data[idx++].ToString();
                                     try
@@ -8856,7 +8856,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     catch(InvalidCastException)
                                     {
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SCULPT: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
-                                        return null;
+                                        return new LSL_List();
                                     }
                                     SetPrimitiveShapeParams(part, map, face, (byte)Extrusion.Curve1);
                                     break;
@@ -8866,7 +8866,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_TEXTURE:
                             if (remain < 5)
-                                return null;
+                                return new LSL_List();
 
                             face=(int)rules.GetLSLIntegerItem(idx++);
                             string tex;
@@ -8882,7 +8882,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXTURE: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8891,7 +8891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXTURE: arg #{1} - parameter 4 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8900,7 +8900,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXTURE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             SetTexture(part, tex, face);
@@ -8912,7 +8912,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_COLOR:
                             if (remain < 3)
-                                return null;
+                                return new LSL_List();
 
                             LSL_Vector color;
                             double alpha;
@@ -8924,7 +8924,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_COLOR: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8933,7 +8933,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_COLOR: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8942,7 +8942,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_COLOR: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             part.SetFaceColorAlpha(face, color, alpha);
@@ -8951,7 +8951,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_FLEXIBLE:
                             if (remain < 7)
-                                return null;
+                                return new LSL_List();
                             bool flexi;
                             int softness;
                             float gravity;
@@ -8967,7 +8967,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8976,7 +8976,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8985,7 +8985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -8994,7 +8994,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9003,7 +9003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 6 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9012,7 +9012,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 7 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9021,7 +9021,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FLEXIBLE: arg #{1} - parameter 8 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
@@ -9030,7 +9030,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_POINT_LIGHT:
                             if (remain < 5)
-                                return null;
+                                return new LSL_List();
                             bool light;
                             LSL_Vector lightcolor;
                             float intensity;
@@ -9044,7 +9044,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9053,7 +9053,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9062,7 +9062,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9071,7 +9071,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 5 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9080,7 +9080,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POINT_LIGHT: arg #{1} - parameter 6 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             SetPointLight(part, light, lightcolor, intensity, radius, falloff);
@@ -9089,7 +9089,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_GLOW:
                             if (remain < 2)
-                                return null;
+                                return new LSL_List();
 
                             float glow;
 
@@ -9100,7 +9100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_GLOW: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9109,7 +9109,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_GLOW: arg #{1} - parameter 3 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             SetGlow(part, face, glow);
@@ -9118,7 +9118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_BUMP_SHINY:
                             if (remain < 3)
-                                return null;
+                                return new LSL_List();
 
                             int shiny;
                             Bumpiness bump;
@@ -9130,7 +9130,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_BUMP_SHINY: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9139,7 +9139,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_BUMP_SHINY: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9148,7 +9148,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_BUMP_SHINY: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             SetShiny(part, face, shiny, bump);
@@ -9157,7 +9157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_FULLBRIGHT:
                             if (remain < 2)
-                                return null;
+                                return new LSL_List();
                             bool st;
 
                             try
@@ -9167,7 +9167,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FULLBRIGHT: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             try
                             {
@@ -9176,14 +9176,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_FULLBRIGHT: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             SetFullBright(part, face , st);
                             break;
 
                         case ScriptBaseClass.PRIM_MATERIAL:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             int mat;
 
                             try
@@ -9193,17 +9193,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_MATERIAL: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             if (mat < 0 || mat > 7)
-                                return null;
+                                return new LSL_List();
 
                             part.Material = Convert.ToByte(mat);
                             break;
 
                         case ScriptBaseClass.PRIM_PHANTOM:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             string ph = rules.Data[idx++].ToString();
                             part.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
@@ -9212,14 +9212,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_PHYSICS:
                            if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             string phy = rules.Data[idx++].ToString();
                             part.ScriptSetPhysicsStatus(phy.Equals("1"));
                             break;
 
                         case ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             int shape_type;
 
@@ -9230,7 +9230,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_PHYSICS_SHAPE_TYPE: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             ExtraPhysicsData physdata = new ExtraPhysicsData();
@@ -9245,7 +9245,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             string temp = rules.Data[idx++].ToString();
 
                             part.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
@@ -9254,7 +9254,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_TEXGEN:
                             if (remain < 2)
-                                return null;
+                                return new LSL_List();
                                 //face,type
                             int style;
 
@@ -9265,7 +9265,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXGEN: arg #{1} - parameter 2 must be integer", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             try
                             {
@@ -9274,13 +9274,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXGEN: arg #{1} - parameter 3 must be integer", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             SetTexGen(part, face, style);
                             break;
                         case ScriptBaseClass.PRIM_TEXT:
                             if (remain < 3)
-                                return null;
+                                return new LSL_List();
                             string primText;
                             LSL_Vector primTextColor;
                             LSL_Float primTextAlpha;
@@ -9292,7 +9292,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             try
                             {
@@ -9301,7 +9301,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 3 must be vector", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             try
                             {
@@ -9310,7 +9310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             Vector3 av3 = Util.Clip(primTextColor, 0.0f, 1.0f);
                             part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
@@ -9319,7 +9319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_NAME:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             try
                             {
                                 string primName = rules.GetLSLStringItem(idx++);
@@ -9328,12 +9328,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NAME: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             break;
                         case ScriptBaseClass.PRIM_DESC:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             try
                             {
                                 string primDesc = rules.GetLSLStringItem(idx++);
@@ -9342,12 +9342,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_DESC: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             break;
                         case ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             LSL_Rotation rot;
                             try
                             {
@@ -9356,14 +9356,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROT_LOCAL: arg #{1} - parameter 2 must be rotation", rulesParsed, idx - idxStart - 1));
-                               return null;
+                               return new LSL_List();
                             }
                             SetRot(part, rot);
                             break;
 
                         case ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
-                                return null;
+                                return new LSL_List();
                             LSL_Vector axis;
                             LSL_Float spinrate;
                             LSL_Float gain;
@@ -9375,7 +9375,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9384,7 +9384,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 3 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9393,14 +9393,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             TargetOmega(part, axis, (double)spinrate, (double)gain);
                             break;
 
                         case ScriptBaseClass.PRIM_SLICE:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
                             LSL_Vector slice;
                             try
                             {
@@ -9409,20 +9409,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SLICE: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
                             part.UpdateSlice((float)slice.x, (float)slice.y);
                             break;
 
                         case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                                return null;
+                                return new LSL_List();
 
                             return rules.GetSublist(idx, -1);
 
                         default:
                             Error(originFunc, string.Format("Error running rule #{0}: arg #{1} - unsupported parameter", rulesParsed, idx - idxStart));
-                            return null;
+                            return new LSL_List();
                     }
                 }
             }
@@ -9449,7 +9449,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            return null;
+            return new LSL_List();
         }
 
         protected LSL_List SetAgentParams(ScenePresence sp, LSL_List rules, string originFunc, ref uint rulesParsed)
@@ -9472,7 +9472,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PRIM_POSITION:
                         case ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             try
                             {
@@ -9488,13 +9488,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 {
                                     Error(originFunc, string.Format("Error running rule #{0} -> PRIM_POS_LOCAL: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
                                 }
-                                return null;
+                                return new LSL_List();
                             }
                             break;
 
                         case ScriptBaseClass.PRIM_ROTATION:                       
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             Quaternion inRot;
 
@@ -9505,7 +9505,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROTATION: arg #{1} - parameter 2 must be rotation", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             SceneObjectPart parentPart = sp.ParentPart;
@@ -9517,7 +9517,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
-                                return null;
+                                return new LSL_List();
 
                             try
                             {
@@ -9526,29 +9526,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ROT_LOCAL: arg #{1} - parameter 2 must be rotation", rulesParsed, idx - idxStart - 1));
-                                return null;
+                                return new LSL_List();
                             }
 
                             break;
 
                         case ScriptBaseClass.PRIM_TYPE:
                             Error(originFunc, "PRIM_TYPE disallowed on agent");
-                            return null;
+                            return new LSL_List();
 
                         case ScriptBaseClass.PRIM_OMEGA:
                             Error(originFunc, "PRIM_OMEGA disallowed on agent");
-                            return null;
+                            return new LSL_List();
 
                         case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                                return null;
+                                return new LSL_List();
 
                             return rules.GetSublist(idx, -1);
 
                         default:
                             Error(originFunc,
                                 string.Format("Error running rule #{0} on agent: arg #{1} - disallowed on agent", rulesParsed, idx - idxStart));
-                            return null;
+                            return new LSL_List();
                     }
                 }
             }
@@ -9559,7 +9559,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     string.Format("Error running rule #{0}: arg #{1} - ", rulesParsed, idx - idxStart) + e.Message);
             }
 
-            return null;
+            return new LSL_List();
         }
 
         public LSL_String llStringToBase64(string str)
@@ -10169,7 +10169,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List GetEntityParams(ISceneEntity entity, LSL_List rules)
         {
             LSL_List result = new LSL_List();
-            LSL_List remaining = null;
+            LSL_List remaining;
 
             while (true)
             {
@@ -10270,7 +10270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face > 21)
@@ -10284,7 +10284,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face > 21)
@@ -10296,7 +10296,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face > 21)
@@ -10308,7 +10308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face > 21)
@@ -10329,7 +10329,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face > 21)
@@ -10346,7 +10346,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face > 21)
@@ -10375,13 +10375,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                         if(remain < 3)
-                            return null;
+                            return new LSL_List();
 
                         return rules.GetSublist(idx, -1);
                 }
             }
 
-            return null;
+            return new LSL_List();
         }
 
         public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
@@ -10535,7 +10535,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         Primitive.TextureEntry tex = part.Shape.Textures;
@@ -10575,7 +10575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -10604,7 +10604,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -10635,7 +10635,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
@@ -10677,7 +10677,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -10718,7 +10718,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return null;
+                            return new LSL_List();
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -10774,13 +10774,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         // TODO: Should be issuing a runtime script warning in this case.
                         if (remain < 2)
-                            return null;
+                            return new LSL_List();
 
                         return rules.GetSublist(idx, -1);
                 }
             }
 
-            return null;
+            return new LSL_List();
         }
 
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
@@ -11878,7 +11878,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llListReplaceList(LSL_List dest, LSL_List src, int start, int end)
         {
-            LSL_List pref = null;
+            LSL_List pref;
 
             m_host.AddScriptLPS(1);
 

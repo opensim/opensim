@@ -502,7 +502,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         [Serializable]
-        public class list
+        public struct list
         {
             private object[] m_data;
 
@@ -909,7 +909,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else
                 {
 
-                    list result = null;
+                    list result;
 
                     // If end is negative, then prefix list is empty
                     if (end < 0)
