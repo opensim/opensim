@@ -172,8 +172,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="req"></param>
         private void RayCast(ODERayCastRequest req)
         {
+            // limit ray lenght or collisions will take all avaiable stack space
+            float len = req.length;
+            if (len > 250f)
+                len = 250f;
+
             // Create the ray
-            IntPtr ray = d.CreateRay(m_scene.space, req.length);
+            IntPtr ray = d.CreateRay(m_scene.space, len);
             d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
 
             // Collide test
@@ -218,8 +223,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="req"></param>
         private void RayCast(ODERayRequest req)
         {
+            // limit ray lenght or collisions will take all avaiable stack space
+            float len = req.length;
+            if (len > 250f)
+                len = 250f;
+
             // Create the ray
-            IntPtr ray = d.CreateRay(m_scene.space, req.length);
+            IntPtr ray = d.CreateRay(m_scene.space, len);
             d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
 
             // Collide test
