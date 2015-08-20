@@ -189,6 +189,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float AvatarFriction = 0;// 0.9f * 0.5f;
 
+        // this netx dimensions are only relevant for terrain partition (mega regions)
+        // WorldExtents below has the simulation dimensions
+        // they should be identical except on mega regions
         private uint m_regionWidth = Constants.RegionSize;
         private uint m_regionHeight = Constants.RegionSize;
 
@@ -208,11 +211,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float waterlevel = 0f;
         private int framecount = 0;
 
-        private int m_meshExpireCntr;
-
-//        private IntPtr WaterGeom = IntPtr.Zero;
-//        private IntPtr WaterHeightmapData = IntPtr.Zero;
-//        private GCHandle WaterMapHandler = new GCHandle();
+//        private int m_meshExpireCntr;
 
         private float avDensity = 3f;
         private float avMovementDivisorWalk = 1.3f;
@@ -223,13 +222,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float geomDefaultDensity = 10.000006836f;
 
-//        public int geomContactPointsStartthrottle = 3;
-//        public int geomUpdatesPerThrottledUpdate = 15;
-
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
-
-//        public int geomCrossingFailuresBeforeOutofbounds = 6;
 
         public int bodyFramesAutoDisable = 5;
 
@@ -293,7 +287,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         // some speedup variables
         private int spaceGridMaxX;
         private int spaceGridMaxY;
-        private float spacesPerMeter;
+        private float spacesPerMeterX;
+        private float spacesPerMeterY;
 
         // split static geometry collision into a grid as before
         private IntPtr[,] staticPrimspace;
@@ -423,7 +418,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
         {
             WorldExtents.X =  regionExtent.X;
+            m_regionWidth = (uint)regionExtent.X;
             WorldExtents.Y =  regionExtent.Y;
+            m_regionHeight = (uint)regionExtent.Y;
+
             m_suportCombine = false;
             Initialise(meshmerizer, config);
         }
@@ -446,14 +444,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            /*
-                        if (region != null)
-                        {
-                            WorldExtents.X = region.RegionSizeX;
-                            WorldExtents.Y = region.RegionSizeY;
-                        }
-             */
-
             // Defaults
 
             int contactsPerCollision = 80;
@@ -474,17 +464,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
 
                     ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
-//                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", m_physicsiterations);
 
                     avDensity = physicsconfig.GetFloat("av_density", avDensity);
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", avMovementDivisorWalk);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", avMovementDivisorRun);
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
-
-//                    geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
-//                    geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
-//                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
@@ -562,14 +547,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_materialContactsData[(int)Material.light].bounce = 0.0f;
 
 
-            spacesPerMeter = 1 / metersInSpace;
-            spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeter);
-            spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeter);
+            spacesPerMeterX = 1.0f / metersInSpace;
+            spacesPerMeterY = spacesPerMeterX;
+            spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeterX);
+            spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeterY);
 
             if (spaceGridMaxX > 40)
+            {
                 spaceGridMaxX = 40;
+                spacesPerMeterX = WorldExtents.X / spaceGridMaxX;
+            }
+
             if (spaceGridMaxY > 40)
+            {
                 spaceGridMaxY = 40;
+                spacesPerMeterY = WorldExtents.Y / spaceGridMaxY;
+            }
 
             staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY];
 
@@ -596,7 +589,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     staticPrimspace[i, j] = newspace;
                 }
-            // let this now be real maximum values
+
+            // let this now be index limit
             spaceGridMaxX--;
             spaceGridMaxY--;
 
@@ -1362,18 +1356,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-        /// <summary>
-        /// This is called from within simulate but outside the locked portion
-        /// We need to do our own locking here
-        /// (Note: As of 20110801 this no longer appears to be true - this is being called within lock (odeLock) in
-        /// Simulate() -- justincc).
-        ///
-        /// Essentially, we need to remove the prim from our space segment, whatever segment it's in.
-        ///
-        /// If there are no more prim in the segment, we need to empty (spacedestroy)the segment and reclaim memory
-        /// that the space was using.
-        /// </summary>
-        /// <param name="prim"></param>
+
         public void RemovePrimThreadLocked(OdePrim prim)
         {
             //Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);
@@ -1496,11 +1479,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pos.Y < 0)
                 return staticPrimspaceOffRegion[2];
 
-            x = (int)(pos.X * spacesPerMeter);
+            x = (int)(pos.X * spacesPerMeterX);
             if (x > spaceGridMaxX)
                 return staticPrimspaceOffRegion[1];
             
-            y = (int)(pos.Y * spacesPerMeter);
+            y = (int)(pos.Y * spacesPerMeterY);
             if (y > spaceGridMaxY)
                 return staticPrimspaceOffRegion[3];
 
@@ -1694,10 +1677,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 aprim.Move();
                             }
                         }
-
-                        //if ((framecount % m_randomizeWater) == 0)
-                        // randomizeWater(waterlevel);
-
+ 
                         m_rayCastManager.ProcessQueuedRequests();
 
                         collision_optimized();
@@ -1896,7 +1876,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float GetTerrainHeightAtXY(float x, float y)
         {
-            IntPtr heightFieldGeom = IntPtr.Zero;
 
             int offsetX = 0;
             int offsetY = 0;
@@ -1905,16 +1884,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
                 offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-                // get region map
-                if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
-                    return 0f;
-            }
-            else
-            {
-                if (!RegionTerrain.TryGetValue(Vector3.Zero , out heightFieldGeom))
-                    return 0f;
             }
 
+            // get region map
+            IntPtr heightFieldGeom = IntPtr.Zero;
+            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+                return 0f;
 
             if (heightFieldGeom == IntPtr.Zero)
                 return 0f;
@@ -1939,8 +1914,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             float dx;
             float dy;
 
-            int regsizeX = (int)WorldExtents.X + 3; // map size see setterrain number of samples
-            int regsizeY = (int)WorldExtents.Y + 3; // map size see setterrain number of samples
+            int regsizeX = (int)m_regionWidth + 3; // map size see setterrain number of samples
+            int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
             int regsize = regsizeX;
 
             if (OdeUbitLib)
@@ -2040,9 +2015,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public Vector3 GetTerrainNormalAtXY(float x, float y)
         {
-            IntPtr heightFieldGeom = IntPtr.Zero;
-            Vector3 norm = new Vector3(0, 0, 1);
-
             int offsetX = 0;
             int offsetY = 0;
 
@@ -2050,15 +2022,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
                 offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-                // get region map
-                if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
-                    return norm; ;
             }
-            else
-            {
-                if (!RegionTerrain.TryGetValue(Vector3.Zero, out heightFieldGeom))
-                    return norm; ;
-            }
+
+            // get region map
+            IntPtr heightFieldGeom = IntPtr.Zero;
+            Vector3 norm = new Vector3(0, 0, 1);
+
+            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+                return norm; ;
 
             if (heightFieldGeom == IntPtr.Zero)
                 return norm;
@@ -2083,8 +2054,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             float dx;
             float dy;
 
-            int regsizeX = (int)WorldExtents.X + 3; // map size see setterrain number of samples
-            int regsizeY = (int)WorldExtents.Y + 3; // map size see setterrain number of samples
+            int regsizeX = (int)m_regionWidth + 3; // map size see setterrain number of samples
+            int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
             int regsize = regsizeX;
 
             int xstep = 1;
@@ -2197,7 +2168,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void CombineTerrain(float[] heightMap, Vector3 pOffset)
         {
-            SetTerrain(heightMap, pOffset);
+            if(m_suportCombine)
+                SetTerrain(heightMap, pOffset);
         }
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
@@ -2215,8 +2187,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float[] _heightmap;
 
-            uint regionsizeX = (uint)WorldExtents.X;
-            uint regionsizeY = (uint)WorldExtents.Y;
+            uint regionsizeX = m_regionWidth;
+            uint regionsizeY = m_regionHeight;
 
             // map is rotated
             uint heightmapWidth = regionsizeY + 2;
@@ -2326,7 +2298,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                     d.GeomSetRotation(GroundGeom, ref R);
-                    d.GeomSetPosition(GroundGeom, pOffset.X + WorldExtents.X * 0.5f, pOffset.Y + WorldExtents.Y * 0.5f, 0);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0);
                     RegionTerrain.Add(pOffset, GroundGeom);
                     TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                     TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
@@ -2341,8 +2313,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float[] _heightmap;
 
-            uint regionsizeX = (uint)WorldExtents.X;
-            uint regionsizeY = (uint)WorldExtents.Y;
+            uint regionsizeX = m_regionWidth;
+            uint regionsizeY = m_regionHeight;
 
             uint heightmapWidth = regionsizeX + 2;
             uint heightmapHeight = regionsizeY + 2;
@@ -2436,7 +2408,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.GeomSetPosition(GroundGeom, pOffset.X + WorldExtents.X * 0.5f, pOffset.Y + WorldExtents.Y * 0.5f, 0);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0);
                     RegionTerrain.Add(pOffset, GroundGeom);
                     TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                     TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
@@ -2521,90 +2493,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void SetWaterLevel(float baseheight)
         {
             waterlevel = baseheight;
-//            randomizeWater(waterlevel);
         }
-/*
-        public void randomizeWater(float baseheight)
-        {
-            const uint heightmapWidth = Constants.RegionSize + 2;
-            const uint heightmapHeight = Constants.RegionSize + 2;
-            const uint heightmapWidthSamples = heightmapWidth + 1;
-            const uint heightmapHeightSamples = heightmapHeight + 1;
 
-            const float scale = 1.0f;
-            const float offset = 0.0f;
-            const int wrap = 0;
-
-            float[] _watermap = new float[heightmapWidthSamples * heightmapWidthSamples];
-
-            float maxheigh = float.MinValue;
-            float minheigh = float.MaxValue;
-            float val;
-            for (int i = 0; i < (heightmapWidthSamples * heightmapHeightSamples); i++)
-            {
-
-                val = (baseheight - 0.1f) + ((float)fluidRandomizer.Next(1, 9) / 10f);
-                _watermap[i] = val;
-                if (maxheigh < val)
-                    maxheigh = val;
-                if (minheigh > val)
-                    minheigh = val;
-            }
-
-            float thickness = minheigh;
-
-            lock (OdeLock)
-            {
-                if (WaterGeom != IntPtr.Zero)
-                {
-                    actor_name_map.Remove(WaterGeom);
-                    d.GeomDestroy(WaterGeom);
-                    d.GeomHeightfieldDataDestroy(WaterHeightmapData);
-                    WaterGeom = IntPtr.Zero;
-                    WaterHeightmapData = IntPtr.Zero;
-                    if(WaterMapHandler.IsAllocated)
-                        WaterMapHandler.Free();
-                }
-
-                WaterHeightmapData = d.GeomHeightfieldDataCreate();
-
-                WaterMapHandler = GCHandle.Alloc(_watermap, GCHandleType.Pinned);
-
-                d.GeomHeightfieldDataBuildSingle(WaterHeightmapData, WaterMapHandler.AddrOfPinnedObject(), 0, heightmapWidth, heightmapHeight,
-                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
-                                                 offset, thickness, wrap);
-                d.GeomHeightfieldDataSetBounds(WaterHeightmapData, minheigh, maxheigh);
-                WaterGeom = d.CreateHeightfield(StaticSpace, WaterHeightmapData, 1);
-                if (WaterGeom != IntPtr.Zero)
-                {
-                    d.GeomSetCategoryBits(WaterGeom, (uint)(CollisionCategories.Water));
-                    d.GeomSetCollideBits(WaterGeom, 0);
-
-
-                    PhysicsActor pa = new NullPhysicsActor();
-                    pa.Name = "Water";
-                    pa.PhysicsActorType = (int)ActorTypes.Water;
-
-                    actor_name_map[WaterGeom] = pa;
-//                    geom_name_map[WaterGeom] = "Water";
-
-                    d.Matrix3 R = new d.Matrix3();
-
-                    Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
-                    Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
-
-                    q1 = q1 * q2;
-                    Vector3 v3;
-                    float angle;
-                    q1.GetAxisAngle(out v3, out angle);
-
-                    d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                    d.GeomSetRotation(WaterGeom, ref R);
-                    d.GeomSetPosition(WaterGeom, (float)Constants.RegionSize * 0.5f, (float)Constants.RegionSize * 0.5f, 0);
-                }
-            }
-        }
-*/
         public override void Dispose()
         {
             if (m_meshWorker != null)
@@ -2658,19 +2548,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 TerrainHeightFieldHeightsHandlers.Clear();
                 TerrainHeightFieldHeights.Clear();
-/*
-                if (WaterGeom != IntPtr.Zero)
-                {
-                    d.GeomDestroy(WaterGeom);
-                        WaterGeom = IntPtr.Zero;
-                    if (WaterHeightmapData != IntPtr.Zero)
-                        d.GeomHeightfieldDataDestroy(WaterHeightmapData);
-                    WaterHeightmapData = IntPtr.Zero;
 
-                    if (WaterMapHandler.IsAllocated)
-                        WaterMapHandler.Free();
-                }
-*/
                 if (ContactgeomsArray != IntPtr.Zero)
                     Marshal.FreeHGlobal(ContactgeomsArray);
                 if (GlobalContactsArray != IntPtr.Zero)
