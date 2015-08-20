@@ -402,7 +402,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 for (int y = 0; y < Height; y++)
                 {
-                    h = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
+ //                   h = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
+                    h = 1.0f;
                     float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 50) * 0.01d);
                     float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 100) * 0.001d);
                     if (h < spherFacA)
