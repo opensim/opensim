@@ -167,6 +167,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="avName"></param>
         /// <param name="parent_scene"></param>
         /// <param name="pos"></param>
+        /// <param name="vel"></param>
         /// <param name="size"></param>
         /// <param name="pid_d"></param>
         /// <param name="pid_p"></param>
@@ -178,7 +179,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="walk_divisor"></param>
         /// <param name="rundivisor"></param>
         public OdeCharacter(
-            String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p,
+            String avName, OdeScene parent_scene, Vector3 pos, Vector3 vel, Vector3 size, float pid_d, float pid_p,
             float capsule_radius, float tensor, float density,
             float walk_divisor, float rundivisor)
         {
@@ -209,6 +210,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 m_log.WarnFormat("[ODE CHARACTER]: Got NaN Position on Character Create for {0}", avName);
             }
+
+            _velocity = vel;
+            m_taintTargetVelocity = vel;
 
             _parent_scene = parent_scene;
 
@@ -500,8 +504,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_pidControllerActive = true;
 
-                m_tainted_CAPSULE_LENGTH = (size.Z) - CAPSULE_RADIUS * 2.0f;
-//                    m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH);
+                m_tainted_CAPSULE_LENGTH = size.Z - CAPSULE_RADIUS * 2.0f;
+
+                // m_log.InfoFormat("[ODE CHARACTER]: Size = {0}, Capsule Length = {1} (Capsule Radius = {2})",
+                //     size, m_tainted_CAPSULE_LENGTH, CAPSULE_RADIUS);
             }
             else
             {
@@ -890,41 +896,29 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                        vec, _target_velocity, movementdivisor, vel);
                 }
 
-                if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
-                {
-                    // We're colliding with something and we're not flying but we're moving
-                    // This means we're walking or running.
-                    d.Vector3 pos = d.BodyGetPosition(Body);
-                    vec.Z = (_target_velocity.Z - vel.Z)*PID_D + (_zeroPosition.Z - pos.Z)*PID_P;
-                    if (_target_velocity.X > 0)
-                    {
-                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
-                    }
-                    if (_target_velocity.Y > 0)
-                    {
-                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
-                    }
-                }
-                else if (!m_iscolliding && !flying)
-                {
-                    // we're not colliding and we're not flying so that means we're falling!
-                    // m_iscolliding includes collisions with the ground.
-
-                    // d.Vector3 pos = d.BodyGetPosition(Body);
-                    if (_target_velocity.X > 0)
-                    {
-                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
-                    }
-                    if (_target_velocity.Y > 0)
-                    {
-                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
-                    }
-                }
-
                 if (flying)
                 {
                     // This also acts as anti-gravity so that we hover when flying rather than fall.
                     vec.Z = (_target_velocity.Z - vel.Z) * (PID_D);
+                }
+                else
+                {
+                    if (m_iscolliding && _target_velocity.Z > 0.0f)
+                    {
+                        // We're colliding with something and we're not flying but we're moving
+                        // This means we're walking or running.
+                        d.Vector3 pos = d.BodyGetPosition(Body);
+                        vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
+                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
+                    }
+                    else if (!m_iscolliding)
+                    {
+                        // we're not colliding and we're not flying so that means we're falling!
+                        // m_iscolliding includes collisions with the ground.
+                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
+                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
+                    }
                 }
             }
 
@@ -1255,7 +1249,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public override Vector3 PIDTarget { set { return; } }
-        public override bool PIDActive { set { return; } }
+        public override bool PIDActive 
+        { 
+            get { return false; }
+            set { return; } 
+        }
         public override float PIDTau { set { return; } }
 
         public override float PIDHoverHeight { set { return; } }

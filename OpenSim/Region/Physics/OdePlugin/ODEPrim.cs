@@ -114,7 +114,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_PIDTau;
         private float PID_D = 35f;
         private float PID_G = 25f;
-        private bool m_usePID;
 
         // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
         // and are for non-VEHICLES only.
@@ -351,11 +350,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_assetFailed)
             {
                 d.GeomSetCategoryBits(prim_geom, 0);
-                d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
             }
             else
             {
-
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
             }
@@ -425,7 +423,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_assetFailed)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                    d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
                 }
                 else
                 {
@@ -787,6 +785,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        private void setAngularVelocity(float x, float y, float z)
+        {
+            if (Body != (IntPtr)0)
+            {
+                d.BodySetAngularVel(Body, x, y, z);
+            }
+        }
+
         /// <summary>
         /// Stop a prim from being subject to physics.
         /// </summary>
@@ -857,11 +863,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
-
-        public int BadAssetColideBits()
-        {
-            return (m_isphysical ? (int)CollisionCategories.Land : 0);
-        }
 
         private void setMesh(OdeScene parent_scene, IMesh mesh)
         {
@@ -1144,7 +1145,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     if (prm.m_assetFailed)
                     {
                         d.GeomSetCategoryBits(prm.prim_geom, 0);
-                        d.GeomSetCollideBits(prm.prim_geom, prm.BadAssetColideBits());
+                        d.GeomSetCollideBits(prm.prim_geom, prm.BadMeshAssetCollideBits);
                     }
                     else
                     {
@@ -1198,7 +1199,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (m_assetFailed)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                    d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
                 }
                 else
                 {
@@ -1400,7 +1401,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (m_assetFailed)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                    d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
                 }
                 else
                 {
@@ -1729,7 +1730,7 @@ Console.WriteLine(" JointCreateFixed");
                     // gravityz multiplier = 1 - m_buoyancy
                     fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass;
 
-                    if (m_usePID)
+                    if (PIDActive)
                     {
 //Console.WriteLine("PID " +  Name);
                         // KF - this is for object move? eg. llSetPos() ?
@@ -1798,10 +1799,10 @@ Console.WriteLine(" JointCreateFixed");
 
                             fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
                         }
-                    }        // end if (m_usePID)
+                    }        // end if (PIDActive)
 
                     // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
-                    if (m_useHoverPID && !m_usePID)
+                    if (m_useHoverPID && !PIDActive)
                     {
 //Console.WriteLine("Hover " +  Name);
                     
@@ -2144,7 +2145,7 @@ Console.WriteLine(" JointCreateFixed");
             }
 
             if (m_assetFailed)
-                d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
             else
 
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
@@ -2652,6 +2653,7 @@ Console.WriteLine(" JointCreateFixed");
                 if (value.IsFinite())
                 {
                     m_rotationalVelocity = value;
+                    setAngularVelocity(value.X, value.Y, value.Z);
                 }
                 else
                 {
@@ -2872,7 +2874,7 @@ Console.WriteLine(" JointCreateFixed");
                         // it does make sense to do this for tiny little instabilities with physical prim, however 0.5m/frame is fairly large. 
                         // reducing this to 0.02m/frame seems to help the angular rubberbanding quite a bit, however, to make sure it doesn't affect elevators and vehicles
                         // adding these logical exclusion situations to maintain this where I think it was intended to be.
-                        if (m_throttleUpdates || m_usePID || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
+                        if (m_throttleUpdates || PIDActive || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
                         {
                             m_minvelocity = 0.5f;
                         }
@@ -2953,9 +2955,9 @@ Console.WriteLine(" JointCreateFixed");
                     m_log.WarnFormat("[PHYSICS]: Got NaN PIDTarget from Scene on Object {0}", Name);
             } 
         }
-        public override bool PIDActive { set { m_usePID = value; } }
+        public override bool PIDActive { get; set; }
         public override float PIDTau { set { m_PIDTau = value; } }
-        
+
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
         public override bool PIDHoverActive { set { m_useHoverPID = value; } }
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
@@ -3350,7 +3352,7 @@ Console.WriteLine(" JointCreateFixed");
                         RequestAssetDelegate assetProvider = _parent_scene.RequestAssetMethod;
                         if (assetProvider != null)
                             assetProvider(_pbs.SculptTexture, MeshAssetReceived);
-                    });
+                    }, null, "ODEPrim.CheckMeshAsset");
             }
         }
 
