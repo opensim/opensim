@@ -2913,6 +2913,15 @@ namespace OpenSim.Region.Framework.Scenes
             return sp;
         }
 
+        public string GetAgentHomeURI(UUID agentID)
+        {
+            AgentCircuitData circuit = AuthenticateHandler.GetAgentCircuitData(agentID);
+            if (circuit != null && circuit.ServiceURLs != null && circuit.ServiceURLs.ContainsKey("HomeURI"))
+                return circuit.ServiceURLs["HomeURI"].ToString();
+            else
+                return null;
+        }
+
         /// <summary>
         /// Cache the user name for later use.
         /// </summary>
@@ -4028,12 +4037,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (posX < 0)
                 posX = 0;
-            else if (posX >= 256)
-                posX = 255.999f;
+            else if (posX >= RegionInfo.RegionSizeX)
+                posX = RegionInfo.RegionSizeX - 0.5f;
             if (posY < 0)
                 posY = 0;
-            else if (posY >= 256)
-                posY = 255.999f;
+            else if (posY >= RegionInfo.RegionSizeY)
+                posY = RegionInfo.RegionSizeY - 0.5f;
 
             reason = String.Empty;
             if (Permissions.IsGod(agentID))
