@@ -516,28 +516,20 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         // ITerrainModule.PushTerrain()
         public void PushTerrain(IClientAPI pClient)
         {
-            if (m_sendTerrainUpdatesByViewDistance)
+            ScenePresence presence = m_scene.GetScenePresence(pClient.AgentId);
+            if (presence != null)
             {
-                ScenePresence presence = m_scene.GetScenePresence(pClient.AgentId);
-                if (presence != null)
+                lock (m_perClientPatchUpdates)
                 {
-                    lock (m_perClientPatchUpdates)
+                    PatchUpdates pups;
+                    if (!m_perClientPatchUpdates.TryGetValue(pClient.AgentId, out pups))
                     {
-                        PatchUpdates pups;
-                        if (!m_perClientPatchUpdates.TryGetValue(pClient.AgentId, out pups))
-                        {
-                            // There is a ScenePresence without a send patch map. Create one.
-                            pups = new PatchUpdates(m_scene.Heightmap.GetTerrainData(), presence);
-                            m_perClientPatchUpdates.Add(presence.UUID, pups);
-                        }
-                        pups.SetAll(true);
+                        // There is a ScenePresence without a send patch map. Create one.
+                        pups = new PatchUpdates(m_scene.Heightmap.GetTerrainData(), presence);
+                        m_perClientPatchUpdates.Add(presence.UUID, pups);
                     }
+                    pups.SetAll(true);
                 }
-            }
-            else
-            {
-                // The traditional way is to call into the protocol stack to send them all.
-                pClient.SendLayerData(new float[10]);
             }
         }
 
@@ -957,37 +949,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="y">The patch corner to send</param>
         private void SendToClients(TerrainData terrData, int x, int y)
         {
-            if (m_sendTerrainUpdatesByViewDistance)
+            // Add that this patch needs to be sent to the accounting for each client.
+            lock (m_perClientPatchUpdates)
             {
-                // Add that this patch needs to be sent to the accounting for each client.
-                lock (m_perClientPatchUpdates)
-                {
-                    m_scene.ForEachScenePresence(presence =>
-                        {
-                            PatchUpdates thisClientUpdates;
-                            if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out thisClientUpdates))
-                            {
-                                // There is a ScenePresence without a send patch map. Create one.
-                                thisClientUpdates = new PatchUpdates(terrData, presence);
-                                m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
-                            }
-                            thisClientUpdates.SetByXY(x, y, true);
-                        }
-                    );
-                }
-            }
-            else
-            {
-                // Legacy update sending where the update is sent out as soon as noticed
-                // We know the actual terrain data passed is ignored. This kludge saves changing IClientAPI.
-                //float[] heightMap = terrData.GetFloatsSerialized();
-                float[] heightMap = new float[10];
-                m_scene.ForEachClient(
-                    delegate(IClientAPI controller)
+                m_scene.ForEachScenePresence(presence =>
                     {
-                        controller.SendLayerData(x / Constants.TerrainPatchSize,
-                                                 y / Constants.TerrainPatchSize,
-                                                 heightMap);
+                        PatchUpdates thisClientUpdates;
+                        if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out thisClientUpdates))
+                        {
+                            // There is a ScenePresence without a send patch map. Create one.
+                            thisClientUpdates = new PatchUpdates(terrData, presence);
+                            m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
+                        }
+                        thisClientUpdates.SetByXY(x, y, true);
                     }
                 );
             }
