@@ -236,8 +236,8 @@
     gridnick = "hippogrid"
 
     ; login page: optional: if it exists it will be used to tell the client to use
-    ;                       this as splash page
-    ; currently unused
+    ; this as splash page. May also be served from an external web server, e.g. for
+    ; information on a standalone
     ;welcome = ${Const|BaseURL}/welcome
 
     ; helper uri: optional: if it exists if will be used to tell the client to use

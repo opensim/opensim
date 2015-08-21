@@ -43,6 +43,11 @@
 
 
 [Const]
+    ; For a grid these will usually be the externally accessible IP/DNS
+    ; name and use default public port 8002 and default private port 8003
+    ; For a standalone this will usually be the externally accessible IP/DNS
+    ; name and use a single common port 9000
+
     ;# {BaseURL} {} {BaseURL} {"http://example.com","http://127.0.0.1"} "http://127.0.0.1"
     BaseURL = http://127.0.0.1
     
