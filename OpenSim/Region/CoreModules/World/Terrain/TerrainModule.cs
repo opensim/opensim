@@ -1031,47 +1031,90 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             List<PatchesToSend> ret = new List<PatchesToSend>();
 
+            int npatchs = 0;
+
             ScenePresence presence = pups.Presence;
             if (presence == null)
                 return ret;
 
+            float minz = presence.AbsolutePosition.Z;
+            if (presence.CameraPosition.Z < minz)
+                minz = presence.CameraPosition.Z;
+
+            // this limit should be max terrainheight + max draw
+            if (minz > 1500f)
+                return ret;
+
+            int DrawDistance = (int)presence.DrawDistance;
+
+            DrawDistance = DrawDistance / Constants.TerrainPatchSize;
+
+            int testposX;
+            int testposY;
+
+            if (Math.Abs(presence.AbsolutePosition.X - presence.CameraPosition.X) > 30
+                || Math.Abs(presence.AbsolutePosition.Y - presence.CameraPosition.Y) > 30)
+            {
+                testposX = (int)presence.CameraPosition.X / Constants.TerrainPatchSize;
+                testposY = (int)presence.CameraPosition.Y / Constants.TerrainPatchSize;
+            }
+            else
+            {
+                testposX = (int)presence.AbsolutePosition.X / Constants.TerrainPatchSize;
+                testposY = (int)presence.AbsolutePosition.Y / Constants.TerrainPatchSize;
+            }
+            int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
+            int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
+
             // Compute the area of patches within our draw distance
-            int startX = (((int) (presence.AbsolutePosition.X - presence.DrawDistance))/Constants.TerrainPatchSize) - 2;
-            startX = Math.Max(startX, 0);
-            startX = Math.Min(startX, (int)m_scene.RegionInfo.RegionSizeX/Constants.TerrainPatchSize);
-            int startY = (((int) (presence.AbsolutePosition.Y - presence.DrawDistance))/Constants.TerrainPatchSize) - 2;
-            startY = Math.Max(startY, 0);
-            startY = Math.Min(startY, (int)m_scene.RegionInfo.RegionSizeY/Constants.TerrainPatchSize);
-            int endX = (((int) (presence.AbsolutePosition.X + presence.DrawDistance))/Constants.TerrainPatchSize) + 2;
-            endX = Math.Max(endX, 0);
-            endX = Math.Min(endX, (int)m_scene.RegionInfo.RegionSizeX/Constants.TerrainPatchSize);
-            int endY = (((int) (presence.AbsolutePosition.Y + presence.DrawDistance))/Constants.TerrainPatchSize) + 2;
-            endY = Math.Max(endY, 0);
-            endY = Math.Min(endY, (int)m_scene.RegionInfo.RegionSizeY/Constants.TerrainPatchSize);
-            // m_log.DebugFormat("{0} GetModifiedPatchesInViewDistance. rName={1}, ddist={2}, apos={3}, start=<{4},{5}>, end=<{6},{7}>",
-            //                                     LogHeader, m_scene.RegionInfo.RegionName,
-            //                                     presence.DrawDistance, presence.AbsolutePosition,
-            //                                     startX, startY, endX, endY);
+            int startX = testposX - DrawDistance;
+            if (startX < 0)
+                startX = 0;
+            else if (startX > limitX)
+                startX = limitX;
+
+            int startY = testposY - DrawDistance;
+            if (startY < 0)
+                startY = 0;
+            else if (startY > limitY)
+                startY = limitY;
+
+            int endX = testposX + DrawDistance;
+            if (endX < 0)
+                endX = 0;
+            else if (endX > limitX)
+                endX = limitX;
+
+            int endY = testposY + DrawDistance;
+            if (endY < 0)
+                endY = 0;
+            else if (endY > limitY)
+                endY = limitY;
+
+            int distx;
+            int disty;
+            int distsq;
+
+            DrawDistance *= DrawDistance;
+  
             for (int x = startX; x < endX; x++)
             {
                 for (int y = startY; y < endY; y++)
                 {
-                    //Need to make sure we don't send the same ones over and over
-                    Vector3 presencePos = presence.AbsolutePosition;
-                    Vector3 patchPos = new Vector3(x * Constants.TerrainPatchSize, y * Constants.TerrainPatchSize, presencePos.Z);
                     if (pups.GetByPatch(x, y))
                     {
-                        //Check which has less distance, camera or avatar position, both have to be done.
-                        //Its not a radius, its a diameter and we add 50 so that it doesn't look like it cuts off
-                        if (Util.DistanceLessThan(presencePos, patchPos, presence.DrawDistance + 50)
-                            || Util.DistanceLessThan(presence.CameraPosition, patchPos, presence.DrawDistance + 50))
+                        distx = x - testposX;
+                        disty = y - testposY;
+                        distsq = distx * distx + disty * disty;
+                        if (distsq < DrawDistance)
                         {
-                            //They can see it, send it to them
                             pups.SetByPatch(x, y, false);
-                            float dist = Vector3.DistanceSquared(presencePos, patchPos);
-                            ret.Add(new PatchesToSend(x, y, dist));
-                            //Wait and send them all at once
-                            // pups.client.SendLayerData(x, y, null);
+                            ret.Add(new PatchesToSend(x, y, (float)distsq));
+                            if (npatchs++ > 65536)
+                            {
+                                y = endY;
+                                x = endX;
+                            }
                         }
                     }
                 }
