@@ -49,6 +49,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         List<Scene> m_scenes = new List<Scene>();
         List<UUID> m_Clients;
 
+        IWorldMapModule m_WorldMap;
+        IWorldMapModule WorldMap
+        {
+            get
+            {
+                if (m_WorldMap == null)
+                    m_WorldMap = m_scene.RequestModuleInterface<IWorldMapModule>();
+                return m_WorldMap;
+            }
+
+        }
+
         #region ISharedRegionModule Members
         public void Initialise(IConfigSource source)
         {
@@ -130,9 +142,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             Util.FireAndForget(x =>
             {
-                if (mapName.Length < 2)
+                List<MapBlockData> blocks = new List<MapBlockData>();
+                if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
                 {
-                    remoteClient.SendAlertMessage("Use a search string with at least 2 characters");
+                    // final block, closing the search result
+                    AddFinalBlock(blocks);
+
+                    // flags are agent flags sent from the viewer.
+                    // they have different values depending on different viewers, apparently
+                    remoteClient.SendMapBlock(blocks, flags);
+                    remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
                     return;
                 }
 
@@ -160,8 +179,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
     //                remoteClient.SendAlertMessage("Hyperlink could not be established.");
 
                 //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
-                List<MapBlockData> blocks = new List<MapBlockData>();
-
+ 
                 MapBlockData data;
                 if (regionInfos.Count > 0)
                 {
@@ -171,9 +189,22 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         data.Agents = 0;
                         data.Access = info.Access;
                         if (flags == 2) // V2 sends this
-                            data.MapImageId = UUID.Zero; 
+                        {
+                            List<MapBlockData> datas = WorldMap.Map2BlockFromGridRegion(info, flags);
+                            // ugh! V2-3 is very sensitive about the result being
+                            // exactly the same as the requested name
+
+                            if (regionInfos.Count == 1 && (mapName != mapNameOrig))
+                                datas.ForEach(d => d.Name = mapNameOrig);
+
+                            blocks.AddRange(datas);                         
+                        }
                         else
-                            data.MapImageId = info.TerrainImage;
+                        {
+                            MapBlockData block = new MapBlockData();
+                            WorldMap.MapBlockFromGridRegion(block,info, flags);
+                            blocks.Add(block);
+                        }
                         // ugh! V2-3 is very sensitive about the result being
                         // exactly the same as the requested name
                         if (regionInfos.Count == 1 && mapNameOrig.Contains("|") || mapNameOrig.Contains("+"))
@@ -189,16 +220,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
 
                 // final block, closing the search result
-                data = new MapBlockData();
-                data.Agents = 0;
-                data.Access = 255;
-                data.MapImageId = UUID.Zero;
-                data.Name = mapName;
-                data.RegionFlags = 0;
-                data.WaterHeight = 0; // not used
-                data.X = 0;
-                data.Y = 0;
-                blocks.Add(data);
+                AddFinalBlock(blocks);
 
                 // flags are agent flags sent from the viewer.
                 // they have different values depending on different viewers, apparently

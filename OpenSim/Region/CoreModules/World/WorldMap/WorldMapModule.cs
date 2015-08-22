@@ -1143,7 +1143,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             return allBlocks;
         }
 
-        protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag)
+        public void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag)
         {
             block.Access = r.Access;
             switch (flag & 0xffff)
