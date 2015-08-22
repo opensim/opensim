@@ -72,6 +72,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private ManualResetEvent m_mapBlockRequestEvent = new ManualResetEvent(false);
         private Dictionary<UUID, Queue<MapBlockRequestData>> m_mapBlockRequests = new Dictionary<UUID, Queue<MapBlockRequestData>>();
 
+        private IMapImageGenerator m_mapImageGenerator;
+        private IMapTileModule m_mapImageServiceModule;
+
         protected Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private int cachedTime = 0;
@@ -139,6 +142,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public virtual void RegionLoaded (Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            m_mapImageGenerator = m_scene.RequestModuleInterface<IMapImageGenerator>();
+            m_mapImageServiceModule = m_scene.RequestModuleInterface<IMapTileModule>();
         }
 
 
@@ -1391,7 +1399,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (consoleScene != null && consoleScene != m_scene)
                 return;
 
-            GenerateMaptile();
+            if (m_mapImageGenerator == null)
+            {
+                Console.WriteLine("No map image generator available for {0}", m_scene.Name);
+                return;
+            }
+
+            using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
+            {
+                GenerateMaptile(mapbmp);
+//                m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
+            }
         }
 
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
@@ -1514,20 +1532,35 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void GenerateMaptile()
         {
-            // Cannot create a map for a nonexistant heightmap
+            // Cannot create a map for a nonexistent heightmap
             if (m_scene.Heightmap == null)
                 return;
 
-            //create a texture asset of the terrain
-            IMapImageGenerator terrain = m_scene.RequestModuleInterface<IMapImageGenerator>();
-            if (terrain == null)
-                return;
+            m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.Name);
 
-            m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.RegionInfo.RegionName);
+            using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
+            {
+                // V1 (This Module)
+                GenerateMaptile(mapbmp);
 
-            byte[] data = terrain.WriteJpeg2000Image();
-            if (data == null)
+                // v2/3 (MapImageServiceModule)
+                m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
+            }
+        }
+
+        private void GenerateMaptile(Bitmap mapbmp)
+        {
+            byte[] data;
+
+            try
+            {
+                data = OpenJPEG.EncodeFromImage(mapbmp, true);
+            }
+            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
+            {
+                m_log.Error("[WORLD MAP]: Failed generating terrain map: " + e);
                 return;
+            }
 
             byte[] overlay = GenerateOverlay();
 

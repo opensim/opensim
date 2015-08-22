@@ -27,6 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
+using System.Drawing;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -36,5 +37,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Upload a new maptile
         /// </summary>
         void UploadMapTile(IScene scene);
+        void UploadMapTile(IScene scene, Bitmap mapTile);
     }
 }
