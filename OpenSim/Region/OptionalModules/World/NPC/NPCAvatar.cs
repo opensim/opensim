@@ -671,6 +671,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         }
 
+        public virtual bool CanSendLayerData()
+        {
+            return false;
+        }
+
         public virtual void SendLayerData(float[] map)
         {
         }

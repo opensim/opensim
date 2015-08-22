@@ -997,6 +997,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
+        public virtual bool CanSendLayerData()
+        {
+            return false;
+        }
+
         public void SendLayerData(float[] map)
         {
             

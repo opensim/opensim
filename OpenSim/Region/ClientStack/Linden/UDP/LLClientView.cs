@@ -1199,6 +1199,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(GATRP, ThrottleOutPacketType.Task);
         }
 
+
+        public virtual bool CanSendLayerData()
+        {
+            int n = m_udpClient.GetCatBytesInSendQueue(ThrottleOutPacketType.Land);
+            if ( n > 100000)
+                return false;
+            return true;
+        }
+
         /// <summary>
         ///  Send the region heightmap to the client
         ///  This method is only called when not doing intellegent terrain patch sending and
@@ -9151,7 +9160,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if ((locX >= m_scene.RegionInfo.WorldLocX)
                             && (locX < (m_scene.RegionInfo.WorldLocX + m_scene.RegionInfo.RegionSizeX))
                             && (locY >= m_scene.RegionInfo.WorldLocY)
-                            && (locY < (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)) )
+                            && (locY < (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)))
                 {
                     tpLocReq.Info.RegionHandle = m_scene.RegionInfo.RegionHandle;
                     tpLocReq.Info.Position.X += locX - m_scene.RegionInfo.WorldLocX;

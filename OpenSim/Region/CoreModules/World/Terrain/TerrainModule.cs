@@ -229,11 +229,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
 
                 m_scene.RegisterModuleInterface<ITerrainModule>(this);
+                m_scene.EventManager.OnFrame += EventManager_OnFrame;
                 m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
                 m_scene.EventManager.OnClientClosed += EventManager_OnClientClosed;
                 m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
                 m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
-                m_scene.EventManager.OnFrame += EventManager_OnFrame;
             }
 
             InstallDefaultEffects();
@@ -767,6 +767,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// </summary>
         private void EventManager_OnFrame()
         {
+            // this needs fixing
             TerrainData terrData = m_channel.GetTerrainData();
 
             bool shouldTaint = false;
@@ -792,6 +793,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_scene.EventManager.TriggerTerrainTainted();
                 m_tainted = true;
             }
+
         }
 
         /// <summary>
@@ -993,6 +995,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 foreach (PatchUpdates pups in m_perClientPatchUpdates.Values)
                 {
+                    // throught acording to land queue free to send bytes
+                    if (!pups.Presence.ControllingClient.CanSendLayerData())
+                        continue;
+
                     if (pups.HasUpdates())
                     {
                         // There is something that could be sent to this client.

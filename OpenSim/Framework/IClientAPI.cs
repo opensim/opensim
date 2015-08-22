@@ -1143,6 +1143,8 @@ namespace OpenSim.Framework
         void SendGenericMessage(string method, UUID invoice, List<string> message);
         void SendGenericMessage(string method, UUID invoice, List<byte[]> message);
 
+        bool CanSendLayerData();
+
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
 

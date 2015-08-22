@@ -590,6 +590,11 @@ namespace OpenSim.Tests.Common.Mock
 
         }
 
+        public virtual bool CanSendLayerData()
+        {
+            return false;
+        }
+
         public virtual void SendLayerData(float[] map)
         {
         }
