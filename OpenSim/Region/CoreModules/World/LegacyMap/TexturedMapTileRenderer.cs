@@ -34,6 +34,8 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
+using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.LegacyMap
@@ -271,7 +273,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         // the heigthfield might have some jumps in values. Rendered land is smooth, though,
         // as a slope is rendered at that place. So average 4 neighbour values to emulate that.
-        private float getHeight(double[,] hm, int x, int y) {
+        private float getHeight(ITerrainChannel hm, int x, int y)
+        {
             if (x < ((int)Constants.RegionSize - 1) && y < ((int)Constants.RegionSize - 1))
                 return (float)(hm[x, y] * .444 + (hm[x + 1, y] + hm[x, y + 1]) * .222 + hm[x + 1, y +1] * .112);
             else
@@ -283,6 +286,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         {
             int tc = Environment.TickCount;
             m_log.Debug("[TEXTURED MAP TILE RENDERER]: Generating Maptile Step 1: Terrain");
+
+            ITerrainChannel hm = m_scene.Heightmap;
+
+            if (mapbmp.Width != hm.Width || mapbmp.Height != hm.Height)
+            {
+                m_log.ErrorFormat("{0} TerrainToBitmap. Passed bitmap wrong dimensions. passed=<{1},{2}>, size=<{3},{4}>",
+                    "[TEXTURED MAP TILE RENDERER]", mapbmp.Width, mapbmp.Height, hm.Width, hm.Height);
+            }
 
             // These textures should be in the AssetCache anyway, as every client conneting to this
             // region needs them. Except on start, when the map is recreated (before anyone connected),
@@ -310,19 +321,17 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
             float waterHeight = (float)settings.WaterHeight;
 
-            double[,] hm = m_scene.Heightmap.GetDoubles();
-
-            for (int x = 0; x < (int)Constants.RegionSize; x++)
+            for (int x = 0; x < hm.Width; x++)
             {
-                float columnRatio = x / ((float)Constants.RegionSize - 1); // 0 - 1, for interpolation
-                for (int y = 0; y < (int)Constants.RegionSize; y++)
+                float columnRatio = x / (hm.Width - 1); // 0 - 1, for interpolation
+                for (int y = 0; y < hm.Height; y++)
                 {
-                    float rowRatio = y / ((float)Constants.RegionSize - 1); // 0 - 1, for interpolation
+                    float rowRatio = y / (hm.Height - 1); // 0 - 1, for interpolation
 
                     // Y flip the cordinates for the bitmap: hf origin is lower left, bm origin is upper left
-                    int yr = ((int)Constants.RegionSize - 1) - y;
+                    int yr = (hm.Height - 1) - y;
 
-                    float heightvalue = getHeight(hm, x, y);
+                    float heightvalue = getHeight(m_scene.Heightmap, x, y);
                     if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
                         heightvalue = 0;
 
@@ -366,15 +375,15 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                             // first, rescale h to 0.0 - 1.0
                             hmod = (hmod - low) / (high - low);
                             // now we have to split: 0.00 => color1, 0.33 => color2, 0.67 => color3, 1.00 => color4
-                            if (hmod < 1f/3f) hsv = interpolateHSV(ref hsv1, ref hsv2, hmod * 3f);
-                            else if (hmod < 2f/3f) hsv = interpolateHSV(ref hsv2, ref hsv3, (hmod * 3f) - 1f);
+                            if (hmod < 1f / 3f) hsv = interpolateHSV(ref hsv1, ref hsv2, hmod * 3f);
+                            else if (hmod < 2f / 3f) hsv = interpolateHSV(ref hsv2, ref hsv3, (hmod * 3f) - 1f);
                             else hsv = interpolateHSV(ref hsv3, ref hsv4, (hmod * 3f) - 2f);
                         }
 
                         // Shade the terrain for shadows
-                        if (x < ((int)Constants.RegionSize - 1) && y < ((int)Constants.RegionSize - 1))
+                        if (x < (hm.Width - 1) && y < (hm.Height - 1))
                         {
-                            float hfvaluecompare = getHeight(hm, x + 1, y + 1); // light from north-east => look at land height there
+                            float hfvaluecompare = getHeight(m_scene.Heightmap, x + 1, y + 1); // light from north-east => look at land height there
                             if (Single.IsInfinity(hfvaluecompare) || Single.IsNaN(hfvaluecompare))
                                 hfvaluecompare = 0f;
 
