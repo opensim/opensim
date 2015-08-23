@@ -252,8 +252,7 @@
             <summary>Link to a location in world</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Clothing">
-            <summary>Collection of textures and parameters that can be 
-            worn by an avatar</summary>
+            <summary>Collection of textures and parameters that can be worn by an avatar</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Object">
             <summary>Primitive that can contain textures, sounds, 
@@ -263,10 +262,7 @@
             <summary>Notecard asset</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Folder">
-            <summary>Holds a collection of inventory items</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.RootFolder">
-            <summary>Root inventory folder</summary>
+            <summary>Holds a collection of inventory items. "Category" in the Linden viewer</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.LSLText">
             <summary>Linden scripting language script</summary>
@@ -278,17 +274,7 @@
             <summary>Uncompressed TGA texture</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Bodypart">
-            <summary>Collection of textures and shape parameters that can
-            be worn</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.TrashFolder">
-            <summary>Trash folder</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.SnapshotFolder">
-            <summary>Snapshot folder</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.LostAndFoundFolder">
-            <summary>Lost and found folder</summary>
+            <summary>Collection of textures and shape parameters that can be worn</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.SoundWAV">
             <summary>Uncompressed sound</summary>
@@ -310,44 +296,109 @@
         <member name="F:OpenMetaverse.AssetType.Simstate">
             <summary>Simstate file</summary>
         </member>
-        <member name="F:OpenMetaverse.AssetType.FavoriteFolder">
-            <summary>Contains landmarks for favorites</summary>
-        </member>
         <member name="F:OpenMetaverse.AssetType.Link">
             <summary>Asset is a link to another inventory item</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.LinkFolder">
             <summary>Asset is a link to another inventory folder</summary>
         </member>
-        <member name="F:OpenMetaverse.AssetType.EnsembleStart">
-            <summary>Beginning of the range reserved for ensembles</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.EnsembleEnd">
-            <summary>End of the range reserved for ensembles</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.CurrentOutfitFolder">
-            <summary>Folder containing inventory links to wearables and attachments
-            that are part of the current outfit</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.OutfitFolder">
-            <summary>Folder containing inventory items or links to
-            inventory items of wearables and attachments
-            together make a full outfit</summary>
-        </member>
-        <member name="F:OpenMetaverse.AssetType.MyOutfitsFolder">
-            <summary>Root folder for the folders of type OutfitFolder</summary>
+        <member name="F:OpenMetaverse.AssetType.MarketplaceFolder">
+            <summary>Marketplace Folder. Same as an Category but different display methods.</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Mesh">
             <summary>Linden mesh format</summary>
         </member>
-        <member name="F:OpenMetaverse.AssetType.Inbox">
+        <member name="T:OpenMetaverse.FolderType">
+            <summary>
+            The different types of folder.
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.None">
+            <summary>None folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Texture">
+            <summary>Texture folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Sound">
+            <summary>Sound folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.CallingCard">
+            <summary>Calling card folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Landmark">
+            <summary>Landmark folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Clothing">
+            <summary>Clothing folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Object">
+            <summary>Object folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Notecard">
+            <summary>Notecard folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Root">
+            <summary>The root folder type</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.LSLText">
+            <summary>LSLText folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.BodyPart">
+            <summary>Bodyparts folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Trash">
+            <summary>Trash folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Snapshot">
+            <summary>Snapshot folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.LostAndFound">
+            <summary>Lost And Found folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Animation">
+            <summary>Animation folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Gesture">
+            <summary>Gesture folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Favorites">
+            <summary>Favorites folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.EnsembleStart">
+            <summary>Ensemble beginning range</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.EnsembleEnd">
+            <summary>Ensemble ending range</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.CurrentOutfit">
+            <summary>Current outfit folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Outfit">
+            <summary>Outfit folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.MyOutfits">
+            <summary>My outfits folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Mesh">
+            <summary>Mesh folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Inbox">
             <summary>Marketplace direct delivery inbox ("Received Items")</summary>
         </member>
-        <member name="F:OpenMetaverse.AssetType.Outbox">
+        <member name="F:OpenMetaverse.FolderType.Outbox">
             <summary>Marketplace direct delivery outbox</summary>
         </member>
-        <member name="F:OpenMetaverse.AssetType.BasicRoot">
-            <summary></summary>
+        <member name="F:OpenMetaverse.FolderType.BasicRoot">
+            <summary>Basic root folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.MarketplaceListings">
+            <summary>Marketplace listings folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.MarkplaceStock">
+            <summary>Marketplace stock folder</summary>
+        </member>
+        <member name="F:OpenMetaverse.FolderType.Suitcase">
+            <summary>Hypergrid Suitcase folder</summary>
         </member>
         <member name="T:OpenMetaverse.InventoryType">
             <summary>
@@ -1071,38 +1122,6 @@
             multiple writers
             </summary>
         </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.head">
-            <summary>Queue head</summary>
-        </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.tail">
-            <summary>Queue tail</summary>
-        </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.count">
-            <summary>Queue item count</summary>
-        </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.#ctor">
-            <summary>
-            Constructor
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.Enqueue(`0)">
-            <summary>
-            Enqueue an item
-            </summary>
-            <param name="item">Item to enqeue</param>
-        </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.TryDequeue(`0@)">
-            <summary>
-            Try to dequeue an item
-            </summary>
-            <param name="item">Dequeued item if the dequeue was successful</param>
-            <returns>True if an item was successfully deqeued, otherwise false</returns>
-        </member>
-        <member name="P:OpenMetaverse.LocklessQueue`1.Count">
-            <summary>Gets the current number of items in the queue. Since this
-            is a lockless collection this value should be treated as a close
-            estimate</summary>
-        </member>
         <member name="T:OpenMetaverse.LocklessQueue`1.SingleLinkNode">
             <summary>
             Provides a node container for data in a singly linked list
@@ -1123,6 +1142,38 @@
             <summary>
             Constructor
             </summary>
+        </member>
+        <member name="F:OpenMetaverse.LocklessQueue`1.head">
+            <summary>Queue head</summary>
+        </member>
+        <member name="F:OpenMetaverse.LocklessQueue`1.tail">
+            <summary>Queue tail</summary>
+        </member>
+        <member name="F:OpenMetaverse.LocklessQueue`1.count">
+            <summary>Queue item count</summary>
+        </member>
+        <member name="P:OpenMetaverse.LocklessQueue`1.Count">
+            <summary>Gets the current number of items in the queue. Since this
+            is a lockless collection this value should be treated as a close
+            estimate</summary>
+        </member>
+        <member name="M:OpenMetaverse.LocklessQueue`1.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.LocklessQueue`1.Enqueue(`0)">
+            <summary>
+            Enqueue an item
+            </summary>
+            <param name="item">Item to enqeue</param>
+        </member>
+        <member name="M:OpenMetaverse.LocklessQueue`1.TryDequeue(`0@)">
+            <summary>
+            Try to dequeue an item
+            </summary>
+            <param name="item">Dequeued item if the dequeue was successful</param>
+            <returns>True if an item was successfully deqeued, otherwise false</returns>
         </member>
         <member name="M:OpenMetaverse.Matrix4.GetEulerAngles(System.Single@,System.Single@,System.Single@)">
             <summary>
@@ -1334,6 +1385,37 @@
         <member name="F:OpenMetaverse.TokenBucket.lastDrip">
             <summary>Time of the last drip, in system ticks</summary>
         </member>
+        <member name="P:OpenMetaverse.TokenBucket.Parent">
+            <summary>
+            The parent bucket of this bucket, or null if this bucket has no
+            parent. The parent bucket will limit the aggregate bandwidth of all
+            of its children buckets
+            </summary>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.MaxBurst">
+            <summary>
+            Maximum burst rate in bytes per second. This is the maximum number
+            of tokens that can accumulate in the bucket at any one time
+            </summary>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.DripRate">
+            <summary>
+            The speed limit of this bucket in bytes per second. This is the
+            number of tokens that are added to the bucket per second
+            </summary>
+            <remarks>Tokens are added to the bucket any time 
+            <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)"/> is called, at the granularity of
+            the system tick interval (typically around 15-22ms)</remarks>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.Content">
+            <summary>
+            The number of bytes that can be sent at this moment. This is the
+            current number of tokens in the bucket
+            <remarks>If this bucket has a parent bucket that does not have
+            enough tokens for a request, <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)"/> will 
+            return false regardless of the content of this bucket</remarks>
+            </summary>
+        </member>
         <member name="M:OpenMetaverse.TokenBucket.#ctor(OpenMetaverse.TokenBucket,System.Int32,System.Int32)">
             <summary>
             Default constructor
@@ -1371,36 +1453,36 @@
             </summary>
             <returns>True if tokens were added to the bucket, otherwise false</returns>
         </member>
-        <member name="P:OpenMetaverse.TokenBucket.Parent">
+        <member name="T:OpenMetaverse.Utils.Platform">
             <summary>
-            The parent bucket of this bucket, or null if this bucket has no
-            parent. The parent bucket will limit the aggregate bandwidth of all
-            of its children buckets
+            Operating system
             </summary>
         </member>
-        <member name="P:OpenMetaverse.TokenBucket.MaxBurst">
+        <member name="F:OpenMetaverse.Utils.Platform.Unknown">
+            <summary>Unknown</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utils.Platform.Windows">
+            <summary>Microsoft Windows</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utils.Platform.WindowsCE">
+            <summary>Microsoft Windows CE</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utils.Platform.Linux">
+            <summary>Linux</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utils.Platform.OSX">
+            <summary>Apple OSX</summary>
+        </member>
+        <member name="T:OpenMetaverse.Utils.Runtime">
             <summary>
-            Maximum burst rate in bytes per second. This is the maximum number
-            of tokens that can accumulate in the bucket at any one time
+            Runtime platform
             </summary>
         </member>
-        <member name="P:OpenMetaverse.TokenBucket.DripRate">
-            <summary>
-            The speed limit of this bucket in bytes per second. This is the
-            number of tokens that are added to the bucket per second
-            </summary>
-            <remarks>Tokens are added to the bucket any time 
-            <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)"/> is called, at the granularity of
-            the system tick interval (typically around 15-22ms)</remarks>
+        <member name="F:OpenMetaverse.Utils.Runtime.Windows">
+            <summary>.NET runtime</summary>
         </member>
-        <member name="P:OpenMetaverse.TokenBucket.Content">
-            <summary>
-            The number of bytes that can be sent at this moment. This is the
-            current number of tokens in the bucket
-            <remarks>If this bucket has a parent bucket that does not have
-            enough tokens for a request, <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)"/> will 
-            return false regardless of the content of this bucket</remarks>
-            </summary>
+        <member name="F:OpenMetaverse.Utils.Runtime.Mono">
+            <summary>Mono runtime: http://www.mono-project.com/</summary>
         </member>
         <member name="F:OpenMetaverse.Utils.DEG_TO_RAD">
             <summary>Used for converting degrees to radians</summary>
@@ -1842,6 +1924,20 @@
             <param name="type">A string containing the AssetType name</param>
             <returns>The AssetType which matches the string name, or AssetType.Unknown if no match was found</returns>
         </member>
+        <member name="M:OpenMetaverse.Utils.FolderTypeToString(OpenMetaverse.FolderType)">
+            <summary>
+            Takes a FolderType and returns the string representation
+            </summary>
+            <param name="type">The source <seealso cref="T:OpenMetaverse.FolderType"/></param>
+            <returns>The string version of the FolderType</returns>
+        </member>
+        <member name="M:OpenMetaverse.Utils.StringToFolderType(System.String)">
+            <summary>
+            Translate a string name of an FolderType into the proper Type
+            </summary>
+            <param name="type">A string containing the FolderType name</param>
+            <returns>The FolderType which matches the string name, or FolderType. None if no match was found</returns>
+        </member>
         <member name="M:OpenMetaverse.Utils.InventoryTypeToString(OpenMetaverse.InventoryType)">
             <summary>
             Convert an InventoryType to a string
@@ -1971,37 +2067,6 @@
             <param name="hostname">Hostname to convert to an IPAddress</param>
             <returns>Converted IP address object, or null if the conversion
             failed</returns>
-        </member>
-        <member name="T:OpenMetaverse.Utils.Platform">
-            <summary>
-            Operating system
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.Unknown">
-            <summary>Unknown</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.Windows">
-            <summary>Microsoft Windows</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.WindowsCE">
-            <summary>Microsoft Windows CE</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.Linux">
-            <summary>Linux</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.OSX">
-            <summary>Apple OSX</summary>
-        </member>
-        <member name="T:OpenMetaverse.Utils.Runtime">
-            <summary>
-            Runtime platform
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Runtime.Windows">
-            <summary>.NET runtime</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Runtime.Mono">
-            <summary>Mono runtime: http://www.mono-project.com/</summary>
         </member>
         <member name="T:OpenMetaverse.UUID">
             <summary>
