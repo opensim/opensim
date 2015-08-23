@@ -1408,7 +1408,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
             {
                 GenerateMaptile(mapbmp);
-//                m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
+                m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
             }
         }
 

@@ -144,9 +144,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
+            // v2 Map generation on startup is now handled by scene to allow bmp to be shared with
+            // v1 service and not generate map tiles twice as was previous behavior
+            //scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) UploadMapTile(s); };
             scene.RegisterModuleInterface<IMapTileModule>(this);
-
-            scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) UploadMapTile(s); };
         }
 
         ///<summary>

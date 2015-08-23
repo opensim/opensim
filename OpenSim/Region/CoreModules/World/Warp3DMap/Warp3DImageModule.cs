@@ -125,10 +125,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public Bitmap CreateMapTile()
         {
+            /* this must be on all map, not just its image
             if ((DateTime.Now - lastImageTime).TotalSeconds < 3600)
             {
-                return lastImage.Clone(new Rectangle(0, 0, 256, 256), lastImage.PixelFormat);
+                return (Bitmap)lastImage.Clone();
             }
+            */
 
             List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
             if (renderers.Count > 0)
@@ -147,10 +149,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             Bitmap tile = CreateMapTile(viewport, false);
             m_primMesher = null;
-
+            return tile;
+/*
             lastImage = tile;
             lastImageTime = DateTime.Now;
-            return lastImage.Clone(new Rectangle(0, 0, 256, 256), lastImage.PixelFormat);
+            return (Bitmap)lastImage.Clone();
+ */
         }
 
         public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
