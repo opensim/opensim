@@ -613,12 +613,13 @@ namespace OpenSim.Data.MySQL
                                 {
                                     cmd2.CommandText = "insert into terrain (RegionUUID, " +
                                             "Revision, Heightfield) values (?RegionUUID, " +
-                                            "1, ?Heightfield)";
+                                            "?Revision, ?Heightfield)";
 
                                     int terrainDBRevision;
                                     Array terrainDBblob;
                                     terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
 
+                                    cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
                                     cmd2.Parameters.AddWithValue("Revision", terrainDBRevision);
                                     cmd2.Parameters.AddWithValue("Heightfield", terrainDBblob);
 
