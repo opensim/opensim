@@ -102,19 +102,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
+                string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
                 return s;
             }
 
             public static explicit operator LSLString(Vector3 vec)
             {
-                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
+                string s = String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
                 return new LSLString(s);
             }
 
             public static explicit operator string(Vector3 vec)
             {
-                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
+                string s = String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
                 return s;
             }
 
