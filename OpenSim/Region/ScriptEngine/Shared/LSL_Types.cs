@@ -713,10 +713,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             private void ExtendAndAdd(object o)
             {
                 object[] tmp;
-                tmp = new object[m_data.Length + 1];
-                m_data.CopyTo(tmp, 0);
+                tmp = new object[Data.Length + 1];
+                Data.CopyTo(tmp, 0);
                 tmp.SetValue(o, tmp.Length - 1);
-                m_data = tmp;
+                Data = tmp;
             }
 
             public static list operator +(list a, LSLString s)
