@@ -82,6 +82,7 @@ namespace OpenSim.Data.MySQL
 
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
+/* fixed size regions
             string command = "select * from `"+m_Realm+"` where locX = ?posX and locY = ?posY";
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
@@ -98,6 +99,45 @@ namespace OpenSim.Data.MySQL
 
                 return ret[0];
             }
+*/
+            // extend database search for maximum region size area
+            string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
+            if (scopeID != UUID.Zero)
+                command += " and ScopeID = ?scopeID";
+
+            int startX = posX - (int)Constants.MaximumRegionSize;
+            int startY = posY - (int)Constants.MaximumRegionSize;
+            int endX = posX;
+            int endY = posY;
+
+            List<RegionData> ret;
+            using (MySqlCommand cmd = new MySqlCommand(command))
+            {
+                cmd.Parameters.AddWithValue("?startX", startX.ToString());
+                cmd.Parameters.AddWithValue("?startY", startY.ToString());
+                cmd.Parameters.AddWithValue("?endX", endX.ToString());
+                cmd.Parameters.AddWithValue("?endY", endY.ToString());
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+
+                ret = RunCommand(cmd);
+            }
+
+            if (ret.Count == 0)
+                return null;
+
+            // find the first that contains pos
+            RegionData rg = null;
+            foreach (RegionData r in ret)
+            {
+                if (posX >= r.posX && posX < r.posX + r.sizeX
+                    && posY >= r.posY && posY < r.posY + r.sizeY)
+                {
+                    rg = r;
+                    break;
+                }
+            }
+
+            return rg;
         }
 
         public RegionData Get(UUID regionID, UUID scopeID)
