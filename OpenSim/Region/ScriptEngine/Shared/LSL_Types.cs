@@ -764,10 +764,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public void Add(object o)
             {
                 object[] tmp;
-                tmp = new object[Data.Length + 1];
-                Data.CopyTo(tmp, 0);
-                tmp[Data.Length] = o; // Since this is tmp.Length - 1
-                Data = tmp;
+                tmp = new object[m_data.Length + 1];
+                m_data.CopyTo(tmp, 0);
+                tmp[m_data.Length] = o;
+                m_data = tmp;
             }
 
             public bool Contains(object o)
