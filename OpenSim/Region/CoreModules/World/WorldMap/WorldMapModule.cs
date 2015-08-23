@@ -999,7 +999,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="maxY"></param>
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            //m_log.ErrorFormat("[YYY] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
+            m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
+/*  this flag does not seem to mean what his says
             if ((flag & 0x10000) != 0)  // user clicked on qthe map a tile that isn't visible
             {
                 List<MapBlockData> response = new List<MapBlockData>();
@@ -1049,8 +1050,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             else
             {
                 // normal mapblock request. Use the provided values
+ */
                 GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
-            }
+ //           }
         }
 
         protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
@@ -1123,6 +1125,21 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 //                (maxX + 4) * (int)Constants.RegionSize,
 //                (minY - 4) * (int)Constants.RegionSize,
 //                (maxY + 4) * (int)Constants.RegionSize);
+
+            //mb it means this
+            if(regions.Count == 0 && (flag & 0x10000) != 0)
+            {
+                MapBlockData block = new MapBlockData();
+                block.X = (ushort)minX;
+                block.Y = (ushort)minY;
+                block.MapImageId = UUID.Zero;
+                block.Access = (byte)SimAccess.Down; // means 'simulator is offline'
+                allBlocks.Add(block);
+                mapBlocks.Add(block);
+                remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
+                return allBlocks;
+            }
+
             foreach (GridRegion r in regions)
             {
                 MapBlockData block = new MapBlockData();
