@@ -363,8 +363,8 @@ namespace OpenSim.Region.Framework.Scenes
             public int SizeY;
             public int SizeZ;
             public float CompressionFactor;
-            public int[] Map;
-            public TerrainChannelXMLPackage(int pX, int pY, int pZ, float pCompressionFactor, int[] pMap)
+            public ushort[] Map;
+            public TerrainChannelXMLPackage(int pX, int pY, int pZ, float pCompressionFactor, ushort[] pMap)
             {
                 Version = 1;
                 SizeX = pX;
