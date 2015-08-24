@@ -72,11 +72,6 @@ public abstract class BSPhysObject : PhysicsActor
     }
     protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
-        InitializePhysObject(parentScene, localID, name, typeName);
-    }
-
-    protected void InitializePhysObject(BSScene parentScene, uint localID, string name, string typeName)
-    {
         IsInitialized = false;
 
         PhysScene = parentScene;
@@ -124,8 +119,6 @@ public abstract class BSPhysObject : PhysicsActor
     // Tell the object to clean up.
     public virtual void Destroy()
     {
-        SubscribedEventsMs = 0;
-
         PhysicalActors.Enable(false);
         PhysScene.TaintedObject(LocalID, "BSPhysObject.Destroy", delegate()
         {
@@ -462,7 +455,6 @@ public abstract class BSPhysObject : PhysicsActor
     // Return 'true' if a collision was processed and should be sent up.
     // Return 'false' if this object is not enabled/subscribed/appropriate for or has already seen this collision.
     // Called at taint time from within the Step() function
-    // Both 'CollisionLock' and 'PhysObjects' are locked when this is called by 'SendCollisions'.
     public delegate bool CollideCall(uint collidingWith, BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth);
     public virtual bool Collide(uint collidingWith, BSPhysObject collidee,
                     OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
@@ -553,7 +545,7 @@ public abstract class BSPhysObject : PhysicsActor
     // Subscribe for collision events.
     // Parameter is the millisecond rate the caller wishes collision events to occur.
     public override void SubscribeEvents(int ms) {
-        DetailLog("{0},{1}.SubscribeEvents,subscribing,ms={2}", LocalID, TypeName, ms);
+        // DetailLog("{0},{1}.SubscribeEvents,subscribing,ms={2}", LocalID, TypeName, ms);
         SubscribedEventsMs = ms;
         if (ms > 0)
         {

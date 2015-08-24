@@ -75,10 +75,9 @@ public sealed class BSCharacter : BSPhysObject
     // Avatars are always complete (in the physics engine sense)
     public override bool IsIncomplete { get { return false; } }
 
-    // 'activate' is called with this character after all initialization is complete
     public BSCharacter(
-            uint localID, String avName, BSScene parent_scene,
-            OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, bool isFlying, Action<BSCharacter> activate)
+            uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, bool isFlying)
+
             : base(parent_scene, localID, avName, "BSCharacter")
     {
         _physicsActorType = (int)ActorTypes.Agent;
@@ -125,9 +124,6 @@ public sealed class BSCharacter : BSPhysObject
             SetPhysicalProperties();
 
             IsInitialized = true;
-
-            if (activate != null)
-                activate(this);
         });
         return;
     }
@@ -476,13 +472,12 @@ public sealed class BSCharacter : BSPhysObject
         }
     }
 
-    // Force the setting of velocity. Called at taint time.
-    // Exists so that setting force by anyone can be overridden by a subcless.
     public override OMV.Vector3 ForceVelocity {
         get { return RawVelocity; }
         set {
             PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
-            DetailLog("{0},BSCharacter.setForceVelocity,call,vel={1}", LocalID, value);
+//                Util.PrintCallStack();
+            DetailLog("{0}: set ForceVelocity = {1}", LocalID, value);
 
             RawVelocity = value;
             PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);

@@ -477,19 +477,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         if (!m_initialized) return null;
 
-        BSCharacter actor = new BSCharacter(localID, avName, this, position, velocity, size, isFlying,
-            (aa) =>
-            {
-                // While the actor exists, don't add it to the active avatar lists until completely initialized
-                lock (PhysObjects)
-                    PhysObjects.Add(localID, aa);
+        BSCharacter actor = new BSCharacter(localID, avName, this, position, velocity, size, isFlying);
+        lock (PhysObjects)
+            PhysObjects.Add(localID, actor);
 
-                // TODO: Remove kludge someday.
-                // We must generate a collision for avatars whether they collide or not.
-                // This is required by OpenSim to update avatar animations, etc.
-                lock (AvatarsInSceneLock)
-                    AvatarsInScene.Add(aa);
-            });
+        // TODO: Remove kludge someday.
+        // We must generate a collision for avatars whether they collide or not.
+        // This is required by OpenSim to update avatar animations, etc.
+        lock (AvatarsInSceneLock)
+            AvatarsInScene.Add(actor);
+
         return actor;
     }
 
@@ -833,8 +830,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
             {
                 // If a collision was 'good', remember to send it to the simulator
-                // Note that 'CollisionLock' was locked before the call to 'SendCollsions'
-                ObjectsWithCollisions.Add(collider);
+                lock (CollisionLock)
+                {
+                    ObjectsWithCollisions.Add(collider);
+                }
             }
         }
 
