@@ -264,7 +264,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["int_response_code"] = 500;
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
-                    response["keepalive"] = true;
+                    response["keepalive"] = false;
                     response["reusecontext"] = false;
 
                     return response;
@@ -285,7 +285,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["int_response_code"] = 500;
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
-                    response["keepalive"] = true;
+                    response["keepalive"] = false;
                     response["reusecontext"] = false;
 
                     lock (responses)

@@ -61,7 +61,7 @@ namespace OpenSim.Capabilities.Handlers
             Hashtable ret = new Hashtable();
             ret["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
             ret["content_type"] = "text/plain";
-            ret["keepalive"] = true;
+            ret["keepalive"] = false;
             ret["reusecontext"] = false;
             ret["int_bytes"] = 0;
             ret["int_lod"] = 0;
@@ -98,7 +98,7 @@ namespace OpenSim.Capabilities.Handlers
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 400; //501; //410; //404;
             responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = true;
+            responsedata["keepalive"] = false;
             responsedata["str_response_string"] = "Request wasn't what was expected";
             responsedata["reusecontext"] = false;
             responsedata["int_lod"] = 0;
@@ -116,7 +116,7 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     responsedata["int_response_code"] = 404; //501; //410; //404;
                     responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = true;
+                    responsedata["keepalive"] = false;
                     responsedata["str_response_string"] = "The asset service is unavailable.  So is your mesh.";
                     responsedata["reusecontext"] = false;
                     return responsedata;
@@ -152,7 +152,7 @@ namespace OpenSim.Capabilities.Handlers
                                 {
                                     responsedata["int_response_code"] = 404; //501; //410; //404;
                                     responsedata["content_type"] = "text/plain";
-                                    responsedata["keepalive"] = true;
+                                    responsedata["keepalive"] = false;
                                     responsedata["str_response_string"] = "This range doesnt exist.";
                                     responsedata["reusecontext"] = false;
                                     responsedata["int_lod"] = 3;
@@ -228,7 +228,7 @@ namespace OpenSim.Capabilities.Handlers
                     {
                         responsedata["int_response_code"] = 404; //501; //410; //404;
                         responsedata["content_type"] = "text/plain";
-                        responsedata["keepalive"] = true;
+                        responsedata["keepalive"] = false;
                         responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
                         responsedata["reusecontext"] = false;
                         responsedata["int_lod"] = 1;
@@ -239,7 +239,7 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     responsedata["int_response_code"] = 404; //501; //410; //404;
                     responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = true;
+                    responsedata["keepalive"] = false;
                     responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
                     responsedata["reusecontext"] = false;
                     responsedata["int_lod"] = 0;
