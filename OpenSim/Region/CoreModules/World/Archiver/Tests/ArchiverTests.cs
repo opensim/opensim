@@ -224,8 +224,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
-            
-            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
+
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, Guid.Empty, archiveOptions);
             arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
             
             Assert.That(arr.ControlFileLoaded, Is.True);        
@@ -308,8 +309,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
-            
-            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
+
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, Guid.Empty, archiveOptions);
             arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
             
             Assert.That(arr.ControlFileLoaded, Is.True);        
@@ -752,7 +754,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 byte[] archive = archiveWriteStream.ToArray();
                 MemoryStream archiveReadStream = new MemoryStream(archive);
 
-                m_archiverModule.DearchiveRegion(archiveReadStream, true, false, Guid.Empty);
+                Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+                archiveOptions.Add("merge", null);
+                m_archiverModule.DearchiveRegion(archiveReadStream, Guid.Empty, archiveOptions);
 
                 SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1.Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");
@@ -860,7 +864,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
 
-            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, Guid.Empty, archiveOptions);
             arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
 
             Assert.That(arr.ControlFileLoaded, Is.True);

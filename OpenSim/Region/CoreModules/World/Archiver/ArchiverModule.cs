@@ -38,6 +38,8 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
+using OpenMetaverse;
+
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
     /// <summary>
@@ -101,9 +103,64 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             bool mergeOar = false;
             bool skipAssets = false;
-            
-            OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
-            options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
+            bool forceTerrain = false;
+            bool forceParcels = false;
+            bool noObjects = false;
+            Vector3 displacement = new Vector3(0f, 0f, 0f);
+            String defaultUser = "";
+            float rotation = 0f;
+            Vector3 rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0);
+
+            OptionSet options = new OptionSet();
+            options.Add("m|merge", delegate(string v) { mergeOar = (v != null); });
+            options.Add("s|skip-assets", delegate(string v) { skipAssets = (v != null); });
+            options.Add("force-terrain", delegate(string v) { forceTerrain = (v != null); });
+            options.Add("forceterrain", delegate(string v) { forceTerrain = (v != null); });   // downward compatibility
+            options.Add("force-parcels", delegate(string v) { forceParcels = (v != null); });
+            options.Add("forceparcels", delegate(string v) { forceParcels = (v != null); });   // downward compatibility
+            options.Add("no-objects", delegate(string v) { noObjects = (v != null); });
+            options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
+            options.Add("displacement=", delegate(string v)
+            {
+                try
+                {
+                    displacement = v == null ? Vector3.Zero : Vector3.Parse(v);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing displacement");
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --displacement \"<128,128,0>\"");
+                    return;
+                }
+            });
+            options.Add("rotation=", delegate(string v)
+            {
+                try
+                {
+                    rotation = v == null ? 0f : float.Parse(v);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation");
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be an angle in degrees between -360 and +360: --rotation 45");
+                    return;
+                }
+                // Convert to radians for internals
+                rotation = Util.Clamp<float>(rotation, -359f, 359f) / 180f * (float)Math.PI;
+            });
+            options.Add("rotation-center=", delegate(string v)
+            {
+                try
+                {
+                    rotationCenter = v == null ? Vector3.Zero : Vector3.Parse(v);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation displacement");
+                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --rotation-center \"<128,128,0>\"");
+                    return;
+                }
+            });
 
             // Send a message to the region ready module
             /* bluewall* Disable this for the time being
@@ -122,13 +179,44 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //            foreach (string param in mainParams)
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
 
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            if (mergeOar) archiveOptions.Add("merge", null);
+            if (skipAssets) archiveOptions.Add("skipAssets", null);
+            if (forceTerrain) archiveOptions.Add("force-terrain", null);
+            if (forceParcels) archiveOptions.Add("force-parcels", null);
+            if (noObjects) archiveOptions.Add("no-objects", null);
+            if (defaultUser != "")
+            {
+                UUID defaultUserUUID = UUID.Zero;
+                try
+                {
+                    defaultUserUUID = Scene.UserManagementModule.GetUserIdByName(defaultUser);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] default user must be in format \"First Last\"", defaultUser);
+                }
+                if (defaultUserUUID == UUID.Zero)
+                {
+                    m_log.ErrorFormat("[ARCHIVER MODULE] cannot find specified default user {0}", defaultUser);
+                    return;
+                }
+                else
+                {
+                    archiveOptions.Add("default-user", defaultUserUUID);
+                }
+            }
+            archiveOptions.Add("displacement", displacement);
+            archiveOptions.Add("rotation", rotation);
+            archiveOptions.Add("rotation-center", rotationCenter);
+
             if (mainParams.Count > 2)
             {
-                DearchiveRegion(mainParams[2], mergeOar, skipAssets, Guid.Empty);
+                DearchiveRegion(mainParams[2], Guid.Empty, archiveOptions);
             }
             else
             {
-                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, skipAssets, Guid.Empty);
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, Guid.Empty, archiveOptions);
             }
         }
 
@@ -198,25 +286,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
-            DearchiveRegion(loadPath, false, false, Guid.Empty);
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            DearchiveRegion(loadPath, Guid.Empty, archiveOptions);
         }
-        
-        public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Guid requestId)
+
+        public void DearchiveRegion(string loadPath, Guid requestId, Dictionary<string, object> options)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
-            
-            new ArchiveReadRequest(Scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
+
+            new ArchiveReadRequest(Scene, loadPath, requestId, options).DearchiveRegion();
         }
         
         public void DearchiveRegion(Stream loadStream)
         {
-            DearchiveRegion(loadStream, false, false, Guid.Empty);
+            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            DearchiveRegion(loadStream, Guid.Empty, archiveOptions);
         }
-        
-        public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Guid requestId)
+
+        public void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveReadRequest(Scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadStream, requestId, options).DearchiveRegion();
         }
     }
 }

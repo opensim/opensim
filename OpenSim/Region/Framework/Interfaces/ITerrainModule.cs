@@ -59,6 +59,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="stream"></param>
         void LoadFromStream(string filename, Stream stream);
         void LoadFromStream(string filename, System.Uri pathToTerrainHeightmap);
+        void LoadFromStream(string filename, Vector3 displacement,
+                                float radianRotation, Vector2 rotationDisplacement, Stream stream);
         /// <summary>
         /// Save a terrain to a stream.
         /// </summary>

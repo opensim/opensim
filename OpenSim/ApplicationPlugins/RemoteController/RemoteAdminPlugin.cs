@@ -1619,8 +1619,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
 
                     IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
+                    Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+                    if (mergeOar) archiveOptions.Add("merge", null);
+                    if (skipAssets) archiveOptions.Add("skipAssets", null);
                     if (archiver != null)
-                        archiver.DearchiveRegion(filename, mergeOar, skipAssets, Guid.Empty);
+                        archiver.DearchiveRegion(filename, Guid.Empty, archiveOptions);
                     else
                         throw new Exception("Archiver module not present for scene");
 

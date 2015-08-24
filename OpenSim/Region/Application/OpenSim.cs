@@ -267,12 +267,26 @@ namespace OpenSim
                                           SavePrimsXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load oar",
-                                          "load oar [--merge] [--skip-assets] [<OAR path>]",
+
+                                          "load oar [--merge] [--skip-assets]"
+                                             + " [--default-user \"User Name\"]"
+                                             + " [--force-terrain] [--force-parcels]"
+                                             + " [--no-objects]"
+                                             + " [--rotation degrees] [--rotation-center \"<x,y,z>\"]"
+                                             + " [--displacement \"<x,y,z>\"]"
+                                             + " [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
-                                          "--merge will merge the OAR with the existing scene." + Environment.NewLine
-                                          + "--skip-assets will load the OAR but ignore the assets it contains." + Environment.NewLine
-                                          + "The path can be either a filesystem location or a URI."
-                                          + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
+                                          "--merge will merge the OAR with the existing scene (suppresses terrain and parcel info loading).\n"
+                                            + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
+                                            + "--displacement will add this value to the position of every object loaded.\n"
+                                            + "--force-terrain forces the loading of terrain from the oar (undoes suppression done by --merge).\n"
+                                            + "--force-parcels forces the loading of parcels from the oar (undoes suppression done by --merge).\n"
+                                            + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
+                                            + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"
+                                            + "--rotation-center Location (relative to original OAR) to apply rotation. Default is <128,128,0>.\n"
+                                            + "--skip-assets will load the OAR but ignore the assets it contains.\n\n"
+                                            + "The path can be either a filesystem location or a URI.\n"
+                                            + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
                                           LoadOar);
 
             m_console.Commands.AddCommand("Archiving", false, "save oar",
