@@ -1398,9 +1398,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (PhysicsActor != null)
             {
 //                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                PhysicsActor.UnSubscribeEvents();
                 PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
                 PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                PhysicsActor.UnSubscribeEvents();
                 m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
                 PhysicsActor = null;
             }
