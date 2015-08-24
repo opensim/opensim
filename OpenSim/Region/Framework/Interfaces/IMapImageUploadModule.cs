@@ -31,7 +31,7 @@ using System.Drawing;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IMapTileModule
+    public interface IMapImageUploadModule
     {
         /// <summary>
         /// Upload a new maptile

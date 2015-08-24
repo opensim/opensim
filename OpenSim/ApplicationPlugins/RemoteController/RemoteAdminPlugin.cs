@@ -2243,7 +2243,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Scene scene = null;
             GetSceneFromRegionParams(requestData, responseData, out scene);
 
-            IMapTileModule mapTileModule = scene.RequestModuleInterface<IMapTileModule>();
+            IMapImageUploadModule mapTileModule = scene.RequestModuleInterface<IMapImageUploadModule>();
             if (mapTileModule != null)
             {
                 Util.FireAndForget((x) =>

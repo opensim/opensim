@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private Dictionary<UUID, Queue<MapBlockRequestData>> m_mapBlockRequests = new Dictionary<UUID, Queue<MapBlockRequestData>>();
 
         private IMapImageGenerator m_mapImageGenerator;
-        private IMapTileModule m_mapImageServiceModule;
+        private IMapImageUploadModule m_mapImageServiceModule;
 
         protected Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 return;
 
             m_mapImageGenerator = m_scene.RequestModuleInterface<IMapImageGenerator>();
-            m_mapImageServiceModule = m_scene.RequestModuleInterface<IMapTileModule>();
+            m_mapImageServiceModule = m_scene.RequestModuleInterface<IMapImageUploadModule>();
         }
 
 
@@ -1133,7 +1133,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 block.X = (ushort)minX;
                 block.Y = (ushort)minY;
                 block.MapImageId = UUID.Zero;
-                block.Access = (byte)SimAccess.Down; // means 'simulator is offline'
+                block.Access = (byte)SimAccess.NonExistent;
                 allBlocks.Add(block);
                 mapBlocks.Add(block);
                 remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
