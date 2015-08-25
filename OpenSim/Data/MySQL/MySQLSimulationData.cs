@@ -670,8 +670,11 @@ namespace OpenSim.Data.MySQL
                             while (reader.Read())
                             {
                                 int rev = Convert.ToInt32(reader["Revision"]);
-                                byte[] blob = (byte[])reader["Heightfield"];
-                                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                                if ((reader["Heightfield"] != DBNull.Value))
+                                {
+                                    byte[] blob = (byte[])reader["Heightfield"];
+                                    terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                                }
                             }
                         }
                     }
