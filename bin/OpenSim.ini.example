@@ -3,9 +3,12 @@
 ;; If it's named OpenSim.ini.example then you will need to copy it to 
 ;; OpenSim.ini first (if that file does not already exist)
 ;;
-;; If you are copying, then once you have copied OpenSim.ini.example to 
-;; OpenSim.ini you will need to pick an architecture in the [Architecture] 
-;; section at the end of this file.
+;; Once you have copied OpenSim.ini.example to OpenSim.ini you will at least
+;; need to set the constants in the [Const] section and pick an architecture
+;; in the [Architecture] section at the end of this file. The architecture
+;; will require a suitable .ini file in the config-include directory, either
+;; Standalone.ini or GridCommon.ini which you can copy and modify from the
+;; available .example files.
 ;;
 ;; The settings in this file are in the form "<key> = <value>".  For example, 
 ;; save_crashes = false in the [Startup] section below.
@@ -46,12 +49,13 @@
     ; For a grid these will usually be the externally accessible IP/DNS
     ; name and use default public port 8002 and default private port 8003
     ; For a standalone this will usually be the externally accessible IP/DNS
-    ; name and use a single common port 9000
+    ; name and use default public port 9000. The private port is not used
+    ; in the configuration for a standalone.
 
-    ;# {BaseURL} {} {BaseURL} {"http://example.com","http://127.0.0.1"} "http://127.0.0.1"
+    ;# {BaseURL} {} {BaseURL} {"http://example.com" "http://127.0.0.1"} "http://127.0.0.1"
     BaseURL = http://127.0.0.1
     
-    ;# {PublicPort} {} {PublicPort} {8002} "8002"
+    ;# {PublicPort} {} {PublicPort} {8002 9000} "8002"
     PublicPort = "8002"
 
     ;# {PrivatePort} {} {PrivatePort} {8003} "8003"
@@ -1068,7 +1072,7 @@
 
     ;# {MessagingModule} {MessagingEnabled:true} {Module to use for groups messaging} {GroupsMessagingModule "Groups Messaging Module V2"} GroupsMessagingModule
     ; MessagingModule = GroupsMessagingModule
-    ;; or use V2 for Groups V2
+    ; or use "Groups Messaging Module V2" for Groups V2
     ; MessagingModule = "Groups Messaging Module V2"
 
     ;# {NoticesEnabled} {Module:GroupsModule Module:Groups Module V2} {Enable group notices?} {true false} true
@@ -1131,7 +1135,7 @@
 
 ;;
 ;; Optional module to highlight God names in the viewer.
-;; Uncomment and costumize appropriately if you want this behavior.
+;; Uncomment and customize appropriately if you want this behavior.
 ;;
 ;[GodNames]
 ;	Enabled = false

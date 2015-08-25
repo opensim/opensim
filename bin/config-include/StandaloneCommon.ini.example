@@ -54,12 +54,12 @@
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [Modules]
-    ;; Choose one cache module and the corresponding config file, if it exists.
+    ;; Optionally choose one cache module and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and alter that
     ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
 
-    AssetCaching = "FlotsamAssetCache"
-    Include-FlotsamCache = "config-include/FlotsamCache.ini"
+    ;AssetCaching = "FlotsamAssetCache"
+    ;Include-FlotsamCache = "config-include/FlotsamCache.ini"
 
     ;AssetCaching = "CenomeMemoryAssetCache"
     ;Include-CenomeCache = "config-include/CenomeCache.ini"
@@ -73,7 +73,6 @@
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 
-
 [GridService]
     ;; For in-memory region storage (default)
     StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
@@ -84,7 +83,7 @@
     ; MapTileDirectory = "./maptiles"
 
     ;; Next, we can specify properties of regions, including default and fallback regions
-    ;; The syntax is: Region_<RegioName> = "<flags>"
+    ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
     ;;  
     ;; DefaultRegion    If a local login cannot be placed in the required region (e.g. home region does not exist, avatar is not allowed entry, etc.)
@@ -350,7 +349,6 @@
     ;; to block this info from being exposed.
     ; ShowUserDetailsInHGProfile = True
 
-
 [HGInventoryService]
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
@@ -370,7 +368,6 @@
     ;; of scripts, like so:
     ; DisallowExport ="LSLText"
     ; DisallowImport ="LSLBytecode"
-
 
 [HGInventoryAccessModule]
     ;; If you have these set under [Hypergrid], no need to set it here, leave it commented
@@ -395,7 +392,6 @@
     ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-
 [EntityTransfer]
     ;; User level from which local users are allowed to HG teleport. Default 0 (all users)
     ;LevelHGTeleport = 0
@@ -408,12 +404,10 @@
     ;; Comma-separated list of account names
     AccountForAppearance = "Test User, Astronaut Smith"
 
-;; UserProfiles Service
-;;
-;; To use, set Enabled to true then configure for your site...
 [UserProfilesService]
-    LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
+    ;; To use, set Enabled to true then configure for your site...
     Enabled = false
+    LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
 
     ;; Configure this for separate databse
     ; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
