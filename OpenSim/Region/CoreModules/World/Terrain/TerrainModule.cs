@@ -1349,13 +1349,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             double desiredMin = (double)args[0];
             double desiredMax = (double)args[1];
 
-            if (desiredMin < 0 || desiredMin > 655.35
-                || desiredMax < 0 || desiredMax > 655.35)
-            {
-                m_log.Error("desired Min and Max must be in range 0.0 to 655.0m");
-                return;
-            }
-
             // determine desired scaling factor
             double desiredRange = desiredMax - desiredMin;
             //m_log.InfoFormat("Desired {0}, {1} = {2}", new Object[] { desiredMin, desiredMax, desiredRange });
@@ -1413,11 +1406,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceElevateTerrain(Object[] args)
         {
             double val = (double)args[0];
-            if (val < 0 || val > 655.35)
-            {
-                m_log.Error("elevation must be in range 0.0 to 655.0m");
-                return;
-            }
 
             int x, y;
             for (x = 0; x < m_channel.Width; x++)
@@ -1439,7 +1427,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             int x, y;
             double val = (double)args[0];
-            if (val < 0 || val > 655.35)
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1450,11 +1437,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             int x, y;
             double val = (double)args[0];
-            if (val < 0 || val > 655.35)
-            {
-                m_log.Error("height must be in range 0.0 to 655.0m");
-                return;
-            }
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1465,11 +1447,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             int x, y;
             double val = (double)args[0];
-            if (val < 0 || val > 655.35)
-            {
-                m_log.Error("minimum must be in range 0.0 to 655.0m");
-                return;
-            }
             for (x = 0; x < m_channel.Width; x++)
             {
                 for (y = 0; y < m_channel.Height; y++)
@@ -1483,11 +1460,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             int x, y;
             double val = (double)args[0];
-            if (val < 0 || val > 655.35)
-            {
-                m_log.Error("maximum must be in range 0.0 to 655.0m");
-                return;
-            }
             for (x = 0; x < m_channel.Width; x++)
             {
                 for (y = 0; y < m_channel.Height; y++)
