@@ -127,7 +127,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             if (trimmedDimension < Constants.RegionSize)
                 trimmedDimension = (int)Constants.RegionSize;
 
-            TerrainChannel retval = new TerrainChannel();
+            TerrainChannel retval = new TerrainChannel(trimmedDimension, trimmedDimension);
 
             BinaryReader bs = new BinaryReader(s);
             int y;
