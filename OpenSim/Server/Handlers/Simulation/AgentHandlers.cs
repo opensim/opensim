@@ -117,7 +117,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         }
 
-        protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
+        protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID agentID, UUID regionID)
         {
             if (m_SimulationService == null)
             {
@@ -132,16 +132,28 @@ namespace OpenSim.Server.Handlers.Simulation
             // m_log.DebugFormat("[AGENT HANDLER]: Received QUERYACCESS with {0}", (string)request["body"]);
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
 
+            bool viaTeleport = true;
+            if (args.ContainsKey("viaTeleport"))
+                viaTeleport = args["viaTeleport"].AsBoolean();
+
             Vector3 position = Vector3.Zero;
             if (args.ContainsKey("position"))
                 position = Vector3.Parse(args["position"].AsString());
+
+            string agentHomeURI = null;
+            if (args.ContainsKey("agent_home_uri"))
+                agentHomeURI = args["agent_home_uri"].AsString();
+
+            string theirVersion = string.Empty;
+            if (args.ContainsKey("my_version"))
+                theirVersion = args["my_version"].AsString();
 
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
             string reason;
             string version;
-            bool result = m_SimulationService.QueryAccess(destination, id, position, out version, out reason);
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, out version, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 

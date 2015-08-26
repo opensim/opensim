@@ -750,9 +750,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string version;
             string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, position, out version, out reason))
-//            if (!Scene.SimulationService.QueryAccess(
-//                 finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, out version, out reason))
+                 finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -1470,8 +1468,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             Scene ascene = agent.Scene;
+            string homeURI = ascene.GetAgentHomeURI(agentID);
+            string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
 
-            if (!ascene.SimulationService.QueryAccess(destiny, agentID, position, out version, out reason))
+
+            if (!ascene.SimulationService.QueryAccess(destiny, agentID, homeURI, false, position,
+                    myversion, out version, out reason))
             {
                 m_bannedRegionCache.Add(destinyHandle, agentID, 30.0, 30.0);
                 return false;
@@ -1490,6 +1492,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    see that it is actually outside the current region), find the new region that the
         //    point is actually in.
         // Returns the coordinates and information of the new region or 'null' of it doesn't exist.
+
+        // now only works for crossings
+
         public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos,
                                             out string version, out Vector3 newpos, out string failureReason)
         {
@@ -1529,8 +1534,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // Check to see if we have access to the target region.
                 string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
+                string homeURI = scene.GetAgentHomeURI(agentID);
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out failureReason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, myversion, out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
@@ -1580,7 +1586,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             agent.IsInTransit = false;
         }
-
 
         public ScenePresence CrossAsync(ScenePresence agent, bool isFlying)
         {
