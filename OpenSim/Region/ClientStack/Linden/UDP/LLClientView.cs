@@ -1315,6 +1315,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
+                if (px.Length != py.Length ||
+                    terrData.SizeX != (int)Scene.RegionInfo.RegionSizeX ||
+                    terrData.SizeY != (int)Scene.RegionInfo.RegionSizeY)
+                {
+                    if (px.Length != py.Length)
+                        m_log.Debug("px py");
+                    if (terrData.SizeX != Scene.RegionInfo.RegionSizeX)
+                        m_log.Debug("sx");
+                    if (terrData.SizeY != Scene.RegionInfo.RegionSizeY)
+                        m_log.Debug("sx");
+                }
+
                 /* test code using the terrain compressor in libOpenMetaverse
                 int[] patchInd = new int[1];
                 patchInd[0] = px + (py * Constants.TerrainPatchSize);
@@ -1346,34 +1358,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        // When a user edits the terrain, so much data is sent, the data queues up fast and presents a
-        // sub optimal editing experience. To alleviate this issue, when the user edits the terrain, we
-        // start skipping the queues until they're done editing the terrain. We also make them
-        // unreliable because it's extremely likely that multiple packets will be sent for a terrain patch
-        // area invalidating previous packets for that area.
-
-        // It's possible for an editing user to flood themselves with edited packets but the majority
-        // of use cases are such that only a tiny percentage of users will be editing the terrain.
-        // Other, non-editing users will see the edits much slower.
-        
-        // One last note on this topic, by the time users are going to be editing the terrain, it's
-        // extremely likely that the sim will have rezzed already and therefore this is not likely going
-        // to cause any additional issues with lost packets, objects or terrain patches.
-
-        // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we
-        //    only have one cache miss.
-        private void SendTheLayerPacket(LayerDataPacket layerpack)
+          private void SendTheLayerPacket(LayerDataPacket layerpack)
         {
-            if (m_justEditedTerrain)
-            {
-                layerpack.Header.Reliable = false;
-                OutPacket(layerpack, ThrottleOutPacketType.Unknown );
-            }
-            else
-            {
-                layerpack.Header.Reliable = true;
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
-            }
         }
 
         /// <summary>
