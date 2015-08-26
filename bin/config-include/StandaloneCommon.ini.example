@@ -54,15 +54,15 @@
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [Modules]
-    ;; Optionally choose one cache module and the corresponding config file, if it exists.
+    ;; Choose one cache module and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and alter that
     ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
 
-    ;AssetCaching = "FlotsamAssetCache"
-    ;Include-FlotsamCache = "config-include/FlotsamCache.ini"
+    AssetCaching = "FlotsamAssetCache"
+    Include-FlotsamCache = "config-include/FlotsamCache.ini"
 
-    AssetCaching = "CenomeMemoryAssetCache"
-    Include-CenomeCache = "config-include/CenomeCache.ini"
+    ;AssetCaching = "CenomeMemoryAssetCache"
+    ;Include-CenomeCache = "config-include/CenomeCache.ini"
 
     ;AssetCaching = "GlynnTuckerAssetCache"
 
