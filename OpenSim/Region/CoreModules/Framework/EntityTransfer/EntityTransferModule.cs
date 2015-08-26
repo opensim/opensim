@@ -209,7 +209,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void InitialiseCommon(IConfigSource source)
         {
             string transferVersionName = "SIMULATION";
-            float maxTransferVersion = 0.2f;
+            float maxTransferVersion = 0.3f;
 
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
@@ -703,6 +703,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            string homeURI = Scene.GetAgentHomeURI(sp.ControllingClient.AgentId);
+
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Teleporting {0} {1} from {2} to {3} ({4}) {5}/{6}",
                 sp.Name, sp.UUID, sp.Scene.RegionInfo.RegionName,
@@ -749,6 +751,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
             if (!Scene.SimulationService.QueryAccess(
                 finalDestination, sp.ControllingClient.AgentId, position, out version, out reason))
+//            if (!Scene.SimulationService.QueryAccess(
+//                 finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -843,7 +847,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (versionComponents.Length >= 2)
                 float.TryParse(versionComponents[1], out versionNumber);
 
-            if (versionNumber == 0.2f && MaxOutgoingTransferVersion >= versionNumber)
+            if (versionNumber >= 0.2f && MaxOutgoingTransferVersion >= versionNumber)
                 TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
             else
                 TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);           
@@ -2270,7 +2274,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #endregion // NotFoundLocationCache class
         private NotFoundLocationCache m_notFoundLocationCache = new NotFoundLocationCache();
 
-        // Given a world position (fractional meter coordinate), get the GridRegion info for
+        // Given a world position, get the GridRegion info for
         //   the region containing that point.
         // Someday this should be a method on GridService.
         // 'pSizeHint' is the size of the source region but since the destination point can be anywhere
@@ -2471,14 +2475,26 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // The area to check is as big as the current region.
                 // We presume all adjacent regions are the same size as this region.
-                uint dd = Math.Max((uint)avatar.Scene.DefaultDrawDistance, 
-                                Math.Max(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY));
+                // this needs to be reduced a lot
+                // and updated in avatar CheckForSignificantMovement (larger than current 64m?)
+                // and draw distance changes
+                // sending client the necessary information
+                uint dd = Math.Max((uint)avatar.DrawDistance, Constants.RegionSize);
 
-                uint startX = Util.RegionToWorldLoc(pRegionLocX) - dd + Constants.RegionSize/2;
-                uint startY = Util.RegionToWorldLoc(pRegionLocY) - dd + Constants.RegionSize/2;
+                dd--;
+                uint ddX = Math.Max(dd, Scene.RegionInfo.RegionSizeX);
+                uint ddY = Math.Max(dd, Scene.RegionInfo.RegionSizeY);
 
-                uint endX = Util.RegionToWorldLoc(pRegionLocX) + dd + Constants.RegionSize/2;
-                uint endY = Util.RegionToWorldLoc(pRegionLocY) + dd + Constants.RegionSize/2;
+                // region center. Should be avatar position
+                uint startX = Util.RegionToWorldLoc(pRegionLocX) + m_regionInfo.RegionSizeX / 2;
+                uint endX = startX;
+                uint startY = Util.RegionToWorldLoc(pRegionLocY) + m_regionInfo.RegionSizeY / 2;
+                uint endY = startY;
+
+                startX -= dd;
+                startY -= dd;
+                endX += dd;
+                endY += dd;
 
                 neighbours
                     = avatar.Scene.GridService.GetRegionRange(
@@ -2502,45 +2518,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             return neighbours;
         }
-/* not in use
-        private List<ulong> NewNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
-        {
-            return currentNeighbours.FindAll(delegate(ulong handle) { return !previousNeighbours.Contains(handle); });
-        }
-
-        //        private List<ulong> CommonNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
-        //        {
-        //            return currentNeighbours.FindAll(delegate(ulong handle) { return previousNeighbours.Contains(handle); });
-        //        }
-
-//        private List<ulong> OldNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
-//        {
-//            return previousNeighbours.FindAll(delegate(ulong handle) { return !currentNeighbours.Contains(handle); });
-//        }
-
-//        private List<ulong> NeighbourHandles(List<GridRegion> neighbours)
-//        {
-//            List<ulong> handles = new List<ulong>();
-//            foreach (GridRegion reg in neighbours)
-//            {
-//                handles.Add(reg.RegionHandle);
-//            }
-//            return handles;
-//        }
-
-//        private void Dump(string msg, List<ulong> handles)
-//        {
-//            m_log.InfoFormat("-------------- HANDLE DUMP ({0}) ---------", msg);
-//            foreach (ulong handle in handles)
-//            {
-//                uint x, y;
-//                Utils.LongToUInts(handle, out x, out y);
-//                x = x / Constants.RegionSize;
-//                y = y / Constants.RegionSize;
-//                m_log.InfoFormat("({0}, {1})", x, y);
-//            }
-//        }
-*/
         #endregion
 
         #region Agent Arrived
