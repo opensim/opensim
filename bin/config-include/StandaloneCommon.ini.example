@@ -61,8 +61,8 @@
     ;AssetCaching = "FlotsamAssetCache"
     ;Include-FlotsamCache = "config-include/FlotsamCache.ini"
 
-    ;AssetCaching = "CenomeMemoryAssetCache"
-    ;Include-CenomeCache = "config-include/CenomeCache.ini"
+    AssetCaching = "CenomeMemoryAssetCache"
+    Include-CenomeCache = "config-include/CenomeCache.ini"
 
     ;AssetCaching = "GlynnTuckerAssetCache"
 
