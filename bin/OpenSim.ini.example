@@ -7,7 +7,7 @@
 ;; need to set the constants in the [Const] section and pick an architecture
 ;; in the [Architecture] section at the end of this file. The architecture
 ;; will require a suitable .ini file in the config-include directory, either
-;; Standalone.ini or GridCommon.ini which you can copy and modify from the
+;; StandaloneCommon.ini or GridCommon.ini which you can copy and modify from the
 ;; available .example files.
 ;;
 ;; The settings in this file are in the form "<key> = <value>".  For example, 
