@@ -34,34 +34,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
+            double strength, double duration, int startX, int endX, int startY, int endY)
         {
             int s = (int) (Math.Pow(2, strength) + 0.5);
 
-            int x;
-            int xFrom = (int)(rx-s+0.5);
-            int xTo   = (int)(rx+s+0.5) + 1;
-            int yFrom = (int)(ry-s+0.5);
-            int yTo   = (int)(ry+s+0.5) + 1;
+            int x, y;
 
-            if (xFrom < 0)
-                xFrom = 0;
-
-            if (yFrom < 0)
-                yFrom = 0;
-
-            if (xTo > map.Width)
-                xTo = map.Width;
-
-            if (yTo > map.Width)
-                yTo = map.Width;
-
-            for (x = xFrom; x < xTo; x++)
+            for (x = startX; x <= endX; x++)
             {
-                int y;
-                for (y = yFrom; y < yTo; y++)
+                for (y = startY; y <= endY; y++)
                 {
-                    if (!mask[x,y])
+                    if (!mask[x, y])
                         continue;
 
                     // Calculate a cos-sphere and add it to the heighmap

@@ -1128,20 +1128,32 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     int zx = (int) (west + 0.5);
                     int zy = (int) (north + 0.5);
 
-                    int dx,dy;
-                    for (dx=-n; dx<=n; dx++)
+
+                    int startX = zx - n;
+                    if (startX < 0)
+                        startX = 0;
+
+                    int startY = zy - n;
+                    if (startY < 0)
+                        startY = 0;
+
+                    int endX = zx + n;
+                    if (endX >= m_channel.Width)
+                        endX = m_channel.Width - 1;
+                    int endY = zy + n;
+                    if (endY >= m_channel.Height)
+                        endY = m_channel.Height - 1;
+
+                    int x, y;
+
+                    for (x = startX; x <= endX; x++)
                     {
-                        for (dy=-n; dy<=n; dy++)
+                        for (y = startY; y <= endY; y++)
                         {
-                            int x = zx + dx;
-                            int y = zy + dy;
-                            if (x>=0 && y>=0 && x<m_channel.Width && y<m_channel.Height)
+                            if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x, y, 0)))
                             {
-                                if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x,y,0)))
-                                {
-                                    allowMask[x, y] = true;
-                                    allowed = true;
-                                }
+                                allowMask[x, y] = true;
+                                allowed = true;
                             }
                         }
                     }
@@ -1149,7 +1161,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         StoreUndoState();
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
-                            m_channel, allowMask, west, south, height, size, seconds);
+                            m_channel, allowMask, west, south, height, size, seconds,
+                            startX, endX, startY, endY);
 
                         //block changes outside estate limits
                         if (!god)
