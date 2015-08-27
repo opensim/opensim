@@ -77,8 +77,8 @@ namespace OpenSim.Region.ClientStack.Linden
             llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
-            llsdSimInfo.Add("RegionSizeX", new OSDInteger(regionSizeX));
-            llsdSimInfo.Add("RegionSizeY", new OSDInteger(regionSizeY));
+            llsdSimInfo.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
+            llsdSimInfo.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
 
             OSDArray arr = new OSDArray(1);
             arr.Add(llsdSimInfo);
@@ -138,8 +138,8 @@ namespace OpenSim.Region.ClientStack.Linden
             regionDataMap.Add("SeedCapability", OSD.FromString(capsURL));
             regionDataMap.Add("SimIP", OSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
             regionDataMap.Add("SimPort", OSD.FromInteger(newRegionExternalEndPoint.Port));
-            regionDataMap.Add("RegionSizeX", new OSDInteger(regionSizeX));
-            regionDataMap.Add("RegionSizeY", new OSDInteger(regionSizeY));
+            regionDataMap.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
+            regionDataMap.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
 
             OSDArray regionDataArr = new OSDArray(1);
             regionDataArr.Add(regionDataMap);
@@ -173,8 +173,8 @@ namespace OpenSim.Region.ClientStack.Linden
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
 //            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
             info.Add("TeleportFlags", OSD.FromUInteger(flags));
-            info.Add("RegionSizeX", new OSDInteger(regionSizeX));
-            info.Add("RegionSizeY", new OSDInteger(regionSizeY));
+            info.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
+            info.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
 
             OSDArray infoArr = new OSDArray();
             infoArr.Add(info);
@@ -211,8 +211,8 @@ namespace OpenSim.Region.ClientStack.Linden
                                   {"sim-ip-and-port", new OSDString(simIpAndPort)},
                                   {"seed-capability", new OSDString(seedcap)},
                                   {"region-handle", OSD.FromULong(regionHandle)},
-                                  {"region-size-x", OSD.FromInteger(regionSizeX)},
-                                  {"region-size-y", OSD.FromInteger(regionSizeY)}
+                                  {"region-size-x", OSD.FromUInteger((uint)regionSizeX)},
+                                  {"region-size-y", OSD.FromUInteger((uint)regionSizeY)}
                               };
 
             return BuildEvent("EstablishAgentCommunication", body);
