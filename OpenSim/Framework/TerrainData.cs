@@ -189,6 +189,8 @@ namespace OpenSim.Framework
         }
 
         // Old form that clears the taint flag when we check it.
+        // ubit: this dangerus naming should be only check without clear
+        // keeping for old modules outthere
         public override bool IsTaintedAt(int xx, int yy)
         {
             return IsTaintedAt(xx, yy, true /* clearOnTest */);
@@ -208,7 +210,9 @@ namespace OpenSim.Framework
             else
             {
                 DBRevisionCode = (int)DBTerrainRevision.Variable2DGzip;
+//                DBRevisionCode = (int)DBTerrainRevision.Variable2D;
                 blob = ToCompressedTerrainSerializationV2DGzip();
+//                blob = ToCompressedTerrainSerializationV2D();
                 ret = true;
             }
             return ret;
@@ -444,7 +448,6 @@ namespace OpenSim.Framework
 
 
         // stores as variable2D
-        // int32 format
         // int32 sizeX
         // int32 sizeY
         // float[,] array
@@ -454,11 +457,10 @@ namespace OpenSim.Framework
             Array ret = null;
             try
             {
-                using (MemoryStream str = new MemoryStream((3 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
+                using (MemoryStream str = new MemoryStream((2 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
                 {
                     using (BinaryWriter bw = new BinaryWriter(str))
                     {
-                        bw.Write((Int32)DBTerrainRevision.Variable2D);
                         bw.Write((Int32)SizeX);
                         bw.Write((Int32)SizeY);
                         for (int yy = 0; yy < SizeY; yy++)
@@ -489,11 +491,10 @@ namespace OpenSim.Framework
             Array ret = null;
             try
             {
-                using (MemoryStream inp = new MemoryStream((3 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
+                using (MemoryStream inp = new MemoryStream((2 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
                 {
                     using (BinaryWriter bw = new BinaryWriter(inp))
                     {
-                        bw.Write((Int32)DBTerrainRevision.Variable2DGzip);
                         bw.Write((Int32)SizeX);
                         bw.Write((Int32)SizeY);
                         for (int yy = 0; yy < SizeY; yy++)
@@ -574,14 +575,13 @@ namespace OpenSim.Framework
         //    creation and any heights not initialized by theis blob are set to the default height.
         public void FromCompressedTerrainSerializationV2D(byte[] pBlob)
         {
-            Int32 hmFormatCode, hmSizeX, hmSizeY;
+            Int32 hmSizeX, hmSizeY;
             try
             {
                 using (MemoryStream mstr = new MemoryStream(pBlob))
                 {
                     using (BinaryReader br = new BinaryReader(mstr))
                     {
-                        hmFormatCode = br.ReadInt32();
                         hmSizeX = br.ReadInt32();
                         hmSizeY = br.ReadInt32();
 
@@ -620,7 +620,7 @@ namespace OpenSim.Framework
             m_log.InfoFormat("{0} VD2Gzip {1} bytes input",
                             LogHeader, pBlob.Length);
 
-            Int32 hmFormatCode, hmSizeX, hmSizeY;
+            Int32 hmSizeX, hmSizeY;
 
             try
             {
@@ -639,7 +639,6 @@ namespace OpenSim.Framework
 
                     using (BinaryReader br = new BinaryReader(outputStream))
                     {
-                        hmFormatCode = br.ReadInt32();
                         hmSizeX = br.ReadInt32();
                         hmSizeY = br.ReadInt32();
 
