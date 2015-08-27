@@ -229,11 +229,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
 
                 m_scene.RegisterModuleInterface<ITerrainModule>(this);
-                m_scene.EventManager.OnFrame += EventManager_OnFrame;
                 m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
                 m_scene.EventManager.OnClientClosed += EventManager_OnClientClosed;
                 m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
                 m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
+                m_scene.EventManager.OnTerrainCheckUpdates += EventManager_TerrainCheckUpdates;
             }
 
             InstallDefaultEffects();
@@ -272,7 +272,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 // remove the commands
                 m_scene.UnregisterModuleCommander(m_commander.Name);
                 // remove the event-handlers
-                m_scene.EventManager.OnFrame -= EventManager_OnFrame;
+                m_scene.EventManager.OnTerrainCheckUpdates -= EventManager_TerrainCheckUpdates;
                 m_scene.EventManager.OnTerrainTick -= EventManager_OnTerrainTick;
                 m_scene.EventManager.OnPluginConsole -= EventManager_OnPluginConsole;
                 m_scene.EventManager.OnClientClosed -= EventManager_OnClientClosed;
@@ -759,13 +759,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         /// <summary>
-        /// Called before processing of every simulation frame.
         /// This is used to check to see of any of the terrain is tainted and, if so, schedule
         /// updates for all the presences.
         /// This also checks to see if there are updates that need to be sent for each presence.
         /// This is where the logic is to send terrain updates to clients.
         /// </summary>
-        private void EventManager_OnFrame()
+        private void EventManager_TerrainCheckUpdates()
         {
             // this needs fixing
             TerrainData terrData = m_channel.GetTerrainData();
@@ -775,7 +774,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 for (int y = 0; y < terrData.SizeY; y += Constants.TerrainPatchSize)
                 {
-                    if (terrData.IsTaintedAt(x, y))
+                    if (terrData.IsTaintedAt(x, y,true))
                     {
                         // Found a patch that was modified. Push this flag into the clients.
                         SendToClients(terrData, x, y);

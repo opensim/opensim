@@ -80,6 +80,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnTerrainTaintedDelegate OnTerrainTainted;
 
         public delegate void OnTerrainTickDelegate();
+        public delegate void OnTerrainCheckUpdatesDelegate();
 
         /// <summary>
         /// Triggered if the terrain has been edited
@@ -89,6 +90,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// but is used by core solely to update the physics engine.
         /// </remarks>
         public event OnTerrainTickDelegate OnTerrainTick;
+        public event OnTerrainCheckUpdatesDelegate OnTerrainCheckUpdates;
 
         public delegate void OnTerrainUpdateDelegate();
 
@@ -1478,6 +1480,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerTerrainTick failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerTerrainCheckUpdates()
+        {
+            OnTerrainCheckUpdatesDelegate TerrainCheckUpdates = OnTerrainCheckUpdates;
+            if (TerrainCheckUpdates != null)
+            {
+                foreach (OnTerrainCheckUpdatesDelegate d in TerrainCheckUpdates.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TerrainCheckUpdates failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }

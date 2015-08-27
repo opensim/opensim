@@ -245,8 +245,8 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_defaultDrawDistance; }
         }
 
-//        protected float m_maxDrawDistance = 512.0f;
-        protected float m_maxDrawDistance = 256.0f;
+        protected float m_maxDrawDistance = 512.0f;
+//        protected float m_maxDrawDistance = 256.0f;
         public float MaxDrawDistance
         {
             get { return m_maxDrawDistance; }
@@ -1581,12 +1581,19 @@ namespace OpenSim.Region.Framework.Scenes
                     EventManager.TriggerRegionHeartbeatStart(this);
 
                     // Apply taints in terrain module to terrain in physics scene
+
+                    tmpMS = Util.EnvironmentTickCount();
+                    if (Frame % 4 == 0)
+                    {
+                        CheckTerrainUpdates();
+                    }
+
                     if (Frame % m_update_terrain == 0)
                     {
-                        tmpMS = Util.EnvironmentTickCount();
                         UpdateTerrain();
-                        terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
+
+                    terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
 
                     tmpMS = Util.EnvironmentTickCount();
                     if (PhysicsEnabled && Frame % m_update_physics == 0)
@@ -1807,6 +1814,11 @@ namespace OpenSim.Region.Framework.Scenes
         private void UpdateTerrain()
         {
             EventManager.TriggerTerrainTick();
+        }
+
+        private void CheckTerrainUpdates()
+        {
+            EventManager.TriggerTerrainCheckUpdates();
         }
 
         /// <summary>
@@ -5880,11 +5892,12 @@ Environment.Exit(1);
         /// or corssing the broder walking, but will NOT prevent
         /// child agent creation, thereby emulating the SL behavior.
         /// </remarks>
-        /// <param name='agentID'></param>
+        /// <param name='agentID'>The visitor's User ID</param>
+        /// <param name="agentHomeURI">The visitor's Home URI (may be null)</param>
         /// <param name='position'></param>
         /// <param name='reason'></param>
         /// <returns></returns>
-        public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
+        public bool QueryAccess(UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, out string reason)
         {
             reason = "You are banned from the region";
 
@@ -5893,6 +5906,10 @@ Environment.Exit(1);
                 reason = String.Empty;
                 return true;
             }
+
+
+//            if (!AllowAvatarCrossing && !viaTeleport)
+//                return false;
 
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
             // However, the long term fix is to make sure root agent count is always accurate.
