@@ -338,8 +338,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool m_VelocityInterpolate = false;
         private const uint MaxTransferBytesPerPacket = 600;
 
-        private volatile bool m_justEditedTerrain = false;
-
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
         /// continually recreate it.
@@ -1315,18 +1313,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                if (px.Length != py.Length ||
-                    terrData.SizeX != (int)Scene.RegionInfo.RegionSizeX ||
-                    terrData.SizeY != (int)Scene.RegionInfo.RegionSizeY)
-                {
-                    if (px.Length != py.Length)
-                        m_log.Debug("px py");
-                    if (terrData.SizeX != Scene.RegionInfo.RegionSizeX)
-                        m_log.Debug("sx");
-                    if (terrData.SizeY != Scene.RegionInfo.RegionSizeY)
-                        m_log.Debug("sx");
-                }
-
                 /* test code using the terrain compressor in libOpenMetaverse
                 int[] patchInd = new int[1];
                 patchInd[0] = px + (py * Constants.TerrainPatchSize);
@@ -6509,7 +6495,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Note: the ModifyTerrain event handler sends out updated packets before the end of this event.  Therefore, 
                 // a simple boolean value should work and perhaps queue up just a few terrain patch packets at the end of the edit.
-                m_justEditedTerrain = true; // Prevent terrain packet (Land layer) from being queued, make it unreliable
                 if (OnModifyTerrain != null)
                 {
                     for (int i = 0; i < modify.ParcelData.Length; i++)
@@ -6525,7 +6510,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                 }
-                m_justEditedTerrain = false; // Queue terrain packet (Land layer) if necessary, make it reliable again
             }
 
             return true;
