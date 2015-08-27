@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_channel;
-        private ITerrainChannel m_revert;
+        private ITerrainChannel m_baked;
         private Scene m_scene;
         private volatile bool m_tainted;
         private readonly Stack<LandUndoState> m_undo = new Stack<LandUndoState>(5);
@@ -220,12 +220,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                                                      (int)m_scene.RegionInfo.RegionSizeY,
                                                                      (int)m_scene.RegionInfo.RegionSizeZ);
                     m_scene.Heightmap = m_channel;
-                    UpdateRevertMap();
+                    UpdateBakedMap();
                 }
                 else
                 {
                     m_channel = m_scene.Heightmap;
-                    UpdateRevertMap();
+                    UpdateBakedMap();
                 }
 
                 m_scene.RegisterModuleInterface<ITerrainModule>(this);
@@ -329,7 +329,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             m_log.DebugFormat("[TERRAIN]: Loaded terrain, wd/ht: {0}/{1}", channel.Width, channel.Height);
                             m_scene.Heightmap = channel;
                             m_channel = channel;
-                            UpdateRevertMap();
+                            UpdateBakedMap();
                         }
                         catch (NotImplementedException)
                         {
@@ -421,7 +421,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                             ITerrainChannel channel = loader.Value.LoadStream(stream);
                             m_channel.Merge(channel, displacement, radianRotation, rotationDisplacement);
-                            UpdateRevertMap();
+                            UpdateBakedMap();
                         }
                         catch (NotImplementedException)
                         {
@@ -622,7 +622,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_painteffects[StandardTerrainEffects.Smooth] = new SmoothSphere();
             m_painteffects[StandardTerrainEffects.Noise] = new NoiseSphere();
             m_painteffects[StandardTerrainEffects.Flatten] = new FlattenSphere();
-            m_painteffects[StandardTerrainEffects.Revert] = new RevertSphere(m_revert);
+            m_painteffects[StandardTerrainEffects.Revert] = new RevertSphere(m_baked);
             m_painteffects[StandardTerrainEffects.Erode] = new ErodeSphere();
             m_painteffects[StandardTerrainEffects.Weather] = new WeatherSphere();
             m_painteffects[StandardTerrainEffects.Olsen] = new OlsenSphere();
@@ -633,7 +633,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_floodeffects[StandardTerrainEffects.Smooth] = new SmoothArea();
             m_floodeffects[StandardTerrainEffects.Noise] = new NoiseArea();
             m_floodeffects[StandardTerrainEffects.Flatten] = new FlattenArea();
-            m_floodeffects[StandardTerrainEffects.Revert] = new RevertArea(m_revert);
+            m_floodeffects[StandardTerrainEffects.Revert] = new RevertArea(m_baked);
 
             // Filesystem load/save loaders
             m_loaders[".r32"] = new RAW32();
@@ -650,9 +650,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         /// <summary>
-        /// Saves the current state of the region into the revert map buffer.
+        /// Saves the current state of the region into the baked map buffer.
         /// </summary>
-        public void UpdateRevertMap()
+        public void UpdateBakedMap()
         {
             /*
             int x;
@@ -661,11 +661,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 int y;
                 for (y = 0; y < m_channel.Height; y++)
                 {
-                    m_revert[x, y] = m_channel[x, y];
+                    m_baked[x, y] = m_channel[x, y];
                 }
             }
              */
-            m_revert = m_channel.MakeCopy();
+            m_baked = m_channel.MakeCopy();
         }
 
         /// <summary>
@@ -696,7 +696,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                                                             (int) m_scene.RegionInfo.RegionSizeY);
                             m_scene.Heightmap = channel;
                             m_channel = channel;
-                            UpdateRevertMap();
+                            UpdateBakedMap();
                         }
 
                         return;
@@ -904,13 +904,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             float maxDelta = (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
 
             // loop through the height map for this patch and compare it against
-            // the revert map
+            // the baked map
             for (int x = xStart; x < xStart + Constants.TerrainPatchSize; x++)
             {
                 for (int y = yStart; y < yStart + Constants.TerrainPatchSize; y++)
                 {
                     float requestedHeight = terrData[x, y];
-                    float bakedHeight = (float)m_revert[x, y];
+                    float bakedHeight = (float)m_baked[x, y];
                     float requestedDelta = requestedHeight - bakedHeight;
 
                     if (requestedDelta > maxDelta)
@@ -1169,7 +1169,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
                             m_channel, allowMask, west, south, height, size, seconds);
 
-                        //revert changes outside estate limits
+                        //block changes outside estate limits
                         if (!god)
                             EnforceEstateLimits();
                     }
@@ -1211,7 +1211,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         StoreUndoState();
                         m_floodeffects[(StandardTerrainEffects) action].FloodEffect(m_channel, fillArea, size);
 
-                        //revert changes outside estate limits
+                        //block changes outside estate limits
                         if (!god)
                             EnforceEstateLimits();
                     }
@@ -1293,7 +1293,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceBakeTerrain(Object[] args)
         {
-            UpdateRevertMap();
+            UpdateBakedMap();
         }
 
         private void InterfaceRevertTerrain(Object[] args)
@@ -1301,7 +1301,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int x, y;
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
-                    m_channel[x, y] = m_revert[x, y];
+                    m_channel[x, y] = m_baked[x, y];
 
         }
 
@@ -1595,9 +1595,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Double");
 
             Command bakeRegionCommand =
-                new Command("bake", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBakeTerrain, "Saves the current terrain into the regions revert map.");
+                new Command("bake", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBakeTerrain, "Saves the current terrain into the regions baked map.");
             Command revertRegionCommand =
-                new Command("revert", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRevertTerrain, "Loads the revert map terrain into the regions heightmap.");
+                new Command("revert", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRevertTerrain, "Loads the baked map terrain into the regions heightmap.");
 
             Command flipCommand =
                 new Command("flip", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFlipTerrain, "Flips the current terrain about the X or Y axis");
