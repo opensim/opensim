@@ -651,21 +651,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         /// <summary>
         /// Saves the current state of the region into the baked map buffer.
+        
         /// </summary>
         public void UpdateBakedMap()
         {
-            /*
-            int x;
-            for (x = 0; x < m_channel.Width; x++)
-            {
-                int y;
-                for (y = 0; y < m_channel.Height; y++)
-                {
-                    m_baked[x, y] = m_channel[x, y];
-                }
-            }
-             */
             m_baked = m_channel.MakeCopy();
+            m_painteffects[StandardTerrainEffects.Revert] = new RevertSphere(m_baked);
+            m_floodeffects[StandardTerrainEffects.Revert] = new RevertArea(m_baked);
         }
 
         /// <summary>
