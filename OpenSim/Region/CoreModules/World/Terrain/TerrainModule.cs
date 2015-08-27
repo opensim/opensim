@@ -90,7 +90,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private ITerrainChannel m_baked;
         private Scene m_scene;
         private volatile bool m_tainted;
-        private readonly Stack<LandUndoState> m_undo = new Stack<LandUndoState>(5);
 
         private String m_InitialTerrain = "pinhead-island";
 
@@ -923,15 +922,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void client_OnLandUndo(IClientAPI client)
         {
-            lock (m_undo)
-            {
-                if (m_undo.Count > 0)
-                {
-                    LandUndoState goback = m_undo.Pop();
-                    if (goback != null)
-                        goback.PlaybackState();
-                }
-            }
+
         }
 
         /// <summary>
@@ -1137,10 +1128,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     int zx = (int) (west + 0.5);
                     int zy = (int) (north + 0.5);
 
-                    int dx;
+                    int dx,dy;
                     for (dx=-n; dx<=n; dx++)
                     {
-                        int dy;
                         for (dy=-n; dy<=n; dy++)
                         {
                             int x = zx + dx;
@@ -1236,21 +1226,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void StoreUndoState()
         {
-            lock (m_undo)
-            {
-                if (m_undo.Count > 0)
-                {
-                    LandUndoState last = m_undo.Peek();
-                    if (last != null)
-                    {
-                        if (last.Compare(m_channel))
-                            return;
-                    }
-                }
-
-                LandUndoState nUndo = new LandUndoState(this, m_channel);
-                m_undo.Push(nUndo);
-            }
         }
 
         #region Console Commands
