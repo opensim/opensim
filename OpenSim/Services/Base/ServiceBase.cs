@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -45,9 +46,11 @@ namespace OpenSim.Services.Base
 
         public T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
-            string[] parts = dllName.Split(new char[] {':'});
+            string pathRoot = Path.GetPathRoot(dllName);
+            string noRoot = dllName.Substring(pathRoot.Length);
+            string[] parts = noRoot.Split(new char[] { ':' });
 
-            dllName = parts[0];
+            dllName = pathRoot + parts[0];
 
             string className = String.Empty;
 
