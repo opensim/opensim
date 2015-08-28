@@ -95,7 +95,8 @@ namespace OpenSim.Server.Handlers.MapImage
             byte[] result = new byte[0];
             string format = string.Empty;
 
-            UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+//            UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+            UUID scopeID = UUID.Zero;
 
             string[] bits = path.Trim('/').Split(new char[] {'/'});
             if (bits.Length > 1)

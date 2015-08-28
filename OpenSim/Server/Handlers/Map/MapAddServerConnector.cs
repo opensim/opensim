@@ -117,7 +117,8 @@ namespace OpenSim.Server.Handlers.MapImage
                     return FailureResult("Bad request.");
                 }
                 int x = 0, y = 0;
-                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+//                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+                UUID scopeID = UUID.Zero;
                 Int32.TryParse(request["X"].ToString(), out x);
                 Int32.TryParse(request["Y"].ToString(), out y);
                 if (request.ContainsKey("SCOPE"))
