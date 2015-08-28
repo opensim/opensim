@@ -4889,7 +4889,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.ParcelData.Data = data;
             packet.ParcelData.SequenceID = sequence_id;
             packet.Header.Zerocoded = true;
-            OutPacket(packet, ThrottleOutPacketType.Task);
+//            OutPacket(packet, ThrottleOutPacketType.Task);
+            OutPacket(packet, ThrottleOutPacketType.Land);
         }
 
         public void SendLandProperties(
