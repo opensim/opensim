@@ -56,6 +56,8 @@ namespace OpenSim.Services.GridService
         protected bool m_AllowDuplicateNames = false;
         protected bool m_AllowHypergridMapSearch = false;
 
+        private static Dictionary<string, object> m_ExtraFeatures = new Dictionary<string, object>();
+
         public GridService(IConfigSource config)
             : base(config)
         {
@@ -128,6 +130,50 @@ namespace OpenSim.Services.GridService
             }
         }
 
+        private void SetExtraServiceURLs(IConfigSource config)
+        {
+            IConfig loginConfig = config.Configs["LoginService"];
+            IConfig gridConfig = config.Configs["GridService"];
+
+            if (loginConfig == null || gridConfig == null)
+                return;
+
+            string configVal;
+
+            configVal = loginConfig.GetString("SearchURL", string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["search-server-url"] = configVal;
+
+            configVal = loginConfig.GetString("MapTileURL", string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+            {
+                // This URL must end with '/', the viewer doesn't check
+                configVal = configVal.Trim();
+                if (!configVal.EndsWith("/"))
+                    configVal = configVal + "/";
+                m_ExtraFeatures["map-server-url"] = configVal;
+            }
+
+            configVal = loginConfig.GetString("DestinationGuide", string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["destination-guide-url"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                    config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" }, String.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridURL"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridName", new string[] { "Const", "Hypergrid" }, String.Empty);
+            if (string.IsNullOrEmpty(configVal))
+                configVal = Util.GetConfigVarFromSections<string>(
+                    config, "gridname", new string[] { "GridInfo" }, String.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridName"] = configVal;
+
+            m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
+        }
+
         #region IGridService
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfos)
@@ -136,6 +182,8 @@ namespace OpenSim.Services.GridService
 
             if (regionInfos.RegionID == UUID.Zero)
                 return "Invalid RegionID - cannot be zero UUID";
+
+            // we should not need to check for overlaps
 
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
             if ((region != null) && (region.RegionID != regionInfos.RegionID))
@@ -312,8 +360,14 @@ namespace OpenSim.Services.GridService
             if (region != null)
             {
                 // Not really? Maybe?
+/* this fails wiht var regions. My_sql db should now handle var regions
                 List<RegionData> rdatas = m_Database.Get(
                     region.posX - region.sizeX - 1, region.posY - region.sizeY - 1, 
+                    region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);
+*/
+                // so send normal search area
+                List<RegionData> rdatas = m_Database.Get(
+                    region.posX - 1, region.posY - 1,
                     region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);
 
                 foreach (RegionData rdata in rdatas)
@@ -352,6 +406,7 @@ namespace OpenSim.Services.GridService
         //     be the base coordinate of the region.
         // The snapping is technically unnecessary but is harmless because regions are always
         //     multiples of the legacy region size (256).
+        
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;
@@ -772,6 +827,19 @@ namespace OpenSim.Services.GridService
                 MainConsole.Instance.Output(String.Format("Set region {0} to {1}", r.RegionName, f));
                 m_Database.Store(r);
             }
+        }
+
+        /// <summary>
+        /// Gets the grid extra service URls we wish for the region to send in OpenSimExtras to dynamically refresh 
+        /// parameters in the viewer used to access services like map, search and destination guides.
+        /// <para>see "SimulatorFeaturesModule" </para>
+        /// </summary>
+        /// <returns>
+        /// The grid extra service URls.
+        /// </returns>
+        public Dictionary<string,object> GetExtraFeatures()
+        {
+            return m_ExtraFeatures;
         }
     }
 }
