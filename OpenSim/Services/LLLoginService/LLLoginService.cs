@@ -880,13 +880,6 @@ namespace OpenSim.Services.LLLoginService
             SetServiceURLs(aCircuit, account);
 
             return aCircuit;
-
-            //m_UserAgentService.LoginAgentToGrid(aCircuit, GatekeeperServiceConnector, region, out reason);
-            //if (simConnector.CreateAgent(region, aCircuit, 0, out reason))
-            //    return aCircuit;
-
-            //return null;
-
         }
 
         private void SetServiceURLs(AgentCircuitData aCircuit, UserAccount account)
@@ -921,7 +914,7 @@ namespace OpenSim.Services.LLLoginService
                     if (!keyValue.EndsWith("/"))
                         keyValue = keyValue + "/";
 
-                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && account.ServiceURLs[keyName] != keyValue))
+                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && (string)account.ServiceURLs[keyName] != keyValue))
                     {
                         account.ServiceURLs[keyName] = keyValue;
                         newUrls = true;
