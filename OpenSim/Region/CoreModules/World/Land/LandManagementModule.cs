@@ -422,7 +422,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (force || NotsameID)
                 {
                     over.SendLandUpdateToClient(avatar.ControllingClient);
-                    SendParcelOverlay(avatar.ControllingClient);
+// sl doesnt seem to send this now, as it used 2
+//                    SendParcelOverlay(avatar.ControllingClient);
                     avatar.currentParcelUUID = over.LandData.GlobalID;
                     m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
                                                                         m_scene.RegionInfo.RegionID);
