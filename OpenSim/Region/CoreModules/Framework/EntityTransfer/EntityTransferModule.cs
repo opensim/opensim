@@ -1147,7 +1147,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
-
             // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
             // where that neighbour simulator could otherwise request a child agent create on the source which then 
             // closes our existing agent which is still signalled as root.
@@ -2184,7 +2183,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int shifty = (rRegionY - tRegionY) * (int)Constants.RegionSize;
             return new Vector3(shiftx, shifty, 0f);
              */
-            return new Vector3( sp.Scene.RegionInfo.WorldLocX - neighbour.RegionLocX,
+            return new Vector3(sp.Scene.RegionInfo.WorldLocX - neighbour.RegionLocX,
                                 sp.Scene.RegionInfo.WorldLocY - neighbour.RegionLocY,
                                 0f);
         }
@@ -2496,10 +2495,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 uint startY = Util.RegionToWorldLoc(pRegionLocY) + m_regionInfo.RegionSizeY / 2;
                 uint endY = startY;
 
-                startX -= dd;
-                startY -= dd;
-                endX += dd;
-                endY += dd;
+                startX -= ddX;
+                startY -= ddY;
+                endX += ddX;
+                endY += ddY;
 
                 neighbours
                     = avatar.Scene.GridService.GetRegionRange(

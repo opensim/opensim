@@ -1129,17 +1129,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override void OtherRegionUp(GridRegion otherRegion)
         {
-            uint xcell = (uint)((int)otherRegion.RegionLocX / (int)Constants.RegionSize);
-            uint ycell = (uint)((int)otherRegion.RegionLocY / (int)Constants.RegionSize);
-            //m_log.InfoFormat("[SCENE]: (on region {0}): Region {1} up in coords {2}-{3}", 
-            //    RegionInfo.RegionName, otherRegion.RegionName, xcell, ycell);
-
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-                // If these are cast to INT because long + negative values + abs returns invalid data
-                int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
-                int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
-                if (resultX <= 1 && resultY <= 1)
+                if (isNeighborRegion(otherRegion))
                 {
                     // Let the grid service module know, so this can be cached
                     m_eventManager.TriggerOnRegionUp(otherRegion);
@@ -1174,6 +1166,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool isNeighborRegion(GridRegion otherRegion)
+        {
+            int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX; ;
+
+            if (tmp < -otherRegion.RegionSizeX && tmp > RegionInfo.RegionSizeX)
+                return false;
+
+            tmp = otherRegion.RegionLocY - (int)RegionInfo.WorldLocY;
+
+            if (tmp < -otherRegion.RegionSizeY && tmp > RegionInfo.RegionSizeY)
+                return false;
+
+            return true;
+        }
+
         public void AddNeighborRegion(RegionInfo region)
         {
             lock (m_neighbours)
@@ -1200,46 +1207,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return found;
-        }
-
-        /// <summary>
-        /// Checks whether this region has a neighbour in the given direction.
-        /// </summary>
-        /// <param name="car"></param>
-        /// <param name="fix"></param>
-        /// <returns>
-        /// An integer which represents a compass point.  N == 1, going clockwise until we reach NW == 8.
-        /// Returns a positive integer if there is a region in that direction, a negative integer if not.
-        /// </returns>
-        public int HaveNeighbor(Cardinals car, ref int[] fix)
-        {
-            uint neighbourx = RegionInfo.RegionLocX;
-            uint neighboury = RegionInfo.RegionLocY;
-
-            int dir = (int)car;
-
-            if (dir > 1 && dir < 5) //Heading East
-                neighbourx++;
-            else if (dir > 5) // Heading West
-                neighbourx--;
-
-            if (dir < 3 || dir == 8) // Heading North
-                neighboury++;
-            else if (dir > 3 && dir < 7) // Heading Sout
-                neighboury--;
-
-            int x = (int)(neighbourx * Constants.RegionSize);
-            int y = (int)(neighboury * Constants.RegionSize);
-            GridRegion neighbourRegion = GridService.GetRegionByPosition(RegionInfo.ScopeID, x, y);
-
-            if (neighbourRegion == null)
-            {
-                fix[0] = (int)(RegionInfo.RegionLocX - neighbourx);
-                fix[1] = (int)(RegionInfo.RegionLocY - neighboury);
-                return dir * (-1);
-            }
-            else
-                return dir;
         }
 
         // Alias IncomingHelloNeighbour OtherRegionUp, for now
