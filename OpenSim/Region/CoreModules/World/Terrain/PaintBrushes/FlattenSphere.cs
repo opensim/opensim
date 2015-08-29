@@ -43,9 +43,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             int x, y;
 
             // blend in map
-            for (x = 0; x < map.Width; x++)
+            for (x = startX; x <= endX; x++)
             {
-                for (y = 0; y < map.Height; y++)
+                for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x,y])
                         continue;

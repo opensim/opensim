@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
 
             for (x = startX; x <= endX; x++)
             {
-                for (y = startY; y < endY; y++)
+                for (y = startY; y <= endY; y++)
                 {
                     if (fillArea[x, y])
                         map[x, y] = (map[x, y] * (1.0 - str)) + (avg * str);

@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 
             for (x = startX; x <= endX; x++)
             {
-                for (y = startY; y < endY; y++)
+                for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x,y])
                         continue;
