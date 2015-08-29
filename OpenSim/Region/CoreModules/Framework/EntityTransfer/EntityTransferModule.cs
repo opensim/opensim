@@ -2174,16 +2174,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         // The first region is the home region of the passed scene presence.
         Vector3 CalculateOffset(ScenePresence sp, GridRegion neighbour)
         {
-            /*
-            int rRegionX = (int)sp.Scene.RegionInfo.LegacyRegionLocX;
-            int rRegionY = (int)sp.Scene.RegionInfo.LegacyRegionLocY;
-            int tRegionX = neighbour.RegionLocX / (int)Constants.RegionSize;
-            int tRegionY = neighbour.RegionLocY / (int)Constants.RegionSize;
-            int shiftx = (rRegionX - tRegionX) * (int)Constants.RegionSize;
-            int shifty = (rRegionY - tRegionY) * (int)Constants.RegionSize;
-            return new Vector3(shiftx, shifty, 0f);
-             */
-            return new Vector3(sp.Scene.RegionInfo.WorldLocX - neighbour.RegionLocX,
+              return new Vector3(sp.Scene.RegionInfo.WorldLocX - neighbour.RegionLocX,
                                 sp.Scene.RegionInfo.WorldLocY - neighbour.RegionLocY,
                                 0f);
         }
@@ -2543,28 +2534,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (scene == null)
                 return null;
 
-            RegionInfo srcRegionInfo = scene.RegionInfo;
-            int neighbourx = (int)srcRegionInfo.RegionLocX;
-            int neighboury = (int)srcRegionInfo.RegionLocY;
-            float regionSizeX = srcRegionInfo.RegionSizeX;
-            float regionSizeY = srcRegionInfo.RegionSizeY;
+            int x = (int)targetPosition.X + (int)scene.RegionInfo.WorldLocX;
+            if (targetPosition.X >= 0)
+                x++;
+            else
+                x--;
 
-            float edgeJitter = 0.2f;
+            int y = (int)targetPosition.Y + (int)scene.RegionInfo.WorldLocY;
+            if (targetPosition.Y >= 0)
+                y++;
+            else
+                y--;
 
-            if (targetPosition.X < edgeJitter)
-                neighbourx--;
-            else if (targetPosition.X > regionSizeX - edgeJitter)
-                neighbourx += (int)(regionSizeX / Constants.RegionSize);
 
-            if (targetPosition.Y < edgeJitter)
-                neighboury--;
-            else if (targetPosition.Y > regionSizeY - edgeJitter)
-                neighboury += (int)(regionSizeY / Constants.RegionSize);
-
-            int x = neighbourx * (int)Constants.RegionSize;
-            int y = neighboury * (int)Constants.RegionSize;
-
-            GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
+            GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID,x,y);
             if (neighbourRegion == null)
             {
                 return null;
@@ -2577,15 +2560,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (newRegionSizeY == 0)
                 newRegionSizeY = Constants.RegionSize;
 
-            if (targetPosition.X < edgeJitter)
-                newpos.X += newRegionSizeX;
-            else if (targetPosition.X > regionSizeX - edgeJitter)
-                newpos.X -= regionSizeX;
 
-            if (targetPosition.Y < edgeJitter)
-                newpos.Y += newRegionSizeY;
-            else if (targetPosition.Y > regionSizeY - edgeJitter)
-                newpos.Y -= regionSizeY;
+            newpos.X = targetPosition.X - (neighbourRegion.RegionLocX - (int)scene.RegionInfo.WorldLocX);
+            newpos.Y = targetPosition.Y - (neighbourRegion.RegionLocY - (int)scene.RegionInfo.WorldLocY);
+
 
             const float enterDistance = 0.2f;
             newpos.X = Util.Clamp(newpos.X, enterDistance, newRegionSizeX - enterDistance);
