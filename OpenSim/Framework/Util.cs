@@ -675,17 +675,26 @@ namespace OpenSim.Framework
         /// <param name="oldy">Old region y-coord</param>
         /// <param name="newy">New region y-coord</param>
         /// <returns></returns>        
-        public static bool IsOutsideView(float drawdist, uint oldx, uint newx, uint oldy, uint newy)
+        public static bool IsOutsideView(float drawdist, uint oldx, uint newx, uint oldy, uint newy, 
+            int oldsizex, int oldsizey, int newsizex, int newsizey)
         {
-            int dd = (int)((drawdist + Constants.RegionSize - 1) / Constants.RegionSize);
+            // we still need to make sure we see new region  1stNeighbors
 
-            int startX = (int)oldx - dd;
-            int startY = (int)oldy - dd;
+            oldx *= Constants.RegionSize;
+            newx *= Constants.RegionSize;
+            if (oldx + oldsizex + drawdist < newx)
+                return true;
+            if (newx + newsizex + drawdist < oldx)
+                return true;
 
-            int endX = (int)oldx + dd;
-            int endY = (int)oldy + dd;
+            oldy *= Constants.RegionSize;
+            newy *= Constants.RegionSize;
+            if (oldy + oldsizey + drawdist < newy)
+                return true;
+            if (newy + newsizey + drawdist< oldy)
+                return true;
 
-            return (newx < startX || endX < newx || newy < startY || endY < newy);
+            return false;
         }
 
         public static string FieldToString(byte[] bytes)

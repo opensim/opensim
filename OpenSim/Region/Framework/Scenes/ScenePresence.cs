@@ -838,22 +838,24 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 seeds = new Dictionary<ulong, string>();
 
+/* we can't do this anymore
             List<ulong> old = new List<ulong>();
             foreach (ulong handle in seeds.Keys)
             {
                 uint x, y;
                 Util.RegionHandleToRegionLoc(handle, out x, out y);
-
-                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
+no information to check this
+//                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY,))
                 {
                     old.Add(handle);
                 }
             }
+
             DropOldNeighbours(old);
             
             if (Scene.CapsModule != null)
                 Scene.CapsModule.SetChildrenSeed(UUID, seeds);
-            
+*/            
             KnownRegions = seeds;
             //m_log.Debug(" ++++++++++AFTER+++++++++++++ ");
             //DumpKnownRegions();
@@ -1517,15 +1519,46 @@ namespace OpenSim.Region.Framework.Scenes
         // holds the seed cap for the child agent in that region
         private Dictionary<ulong, string> m_knownChildRegions = new Dictionary<ulong, string>();
 
-        public void AddNeighbourRegion(ulong regionHandle, string cap)
+        struct spRegionSizeInfo
+        {
+            public int sizeX;
+            public int sizeY;
+        }
+
+        private Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = new Dictionary<ulong, spRegionSizeInfo>();
+
+
+        public void AddNeighbourRegionSizeInfo(GridRegion region)
         {
             lock (m_knownChildRegions)
             {
-                if (!m_knownChildRegions.ContainsKey(regionHandle))
+                spRegionSizeInfo sizeInfo = new spRegionSizeInfo();
+                sizeInfo.sizeX = region.RegionSizeX;
+                sizeInfo.sizeY = region.RegionSizeY;
+                ulong regionHandle = region.RegionHandle;
+
+                if (!m_knownChildRegionsSizeInfo.ContainsKey(regionHandle))
                 {
-                    uint x, y;
-                    Utils.LongToUInts(regionHandle, out x, out y);
-                    m_knownChildRegions.Add(regionHandle, cap);
+                    m_knownChildRegionsSizeInfo.Add(regionHandle, sizeInfo);
+
+                }
+                else
+                    m_knownChildRegionsSizeInfo[regionHandle] = sizeInfo;
+            }
+        }
+
+        public void SetNeighbourRegionSizeInfo(List<GridRegion> regionsList)
+        {
+            lock (m_knownChildRegions)
+            {
+                m_knownChildRegionsSizeInfo.Clear();
+                foreach (GridRegion region in regionsList)
+                {
+                    spRegionSizeInfo sizeInfo = new spRegionSizeInfo();
+                    sizeInfo.sizeX = region.RegionSizeX;
+                    sizeInfo.sizeY = region.RegionSizeY;
+                    ulong regionHandle = region.RegionHandle;
+                    m_knownChildRegionsSizeInfo.Add(regionHandle, sizeInfo);
                 }
             }
         }
@@ -1539,6 +1572,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //if (m_knownChildRegions.ContainsKey(regionHandle))
                 //    m_log.DebugFormat(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
                 m_knownChildRegions.Remove(regionHandle);
+                m_knownChildRegionsSizeInfo.Remove(regionHandle);
             }
         }
 
@@ -1557,7 +1591,6 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveNeighbourRegion(handle);
             Scene.CapsModule.DropChildSeed(UUID, handle);
         }
-
 
         public Dictionary<ulong, string> KnownRegions
         {
@@ -1804,7 +1837,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     bool haveAnims = (animIDs != null && animseqs != null && animsobjs != null);
 
-                    if(haveAnims)
+                    if (haveAnims)
                         SendAnimPackToAgent(this, animIDs, animseqs, animsobjs);
 
                     // we should be able to receive updates, etc
@@ -1831,19 +1864,20 @@ namespace OpenSim.Region.Framework.Scenes
                     } // greys if
 
                     m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                 
+
                     // attachments
 
                     if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
                     {
                         if (Scene.AttachmentsModule != null)
-                        // Util.FireAndForget(
-                        //      o =>
-                        //      {
+                            // Util.FireAndForget(
+                            //      o =>
+                            //      {
                             if (!isNPC)
                                 Scene.AttachmentsModule.RezAttachments(this);
                             else
-                                Util.FireAndForget(x => {
+                                Util.FireAndForget(x =>
+                                {
                                     Scene.AttachmentsModule.RezAttachments(this);
                                 });
                         // });
@@ -1855,7 +1889,7 @@ namespace OpenSim.Region.Framework.Scenes
                             m_log.DebugFormat(
                                 "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
 
-                            foreach(SceneObjectGroup sog in m_attachments)
+                            foreach (SceneObjectGroup sog in m_attachments)
                             {
                                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                                 sog.ResumeScripts();
@@ -1880,10 +1914,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
-                    // Create child agents in neighbouring regions
                     if (openChildAgents)
                     {
+                        // Create child agents in neighbouring regions
                         IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                         if (m_agentTransfer != null)
                         {
@@ -3955,8 +3988,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="newRegionX">The new region's x on the map</param>
         /// <param name="newRegionY">The new region's y on the map</param>
         /// <returns></returns>
-        public void CloseChildAgents(uint newRegionX, uint newRegionY)
+        public void CloseChildAgents(ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
         {
+            uint newRegionX, newRegionY;
             List<ulong> byebyeRegions = new List<ulong>();
             List<ulong> knownRegions = KnownRegionHandles;
             m_log.DebugFormat(
@@ -3964,19 +3998,35 @@ namespace OpenSim.Region.Framework.Scenes
                 knownRegions.Count, Scene.RegionInfo.RegionName);
             //DumpKnownRegions();
 
+            Util.RegionHandleToRegionLoc(newRegionHandle, out newRegionX, out newRegionY);
+
+            uint x, y;
+            spRegionSizeInfo regInfo;
+
             foreach (ulong handle in knownRegions)
             {
                 // Don't close the agent on this region yet
                 if (handle != Scene.RegionInfo.RegionHandle)
                 {
-                    uint x, y;
                     Util.RegionHandleToRegionLoc(handle, out x, out y);
-
-//                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-//                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                    if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY))
+                    if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
                     {
-                        byebyeRegions.Add(handle);
+
+                        //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+                        //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                            regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
+                        {
+                            byebyeRegions.Add(handle);
+                        }
+                    }
+                    else
+                    {
+                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                            (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
+                        {
+                            byebyeRegions.Add(handle);
+                        }
                     }
                 }
             }
@@ -5382,11 +5432,8 @@ namespace OpenSim.Region.Framework.Scenes
                     SpawnPoint[] spawnPoints = m_scene.RegionInfo.RegionSettings.SpawnPoints().ToArray();
                     if (spawnPoints.Length == 0)
                     {
-                        if(m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid))
-                        {
-                            pos.X = 128.0f;
-                            pos.Y = 128.0f;
-                        }
+                        pos.X = 128.0f;
+                        pos.Y = 128.0f;
                         return;
                     }
 
