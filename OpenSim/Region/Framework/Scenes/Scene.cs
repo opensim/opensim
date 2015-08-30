@@ -851,7 +851,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region Constructors
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
-                     SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      IConfigSource config, string simulatorVersion)
             : this(regInfo, physicsScene)
@@ -865,7 +864,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue / 2)) + (uint)(uint.MaxValue / 4);
             m_authenticateHandler = authen;
-            m_sceneGridService = sceneGridService;
+            m_sceneGridService = new SceneCommunicationService();
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
 

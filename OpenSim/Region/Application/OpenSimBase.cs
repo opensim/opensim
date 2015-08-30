@@ -752,10 +752,8 @@ namespace OpenSim
             Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
             PhysicsScene physicsScene = GetPhysicsScene(regionInfo.RegionName, regionExtent);
 
-            SceneCommunicationService sceneGridService = new SceneCommunicationService();
-
             return new Scene(
-                regionInfo, circuitManager, physicsScene, sceneGridService,
+                regionInfo, circuitManager, physicsScene, 
                 simDataService, estateDataService,
                 Config, m_version);
         }
