@@ -36,6 +36,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 
 using Nini.Config;
 using log4net;
@@ -65,6 +66,8 @@ namespace OpenSim.Services.MapImageService
         private static bool m_Initialized = false;
         private static string m_WaterTileFile = string.Empty;
         private static Color m_Watercolor = Color.FromArgb(29, 71, 95);
+        private static Bitmap m_WaterBitmap = null;
+        private static byte[] m_WaterBytes = null;
 
         public MapImageService(IConfigSource config)
         {
@@ -87,6 +90,18 @@ namespace OpenSim.Services.MapImageService
                         Bitmap waterTile = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH);
                         FillImage(waterTile, m_Watercolor);
                         waterTile.Save(m_WaterTileFile, ImageFormat.Jpeg);
+                        m_WaterBitmap = waterTile;
+                    }
+
+                    if (File.Exists(m_WaterTileFile))
+                    {
+                        m_WaterBitmap = new Bitmap(m_WaterTileFile);
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            m_WaterBitmap.Save(ms,ImageFormat.Jpeg);
+                            ms.Seek(0, SeekOrigin.Begin);
+                            m_WaterBytes = ms.ToArray();
+                        }
                     }
                 }
             }
@@ -139,30 +154,82 @@ namespace OpenSim.Services.MapImageService
             return UpdateMultiResolutionFiles(x, y, scopeID, out reason);
         }
 
+        // When large varregions start up, they can send piles of new map tiles. This causes
+        //    this multi-resolution routine to be called a zillion times an causes much CPU
+        //    time to be spent creating multi-resolution tiles that will be replaced when
+        //    the next maptile arrives.
+        private class mapToMultiRez
+        {
+            public int xx;
+            public int yy;
+            public UUID scopeID;
+            public mapToMultiRez(int pX, int pY, UUID pscopeID)
+            {
+                xx = pX;
+                yy = pY;
+                scopeID = pscopeID;
+            }
+        };
+        private Queue<mapToMultiRez> multiRezToBuild = new Queue<mapToMultiRez>();
+
         private bool UpdateMultiResolutionFiles(int x, int y, UUID scopeID, out string reason)
         {
             reason = String.Empty;
-            lock (m_Sync)
-            {
-                // Stitch seven more aggregate tiles together
-                for (uint zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
-                {
-                    // Calculate the width (in full resolution tiles) and bottom-left
-                    // corner of the current zoom level
-                    int width = (int)Math.Pow(2, (double)(zoomLevel - 1));
-                    int x1 = x - (x % width);
-                    int y1 = y - (y % width);
 
-                    if (!CreateTile(zoomLevel, x1, y1, scopeID))
-                    {
-                        m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
-                        reason = string.Format("Map tile at zoom level {0} failed", zoomLevel);
-                        return false;
-                    }
-                }
+            lock (multiRezToBuild)
+            {
+                // m_log.DebugFormat("{0} UpdateMultiResolutionFilesAsync: scheduling update for <{1},{2}>", LogHeader, x, y);
+                multiRezToBuild.Enqueue(new mapToMultiRez(x, y, scopeID));
+                if (multiRezToBuild.Count == 1)
+                    Util.FireAndForget(
+                        DoUpdateMultiResolutionFilesAsync);
             }
 
             return true;
+        }
+
+        private void DoUpdateMultiResolutionFilesAsync(object o)
+        {
+            // let acumulate large region tiles
+            Thread.Sleep(60 * 1000); // large regions take time to upload tiles
+
+            while (multiRezToBuild.Count > 0)
+            {
+                mapToMultiRez toMultiRez = null;
+                lock (multiRezToBuild)
+                {
+                    if (multiRezToBuild.Count > 0)
+                        toMultiRez = multiRezToBuild.Dequeue();
+                }
+                if (toMultiRez != null)
+                {
+                    int x = toMultiRez.xx;
+                    int y = toMultiRez.yy;
+                    UUID scopeID = toMultiRez.scopeID;
+                    // m_log.DebugFormat("{0} DoUpdateMultiResolutionFilesAsync: doing build for <{1},{2}>", LogHeader, x, y);
+
+                    int width = 1;
+                    // Stitch seven more aggregate tiles together
+                    for (uint zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
+                    {
+                        // Calculate the width (in full resolution tiles) and bottom-left
+                        // corner of the current zoom level
+                        width *= 2;
+                        int x1 = x - (x % width);
+                        int y1 = y - (y % width);
+
+                        lock (m_Sync)   // must lock the reading and writing of the maptile files
+                        {
+                            if (!CreateTile(zoomLevel, x1, y1, scopeID))
+                            {
+                                m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            return;
         }
 
         public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
@@ -178,9 +245,9 @@ namespace OpenSim.Services.MapImageService
                 //m_log.DebugFormat("[MAP IMAGE SERVICE]: Found file {0}, extension {1}", fileName, format);
                 return File.ReadAllBytes(fullName);
             }
-            else if (File.Exists(m_WaterTileFile))
+            else if (m_WaterBytes != null)
             {
-                return File.ReadAllBytes(m_WaterTileFile);
+                return (byte[])m_WaterBytes.Clone();
             }
             else
             {
@@ -226,7 +293,7 @@ namespace OpenSim.Services.MapImageService
                 {
                     // Create a new output tile with a transparent background
                     Bitmap bm = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH, PixelFormat.Format24bppRgb);
-                    bm.MakeTransparent();
+                    //bm.MakeTransparent(); // 24bpp does not have transparency, this whould make it 32bpp
                     return bm;
                 }
             }
@@ -260,48 +327,53 @@ namespace OpenSim.Services.MapImageService
 
             // Open the output tile (current zoom level)
             string outputFile = GetFileName(zoomLevel, xOut, yOut, scopeID);
-            Bitmap output = GetOutputTileImage(outputFile);
-            if (output == null)
-                return false;
-            FillImage(output, m_Watercolor);
+
+            int ntiles = 0;
+            Bitmap output = (Bitmap)m_WaterBitmap.Clone();
 
             if (inputBL != null)
             {
                 ImageCopyResampled(output, inputBL, 0, HALF_WIDTH, 0, 0);
                 inputBL.Dispose();
+                ntiles++;
             }
             if (inputBR != null)
             {
                 ImageCopyResampled(output, inputBR, HALF_WIDTH, HALF_WIDTH, 0, 0);
                 inputBR.Dispose();
+                ntiles++;
             }
             if (inputTL != null)
             {
                 ImageCopyResampled(output, inputTL, 0, 0, 0, 0);
                 inputTL.Dispose();
+                ntiles++;
             }
             if (inputTR != null)
             {
                 ImageCopyResampled(output, inputTR, HALF_WIDTH, 0, 0, 0);
                 inputTR.Dispose();
+                ntiles++;
             }
 
             // Write the modified output
-            try
+            if (ntiles == 0)
+                File.Delete(outputFile);
+
+            else
             {
-                using (Bitmap final = new Bitmap(output))
+
+                try
                 {
-                    output.Dispose();
-                    final.Save(outputFile, ImageFormat.Jpeg);
+                    output.Save(outputFile, ImageFormat.Jpeg);
                 }
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[MAP IMAGE SERVICE]: Oops on saving {0} {1}", outputFile, e);
-            }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[MAP IMAGE SERVICE]: Oops on saving {0} {1}", outputFile, e);
+                }
+            }            // Save also as png?
 
-            // Save also as png?
-
+            output.Dispose();
             return true;
         }
 
