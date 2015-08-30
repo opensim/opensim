@@ -226,7 +226,7 @@ namespace OpenSim.Region.Framework.Scenes
         // the Total, Simulation, Physics, and Network Frame Time; It is set to
         // 10 by default but can be changed by the OpenSim.ini configuration file
         // NumberOfFrames parameter
-        private int m_numberFramesStored = Scene.m_defaultNumberFramesStored;
+        private int m_numberFramesStored;
 
         // The arrays that will hold the time it took to run the past N frames,
         // where N is the num_frames_to_average given by the configuration file
@@ -259,7 +259,15 @@ namespace OpenSim.Region.Framework.Scenes
         private IEstateModule estateModule;
 
         public SimStatsReporter(Scene scene)
+            : this(scene, Scene.m_defaultNumberFramesStored)
         {
+        }
+
+        public SimStatsReporter(Scene scene, int numberOfFrames)
+        {
+            // Store the number of frames from the OpenSim.ini configuration file
+            m_numberFramesStored = numberOfFrames;
+
             // Initialize the different frame time arrays to the correct sizes
             m_totalFrameTimeMilliseconds = new double[m_numberFramesStored];
             m_simulationFrameTimeMilliseconds = new double[m_numberFramesStored];
@@ -300,13 +308,7 @@ namespace OpenSim.Region.Framework.Scenes
                     StatVerbosity.Info);
 
             StatsManager.RegisterStat(SlowFramesStat);
-        }
 
-
-        public SimStatsReporter(Scene scene, int numberOfFrames) : this (scene)
-        {
-            // Store the number of frames from the OpenSim.ini configuration file
-            m_numberFramesStored = numberOfFrames;
         }
 
 
