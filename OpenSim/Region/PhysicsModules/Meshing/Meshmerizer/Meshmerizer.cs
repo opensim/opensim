@@ -28,7 +28,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -38,29 +42,12 @@ using System.IO.Compression;
 using PrimMesher;
 using log4net;
 using Nini.Config;
-using System.Reflection;
-using System.IO;
+using Mono.Addins;
 
-namespace OpenSim.Region.PhysicsModule.Meshing
+namespace OpenSim.Region.PhysicsModules.Meshing
 {
-    public class MeshmerizerPlugin : IMeshingPlugin
-    {
-        public MeshmerizerPlugin()
-        {
-        }
-
-        public string GetName()
-        {
-            return "Meshmerizer";
-        }
-
-        public IMesher GetMesher(IConfigSource config)
-        {
-            return new Meshmerizer(config);
-        }
-    }
-
-    public class Meshmerizer : IMesher
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "Meshmerizer")]
+    public class Meshmerizer : IMesher, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static string LogHeader = "[MESH]";
@@ -72,6 +59,8 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 #else
         private const string baseDir = null; //"rawFiles";
 #endif
+        private bool m_Enabled = false;
+
         // If 'true', lots of DEBUG logging of asset parsing details
         private bool debugDetail = false;
 
@@ -87,29 +76,78 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         // Mesh cache. Static so it can be shared across instances of this class
         private static Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
-        public Meshmerizer(IConfigSource config)
+        #region INonSharedRegionModule
+        public string Name
         {
-            IConfig start_config = config.Configs["Startup"];
-            IConfig mesh_config = config.Configs["Mesh"];
+            get { return "Meshmerizer"; }
+        }
 
-            decodedSculptMapPath = start_config.GetString("DecodedSculptMapPath","j2kDecodeCache");
-            cacheSculptMaps = start_config.GetBoolean("CacheSculptMaps", cacheSculptMaps);
-            if (mesh_config != null)
-            {
-                useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
-                debugDetail = mesh_config.GetBoolean("LogMeshDetails", debugDetail);
-            }
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
 
-            try
+        public void Initialise(IConfigSource source)
+        {
+            IConfig config = source.Configs["Startup"];
+            if (config != null)
             {
-                if (!Directory.Exists(decodedSculptMapPath))
-                    Directory.CreateDirectory(decodedSculptMapPath);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedSculptMapPath, e.Message);
+                string mesher = config.GetString("meshing", string.Empty);
+                if (mesher == Name)
+                {
+                    m_Enabled = true;
+
+                    IConfig mesh_config = source.Configs["Mesh"];
+
+                    decodedSculptMapPath = config.GetString("DecodedSculptMapPath", "j2kDecodeCache");
+                    cacheSculptMaps = config.GetBoolean("CacheSculptMaps", cacheSculptMaps);
+                    if (mesh_config != null)
+                    {
+                        useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
+                        debugDetail = mesh_config.GetBoolean("LogMeshDetails", debugDetail);
+                    }
+
+                    try
+                    {
+                        if (!Directory.Exists(decodedSculptMapPath))
+                            Directory.CreateDirectory(decodedSculptMapPath);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedSculptMapPath, e.Message);
+                    }
+
+                }
             }
         }
+
+        public void Close()
+        {
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            scene.RegisterModuleInterface<IMesher>(this);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            scene.UnregisterModuleInterface<IMesher>(this);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+        #endregion
+
 
         /// <summary>
         /// creates a simple box mesh of the specified size. This mesh is of very low vertex count and may
@@ -967,5 +1005,6 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 
             return mesh;
         }
+
     }
 }

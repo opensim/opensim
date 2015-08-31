@@ -26,9 +26,15 @@
  */
 
 using System;
+using System.Reflection;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 using Nini.Config;
+using Mono.Addins;
+using log4net;
 
 /*
  * This is the zero mesher.
@@ -41,27 +47,67 @@ using Nini.Config;
  * it's always availabe and thus the default in case of configuration errors
 */
 
-namespace OpenSim.Region.PhysicsModules.SharedBase
+namespace OpenSim.Region.PhysicsModules.Meshing
 {
-    public class ZeroMesherPlugin : IMeshingPlugin
+
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ZeroMesher")]
+    public class ZeroMesher : IMesher, INonSharedRegionModule
     {
-        public ZeroMesherPlugin()
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private bool m_Enabled = false;
+
+        #region INonSharedRegionModule
+        public string Name
+        {
+            get { return "ZeroMesher"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+            // TODO: Move this out of Startup
+            IConfig config = source.Configs["Startup"];
+            if (config != null)
+            {
+                // This is the default Mesher
+                string mesher = config.GetString("meshing", Name);
+                if (mesher == Name)
+                    m_Enabled = true;
+            }
+        }
+
+        public void Close()
         {
         }
 
-        public string GetName()
+        public void AddRegion(Scene scene)
         {
-            return "ZeroMesher";
+            if (!m_Enabled)
+                return;
+
+            scene.RegisterModuleInterface<IMesher>(this);
         }
 
-        public IMesher GetMesher(IConfigSource config)
+        public void RemoveRegion(Scene scene)
         {
-            return new ZeroMesher();
-        }
-    }
+            if (!m_Enabled)
+                return;
 
-    public class ZeroMesher : IMesher
-    {
+            scene.UnregisterModuleInterface<IMesher>(this);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+        #endregion
+
+        #region IMesher
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
             return CreateMesh(primName, primShape, size, lod, false, false);
@@ -79,5 +125,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
             return null;
         }
+        #endregion
+
+
     }
 }

@@ -51,13 +51,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// </summary>
         public PhysicsPluginManager()
         {
-            // Load "plugins", that are hard coded and not existing in form of an external lib, and hence always 
-            // available
-            IMeshingPlugin plugHard;
-            plugHard = new ZeroMesherPlugin();
-            _MeshPlugins.Add(plugHard.GetName(), plugHard);
-            
-            m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());
         }
 
         /// <summary>

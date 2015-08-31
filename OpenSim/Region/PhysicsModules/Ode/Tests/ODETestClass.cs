@@ -56,8 +56,6 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
 
             // Loading ODEPlugin
             cbt = new OdePlugin();
-            // Loading Zero Mesher
-            imp = new ZeroMesherPlugin();
             // Getting Physics Scene
             ps = cbt.GetScene("test");
             // Initializing Physics Scene.

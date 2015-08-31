@@ -1,11 +1,12 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Mono.Addins;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OpenSim.Region.Physics.Meshing")]
+[assembly: AssemblyTitle("OpenSim.Region.PhysicsModules.Meshing")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("http://opensimulator.org")]
@@ -31,3 +32,5 @@ using System.Runtime.InteropServices;
 //
 [assembly: AssemblyVersion("0.8.2.*")]
 
+[assembly: Addin("OpenSim.Region.PhysicsModules.Meshing", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
