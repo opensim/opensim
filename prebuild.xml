@@ -410,7 +410,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.Manager" path="OpenSim/Region/Physics/Manager" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.SharedBase" path="OpenSim/Region/PhysicsModules/SharedBase" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -438,7 +438,7 @@
     </Project>
 
     <!-- Physics Plug-ins -->
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.BasicPhysicsPlugin" path="OpenSim/Region/Physics/BasicPhysicsPlugin" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.BasicPhysics" path="OpenSim/Region/Physics/BasicPhysics" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
@@ -455,13 +455,13 @@
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.POSPlugin" path="OpenSim/Region/Physics/POSPlugin" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.POS" path="OpenSim/Region/PhysicsModules/POS" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
@@ -478,13 +478,13 @@
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.OdePlugin" path="OpenSim/Region/Physics/OdePlugin" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.Ode" path="OpenSim/Region/PhysicsModules/Ode" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
@@ -503,7 +503,7 @@
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="Ode.NET" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
@@ -514,7 +514,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.Meshing" path="OpenSim/Region/Physics/Meshing" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.Meshing" path="OpenSim/Region/PhysicsModules/Meshing" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
@@ -536,7 +536,7 @@
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>
@@ -653,7 +653,7 @@
       <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="XMLRPC" path="../../../bin/"/>
@@ -1507,7 +1507,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="XMLRPC" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
@@ -1594,7 +1594,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Mono.Addins" path="../../../../../bin/"/>
       <Reference name="Nini" path="../../../../../bin/"/>
@@ -1648,7 +1648,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="OpenSim.Services.Connectors"/>
@@ -1700,7 +1700,7 @@
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="Nini" path="../../../bin/"/>
@@ -1749,7 +1749,7 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="OpenSim.Services.Connectors"/>
@@ -1801,7 +1801,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.ConvexDecompositionDotNet" path="OpenSim/Region/Physics/ConvexDecompositionDotNet" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet" path="OpenSim/Region/PhysicsModules/ConvexDecompositionDotNet" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -1826,7 +1826,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.BulletSPlugin" path="OpenSim/Region/Physics/BulletSPlugin" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.BulletS" path="OpenSim/Region/PhysicsModules/BulletS" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
@@ -1852,9 +1852,9 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Physics.Meshing" path="../../../../bin/Physics/"/>
-      <Reference name="OpenSim.Region.Physics.ConvexDecompositionDotNet"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
+      <Reference name="OpenSim.Region.PhysicsModule.Meshing" path="../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet"/>
       <Reference name="BulletXNA.dll" path="../../../../bin/"/>
       <Reference name="log4net.dll" path="../../../../bin/"/>
 
@@ -1897,7 +1897,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.ClientStack"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.Interfaces"/>
@@ -2270,7 +2270,7 @@
       <Reference name="OpenSim.Framework.Monitoring"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Services.Interfaces"/>
 	  <Reference name="OpenSim.Services.Connectors"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
@@ -2464,7 +2464,7 @@
       <Reference name="OpenSim.Framework.Monitoring"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="Mono.Data.SqliteClient" path="../../../bin/"/>
       <Reference name="Mono.Addins" path="../../../bin/"/>
 
@@ -2729,7 +2729,7 @@
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Services.Interfaces"/>
@@ -3056,7 +3056,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.XEngine"/>
       <Reference name="OpenSim.Services.Interfaces"/>
@@ -3136,7 +3136,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Services.AvatarService"/>
       <Reference name="OpenSim.Services.Interfaces"/>
@@ -3204,7 +3204,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
       <Reference name="OpenSim.Services.Interfaces"/>
 
       <!-- Unit tests -->
@@ -3369,7 +3369,7 @@
            TODO: this is kind of lame, we basically build a duplicate
            assembly but with tests added in, just because we can't resolve cross-bin-dir-refs.
       -->
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.OdePlugin.Tests" path="OpenSim/Region/Physics/OdePlugin/Tests" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.Ode.Tests" path="OpenSim/Region/PhysicsModules/Ode/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>
@@ -3388,8 +3388,8 @@
       <Reference name="Nini" path="../../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Physics.OdePlugin" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
+      <Reference name="OpenSim.Region.PhysicsModule.Ode" path="../../../../../bin/Physics/"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Ode.NET" path="../../../../../bin/"/>
       <Reference name="nunit.framework" path="../../../../../bin/"/>
@@ -3400,7 +3400,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.Physics.BulletSPlugin.Tests" path="OpenSim/Region/Physics/BulletSPlugin/Tests" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.BulletS.Tests" path="OpenSim/Region/PhysicsModules/BulletS/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>
@@ -3424,9 +3424,9 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.Physics.Meshing" path="../../../../../bin/Physics/"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Physics.BulletSPlugin" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.Meshing" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.SharedBase"/>
+      <Reference name="OpenSim.Region.PhysicsModule.BulletS" path="../../../../../bin/Physics/"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>
