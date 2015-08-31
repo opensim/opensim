@@ -47,7 +47,6 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
 
         //private OpenSim.Region.PhysicsModule.ODE.OdePlugin cbt;
         private PhysicsScene pScene;
-        private IMeshingPlugin imp;
 
         [SetUp]
         public void Initialize()

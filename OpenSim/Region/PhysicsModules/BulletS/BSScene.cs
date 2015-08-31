@@ -251,7 +251,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             Initialise(m_Config, extent);
 
             base.Initialise(scene.PhysicsRequestAsset,
-                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[Constants.RegionSize * Constants.RegionSize]),
+                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[scene.RegionInfo.RegionSizeX * scene.RegionInfo.RegionSizeY]),
                 (float)scene.RegionInfo.RegionSettings.WaterHeight);
 
         }

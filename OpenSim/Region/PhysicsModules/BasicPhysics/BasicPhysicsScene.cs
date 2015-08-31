@@ -94,7 +94,7 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
             scene.RegisterModuleInterface<PhysicsScene>(this);
             m_regionExtent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
             base.Initialise(scene.PhysicsRequestAsset,
-                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[Constants.RegionSize * Constants.RegionSize]),
+                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[scene.RegionInfo.RegionSizeX * scene.RegionInfo.RegionSizeY]),
                 (float)scene.RegionInfo.RegionSettings.WaterHeight);
 
         }
@@ -164,8 +164,8 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
                 Vector3 actorPosition = actor.Position;
                 Vector3 actorVelocity = actor.Velocity;
 
-//                Console.WriteLine(
-//                    "Processing actor {0}, starting pos {1}, starting vel {2}", i, actorPosition, actorVelocity);
+                //Console.WriteLine(
+                //    "Processing actor {0}, starting pos {1}, starting vel {2}", i, actorPosition, actorVelocity);
 
                 actorPosition.X += actor.Velocity.X * timeStep;
                 actorPosition.Y += actor.Velocity.Y * timeStep;
