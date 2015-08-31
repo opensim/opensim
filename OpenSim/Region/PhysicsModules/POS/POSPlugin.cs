@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 
 namespace OpenSim.Region.PhysicsModule.POS
 {

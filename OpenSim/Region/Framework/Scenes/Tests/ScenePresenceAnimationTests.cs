@@ -41,7 +41,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.Framework.Scenes.Tests

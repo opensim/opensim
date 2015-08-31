@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModule.SharedBase
+namespace OpenSim.Region.PhysicsModules.SharedBase
 {
     public interface IMesher
     {

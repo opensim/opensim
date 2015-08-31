@@ -36,7 +36,7 @@ using log4net;
 using Nini.Config;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.ODE

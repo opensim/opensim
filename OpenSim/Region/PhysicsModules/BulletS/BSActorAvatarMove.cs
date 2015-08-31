@@ -31,7 +31,7 @@ using System.Linq;
 using System.Text;
 
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 
 using OMV = OpenMetaverse;
 

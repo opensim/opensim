@@ -44,7 +44,7 @@ using OpenMetaverse;
 using Drawstuff.NET;
 #endif 
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {

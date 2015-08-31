@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System.Drawing;

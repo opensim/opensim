@@ -34,7 +34,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModule.SharedBase
+namespace OpenSim.Region.PhysicsModules.SharedBase
 {
     /// <summary>
     /// Description of MyClass.
@@ -129,8 +129,8 @@ namespace OpenSim.Region.PhysicsModule.SharedBase
         public void LoadPluginsFromAssembly(string assemblyPath)
         {
             // TODO / NOTE
-            // The assembly named 'OpenSim.Region.Physics.BasicPhysicsPlugin' was loaded from
-            // 'file:///C:/OpenSim/trunk2/bin/Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll'
+            // The assembly named 'OpenSim.Region.PhysicsModule.BasicPhysics' was loaded from
+            // 'file:///C:/OpenSim/trunk2/bin/Physics/OpenSim.Region.PhysicsModule.BasicPhysics.dll'
             // using the LoadFrom context. The use of this context can result in unexpected behavior
             // for serialization, casting and dependency resolution. In almost all cases, it is recommended
             // that the LoadFrom context be avoided. This can be done by installing assemblies in the

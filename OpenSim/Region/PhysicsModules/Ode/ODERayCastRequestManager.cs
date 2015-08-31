@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenMetaverse;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using Ode.NET;
 using log4net;
 

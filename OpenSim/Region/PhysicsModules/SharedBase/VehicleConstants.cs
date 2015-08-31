@@ -27,7 +27,7 @@
 
 using System;
 
-namespace OpenSim.Region.PhysicsModule.SharedBase
+namespace OpenSim.Region.PhysicsModules.SharedBase
 {
     public enum Vehicle : int
     {

@@ -41,7 +41,7 @@ using Nini.Config;
  * it's always availabe and thus the default in case of configuration errors
 */
 
-namespace OpenSim.Region.PhysicsModule.SharedBase
+namespace OpenSim.Region.PhysicsModules.SharedBase
 {
     public class ZeroMesherPlugin : IMeshingPlugin
     {

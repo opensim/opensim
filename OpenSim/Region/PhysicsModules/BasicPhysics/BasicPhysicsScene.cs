@@ -30,9 +30,9 @@ using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 
-namespace OpenSim.Region.Physics.BasicPhysicsPlugin
+namespace OpenSim.Region.PhysicsModule.BasicPhysics
 {
     /// <summary>
     /// This is an incomplete extremely basic physics implementation

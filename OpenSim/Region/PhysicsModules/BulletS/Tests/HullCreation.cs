@@ -35,7 +35,7 @@ using log4net;
 
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModule.BulletS;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Tests.Common;
 
 using OpenMetaverse;

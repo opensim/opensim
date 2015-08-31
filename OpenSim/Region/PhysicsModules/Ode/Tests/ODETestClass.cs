@@ -30,7 +30,7 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.PhysicsModule.ODE;
 using OpenSim.Tests.Common;
 using log4net;

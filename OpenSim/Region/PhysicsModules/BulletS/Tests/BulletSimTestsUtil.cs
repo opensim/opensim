@@ -33,7 +33,7 @@ using System.Text;
 using Nini.Config;
 
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.PhysicsModule.Meshing;
 
 using OpenMetaverse;

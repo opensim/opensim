@@ -29,9 +29,9 @@ using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 
-namespace OpenSim.Region.Physics.BasicPhysicsPlugin
+namespace OpenSim.Region.PhysicsModule.BasicPhysics
 {
     /// <summary>
     /// Effectively a physics plugin that simulates no physics at all.

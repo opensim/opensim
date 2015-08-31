@@ -27,7 +27,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS

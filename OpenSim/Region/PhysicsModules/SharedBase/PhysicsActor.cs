@@ -32,7 +32,7 @@ using System.Reflection;
 using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModule.SharedBase
+namespace OpenSim.Region.PhysicsModules.SharedBase
 {
     public delegate void PositionUpdate(Vector3 position);
     public delegate void VelocityUpdate(Vector3 velocity);

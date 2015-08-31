@@ -36,7 +36,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -149,7 +149,7 @@ namespace OpenSim.Tests.Common
             regInfo.RegionSizeY = sizeY;
 
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
-            physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
+            physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.PhysicsModule.BasicPhysics.dll");
             Vector3 regionExtent = new Vector3( regInfo.RegionSizeX, regInfo.RegionSizeY, regInfo.RegionSizeZ);
             PhysicsScene physicsScene 
                 = physicsPluginManager.GetPhysicsScene(
