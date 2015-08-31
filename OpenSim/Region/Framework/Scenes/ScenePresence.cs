@@ -1198,9 +1198,6 @@ no information to check this
                 }
                 AbsolutePosition = pos;
 
-                // reset camera to avatar pos
-                CameraPosition = pos;
-
                 if (m_teleportFlags == TeleportFlags.Default)
                 {
                     Vector3 vel = Velocity;
@@ -1209,8 +1206,11 @@ no information to check this
                         PhysicsActor.SetMomentum(vel);
                 }
                 else
+                {
                     AddToPhysicalScene(isFlying);
-
+                    // reset camera to avatar pos
+                    CameraPosition = pos;
+                }
 
                 if (ForceFly)
                 {
