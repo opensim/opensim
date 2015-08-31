@@ -3588,17 +3588,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_rotationalVelocity.Y = vel.Y;
                             m_rotationalVelocity.Z = vel.Z;
                         }
+                        //                    }
+
+                        _position.X = lpos.X;
+                        _position.Y = lpos.Y;
+                        _position.Z = lpos.Z;
+
+                        _orientation.X = ori.X;
+                        _orientation.Y = ori.Y;
+                        _orientation.Z = ori.Z;
+                        _orientation.W = ori.W;
                     }
-
-                    _position.X = lpos.X;
-                    _position.Y = lpos.Y;
-                    _position.Z = lpos.Z;
-
-                    _orientation.X = ori.X;
-                    _orientation.Y = ori.Y;
-                    _orientation.Z = ori.Z;
-                    _orientation.W = ori.W;
-
                     if (_zeroFlag)
                     {
                         if (lastZeroFlag)
