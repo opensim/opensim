@@ -3380,7 +3380,7 @@ Console.WriteLine(" JointCreateFixed");
             {
                 m_log.WarnFormat(
                     "[ODE PRIM]: Could not get mesh/sculpt asset {0} for {1} at {2} in {3}",
-                    _pbs.SculptTexture, Name, _position, _parent_scene.Name);
+                    _pbs.SculptTexture, Name, _position, _parent_scene.PhysicsSceneName);
             }
         }          
     }

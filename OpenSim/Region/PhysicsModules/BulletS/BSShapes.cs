@@ -299,7 +299,7 @@ public abstract class BSShape
                 {
                     xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedAssetFetch;
                     physicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
-                                                LogHeader, physicsScene.Name);
+                                                LogHeader, physicsScene.PhysicsSceneName);
                 }
             }
             else
@@ -336,7 +336,7 @@ public abstract class BSShape
         if (pScene != null)
         {
             buff.Append("/rgn=");
-            buff.Append(pScene.Name);
+            buff.Append(pScene.PhysicsSceneName);
         }
         return buff.ToString();
     }

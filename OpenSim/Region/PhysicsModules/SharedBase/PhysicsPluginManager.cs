@@ -89,7 +89,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             {
                 m_log.Info("[PHYSICS]: creating " + physEngineName);
                 PhysicsScene result = _PhysPlugins[physEngineName].GetScene(regionName);
-                result.Initialise(meshEngine, config, regionExtent);
+                //result.Initialise(meshEngine, config, regionExtent);
                 return result;
             }
             else

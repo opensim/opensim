@@ -30,7 +30,7 @@ using System.IO;
 using System.Text;
 using log4net;
 
-namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
+namespace OpenSim.Framework
 {
     /// <summary>
     /// Class for writing a high performance, high volume log file.

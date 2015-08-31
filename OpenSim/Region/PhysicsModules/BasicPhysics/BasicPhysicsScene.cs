@@ -28,9 +28,12 @@
 using System;
 using System.Collections.Generic;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.PhysicsModule.BasicPhysics
 {
@@ -41,31 +44,70 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
     /// Not useful for anything at the moment apart from some regression testing in other components where some form
     /// of physics plugin is needed.
     /// </remarks>
-    public class BasicScene : PhysicsScene
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BasicPhysicsScene")]
+    public class BasicScene : PhysicsScene, INonSharedRegionModule
     {
         private List<BasicActor> _actors = new List<BasicActor>();
         private List<BasicPhysicsPrim> _prims = new List<BasicPhysicsPrim>();
         private float[] _heightMap;
         private Vector3 m_regionExtent;
 
+        private bool m_Enabled = false;
+
         //protected internal string sceneIdentifier;
-
-        public BasicScene(string engineType, string _sceneIdentifier)
+        #region INonSharedRegionModule
+        public string Name
         {
-            EngineType = engineType;
-            Name = EngineType + "/" + _sceneIdentifier;
-            //sceneIdentifier = _sceneIdentifier;
+            get { return "basicphysics"; }
         }
 
-        public override void Initialise(IMesher meshmerizer, IConfigSource config)
+        public Type ReplaceableInterface
         {
-            throw new Exception("Should not be called.");
+            get { return null; }
         }
 
-        public override void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
+        public void Initialise(IConfigSource source)
         {
-            m_regionExtent = regionExtent;
+            // TODO: Move this out of Startup
+            IConfig config = source.Configs["Startup"];
+            if (config != null)
+            {
+                string physics = config.GetString("physics", string.Empty);
+                if (physics == Name)
+                    m_Enabled = true;
+            }
+
         }
+
+        public void Close()
+        {
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            EngineType = Name;
+            PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
+
+            scene.RegisterModuleInterface<PhysicsScene>(this);
+            m_regionExtent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
+
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+        #endregion
 
         public override void Dispose() {}
 
@@ -206,5 +248,6 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
             Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
             return returncolliders;
         }
+
     }
 }

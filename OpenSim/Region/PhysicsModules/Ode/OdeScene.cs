@@ -38,6 +38,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using Ode.NET;
 using OpenMetaverse;
 #if USE_DRAWSTUFF
@@ -45,6 +46,9 @@ using Drawstuff.NET;
 #endif 
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {
@@ -101,9 +105,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
         Rubber = 6
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ODEPhysicsScene")]
     public class OdeScene : PhysicsScene
     {
-        private readonly ILog m_log;
+        private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString());
+        private bool m_Enabled = false;
+
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         /// <summary>
@@ -288,7 +295,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private int framecount = 0;
         //private int m_returncollisions = 10;
 
-        private readonly IntPtr contactgroup;
+        private IntPtr contactgroup;
 
         internal IntPtr WaterGeom;
 
@@ -520,19 +527,90 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         private ODERayCastRequestManager m_rayCastManager;
 
+
+        #region INonSharedRegionModule
+        public string Name
+        {
+            get { return "OpenDynamicsEngine"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+            // TODO: Move this out of Startup
+            IConfig config = source.Configs["Startup"];
+            if (config != null)
+            {
+                string physics = config.GetString("physics", string.Empty);
+                if (physics == Name)
+                {
+                    m_Enabled = true;
+                    m_config = source;
+
+                    // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
+                    // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+                    // will find it already loaded later on.
+                    //
+                    // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+                    // controlled in Ode.NET.dll.config
+                    if (Util.IsWindows())
+                        Util.LoadArchSpecificWindowsDll("ode.dll");
+
+                    // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
+                    // http://opensimulator.org/mantis/view.php?id=2750).
+                    d.InitODE();
+
+                }
+            }
+
+        }
+
+        public void Close()
+        {
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            EngineType = Name;
+            PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
+
+            scene.RegisterModuleInterface<PhysicsScene>(this);
+            Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
+            Initialise();
+            InitialiseFromConfig(m_config);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            mesher = scene.RequestModuleInterface<IMesher>();
+            if (mesher == null)
+                m_log.WarnFormat("[ODE SCENE]: No mesher in {0}. Things will not work well.", PhysicsSceneName);
+        }
+        #endregion
+
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
-        /// <param value="name">Name of the scene.  Useful in debug messages.</param>
-        public OdeScene(string engineType, string name)
+        private void Initialise()
         {
-            m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
-
-            Name = name;
-            EngineType = engineType;
-
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
@@ -572,12 +650,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
         }
 #endif
 
-        // Initialize the mesh plugin
-        public override void Initialise(IMesher meshmerizer, IConfigSource config)
+        // Initialize from configs
+        private void InitialiseFromConfig(IConfigSource config)
         {
             InitializeExtraStats();
 
-            mesher = meshmerizer;
             m_config = config;
             // Defaults
 
@@ -1818,7 +1895,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.ErrorFormat("[ODE SCENE]: Unable to space collide {0}", Name);
+                    m_log.ErrorFormat("[ODE SCENE]: Unable to space collide {0}", PhysicsSceneName);
                 }
                 
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
@@ -3082,7 +3159,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             {
                                 m_log.ErrorFormat(
                                     "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2} due to defect found when moving",
-                                    actor.Name, actor.LocalID, Name);
+                                    actor.Name, actor.LocalID, PhysicsSceneName);
 
                                 RemoveCharacter(actor);
                                 actor.DestroyOdeStructures();
@@ -3198,7 +3275,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     {
                         m_log.ErrorFormat(
                             "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2} due to defect found when updating position and velocity",
-                            actor.Name, actor.LocalID, Name);
+                            actor.Name, actor.LocalID, PhysicsSceneName);
 
                         RemoveCharacter(actor);
                         actor.DestroyOdeStructures();
@@ -3795,7 +3872,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
             int startTime = Util.EnvironmentTickCount();
-            m_log.DebugFormat("[ODE SCENE]: Setting terrain for {0} with offset {1}", Name, pOffset);
+            m_log.DebugFormat("[ODE SCENE]: Setting terrain for {0} with offset {1}", PhysicsSceneName, pOffset);
 
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
@@ -3920,7 +3997,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
 
             m_log.DebugFormat(
-                "[ODE SCENE]: Setting terrain for {0} took {1}ms", Name, Util.EnvironmentTickCountSubtract(startTime));
+                "[ODE SCENE]: Setting terrain for {0} took {1}ms", PhysicsSceneName, Util.EnvironmentTickCountSubtract(startTime));
         }
 
         public override void DeleteTerrain()

@@ -98,7 +98,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// Useful in debug messages to distinguish one OdeScene instance from another.
         /// Usually set to include the region name that the physics engine is acting for.
         /// </summary>
-        public string Name { get; protected set; }
+        public string PhysicsSceneName { get; protected set; }
 
         /// <summary>
         /// A string identifying the family of this physics engine. Most common values returned
@@ -124,17 +124,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             {
                 OnPhysicsCrash();
             }
-        }
-
-        // Deprecated. Do not use this for new physics engines.
-        public abstract void Initialise(IMesher meshmerizer, IConfigSource config);
-
-        // For older physics engines that do not implement non-legacy region sizes.
-        // If the physics engine handles the region extent feature, it overrides this function.
-        public virtual void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
-        {
-            // If not overridden, call the old initialization entry.
-            Initialise(meshmerizer, config);
         }
 
         /// <summary>

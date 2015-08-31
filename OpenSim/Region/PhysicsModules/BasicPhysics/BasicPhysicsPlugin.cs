@@ -36,29 +36,29 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
     /// <summary>
     /// Effectively a physics plugin that simulates no physics at all.
     /// </summary>
-    public class BasicPhysicsPlugin : IPhysicsPlugin
-    {
-        public BasicPhysicsPlugin()
-        {
-        }
+    //public class BasicPhysicsPlugin : IPhysicsPlugin
+    //{
+    //    public BasicPhysicsPlugin()
+    //    {
+    //    }
 
-        public bool Init()
-        {
-            return true;
-        }
+    //    public bool Init()
+    //    {
+    //        return true;
+    //    }
 
-        public PhysicsScene GetScene(string sceneIdentifier)
-        {
-            return new BasicScene(GetName(), sceneIdentifier);
-        }
+    //    public PhysicsScene GetScene(string sceneIdentifier)
+    //    {
+    //        return new BasicScene(GetName(), sceneIdentifier);
+    //    }
 
-        public string GetName()
-        {
-            return ("basicphysics");
-        }
+    //    public string GetName()
+    //    {
+    //        return ("basicphysics");
+    //    }
 
-        public void Dispose()
-        {
-        }
-    }
+    //    public void Dispose()
+    //    {
+    //    }
+    //}
 }

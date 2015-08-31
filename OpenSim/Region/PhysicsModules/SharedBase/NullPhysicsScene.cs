@@ -40,11 +40,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         
         private static int m_workIndicator;
 
-        public override void Initialise(IMesher meshmerizer, IConfigSource config)
-        {
-            // Does nothing right now
-        }
-
         public override PhysicsActor AddAvatar(
             string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {

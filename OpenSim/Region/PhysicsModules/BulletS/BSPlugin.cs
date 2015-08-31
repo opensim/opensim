@@ -40,37 +40,37 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     /// The unmanaged library is compiled and linked statically with Bullet
     /// to create BulletSim.dll and libBulletSim.so (for both 32 and 64 bit).
     /// </summary>
-public class BSPlugin : IPhysicsPlugin
-{
-    //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//public class BSPlugin : IPhysicsPlugin
+//{
+//    //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-    private BSScene _mScene;
+//    private BSScene _mScene;
 
-    public BSPlugin()
-    {
-    }
+//    public BSPlugin()
+//    {
+//    }
 
-    public bool Init()
-    {
-        return true;
-    }
+//    public bool Init()
+//    {
+//        return true;
+//    }
 
-    public PhysicsScene GetScene(String sceneIdentifier)
-    {
-        if (_mScene == null)
-        {
-            _mScene = new BSScene(GetName(), sceneIdentifier);
-        }
-        return (_mScene);
-    }
+//    public PhysicsScene GetScene(String sceneIdentifier)
+//    {
+//        if (_mScene == null)
+//        {
+//            _mScene = new BSScene(GetName(), sceneIdentifier);
+//        }
+//        return (_mScene);
+//    }
 
-    public string GetName()
-    {
-        return ("BulletSim");
-    }
+//    public string GetName()
+//    {
+//        return ("BulletSim");
+//    }
 
-    public void Dispose()
-    {
-    }
-}
+//    public void Dispose()
+//    {
+//    }
+//}
 }

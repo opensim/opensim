@@ -44,47 +44,47 @@ namespace OpenSim.Region.PhysicsModule.ODE
     /// <summary>
     /// ODE plugin
     /// </summary>
-    public class OdePlugin : IPhysicsPlugin
-    {
-//        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//    public class OdePlugin : IPhysicsPlugin
+//    {
+////        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OdeScene m_scene;
+//        private OdeScene m_scene;
 
-        public bool Init()
-        {
-            return true;
-        }
+//        public bool Init()
+//        {
+//            return true;
+//        }
 
-        public PhysicsScene GetScene(String sceneIdentifier)
-        {
-            if (m_scene == null)
-            {
-                // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
-                // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
-                // will find it already loaded later on.
-                //
-                // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
-                // controlled in Ode.NET.dll.config
-                if (Util.IsWindows())
-                    Util.LoadArchSpecificWindowsDll("ode.dll");
+//        public PhysicsScene GetScene(String sceneIdentifier)
+//        {
+//            if (m_scene == null)
+//            {
+//                // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
+//                // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+//                // will find it already loaded later on.
+//                //
+//                // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+//                // controlled in Ode.NET.dll.config
+//                if (Util.IsWindows())
+//                    Util.LoadArchSpecificWindowsDll("ode.dll");
 
-                // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
-                // http://opensimulator.org/mantis/view.php?id=2750).
-                d.InitODE();
+//                // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
+//                // http://opensimulator.org/mantis/view.php?id=2750).
+//                d.InitODE();
                 
-                m_scene = new OdeScene(GetName(), sceneIdentifier);
-            }
+//                m_scene = new OdeScene(GetName(), sceneIdentifier);
+//            }
 
-            return m_scene;
-        }
+//            return m_scene;
+//        }
 
-        public string GetName()
-        {
-            return ("OpenDynamicsEngine");
-        }
+//        public string GetName()
+//        {
+//            return ("OpenDynamicsEngine");
+//        }
 
-        public void Dispose()
-        {
-        }
-    }
+//        public void Dispose()
+//        {
+//        }
+//    }
 }

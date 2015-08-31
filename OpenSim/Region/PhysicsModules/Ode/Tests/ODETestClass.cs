@@ -43,7 +43,7 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenSim.Region.PhysicsModule.ODE.OdePlugin cbt;
+        //private OpenSim.Region.PhysicsModule.ODE.OdePlugin cbt;
         private PhysicsScene ps;
         private IMeshingPlugin imp;
 
@@ -55,11 +55,11 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
             config.Set("DecodedSculptMapPath","j2kDecodeCache");
 
             // Loading ODEPlugin
-            cbt = new OdePlugin();
+            //cbt = new OdePlugin();
             // Getting Physics Scene
-            ps = cbt.GetScene("test");
+            //ps = cbt.GetScene("test");
             // Initializing Physics Scene.
-            ps.Initialise(imp.GetMesher(TopConfig),null);
+            //ps.Initialise(imp.GetMesher(TopConfig), null, Vector3.Zero);
             float[] _heightmap = new float[(int)Constants.RegionSize * (int)Constants.RegionSize];
             for (int i = 0; i < ((int)Constants.RegionSize * (int)Constants.RegionSize); i++)
             {

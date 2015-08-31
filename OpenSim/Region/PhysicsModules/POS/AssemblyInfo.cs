@@ -27,6 +27,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Mono.Addins;
 
 // Information about this assembly is defined by the following
 // attributes.
@@ -56,3 +57,6 @@ using System.Runtime.InteropServices;
 // numbers with the '*' character (the default):
 
 [assembly : AssemblyVersion("0.8.2.*")]
+
+[assembly: Addin("OpenSim.Region.PhysicsModule.POS", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]

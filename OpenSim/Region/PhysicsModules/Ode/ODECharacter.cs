@@ -511,7 +511,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
             else
             {
-                m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Size for {0} in {1}", Name, _parent_scene.Name);
+                m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Size for {0} in {1}", Name, _parent_scene.PhysicsSceneName);
             }
         }
 

@@ -36,29 +36,29 @@ namespace OpenSim.Region.PhysicsModule.POS
     /// <summary>
     /// for now will be a very POS physics engine
     /// </summary>
-    public class POSPlugin : IPhysicsPlugin
-    {
-        public POSPlugin()
-        {
-        }
+    //public class POSPlugin : IPhysicsPlugin
+    //{
+    //    public POSPlugin()
+    //    {
+    //    }
 
-        public bool Init()
-        {
-            return true;
-        }
+    //    public bool Init()
+    //    {
+    //        return true;
+    //    }
 
-        public PhysicsScene GetScene(string sceneIdentifier)
-        {
-            return new POSScene(GetName(), sceneIdentifier);
-        }
+    //    public PhysicsScene GetScene(string sceneIdentifier)
+    //    {
+    //        return new POSScene(GetName(), sceneIdentifier);
+    //    }
 
-        public string GetName()
-        {
-            return ("POS");
-        }
+    //    public string GetName()
+    //    {
+    //        return ("POS");
+    //    }
 
-        public void Dispose()
-        {
-        }
-    }
+    //    public void Dispose()
+    //    {
+    //    }
+    //}
 }

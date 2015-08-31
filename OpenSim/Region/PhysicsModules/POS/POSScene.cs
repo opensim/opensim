@@ -29,11 +29,15 @@ using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.PhysicsModule.POS
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "POSPhysicsScene")]
     public class POSScene : PhysicsScene
     {
         private List<POSCharacter> _characters = new List<POSCharacter>();
@@ -41,18 +45,60 @@ namespace OpenSim.Region.PhysicsModule.POS
         private float[] _heightMap;
         private const float gravity = -9.8f;
 
+        private bool m_Enabled = false;
         //protected internal string sceneIdentifier;
 
-        public POSScene(string engineType, String _sceneIdentifier)
+        #region INonSharedRegionModule
+        public string Name
         {
-            EngineType = engineType;
-            Name = EngineType + "/" + _sceneIdentifier;
-            //sceneIdentifier = _sceneIdentifier;
+            get { return "POS"; }
         }
 
-        public override void Initialise(IMesher meshmerizer, IConfigSource config)
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+            // TODO: Move this out of Startup
+            IConfig config = source.Configs["Startup"];
+            if (config != null)
+            {
+                string physics = config.GetString("physics", string.Empty);
+                if (physics == Name)
+                    m_Enabled = true;
+            }
+
+        }
+
+        public void Close()
         {
         }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            EngineType = Name;
+            PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
+
+            scene.RegisterModuleInterface<PhysicsScene>(this);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+        #endregion
 
         public override void Dispose()
         {

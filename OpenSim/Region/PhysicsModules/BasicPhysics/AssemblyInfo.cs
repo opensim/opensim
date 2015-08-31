@@ -27,6 +27,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Mono.Addins;
 
 // Information about this assembly is defined by the following
 // attributes.
@@ -34,11 +35,11 @@ using System.Runtime.InteropServices;
 // change them to the information which is associated with the assembly
 // you compile.
 
-[assembly : AssemblyTitle("BasicPhysicsPlugin")]
+[assembly : AssemblyTitle("BasicPhysicsModule")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("http://opensimulator.org")]
-[assembly : AssemblyProduct("BasicPhysicsPlugin")]
+[assembly : AssemblyProduct("BasicPhysicsModule")]
 [assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
@@ -56,3 +57,6 @@ using System.Runtime.InteropServices;
 // numbers with the '*' character (the default):
 
 [assembly : AssemblyVersion("0.8.2.*")]
+
+[assembly: Addin("OpenSim.Region.PhysicsModule.BasicPhysics", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
