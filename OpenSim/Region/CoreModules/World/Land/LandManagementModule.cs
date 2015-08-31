@@ -200,8 +200,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
             {
-                SendParcelOverlay(client);
                 SendLandUpdate((ScenePresence)presenceEntity, true);
+                SendParcelOverlay(client);
             }
 */
         }
@@ -396,17 +396,17 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!m_scene.TryGetScenePresence(remoteClient.AgentId, out avatar))
                 return;
 
+
+            if (!avatar.IsChildAgent)
+            {
+                ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                if (over == null)
+                    return;
+
+                avatar.currentParcelUUID = over.LandData.GlobalID;
+                over.SendLandUpdateToClient(avatar.ControllingClient);
+            }
             SendParcelOverlay(remoteClient);
-
-            if (avatar.IsChildAgent)
-                return;
-
-            ILandObject over = GetLandObject(avatar.AbsolutePosition.X,avatar.AbsolutePosition.Y);
-            if (over == null)
-                return;
-
-            avatar.currentParcelUUID = over.LandData.GlobalID;
-            over.SendLandUpdateToClient(avatar.ControllingClient);
         }
 
         public void SendLandUpdate(ScenePresence avatar, bool force)
@@ -977,9 +977,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             //Now add the new land object
             ILandObject result = AddLandObject(newLand);
             UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
-            m_scene.ForEachClient(SendParcelOverlay);
             result.SendLandUpdateToAvatarsOverMe();
-            startLandObject.SendLandUpdateToAvatarsOverMe();          
+            startLandObject.SendLandUpdateToAvatarsOverMe();
+            m_scene.ForEachClient(SendParcelOverlay);
         }
 
         /// <summary>
@@ -1043,8 +1043,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
-            m_scene.ForEachClient(SendParcelOverlay);
             masterLandObject.SendLandUpdateToAvatarsOverMe();
+            m_scene.ForEachClient(SendParcelOverlay);
         }
 
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
@@ -1105,12 +1105,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                             //Sale type
                             tempByte = (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
                         }
-                        else if(currentParcelBlock.LandData.OwnerID == UUID.Zero)
+                        else if (currentParcelBlock.LandData.OwnerID == UUID.Zero)
                         {
                             //Public type 
                             tempByte = (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
                         }
-// LAND_TYPE_IS_BEING_AUCTIONED still unsuported
+                        // LAND_TYPE_IS_BEING_AUCTIONED still unsuported
                         else
                         {
                             //Other Flag
@@ -1169,6 +1169,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                     }
                 }
+
+            }
+
+            if (byteArrayCount > 0)
+            {
+                remote_client.SendLandParcelOverlay(byteArray, sequenceID);
             }
         }
 
