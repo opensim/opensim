@@ -34,7 +34,7 @@ using OpenSim.Region.OptionalModules.Scripting;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 public class BSPrimLinkable : BSPrimDisplaced
 {
@@ -72,7 +72,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         base.Destroy();
     }
 
-    public override void link(Manager.PhysicsActor obj)
+    public override void link(SharedBase.PhysicsActor obj)
     {
         BSPrimLinkable parent = obj as BSPrimLinkable;
         if (parent != null)

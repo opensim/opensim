@@ -30,13 +30,13 @@ using System.Collections.Generic;
 using System.Text;
 
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.Meshing;
-using OpenSim.Region.Physics.ConvexDecompositionDotNet;
+using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModule.Meshing;
+using OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 // Information class that holds stats for the shape. Which values mean
 //     something depends on the type of shape.

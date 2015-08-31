@@ -36,9 +36,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
     public sealed class BSDynamics : BSActor
     {

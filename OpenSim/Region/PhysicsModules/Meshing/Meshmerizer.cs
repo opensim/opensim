@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System.Drawing;
@@ -41,7 +41,7 @@ using Nini.Config;
 using System.Reflection;
 using System.IO;
 
-namespace OpenSim.Region.Physics.Meshing
+namespace OpenSim.Region.PhysicsModule.Meshing
 {
     public class MeshmerizerPlugin : IMeshingPlugin
     {

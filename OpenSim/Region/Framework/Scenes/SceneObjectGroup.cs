@@ -38,7 +38,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 

@@ -30,9 +30,9 @@ using System.Text;
 
 using OMV = OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 /*
  * Class to wrap all objects.

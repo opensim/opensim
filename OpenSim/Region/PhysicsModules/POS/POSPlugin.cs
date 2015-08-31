@@ -29,9 +29,9 @@ using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
-namespace OpenSim.Region.Physics.POSPlugin
+namespace OpenSim.Region.PhysicsModule.POS
 {
     /// <summary>
     /// for now will be a very POS physics engine

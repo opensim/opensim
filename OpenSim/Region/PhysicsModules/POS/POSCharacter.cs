@@ -30,9 +30,9 @@ using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
-namespace OpenSim.Region.Physics.POSPlugin
+namespace OpenSim.Region.PhysicsModule.POS
 {
     public class POSCharacter : PhysicsActor
     {

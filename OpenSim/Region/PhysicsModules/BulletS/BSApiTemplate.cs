@@ -31,7 +31,7 @@ using System.Security;
 using System.Text;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin {
+namespace OpenSim.Region.PhysicsModule.BulletS {
 
     // Constraint type values as defined by Bullet
 public enum ConstraintType : int

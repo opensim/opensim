@@ -29,12 +29,12 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
 using OpenMetaverse;
 using Nini.Config;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 public static class BSParam
 {

@@ -35,7 +35,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.Manager
+namespace OpenSim.Region.PhysicsModule.SharedBase
 {
     public delegate void physicsCrash();
 

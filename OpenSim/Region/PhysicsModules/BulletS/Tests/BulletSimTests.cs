@@ -35,7 +35,7 @@ using log4net;
 
 using OpenSim.Tests.Common;
 
-namespace OpenSim.Region.Physics.BulletSPlugin.Tests
+namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 {
 [TestFixture]
 public class BulletSimTests : OpenSimTestCase

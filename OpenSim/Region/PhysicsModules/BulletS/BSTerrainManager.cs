@@ -31,14 +31,14 @@ using System.Text;
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
 using OpenSim.Region.CoreModules;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
 using Nini.Config;
 using log4net;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
 // The physical implementation of the terrain is wrapped in this class.

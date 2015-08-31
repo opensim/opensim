@@ -32,11 +32,11 @@ using System.Xml;
 using log4net;
 using OMV = OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.ConvexDecompositionDotNet;
+using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet;
 using OpenSim.Region.OptionalModules.Scripting; // for ExtendedPhysics
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
     [Serializable]

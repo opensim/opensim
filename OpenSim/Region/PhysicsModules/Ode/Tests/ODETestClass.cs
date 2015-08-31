@@ -30,20 +30,20 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.OdePlugin;
+using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModule.ODE;
 using OpenSim.Tests.Common;
 using log4net;
 using System.Reflection;
 
-namespace OpenSim.Region.Physics.OdePlugin.Tests
+namespace OpenSim.Region.PhysicsModule.ODE.Tests
 {
     [TestFixture]
     public class ODETestClass : OpenSimTestCase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenSim.Region.Physics.OdePlugin.OdePlugin cbt;
+        private OpenSim.Region.PhysicsModule.ODE.OdePlugin cbt;
         private PhysicsScene ps;
         private IMeshingPlugin imp;
 

@@ -31,11 +31,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenMetaverse;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using Ode.NET;
 using log4net;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModule.ODE
 {
     /// <summary>
     /// Processes raycast requests as ODE is in a state to be able to do them.

@@ -30,7 +30,7 @@ using System.Text;
 using System.Reflection;
 using Nini.Config;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
 public struct MaterialAttributes

@@ -31,10 +31,10 @@ using System.Reflection;
 using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using log4net;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModule.ODE
 {
     /// <summary>
     /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.

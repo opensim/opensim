@@ -44,9 +44,9 @@ using OpenMetaverse;
 using Drawstuff.NET;
 #endif 
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModule.ODE
 {
     public enum StatusIndicators : int
     {

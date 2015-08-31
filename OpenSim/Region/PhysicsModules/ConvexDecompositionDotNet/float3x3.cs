@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenSim.Region.Physics.ConvexDecompositionDotNet
+namespace OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet
 {
     public class float3x3
     {

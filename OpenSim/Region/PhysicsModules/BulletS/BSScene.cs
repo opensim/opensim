@@ -36,12 +36,12 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework;
 using OpenSim.Region.CoreModules;
 using Logging = OpenSim.Region.CoreModules.Framework.Statistics.Logging;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 public sealed class BSScene : PhysicsScene, IPhysicsParameters
 {

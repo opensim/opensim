@@ -36,10 +36,10 @@ using log4net;
 using Nini.Config;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModule.ODE
 {
     /// <summary>
     /// ODE plugin

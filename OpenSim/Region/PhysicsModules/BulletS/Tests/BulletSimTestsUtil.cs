@@ -33,12 +33,12 @@ using System.Text;
 using Nini.Config;
 
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.Meshing;
+using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModule.Meshing;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin.Tests
+namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 {
 // Utility functions for building up and tearing down the sample physics environments
 public static class BulletSimTestsUtil

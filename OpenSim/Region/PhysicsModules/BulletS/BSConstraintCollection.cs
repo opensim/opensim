@@ -30,7 +30,7 @@ using System.Text;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
 public sealed class BSConstraintCollection : IDisposable

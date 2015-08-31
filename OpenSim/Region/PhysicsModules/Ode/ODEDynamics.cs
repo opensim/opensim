@@ -46,9 +46,9 @@ using log4net;
 using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModule.ODE
 {
     public class ODEDynamics
     {

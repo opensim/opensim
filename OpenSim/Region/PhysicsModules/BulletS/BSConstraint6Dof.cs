@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
 public class BSConstraint6Dof : BSConstraint

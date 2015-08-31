@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenSim.Region.Physics.Manager
+namespace OpenSim.Region.PhysicsModule.SharedBase
 {
     public class CollisionLocker
     {

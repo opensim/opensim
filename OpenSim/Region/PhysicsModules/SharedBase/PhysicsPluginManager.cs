@@ -34,7 +34,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.Manager
+namespace OpenSim.Region.PhysicsModule.SharedBase
 {
     /// <summary>
     /// Description of MyClass.

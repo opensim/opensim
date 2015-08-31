@@ -34,13 +34,13 @@ using NUnit.Framework;
 using log4net;
 
 using OpenSim.Framework;
-using OpenSim.Region.Physics.BulletSPlugin;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.BulletS;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using OpenSim.Tests.Common;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin.Tests
+namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 {
 [TestFixture]
 public class BasicVehicles : OpenSimTestCase

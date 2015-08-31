@@ -35,7 +35,7 @@ using OpenSim.Framework;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 public sealed class BSAPIUnman : BSAPITemplate
 {

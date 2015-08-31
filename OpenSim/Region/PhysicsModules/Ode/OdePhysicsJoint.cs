@@ -29,10 +29,10 @@ using System;
 using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.OdePlugin;
+using OpenSim.Region.PhysicsModule.SharedBase;
+using OpenSim.Region.PhysicsModule.ODE;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModule.ODE
 {
     class OdePhysicsJoint : PhysicsJoint
     {

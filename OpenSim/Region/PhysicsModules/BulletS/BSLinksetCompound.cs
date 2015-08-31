@@ -32,7 +32,7 @@ using OpenSim.Framework;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
 public sealed class BSLinksetCompound : BSLinkset

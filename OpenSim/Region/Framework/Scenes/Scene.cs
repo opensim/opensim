@@ -47,7 +47,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using Timer = System.Timers.Timer;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;

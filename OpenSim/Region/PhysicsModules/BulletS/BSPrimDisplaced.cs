@@ -31,11 +31,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
 public class BSPrimDisplaced : BSPrim
 {

@@ -27,10 +27,10 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.PhysicsModule.BulletS
 {
     /// <summary>
     /// Entry for a port of Bullet (http://bulletphysics.org/) to OpenSim.

@@ -29,11 +29,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModule.SharedBase;
 using PrimMesher;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.Meshing
+namespace OpenSim.Region.PhysicsModule.Meshing
 {
     public class Mesh : IMesh
     {
