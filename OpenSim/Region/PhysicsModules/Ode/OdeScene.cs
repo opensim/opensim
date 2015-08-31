@@ -106,7 +106,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
     }
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ODEPhysicsScene")]
-    public class OdeScene : PhysicsScene
+    public class OdeScene : PhysicsScene, INonSharedRegionModule
     {
         private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString());
         private bool m_Enabled = false;
@@ -585,7 +585,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
             Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
             Initialise();
             InitialiseFromConfig(m_config);
-            base.Initialise(scene.PhysicsRequestAsset, scene.Heightmap.GetFloatsSerialised(), (float)scene.RegionInfo.RegionSettings.WaterHeight);
+            base.Initialise(scene.PhysicsRequestAsset, 
+                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[Constants.RegionSize * Constants.RegionSize]), 
+                (float)scene.RegionInfo.RegionSettings.WaterHeight);
 
         }
 

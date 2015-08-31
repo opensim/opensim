@@ -81,8 +81,6 @@ public static class BulletSimTestsUtil
 
         Vector3 regionExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
        
-        //PhysicsScene pScene = physicsPluginManager.GetPhysicsScene(
-        //                "BulletSim", "Meshmerizer", openSimINI, "BSTestRegion", regionExtent);
         RegionInfo info = new RegionInfo();
         info.RegionName = "BSTestRegion";
         info.RegionSizeX = info.RegionSizeY = info.RegionSizeZ = Constants.RegionSize;

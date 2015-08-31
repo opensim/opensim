@@ -3396,7 +3396,8 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.PhysicsModule.Ode" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.Ode"/>
+      <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Ode.NET" path="../../../../../bin/"/>
       <Reference name="nunit.framework" path="../../../../../bin/"/>
@@ -3431,9 +3432,9 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.PhysicsModules.Meshing" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModules.Meshing"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.PhysicsModule.BulletS" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.BulletS"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>

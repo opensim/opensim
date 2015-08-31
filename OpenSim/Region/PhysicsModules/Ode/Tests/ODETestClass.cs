@@ -32,6 +32,8 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.PhysicsModule.ODE;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Tests.Common;
 using log4net;
 using System.Reflection;
@@ -44,15 +46,39 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //private OpenSim.Region.PhysicsModule.ODE.OdePlugin cbt;
-        private PhysicsScene ps;
+        private PhysicsScene pScene;
         private IMeshingPlugin imp;
 
         [SetUp]
         public void Initialize()
         {
-            IConfigSource TopConfig = new IniConfigSource();
-            IConfig config = TopConfig.AddConfig("Startup");
-            config.Set("DecodedSculptMapPath","j2kDecodeCache");
+            IConfigSource openSimINI = new IniConfigSource();
+            IConfig startupConfig = openSimINI.AddConfig("Startup");
+            startupConfig.Set("physics", "OpenDynamicsEngine");
+            startupConfig.Set("DecodedSculptMapPath", "j2kDecodeCache");
+
+            Vector3 regionExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+
+            //PhysicsScene pScene = physicsPluginManager.GetPhysicsScene(
+            //                "BulletSim", "Meshmerizer", openSimINI, "BSTestRegion", regionExtent);
+            RegionInfo info = new RegionInfo();
+            info.RegionName = "ODETestRegion";
+            info.RegionSizeX = info.RegionSizeY = info.RegionSizeZ = Constants.RegionSize;
+            OpenSim.Region.Framework.Scenes.Scene scene = new OpenSim.Region.Framework.Scenes.Scene(info);
+
+            //IMesher mesher = new OpenSim.Region.PhysicsModules.Meshing.Meshmerizer();
+            //INonSharedRegionModule mod = mesher as INonSharedRegionModule;
+            //mod.Initialise(openSimINI);
+            //mod.AddRegion(scene);
+            //mod.RegionLoaded(scene);
+
+            pScene = new OdeScene();
+            Console.WriteLine("HERE " + (pScene == null ? "Null" : "Not null"));
+            INonSharedRegionModule mod = (pScene as INonSharedRegionModule);
+            Console.WriteLine("HERE " + (mod == null ? "Null" : "Not null"));
+            mod.Initialise(openSimINI);
+            mod.AddRegion(scene);
+            mod.RegionLoaded(scene);
 
             // Loading ODEPlugin
             //cbt = new OdePlugin();
@@ -65,14 +91,14 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
             {
                 _heightmap[i] = 21f;
             }
-            ps.SetTerrain(_heightmap);
+            pScene.SetTerrain(_heightmap);
         }
 
         [TearDown]
         public void Terminate()
         {
-            ps.DeleteTerrain();
-            ps.Dispose();
+            pScene.DeleteTerrain();
+            pScene.Dispose();
 
         }
 
@@ -83,9 +109,9 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
             Vector3 position = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 128f);
             Vector3 size = new Vector3(0.5f, 0.5f, 0.5f);
             Quaternion rot = Quaternion.Identity;
-            PhysicsActor prim = ps.AddPrimShape("CoolShape", newcube, position, size, rot, true, 0);
+            PhysicsActor prim = pScene.AddPrimShape("CoolShape", newcube, position, size, rot, true, 0);
             OdePrim oprim = (OdePrim)prim;
-            OdeScene pscene = (OdeScene) ps;
+            OdeScene pscene = (OdeScene)pScene;
 
             Assert.That(oprim.m_taintadd);
 
@@ -93,7 +119,7 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
 
             for (int i = 0; i < 58; i++)
             {
-                ps.Simulate(0.133f);
+                pScene.Simulate(0.133f);
 
                 Assert.That(oprim.prim_geom != (IntPtr)0);
 
@@ -117,9 +143,9 @@ namespace OpenSim.Region.PhysicsModule.ODE.Tests
             // Make sure we're not somewhere above the ground
             Assert.That(prim.Position.Z < 21.5f);
 
-            ps.RemovePrim(prim);
+            pScene.RemovePrim(prim);
             Assert.That(oprim.m_taintremove);
-            ps.Simulate(0.133f);
+            pScene.Simulate(0.133f);
             Assert.That(oprim.Body == (IntPtr)0);
         }
     }

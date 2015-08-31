@@ -93,7 +93,9 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
             m_regionExtent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
-            base.Initialise(scene.PhysicsRequestAsset, scene.Heightmap.GetFloatsSerialised(), (float)scene.RegionInfo.RegionSettings.WaterHeight);
+            base.Initialise(scene.PhysicsRequestAsset,
+                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[Constants.RegionSize * Constants.RegionSize]),
+                (float)scene.RegionInfo.RegionSettings.WaterHeight);
 
         }
 
