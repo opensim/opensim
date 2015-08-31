@@ -3030,7 +3030,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientTerrainEvents(IClientAPI client)
         {
-            client.OnRegionHandShakeReply += SendLayerData;
+//            client.OnRegionHandShakeReply += SendLayerData;
         }
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
@@ -3158,7 +3158,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientTerrainEvents(IClientAPI client)
         {
-            client.OnRegionHandShakeReply -= SendLayerData;
+//            client.OnRegionHandShakeReply -= SendLayerData;
         }
 
         public virtual void UnSubscribeToClientPrimEvents(IClientAPI client)

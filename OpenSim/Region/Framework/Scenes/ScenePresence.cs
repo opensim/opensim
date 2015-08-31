@@ -1198,6 +1198,8 @@ no information to check this
                 }
                 AbsolutePosition = pos;
 
+                // reset camera to avatar pos
+                CameraPosition = pos;
 
                 if (m_teleportFlags == TeleportFlags.Default)
                 {
@@ -1732,6 +1734,10 @@ no information to check this
                     if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01) )
                         look = new Vector3(0.99f, 0.042f, 0);
                 }
+
+// start sending terrain patchs
+                if (!isNPC)
+                    Scene.SendLayerData(ControllingClient);
 
                 if (!IsChildAgent && !isNPC)
                 {
